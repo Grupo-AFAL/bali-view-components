@@ -5,10 +5,12 @@
  * gobierno-corporativo, afal-apps, identity and opina carried byte-identically
  * in their own CSS (#718) — the hex comments trace every value back to the
  * original Tailwind palette. Delete the local copy when importing this file.
- * The one departure is the primary: that block's blue-500 (#3B82F6) put white
- * text at 3.68:1, under AA's 4.5. It is Tailwind v4's blue-600 (5.25:1), not
- * v3's #2563EB like the other brand colours: that one leaves primary text on a
- * primary/10 tint over base-100 at 4.49:1, and this one at 4.51.
+ * Two departures, each a step darker because white on that block's value read
+ * under AA's 4.5. The primary: blue-500 (#3B82F6) put white at 3.68:1. It is
+ * Tailwind v4's blue-600 (5.25:1), not v3's #2563EB like the other brand
+ * colours: that one leaves primary text on a primary/10 tint over base-100 at
+ * 4.49:1, and this one at 4.51. The secondary: violet-500 (#8B5CF6) put white
+ * at 4.23:1, v3's violet-600 (#7C3AED) at 5.70 (#1261).
  * Brand: Grupo AFAL
  *
  * Usage:
@@ -19,7 +21,7 @@
   color-scheme: light;
   --color-primary: oklch(54.6% 0.245 262.881);           /* #155DFC */
   --color-primary-content: oklch(100% 0 0);               /* #FFFFFF */
-  --color-secondary: oklch(60.56% 0.2189 292.717);       /* #8B5CF6 */
+  --color-secondary: oklch(54.13% 0.2466 293.009);       /* #7C3AED */
   --color-secondary-content: oklch(100% 0 0);             /* #FFFFFF */
   --color-accent: oklch(76.86% 0.1647 70.080);           /* #F59E0B */
   --color-accent-content: oklch(0% 0 0);                  /* #000000 */

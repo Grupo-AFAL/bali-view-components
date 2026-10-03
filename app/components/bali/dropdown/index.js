@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
+import { topLayerHost } from '../../../assets/javascripts/bali/utils/top-layer.js'
 import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
 
 // tippy's own `preventOverflow` padding, so both modes stop the same distance from the edge.
@@ -14,7 +15,7 @@ export class DropdownController extends Controller {
     // the reader operates, so ids, Stimulus targets, `data-turbo-confirm` and every
     // listener already on it survive the trip. `this.menu` is captured at connect, before
     // the move, because a Stimulus target lookup is scoped to the controller element and
-    // stops finding it the moment tippy appends the popper to `<body>`.
+    // stops finding it the moment tippy moves the menu into its popper.
     popover: { type: Boolean, default: false },
     placement: { type: String, default: 'bottom-start' }
   }
@@ -83,7 +84,10 @@ export class DropdownController extends Controller {
     // also what keeps the two modes behaving alike.
     this.tippy = tippy(this.triggerTarget, {
       content: this.menu,
-      appendTo: () => document.body,
+      // Everything outside a modal `<dialog>` is inert (utils/top-layer.js). A function, so
+      // it is asked on every show: a dropdown in a panel rendered closed connects before its
+      // dialog is modal.
+      appendTo: (reference) => topLayerHost(reference) ?? document.body,
       trigger: 'manual',
       hideOnClick: false,
       interactive: true,
@@ -234,8 +238,8 @@ export class DropdownController extends Controller {
   }
 
   // Everything this dropdown is made of, whichever mode it is in. In popover mode the menu
-  // hangs off `<body>` rather than off the wrapper, so `this.element.contains` on its own
-  // answers "not mine" about this dropdown's own panel.
+  // hangs off `<body>`, or off the dialog around the dropdown, rather than off the wrapper,
+  // so `this.element.contains` on its own answers "not mine" about this dropdown's own panel.
   owns (node) {
     if (!node) return false
 
@@ -264,6 +268,11 @@ export class DropdownController extends Controller {
       case 'Escape':
         if (isOpen) {
           event.preventDefault()
+          // In a modal dialog this key is the menu's, not also the dialog's:
+          // `keydown.esc->modal#close` (and `drawer#close`) cannot read `defaultPrevented`
+          // instead, because SlimSelect cancels every Escape, open or not. Outside one,
+          // ancestors still see it.
+          if (topLayerHost(this.element)) event.stopPropagation()
           this.close()
           // `?.` cannot guard a Stimulus target: the getter throws rather than returning
           // undefined. This file already asks `hasTriggerTarget` at setupPopover and
@@ -301,9 +310,10 @@ export class DropdownController extends Controller {
         }
         break
       case 'Tab':
-        // The popper hangs at the end of `<body>`: Tab from its last item left the document
-        // and Shift+Tab from its first went to the end of the page. From the trigger, the
-        // browser's own Tab carries on in the trigger's place.
+        // The popper hangs at the end of `<body>`, or of the open `<dialog>`, far from its
+        // trigger: Tab from its last item left the document and Shift+Tab from its first
+        // landed on whatever comes before it there. From the trigger, the browser's own Tab
+        // carries on in the trigger's place.
         if (this.tippy && this.menu.contains(event.target)) {
           this.close()
           this.triggerTarget.focus()

@@ -2,18 +2,14 @@ import { paintedContrast, paintedLuminance } from '../support/painted_contrast'
 import { THEMES } from '../support/themes'
 import { hover, unhover } from '../support/tap'
 
-// Pieces that used to paint fixed colours and only broke under a dark theme: SlimSelect's
-// own stylesheet froze daisyUI's light palette (the value read 1.04–1.10:1 on the dark themes),
-// BlockEditor's code block kept github-light's ink (1.00:1), and a comments sidebar portaled out
-// of the editor kept BlockNote's #3f3f3f (1.51–1.68:1).
+// Pieces that used to paint fixed colours instead of the theme's: SlimSelect's own stylesheet
+// froze daisyUI's light palette (the value read 1.04–1.10:1 on the dark themes), BlockEditor's
+// code block kept github-light's ink (1.00:1 on a dark theme, 3.17 on afal), and a comments
+// sidebar portaled out of the editor kept BlockNote's #3f3f3f (1.51–1.68:1 on the dark themes).
 describe('colours that follow the theme', () => {
   afterEach(() => { unhover() })
 
   const AA = 4.5
-  // github-light on base-200 measures 3.17–3.29:1 on the light themes, before and after this
-  // guard existed: that is the light palette's own debt. The 3:1 floor there still catches the
-  // other direction, github-dark's light ink resolved on a light page.
-  const DARK_THEMES = ['dark', 'afal-dark', 'costa-norte-dark']
 
   const useTheme = (theme) => {
     cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -78,12 +74,8 @@ describe('colours that follow the theme', () => {
       useTheme(theme)
       everyReadsAtAA('.bn-threads-sidebar .bn-inline-content', theme, 2)
     })
-  })
 
-  THEMES.forEach((theme) => {
-    const floor = DARK_THEMES.includes(theme) ? AA : 3
-
-    it(`paints the code block's tokens at ${floor}:1 on the ${theme} theme`, () => {
+    it(`paints the code block's tokens at AA on the ${theme} theme`, () => {
       cy.visit('/bali/block_editor/readonly')
       cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
       useTheme(theme)
@@ -91,8 +83,11 @@ describe('colours that follow the theme', () => {
         const tokens = $tokens.toArray().filter(el => el.textContent.trim())
         expectSettled(tokens[0])
         expect(tokens, 'code tokens').to.have.length.at.least(5)
+        // Of the colours the supported grammars get, a comment is the faintest in both shiki
+        // themes, so the preview's snippet has to keep one for this to measure the worst case.
+        expect(tokens.some(el => el.textContent.trim().startsWith('//')), 'a comment token').to.equal(true)
         tokens.forEach((el) => {
-          expect(paintedContrast(el), `${theme}: ${el.textContent.trim()}`).to.be.at.least(floor)
+          expect(paintedContrast(el), `${theme}: ${el.textContent.trim()}`).to.be.at.least(AA)
         })
       })
     })

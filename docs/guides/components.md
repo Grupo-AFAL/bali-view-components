@@ -1086,7 +1086,10 @@ is a preset of this one, not a second implementation.
 - `popover` - move the menu into a popper on `<body>` so no ancestor's `overflow` can clip
   it (default: `false`). What a dropdown inside a scrollable table needs. An item that opens a
   `modal:` / `drawer:` then needs that controller on `<body>`: `AppLayout` puts both there, and
-  a layout of your own has to as well, or the item navigates to its href.
+  a layout of your own has to as well, or the item navigates to its href. Inside a `<dialog>`
+  opened with `showModal()` (`Modal`, `Drawer`) the popper goes into that dialog instead,
+  because everything outside it is inert, and there the dialog's own `overflow` still applies
+  (see [Overlays and the top layer](overlays-and-the-top-layer.md)).
 - `hoverable` - open on hover as well, through daisyUI's CSS (default: `false`)
 - `close_on_click` - close on a click outside even when the focus is not inside the dropdown
   (default: `true`). With the focus inside, the click takes it out, and that closes the menu
@@ -1128,12 +1131,14 @@ on the same page with a matching `id:` and `shared: false` (a drawer with `drawe
 **Keyboard.** Tab reaches the trigger without opening it. A click, Enter, Space or `↓` open
 it; in a menu of items (`menu: true`) the keys also move the focus to the first one, `↑` opens it
 on the last, and the arrows walk them. Escape closes it and puts the focus back on the trigger;
-a click outside or the focus leaving closes it too. All of that is the same in both modes. Tab
+inside a `Modal` or `Drawer` that Escape closes only the menu, and the next one the panel. A
+click outside or the focus leaving closes it too. All of that is the same in both modes. Tab
 is the one difference: in the CSS mode the panel follows the trigger in the document and Tab
-walks its items, while in popover mode it hangs at the end of `<body>`, so a Tab from inside it
-closes it and carries on from the trigger. `hoverable:` is the exception: daisyUI's CSS still
-opens it on hover and on focus. `aria-expanded` follows what is on screen rather than the path
-that got there.
+walks its items, while in popover mode it hangs at the end of `<body>` (or of the open
+`<dialog>`), so a Tab from inside it closes it and carries on from the trigger, without leaving
+a `Modal` or `Drawer` it is in. `hoverable:` is
+the exception: daisyUI's CSS still opens it on hover and on focus. `aria-expanded` follows what
+is on screen rather than the path that got there.
 
 **Position.** daisyUI places the menu against the trigger and nothing else, so an `align: :end`
 trigger that wrapped to the left of a phone opened its menu off screen (#1231). A menu the
@@ -2310,9 +2315,10 @@ unmapped selected value raises unless `default:` is given. Recipe and the Tag vs
 criterion: [enum badges guide](enum-badges.md).
 
 **Public palette:** the twelve fixed pairs are public API — `Bali::Status.palette(:green)`
-returns `{ bg: "#16a34a", fg: "#fff" }` (raising on an unknown name), for painting
+returns `{ bg: "#15803d", fg: "#fff" }` (raising on an unknown name), for painting
 something that is *not* a pill (a Gantt bar, a chart slice) in the same colour as the
-pill for the same state. Public means frozen: changing a hex is a breaking change.
+pill for the same state. The names are frozen; a hex can change to keep its pair at AA,
+which is why hosts read it through the accessor instead of copying it.
 
 #### Progress
 

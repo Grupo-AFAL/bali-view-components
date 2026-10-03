@@ -55,8 +55,14 @@ function collectHeadings (blocks, result = []) {
   return result
 }
 
+// Every token colour the supported grammars emit reads at AA over the code block's base-200 in
+// all six themes; the faintest, the comment, measures 4.58:1 on afal and 5.45 on dark. Not
+// github-light (variables 3.17 on afal), github-dark (comments 3.48 on dark) or
+// github-light-default (comments 4.13 on afal).
+const CODE_THEMES = { light: 'github-light-high-contrast', dark: 'github-dark-default' }
+
 // BlockNote tokenizes through prosemirror-highlight's shiki parser, which it calls with no
-// options, so every token got the first loaded theme and a dark page painted github-light's
+// options, so every token got the first loaded theme and a dark page painted the light theme's
 // ink on a dark code block (measured 1.00:1). Asking for both themes with no default colour
 // leaves each token a --shiki-light and a --shiki-dark, and index.css picks between them with
 // light-dark(), which follows the theme's color-scheme.
@@ -66,7 +72,7 @@ function withBothThemes (highlighter) {
       if (key === 'codeToTokens') {
         return (code, options) => target.codeToTokens(code, {
           ...options,
-          themes: { light: 'github-light', dark: 'github-dark' },
+          themes: CODE_THEMES,
           defaultColor: false
         })
       }
@@ -161,8 +167,8 @@ export default function BlockNoteEditorWrapper ({
 
   // Build schema with optional syntax highlighting, multi-column, and mentions support.
   //
-  // `shiki` is a heavyweight optional dependency (~9 MB unminified with every
-  // grammar) and is NOT declared as a peer. Each import() is awaited on its own
+  // `shiki` is a heavyweight optional peer (~9 MB unminified with every
+  // grammar) that a host may not install. Each import() is awaited on its own
   // line inside the try: esbuild only treats a dynamic import as optional when
   // it can attribute the failure to a surrounding try, which it cannot do for
   // imports nested in a Promise.all argument list. Written this way, an app that
@@ -177,7 +183,7 @@ export default function BlockNoteEditorWrapper ({
             const { createHighlighter } = await import('shiki')
             const { createJavaScriptRegexEngine } = await import('shiki/engine/javascript')
             return withBothThemes(await createHighlighter({
-              themes: ['github-light', 'github-dark'],
+              themes: Object.values(CODE_THEMES),
               langs: PRELOADED_LANGS,
               engine: createJavaScriptRegexEngine()
             }))

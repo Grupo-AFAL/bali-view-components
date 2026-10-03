@@ -304,7 +304,7 @@ describe('SplitView structured list', () => {
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
         cy.get('[data-testid="list-filters"]').should(($band) => {
-          expect($band[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+          expect($band[0].ownerDocument.getAnimations(), 'colour transitions settled').to.have.length(0)
 
           const inactiveCount = $band[0].querySelector('.split-view-filter:not([data-active="true"]) .split-view-filter-count')
           const activeCount = $band[0].querySelector('.split-view-filter[data-active="true"] .split-view-filter-count')
@@ -474,16 +474,12 @@ describe('SplitView structured list', () => {
     // That is how the count shipped at `/50`: composited, 2.96:1 on `afal`,
     // 3.16 on `costa-norte`, 3.33 on `light`, 4.11 on `afal-dark`, against AA's
     // 4.5 for 12px text.
-    //
-    // Settled within the band and not the whole document: the layout's closed
-    // drawer keeps a loading skeleton animating forever, so the document never
-    // goes still. The band holds both the text and the ground it is measured over.
     THEMES.forEach((theme) => {
       it(`reads the heading and its count at AA on the ${theme} theme`, () => {
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
         headers().first().should(([header]) => {
-          expect(header.getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
+          expect(header.ownerDocument.getAnimations(), 'colour transitions settled').to.have.length(0)
 
           ;[['count', '.split-view-group-count'], ['label', 'span']].forEach(([what, selector]) => {
             expect(paintedContrast(header.querySelector(selector)), `${theme}: the group ${what}`)

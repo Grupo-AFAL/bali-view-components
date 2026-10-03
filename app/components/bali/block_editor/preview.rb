@@ -518,12 +518,14 @@ module Bali
             content: [{ type: 'text', text: 'Code Block', styles: {} }],
             props: { level: 3 }
           },
-          # Code block with syntax highlighting
+          # Keep the comment line: theme-follow-contrast.cy.js measures it as the faintest ink the
+          # supported grammars get from either shiki theme.
           {
             type: 'codeBlock',
             content: [{ type: 'text', styles: {},
-                        text: "function greet(name) {\n  " \
-                              "return `Hello, \#{'{'}name\#{'}'}!`;\n" \
+                        text: "// Greets whoever it is given\n" \
+                              "function greet(name) {\n  " \
+                              "return `Hello, ${name}!`;\n" \
                               "}\n\nconsole.log(greet('World'));" }],
             props: { language: 'javascript' }
           },
