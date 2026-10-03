@@ -206,6 +206,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Un drawer cerrado ya no oscurece el borde de la página** (#1286). El panel cerrado espera
+  justo fuera de la pantalla, y su `shadow-2xl` entraba unos 40 px: en `light` el borde derecho
+  de cada página con `Bali::AppLayout` bajaba de 248 a 228, y lo mismo el izquierdo con un
+  drawer `position: :left`. Ahora el panel sólo tiene sombra abierto: la trae desde el primer cuadro
+  del deslizamiento de entrada y la desvanece con el de salida. Vale para todo `Bali::Drawer`.
+  Sin nada que hacer en el anfitrión.
+
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
