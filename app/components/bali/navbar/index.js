@@ -17,8 +17,7 @@ export class NavbarController extends Controller {
 
     if (!this.allowTransparencyValue) return
 
-    this.isTransparent = true
-    this.element.classList.add('is-transparent')
+    this.setIsTransparent()
     this.throttledUpdateBackgroundColor = throttle(this.updateBackgroundColor, this.throttleIntervalValue)
 
     document.addEventListener('scroll', this.throttledUpdateBackgroundColor)
@@ -60,6 +59,7 @@ export class NavbarController extends Controller {
 
     this.isTransparent = true
     this.element.classList.add('is-transparent')
+    this._finishColorTransitions()
   }
 
   removeIsTransparent () {
@@ -67,6 +67,16 @@ export class NavbarController extends Controller {
 
     this.isTransparent = false
     this.element.classList.remove('is-transparent')
+    this._finishColorTransitions()
+  }
+
+  // The bar swaps text colour and background on the same frame, but daisyUI fades `color` over
+  // .2s on `.btn` and on `.menu` items, so its links reached the new colour late: 183 ms under
+  // 3:1 on `secondary` in `light` (#1284).
+  _finishColorTransitions () {
+    this.element.getAnimations({ subtree: true })
+      .filter(animation => animation.transitionProperty === 'color')
+      .forEach(animation => animation.finish())
   }
 
   toggleMenu (event) {

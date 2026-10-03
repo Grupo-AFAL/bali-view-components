@@ -1,0 +1,8 @@
+/* The box paints base-100 inside a daisyUI `.modal`, which is `color: inherit`, so it took the
+ * text colour of wherever it was rendered: in a `neutral` Navbar its title measured 1.00:1 in
+ * `afal` (#1284). Here and not on the template: `wrapper_class:` lands on the box, and Tailwind
+ * emits `text-accent-content` before `text-base-content`, so as a utility this would beat a
+ * host's. */
+.modal-component .modal-box {
+  @apply text-base-content;
+}
