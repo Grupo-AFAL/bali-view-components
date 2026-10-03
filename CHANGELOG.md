@@ -223,7 +223,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     (`base-content` en la página) y no el `-content` de su preset, que es para el fondo que aún
     no tiene: sus enlaces, la marca y la hamburguesa medían bajo 3:1 sobre la página en 15 de
     las 24 combinaciones de color y tema (1.00 con `primary` en `afal`); ahora, de 13.73 a
-    17.72. Pasada su altura recupera fondo y `-content`, como antes. Sobre un hero oscuro el
+    17.72. Pasada su altura recupera fondo y `-content` en el mismo cuadro: el fondo ya no
+    tarda 1 s en aparecer, porque el texto cambia en el umbral. Sobre un hero oscuro el
     color lo pone el anfitrión: `color: :neutral, class: "text-neutral-content"` lo conserva
     también transparente. El `-content` de otro preset no sirve igual: el de `accent` es oscuro
     en los seis temas.
