@@ -15,7 +15,13 @@
   <div class="modal-backdrop fixed inset-0 bg-black/50" data-modal-target="background" aria-hidden="true"></div>
   <div class="<%= box_classes %> relative bg-base-100 rounded-box p-4 sm:p-6 shadow-xl w-11/12 max-h-[calc(100vh-5em)] overflow-y-auto" data-wrapper-class="<%= @wrapper_class %>" data-modal-target="wrapper" tabindex="-1">
     <% if render_standalone_close_button? %>
-      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="<%= close_label %>" data-action="modal#close" type="button">✕</button>
+      <%# Floated, not `absolute`: out of the flow it covered whatever the content put at the
+          right of its first row (16×14 px of a tag at 1280 px wide, #1286), and floated that
+          row narrows beside it. A flex, grid or scrolling box that starts beside it (a Card,
+          the first FormBuilder fieldset, a Table) narrows for its whole height instead, by
+          24px from `sm:` up and 32px below. The negative margins undo the box's `p-4 sm:p-6`
+          above, so the button stays 8px from the corner. %>
+      <button class="btn btn-sm btn-circle btn-ghost float-right ml-2 -mt-2 -mr-2 sm:-mt-4 sm:-mr-4" aria-label="<%= close_label %>" data-action="modal#close" type="button">✕</button>
     <% end %>
     <% if header? %>
       <%= header %>

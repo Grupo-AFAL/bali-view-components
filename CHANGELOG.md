@@ -792,6 +792,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   en la flota, **gobierno-corporativo** y los formularios con `block_editor_group` de
   **afal-apps**. Sin nada que hacer en el anfitrión.
 
+- **Un drawer cerrado ya no oscurece el borde de la página** (#1286). El panel cerrado espera
+  justo fuera de la pantalla, y su sombra entraba unos 40 px: cada página con `Bali::AppLayout`
+  tenía gris el borde derecho, y una con un drawer `position: :left`, el izquierdo. Ahora el panel
+  sólo tiene sombra abierto, desde el primer cuadro del deslizamiento de entrada, y la desvanece
+  al cerrarse. Vale para todo `Bali::Drawer`. Sin nada que hacer en el anfitrión.
+
+- **El ✕ de un modal sin `with_header` ya no tapa la cabecera del contenido** (#1286). El
+  `#main-modal` de `Bali::AppLayout`, y todo modal armado con contenido, pinta su ✕ en la
+  esquina, y se encimaba sobre lo que el contenido pusiera a la derecha de su primera fila: una
+  etiqueta junto al título, o la acción de un `ShowPage` abierto en el modal. Ahora el ✕ flota en
+  la misma esquina y esa fila se acorta a su lado. Una caja `flex`, `grid` o con scroll que
+  empiece junto al ✕ —una Card, el primer `fieldset` del FormBuilder, una `Table`— se acorta en
+  toda su altura, 24 px en escritorio y 32 en celular. **Anfitrión:** si una vista que se abre
+  en el modal empieza con una de esas cajas, un título antes de ella le devuelve todo el ancho;
+  las vistas que hoy abren las apps en el modal compartido ya empiezan con su cabecera.
+
+- **`RecurrentEventRuleForm` ya no desplaza la página de lado en un celular** (#1286). La fila
+  anual «On the First / Sunday / of January» no se partía y estiraba su panel más allá de la
+  pantalla; ahora sus selects pasan al renglón siguiente cuando no caben, y en escritorio siguen
+  en una línea, y su «On the» ya no se parte en dos renglones. Ninguna de las nueve apps usa el
+  componente.
+
 ### Documentation
 
 - **Guías de release** (#1205, #1207): `release-channels.md` y `/release` describen el corte
