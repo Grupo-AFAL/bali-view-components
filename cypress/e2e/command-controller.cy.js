@@ -169,6 +169,21 @@ describe('CommandController', () => {
       })
     })
 
+    it('ends the count at the right edge of the footer, on desktop and on a phone', () => {
+      [1280, 320].forEach(width => {
+        cy.viewport(width, 760)
+        cy.visit('/bali/command/default?locale=es')
+        openPalette()
+
+        count().should('have.text', '9 resultados').then($count => {
+          const footer = $count[0].parentElement
+          const edge = footer.getBoundingClientRect().right - parseFloat(getComputedStyle(footer).paddingRight)
+          expect($count[0].getBoundingClientRect().right, `right edge of the count at ${width}px`)
+            .to.be.closeTo(edge, 1)
+        })
+      })
+    })
+
     // Hosts pin the gem and the npm package separately, so this controller can
     // meet a palette rendered by a gem that sends no forms.
     it('falls back to English when the markup carries no forms', () => {
