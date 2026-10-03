@@ -44,8 +44,10 @@ class BaliCommandComponentTest < ComponentTestCase
 
       root = ".bali-command[data-controller='command'][data-command-results-value]"
       assert_selector(root)
-      assert_equal({ "one" => "%{count} #{one}", "other" => "%{count} #{other}" },
-                   JSON.parse(page.find(root)["data-command-results-value"]))
+      # Compared as text, not parsed: a missing key renders a translation_missing
+      # <span>, which JSON.parse would raise on instead of showing in the diff.
+      assert_equal({ one: "%{count} #{one}", other: "%{count} #{other}" }.to_json,
+                   page.find(root)["data-command-results-value"])
     end
   end
 
