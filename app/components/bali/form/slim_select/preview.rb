@@ -50,12 +50,13 @@ module Bali
         end
 
         # @label With Errors
-        # Shows validation error styling with `select-error` class.
+        # Shows validation error styling with `select-error` class. The combobox SlimSelect
+        # draws is announced as invalid, described by the error and the help text.
         def with_errors
           form_record.errors.add(:name, 'must be selected')
 
           render_with_template(
-            template: 'bali/form/slim_select/previews/default',
+            template: 'bali/form/slim_select/previews/with_errors',
             locals: { model: form_record, options: OPTIONS }
           )
         end

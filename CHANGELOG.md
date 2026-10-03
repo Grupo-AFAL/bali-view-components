@@ -274,8 +274,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   o los de la barra de un `DataTable`. Sin nada que hacer en el anfitrión.
 
 - **Un `slim_select_group` se anunciaba como «Combobox» y no con su etiqueta** (#1253):
-  SlimSelect nombra el combobox que dibuja sólo con el `aria-label` o `aria-labelledby` del
-  `<select>`, y el `<label for>` no le llega. Ahora el grupo apunta `aria-labelledby` a su
+  SlimSelect nombra el combobox que dibuja con el `aria-label` o `aria-labelledby` del `<select>`
+  y, hasta la 3.4, el `<label for>` no le llega. Ahora el grupo apunta `aria-labelledby` a su
   etiqueta, salvo que `html:` ya traiga uno de los dos. Siguen en «Combobox» y necesitan el
   nombre a mano: un `slim_select_group` con `label: false` (`html: { "aria-label": … }`; en
   **gobierno-corporativo**, `mdm/departments/cut_proposals/index.html.erb`), un
@@ -285,6 +285,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`finance/conciliacion/shared/_store_filter` y `td_flow/open_questions/_question`) y las
   cuatro de **gobierno-corporativo** (`git grep -l 'data-controller="slim-select"' origin/main
   -- app/views`).
+
+- **El combobox de SlimSelect anuncia el error y la ayuda de su campo, y su lista se llama
+  como él** (#1270). SlimSelect esconde el `<select>` y no copiaba a su combobox el
+  `aria-invalid` ni el `aria-describedby` que el FormBuilder escribe para el error y `help:`;
+  ahora el controlador los copia. La lista, que se llamaba «Combobox listbox» en todos los
+  campos (y con SlimSelect 2.x no tenía nombre), toma el del combobox. Nada que hacer en el
+  anfitrión. Un `<select>` sin nombre (los casos que lista la entrada de #1253) sigue sin
+  nombre propio en el combobox y en la lista hasta que se le ponga.
 
 - **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
   los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
