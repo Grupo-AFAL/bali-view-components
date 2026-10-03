@@ -212,6 +212,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Ransack descarta sin aviso. Ahora viaja como `_gteq`/`_lteq`. Sin nada que hacer en el
   anfitrión.
 
+- **`Filters`: un rango «entre» incluye su último día** (#1282). Sobre una columna de fecha y
+  hora, Ransack leía `created_at_lteq=2026-08-27` como la medianoche del 27 y dejaba fuera las
+  filas de ese día. `FilterForm` lee ahora la fecha sola de un `_lteq` del panel como el final
+  de ese día, y así también «en o antes de». El rango de un campo `type: :datetime` elige días
+  enteros: mostraba una hora (12:00) que no viajaba. Lo notan los paneles que filtran una
+  columna de fecha y hora con `type: :date`, como `created_at` y `last_active_at` en los
+  usuarios de gobierno-corporativo o `last_sign_in_at` en las cuentas de identity: devuelven
+  también las filas del último día. Sin nada que hacer en el anfitrión. Se retiran las claves
+  `bali_view.filters.select_datetime_range` y
+  `bali_view.filters.placeholders.select_datetime_range`, que ninguna de las nueve apps usa.
+
 - **La búsqueda rápida de `Filters` se nombra con su placeholder** cuando el anfitrión no pasa
   `aria_label:` (#1282). Chromium le daba un nombre vacío, o el del botón de limpiar en cuanto
   había texto. `aria_label:` sigue ganando. Lo notan las tres apps con
