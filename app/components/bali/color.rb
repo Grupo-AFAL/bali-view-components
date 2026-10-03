@@ -44,7 +44,7 @@ module Bali
     # two neighbouring theme colours, the last and the first included, come closer than
     # 0.06 under protanopia, deuteranopia or tritanopia in the six themes; painted as a
     # bar's half-opaque fill, about 0.03 (#1281). Bali::Chart's controller repaints every
-    # series from THEME_COLOR_VARS (chart/index.js), which lists the same order.
+    # theme-coloured series from THEME_COLOR_VARS (chart/index.js), which lists the same order.
     CYCLE = %i[primary accent secondary success warning info error].freeze
 
     # #rgb, #rgba, #rrggbb, #rrggbbaa. Anything else is not something we can drop
