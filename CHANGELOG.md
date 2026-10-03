@@ -225,29 +225,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **El Datepicker y SlimSelect se leen en los seis temas** (#1281, puntos 4 y 8).
-  - El calendario de `date_group`, `datetime_group` y `time_group` llevaba escritos a mano los
-    colores del `light` de daisyUI: en los temas oscuros, un día con foco o uno de otro mes bajo
-    el cursor era un cuadro casi blanco con el número ilegible, y las flechas de la hora no se
-    veían. Ahora sigue al tema. Los días de otro mes pasan de `/30` (1.86:1 en `afal`) a `/70`.
-    El hover y el foco de los días, de la hora y de AM/PM, y el hover de las flechas de la hora,
-    pasan al texto al 8 %; antes eran `base-200`, el literal claro (el foco de un día y el hover
-    de uno de otro mes) o, en las flechas, un blanco al 30 % que en los temas claros no se veía.
-    El borde del calendario y la línea sobre la hora pasan de `base-300` al texto al 15 %. Los
-    días de un rango pierden el marco que les dejaba su relleno pintado también en el borde.
-    En el encabezado, el mes, el año y las flechas del año marcan el hover con un anillo del
-    color del texto, no con un blanco al 20 % (al 30 % en las flechas) que bajaba el mes y el
-    año a 2.96:1 en `dark`, 3.75 en `afal` y 4.33 en `light`.
-  - En SlimSelect, la opción elegida y «Select all» pasan de `primary` (3.40:1 en el `dark` de
-    daisyUI) a `text-soft-primary`, y la marca de la opción elegida toma el color de su texto.
-    «Select all» ya no se atenúa bajo el cursor; le queda el subrayado.
-
-  Lo ve toda app que use esos campos, también en los temas claros: los días de otro mes se leen
-  más, el hover y el borde del calendario se marcan algo más, las flechas de la hora marcan el
-  hover, los días de un rango van sin marco, el hover del encabezado es un anillo y no un
-  tinte, y el primario de la opción elegida y de «Select all» sale más oscuro. Sin nada que
-  hacer en el anfitrión.
-
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
@@ -688,6 +665,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `afal` lee 4.55 contra 5.25 a tinta plena: una atenuación que no se ve. El `secondary` de los
   `light` y `dark` de daisyUI no llega a AA ni a tinta plena (3.04:1), y el `primary` de `dark`
   tampoco (4.13). Ninguna app renderiza `Bali::Footer`.
+
+- **El Datepicker y SlimSelect se leen en los seis temas** (#1281, puntos 4 y 8).
+  - El calendario de `date_group`, `datetime_group` y `time_group` llevaba escritos a mano los
+    colores del `light` de daisyUI: en los temas oscuros, un día con foco o uno de otro mes bajo
+    el cursor era un cuadro casi blanco con el número ilegible, y las flechas de la hora no se
+    veían. Ahora sigue al tema. Los días de otro mes pasan de `/30` (1.86:1 en `afal`) a `/70`.
+    El hover y el foco de los días, de la hora y de AM/PM, y el hover de las flechas de la hora,
+    pasan al texto al 8 %; antes eran `base-200`, el literal claro (el foco de un día y el hover
+    de uno de otro mes) o, en las flechas, un blanco al 30 % que en los temas claros no se veía.
+    El borde del calendario y la línea sobre la hora pasan de `base-300` al texto al 15 %. Los
+    días de un rango pierden el marco que les dejaba su relleno pintado también en el borde.
+    En el encabezado, el mes, el año y las flechas del año marcan el hover con un anillo del
+    color del texto, no con un blanco al 20 % (al 30 % en las flechas) que bajaba el mes y el
+    año a 2.96:1 en `dark`, 3.75 en `afal` y 4.33 en `light`.
+  - En SlimSelect, la opción elegida y «Select all» pasan de `primary` (3.40:1 en el `dark` de
+    daisyUI) a `text-soft-primary`, y la marca de la opción elegida toma el color de su texto.
+    «Select all» ya no se atenúa bajo el cursor; le queda el subrayado.
+
+  Lo ve toda app que use esos campos, también en los temas claros: los días de otro mes se leen
+  más, el hover y el borde del calendario se marcan algo más, las flechas de la hora marcan el
+  hover, los días de un rango van sin marco, el hover del encabezado es un anillo y no un
+  tinte, y el primario de la opción elegida y de «Select all» sale más oscuro. Sin nada que
+  hacer en el anfitrión.
 
 ### Documentation
 
