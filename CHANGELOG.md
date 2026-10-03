@@ -211,8 +211,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de un detalle de la visita `advance` que lo sigue dejaba la fila nueva marcada y el detalle y la
   URL en la anterior: el rebobinado de #1012 quitaba en `turbo:before-cache` el `src` que ese clic
   acababa de poner, y Turbo cancelaba su petición. Ahora el rebobinado deja en paz un frame que
-  no ha terminado de cargar; lo rebobina la visita de esa misma navegación cuando llega. Lo ganan
-  la bandeja de afal-apps y la bandeja y el reglamento de gobierno-corporativo, sin nada que hacer.
+  no ha terminado de cargar, y si se sale de la página antes de que llegue, al volver atrás a la
+  lista esa carga se descarta en vez de pintar el detalle. Lo ganan la bandeja de afal-apps y la
+  bandeja y el reglamento de gobierno-corporativo, sin nada que hacer.
 
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
