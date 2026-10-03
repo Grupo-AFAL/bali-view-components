@@ -54,7 +54,9 @@ module Bali
       # The character counter's own class. It lives here rather than next to the
       # textarea because the counter is no longer a textarea feature: `<input>`
       # and `<textarea>` are the same element to the controller, which only reads
-      # `value.length` (#723).
+      # `value.length` (#723). Its grey is a contract with
+      # app/assets/javascripts/bali/controllers/textarea-controller.js#updateCounter, which takes it
+      # off past the maximum.
       COUNTER_CLASS = "text-base-content/70 text-end w-full"
 
       # `number_with_commas` keeps its old name — it is the value hosts already

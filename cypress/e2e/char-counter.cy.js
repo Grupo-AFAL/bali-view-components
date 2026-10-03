@@ -34,6 +34,11 @@ describe('CharCounter', () => {
       counter().should('have.class', 'text-soft-error')
       counter().should('not.have.class', 'text-base-content/70')
       cy.get('#form_record_text').should('have.value', 'x'.repeat(41))
+
+      cy.get('#form_record_text').type('{backspace}')
+      counter().should('have.text', '40 / 40')
+      counter().should('have.class', 'text-base-content/70')
+      counter().should('not.have.class', 'text-soft-error')
     })
 
     it('just counts when no maximum was given', () => {

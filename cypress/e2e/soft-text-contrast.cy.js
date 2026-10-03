@@ -13,12 +13,12 @@ import { THEMES } from '../support/themes'
 //
 // DashboardPage's change line, StatCard's trend footer and every row from the FormBuilder's error
 // message on measure the soft colour on the surface it sits on (base-100, a row, a menu or a
-// ghost button's hover), where it replaced a `text-<colour>`. There error, success, warning, info and accent stay under
-// AA on every light theme: as `text-success` the change line and the trend footer read 1.96:1 on
-// `light`; as `text-error` the FormBuilder's error message read 2.75 on `afal`; and as
-// `text-secondary` a Loader's label read 1.99 on `costa-norte` (#1281). A Gauge's ring and a
-// Loader's spinner keep the colour itself and are not measured here.
-describe('a colour over a tint of itself, and its soft colour on base-100', () => {
+// ghost button's hover), where it replaced a `text-<colour>`. There error, success, warning,
+// info and accent stay under AA on every light theme: as `text-success` the change line and the
+// trend footer read 1.96:1 on `light`; as `text-error` the FormBuilder's error message read 2.75
+// on `afal`; and as `text-secondary` a Loader's label read 1.99 on `costa-norte` (#1281). A
+// Gauge's ring and a Loader's spinner keep the colour itself and are not measured here.
+describe('a colour over a tint of itself, and its soft colour on the page', () => {
   const AA = 4.5
   // WCAG 1.4.11: an icon is a graphical object, not text.
   const GRAPHIC = 3

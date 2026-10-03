@@ -270,8 +270,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     en development con el flag apagado y la mención de `RichTextEditor`.
 
   Lo ve toda app con formularios, con un botón o un ítem de borrar o con el cierre de sesión del
-  `Topbar::UserMenu`, que son todas las que lo usan menos **identity**, la única que lo pide con
-  `:post`: el rojo sale más oscuro en los temas claros y más claro en los oscuros.
+  `Topbar::UserMenu`, con cualquiera de los dos verbos: el rojo sale más oscuro en los temas
+  claros y más claro en los oscuros.
   **Anfitrión:** una prueba que busca el error con `p.text-error` o el asterisco con
   `label .text-error` pasa a `text-soft-error`, y una con `count: 0` deja de fallar sin avisar.
   Son las de `test/controllers/finance/terminals/` en **afal-apps**

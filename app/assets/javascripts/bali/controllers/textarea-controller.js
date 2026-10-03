@@ -41,7 +41,9 @@ export class TextareaController extends Controller {
     if (max > 0) {
       this.counterTarget.textContent = `${length} / ${max}`
       // The red of the field's error message, ERROR_MESSAGE_CLASS in
-      // lib/bali/form_builder/html_utils.rb: `text-error` read 2.75:1 on `afal`.
+      // lib/bali/form_builder/html_utils.rb: `text-error` read 2.75:1 on `afal`. The grey is
+      // COUNTER_CLASS's, and it comes off: two colour utilities on one element resolve by the
+      // order Tailwind emits them, not by which one this line adds.
       this.counterTarget.classList.toggle('text-soft-error', length > max)
       this.counterTarget.classList.toggle('text-base-content/70', length <= max)
     } else {
