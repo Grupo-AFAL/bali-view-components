@@ -45,6 +45,19 @@ goes here.
   from `opacity: 0` through `@starting-style`, and Cypress counts opacity: measured in #1231, a
   "stays closed" assertion went green on a menu at `display: flex`. Assert `display` from
   `getComputedStyle` instead (`expectClosed` in `dropdown-controller.cy.js`).
+- **After a failure screenshot, Electron stops starting Mantine's fades.** Once a test in the
+  run has failed and Cypress has taken its screenshot, a Mantine popover opened later in that
+  Electron run never starts its fade-in: the `opacity` transition stays pending and the popover
+  computes `opacity: 0` (Chrome finishes it). In a negative control that fails every theme, the
+  first test fails on its own assertion and the rest time out on the fade, so the control looks
+  as if it caught one theme. `theme-follow-contrast.cy.js` turns the transition off on the
+  link popover it measures; to check a control, `CYPRESS_screenshotOnRunFailure=false` or Chrome.
+- **A guard that switches `data-theme` right after the visit can pass on a lost update.** A
+  React island that read the scheme with `useState` and subscribed with a `MutationObserver` in
+  `useEffect` missed a switch landing between its first render and the effect, and stayed light
+  on a dark page: 3 of 30 switches under Cypress, so the guard went green most runs. Treat such
+  a flake as the bug. `useSyncExternalStore` reads the value again once it has subscribed
+  (`usePageColorScheme` in `BlockNoteEditorWrapper.jsx`): 0 of 50.
 - **Hidden text is still text.** Assert visibility or state, not `textContent` — hidden notices
   are always in the DOM.
 - **"No request happened"** needs a bounded `cy.wait(…)` before asserting
