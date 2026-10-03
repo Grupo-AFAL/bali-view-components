@@ -219,11 +219,10 @@ export class SplitViewController extends Controller {
     // Two traps hid here (#1029). Turbo rewrites a navigated frame's `src` to
     // an ABSOLUTE URL while the row's href stays as written (usually
     // relative), so a raw string compare never matched. And by the time this
-    // runs on a traversal the `src` is usually GONE — Turbo caches the page it
-    // is leaving before the controller's popstate listener fires, and the
-    // rewind above strips it right there — so the pane's pointer lives in the
-    // stash. Either way: resolve, compare, and only refetch a pane that shows
-    // something else.
+    // runs — from connect() on the restored page, or on a popstate Turbo does
+    // not restore — the `src` is usually GONE: the page was cached after the
+    // rewind stripped it, so the pane's pointer lives in the stash. Either way:
+    // resolve, compare, and only refetch a pane that shows something else.
     const src = frame.getAttribute('src') ?? frame.getAttribute('data-split-view-src')
     if (src && new URL(src, window.location.href).href === current.href) return
 
