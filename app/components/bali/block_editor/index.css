@@ -1,11 +1,12 @@
 /* BlockEditor: DaisyUI 5 theme integration for BlockNote + Mantine
  *
- * Loaded ONLY via Vite: imported in BlockNoteEditorWrapper.jsx AFTER BlockNote CSS.
+ * Loaded ONLY through the JS bundle: imported in BlockNoteEditorWrapper.jsx AFTER BlockNote's
+ * CSS, which is the order esbuild emits them in.
  * NOT included in the global Tailwind pipeline (components.css) to avoid loading
  * heavy editor styles on pages that don't use the BlockEditor.
  *
  * IMPORTANT: Do NOT use @apply or other Tailwind directives here.
- * This file must work as plain CSS when loaded via Vite.
+ * This file must work as plain CSS: esbuild bundles it as it is.
  *
  * DaisyUI 5 variable reference:
  *   --color-base-100   = base background (white in light theme)
