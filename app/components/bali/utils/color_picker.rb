@@ -14,8 +14,6 @@ module Bali
         end
       end
 
-      attr_reader :current, :use_theme_colors
-
       # @param use_theme_colors [Boolean] Resolve to DaisyUI variables rather than fixed hex
       # @param color [Symbol, nil] Semantic colour the cycle starts from
       # @param custom_color [String, nil] Hex colour the cycle starts from
@@ -24,17 +22,10 @@ module Bali
         @use_theme_colors = use_theme_colors
         @color = color
         @custom_color = custom_color
-        @current = colors[@pointer]
       end
 
       def next_color
-        @current = colors[@pointer % colors.size]
-        @pointer += 1
-        @current
-      end
-
-      def opacify_current(opacity = 5)
-        self.class.opacify(@current, opacity)
+        colors[@pointer % colors.size].tap { @pointer += 1 }
       end
 
       private

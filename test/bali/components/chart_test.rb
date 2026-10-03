@@ -214,10 +214,16 @@ class BaliChartComponentTest < ComponentTestCase
     assert_equal(%w[primary accent], series_colors(2))
   end
 
-  # chart/index.js paints series N in THEME_COLOR_VARS[N % 7], so the series Ruby names
-  # have to walk the whole cycle too or the JSON names one colour and the canvas shows another.
+  # chart/index.js repaints the series in THEME_COLOR_VARS order, starting over after the
+  # last, so the series Ruby names have to walk the whole cycle too or the JSON names one
+  # colour and the canvas shows another.
   def test_theme_colors_hand_out_every_colour_of_the_cycle_before_repeating
     assert_equal([ *Bali::Color::CYCLE.map(&:to_s), "primary" ], series_colors(8))
+  end
+
+  # Without the theme the controller repaints nothing: the hex in the JSON is what is drawn.
+  def test_without_theme_colors_the_tenth_series_takes_the_last_hex
+    assert_equal("#AAAA11", series_border_colors(10, use_theme_colors: false).last[0, 7])
   end
 
   # Everything Chart.js draws is pixels. Without a role and a name the canvas is
@@ -298,13 +304,17 @@ class BaliChartComponentTest < ComponentTestCase
 
   private
 
-  # The theme colour each of `count` series is painted in, read off the JSON the controller gets.
-  def series_colors(count)
+  # The border colour of each of `count` series, read off the JSON the controller gets.
+  def series_border_colors(count, **options)
     datasets = Array.new(count) { |n| { label: "Series #{n + 1}", data: [ n ] } }
-    render_inline(Bali::Chart::Component.new(data: { labels: %w[Q1], datasets: datasets }))
+    render_inline(Bali::Chart::Component.new(data: { labels: %w[Q1], datasets: datasets }, **options))
 
     JSON.parse(page.find("canvas.chart")["data-chart-data-value"])["datasets"].map do |dataset|
-      Array(dataset["borderColor"]).first[/var\(--color-([\w-]+)\)/, 1]
+      Array(dataset["borderColor"]).first
     end
+  end
+
+  def series_colors(count)
+    series_border_colors(count).map { |color| color[/var\(--color-([\w-]+)\)/, 1] }
   end
 end
