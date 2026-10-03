@@ -4,7 +4,7 @@ module Bali
   module Topbar
     module UserMenu
       # The prefabricated user dropdown for the Topbar's far-right slot: avatar
-      # (photo or derived initials), the user's name and email as a non-actionable
+      # (photo or initials), the user's name and email as a non-actionable
       # header, the host's items, and a sign-out entry that submits a real form.
       #
       # A Bali::Dropdown with its trigger and header already chosen — the same
@@ -36,6 +36,9 @@ module Bali
 
         # @param name [String] the user's full name. Feeds the trigger's avatar
         #   (initials + deterministic colour, see Bali::Avatar) and the header.
+        # @param initials [String, nil] the avatar's letters, passed to Bali::Avatar as
+        #   given. Left out, Avatar takes the first and the last word of `name:`, which
+        #   reads "Federico González Pérez" as "FP".
         # @param email [String, nil] second line of the header.
         # @param avatar_url [String, nil] photo for the avatar; wins over initials.
         # @param sign_out [Hash, nil] `{ href:, method: :delete }`. Extra keys
@@ -43,8 +46,10 @@ module Bali
         # @param align [Symbol] Dropdown's horizontal axis; `:end` here, because
         #   the menu hangs off the far right of the Topbar.
         # Every other keyword is Bali::Dropdown::Component's.
-        def initialize(name:, email: nil, avatar_url: nil, sign_out: nil, align: :end, **options)
+        def initialize(name:, initials: nil, email: nil, avatar_url: nil, sign_out: nil,
+                       align: :end, **options)
           @name = name
+          @initials = initials
           @email = email
           @avatar_url = avatar_url
           @sign_out = normalize_sign_out(sign_out)
@@ -70,12 +75,13 @@ module Bali
         # prefers the output buffer and discards the returned string (see the
         # measurement note in Bali::ActionsDropdown#default_trigger).
         def default_trigger
+          avatar = Bali::Avatar::Component.new(name: @name, initials: @initials,
+                                               src: @avatar_url, size: :xs)
+          chevron = Bali::Icon::Component.new("chevron-down", size: :small)
           inner = safe_join([
-                              render(Bali::Avatar::Component.new(
-                                       name: @name, src: @avatar_url, size: :xs
-                                     )),
+                              render(avatar),
                               tag.span(@name, class: "hidden md:inline"),
-                              render(Bali::Icon::Component.new("chevron-down", size: :small))
+                              render(chevron)
                             ])
 
           render(Dropdown::Trigger::Component.new(

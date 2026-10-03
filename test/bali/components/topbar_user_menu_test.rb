@@ -30,6 +30,15 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
     assert_selector('[data-dropdown-target="trigger"] svg', count: 1) # the chevron
   end
 
+  # Avatar's first-and-last-word rule reads two surnames as the wrong pair: "FP" here.
+  def test_initials_reach_the_avatar_as_given
+    render_inline(Bali::Topbar::UserMenu::Component.new(
+                    name: "Federico González Pérez", initials: "FG", sign_out: sign_out
+                  ))
+
+    assert_selector('[data-dropdown-target="trigger"] .avatar-placeholder', text: "FG")
+  end
+
   def test_trigger_uses_the_photo_when_avatar_url_is_given
     render_inline(Bali::Topbar::UserMenu::Component.new(
                     name: "Ana García", avatar_url: "/ana.jpg", sign_out: sign_out
