@@ -225,38 +225,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`Filters`: «entre» sigue filtrando al pasar de un campo de fecha a otro** (#1282). Con
-  «entre» elegido, cambiar a otro campo de fecha o de fecha y hora dejaba el listado sin
-  filtrar bajo una condición que seguía diciendo «entre»: viajaba como `<campo>_between`, que
-  Ransack descarta sin aviso. Ahora viaja como `_gteq`/`_lteq`. Sin nada que hacer en el
-  anfitrión.
-
-- **`Filters`: un rango «entre» incluye su último día** (#1282). Sobre una columna de fecha y
-  hora, Ransack leía `created_at_lteq=2026-08-27` como la medianoche del 27 y dejaba fuera las
-  filas de ese día. `FilterForm` lee ahora la fecha sola de un `_lteq` o un `_gt` de cualquier
-  grupo del panel, también anidado, como el final de ese día: así también «en o antes de»
-  incluye el día y «después de» lo deja fuera, en vez de traer sus filas. El rango de un campo
-  `type: :datetime` elige días enteros: mostraba una hora (12:00) que no viajaba. Lo notan los
-  paneles que filtran una columna de fecha y hora con `type: :date`, como `created_at` y
-  `last_active_at` en los usuarios de gobierno-corporativo o `last_sign_in_at` en las cuentas de
-  identity: «entre» y «en o antes de» devuelven también las filas del último día, y «después de»
-  deja de traer las del día elegido. Sin nada que hacer en el anfitrión. Se retiran las claves
-  `bali_view.filters.select_datetime_range` y
-  `bali_view.filters.placeholders.select_datetime_range`, que ninguna de las nueve apps usa.
-
-- **La búsqueda rápida de `Filters` se nombra con su placeholder** cuando el anfitrión no pasa
-  `aria_label:` (#1282). Chromium le daba un nombre vacío, o el del botón de limpiar en cuanto
-  había texto. `aria_label:` sigue ganando. Lo notan las tres apps con
-  `with_filters_panel` —afal-apps, gobierno-corporativo e identity—, donde ningún
-  `search_fields` pasa `aria_label:`. Sin nada que hacer en el anfitrión.
-
-- **El multi-select que `Filters` arma en el navegador es el que pinta el servidor** (#1282),
-  el de «es cualquiera de» y «no es ninguno de»: se abre con clic, Enter o Espacio y ya no con
-  sólo enfocarlo, se cierra con Escape y el disparador lleva `aria-haspopup`. Los dos, el
-  armado y el del servidor, se cierran también cuando el foco sale con Tab, en vez de quedar
-  abiertos sobre el control que lo recibe. Se retira la clase `.filters-multi-select-content`,
-  que ninguna de las nueve apps usa. Sin nada que hacer en el anfitrión.
-
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
@@ -743,6 +711,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   oscuro que la fila sobre la que va la píldora. Las barras siguen en `neutral`. Con cualquiera
   de los ocho colores de daisyUI o sin color, en reposo, bajo el puntero o en la fila
   seleccionada, el peor caso mide 4.61:1 (`afal`). Sin nada que hacer en el anfitrión.
+
+- **`Filters`: «entre» sigue filtrando al pasar de un campo de fecha a otro** (#1282). Con
+  «entre» elegido, cambiar a otro campo de fecha o de fecha y hora dejaba el listado sin
+  filtrar bajo una condición que seguía diciendo «entre»: viajaba como `<campo>_between`, que
+  Ransack descarta sin aviso. Ahora viaja como `_gteq`/`_lteq`. Sin nada que hacer en el
+  anfitrión.
+
+- **`Filters`: un rango «entre» incluye su último día** (#1282). Sobre una columna de fecha y
+  hora, Ransack leía `created_at_lteq=2026-08-27` como la medianoche del 27 y dejaba fuera las
+  filas de ese día. `FilterForm` lee ahora la fecha sola de un `_lteq` o un `_gt` de cualquier
+  grupo del panel, también anidado, como el final de ese día: así también «en o antes de»
+  incluye el día y «después de» lo deja fuera, en vez de traer sus filas. El rango de un campo
+  `type: :datetime` elige días enteros: mostraba una hora (12:00) que no viajaba. Lo notan los
+  paneles que filtran una columna de fecha y hora con `type: :date`, como `created_at` y
+  `last_active_at` en los usuarios de gobierno-corporativo o `last_sign_in_at` en las cuentas de
+  identity: «entre» y «en o antes de» devuelven también las filas del último día, y «después de»
+  deja de traer las del día elegido. Sin nada que hacer en el anfitrión. Se retiran las claves
+  `bali_view.filters.select_datetime_range` y
+  `bali_view.filters.placeholders.select_datetime_range`, que ninguna de las nueve apps usa.
+
+- **La búsqueda rápida de `Filters` se nombra con su placeholder** cuando el anfitrión no pasa
+  `aria_label:` (#1282). Chromium le daba un nombre vacío, o el del botón de limpiar en cuanto
+  había texto. `aria_label:` sigue ganando. Lo notan las tres apps con
+  `with_filters_panel` —afal-apps, gobierno-corporativo e identity—, donde ningún
+  `search_fields` pasa `aria_label:`. Sin nada que hacer en el anfitrión.
+
+- **El multi-select que `Filters` arma en el navegador es el que pinta el servidor** (#1282),
+  el de «es cualquiera de» y «no es ninguno de»: se abre con clic, Enter o Espacio y ya no con
+  sólo enfocarlo, se cierra con Escape y el disparador lleva `aria-haspopup`. Los dos, el
+  armado y el del servidor, se cierran también cuando el foco sale con Tab, en vez de quedar
+  abiertos sobre el control que lo recibe. Se retira la clase `.filters-multi-select-content`,
+  que ninguna de las nueve apps usa. Sin nada que hacer en el anfitrión.
 
 ### Documentation
 
