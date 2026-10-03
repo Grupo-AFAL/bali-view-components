@@ -81,7 +81,7 @@ module Bali
         }.freeze
 
         # Classes the clickable box adds so hovering reads as interactive
-        CLICKABLE_BOX_CLASSES = "hover:bg-base-200 transition-colors"
+        CLICKABLE_BOX_CLASSES = "hover:bg-base-content/8 transition-colors"
 
         # Muted metadata line, custody-chain style. `/70`, like the pending
         # heading, because `/60` measured 4.04:1 on `afal` against AA's 4.5:1.

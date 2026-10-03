@@ -34,10 +34,9 @@ export const luminance = ([r, g, b]) => {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
 }
 
-const contrast = (a, b) => {
-  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x)
-  return (high + 0.05) / (low + 0.05)
-}
+export const contrastRatio = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+
+const contrast = (a, b) => contrastRatio(luminance(a), luminance(b))
 
 export const paintedContrast = (el, { over = el, property = 'color', under } = {}) => {
   if (!over.contains(el)) throw new Error('paintedContrast: `over` has to be `el` or one of its ancestors')

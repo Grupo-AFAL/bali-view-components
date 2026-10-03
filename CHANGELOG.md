@@ -274,6 +274,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   versión que exporta `shiki/engine/javascript`, que el editor ya importaba, y
   gobierno-corporativo trae 3.23.
 
+- **Más hovers, tintes y bordes de panel que pintaban `base-200` o `base-300` se ven en claro y
+  en oscuro** (#1276): el hover y el tinte pasan al texto al 8 % y el borde de un panel al 15 %,
+  los valores del menú desde #1255. El hover de una opción de Filters, por ejemplo, va de 1.05:1
+  a 1.20:1 en `afal-dark`; en los temas claros también se marcan un poco más (un borde de panel
+  que era `base-300`, de 1.24 a 1.33:1 en `afal`). Cambian TreeView, Filters (opciones «es
+  alguno de», bordes de panel y el tinte del grupo), Timeline con `href:`, Clipboard,
+  DirectUpload, RecurrentEventRuleForm, la fila de SplitView, el Gantt (zoom, plegar fila,
+  minimapa y menús), el panel de la paleta de Command y el día `:ghost` de `Calendar::YearGrid`.
+  El disparador de Command, la píldora de filtro de SplitView y el botón de `Avatar::Upload`,
+  que tienen relleno en reposo, pasan al texto al 8 % y al 16 % bajo el cursor, y el rótulo del
+  disparador sube de `/60` a `/75` (a `/60` medía 3.89:1 en `afal`). El hover de un día del
+  Datepicker queda para #1281. Sin nada que hacer en el anfitrión; identity y opina, que copian
+  las clases del disparador en su propio `with_trigger`, conservan el aspecto anterior.
+
 - **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
   `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
   esos que ponga el anfitrión entra ahora en el recorrido con teclado.

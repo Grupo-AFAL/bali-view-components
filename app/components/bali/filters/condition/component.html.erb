@@ -75,12 +75,16 @@
                 <%= t('bali_view.filters.select_values') %>
               </span>
             </div>
-            <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto"
+            <%# The option classes, and the panel classes other than the ones that position and
+                show it, match condition_controller.js#buildMultiSelectInput: change both.
+                The edge is /20, not a panel's /15: the list hangs over the filter group's 8%
+                tint, where /15 read 1.148:1 on afal. %>
+            <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto"
                  data-multi-select-target="dropdown">
               <% attribute_options.each do |opt| %>
                 <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
                 <% checked = Array(value).map(&:to_s).include?(opt_value.to_s) %>
-                <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-200 cursor-pointer">
+                <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-content/8 cursor-pointer">
                   <input type="checkbox"
                          class="checkbox checkbox-sm checkbox-primary"
                          name="<%= field_name %>[]"
@@ -256,7 +260,7 @@
   <%# Remove condition button - absolute top-right on mobile, inline on desktop %>
   <div class="absolute top-0 right-0 sm:relative sm:top-auto sm:right-auto flex-shrink-0">
     <button type="button"
-            class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-soft-error hover:bg-error/10"
+            class="btn btn-ghost btn-sm btn-circle text-base-content/60 hover:text-soft-error hover:bg-error/10"
             data-action="condition#remove"
             aria-label="<%= t('bali_view.filters.remove_condition') %>"
             title="<%= t('bali_view.filters.remove_condition') %>">

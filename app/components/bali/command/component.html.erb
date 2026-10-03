@@ -8,11 +8,12 @@
         width on the component's `class:`. Not a `.btn` on purpose (see the
         class comment), so it declares its own focus-visible ring: dropping
         `.btn` also dropped daisyUI's, and the browser's default ring does not
-        follow the theme. %>
+        follow the theme. The label is /75: at /60 it read 3.89:1 on afal, and
+        /70 read 4.51 under the pointer on the preview's base-200 page. %>
     <button type="button"
             data-action="click->command#open"
             aria-haspopup="dialog"
-            class="bali-command-trigger flex items-center gap-2 w-full bg-base-200 hover:bg-base-300 rounded-md px-2.5 py-1.5 text-sm text-base-content/60 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content">
+            class="bali-command-trigger flex items-center gap-2 w-full bg-base-content/8 hover:bg-base-content/16 rounded-md px-2.5 py-1.5 text-sm text-base-content/75 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content">
       <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
       <span class="flex-1 text-left"><%= trigger_label %></span>
       <% if shortcut_label.present? %>
@@ -48,7 +49,7 @@
     <%# Modal panel — centered, fixed position %>
     <div data-command-target="panel"
          class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[var(--bali-z-command)] w-[520px] max-w-[calc(100vw-2rem)]">
-      <div class="cmd-panel bg-base-100 border border-base-300 rounded-box shadow-xl flex flex-col overflow-hidden <%= 'is-compact' if compact? %>">
+      <div class="cmd-panel bg-base-100 border border-base-content/15 rounded-box shadow-xl flex flex-col overflow-hidden <%= 'is-compact' if compact? %>">
         <%# Search input. Padding and font size live in index.css next to the
             `.is-compact` overrides — see the comment there before moving them
             back onto these elements. %>

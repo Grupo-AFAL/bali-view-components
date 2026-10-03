@@ -199,9 +199,9 @@ const TodayOverlay = memo(function TodayOverlay ({ todayXValue, label }) {
 
 // Floating buttons (bottom-left): zoom in / zoom out / fit / today.
 function FloatingControls ({ onZoomIn, onZoomOut, onFit, onToday, t }) {
-  const btn = 'grid h-[30px] w-8 place-items-center text-base-content/70 hover:bg-base-200'
+  const btn = 'grid h-[30px] w-8 place-items-center text-base-content/70 hover:bg-base-content/8'
   return (
-    <div className='absolute bottom-3.5 left-3.5 z-30 flex flex-col overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-lg'>
+    <div className='absolute bottom-3.5 left-3.5 z-30 flex flex-col overflow-hidden rounded-lg border border-base-content/15 bg-base-100 shadow-lg'>
       <button type='button' className={`${btn} border-b border-base-300`} onClick={onZoomIn} title={t('zoom_in')}>
         <svg viewBox='0 0 16 16' width='16' height='16' className='fill-current'><path d='M7 3h2v4h4v2H9v4H7V9H3V7h4z' /></svg>
       </button>

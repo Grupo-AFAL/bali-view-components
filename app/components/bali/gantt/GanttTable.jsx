@@ -129,7 +129,7 @@ const Row = memo(function Row ({ row, isCritical, isSelected, onToggle, onSelect
         {row.hasChildren ? (
           <button
             type='button'
-            className='flex h-4 w-4 shrink-0 items-center justify-center rounded text-base-content/50 hover:bg-base-200 hover:text-base-content'
+            className='flex h-4 w-4 shrink-0 items-center justify-center rounded text-base-content/50 hover:bg-base-content/8 hover:text-base-content'
             onClick={(e) => {
               e.stopPropagation()
               onToggle(row.kind, row.id)

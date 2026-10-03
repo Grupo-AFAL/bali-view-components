@@ -776,6 +776,8 @@ export class ConditionController extends Controller {
     `
   }
 
+  // The option classes, and the panel classes other than the ones that position and show it,
+  // match the multi-select in filters/condition/component.html.erb: change both.
   buildMultiSelectInput (fieldName, options) {
     const selectValuesLabel = this.t.placeholders?.select_values || 'Select values...'
     const selectedCountTemplate = this.t.selected_count || '%{count} selected'
@@ -785,7 +787,7 @@ export class ConditionController extends Controller {
         const escapedLabel = this.escapeHtml(label)
         const escapedValue = this.escapeHtml(value)
         return `
-          <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-200 cursor-pointer">
+          <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-base-content/8 cursor-pointer">
             <input type="checkbox"
                    class="checkbox checkbox-sm checkbox-primary"
                    name="${fieldName}"
@@ -815,7 +817,7 @@ export class ConditionController extends Controller {
           </span>
         </div>
         <div tabindex="0"
-             class="dropdown-content filters-multi-select-content mt-1 p-2 shadow-lg bg-base-100 border border-base-300 rounded-lg w-full max-h-60 overflow-y-auto">
+             class="dropdown-content filters-multi-select-content mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto">
           ${optionsHtml}
         </div>
       </div>

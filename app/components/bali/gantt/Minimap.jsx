@@ -83,7 +83,7 @@ export default memo(function Minimap ({ nodes = [], canvasWidth, canvasMinX = 0,
     <div
       ref={boxRef}
       onPointerDown={onPointerDown}
-      className='absolute bottom-3.5 right-3.5 z-30 cursor-pointer overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-lg'
+      className='absolute bottom-3.5 right-3.5 z-30 cursor-pointer overflow-hidden rounded-lg border border-base-content/15 bg-base-100 shadow-lg'
       style={{ width: MINI_W, height: MINI_H }}
       title={hint}
     >
