@@ -76,6 +76,13 @@ describe('hovers, tints and edges over a base surface', () => {
   }
   const recurrenceOption = (period, n) => `label:has(> input[name$="_${period}_on"][value="${n}"])`
 
+  const openDatepicker = (field) => () => {
+    cy.visit(`/bali/form/${field}/default`)
+    cy.get('form input.input:not([type="hidden"])').click()
+    cy.get('.flatpickr-calendar.open').should('be.visible')
+  }
+  const DAY = '.flatpickr-calendar.open .flatpickr-day'
+
   // [what, how the state is reached, the element that paints it]
   const HOVERS = [
     ['a TreeView item', () => cy.visit('/bali/tree_view/default'),
@@ -97,6 +104,13 @@ describe('hovers, tints and edges over a base surface', () => {
     ['a Gantt zoom button', openGantt, 'button[title="Zoom in"]'],
     ['a Gantt row toggle', openGantt, 'button[aria-label="Collapse"]'],
     ['a SplitView row', () => cy.visit('/bali/split_view/default'), '.split-view-row:not([aria-current])'],
+    ['a Datepicker day', openDatepicker('date'),
+      `${DAY}:not(.prevMonthDay):not(.nextMonthDay):not(.today):not(.selected)`, { text: '.flatpickr-day' }],
+    // Its hover was a light-theme literal: on the dark themes a near-white square, 13.6–15.3:1
+    // against the calendar, with the number on it at 1.00–1.02.
+    ['a Datepicker day of another month', openDatepicker('date'), `${DAY}.nextMonthDay`, { text: '.flatpickr-day' }],
+    ['the hour of the time picker', openDatepicker('time'), '.flatpickr-calendar.open input.flatpickr-hour'],
+    ['the AM/PM toggle of the time picker', openDatepicker('time'), '.flatpickr-calendar.open .flatpickr-am-pm'],
     // Filled at rest. Their base-300 hover over a base-200 fill stepped 1.044:1 (afal-dark) to
     // 1.130 (costa-norte) off the same control at rest; the ink at 16% over 8%, 1.168 at worst
     // (afal). The fill has to step off the surface too, and the text is read on both fills.
@@ -116,6 +130,8 @@ describe('hovers, tints and edges over a base surface', () => {
       '[data-condition-target="valueContainer"] [data-multi-select-target="dropdown"]'],
     ['the Gantt zoom controls', openGantt, 'div:has(> button[title="Zoom in"])'],
     ['the Gantt minimap', openGantt, 'div[title^="Minimap"]'],
+    ['the Datepicker calendar', openDatepicker('date'), '.flatpickr-calendar.open'],
+    ['the line over the time of a datetime picker', openDatepicker('datetime'), '.flatpickr-calendar.open .flatpickr-time'],
     ['the Gantt filter menu', openGanttMenu('Filter'), 'details[open] > ul.menu'],
     ['the Gantt columns menu', openGanttMenu('Columns'), 'details[open] > ul.menu'],
     ['the Command palette', openCommand, '.cmd-panel', edgeOnOwnFill]

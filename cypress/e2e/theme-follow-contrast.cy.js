@@ -2,10 +2,11 @@ import { paintedContrast, paintedLuminance } from '../support/painted_contrast'
 import { THEMES } from '../support/themes'
 import { hover, unhover } from '../support/tap'
 
-// Pieces that used to paint fixed colours instead of the theme's: SlimSelect's own stylesheet
-// froze daisyUI's light palette (the value read 1.04–1.10:1 on the dark themes), BlockEditor's
-// code block kept github-light's ink (1.00:1 on a dark theme, 3.17 on afal), and a comments
-// sidebar portaled out of the editor kept BlockNote's #3f3f3f (1.51–1.68:1 on the dark themes).
+// Pieces that used to paint fixed colours instead of the theme's: SlimSelect's and the
+// Datepicker's own stylesheets froze daisyUI's light palette (SlimSelect's value read
+// 1.04–1.10:1 on the dark themes, a focused day 1.00–1.08), BlockEditor's code block kept
+// github-light's ink (1.00:1 on a dark theme, 3.17 on afal), and a comments sidebar portaled out
+// of the editor kept BlockNote's #3f3f3f (1.51–1.68:1 on the dark themes).
 describe('colours that follow the theme', () => {
   afterEach(() => { unhover() })
 
@@ -40,6 +41,42 @@ describe('colours that follow the theme', () => {
       const options = theme === 'dark' ? '.ss-option:not(.ss-disabled):not(.ss-selected)' : '.ss-option:not(.ss-disabled)'
       cy.get('.ss-main').first().click()
       everyReadsAtAA(`.ss-content.ss-open ${options}`, theme, 2)
+    })
+
+    // The focus fill was the same light-theme literal as the hover: on the dark themes the
+    // focused day turned a near-white square with its number at 1.00–1.08:1.
+    it(`reads a Datepicker day under keyboard focus on the ${theme} theme`, () => {
+      cy.visit('/bali/form/date/default')
+      useTheme(theme)
+      cy.get('form input.input:not([type="hidden"])').click()
+      cy.get('.flatpickr-calendar.open .flatpickr-day:not(.prevMonthDay):not(.nextMonthDay):not(.today)').first().focus()
+
+      cy.get('.flatpickr-calendar.open .flatpickr-day:focus').should(($day) => {
+        expectSettled($day[0])
+        expect(paintedContrast($day[0]), `${theme}: focused day`).to.be.at.least(AA)
+        expect(paintedContrast($day[0], { over: $day[0].parentElement, property: 'backgroundColor' }),
+          `${theme}: focused day against the calendar`).to.be.at.least(1.15)
+      })
+    })
+
+    // Drawn in the same light-theme ink: at rest, at 70% and their faintest, 1.05–1.14:1 on the
+    // dark themes.
+    it(`draws the time picker's stepper arrows at 3:1 on the ${theme} theme`, () => {
+      cy.visit('/bali/form/time/default')
+      useTheme(theme)
+      cy.get('form input.input:not([type="hidden"])').click()
+
+      cy.get('.flatpickr-calendar.open .flatpickr-time .numInputWrapper').should(($wrappers) => {
+        expectSettled($wrappers[0])
+        expect($wrappers, 'hour and minute').to.have.length(2)
+        $wrappers.toArray().forEach((wrapper) => {
+          expect(wrapper.matches(':hover'), 'at rest').to.equal(false)
+          expect(paintedContrast(wrapper.querySelector('.arrowUp'), { pseudo: '::after', property: 'borderBottomColor' }),
+            `${theme}: up arrow`).to.be.at.least(3)
+          expect(paintedContrast(wrapper.querySelector('.arrowDown'), { pseudo: '::after', property: 'borderTopColor' }),
+            `${theme}: down arrow`).to.be.at.least(3)
+        })
+      })
     })
 
     // base-200 stepped down on the dark themes: a hovered option read 1.05:1 against the list.
