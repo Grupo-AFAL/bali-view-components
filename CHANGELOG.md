@@ -115,12 +115,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `secondary_actions_width: :xl` (w-80)— que perdió al pasar a `with_secondary_action` (su #1224).
 
 - **`initials:` en `Bali::Topbar::UserMenu`** (#1277), que llega tal cual a `Bali::Avatar`. Sin
-  él, Avatar toma la primera y la última palabra del nombre, y con dos apellidos elige mal:
-  «Federico González Pérez» queda «FP». Hasta ahora `initials:` caía en las opciones del
-  Dropdown y salía como atributo `initials="…"` del `<div>`, sin llegar al avatar. Ninguna de
-  las siete apps que usan `UserMenu` lo pasa, así que ninguna cambia. **identity** pintaba las
-  iniciales de `first_name` y `last_name` hasta pasar su topbar a `UserMenu`
-  (Grupo-AFAL/identity#366); para recuperarlas, `initials:` con esas dos letras.
+  él, Avatar toma la primera y la última palabra del nombre: «Federico González Pérez» queda
+  «FP». Ninguna de las siete apps que usan `UserMenu` lo pasa, así que ninguna cambia.
+  **identity** puede pasarlo para volver a las iniciales de `first_name` y `last_name` que
+  pintaba antes de Grupo-AFAL/identity#366.
 
 ### Changed
 
@@ -561,18 +559,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de los nueve anfitriones lo hace (`git grep -n "document.body.addEventListener" origin/main`).
 
 - **`Bali::Topbar::UserMenu` contiene un nombre o un correo largo, y su disparador cabe a
-  320 px** (#1277). Las siete apps que lo usan lo reciben con el bump.
+  320 px** (#1277). Las siete apps que lo usan lo reciben con el bump, sin tocar nada.
   - El nombre del disparador se corta con puntos suspensivos a 12rem.
-  - Las dos líneas del encabezado se cortan al ancho del panel, con el texto completo en
-    `title`. Antes un correo largo se salía del panel y dejaba fuera de él el interruptor de
-    modo oscuro.
+  - Nombre y correo del encabezado pasan de renglón dentro del panel; el correo, en
+    cualquier carácter.
   - Bajo `sm` (640 px) el disparador es sólo el avatar, cuadrado como los `IconAction` de al
-    lado. A 320 px, junto a hamburguesa, paleta y dos acciones, el de avatar y chevron se
-    salía de la pantalla y AppLayout lo recortaba.
-  - El correo queda también en un `title`, y Sentry copia `title` al selector del breadcrumb
-    de un clic sobre esa línea, como ya copia el nombre del `aria-label` del disparador. De
-    las seis apps con Sentry en el navegador sólo identity filtra esos atributos en los
-    breadcrumbs; afal-apps, centinela-web, costa-norte, gobierno-corporativo y opina no.
+    lado: con el chevron no cabía a 320 px junto a hamburguesa, paleta y dos acciones.
 
 ### Documentation
 

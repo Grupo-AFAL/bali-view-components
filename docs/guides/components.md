@@ -341,7 +341,7 @@ and a chevron (from `sm` up; below it the trigger is the avatar alone). The pane
 opens with a non-actionable name/email header, then your `with_item`s, then
 the **Dark mode** switch when `Bali.themes` declares a `dark:` theme, then the
 sign-out entry (see *Dark mode* in `docs/guides/custom-themes.md`). The header's
-two lines are cut to the panel's width, each with its whole text in `title`.
+two lines wrap inside the panel, the email at any character.
 
 **Options:**
 - `name` (required) - the user's full name; feeds avatar, header and the trigger's `aria-label`
