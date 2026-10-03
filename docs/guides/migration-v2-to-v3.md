@@ -1552,9 +1552,8 @@ that is the point of them. They are simply joined by the semantic names, so
 
 New, not a break: `Bali::Chart::Component.new(color: :success)` starts the palette
 at that colour, so a single-series chart is painted in it. `custom_color:` takes a
-hex and drops the theme palette entirely — a `<canvas>` cannot resolve a `var()`,
-so a chart cannot mix a hex with theme colours; the remaining series fall back to
-the fixed hex list.
+hex and drops the theme palette entirely: the remaining series fall back to the
+fixed hex list.
 
 ### Removed constants
 
