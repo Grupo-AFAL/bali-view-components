@@ -126,7 +126,7 @@ exist):
 <fieldset class="fieldset">
   <label class="fieldset-legend" for="email">Email</label>
   <input type="email" id="email" class="input" aria-describedby="email-hint">
-  <p class="fieldset-label text-base-content/70" id="email-hint">We'll never share your email</p>
+  <p class="fieldset-label" id="email-hint">We'll never share your email</p>
 </fieldset>
 
 <%# GOOD - error state %>

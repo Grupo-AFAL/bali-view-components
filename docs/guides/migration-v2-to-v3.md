@@ -3221,7 +3221,7 @@ grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test
 | v2 (dead in daisyUI 5) | v3 |
 |---|---|
 | `<p class="label-text-alt text-error">` (the error) | `<p class="fieldset-label text-soft-error" id="<field_id>_error">` |
-| `<p class="label-text-alt">` (the help) | `<p class="fieldset-label text-base-content/70" id="<field_id>_help">` |
+| `<p class="label-text-alt">` (the help) | `<p class="fieldset-label" id="<field_id>_help">` |
 | `<span class="label-text">` inside a checkbox/toggle/radio label | `<span>` — the wrapping `.label` styles it, as in daisyUI 5's own markup |
 | `input input-bordered w-full` | `input w-full` |
 | `textarea textarea-bordered w-full` | `textarea w-full` |
