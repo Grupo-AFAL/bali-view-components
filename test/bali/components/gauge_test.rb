@@ -76,13 +76,13 @@ class BaliGaugeComponentTest < ComponentTestCase
     assert_selector ".radial-progress.text-success > span.text-soft-success", text: "70%"
   end
 
-  Bali::Gauge::Component::COLORS.each_key do |color|
-    soft = color == :neutral ? "text-base-content" : "text-soft-#{color}"
-
+  # `neutral` is `text-base-content` in both maps: it has no mix to take, and the figure would
+  # inherit it from the ring anyway.
+  Bali::Gauge::Component::COLORS.except(:neutral).each_key do |color|
     define_method("test_#{color}_text_takes_its_soft_mix") do
       render_inline(Bali::Gauge::Component.new(value: 7, max: 10, color: color))
 
-      assert_selector ".radial-progress > span.#{soft}", text: "70%"
+      assert_selector ".radial-progress > span.text-soft-#{color}", text: "70%"
     end
   end
 

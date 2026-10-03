@@ -66,13 +66,18 @@ class BaliLoaderComponentTest < ComponentTestCase
   end
 
   # The text is on the page and takes the soft mix; soft-text-contrast.cy.js measures it.
-  Bali::Loader::Component::COLORS.each_key do |color|
-    soft = color == :neutral ? "text-base-content" : "text-soft-#{color}"
-
+  Bali::Loader::Component::COLORS.except(:neutral).each_key do |color|
     define_method("test_text_colors_renders_#{color}_text_in_its_soft_mix") do
       render_inline(Bali::Loader::Component.new(color: color))
-      assert_selector("p.#{soft}")
+      assert_selector("p.text-soft-#{color}")
     end
+  end
+
+  # `neutral` has no mix. The text is the spinner's sibling, not its child: without a class of
+  # its own it would take the colour of whatever the loader sits in.
+  def test_neutral_text_stays_on_base_content
+    render_inline(Bali::Loader::Component.new(color: :neutral))
+    assert_selector("p.text-base-content")
   end
 
   def test_the_spinner_keeps_the_colour_and_the_text_takes_the_soft_one
