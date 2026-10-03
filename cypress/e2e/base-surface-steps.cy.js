@@ -231,10 +231,25 @@ describe('hovers, tints and edges over a base surface', () => {
     })
   })
 
-  // The days of a range wore their translucent fill on the border too: a ring, 1.21–1.45:1
-  // against their own inside.
+  // flatpickr bridges the 5px between its days with a ±5px box-shadow, and these are 1.7px apart:
+  // what reaches past the gap lands on the neighbour's own fill, a second coat.
+  const bandOver = (day, neighbour) => {
+    const doc = day.ownerDocument
+    const styleOf = (el) => doc.defaultView.getComputedStyle(el)
+    const gap = neighbour.getBoundingClientRect().left - day.getBoundingClientRect().right
+    const floor = [styleOf(day.closest('.flatpickr-calendar')).backgroundColor, styleOf(neighbour).backgroundColor]
+    const reaching = (styleOf(day).boxShadow.match(/[a-z-]+\([^)]*\)[^,]*/g) || []).filter((shadow) => {
+      const [x, , blur, spread] = shadow.match(/-?[\d.]+px/g).map(parseFloat)
+      return !shadow.includes('inset') && Math.abs(x) + blur + spread > gap
+    })
+    return Math.max(1, ...reaching.map(shadow => contrastRatio(
+      paintedLuminance(doc, ...floor, shadow.match(/^[a-z-]+\([^)]*\)/)[0]), paintedLuminance(doc, ...floor))))
+  }
+
+  // The days of a range wore their translucent fill on the border too, and flatpickr's band over
+  // each neighbour: a ring and stripes, 1.21–1.45:1 against their own inside.
   THEMES.forEach((theme) => {
-    it(`tints the days of a Datepicker range off the calendar, without a ring, on the ${theme} theme`, () => {
+    it(`tints the days of a Datepicker range off the calendar, without a ring or a band, on the ${theme} theme`, () => {
       const IN_RANGE = `${DAY}.inRange:not(.today)`
       cy.visit('/bali/form/date/date_range')
       cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -255,6 +270,7 @@ describe('hovers, tints and edges over a base surface', () => {
         expect(lift($days[0]), `${theme}: a day of the range against the calendar`).to.be.at.least(STEP)
         expect(paintedContrast($days[0]), `${theme}: the number on a day of the range`).to.be.at.least(AA)
         expect(ring($days[0]), `${theme}: the border of a day of the range over its own fill`).to.be.closeTo(1, 0.01)
+        expect(bandOver($days[0], $days[1]), `${theme}: a day of the range over the next one`).to.be.closeTo(1, 0.01)
       })
       cy.get(IN_RANGE).eq(1).then(hover)
 
