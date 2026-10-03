@@ -154,12 +154,13 @@ describe('Filter condition accessible names', () => {
     ])
 
     attribute().select('last_login')
+    operator().select('eq')
     flatpickrMounted()
     conditionControls().should('deep.equal', [
       'combobox «Field»', 'combobox «Operator»', 'textbox «Value»'
     ])
 
-    operator().select('eq')
+    operator().select('between')
     flatpickrMounted()
     conditionControls().should('deep.equal', [
       'combobox «Field»', 'combobox «Operator»', 'textbox «Value»'
