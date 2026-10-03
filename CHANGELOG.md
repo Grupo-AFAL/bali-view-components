@@ -566,7 +566,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   en Inter, que BlockNote le fija aparte, así que los menús ya no van en la misma letra que él.
   La fecha de un comentario en la barra lateral del editor pasa al `base-content` al 70 %: medía
   3.32:1 en los temas claros y ahora 5.54 en `afal`; también el placeholder de los campos de
-  enlace y de URL de imagen, que medía 2.07:1.
+  enlace y de URL de imagen, que medía 2.07:1. El selector de emojis de un comentario y el panel
+  que abre «Replace image» pierden el marco cuadrado que Bali les ponía alrededor de su propia
+  tarjeta redondeada.
   Además el editor le dice a BlockNote, a Mantine y al selector de emojis si la página es
   clara u oscura, también cuando el interruptor del UserMenu cambia el tema sin recargar; antes
   les decía siempre «claro», y en un tema oscuro los fondos de color que se le ponen al texto eran

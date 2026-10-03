@@ -246,14 +246,6 @@
   font-size: 0.7rem;
 }
 
-/* BlockNote paints its menus from the palette above, but leaves two Mantine popovers it opens
- * here transparent: the emoji picker of a floating thread and the file panel. */
-.block-editor-component .mantine-Popover-dropdown {
-  background-color: var(--color-base-100) !important;
-  border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
-  box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
-}
-
 /* Links - DaisyUI resets anchor styles; restore them inside the editor */
 .block-editor-component .bn-editor a {
   color: var(--color-primary);
