@@ -69,7 +69,7 @@ module Bali
         render Bali::Timeline::Component.new do |c|
           c.with_header(text: 'Project Start', color: :primary)
           c.with_item(heading: 'Brand event', icon: 'sparkles', custom_color: '#7c3aed') do
-            tag.p 'custom_color: the hex escape hatch, on the marker and the line'
+            tag.p 'custom_color: the hex escape hatch, as is on the line and mixed into the ink on the marker'
           end
           c.with_item(heading: 'Created', icon: 'plus', color: :primary) do
             tag.p 'Project initialized'

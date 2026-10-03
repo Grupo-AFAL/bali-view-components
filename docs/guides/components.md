@@ -451,7 +451,7 @@ that is not `class:` is passed through to the tag.
 
 <%# ✅ %>
 <% c.with_header(title: 'Needs your approval', icon: 'triangle-alert',
-                 icon_class: 'text-warning') %>
+                 icon_class: 'text-soft-warning') %>
 ```
 
 #### Modal
@@ -2887,7 +2887,7 @@ Renders an icon by name, resolving Lucide icons first (1,600+ available), then k
 
 ```erb
 <%= render Bali::Icon::Component.new('check', size: :large) %>
-<%= render Bali::Icon::Component.new('alert', class: 'text-error') %>
+<%= render Bali::Icon::Component.new('alert', class: 'text-soft-error') %>
 ```
 
 **Options:**
