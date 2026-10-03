@@ -30,9 +30,9 @@ module Bali
         DARK_MODE_KEY = "bali_view.topbar.user_menu.dark_mode"
 
         # The lines' `truncate` alone clips nothing: daisyUI's `.menu` wraps (`flex-wrap:
-        # wrap`), which sizes a row to its widest unbreakable line, so a 51-character email
-        # made the header row 342 px wide inside a 208 px panel. `contain-inline-size` keeps
-        # the header's text out of that sum.
+        # wrap`), and a wrapping flex line is as wide as its widest unbreakable item, so a
+        # 51-character email stretched every row to 342 px inside a 208 px panel.
+        # `contain-inline-size` takes the header's text out of that width.
         HEADER_CLASSES = "bali-topbar-user-menu-header contain-inline-size"
 
         SIGN_OUT_MESSAGE = "Bali::Topbar::UserMenu::Component: `sign_out:` takes a Hash " \
