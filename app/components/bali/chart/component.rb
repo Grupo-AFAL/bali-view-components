@@ -178,21 +178,13 @@ module Bali
             chart_labels_value: labels_json,
             chart_options_value: options_json,
             chart_display_percent_value: display_percent?,
-            chart_use_theme_colors_value: use_theme_colors?,
-            chart_color_value: theme_color_variable
+            chart_use_theme_colors_value: use_theme_colors?
           }
         }
       end
 
       def use_theme_colors?
         @use_theme_colors
-      end
-
-      # The controller recomputes every theme colour in the browser (a canvas
-      # cannot resolve a `var()`), so it needs the same rotation Ruby applied or
-      # it hands the first dataset `--color-primary` again.
-      def theme_color_variable
-        Bali::Color.variable_name(@color)
       end
 
       private
