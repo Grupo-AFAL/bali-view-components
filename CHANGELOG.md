@@ -168,6 +168,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
+  de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
+  dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
+  `base-content` fijo que le daba daisyUI: la hamburguesa y una marca `variant: :ghost` pasan
+  de 1.00 a 14.68:1 sobre `neutral` en `afal`. En un Navbar transparente de color toman, como
+  sus enlaces, el `-content` del preset: sobre un hero oscuro se leen sólo donde ese `-content`
+  es claro, y sobre la página pueden dejar de verse (#1284). Se retira además
+  `.navbar.is-transparent.is-active`, que nunca aplicaba: el controlador pone `is-active` en la
+  hamburguesa, no en el `<nav>`. Ninguna de las nueve apps tiene un `.navbar` de color (el
+  único escrito a mano, el de `assisted_reset` en `identity`, es `bg-base-100` sin color de
+  texto) ni le pone `is-active`: nada que hacer.
+
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
   dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más oscuro
