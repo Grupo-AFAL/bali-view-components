@@ -185,10 +185,10 @@ describe('Gantt table', () => {
 
   // The pill writes its status's colour over a 16% tint of that colour, on a row that may carry
   // a tint of its own. Every pill on the page is measured as the catalog paints it, and again in
-  // every colour a host's catalog names — afal-apps passes all of these — on a hovered task row
-  // and on a selected one.
-  const COLOURS = [null, '--color-primary', '--color-secondary', '--color-accent', '--color-info',
-    '--color-success', '--color-warning', '--color-error']
+  // every daisyUI colour a host's catalog can name — afal-apps passes all but neutral — on a
+  // hovered task row and on a selected one.
+  const COLOURS = [null, '--color-neutral', '--color-primary', '--color-secondary', '--color-accent',
+    '--color-info', '--color-success', '--color-warning', '--color-error']
 
   THEMES.forEach((theme) => {
     it(`reads every status pill at AA, in every catalog colour, on the ${theme} theme`, () => {

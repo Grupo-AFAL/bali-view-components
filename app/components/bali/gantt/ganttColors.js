@@ -54,9 +54,11 @@ export function neutralColor () {
 // Color from a daisyUI variable (status). `fill`/`border` derive by color-mix
 // so no opaque token the theme might not define is needed. `text` is `text-soft-*`
 // (app/assets/stylesheets/bali/utilities.css) written out for a variable no class can name: the
-// colour itself over its own tint read 1.55:1 on `afal` (#1281).
+// colour itself over its own tint read 1.55:1 on `afal` (#1281). `--color-neutral` paints as
+// base-content, as `Bali::Color.variable_name(:neutral)` (app/components/bali/color.rb) does: a
+// dark theme's neutral is a fill, and its pill read 4.20:1 under the pointer on `dark`.
 function varColor (cssVar) {
-  const c = `var(${cssVar})`
+  const c = `var(${cssVar === '--color-neutral' ? '--color-base-content' : cssVar})`
   return {
     solid: c,
     fill: `color-mix(in oklch, ${c} 16%, transparent)`,

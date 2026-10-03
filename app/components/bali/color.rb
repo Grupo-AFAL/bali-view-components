@@ -142,7 +142,8 @@ module Bali
 
       # `:neutral` asked for as a value — a chart bar, a heatmap cell — paints with the ink: a
       # dark theme's neutral is a fill and does not read on the page, and base-content is the
-      # same colour on Bali's light themes.
+      # same colour on Bali's light themes. The Gantt's `varColor`
+      # (app/components/bali/gantt/ganttColors.js) does the same for a catalog's `--color-neutral`.
       def page_ink?(color)
         [ GHOST, :neutral ].include?(color.to_sym)
       end
