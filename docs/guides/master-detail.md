@@ -673,6 +673,10 @@ frame into view after each swap; it has to be asked on the frame:
   from `lg` up, as the preview does. That suits a detail shorter than the
   screen: a taller one, pinned, shows its end only once the list runs out.
   With `height: :full` each pane scrolls on its own instead.
+- **Known limit: focus stays on the row.** Turbo moves the page, not the
+  focus. Stacked, Enter on a row brings the detail into view while the focused
+  row is left above the screen, and the next Tab scrolls the page back up to
+  the row after it.
 
 Live at `/lookbook/preview/bali/split_view/frame_options`, with a window
 narrower than 1024px to see the scroll and a wider one to see the pin.
