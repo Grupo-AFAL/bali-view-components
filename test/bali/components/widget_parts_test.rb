@@ -78,10 +78,10 @@ class BaliWidgetCardsTest < ComponentTestCase
 
   def test_the_indicator_sits_beside_the_figure_and_under_it_on_the_hero
     render_inline(Bali::Widget::Trend::Component.new(trend_widget, size: :large))
-    assert_selector ".flex.items-center.gap-3 .text-success", visible: :all
+    assert_selector ".flex.items-center.gap-3 .text-soft-success", visible: :all
 
     render_inline(Bali::Widget::Trend::Component.new(trend_widget, size: :small))
-    assert_selector "p.mt-1.flex.justify-center .text-success", visible: :all
+    assert_selector "p.mt-1.flex.justify-center .text-soft-success", visible: :all
   end
 
   # A sparkline is a chart that has given up its axes, not a different component.
@@ -135,7 +135,7 @@ class BaliWidgetCardsTest < ComponentTestCase
   # TERNARY: `nil` is "not checked yet" and draws muted, which says something
   # different from a check that answered no.
   def test_a_check_draws_three_states
-    { true => "text-success", false => "text-error", nil => "text-base-content/55" }.each do |state, colour|
+    { true => "text-soft-success", false => "text-soft-error", nil => "text-base-content/55" }.each do |state, colour|
       render_inline(Bali::Widget::Check::Component.new(check_widget(state), size: :large))
 
       assert_selector ".boolean-icon-component[class*='#{colour}']"

@@ -89,10 +89,10 @@ module Bali
             title: 'Needs your approval',
             subtitle: 'Due on Friday',
             icon: 'triangle-alert',
-            icon_class: 'text-warning'
+            icon_class: 'text-soft-warning'
           )
 
-          tag.p('The icon is amber; the title keeps the neutral base content colour.')
+          tag.p('The icon takes the soft warning; the title keeps the neutral base content colour.')
         end
       end
 

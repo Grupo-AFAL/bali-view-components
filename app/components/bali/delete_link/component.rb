@@ -17,7 +17,7 @@ module Bali
 
       # The variants with no colour of their own, and so the only ones that leave room for
       # the destructive red. `variant: :error` already paints the button red; adding
-      # `text-error` on top of it would be red text on a red fill.
+      # `text-soft-error` on top of it would be red text on a red fill.
       COLOURLESS_VARIANTS = %i[ghost link].freeze
 
       # Spelled `trash-2` since #902: the mapping entry that made `trash` draw
@@ -141,7 +141,7 @@ module Bali
 
       def button_classes
         if @plain
-          class_names("flex items-center gap-2 text-error", @options[:class])
+          class_names("flex items-center gap-2 text-soft-error", @options[:class])
         else
           class_names(
             "btn",
@@ -149,7 +149,7 @@ module Bali
             @style_class,
             @size_class,
             {
-              "text-error" => COLOURLESS_VARIANTS.include?(@variant),
+              "text-soft-error" => COLOURLESS_VARIANTS.include?(@variant),
               "btn-disabled" => @disabled
             },
             @options[:class]

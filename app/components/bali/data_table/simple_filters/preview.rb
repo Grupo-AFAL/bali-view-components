@@ -118,8 +118,6 @@ module Bali
             fields: [:name],
             value: search_text.presence,
             placeholder: 'Search by name...',
-            # `label:` is the search box's accessible name. Without it the input is named by
-            # its placeholder, which disappears the moment the user types (#1155 review).
             label: 'Search records by name',
             icon: 'search'
           }

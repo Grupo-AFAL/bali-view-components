@@ -57,7 +57,6 @@ module Bali
         placeholder: nil,
         size: :md,
         upload_url: UNSET,
-        theme: :light,
         export: UNSET,
         export_filename: UNSET,
         ai_url: UNSET,
@@ -117,7 +116,6 @@ module Bali
           @upload_url_auto = false
           @upload_url = nil
         end
-        @theme = theme
         @export = @config.export
         @export_filename = @config.export_filename || "document"
         @ai_url = @config.ai_url
@@ -326,7 +324,6 @@ module Bali
           editable: @editable,
           placeholder: @placeholder || "",
           upload_url: @upload_url,
-          theme: @theme.to_s,
           export_filename: @export_filename,
           ai_url: @ai_url || "",
           mentions_url: @mentions_url || "",

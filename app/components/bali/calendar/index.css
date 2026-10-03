@@ -3,7 +3,7 @@
   /* Override DaisyUI table styles for calendar grid */
   .table {
     th {
-      @apply text-center text-base-content/70 font-normal text-lg p-2 border-none;
+      @apply text-center font-normal text-lg p-2 border-none;
     }
 
     td {

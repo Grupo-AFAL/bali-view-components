@@ -1189,7 +1189,7 @@ Every overlay used to invent its own z-index. The full inventory, before and aft
 | `DataTable` saved views, column selector | through `Bali::Dropdown` (#1250) | `z-50` | `--bali-z-dropdown` |
 | `Filters` popover panel | `filters/component.html.erb` | `z-50` | `--bali-z-dropdown` |
 | `Filters::Condition` value menu | `filters/condition/component.html.erb` | `z-[100]` | `--bali-z-dropdown` |
-| `Filters` multi-select list (built in JS) | `condition_controller.js` | `z-50` | `.filters-multi-select-content` → `--bali-z-dropdown` |
+| `Filters` multi-select list (built in JS) | `condition_controller.js` | `z-50` | `--bali-z-dropdown` |
 | `Drawer` root | `drawer/component.rb` | `z-[60]` | `--bali-z-drawer` (300) |
 | `Drawer` scrim / panel (inside the root) | `drawer/*` | `z-[60]` / `z-[9999]` | `z-0` / `z-10` |
 | `FeedbackWidget` scrim / panel | `feedback_widget/component.html.erb` | `z-[60]` / `z-[61]` | `calc(--bali-z-drawer - 1)` / `--bali-z-drawer` |
@@ -1599,7 +1599,7 @@ Whoever wrote the item could not tell which of the two APIs they were using.
 
 On `Button` and `Link` the keyword now shares its name with the `with_icon` slot, which is
 deliberate: they were always the same concept, and the slot is simply the form that takes
-options (`with_icon('star', class: 'text-error')`). Given both, the slot wins.
+options (`with_icon('star', class: 'text-soft-error')`). Given both, the slot wins.
 
 ### Nothing breaks on upgrade, and here is the count that decided it
 
@@ -1744,11 +1744,11 @@ colourless — check it before deploying, not after.
 ### `DeleteLink` gains the taxonomy, and merges its two icon keywords
 
 `variant:`, `style:` and `size:` work on `DeleteLink` too, and `size: :xl` exists where the
-private table stopped at `lg`. The default is unchanged: `variant: :ghost` plus the
-destructive `text-error`, which is exactly what the old hardcoded `btn btn-ghost text-error`
-produced. `text-error` also applies to `variant: :link` — those two are the variants with no
-colour of their own. Name any other colour and it owns the button, because `btn-error` with
-`text-error` on top is red on red.
+private table stopped at `lg`. The default is `variant: :ghost` plus the destructive red,
+the old hardcoded `btn btn-ghost text-error`; the red is `text-soft-error` since #1281, because
+`text-error` on the page read 2.75:1 on `afal`. It also applies to `variant: :link` — those two
+are the variants with no colour of their own. Name any other colour and it owns the button,
+because `btn-error` with the red on top is red on red.
 
 `icon:` said whether and `icon_name:` said which. One keyword says both now:
 
@@ -1773,7 +1773,7 @@ become, and now it does not have to.
 <!-- v2 -->
 <a disabled class="btn btn-ghost text-error btn-disabled">Delete</a>
 <!-- v3 -->
-<button type="button" aria-disabled="true" class="btn btn-ghost text-error btn-disabled">Delete</button>
+<button type="button" aria-disabled="true" class="btn btn-ghost text-soft-error btn-disabled">Delete</button>
 ```
 
 HTML has no `disabled` attribute on an anchor, so v2's disabled state existed only as paint:
@@ -3219,7 +3219,7 @@ grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test
 
 | v2 (dead in daisyUI 5) | v3 |
 |---|---|
-| `<p class="label-text-alt text-error">` (the error) | `<p class="fieldset-label text-error" id="<field_id>_error">` |
+| `<p class="label-text-alt text-error">` (the error) | `<p class="fieldset-label text-soft-error" id="<field_id>_error">` |
 | `<p class="label-text-alt">` (the help) | `<p class="fieldset-label" id="<field_id>_help">` |
 | `<span class="label-text">` inside a checkbox/toggle/radio label | `<span>` — the wrapping `.label` styles it, as in daisyUI 5's own markup |
 | `input input-bordered w-full` | `input w-full` |

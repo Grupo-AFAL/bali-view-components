@@ -27,13 +27,14 @@ class CardHeaderPreviewsTest < ActionDispatch::IntegrationTest
       "the badge layout is gone from the header wrappers"
   end
 
-  # The preview this PR added. A coloured icon over an uncoloured title is the
-  # whole point of `icon_class:`, and nothing else renders it.
+  # A coloured icon over an uncoloured title is the whole point of
+  # `icon_class:`, and nothing else renders it.
   def test_the_coloured_icon_preview_paints_the_icon_and_not_the_title
     get GROUP
     assert_response :ok
 
-    assert_select "span.icon-component.text-warning", { count: 1 }
-    assert_select "h2.card-title.text-warning", false, "the title must keep the neutral colour"
+    assert_select "span.icon-component.text-soft-warning", { count: 1 }
+    assert_select ".text-soft-warning h2.card-title, h2.card-title.text-soft-warning", false,
+      "the title must keep the neutral colour"
   end
 end

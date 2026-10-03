@@ -25,7 +25,7 @@ import {
   ThreadsSidebar
 } from '@blocknote/react'
 import { createPortal } from 'react-dom'
-import { useEffect, useRef, useMemo, useState, useCallback } from 'react'
+import { useEffect, useRef, useMemo, useState, useCallback, useSyncExternalStore } from 'react'
 
 import { SUPPORTED_LANGUAGES, PRELOADED_LANGS } from './constants'
 import { Mention, EntityReference } from './inlineContent'
@@ -82,6 +82,27 @@ function withBothThemes (highlighter) {
   })
 }
 
+// BlockNote, Mantine and the emoji picker each pick a light or a dark palette from the
+// `theme` BlockNoteView is handed, and with none BlockNote asks the OS, not the page. The page
+// says it with the `color-scheme` its daisyUI theme declares, and the UserMenu's switch
+// changes the theme without a new page.
+//
+// Not useState plus an observer in useEffect: a switch landing between the first render and
+// the effect was lost for good, and the editor stayed light on a dark page (3 of 30 switches
+// under Cypress). useSyncExternalStore reads the scheme again once it has subscribed.
+function subscribeToTheme (onChange) {
+  const observer = new MutationObserver(onChange)
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  return () => observer.disconnect()
+}
+
+function usePageColorScheme (element) {
+  return useSyncExternalStore(
+    subscribeToTheme,
+    () => getComputedStyle(element).colorScheme.includes('dark') ? 'dark' : 'light'
+  )
+}
+
 export default function BlockNoteEditorWrapper ({
   initialContent,
   htmlContent,
@@ -99,7 +120,6 @@ export default function BlockNoteEditorWrapper ({
   containerElement,
   onEditorReady,
   onSyncReady,
-  theme = 'light',
   aiUrl,
   ai,
   multiColumn,
@@ -132,6 +152,7 @@ export default function BlockNoteEditorWrapper ({
   const aiEnabled = !!(aiUrl && ai)
   const mentionsEnabled = !!(mentionsUrl || (staticMentions && staticMentions.length > 0))
   const referencesEnabled = !!referencesUrl
+  const colorScheme = usePageColorScheme(containerElement)
 
   const uploadFile = useFileUpload(uploadUrl, containerElement, translations)
 
@@ -542,7 +563,7 @@ export default function BlockNoteEditorWrapper ({
       <BlockNoteView
         editor={editor}
         editable={editable}
-        theme={theme}
+        theme={colorScheme}
         onChange={handleChangeWithToc}
         slashMenu={false}
         sideMenu={simple ? false : undefined}

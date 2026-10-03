@@ -406,4 +406,48 @@ describe('RecurrentEventRuleForm', () => {
       })
     })
   })
+
+  // #1286: at 390px the yearly row "On the First / Sunday / of January" stretched its panel to
+  // 485px, and the page scrolled sideways under it, with "On the" broken over two lines.
+  describe('the yearly and monthly rows', () => {
+    // The monthly row already fit on main: at 320px it is a guard.
+    const panels = {
+      yearly: { freq: YEARLY, rule: 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1', widths: [390, 320] },
+      monthly: { freq: MONTHLY, rule: 'FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=FR', widths: [320] }
+    }
+    const open = (rule) => cy.visit(`/bali/recurrent_event_rule_form/with_value?value=${encodeURIComponent(rule)}`)
+
+    Object.entries(panels).forEach(([panel, { freq, rule, widths }]) => {
+      widths.forEach((width) => {
+        it(`fit the ${panel} panel into ${width}px without scrolling the page sideways`, () => {
+          cy.viewport(width, 844)
+          open(rule)
+
+          cy.get(`fieldset[data-rrule-freq="${freq}"]`).should('be.visible')
+          cy.document().should((doc) => {
+            const { scrollWidth, clientWidth } = doc.documentElement
+            expect(scrollWidth, `scrollWidth of a page ${clientWidth}px wide`).to.equal(clientWidth)
+          })
+        })
+      })
+    })
+
+    // Not the monthly row: its "On the" still breaks from 360px down, as on main (see the template).
+    panels.yearly.widths.forEach((width) => {
+      it(`keep each yearly row label on one line at ${width}px`, () => {
+        cy.viewport(width, 844)
+        open(panels.yearly.rule)
+
+        cy.get(`fieldset[data-rrule-freq="${YEARLY}"] label > span`).should(($labels) => {
+          expect($labels, 'row labels').to.have.length(2)
+          $labels.each((_, text) => {
+            const range = text.ownerDocument.createRange()
+            range.selectNodeContents(text)
+            const lines = new Set([...range.getClientRects()].map((rect) => Math.round(rect.top)))
+            expect(lines.size, `lines of "${text.textContent.trim()}"`).to.equal(1)
+          })
+        })
+      })
+    })
+  })
 })

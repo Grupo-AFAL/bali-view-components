@@ -550,7 +550,6 @@ The `*_group` variants wrap the field in `Bali::FieldGroupWrapper` (label, `help
 | `readonly` | `Boolean` | — | **Deprecated**, removed in 4.0. Alias of `editable: !readonly` |
 | `placeholder` | `String` | `nil` | Placeholder text shown when editor is empty |
 | `upload_url` | `String`, `:auto` | `:auto` | Upload endpoint URL. `:auto` resolves from engine routes; `nil` turns uploads off, and so does `editable: false` |
-| `theme` | `Symbol` | `:light` | Editor theme: `:light` or `:dark` |
 | `export` | `Boolean`, `Array` | `false` | Enable export. `true` for both, or `[:pdf]`, `[:docx]`, `[:pdf, :docx]` |
 | `export_filename` | `String` | `'document'` | Base filename for exported files (without extension) |
 | `show_export_buttons` | `Boolean` | `true` | Render the built-in export buttons. `false` keeps export enabled but hides them, for callers driving `block-editor#exportPdf` / `#exportDocx` from their own UI |
@@ -1299,10 +1298,7 @@ An editor with all capabilities enabled:
   export_filename: 'project-update',
 
   # AI (optional)
-  ai_url: ENV['BLOCK_EDITOR_AI_URL'],
-
-  # Appearance
-  theme: :light
+  ai_url: ENV['BLOCK_EDITOR_AI_URL']
 ) %>
 ```
 
@@ -1310,15 +1306,7 @@ An editor with all capabilities enabled:
 
 ## Theming
 
-The editor uses [Mantine](https://mantine.dev/) for its UI and respects DaisyUI theme colors via CSS variable overrides. Custom styles are in `app/components/bali/block_editor/index.css`.
-
-```erb
-<%# Light theme (default) %>
-<%= render Bali::BlockEditor::Component.new(theme: :light) %>
-
-<%# Dark theme %>
-<%= render Bali::BlockEditor::Component.new(theme: :dark) %>
-```
+The editor follows the page's daisyUI theme; there is nothing to pass. `index.css` maps BlockNote's colour variables to the theme's tokens, on the editor and on the menus that float over it, and the editor tells BlockNote and [Mantine](https://mantine.dev/) whether the theme is light or dark from the `color-scheme` it declares. It also follows a `data-theme` switched in place on `<html>`, as the UserMenu's dark-mode switch does.
 
 The stylesheets (`@blocknote/core/fonts/inter.css`, `@blocknote/mantine/style.css` and this component's `index.css`) are imported from `BlockNoteEditorWrapper.jsx`, so esbuild folds them into the CSS file it emits next to your JS bundle at build time. There is no runtime CSS loading and no Vite in this project -- if the bundle's stylesheet is not linked in the layout, the editor renders unstyled (see [Step 2](#step-2----esbuild-flags)).
 

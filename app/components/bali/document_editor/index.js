@@ -421,7 +421,7 @@ export class DocumentEditorController extends Controller {
   _updateStatus (text, error = false) {
     if (this.hasSaveStatusTarget) {
       this.saveStatusTarget.textContent = text
-      this.saveStatusTarget.classList.toggle('text-error', error)
+      this.saveStatusTarget.classList.toggle('text-soft-error', error)
       this.saveStatusTarget.classList.toggle('text-base-content/70', !error)
     }
     if (this.hasSaveButtonTarget) {

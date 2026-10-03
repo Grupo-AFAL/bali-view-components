@@ -59,16 +59,23 @@ module Bali
         )
       end
 
+      # Closed, the panel waits just past the edge of the viewport, and a `shadow-2xl` there
+      # greyed the page edge from 248 to 228 in `light` (#1286). The shadow fades out with the
+      # slide-out; opening leaves `box-shadow` out of the transition, so the slide-in carries
+      # it from the first frame.
       def panel_classes
         position_config = position_settings
 
         class_names(
           "drawer-panel",
           "fixed top-0 h-full w-full",
+          # Inherited instead, it measured 1.00:1 on `bg-base-100` inside a `neutral` Navbar in `afal` (#1284).
+          "text-base-content",
           position_config[:side],
           SIZES.fetch(@size, SIZES[:md]),
-          "bg-base-100 shadow-2xl",
-          "transform transition-transform duration-300 ease-in-out",
+          "bg-base-100 group-[.drawer-open]:shadow-2xl",
+          "transform transition-[transform,translate,box-shadow] duration-300 ease-in-out",
+          "group-[.drawer-open]:transition-transform",
           position_config[:transform],
           "overflow-auto z-10"
         )

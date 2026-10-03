@@ -31,6 +31,26 @@ module Bali
         render_with_template(locals: { active: active, badge_color: badge_color })
       end
 
+      # @label Content With Its Own Header
+      # A modal built from content, as the shared `#main-modal` of AppLayout is, draws its ✕
+      # in the corner of the panel. Whatever the content puts at the right of its first row
+      # sits beside the ✕, not under it.
+      # @param active toggle
+      # @param size [Symbol] select [~, sm, md, lg, xl, full]
+      def content_header(active: true, size: nil)
+        render_with_template(locals: { active: active, size: size })
+      end
+
+      # @label Content Starting With A Card
+      # What the floated ✕ costs: a box that starts beside it and lays out its own content
+      # (a Card, a flex or grid root, a scrolling Table) is narrowed for its whole height, not
+      # just its first row.
+      # @param active toggle
+      # @param size [Symbol] select [~, sm, md, lg, xl, full]
+      def content_card(active: true, size: nil)
+        render_with_template(locals: { active: active, size: size })
+      end
+
       # @label Form Modal
       # Example of a modal containing a form with action buttons.
       # @param active toggle

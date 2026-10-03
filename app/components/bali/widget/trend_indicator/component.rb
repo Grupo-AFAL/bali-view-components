@@ -65,10 +65,12 @@ module Bali
 
         attr_reader :trend, :compact, :options
 
+        # Soft, because the delta is text on the card's base-100: `text-success` read 1.92:1
+        # there on `afal` (AA wants 4.5).
         def colour
           return "text-base-content/70" if trend.flat?
 
-          trend.good? ? "text-success" : "text-error"
+          trend.good? ? "text-soft-success" : "text-soft-error"
         end
       end
     end
