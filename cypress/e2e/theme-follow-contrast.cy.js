@@ -101,6 +101,15 @@ describe('colours that follow the theme', () => {
       })
     })
 
+    // Mantine writes `color: var(--mantine-color-dimmed)` on the date, its gray-6 in a light
+    // scheme: 3.32:1 on the light themes.
+    it(`reads a comment's date in the BlockEditor's sidebar at AA on the ${theme} theme`, () => {
+      cy.viewport(1280, 900)
+      cy.visit('/bali/block_editor/with_comments')
+      useTheme(theme)
+      everyReadsAtAA('.bn-threads-sidebar .bn-thread-comment .mantine-Text-root > .mantine-Text-root', theme, 2)
+    })
+
     it(`paints the code block's tokens at AA on the ${theme} theme`, () => {
       cy.visit('/bali/block_editor/readonly')
       cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')

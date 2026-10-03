@@ -26,8 +26,9 @@
  * BlockNote declares its palette on each `.bn-root`, and an editor has two: the `.bn-container`
  * and the one nested in it for the floating UI (the "/" menu, the side menu, the table
  * handles), which with only the container matched kept #3f3f3f: 1.50–1.68:1 on the dark
- * themes. BlockNote's dark palette sits on `.bn-root[data-color-scheme="dark"]`, (0,2,0) like
- * these: this file loading after BlockNote's (see the header) is what wins.
+ * themes. BlockNote's dark palette sits on `.bn-root[data-color-scheme]` and Mantine's on
+ * `.bn-mantine[data-mantine-color-scheme]`, (0,2,0) like these: this file loading after theirs
+ * (see the header) is what wins.
  * A comments sidebar portaled out of the editor is outside .block-editor-component, and
  * each comment there is a BlockNote of its own: without this second selector its text kept
  * BlockNote's #3f3f3f (1.51–1.68:1 on the dark themes). */
@@ -52,6 +53,8 @@
      its 30% further down. */
   --bn-colors-side-menu: color-mix(in oklch, var(--color-base-content) 70%, transparent);
   --bn-colors-shadow: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+  /* Mantine's, and it paints a comment's date in it: its gray-6, 3.32:1 on the light themes. */
+  --mantine-color-dimmed: color-mix(in oklch, var(--color-base-content) 70%, transparent);
   --bn-border-radius: var(--radius-box, 0.5rem);
   --bn-font-family: inherit;
 }
