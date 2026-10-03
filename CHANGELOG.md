@@ -203,6 +203,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   segundo, cambia la llave de esa llamada a `t` por `bali_view.page_components.export.formats.*`,
   o por tu propio texto si era `button_label`; en el tercero, si bajo `bali_view:` traduces
   `data_table.export.formats`, mueve esas traducciones a `page_components.export.formats`.
+- **`BlockEditor` deja de aceptar `theme:`** (#1285). El editor sigue el tema de la página, y
+  `theme:` sólo podía contradecirlo. Ninguna de las nueve apps lo pasa
+  (`git grep -n -E "theme: *(:|\"|')(light|dark)" origin/main -- app lib config` da cero). Una app
+  que lo pasara no truena: cae como atributo HTML del `<div>` del editor y no hace nada.
+  **Anfitrión:** si apareces en ese `git grep` con un BlockEditor, borra el `theme:`.
 
 ### Fixed
 
@@ -551,6 +556,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   target element "template"` tras ese reemplazo hacia una página sin `#main-modal`. Un listener
   puesto a mano sobre `document.body` se pierde, como ya pasaba en cada visita de Turbo; ninguno
   de los nueve anfitriones lo hace (`git grep -n "document.body.addEventListener" origin/main`).
+
+- **Los menús flotantes del BlockEditor siguen el tema** (#1285). El menú «/», el menú lateral,
+  las asas de tabla, la barra de formato y los menús que abren se dibujan en un contenedor
+  aparte de BlockNote que conservaba su paleta: el texto del menú «/» medía 1.50–1.68:1 en los
+  temas oscuros y los íconos del menú lateral y de las asas 1.56:1 en los claros. Ahora toman los
+  colores del tema (13.34:1 el texto y 5.54 los íconos, lo más bajo de los seis), y también su
+  tipografía y su radio, como el resto del editor. La fecha de un comentario en la barra lateral
+  del editor pasa al `base-content` al 70 %: medía 3.32:1 en los temas claros y ahora 5.54 en
+  `afal`. Además el editor le dice a BlockNote, a Mantine y al selector de emojis si la página es
+  clara u oscura, también cuando el interruptor del UserMenu cambia el tema sin recargar; antes
+  les decía siempre «claro», y en un tema oscuro los fondos de color del texto eran pasteles bajo
+  texto claro (1.00–1.18:1). Lo ven BlockEditor, DocumentEditor y DocumentPage: en la flota,
+  **gobierno-corporativo** y los formularios con `block_editor_group` de **afal-apps**. Sin nada
+  que hacer en el anfitrión.
 
 ### Documentation
 
