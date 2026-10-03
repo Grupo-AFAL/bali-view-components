@@ -289,6 +289,30 @@ describe('Chart', () => {
         })
       })
     })
+
+    it('paints the theme fill Ruby names under a border the host wrote', () => {
+      canvas().then(($canvas) => {
+        const named = JSON.parse($canvas.attr('data-chart-data-value')).datasets
+          .find((dataset) => dataset.label === 'Border only').backgroundColor[0].match(/var\((--color-[\w-]+)\)/)[1]
+
+        cy.window().then((win) => {
+          chartInstance((chart) => {
+            const { backgroundColor } = series(chart, 'Border only')
+
+            expect(opaque(win, [backgroundColor].flat()[0]), `fill, ${named}`).to.deep.eq(opaque(win, cssVariable(win, named)))
+          })
+        })
+      })
+    })
+
+    it('keeps a fill of its own under the theme border', () => {
+      chartInstance((chart) => {
+        const fillOnly = series(chart, 'Fill only')
+
+        expect(fillOnly.backgroundColor, 'fill').to.eq('rgba(0, 0, 0, 0)')
+        expect(fillOnly.pointBackgroundColor, 'points').to.eq('rgba(0, 0, 0, 0)')
+      })
+    })
   })
 
   describe('with the accessible data table', () => {
