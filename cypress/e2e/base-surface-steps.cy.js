@@ -231,6 +231,41 @@ describe('hovers, tints and edges over a base surface', () => {
     })
   })
 
+  // The days of a range wore their translucent fill on the border too: a ring, 1.21–1.45:1
+  // against their own inside.
+  THEMES.forEach((theme) => {
+    it(`tints the days of a Datepicker range off the calendar, without a ring, on the ${theme} theme`, () => {
+      const IN_RANGE = `${DAY}.inRange:not(.today)`
+      cy.visit('/bali/form/date/date_range')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+      cy.get('form input.input:not([type="hidden"])').click()
+      cy.get(`${DAY}:not(.prevMonthDay):not(.nextMonthDay)`).then(($days) => {
+        const week = Object.values(Cypress._.groupBy($days.toArray(), day => day.getBoundingClientRect().top))
+          .find(row => row.length === 7 && !row.some(day => day.classList.contains('today')))
+        // A pick redraws the days, so the second one is found again by its label.
+        ;[week[1], week[5]].map(day => day.getAttribute('aria-label'))
+          .forEach(label => cy.get(`${DAY}[aria-label="${label}"]`).click())
+      })
+      cy.get('form input.input:not([type="hidden"])').click()
+
+      cy.get(IN_RANGE, { timeout: 10000 }).should(($days) => {
+        settled($days[0].ownerDocument)
+        expect($days, 'the days between the ends').to.have.length(3)
+        expect($days[0].matches(':hover'), 'at rest').to.equal(false)
+        expect(lift($days[0]), `${theme}: a day of the range against the calendar`).to.be.at.least(STEP)
+        expect(paintedContrast($days[0]), `${theme}: the number on a day of the range`).to.be.at.least(AA)
+        expect(ring($days[0]), `${theme}: the border of a day of the range over its own fill`).to.be.closeTo(1, 0.01)
+      })
+      cy.get(IN_RANGE).eq(1).then(hover)
+
+      cy.get(IN_RANGE).eq(1).should(($day) => {
+        settled($day[0].ownerDocument)
+        expect($day[0].matches(':hover'), 'under the pointer').to.equal(true)
+        expect(ring($day[0]), `${theme}: the border of a day of the range under the pointer`).to.be.closeTo(1, 0.01)
+      })
+    })
+  })
+
   // A day's looks replace each other, so each is painted on the page alone, never one over the
   // other. The year preview's card is base-100, like the page.
   const onPage = (doc, ...colours) =>

@@ -540,17 +540,12 @@ span.flatpickr-weekday {
   box-shadow: none;
 }
 
-/* Range selection */
+/* Range selection. The fill runs under the transparent border, as on hover. No band either:
+   flatpickr bridges the 5px between its days with a ±5px box-shadow, and here they are 1.7px
+   apart, so a translucent band paints twice over each neighbour. */
 .flatpickr-day.inRange {
   background: var(--fp-range-bg);
-  border-color: var(--fp-range-bg);
   border-radius: 0;
-  box-shadow: -5px 0 0 var(--fp-range-bg), 5px 0 0 var(--fp-range-bg);
-}
-
-.flatpickr-day.inRange:hover {
-  background: var(--fp-range-bg);
-  border-color: var(--fp-range-bg);
 }
 
 /* Range start/end rounded corners */
@@ -807,17 +802,6 @@ span.flatpickr-weekday {
 /* =============================================================================
    Multi-month calendar
    ============================================================================= */
-/* No !important: the only rule setting `box-shadow` on `.flatpickr-day.inRange`
-   is in this same file at (0,2,0), and this selector is both more specific and
-   later. Nothing in @layer utilities matches `.flatpickr-*`. */
-.flatpickr-calendar.multiMonth .flatpickr-days .dayContainer:nth-child(n+1) .flatpickr-day.inRange:nth-child(7n+7) {
-  box-shadow: none;
-}
-
-.flatpickr-calendar.multiMonth .flatpickr-days .dayContainer:nth-child(n+2) .flatpickr-day.inRange:nth-child(7n+1) {
-  box-shadow: -2px 0 0 var(--fp-range-bg), 5px 0 0 var(--fp-range-bg);
-}
-
 .dayContainer + .dayContainer {
   box-shadow: -1px 0 0 var(--fp-border-color);
 }
@@ -973,12 +957,6 @@ span.flatpickr-weekday {
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
   @apply bg-primary text-primary-content border-primary font-semibold;
-}
-
-/* Range selection - days between start and end */
-.flatpickr-day.inRange {
-  @apply bg-primary/20 border-primary/20;
-  box-shadow: -5px 0 0 oklch(var(--p) / 0.2), 5px 0 0 oklch(var(--p) / 0.2);
 }
 
 /* Time picker */
