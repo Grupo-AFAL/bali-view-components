@@ -197,6 +197,16 @@ class BaliSplitViewComponentTest < ComponentTestCase
     assert_no_selector("turbo-frame[data-turbo-action]", visible: :all)
   end
 
+  def test_a_turbo_action_in_frame_options_wins_over_advance
+    render_inline(
+      Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: { data: { turbo_action: "replace" } })
+    ) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector('turbo-frame[data-turbo-action="replace"]', visible: :all)
+  end
+
   def test_frame_options_class_is_added_to_the_frame_class
     render_inline(
       Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: { class: "scroll-mt-20" })
@@ -207,13 +217,15 @@ class BaliSplitViewComponentTest < ComponentTestCase
     assert_selector("turbo-frame.split-view-detail.scroll-mt-20", visible: :all)
   end
 
-  # The rows, the list and the controller all find the frame by `frame_id:`, so a
-  # second id would leave every row pointing at a frame that is not in the page.
+  # The rows, the list and the controller all find the frame by `frame_id:`, so it
+  # wins the merge, and without the raise an `id:` here would vanish in silence.
   def test_frame_options_cannot_set_the_frame_id
-    error = assert_raises(ArgumentError) do
-      Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: { id: "other" })
-    end
+    [ { id: "other" }, { "id" => "other" } ].each do |frame_options|
+      error = assert_raises(ArgumentError, frame_options.inspect) do
+        Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: frame_options)
+      end
 
-    assert_match(/frame_options cannot set id/, error.message)
+      assert_match(/frame_options cannot set id/, error.message)
+    end
   end
 end

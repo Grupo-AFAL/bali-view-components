@@ -97,8 +97,9 @@ module Bali
       #             navigable location of its own.
       # frame_options - HTML attributes for the detail `<turbo-frame>`, as the
       #             remaining options are for the container. `class:` joins the
-      #             component's and `data:` is merged into it, so `advance:` keeps
-      #             its `turbo_action`; `id:` raises, because it is `frame_id:`.
+      #             component's; `data:` is merged into it key by key, so the
+      #             `turbo_action` of `advance:` stays unless you name one, which
+      #             wins; `id:` raises, because it is `frame_id:`.
       #             Nothing inside the detail can stand in for it: Turbo reads
       #             `data-autoscroll-block` and `data-autoscroll-behavior` off the
       #             frame already in the page, never off the one in the response.
@@ -133,6 +134,7 @@ module Bali
       end
 
       def validated_frame_options(value)
+        value = value.symbolize_keys
         return value unless value.key?(:id)
 
         raise ArgumentError,
@@ -163,7 +165,7 @@ module Bali
       end
 
       def frame_attributes
-        frame_options.except(:class, :data).merge(
+        frame_options.merge(
           id: frame_id,
           class: class_names("split-view-detail", frame_options[:class]),
           data: { turbo_action: ("advance" if advance?) }.merge(frame_options.fetch(:data, {}))
