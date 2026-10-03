@@ -30,6 +30,14 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
     assert_selector('[data-dropdown-target="trigger"] svg', count: 1) # the chevron
   end
 
+  def test_initials_reach_the_avatar_as_given
+    render_inline(Bali::Topbar::UserMenu::Component.new(
+                    name: "Federico González Pérez", initials: "FG", sign_out: sign_out
+                  ))
+
+    assert_selector('[data-dropdown-target="trigger"] .avatar-placeholder', text: "FG")
+  end
+
   def test_trigger_uses_the_photo_when_avatar_url_is_given
     render_inline(Bali::Topbar::UserMenu::Component.new(
                     name: "Ana García", avatar_url: "/ana.jpg", sign_out: sign_out
@@ -51,6 +59,15 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
     assert_selector("span.menu-title", text: "ana@example.com")
     assert_selector('span.menu-title[role="presentation"]')
     assert_no_selector('[role="menuitem"].bali-topbar-user-menu-header')
+  end
+
+  def test_header_puts_neither_name_nor_email_in_a_title
+    render_inline(Bali::Topbar::UserMenu::Component.new(
+                    name: "Ana García", email: "ana@example.com", sign_out: sign_out
+                  ))
+
+    assert_selector(".bali-topbar-user-menu-header", text: "ana@example.com")
+    assert_no_selector(".bali-topbar-user-menu-header[title], .bali-topbar-user-menu-header [title]")
   end
 
   def test_header_omits_the_email_line_when_absent
@@ -111,8 +128,8 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
 
     # #641 (announced in v3.1): every non-GET item is a real `button_to` form —
     # an `<a data-turbo-method>` degrades to GET without JS. `:post` keeps the
-    # text-error styling it had as a link.
-    assert_selector('form[action="/logout"] button.text-error', text: "Sign out")
+    # red it had as a link, the soft one a `:delete` sign-out gets from DeleteLink.
+    assert_selector('form[action="/logout"] button.text-soft-error', text: "Sign out")
     assert_no_selector("a[data-turbo-method]")
   end
 

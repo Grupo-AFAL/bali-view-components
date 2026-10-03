@@ -5,7 +5,7 @@ require "test_helper"
 class BaliBooleanIconComponentTest < ComponentTestCase
   def test_with_true_value_renders_success_styling
     render_inline(Bali::BooleanIcon::Component.new(value: true))
-    assert_selector("div.boolean-icon-component.text-success")
+    assert_selector("div.boolean-icon-component.text-soft-success")
   end
 
   def test_with_true_value_renders_check_circle_icon
@@ -16,7 +16,7 @@ class BaliBooleanIconComponentTest < ComponentTestCase
 
   def test_with_false_value_renders_error_styling
     render_inline(Bali::BooleanIcon::Component.new(value: false))
-    assert_selector("div.boolean-icon-component.text-error")
+    assert_selector("div.boolean-icon-component.text-soft-error")
   end
 
   def test_with_false_value_renders_times_circle_icon
@@ -31,8 +31,7 @@ class BaliBooleanIconComponentTest < ComponentTestCase
   def test_with_nil_value_renders_a_neutral_state_instead_of_false
     render_inline(Bali::BooleanIcon::Component.new(value: nil))
     assert_selector("div.boolean-icon-component")
-    assert_no_selector("div.text-error")
-    assert_no_selector("div.text-success")
+    assert_no_selector("div.text-error, div.text-soft-error, div.text-success, div.text-soft-success")
     assert_selector(".icon-component svg")
   end
 
@@ -46,7 +45,7 @@ class BaliBooleanIconComponentTest < ComponentTestCase
   # is what the old `!!value` coercion did for everything but nil.
   def test_coerces_a_truthy_non_boolean_to_true
     render_inline(Bali::BooleanIcon::Component.new(value: "anything"))
-    assert_selector("div.boolean-icon-component.text-success")
+    assert_selector("div.boolean-icon-component.text-soft-success")
     assert_selector("span.sr-only", text: "Yes")
   end
 

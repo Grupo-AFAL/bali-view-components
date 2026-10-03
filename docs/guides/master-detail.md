@@ -11,7 +11,8 @@ detail pane stays completely yours.
 
 - Live examples: `/lookbook/preview/bali/split_view/default` (the structured
   listing, with live filter pills), `.../multi_filters`, `.../full_height/default`
-  (inside a locked AppLayout) and `.../custom_master` (the escape hatch)
+  (inside a locked AppLayout), `.../frame_options` (scrolling to the detail when
+  stacked) and `.../custom_master` (the escape hatch)
 - Working reference in the dummy app: `test/dummy/app/controllers/split_views_controller.rb`
   and `test/dummy/app/views/split_views/` — the whole Rails side in one action.
 
@@ -67,6 +68,12 @@ of them missing meant a row that silently reloaded the whole page.
 - `advance` — emit `data-turbo-action="advance"` on the frame so a row click
   pushes its URL into the history and the selection is deep-linkable
   (default: `true`).
+- `frame_options` — HTML attributes for the detail `<turbo-frame>` itself;
+  the rest of the options go to the container. `class:` is added to the
+  component's and `data:` merged into it key by key, so the `turbo_action` of
+  `advance` stays unless you name one, which wins; `id:` raises, because the
+  frame's id is `frame_id`. See
+  [Bringing the detail into view on a phone](#bringing-the-detail-into-view-on-a-phone).
 
 **Slots on the SplitView**
 
@@ -78,8 +85,10 @@ of them missing meant a row that silently reloaded the whole page.
   when `detail` is present.
 
 Below `lg` the two panes stack, master on top. That needs no JavaScript and no
-option; see [Full-page detail on a phone](#full-page-detail-on-a-phone) if you
-want the other mobile behaviour.
+option; see [Bringing the detail into view on a phone](#bringing-the-detail-into-view-on-a-phone)
+to scroll to the detail after a click, and
+[Full-page detail on a phone](#full-page-detail-on-a-phone) for the other mobile
+behaviour.
 
 ---
 
@@ -621,6 +630,56 @@ controller; the condition is easy to get subtly wrong in two places.
 
 The detail pane's empty state is a third, different one, and it belongs in
 `empty_detail`: nothing is wrong, the user simply has not picked anything yet.
+
+---
+
+## Bringing the detail into view on a phone
+
+Stacked, the detail sits under the whole master, so a row click can change a
+pane below the first screen while nothing visible happens. Turbo can scroll the
+frame into view after each swap; it has to be asked on the frame:
+
+```erb
+<%= render Bali::SplitView::Component.new(
+  frame_id: "inbox-detail",
+  frame_options: { autoscroll: true, data: { autoscroll_block: "start" } }
+) do |split| %>
+  <%# … the list, as above %>
+  <% if @selected %>
+    <% split.with_detail do %>
+      <div class="scroll-mt-4 lg:hidden"></div>
+      <%= render "detail_pane", item: @selected %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+- **The attributes go on the frame, through `frame_options:`.** Turbo reads
+  `data-autoscroll-block` and `data-autoscroll-behavior` off the frame already
+  in the page, never off the one in the response, so nothing the detail renders
+  can set them. Without `autoscroll_block: "start"` Turbo aligns the bottom of
+  the detail's first child with the bottom of the screen, which leaves the
+  detail just below it.
+- **Turbo scrolls to the frame's first child, so the detail opens with a
+  marker.** `lg:hidden` keeps a wide screen still: an element with no box is
+  never scrolled to. Leave it visible and a click on a long page scrolls the
+  page back to the top of the detail. `scroll-mt-4` is the gap left above it.
+- **Pin the frame when the master is taller than the screen.** A still page
+  from `lg` up only helps while the detail stays beside the list. A master
+  taller than the screen — `max_height: "none"`, or a `master` slot with no
+  `.split-view-scroll` — carries the detail off the top as the page scrolls,
+  and a click far down the list then changes a pane nobody can see.
+  `frame_options: { class: "lg:sticky lg:top-4", … }` keeps the frame in view
+  from `lg` up, as the preview does. That suits a detail shorter than the
+  screen: a taller one, pinned, shows its end only once the list runs out.
+  With `height: :full` each pane scrolls on its own instead.
+- **Known limit: focus stays on the row.** Turbo moves the page, not the
+  focus. Stacked, Enter on a row brings the detail into view while the focused
+  row is left above the screen, and the next Tab scrolls the page back up to
+  the row after it.
+
+Live at `/lookbook/preview/bali/split_view/frame_options`, with a window
+narrower than 1024px to see the scroll and a wider one to see the pin.
 
 ---
 

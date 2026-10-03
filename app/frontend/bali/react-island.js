@@ -29,7 +29,7 @@
  */
 import { Controller } from '@hotwired/stimulus'
 
-const ERROR_FALLBACK_CLASS = 'text-error text-sm p-4'
+const ERROR_FALLBACK_CLASS = 'text-soft-error text-sm p-4'
 
 // One ErrorBoundary class per React instance. The boundary cannot be defined
 // at module scope because `react` is an optional peer this module never

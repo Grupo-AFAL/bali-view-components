@@ -18,6 +18,12 @@ module Bali
       def all_types
         render_with_template(locals: { types: Bali::Loader::Component::TYPES.keys })
       end
+
+      # Every `color:`. The spinner takes the colour itself; the text under it takes
+      # `text-soft-<color>`, which reads on the page where the colour does not.
+      def all_colors
+        render_with_template(locals: { colors: Bali::Loader::Component::COLORS.keys })
+      end
     end
   end
 end

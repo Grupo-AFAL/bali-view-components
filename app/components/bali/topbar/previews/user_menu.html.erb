@@ -37,4 +37,20 @@
       <% menu.with_item(name: 'Profile', href: '#', icon: 'user') %>
     <% end %>
   </div>
+
+  <div>
+    <p class="text-sm text-base-content/60 mb-2">
+      Two surnames and a long email: <code>initials:</code> picks the letters, the name
+      truncates in the trigger, and both lines wrap inside the open menu
+    </p>
+    <%= render Bali::Topbar::UserMenu::Component.new(
+      name: 'María Fernanda Rodríguez de la Garza',
+      initials: 'MR',
+      email: 'maria.fernanda.rodriguez.delagarza@grupoafal.com.mx',
+      align: :start,
+      sign_out: { href: '#' }
+    ) do |menu| %>
+      <% menu.with_item(name: 'Profile', href: '#', icon: 'user') %>
+    <% end %>
+  </div>
 </div>

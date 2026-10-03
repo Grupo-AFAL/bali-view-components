@@ -70,7 +70,7 @@ describe('ReactIsland', () => {
   it('renders the fallback and reports through onError when loadComponent fails', () => {
     cy.visit('/bali/react_island/load_error')
 
-    cy.get('.text-error').should('be.visible')
+    cy.get('.text-soft-error').should('be.visible')
     cy.get('[data-testid="counter-island"]').should('not.exist')
 
     cy.window().should((win) => {
@@ -95,12 +95,12 @@ describe('ReactIsland', () => {
       .and('include', '/lookbook')
 
     // And the notice goes ON TOP, so it is read before the content.
-    cy.get('#island-with-fallback').children().first().should('have.class', 'text-error')
+    cy.get('#island-with-fallback').children().first().should('have.class', 'text-soft-error')
 
     // The empty mount behaves as before: the notice is all there is.
     cy.get('[data-controller="react-island-demo"]').first().children()
       .should('have.length', 1)
-      .and('have.class', 'text-error')
+      .and('have.class', 'text-soft-error')
   })
 
   it('the ErrorBoundary catches render errors and reports through onError', () => {
@@ -110,7 +110,7 @@ describe('ReactIsland', () => {
     cy.get('[data-testid="explode"]').click()
 
     cy.get('[data-testid="counter-island"]').should('not.exist')
-    cy.get('.text-error').should('be.visible')
+    cy.get('.text-soft-error').should('be.visible')
 
     cy.window().should((win) => {
       const errors = win.__baliIslandErrors || []

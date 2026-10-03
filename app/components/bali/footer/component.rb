@@ -19,7 +19,7 @@ module Bali
       }
 
       renders_one :bottom, ->(&block) {
-        classes = "border-t border-current/20 mt-8 pt-8 text-sm opacity-60 text-center"
+        classes = "border-t border-current/20 mt-8 pt-8 text-sm text-center"
         tag.div(class: classes, &block)
       }
 
@@ -63,7 +63,7 @@ module Bali
             else
               safe_join([
                 (tag.h3(name, class: "text-lg font-bold mb-2") if name),
-                (tag.p(description, class: "text-sm opacity-80 max-w-xs") if description)
+                (tag.p(description, class: "text-sm max-w-xs") if description)
               ].compact)
             end
           end
@@ -72,6 +72,11 @@ module Bali
 
       # Footer section with title and links
       class SectionComponent < ApplicationViewComponent
+        # Nothing in the footer is muted. daisyUI paints `.footer-title` at `opacity: .6` from
+        # @layer utilities, which read 2.83:1 on `afal` over `primary` (AA wants 4.5). An opacity
+        # passes there only from `.9` up, 4.55 against 5.25 in full: a muting nobody sees.
+        TITLE_CLASSES = "footer-title opacity-100"
+
         renders_many :links, ->(name:, href:, **options) {
           tag.a(name, href: href, class: "link link-hover", **options)
         }
@@ -86,7 +91,7 @@ module Bali
         def call
           tag.nav(**@options) do
             safe_join([
-              (tag.h6(title, class: "footer-title") if title),
+              (tag.h6(title, class: TITLE_CLASSES) if title),
               *links
             ].compact)
           end

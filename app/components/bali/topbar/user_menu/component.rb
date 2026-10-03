@@ -4,7 +4,7 @@ module Bali
   module Topbar
     module UserMenu
       # The prefabricated user dropdown for the Topbar's far-right slot: avatar
-      # (photo or derived initials), the user's name and email as a non-actionable
+      # (photo or initials), the user's name and email as a non-actionable
       # header, the host's items, and a sign-out entry that submits a real form.
       #
       # A Bali::Dropdown with its trigger and header already chosen — the same
@@ -29,6 +29,10 @@ module Bali
         SIGN_OUT_KEY = "bali_view.topbar.user_menu.sign_out"
         DARK_MODE_KEY = "bali_view.topbar.user_menu.dark_mode"
 
+        # The lines wrap instead of truncating with the whole text in `title`: Sentry copies
+        # `title` into the selector of a click breadcrumb, so the email would travel with it.
+        HEADER_CLASSES = "bali-topbar-user-menu-header wrap-anywhere"
+
         SIGN_OUT_MESSAGE = "Bali::Topbar::UserMenu::Component: `sign_out:` takes a Hash " \
                            "with `href:` — e.g. `sign_out: { href: sign_out_path }`. " \
                            "`method:` defaults to :delete. There is no default route: " \
@@ -36,6 +40,9 @@ module Bali
 
         # @param name [String] the user's full name. Feeds the trigger's avatar
         #   (initials + deterministic colour, see Bali::Avatar) and the header.
+        # @param initials [String, nil] the avatar's letters, passed to Bali::Avatar as
+        #   given. Left out, Avatar takes the first and the last word of `name:`, which
+        #   reads "Federico González Pérez" as "FP".
         # @param email [String, nil] second line of the header.
         # @param avatar_url [String, nil] photo for the avatar; wins over initials.
         # @param sign_out [Hash, nil] `{ href:, method: :delete }`. Extra keys
@@ -43,8 +50,10 @@ module Bali
         # @param align [Symbol] Dropdown's horizontal axis; `:end` here, because
         #   the menu hangs off the far right of the Topbar.
         # Every other keyword is Bali::Dropdown::Component's.
-        def initialize(name:, email: nil, avatar_url: nil, sign_out: nil, align: :end, **options)
+        def initialize(name:, initials: nil, email: nil, avatar_url: nil, sign_out: nil,
+                       align: :end, **options)
           @name = name
+          @initials = initials
           @email = email
           @avatar_url = avatar_url
           @sign_out = normalize_sign_out(sign_out)
@@ -58,29 +67,34 @@ module Bali
         # then sign-out.
         def before_render
           header = header_content
-          with_item(tag: :title, class: "bali-topbar-user-menu-header") { header }
+          with_item(tag: :title, class: HEADER_CLASSES) { header }
           content
           add_dark_mode_item if ThemeHelper.dark_mode?
           add_sign_out_item if @sign_out
           super
         end
 
-        # Avatar + name (hidden on mobile) + chevron. Rendered into locals first:
-        # a block that calls `render` itself comes back empty here — `capture`
-        # prefers the output buffer and discards the returned string (see the
-        # measurement note in Bali::ActionsDropdown#default_trigger).
+        # Avatar + name + chevron. Rendered into locals first: a block that calls
+        # `render` itself comes back empty here — `capture` prefers the output buffer
+        # and discards the returned string (see the measurement note in
+        # Bali::ActionsDropdown#default_trigger).
+        #
+        # Why the avatar stands alone below sm: at 320 px, beside the hamburger, the
+        # palette and two actions, avatar and chevron ended at x=335, 15 px past the
+        # screen edge where AppLayout clips.
         def default_trigger
+          avatar = Bali::Avatar::Component.new(name: @name, initials: @initials,
+                                               src: @avatar_url, size: :xs)
+          chevron = Bali::Icon::Component.new("chevron-down", size: :small, class: "max-sm:hidden")
           inner = safe_join([
-                              render(Bali::Avatar::Component.new(
-                                       name: @name, src: @avatar_url, size: :xs
-                                     )),
-                              tag.span(@name, class: "hidden md:inline"),
-                              render(Bali::Icon::Component.new("chevron-down", size: :small))
+                              render(avatar),
+                              tag.span(@name, class: "hidden md:inline max-w-48 truncate"),
+                              render(chevron)
                             ])
 
           render(Dropdown::Trigger::Component.new(
                    variant: :ghost,
-                   class: "btn-sm gap-2",
+                   class: "btn-sm gap-2 max-sm:btn-square",
                    "aria-label": t(TRIGGER_LABEL_KEY, name: @name)
                  )) { inner }
         end
@@ -140,7 +154,7 @@ module Bali
           if method == SIGN_OUT_METHOD
             opts[:skip_confirm] = true unless opts.key?(:confirm) || opts.key?(:skip_confirm)
           else
-            opts[:class] = class_names("text-error", opts[:class])
+            opts[:class] = class_names("text-soft-error", opts[:class])
           end
 
           with_item(href: @sign_out[:href], method: method, **opts)

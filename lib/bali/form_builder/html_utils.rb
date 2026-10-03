@@ -42,13 +42,21 @@ module Bali
       # the messages under a control. Unlike `.label` — the other candidate — it
       # is a block-level flex container with no `white-space: nowrap`, so a long
       # validation message wraps instead of overflowing the fieldset.
+      #
+      # The help's grey is not daisyUI's `/60`: bali/utilities.css lifts every
+      # `.fieldset-label` to `/70`. On the page `text-error` read 2.75:1 on `afal` (AA
+      # wants 4.5), hence the soft red, for the message and the required asterisk.
+      # textarea-controller.js paints the character counter past its maximum in the
+      # same red.
       MESSAGE_CLASS = "fieldset-label"
-      ERROR_MESSAGE_CLASS = "fieldset-label text-error"
+      ERROR_MESSAGE_CLASS = "fieldset-label text-soft-error"
 
       # The character counter's own class. It lives here rather than next to the
       # textarea because the counter is no longer a textarea feature: `<input>`
       # and `<textarea>` are the same element to the controller, which only reads
-      # `value.length` (#723).
+      # `value.length` (#723). Its grey is a contract with
+      # app/assets/javascripts/bali/controllers/textarea-controller.js#updateCounter, which takes it
+      # off past the maximum.
       COUNTER_CLASS = "text-base-content/70 text-end w-full"
 
       # `number_with_commas` keeps its old name — it is the value hosts already
@@ -215,7 +223,7 @@ module Bali
       # `<label>`/`<legend>`, and the checkbox and toggle into the label beside the
       # box, which is the caption those two families have.
       def required_marker
-        @template.tag.span(class: "text-error ms-0.5") do
+        @template.tag.span(class: "text-soft-error ms-0.5") do
           @template.safe_join([
             @template.tag.span("*", aria: { hidden: true }),
             @template.tag.span(I18n.t("bali_view.form_builder.required"), class: "sr-only")
