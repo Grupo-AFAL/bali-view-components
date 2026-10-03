@@ -211,9 +211,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   componente al controlador; una app que quiera otro texto las redefine en sus locales. Si el
   pie no cabe en una línea, el contador baja a la segunda en vez de quedar cortado por el panel:
   «9 resultados» no cabe junto a los atajos a 360 px, ni «9 results» a 320 px. Con una
-  búsqueda, el contador cuenta sólo lo que coincide: las dos filas `action` de
-  gobierno-corporativo, la única app con ese grupo, siguen en pantalla y ya no cuentan bajo el
-  aviso de que nada coincide.
+  búsqueda, el contador cuenta sólo las filas que coinciden; sin búsqueda, todo lo que lista,
+  como antes. Las dos filas `action` de gobierno-corporativo, la única app con ese grupo,
+  siguen en pantalla con cualquier búsqueda pero ya no cuentan: una búsqueda con una sola
+  coincidencia dice «1 resultado» con tres filas a la vista, y una sin ninguna, «0 resultados»
+  bajo el aviso de que nada coincide.
   Lo ven las siete apps con paleta, sin nada que hacer más que subir la gema y el paquete npm
   juntos: con uno solo, el contador sigue en inglés.
 
