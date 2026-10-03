@@ -29,11 +29,11 @@ module Bali
         SIGN_OUT_KEY = "bali_view.topbar.user_menu.sign_out"
         DARK_MODE_KEY = "bali_view.topbar.user_menu.dark_mode"
 
-        # The lines' `truncate` alone clips nothing: daisyUI's `.menu` wraps (`flex-wrap:
-        # wrap`), and a wrapping flex line is as wide as its widest unbreakable item, so a
-        # 51-character email stretched every row to 342 px inside a 208 px panel.
-        # `contain-inline-size` takes the header's text out of that width.
-        HEADER_CLASSES = "bali-topbar-user-menu-header contain-inline-size"
+        # The lines wrap instead of truncating with the whole text in `title`: Sentry copies
+        # `title` into the selector of a click breadcrumb, so the email would travel with it.
+        # `contain-inline-size` keeps the text out of the panel's width when the panel has
+        # none of its own (`width: nil`), where the long identity widened it from 171 to 282 px.
+        HEADER_CLASSES = "bali-topbar-user-menu-header contain-inline-size wrap-anywhere"
 
         SIGN_OUT_MESSAGE = "Bali::Topbar::UserMenu::Component: `sign_out:` takes a Hash " \
                            "with `href:` — e.g. `sign_out: { href: sign_out_path }`. " \
@@ -109,10 +109,9 @@ module Bali
         # renders nothing at all rather than a menu with nothing to choose.
         def header_content
           safe_join([
-            tag.span(@name, class: "block truncate text-sm font-medium text-base-content",
-                            title: @name),
-            (tag.span(@email, class: "block truncate text-xs font-normal text-base-content/70",
-                              title: @email) if @email.present?)
+            tag.span(@name, class: "block text-sm font-medium text-base-content"),
+            (tag.span(@email, class: "block text-xs font-normal text-base-content/70") if
+              @email.present?)
           ].compact)
         end
 

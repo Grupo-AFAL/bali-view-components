@@ -78,9 +78,8 @@ describe('Topbar::UserMenu', () => {
   describe('with a long name and email', () => {
     const longMenu = () => cy.contains(userMenu, 'María Fernanda')
 
-    beforeEach(() => cy.viewport(1280, 800))
-
     it('caps the name in the trigger at 12rem, with an ellipsis', () => {
+      cy.viewport(1280, 800)
       longMenu().find(trigger).contains('span', 'María Fernanda').should(($name) => {
         const name = $name[0]
         expect(name.getBoundingClientRect().width, 'name width').to.be.closeTo(192, 0.5)
@@ -88,15 +87,24 @@ describe('Topbar::UserMenu', () => {
       })
     })
 
-    it('keeps both header lines inside the panel, the whole text in their title', () => {
-      longMenu().find(trigger).click()
-      longMenu().find(menu).should(($menu) => {
-        expect($menu[0].getAnimations({ subtree: true })).to.have.length(0)
-        const lines = $menu.find('.bali-topbar-user-menu-header > span').toArray()
-        expect(lines).to.have.length(2)
-        lines.forEach((line) => {
-          expectClippedWithin(line, $menu[0].getBoundingClientRect().right)
-          expect(line.title).to.equal(line.textContent)
+    ;[320, 390, 1280].forEach((width) => {
+      it(`wraps both header lines inside the panel at ${width}px`, () => {
+        cy.viewport(width, 800)
+        longMenu().find(trigger).click()
+        longMenu().find(menu).should(($menu) => {
+          expect($menu[0].getAnimations({ subtree: true })).to.have.length(0)
+          const panelRight = $menu[0].getBoundingClientRect().right
+          const lines = $menu.find('.bali-topbar-user-menu-header > span').toArray()
+          expect(lines).to.have.length(2)
+          lines.forEach((line) => {
+            const text = line.ownerDocument.createRange()
+            text.selectNodeContents(line)
+            const rects = [...text.getClientRects()]
+            const textRight = Math.max(...rects.map((r) => r.right))
+            expect(textRight, `${line.textContent} right edge`).to.be.at.most(line.getBoundingClientRect().right)
+            expect(line.getBoundingClientRect().right, 'line right edge').to.be.at.most(panelRight)
+            expect(new Set(rects.map((r) => Math.round(r.top))).size, 'lines of text').to.be.greaterThan(1)
+          })
         })
       })
     })
