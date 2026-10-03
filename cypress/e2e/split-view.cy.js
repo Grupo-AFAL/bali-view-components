@@ -302,7 +302,7 @@ describe('SplitView: a row clicked before the previous advance is cached (#1280)
 
     cy.get('.split-view-row').eq(4).then(($second) => {
       const second = $second[0]
-      const name = second.querySelector('.font-medium').textContent.trim()
+      const name = second.querySelector('[data-testid="row-title"]').textContent.trim()
 
       cy.window().then((win) => {
         win.addEventListener('turbo:before-cache', () => second.click(), { capture: true, once: true })
@@ -318,6 +318,34 @@ describe('SplitView: a row clicked before the previous advance is cached (#1280)
       cy.get('.split-view-detail').should('not.have.attr', 'src')
       cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', second.href)
     })
+  })
+
+  // What leaving a loading frame alone costs: a page left before the detail
+  // lands is cached with the row's `src`, and Turbo reloads any frame with a
+  // `src` and no `complete` on restore. The detail is held back so the page is
+  // certainly left mid-load, and a mark on `window` proves back was Turbo's
+  // restore and not a fresh load, which would come back pristine by itself.
+  it('keeps a detail still loading when the page was left off the list on back', () => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+    cy.intercept({ method: 'GET', url: '/split-view*', headers: { 'turbo-frame': 'split-view-detail' } },
+      (req) => { req.on('response', (res) => { res.setDelay(1500) }) })
+
+    cy.window().then((win) => { win.leftMidLoad = true })
+    cy.get('.split-view-row').eq(2).click()
+    cy.get('.split-view-detail').should('have.attr', 'busy')
+    cy.window().then(win => win.Turbo.visit('/lookbook/preview/bali/split_view/without_advance'))
+    cy.location('pathname').should('include', 'without_advance')
+
+    cy.go('back')
+    cy.location('pathname').should('include', 'custom_master')
+    cy.window().its('leftMidLoad').should('eq', true)
+    // Longer than the held-back response, so a reload would have landed.
+    cy.wait(2000)
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('not.exist')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    cy.get('.split-view-row[aria-current]').should('not.exist')
+    cy.get('.split-view-detail').should('not.have.attr', 'src')
   })
 })
 

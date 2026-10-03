@@ -102,7 +102,7 @@ export class SplitViewController extends Controller {
   // URL, which restores to the right pane without a refetch. `syncFrameFromLocation`
   // resets the pane to pristine when a restore lands on a URL that selects no row.
   //
-  // Keyed on the frame having a `src`, NOT on the current location: by the time
+  // Keyed on the frame's own state, NOT on the current location: by the time
   // this fires the URL is already the detail's, so a location test would never
   // match. A server-rendered detail page carries no `src` and is left alone.
   rewindFrameBeforeCache () {
@@ -110,11 +110,11 @@ export class SplitViewController extends Controller {
     if (!frame || !frame.hasAttribute('src')) return
     // A `src` Turbo has not finished loading can be a row clicked in the animation
     // frame between the previous detail landing and its `advance` caching the
-    // page: removing it cancels that request and the click is lost (#1280). The
-    // first `turbo:before-cache` after it lands rewinds it instead — with
-    // `advance`, the one from its own visit. The attribute and not
-    // `frame.complete`, which in Turbo 8.0.23 answers true mid-load and settles
-    // `frame.loaded` as a side effect.
+    // page: removing it cancels that request and the click is lost (#1280). Its
+    // own `advance` rewinds it once it lands; a page left before then is cached
+    // with the `src`, and `syncFrameFromLocation` settles that pane on restore.
+    // The attribute and not `frame.complete`, which in Turbo 8.0.23 answers true
+    // mid-load and settles `frame.loaded` as a side effect.
     if (!frame.hasAttribute('complete')) return
 
     // Stash where the pane points before dropping `src`, so a traversal that
@@ -185,13 +185,17 @@ export class SplitViewController extends Controller {
   //   - Back to a URL that selects no row (the list) while the cached pane still
   //     shows the last detail: reset it to the pristine empty state, so the list
   //     view is not left showing a stale record.
+  //   - The same URL, cached while a row's detail was still loading: the pane
+  //     still looks pristine but keeps that row's `src` (the rewind leaves a
+  //     loading frame alone), and Turbo reloads it on restore. Dropping the
+  //     `src` cancels that reload.
   syncFrameFromLocation (current) {
     const frame = this.detailFrame
     if (!frame) return
 
     if (!current) {
       const pristine = pristineDetail.get(this.frameValue)
-      if (pristine !== undefined && frame.innerHTML !== pristine) {
+      if (pristine !== undefined && (frame.hasAttribute('src') || frame.innerHTML !== pristine)) {
         frame.removeAttribute('src')
         frame.removeAttribute('data-split-view-src')
         frame.innerHTML = pristine
