@@ -605,24 +605,33 @@ describe('form placeholder cascade', () => {
   })
 })
 
-// The rule that lifts a `.table`'s thead and tfoot (bali/utilities.css) sits in @layer utilities
-// after Tailwind's own utilities, so only its zero specificity lets a host's colour class on the
-// thead win, and nothing in the contrast guard above would notice it stopped.
-describe('table head cascade', () => {
+// The rule that lifts a `.table`'s thead and tfoot and a `.fieldset-label` (bali/utilities.css)
+// sits in @layer utilities after Tailwind's own utilities, so only its zero specificity lets a
+// colour class on the element win, and nothing in the contrast guard above would notice it stopped.
+describe('muted rule cascade', () => {
+  const sameColour = (el, className, what) => {
+    const doc = el.ownerDocument
+    const probe = doc.createElement('span')
+    probe.className = className
+    doc.body.appendChild(probe)
+    const colour = node => doc.defaultView.getComputedStyle(node).color
+    expect(colour(el), what).to.eq(colour(probe))
+    probe.remove()
+  }
+
   it('yields the thead of a hand-written table to a host colour utility', () => {
-    const HOST = 'text-base-content/60'
+    const HOST = 'text-base-content/80'
     cy.visit('/bali/status/in_table')
-    cy.get('table.table thead').then(($thead) => {
-      const probe = $thead[0].ownerDocument.createElement('span')
-      probe.className = HOST
-      probe.id = 'host-colour-probe'
-      $thead[0].ownerDocument.body.appendChild(probe)
-      $thead.addClass(HOST)
-    })
+    cy.get('table.table thead').invoke('addClass', HOST)
     cy.get('table.table thead th').first().should(($th) => {
-      const doc = $th[0].ownerDocument
-      const colour = el => doc.defaultView.getComputedStyle(el).color
-      expect(colour($th[0]), `header with ${HOST} on its thead`).to.eq(colour(doc.getElementById('host-colour-probe')))
+      sameColour($th[0], HOST, `header with ${HOST} on its thead`)
+    })
+  })
+
+  it('keeps the error message of a field in its own soft red', () => {
+    cy.visit('/bali/form/text/with_external_error')
+    cy.get('p.fieldset-label[id$="_error"]').first().should(($error) => {
+      sameColour($error[0], 'text-soft-error', `error message "${$error.text().trim()}"`)
     })
   })
 })
