@@ -187,10 +187,10 @@ export class SplitViewController extends Controller {
   //   - Back to a URL that selects no row (the list) while the cached pane still
   //     shows the last detail: reset it to the pristine empty state, so the list
   //     view is not left showing a stale record.
-  //   - The same URL, cached while a row's detail was still loading: the pane
-  //     keeps that row's `src` (the rewind leaves a loading frame alone) and
-  //     Turbo reloads it on restore, even when the pane still looks pristine.
-  //     Dropping the `src` cancels that reload.
+  //   - Back to the list, cached while a row's detail was still loading: the
+  //     pane keeps that row's `src` (the rewind leaves a loading frame alone)
+  //     and Turbo reloads it on restore, even when the pane still looks
+  //     pristine. Dropping the `src` cancels that reload.
   syncFrameFromLocation (current, leaving = false) {
     const frame = this.detailFrame
     if (!frame) return
