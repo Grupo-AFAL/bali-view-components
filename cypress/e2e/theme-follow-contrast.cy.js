@@ -37,10 +37,42 @@ describe('colours that follow the theme', () => {
       useTheme(theme)
       everyReadsAtAA('.ss-main .ss-single', theme)
 
-      // The selected option is `primary` as text, and daisyUI's own `dark` paints it at 3.40:1.
-      const options = theme === 'dark' ? '.ss-option:not(.ss-disabled):not(.ss-selected)' : '.ss-option:not(.ss-disabled)'
       cy.get('.ss-main').first().click()
-      everyReadsAtAA(`.ss-content.ss-open ${options}`, theme, 2)
+      everyReadsAtAA('.ss-content.ss-open .ss-option:not(.ss-disabled)', theme, 2)
+      cy.get('.ss-content.ss-open .ss-option.ss-selected').should('have.length', 1)
+    })
+
+    // The selected option was `primary` as text: daisyUI's own `dark` painted it at 3.40:1, and
+    // 2.69 under the pointer. Its check is an icon, so 3:1.
+    it(`reads SlimSelect's selected option and its check under the pointer on the ${theme} theme`, () => {
+      cy.visit('/bali/form/slim_select/default')
+      useTheme(theme)
+      cy.get('.ss-main').first().click()
+      cy.get('.ss-content.ss-open .ss-option.ss-selected').then(hover)
+
+      cy.get('.ss-content.ss-open .ss-option.ss-selected').should(($option) => {
+        const option = $option[0]
+        expectSettled(option)
+        expect(option.matches(':hover'), 'under the pointer').to.equal(true)
+        expect(paintedContrast(option), `${theme}: selected option`).to.be.at.least(AA)
+        expect(paintedContrast(option, { pseudo: '::after', property: 'backgroundColor' }), `${theme}: its check`)
+          .to.be.at.least(3)
+      })
+    })
+
+    // `primary` as text too, and dimmed to 70% under the pointer, which put it under AA on all six
+    // themes: 2.33–4.48:1.
+    it(`reads SlimSelect's "Select all" at rest and under the pointer on the ${theme} theme`, () => {
+      cy.visit('/bali/form/slim_select/select_all')
+      useTheme(theme)
+      everyReadsAtAA('.ss-toggle-btn:not(.hidden)', theme)
+      cy.get('.ss-toggle-btn:not(.hidden)').then(hover)
+
+      cy.get('.ss-toggle-btn:not(.hidden)').should(($toggle) => {
+        expectSettled($toggle[0])
+        expect($toggle[0].matches(':hover'), 'under the pointer').to.equal(true)
+        expect(paintedContrast($toggle[0]), `${theme}: "Select all" under the pointer`).to.be.at.least(AA)
+      })
     })
 
     // The focus fill was the same light-theme literal as the hover: on the dark themes the
