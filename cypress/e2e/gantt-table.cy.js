@@ -1,4 +1,5 @@
 import { statusColor } from '../../app/components/bali/gantt/ganttColors'
+import { cdp, frameAt } from '../support/accessibility_tree'
 import { paintedContrast } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
@@ -56,8 +57,6 @@ describe('Gantt table', () => {
   // What a screen reader is handed is Chromium's accessibility tree for the preview's frame. A
   // `<span>` is `generic`, which takes no name from its `title`: the avatar read as its initials.
   it('names every assignee avatar after its assignee, in the table and on the bars', () => {
-    const cdp = (command, params) => Cypress.automation('remote:debugger:protocol', { command, params })
-    const framesOf = (tree) => [tree.frame, ...(tree.childFrames || []).flatMap(framesOf)]
     const AVATARS = '.bali-gantt span.rounded-full.text-white'
 
     cy.visit('/bali/gantt/default')
@@ -66,10 +65,10 @@ describe('Gantt table', () => {
       expect($avatars.filter((_, a) => !a.closest('.react-flow__node')), 'avatars in the table').to.have.length.at.least(1)
     })
 
-    cy.then(() => cdp('Page.getFrameTree')).then(({ frameTree }) => {
-      const frame = framesOf(frameTree).find((f) => f.url.includes('/bali/gantt/default'))
-      return cdp('Accessibility.getFullAXTree', { frameId: frame.id })
-    }).then(({ nodes }) => {
+    cy.url().then((url) =>
+      cdp('Page.getFrameTree')
+        .then(({ frameTree }) => cdp('Accessibility.getFullAXTree', { frameId: frameAt(frameTree, url).id }))
+    ).then(({ nodes }) => {
       // Read right after the tree, so both see the same bars.
       cy.document().then((doc) => {
         const nameOf = new Map(JSON.parse(doc.querySelector('[data-controller="gantt"]').dataset.ganttDataValue).items
