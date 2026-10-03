@@ -2409,6 +2409,13 @@ Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware 
 - `custom_color` - Hex colour the palette starts from. It drops the theme palette entirely and the remaining series fall back to the fixed hex list, because a canvas cannot resolve a `var()` and a chart cannot mix the two (default: nil)
 - `aria_label` - Accessible name for the canvas. Falls back to `title:`, then to `bali_view.chart.default_label` (default: nil)
 
+**Series colours:** with `use_theme_colors`, the series of a multi-series chart (or the slices of
+a pie) take the theme's colours in this order — `primary`, `accent`, `secondary`, `success`,
+`warning`, `info`, `error` — and an eighth starts over at `primary`. It is not daisyUI's order on
+purpose: in it, neighbouring series stay apart for a reader with protanopia, deuteranopia or
+tritanopia in every theme Bali ships, where `afal`'s primary and secondary differ in hue alone.
+`color:` rotates it so the colour it names comes first.
+
 **Slots:** `with_data_table` — a real `<table>` visually hidden next to the canvas.
 
 Everything Chart.js draws is pixels, so the canvas is `role="img"` with a name. A name is not

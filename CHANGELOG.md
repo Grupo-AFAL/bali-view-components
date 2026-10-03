@@ -116,6 +116,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`Bali::Chart` pinta la segunda serie con el acento** (#1281). Las series, y las porciones de
+  un pastel, toman los colores del tema en el orden `primary`, `accent`, `secondary`, `success`,
+  `warning`, `info`, `error`, ya no en el de daisyUI. En `afal` la segunda serie era el violeta
+  secundario, que junto al azul primario sólo cambia de tono: con deuteranopia las dos quedaban
+  a ΔE_OK 0.024, y a 0.003 en `afal-dark`. Ahora dos series vecinas quedan a 0.06 o más con
+  protanopia, deuteranopia y tritanopia en los seis temas. En `afal` la serie 2 pasa de violeta
+  a ámbar, la 3 de ámbar a violeta y la 4, 5 y 6 pasan a verde, amarillo y celeste. Cambian las
+  gráficas de dos o más series y las donas que usan los colores del tema:
+  **gobierno-corporativo** (sesiones programadas y celebradas de los órganos de gobierno, la
+  tendencia de conciliación, la actividad y la dona de operaciones de la importación de la
+  intranet), **centinela-web** (turnos finalizados y activos, y las donas de motivos de
+  rondines y de incidentes por tipo) y **afal-apps** (la línea «Meta» del peso en wellness). Las
+  de una sola serie, las que fijan sus colores en hex (los reportes de TDFlow) y las de garita y
+  bali-analytics no cambian. En `costa-norte-dark`, donde el primario y el acento son dos
+  dorados, las dos primeras series quedan más cerca que antes (0.061 con tritanopia, antes
+  0.265); ninguna app pinta hoy una gráfica en ese tema. Con `use_theme_colors: false` o
+  `custom_color:`, la serie que llegaba al final de la lista repetía la primera en vez de tomar
+  el último color; ninguna app usa esas opciones en una gráfica. Sin nada que hacer en el
+  anfitrión.
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
   `base-200`: en el SideMenu, sus grupos y el disparador del switcher, en los ítems de
   `Bali::Dropdown` (comparten la clase `.menu-item`) y en las opciones de SlimSelect, también su
