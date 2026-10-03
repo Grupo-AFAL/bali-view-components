@@ -141,9 +141,9 @@ describe('colours that follow the theme', () => {
       cy.visit('/bali/block_editor/default')
       useTheme(theme)
       cy.get('.bn-editor').should(($editor) => expectSettled($editor[0]))
-      // Under Electron, Mantine's fade-in of a popover opened after a theme switch never starts:
-      // the popover computes `opacity: 0` for good (Chrome ends the fade). The colours are what
-      // is measured here, so the fade goes.
+      // Once a test in the run has failed and taken its screenshot, Electron leaves Mantine's
+      // fade-in of this popover at `opacity: 0` (Chrome ends it), so every theme after the first
+      // failure would time out on the fade instead of reading the colours measured here.
       cy.document().then((doc) => {
         doc.head.insertAdjacentHTML('beforeend', '<style>.bn-form-popover { transition: none !important }</style>')
       })
@@ -164,9 +164,8 @@ describe('colours that follow the theme', () => {
     })
   })
 
-  // Each render of the editor reads the page's scheme, and it is still rendering as it mounts:
-  // with no subscription at all, the single switch above passed on one or two of the three
-  // dark themes. Switching back as well failed 10 runs out of 10.
+  // The tests above switch once, away from the light the page loads in. Coming back is what
+  // fails when the editor stops following after its first switch, and only here.
   it('follows a data-theme switched in place, to dark and back', () => {
     cy.visit('/bali/block_editor/readonly')
     cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
