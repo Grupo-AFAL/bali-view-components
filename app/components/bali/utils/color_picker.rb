@@ -30,10 +30,6 @@ module Bali
 
       private
 
-      # A hex `custom_color:` takes the whole palette off the theme, not just its
-      # first entry. Mixing the two would hand Chart.js one hex and six
-      # `var(--color-*)` strings in the same dataset, and canvas cannot resolve a
-      # var() — the theme half would render as nothing.
       def colors
         @colors ||= if @custom_color
                       [ @custom_color, *legacy_colors ]

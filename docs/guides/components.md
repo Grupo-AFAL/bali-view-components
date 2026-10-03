@@ -2406,7 +2406,7 @@ Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware 
 - `height` - Height preset: `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
 - `use_theme_colors` - Use DaisyUI theme colors for series, grid, and tooltips (default: true)
 - `color` - Semantic name the palette starts from (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`). A single-series chart is painted in it; a multi-series one cycles from it (default: nil, i.e. `:primary` first)
-- `custom_color` - Hex colour the palette starts from. It drops the theme palette entirely and the remaining series fall back to the fixed hex list, because a canvas cannot resolve a `var()` and a chart cannot mix the two (default: nil)
+- `custom_color` - Hex colour the palette starts from. It drops the theme palette entirely and the remaining series fall back to the fixed hex list (default: nil)
 - `aria_label` - Accessible name for the canvas. Falls back to `title:`, then to `bali_view.chart.default_label` (default: nil)
 
 **Series colours:** with `use_theme_colors`, the series of a multi-series chart (or the slices of

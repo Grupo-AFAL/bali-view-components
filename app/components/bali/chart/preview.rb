@@ -42,8 +42,7 @@ module Bali
       # @label With Color
       # `color:` names the DaisyUI colour the palette starts from, so a
       # single-series chart is painted in it and a multi-series one cycles from
-      # it. `custom_color:` takes a hex and drops the theme palette entirely —
-      # a canvas cannot resolve a `var()`, so a chart cannot mix the two.
+      # it. `custom_color:` takes a hex and drops the theme palette entirely.
       # @param color select { choices: [neutral, primary, secondary, accent, info, success, warning, error, ghost] }
       # @param custom_color text
       def with_color(color: :success, custom_color: nil)

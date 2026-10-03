@@ -235,7 +235,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `git grep -n "opacify_current\|ColorPicker\|variable_name" origin/main -- app lib` da cero en
   las nueve apps. **Anfitrión:** si apareces en ese `git grep`, guarda tú el color que devuelve
   `#next_color` y pásalo a `ColorPicker.opacify`, y donde usabas `Bali::Color.variable_name(color)`
-  escribe `"--color-#{color}"`.
+  escribe `"--color-#{color}"`, o `Bali::Color::GHOST_VARIABLE` para `:ghost` y `:neutral`.
 
 ### Fixed
 
