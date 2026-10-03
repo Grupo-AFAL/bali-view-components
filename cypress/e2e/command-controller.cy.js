@@ -147,8 +147,6 @@ describe('CommandController', () => {
       count().should('have.text', '2 resultados')
     })
 
-    // The action rows stay on screen under every query, so counting them read
-    // "3 results" beneath "No results".
     const noMatchCounts = [
       ['default', 'es', '0 resultados'],
       ['default', 'en', '0 results'],
