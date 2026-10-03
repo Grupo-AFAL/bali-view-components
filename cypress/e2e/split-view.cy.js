@@ -385,9 +385,12 @@ describe('SplitView: a row clicked before the previous advance is cached (#1280)
 // On back, the page being left lives until Turbo's restore replaces its body. A
 // request its frame makes meanwhile, if it lands first, pushes the URL just
 // reached again: the frame still carries the row click's `advance`. Landing
-// first takes an answer within about 15 ms of the popstate, too narrow to time,
-// so the restore's render is held through Turbo's own `turbo:before-render`
-// pause, which lets any such request land before the body goes.
+// first takes an answer within about 15 ms of the popstate on a cached restore;
+// one that misses the cache waits for its own fetch, and this back always
+// misses, because Turbo files the page a row click leaves under the last URL it
+// rendered, not the row's. Either way two responses race, so the restore's
+// render is held through Turbo's own `turbo:before-render` pause, which lets
+// any such request land before the body goes.
 //
 // Against the dummy's own `/split-view`: from a preview, back to a row's URL
 // fetches that page, whose tracked stylesheet differs, and Turbo reloads.
