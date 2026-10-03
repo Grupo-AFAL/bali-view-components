@@ -1,9 +1,9 @@
 // Color system of the Gantt island (#705, ported from afal-apps and decoupled
 // from TDFlow via `catalogs` — decision D11). Every function returns INLINE
 // style values (var(--color-*) / oklch) — never interpolated Tailwind classes,
-// which v4 purges. Each color is a { solid, fill, border, text } set used to
+// which v4 purges. Each color is a { solid, fill, border } set used to
 // paint bar (fill+border), progress overlay (solid) and badges/legend
-// uniformly across the color-by modes.
+// uniformly across the color-by modes; a status color adds the `text` of its pill.
 //
 // The formulas live here alone since #970: Ruby's copy went with the renderer
 // that used them. What Bali::Gantt::Colors still keeps is the DEFAULT STATUS
@@ -86,8 +86,7 @@ export function hueColor (hue) {
   return {
     solid: `oklch(0.62 0.15 ${hue})`,
     fill: `oklch(0.62 0.15 ${hue} / 0.15)`,
-    border: `oklch(0.6 0.15 ${hue} / 0.5)`,
-    text: `oklch(0.46 0.16 ${hue})`
+    border: `oklch(0.6 0.15 ${hue} / 0.5)`
   }
 }
 
@@ -111,7 +110,7 @@ function priorityHue (priority, catalogs) {
 }
 
 // Color of an item under the color-by mode. `groupIndex` = index of its root
-// group (for the "group" mode). Returns { solid, fill, border, text }.
+// group (for the "group" mode). Returns { solid, fill, border }.
 export function colorForItem (item, colorBy, { groupIndex = 0, catalogs }) {
   switch (colorBy) {
     case 'assignee':
