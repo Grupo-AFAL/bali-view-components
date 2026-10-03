@@ -52,7 +52,7 @@ goes here.
   first test fails on its own assertion and the rest time out on the fade, so the control looks
   as if it caught one theme. `theme-follow-contrast.cy.js` turns the transition off on the
   link popover it measures; to check a control, `CYPRESS_screenshotOnRunFailure=false` or Chrome.
-- **A guard that switches `data-theme` right after the visit can pass on a lost update.** A
+- **A theme guard that goes red one time in ten is catching a race, not flaking.** A
   React island that read the scheme with `useState` and subscribed with a `MutationObserver` in
   `useEffect` missed a switch landing between its first render and the effect, and stayed light
   on a dark page: 3 of 30 switches under Cypress, so the guard went green most runs. Treat such
