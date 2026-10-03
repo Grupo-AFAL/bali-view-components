@@ -467,16 +467,36 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector '[data-filters-target="searchInput"][aria-label="Search users"]'
   end
 
-  # An empty aria-label names the field the empty string, which is worse than
-  # leaving the naming to the placeholder.
-  def test_the_search_input_emits_no_aria_label_without_one
+  # The placeholder cannot name this box on its own: the <label> wrapped around it does first, and
+  # its text is the clear button's aria-label once there is something to clear (#1282).
+  def test_the_search_input_is_named_by_its_placeholder_without_a_label
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes,
-      search: { fields: [ :name ] }
+      search: { fields: [ :name ], value: "drama", placeholder: "Search users..." }
     ))
 
-    assert_selector '[data-filters-target="searchInput"]'
-    assert_no_selector '[data-filters-target="searchInput"][aria-label]'
+    assert_selector '[data-filters-target="searchInput"][aria-label="Search users..."]'
+  end
+
+  def test_the_search_input_is_named_by_the_default_placeholder_in_the_page_language
+    [ [ :en, "Search..." ], [ :es, "Buscar..." ] ].each do |locale, name|
+      I18n.with_locale(locale) do
+        render_inline(Bali::Filters::Component.new(
+          url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ] }
+        ))
+      end
+
+      assert_selector %([data-filters-target="searchInput"][aria-label="#{name}"])
+    end
+  end
+
+  def test_a_blank_search_label_falls_back_to_the_placeholder
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes,
+      search: { fields: [ :name ], label: "", placeholder: "Search users..." }
+    ))
+
+    assert_selector '[data-filters-target="searchInput"][aria-label="Search users..."]'
   end
 
   def test_the_search_box_takes_the_declared_width

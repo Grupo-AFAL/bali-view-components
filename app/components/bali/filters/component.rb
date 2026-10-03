@@ -33,7 +33,7 @@ module Bali
       #   - :fields [Array<Symbol>] Fields to search (e.g., [:name, :description])
       #   - :value [String] Current search value from URL params
       #   - :placeholder [String] Placeholder text for search input
-      #   - :label [String] Accessible name for the search input
+      #   - :label [String] Accessible name for the search input (default: the placeholder)
       #   - :icon [String] Icon for the submit button (default: "search")
       #   - :width [String] Width classes for the search box
       # @param storage_id [String] Optional storage ID indicating filters can be persisted
@@ -99,10 +99,11 @@ module Bali
         @search.placeholder || I18n.t("bali_view.filters.search_placeholder")
       end
 
-      # An accessible name for the box, when the caller has one better than the
-      # placeholder. Nil drops the attribute rather than emitting an empty one.
+      # The placeholder is written in here rather than left to name the box on its own, as it
+      # does in SimpleFilters: the <label> wrapped around this box names it first, with the
+      # empty string, or with the clear button's "Clear search" once there is text (#1282).
       def search_label
-        @search.label.presence
+        @search.label.presence || search_placeholder
       end
 
       def search_icon

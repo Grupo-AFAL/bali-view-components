@@ -4560,7 +4560,7 @@ to the other keeps searching the same thing.
 | `fields` | Array&lt;Symbol&gt; | Columns to search. Absent or empty, no search box renders |
 | `value` | String | Current search value, rendered back into the box |
 | `placeholder` | String | Placeholder text |
-| `label` | String | Accessible name for the input |
+| `label` | String | Accessible name for the input. Without it, the placeholder |
 | `icon` | String | Icon name — the submit button in `Filters`, a leading addon in `SimpleFilters` |
 | `width` | String | Tailwind width classes for the box |
 
@@ -4575,8 +4575,7 @@ to the other keeps searching the same thing.
 ```
 
 A `FilterForm` that declares `search_fields` fills this in on its own — including
-`aria_label:` (the box's `aria-label`, the only accessible name that survives typing) and
-`width:` since v3.1 (#982):
+`aria_label:` (the box's `aria-label`) and `width:` since v3.1 (#982):
 `search_fields :name, :email, icon: 'search', aria_label: t('.search_label')`. Inside
 a `DataTable` the hash is only for overrides:
 

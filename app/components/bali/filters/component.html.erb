@@ -26,8 +26,6 @@
               to it, instead of giving them width. %>
           <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto min-w-0">
             <label class="input input-bordered input-sm join-item <%= search_width %> min-w-0 flex items-center gap-2">
-              <%# tag.input rather than literal markup: `label` is optional, and an empty
-                  aria-label is worse than none — it names the field the empty string. %>
               <%= tag.input(
                     type: "text",
                     name: search_field_name,
