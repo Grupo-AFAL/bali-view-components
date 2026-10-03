@@ -4191,7 +4191,7 @@ Delete button that submits a DELETE request and automatically triggers the style
 - `plain` - Render as a plain text link instead of a button (default: `false`)
 - `form_class` - Extra classes for the wrapping form (default: `nil`)
 
-The destructive red is `text-error` on top of `variant: :ghost`, the default. It also
+The destructive red is `text-soft-error` on top of `variant: :ghost`, the default. It also
 applies to `variant: :link`; those two are the variants with no colour of their own. Name
 any other colour and it owns the button.
 

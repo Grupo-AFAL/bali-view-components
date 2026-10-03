@@ -1745,11 +1745,11 @@ colourless — check it before deploying, not after.
 ### `DeleteLink` gains the taxonomy, and merges its two icon keywords
 
 `variant:`, `style:` and `size:` work on `DeleteLink` too, and `size: :xl` exists where the
-private table stopped at `lg`. The default is unchanged: `variant: :ghost` plus the
-destructive `text-error`, which is exactly what the old hardcoded `btn btn-ghost text-error`
-produced. `text-error` also applies to `variant: :link` — those two are the variants with no
-colour of their own. Name any other colour and it owns the button, because `btn-error` with
-`text-error` on top is red on red.
+private table stopped at `lg`. The default is `variant: :ghost` plus the destructive red,
+the old hardcoded `btn btn-ghost text-error`; the red is `text-soft-error` since #1281, because
+`text-error` on the page read 2.75:1 on `afal`. It also applies to `variant: :link` — those two
+are the variants with no colour of their own. Name any other colour and it owns the button,
+because `btn-error` with the red on top is red on red.
 
 `icon:` said whether and `icon_name:` said which. One keyword says both now:
 
@@ -1774,7 +1774,7 @@ become, and now it does not have to.
 <!-- v2 -->
 <a disabled class="btn btn-ghost text-error btn-disabled">Delete</a>
 <!-- v3 -->
-<button type="button" aria-disabled="true" class="btn btn-ghost text-error btn-disabled">Delete</button>
+<button type="button" aria-disabled="true" class="btn btn-ghost text-soft-error btn-disabled">Delete</button>
 ```
 
 HTML has no `disabled` attribute on an anchor, so v2's disabled state existed only as paint:
