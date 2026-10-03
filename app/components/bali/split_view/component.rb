@@ -167,7 +167,12 @@ module Bali
         frame_options.merge(
           id: frame_id,
           class: class_names("split-view-detail", frame_options[:class]),
-          data: { turbo_action: ("advance" if advance?) }.merge(frame_options.fetch(:data, {}))
+          # Keyed as Rails writes the attribute, `data-` and the key dasherized:
+          # `turbo_action`, `"turbo_action"` and `"turbo-action"` are one attribute
+          # in the HTML, but three keys here, which would render it twice and leave
+          # the browser keeping the first — advance's.
+          data: { "turbo-action" => ("advance" if advance?) }
+                  .merge(frame_options.fetch(:data, {}).transform_keys { |key| key.to_s.dasherize })
         )
       end
     end

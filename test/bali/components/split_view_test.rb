@@ -197,14 +197,22 @@ class BaliSplitViewComponentTest < ComponentTestCase
     assert_no_selector("turbo-frame[data-turbo-action]", visible: :all)
   end
 
-  def test_a_turbo_action_in_frame_options_wins_over_advance
-    render_inline(
-      Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: { data: { turbo_action: "replace" } })
-    ) do |split|
-      split.with_master { "MASTER" }
-    end
+  # Parsed as a browser does: given the attribute twice, HTML5 keeps the first.
+  def test_a_turbo_action_in_frame_options_wins_over_advance_however_it_is_spelled
+    [
+      { data: { turbo_action: "replace" } },
+      { data: { "turbo_action" => "replace" } },
+      { data: { "turbo-action": "replace" } },
+      { "data" => { "turbo-action" => "replace" } }
+    ].each do |frame_options|
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: frame_options)) do |split|
+        split.with_master { "MASTER" }
+      end
 
-    assert_selector('turbo-frame[data-turbo-action="replace"]', visible: :all)
+      frame = Nokogiri::HTML5.fragment(rendered_content).at_css("turbo-frame")
+
+      assert_equal "replace", frame["data-turbo-action"], frame_options.inspect
+    end
   end
 
   def test_frame_options_class_is_added_to_the_frame_class
