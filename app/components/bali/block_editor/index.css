@@ -246,8 +246,8 @@
   font-size: 0.7rem;
 }
 
-/* Mantine dropdown menus (toolbar color picker, link input, etc.) */
-.block-editor-component .mantine-Menu-dropdown,
+/* BlockNote paints its menus from the palette above, but leaves two Mantine popovers it opens
+ * here transparent: the emoji picker of a floating thread and the file panel. */
 .block-editor-component .mantine-Popover-dropdown {
   background-color: var(--color-base-100) !important;
   border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
