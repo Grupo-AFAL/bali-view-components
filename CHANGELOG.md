@@ -210,13 +210,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
   `base-content` fijo que le daba daisyUI: la hamburguesa y una marca `variant: :ghost` pasan
-  de 1.00 a 14.68:1 sobre `neutral` en `afal`. En un Navbar transparente de color toman, como
-  sus enlaces, el `-content` del preset: sobre un hero oscuro se leen sólo donde ese `-content`
-  es claro, y sobre la página pueden dejar de verse (#1284). Se retira además
+  de 1.00 a 14.68:1 sobre `neutral` en `afal`. En un Navbar transparente siguen, como sus
+  enlaces, el color de texto de la barra (#1284). Se retira además
   `.navbar.is-transparent.is-active`, que nunca aplicaba: el controlador pone `is-active` en la
   hamburguesa, no en el `<nav>`. Ninguna de las nueve apps tiene un `.navbar` de color (el
   único escrito a mano, el de `assisted_reset` en `identity`, es `bg-base-100` sin color de
   texto) ni le pone `is-active`: nada que hacer.
+
+- **Un `Navbar` transparente se lee sobre la página, y un `Modal` o un `Drawer` dentro de un
+  contenedor con color de texto propio también** (#1284).
+  - Mientras es transparente, el `Navbar` toma el color de texto de lo que lo contiene
+    (`base-content` en la página) y no el `-content` de su preset, que es para el fondo que aún
+    no tiene: sus enlaces, la marca y la hamburguesa medían bajo 3:1 sobre la página en 15 de
+    las 24 combinaciones de color y tema (1.00 con `primary` en `afal`); ahora, de 13.73 a
+    17.72. Pasada su altura recupera fondo y `-content`, como antes. Sobre un hero oscuro el
+    color lo pone el anfitrión: `color: :neutral, class: "text-neutral-content"` lo conserva
+    también transparente.
+  - La caja de `Bali::Modal` y el panel de `Bali::Drawer` pintan `base-content` sobre su
+    `base-100` en vez de heredar el color de donde se rendericen: dentro de un Navbar `neutral`
+    su título medía 1.00:1 en `afal` y 1.27 en `light`; ahora 14.68 y 17.72. Un color de texto
+    en `wrapper_class:` sigue ganándole.
+  - En los temas `light` y `dark` de daisyUI, `color: :secondary` pinta los enlaces a 3.04:1, y
+    `:primary` en `dark` a 4.13, bajo el 4.5 de AA. Es la pareja de daisyUI y Bali no la
+    cambia; en los cuatro temas de Bali todos los presets pasan (5.25 o más).
+
+  Ninguna de las nueve apps renderiza `Bali::Navbar`, y sus modales y drawers cuelgan de la
+  página, cuyo texto ya es `base-content`: pintan lo mismo. Nada que hacer.
 
 - **Un drawer cerrado ya no anima su Skeleton** (#1273). El drawer cerrado sigue pintado fuera
   de la pantalla para poder deslizarse, y el `.skeleton` de daisyUI anima sin fin: cada página
