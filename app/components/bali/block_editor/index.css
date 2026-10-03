@@ -1019,6 +1019,8 @@
   z-index: var(--bali-z-popover) !important;
 }
 
+/* The portaled panel has no .bn-root, so --bn-colors-menu-background is undefined here:
+ * without this, a comment's "…" menu is transparent. */
 .document-editor-panel .mantine-Menu-dropdown {
   background-color: var(--color-base-100) !important;
   border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
