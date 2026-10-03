@@ -2414,10 +2414,11 @@ a pie) take the theme's colours in this order — `primary`, `accent`, `secondar
 `warning`, `info`, `error` — and an eighth starts over at `primary`. It is not daisyUI's order on
 purpose: in it, neighbouring series stay apart for a reader with protanopia, deuteranopia or
 tritanopia in every theme Bali ships, where `afal`'s primary and secondary differ in hue alone.
-`color:` rotates it so the colour it names comes first. A series that brings its own `borderColor:`
-is not repainted from the theme; on a line, its points and legend swatch take its
-`backgroundColor:`, or that border when it gives no fill. A series without one is repainted
-whole, a `backgroundColor:` of its own included.
+`color:` rotates it so the colour it names comes first. A series whose own `borderColor:` is a
+literal colour (hex, `rgb()`) is not repainted from the theme; on a line, its points and legend
+swatch take its `backgroundColor:`, or that border when it gives no fill. A series without one,
+or whose border is a `var(--color-*)` such as `Bali::Color.css(:error)`, is repainted whole by
+position, a `backgroundColor:` of its own included.
 
 **Slots:** `with_data_table` — a real `<table>` visually hidden next to the canvas.
 
