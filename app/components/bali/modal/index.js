@@ -237,10 +237,9 @@ export class ModalController extends Controller {
   }
 
   openModal (content) {
-    // No panel, nothing to open. The instance AppLayout mounts on `<main>`
-    // (`data-controller="modal drawer"`) owns no targets — Stimulus scopes the
-    // panel's targets to the `<dialog>`'s own controller — so every write below
-    // would throw on it (#984).
+    // No panel, nothing to open. The `drawer` instance AppLayout mounts on
+    // `<body>` owns no targets — Stimulus scopes the panel's targets to the
+    // `<dialog>`'s own controller — so every write below would throw on it (#984).
     if (!this.hasTemplateTarget || !this.hasWrapperTarget || !this.hasContentTarget) return
 
     // A freshly opened modal starts clean
@@ -252,7 +251,7 @@ export class ModalController extends Controller {
     // skeleton pulls the focus in, the second call would otherwise overwrite
     // the trigger with the panel itself, and closing would restore nothing.
     if (!this.templateTarget.contains(document.activeElement)) {
-      this.previouslyFocusedElement = document.activeElement
+      this.previouslyFocusedElement = this._focusReturnTarget(document.activeElement)
     }
 
     if (this.wrapperClasses) {
@@ -276,6 +275,14 @@ export class ModalController extends Controller {
     // — a sibling subtree — so for the whole length of the fetch Escape never
     // reached the panel's handler and Tab walked the page behind the overlay.
     this.trapFocus()
+  }
+
+  // A trigger inside a tippy popper — an item of a `popover: true` menu — is gone by the
+  // time the panel closes: the menu shuts as the focus moves into the panel, tippy unmounts
+  // the popper, and `.focus()` on a detached item leaves the focus on <body>. The popper's
+  // reference, the menu's trigger, is where the reader came from.
+  _focusReturnTarget (element) {
+    return element?.closest('[data-tippy-root]')?._tippy?.reference || element
   }
 
   // The overlay element is a real `<dialog>`, and `showModal()` is the whole
@@ -565,7 +572,7 @@ export class ModalController extends Controller {
     element.innerHTML = html
 
     return {
-      body: element.querySelector('body').innerHTML,
+      body: element.querySelector('body'),
       title: element.querySelector('title').text
     }
   }
@@ -573,7 +580,10 @@ export class ModalController extends Controller {
   _replaceBodyAndURL = (html, url) => {
     const { body, title } = this._extractResponseBodyAndTitle(html)
 
-    document.body.innerHTML = body
+    // The element, not `innerHTML`: <body> carries controllers of its own (AppLayout's
+    // `modal drawer`, #1268), and a children-only swap leaves the origin's attributes on it,
+    // so the destination's controllers never connect and the origin's stay on.
+    document.body.replaceWith(body)
 
     if (window.Turbo) {
       window.Turbo.session.history.push(new URL(url))
@@ -740,11 +750,11 @@ export class ModalController extends Controller {
    */
   submit = event => {
     // BEFORE preventDefault, so the browser and Turbo keep the submit. The
-    // instance with no panel is the one AppLayout mounts on `<main>`
-    // (`data-controller="modal drawer"`): a `submit_group(..., drawer: true)`
-    // hardcoded on a full-page form lands its click here, and fetching into a
-    // panel that does not exist ate the 422 response and left the button dead
-    // with its spinner on (#984). Returning degrades it to a working page form.
+    // instance with no panel is the `drawer` one AppLayout mounts on `<body>`: a
+    // `submit_group(..., drawer: true)` hardcoded on a full-page form lands its
+    // click here, and fetching into a panel that does not exist ate the 422
+    // response and left the button dead with its spinner on (#984). Returning
+    // degrades it to a working page form.
     if (!this.hasContentTarget || !this.hasTemplateTarget) return
 
     event.preventDefault()
@@ -766,7 +776,7 @@ export class ModalController extends Controller {
     // The form-level call does all of it — validates every control the browser validates,
     // focuses the first invalid one, scrolls to it and shows its message.
     //
-    // (The orphan `<main>` instance used to reach this line too; since #984 it
+    // (The orphan page-level instance used to reach this line too; since #984 it
     // returns before preventDefault, so its validation is the browser's own.)
     const form = button.closest('form')
     if (!form.reportValidity()) {

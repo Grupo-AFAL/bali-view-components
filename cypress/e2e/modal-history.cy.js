@@ -34,7 +34,7 @@ describe('modal history', () => {
     cy.get('#modal-redirect-origin').should('not.exist')
   })
 
-  // The swap is `document.body.innerHTML = …` plus a history push, so the realm
+  // The swap is `document.body.replaceWith(…)` plus a history push, so the realm
   // is never torn down — which is the whole reason the pushed entry has no
   // snapshot behind it.
   it('swaps the body without reloading the page', () => {
@@ -89,5 +89,37 @@ describe('modal history', () => {
     cy.get('#modal-redirect-origin').should('exist')
 
     cy.get('@originGet.all').should('have.length', 1)
+  })
+
+  it('leaves none of the origin overlay controllers on a swapped-in page with no shared modal', () => {
+    const errors = []
+    cy.on('uncaught:exception', (err) => {
+      errors.push(err.message)
+      return false
+    })
+    cy.window().then((win) => { win.__cySurvivesSwap = true })
+
+    cy.get('#expired-session-trigger').click()
+
+    cy.location('pathname').should('eq', '/login')
+    cy.get('form[action="/login"]').should('exist')
+    cy.window().should('have.prop', '__cySurvivesSwap', true)
+    cy.get('body').should('have.attr', 'data-controller', 'app-layout')
+    cy.then(() => expect(errors, 'uncaught errors').to.deep.equal([]))
+  })
+
+  it('connects the overlay controllers of the page it swaps in', () => {
+    cy.visit(`${appOrigin}/modal_redirect/bare`)
+    cy.window().then((win) => { win.__cySurvivesSwap = true })
+    cy.get('#bare-redirecting-trigger').click()
+    cy.get('#modal-redirect-landing').should('exist')
+    cy.window().should('have.prop', '__cySurvivesSwap', true)
+
+    cy.get('#landing-drawer-trigger').click()
+
+    cy.document().should((doc) => {
+      expect(doc.location.pathname, 'still on the landing').to.eq('/modal_redirect/landing')
+      expect(doc.getElementById('main-drawer').matches(':modal'), '#main-drawer is open').to.equal(true)
+    })
   })
 })
