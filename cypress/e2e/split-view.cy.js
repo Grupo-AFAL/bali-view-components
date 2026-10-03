@@ -389,8 +389,8 @@ describe('SplitView: a row clicked before the previous advance is cached (#1280)
 // under the last URL it rendered, not the row's — so the restore waits for its
 // own fetch, and that fetch is what the test holds back. Not the render:
 // `turbo:before-cache` fires when the fetch answers, before
-// `turbo:before-render`, and the rewind on `main` cancelled the frame's request
-// there, so a held render passes without this fix.
+// `turbo:before-render`, and the rewind as it stood before #1280 cancelled the
+// frame's request there, so a held render passed on that code too.
 //
 // Against the dummy's own `/split-view`: from a preview, back to a row's URL
 // fetches that page, whose tracked stylesheet differs, and Turbo reloads.
