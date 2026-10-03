@@ -141,17 +141,18 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
     })
   })
 
-  // A transparent bar paints the text colour of where it sits (the `.is-transparent` rule in
-  // index.css, #1284), and its ghost buttons follow it as its links do. Inside a container with a
-  // colour of its own, because on the bare page that colour is base-content, which daisyUI paints
-  // a ghost button with anyway.
+  // While the bar is transparent its ghost buttons follow its text colour, as its links do. This
+  // pins the `.btn-ghost` rule, not where that colour comes from: it passes without the
+  // `.is-transparent` rule's `color: inherit`, which navbar-transparent.cy.js pins. The bar goes
+  // inside a container with a colour of its own because on the bare page it would inherit
+  // base-content, which daisyUI paints a ghost button with anyway.
   it('the burger of a transparent coloured navbar paints the text colour of the bar', () => {
     open('primary', 'light', '&transparency=true')
     cy.get('nav.navbar').then(($nav) => {
-      const hero = $nav[0].ownerDocument.createElement('div')
-      hero.className = 'bg-neutral text-neutral-content'
-      $nav[0].before(hero)
-      hero.append($nav[0])
+      const container = $nav[0].ownerDocument.createElement('div')
+      container.className = 'bg-neutral text-neutral-content'
+      $nav[0].before(container)
+      container.append($nav[0])
     })
 
     cy.get('nav.navbar').should('have.class', 'is-transparent').should(($nav) => {
