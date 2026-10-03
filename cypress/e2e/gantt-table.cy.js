@@ -1,6 +1,10 @@
+import { statusColor } from '../../app/components/bali/gantt/ganttColors'
+import { paintedContrast } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
+import { THEMES } from '../support/themes'
 
-// The left-hand table of the Gantt island (GanttTable.jsx), #1283.
+// The left-hand table of the Gantt island (GanttTable.jsx), #1283 and item 3 of #1281.
+const AA = 4.5
 const appOrigin = new URL(Cypress.config('baseUrl')).origin
 
 // The Minimap is the other `cursor-pointer` with a `title`.
@@ -144,6 +148,51 @@ describe('Gantt table', () => {
         rowFor(name).should(($hovered) => {
           expect($hovered[0].matches(':hover'), 'under the pointer').to.equal(true)
           expect(getComputedStyle($hovered[0]).backgroundColor, `${name} under the pointer`).to.not.equal(rest)
+        })
+      })
+    })
+  })
+
+  // The pill writes its status's colour over a 16% tint of that colour, on a row that may carry
+  // a tint of its own. Every pill on the page is measured as the catalog paints it, and again in
+  // every colour a host's catalog names — afal-apps passes all of these — on a hovered task row
+  // and on a selected one.
+  const COLOURS = [null, '--color-primary', '--color-secondary', '--color-accent', '--color-info',
+    '--color-success', '--color-warning', '--color-error']
+
+  THEMES.forEach((theme) => {
+    it(`reads every status pill at AA, in every catalog colour, on the ${theme} theme`, () => {
+      cy.visit('/bali/gantt/default')
+      rowFor('Findings summary').click()
+      cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', theme))
+
+      cy.get('[data-controller="gantt"]').then(($mount) => {
+        const rowsWithPill = JSON.parse($mount.attr('data-gantt-data-value')).items.filter((item) => item.group_id).length
+
+        ;['Stakeholder interviews', 'Findings summary'].forEach((pointerOn) => {
+          rowFor(pointerOn).then(hover)
+          cy.document({ timeout: 10000 }).should((doc) => {
+            expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+            const hovered = doc.querySelector(`${ROWS}:hover`)
+            expect(hovered?.title, 'under the pointer').to.equal(pointerOn)
+
+            const pills = [...doc.querySelectorAll(`${ROWS} span.rounded-full.font-semibold`)]
+            expect(pills, 'a pill on every task row').to.have.length(rowsWithPill)
+            pills.forEach((pill) => {
+              expect(paintedContrast(pill), `${theme}: "${pill.textContent}" on ${pill.closest(ROWS).title}`).to.be.at.least(AA)
+            })
+          }).then((doc) => {
+            const pill = doc.querySelector(`${ROWS}:hover span.rounded-full.font-semibold`)
+            const rendered = pill.getAttribute('style')
+            const failures = COLOURS.flatMap((color) => {
+              const paint = statusColor('x', { statuses: [{ value: 'x', color }] })
+              Object.assign(pill.style, { color: paint.text, background: paint.fill, border: `1px solid ${paint.border}` })
+              const ratio = paintedContrast(pill)
+              return ratio < AA ? [`${color ?? 'neutral'}: ${ratio.toFixed(2)}`] : []
+            })
+            pill.setAttribute('style', rendered)
+            expect(failures, `${theme}: catalog colours below AA on ${pointerOn}, under the pointer`).to.deep.equal([])
+          })
         })
       })
     })

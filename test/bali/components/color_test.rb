@@ -124,6 +124,14 @@ class BaliColorTest < ComponentTestCase
                  color_of[".block-editor-component .bn-entity-reference"])
   end
 
+  def test_gantt_status_pills_write_out_the_text_soft_utility
+    js = Bali::Engine.root.join("app/components/bali/gantt/ganttColors.js").read
+    var_color = js[/^function varColor .*?^}/m]
+
+    refute_nil(var_color, "ganttColors.js no longer declares varColor")
+    assert_equal(text_soft_mix("${c}"), var_color[/text: `([^`]+)`/, 1])
+  end
+
   def test_gradient_ramps_from_transparent_to_the_colour
     ramp = Bali::Color.gradient(:primary)
     assert_equal(10, ramp.size)

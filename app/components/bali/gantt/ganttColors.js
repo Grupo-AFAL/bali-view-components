@@ -47,19 +47,21 @@ export function neutralColor () {
     solid: 'color-mix(in oklch, var(--color-base-content) 42%, transparent)',
     fill: 'color-mix(in oklch, var(--color-base-content) 10%, transparent)',
     border: 'color-mix(in oklch, var(--color-base-content) 30%, transparent)',
-    text: 'color-mix(in oklch, var(--color-base-content) 62%, transparent)'
+    text: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)'
   }
 }
 
 // Color from a daisyUI variable (status). `fill`/`border` derive by color-mix
-// so no opaque token the theme might not define is needed.
+// so no opaque token the theme might not define is needed. `text` is `text-soft-*`
+// (app/assets/stylesheets/bali/utilities.css) written out for a variable no class can name: the
+// colour itself over its own tint read 1.55:1 on `afal` (#1281).
 function varColor (cssVar) {
   const c = `var(${cssVar})`
   return {
     solid: c,
     fill: `color-mix(in oklch, ${c} 16%, transparent)`,
     border: `color-mix(in oklch, ${c} 50%, transparent)`,
-    text: c
+    text: `color-mix(in oklab, ${c} 40%, var(--color-base-content))`
   }
 }
 
