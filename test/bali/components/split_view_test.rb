@@ -197,8 +197,10 @@ class BaliSplitViewComponentTest < ComponentTestCase
     assert_no_selector("turbo-frame[data-turbo-action]", visible: :all)
   end
 
-  # Parsed as a browser does: given the attribute twice, HTML5 keeps the first.
-  def test_a_turbo_action_in_frame_options_wins_over_advance_however_it_is_spelled
+  # Read off the markup, not a parsed frame: an attribute written twice parses
+  # as its first copy, and an unnormalized string `"data"` key writes the host's
+  # copy first — so the duplicate would parse as the right answer.
+  def test_a_turbo_action_in_frame_options_replaces_advance_however_it_is_spelled
     [
       { data: { turbo_action: "replace" } },
       { data: { "turbo_action" => "replace" } },
@@ -209,20 +211,18 @@ class BaliSplitViewComponentTest < ComponentTestCase
         split.with_master { "MASTER" }
       end
 
-      frame = Nokogiri::HTML5.fragment(rendered_content).at_css("turbo-frame")
-
-      assert_equal "replace", frame["data-turbo-action"], frame_options.inspect
+      assert_equal [ "replace" ], frame_tag_values("data-turbo-action"), frame_options.inspect
     end
   end
 
   def test_frame_options_class_is_added_to_the_frame_class
-    render_inline(
-      Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: { class: "scroll-mt-20" })
-    ) do |split|
-      split.with_master { "MASTER" }
-    end
+    [ { class: "scroll-mt-20" }, { "class" => "scroll-mt-20" } ].each do |frame_options|
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: frame_options)) do |split|
+        split.with_master { "MASTER" }
+      end
 
-    assert_selector("turbo-frame.split-view-detail.scroll-mt-20", visible: :all)
+      assert_equal [ "split-view-detail scroll-mt-20" ], frame_tag_values("class"), frame_options.inspect
+    end
   end
 
   # The rows, the list and the controller all find the frame by `frame_id:`, so it
@@ -235,5 +235,11 @@ class BaliSplitViewComponentTest < ComponentTestCase
 
       assert_match(/frame_options cannot set id/, error.message)
     end
+  end
+
+  private
+
+  def frame_tag_values(attribute)
+    rendered_content[/<turbo-frame[^>]*>/].scan(/ #{attribute}="([^"]*)"/).flatten
   end
 end
