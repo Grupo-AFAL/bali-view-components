@@ -535,23 +535,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hacer en el anfitrión.
 
 - **La tabla del Gantt se lee en cualquier ancho y marca la fila bajo el puntero** (#1283). El
-  avatar del responsable es un `role="img"` con su nombre: un lector de pantalla leía «AD». Los
-  encabezados llevan el relleno de su columna y no la desbordan: «OWNERDATES» y «DAYSSTATUS»
-  quedan a 8.5 y 10 px, y ninguna celda empuja fuera de línea a las que siguen (una píldora
-  «Ready for review» corría 33 px la columna de avance; ahora se corta con «…»). La columna del
-  responsable pasa de 38 a 44 px y la de estado de 76 a 84. La de nombre no baja de 140 px y la
-  tabla abre con el ancho que piden sus columnas mientras el cronograma conserve el 40 %: a
-  1000 px tenía 46 px y 11 de las 14 filas de la vista previa no mostraban nombre; a 390 px el
-  avatar tapaba el número WBS. Donde no cabe, las columnas de la derecha se cortan en el borde
-  de la tabla. El tinte de fila iba en `style` y anulaba el hover: ahora una fila suma 8 puntos
-  de su tinte bajo el puntero; la seleccionada conserva el suyo. Lo nota **afal-apps**, el único
-  anfitrión que rinde el Gantt. Sin nada que hacer en el anfitrión.
+  avatar del responsable es una imagen con su nombre: un lector de pantalla leía las iniciales.
+  Los encabezados ya no se pegan («OWNERDATES») y quedan sobre su columna. Una píldora de estado
+  más larga que su columna se corta con «…» y muestra el estado entero bajo el puntero, en vez de
+  correr el resto de la fila. Las columnas del responsable y del estado pasan de 38 a 48 px y de
+  76 a 88. La de nombre no baja de 140 px, y la tabla abre con el ancho de sus columnas mientras
+  el cronograma conserve el 40 % del tablero; donde no caben, como en un teléfono, se cortan las
+  de la derecha. El hover de fila se pinta; la fila seleccionada conserva su tinte. Lo nota
+  **afal-apps**, el único anfitrión que rinde el Gantt: «Listo para revisión» y, en el
+  portafolio, «En despliegue», «Midiendo valor» y «Mantenimiento» se ven cortados. Sin nada que
+  hacer en el anfitrión.
 
 - **Las píldoras de estado del Gantt se leen** (#1281, punto 3): el texto era el color sobre su
-  propio tinte al 16 %, 1.55–2.13:1 en los temas claros. Ahora es la mezcla de `text-soft-*`, y
-  el gris de la píldora neutra sube de `/62` a `/70`. Con cualquier `--color-*` que mande el
-  catálogo del anfitrión, en reposo, bajo el puntero o en la fila seleccionada, el peor caso es
-  la neutra seleccionada en `afal`: 4.61:1. Sin nada que hacer en el anfitrión.
+  propio tinte, 1.55–2.13:1 en los temas claros. Ahora es la mezcla de `text-soft-*`, y el gris
+  de la píldora neutra sube de `/62` a `/70`. Con los siete colores semánticos y el neutro, en
+  reposo, bajo el puntero o en la fila seleccionada, el peor caso mide 4.61:1 (`afal`). Sin nada
+  que hacer en el anfitrión.
 
 - **Bajo `AppLayout`, un ítem `drawer:` o `modal:` de un menú `popover: true` abre el overlay en
   vez de navegar** (#1268). AppLayout montaba los controllers `modal drawer` en `<main>`, y tippy
