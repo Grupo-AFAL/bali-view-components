@@ -38,15 +38,15 @@ describe('Navbar: a transparent bar', () => {
   })
 
   // The page's colour while it is transparent, and not base-content: a bar rendered inside a
-  // container that has a colour of its own (a Hero) reads in that colour, over that container.
+  // container that has a colour of its own (a dark section) reads in that colour, over it.
   it('inside a container with a text colour of its own, it paints that colour', () => {
     cy.viewport(1280, 800)
     open('accent', 'afal')
     cy.get('nav.navbar').then(($nav) => {
-      const hero = $nav[0].ownerDocument.createElement('div')
-      hero.className = 'bg-neutral text-neutral-content'
-      $nav[0].before(hero)
-      hero.append($nav[0])
+      const section = $nav[0].ownerDocument.createElement('div')
+      section.className = 'bg-neutral text-neutral-content'
+      $nav[0].before(section)
+      section.append($nav[0])
     })
 
     cy.document().should((doc) => {
