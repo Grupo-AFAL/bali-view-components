@@ -384,26 +384,35 @@ describe('SplitView: a row clicked before the previous advance is cached (#1280)
 
 // On back, the page being left lives until Turbo's restore replaces its body. A
 // request its frame makes meanwhile, if it lands first, pushes the URL just
-// reached again: the frame still carries the row click's `advance`. Landing
-// first takes an answer within about 15 ms of the popstate on a cached restore;
-// one that misses the cache waits for its own fetch, and this back always
-// misses, because Turbo files the page a row click leaves under the last URL it
-// rendered, not the row's. Either way two responses race, so the restore's
-// render is held through Turbo's own `turbo:before-render` pause, which lets
-// any such request land before the body goes.
+// reached again: the frame still carries the row click's `advance`. This back
+// always misses the snapshot cache — Turbo files the page a row click leaves
+// under the last URL it rendered, not the row's — so the restore waits for its
+// own fetch, and that fetch is what the test holds back. Not the render:
+// `turbo:before-cache` fires when the fetch answers, before
+// `turbo:before-render`, and the rewind on `main` cancelled the frame's request
+// there, so a held render passes without this fix.
 //
 // Against the dummy's own `/split-view`: from a preview, back to a row's URL
 // fetches that page, whose tracked stylesheet differs, and Turbo reloads.
 describe('SplitView: back to a row while the restore is held (#1280)', () => {
   const app = path => `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
   const title = () => cy.get('.split-view-detail [data-testid="detail-title"]')
-  const holdRestore = (win) => {
-    win.addEventListener('turbo:before-render', (event) => {
-      event.preventDefault()
-      setTimeout(() => event.detail.resume(), 1000)
-    }, { once: true })
-    win.addEventListener('turbo:render', () => { win.restored = true }, { once: true })
-    cy.spy(win.history, 'pushState').as('pushState')
+  const goBackHoldingRestore = (row) => {
+    const selected = new URL(row.href).searchParams.get('selected')
+    cy.intercept({ method: 'GET', pathname: '/split-view', query: { selected } }, (req) => {
+      if (!req.headers['turbo-frame']) req.on('response', (res) => { res.setDelay(1000) })
+    })
+    cy.window().then((win) => {
+      win.addEventListener('turbo:render', () => { win.restored = true }, { once: true })
+      cy.spy(win.history, 'pushState')
+    })
+    cy.go('back')
+    // One callback, not a wait for the render and then the spy: when the page
+    // being left does push, the restore can fail to render at all.
+    cy.window({ timeout: 5000 }).should((win) => {
+      expect(win.history.pushState).to.have.callCount(0)
+      expect(win.restored).to.eq(true)
+    })
   }
 
   beforeEach(() => {
@@ -421,11 +430,8 @@ describe('SplitView: back to a row while the restore is held (#1280)', () => {
       cy.wrap(second).click()
       cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', second.href)
 
-      cy.window().then(holdRestore)
-      cy.go('back')
-      cy.window().its('restored', { timeout: 5000 }).should('eq', true)
+      goBackHoldingRestore(first)
 
-      cy.get('@pushState').should('not.have.been.called')
       cy.location('href').should('eq', first.href)
       cy.get('@name').then(name => title().should('have.text', name))
       cy.go('forward')
@@ -447,11 +453,8 @@ describe('SplitView: back to a row while the restore is held (#1280)', () => {
       cy.wrap(third).click()
       cy.get('.split-view-detail').should('have.attr', 'busy')
 
-      cy.window().then(holdRestore)
-      cy.go('back')
-      cy.window().its('restored', { timeout: 5000 }).should('eq', true)
+      goBackHoldingRestore(first)
 
-      cy.get('@pushState').should('not.have.been.called')
       cy.location('href').should('eq', first.href)
       cy.go('forward')
       cy.location('href').should('eq', second.href)
