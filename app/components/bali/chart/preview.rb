@@ -59,8 +59,8 @@ module Bali
 
       # @label Series Palette
       # One series per theme colour, in the order a multi-series chart hands
-      # them out: primary, accent, secondary, success, warning, info, error. An
-      # eighth series starts over at primary.
+      # them out (`Bali::Color::CYCLE`). An eighth series would start over at
+      # the first.
       # @param type select { choices: [bar, line] }
       def series_palette(type: :bar)
         render Bali::Chart::Component.new(

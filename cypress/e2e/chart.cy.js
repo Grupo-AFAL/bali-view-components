@@ -1,4 +1,5 @@
-import { DEFICIENCIES, cvdDistance, srgb } from '../support/color_vision'
+import { DEFICIENCIES, cvdDistance } from '../support/color_vision'
+import { paintedPixel } from '../support/painted_contrast'
 import { THEMES } from '../support/themes'
 
 // #1041 — Chart had no E2E spec, and a canvas is the one component where a
@@ -128,10 +129,11 @@ describe('Chart', () => {
   })
 
   describe('series palette', () => {
-    // Before #1281 `afal-dark`'s first two series were 0.003 apart under deuteranopia. The
-    // closest neighbours left are costa-norte's accent and secondary, both golds, at 0.061 under
-    // tritanopia: the widest closest pair of the 120 orders that start primary, accent.
-    const FLOOR = 0.06
+    // Measured between the series' own colours. Before #1281 `afal-dark`'s first two series
+    // were 0.003 apart under deuteranopia, and every pair the daisyUI order brought too close
+    // measured 0.047 or less. The closest neighbours now are costa-norte's accent and secondary,
+    // both golds, at 0.061 under tritanopia.
+    const FLOOR = 0.05
 
     const bare = (colour) => colour.replace(/^oklch\(|\)$/g, '')
     const firstColor = (dataset) => [dataset.borderColor].flat()[0]
@@ -190,7 +192,7 @@ describe('Chart', () => {
 
             // The series' own colour, not the 0.8 its border is painted at.
             const colours = chart.data.datasets
-              .map((dataset) => srgb(win.document, firstColor(dataset).replace(/\s*\/\s*[\d.]+\)$/, ')')))
+              .map((dataset) => paintedPixel(win.document, firstColor(dataset).replace(/\s*\/\s*[\d.]+\)$/, ')')))
 
             colours.forEach((colour, index) => {
               const next = (index + 1) % colours.length

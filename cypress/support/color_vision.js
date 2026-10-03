@@ -1,7 +1,7 @@
 // How far apart two colours stay for a reader with a colour-vision deficiency: their distance in
 // OKLab (ΔE_OK) after simulating the deficiency with the matrices of Machado, Oliveira and
 // Fernandes (2009) at severity 1.0, applied in linear sRGB. Colours come in as the 8-bit sRGB a
-// canvas paints, which is what `srgb` hands back for any CSS colour.
+// canvas paints, which is what `paintedPixel` (painted_contrast.js) hands back.
 
 const MACHADO = {
   protanopia: [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]],
@@ -36,14 +36,4 @@ const oklab = ([r, g, b]) => {
 export const cvdDistance = (a, b, deficiency) => {
   const [p, q] = [a, b].map((rgb) => oklab(simulate(rgb.map(linear), deficiency)))
   return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])
-}
-
-// A CSS colour as the opaque 8-bit sRGB a canvas paints it in.
-export const srgb = (doc, colour) => {
-  const canvas = doc.createElement('canvas')
-  canvas.width = canvas.height = 1
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
-  ctx.fillStyle = colour
-  ctx.fillRect(0, 0, 1, 1)
-  return [...ctx.getImageData(0, 0, 1, 1).data.slice(0, 3)]
 }
