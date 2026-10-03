@@ -243,7 +243,6 @@ module Bali
         surface ? render(Bali::Card::Component.new(**card_options)) { body } : body
       end
 
-      # Slot for right-aligned toolbar buttons (column selector, export, etc.)
       renders_many :toolbar_buttons
 
       # Built-in column selector with declarative API
