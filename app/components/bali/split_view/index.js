@@ -113,8 +113,10 @@ export class SplitViewController extends Controller {
     // page: removing it cancels that request and the click is lost (#1280). Its
     // own `advance` rewinds it once it lands; a page left before then is cached
     // with the `src`, and `syncFrameFromLocation` settles that pane on restore.
-    // The attribute and not `frame.complete`, which in Turbo 8.0.23 answers true
-    // mid-load and settles `frame.loaded` as a side effect.
+    // The attribute and not `frame.complete`: in Turbo 8.0.23 that getter answers
+    // true mid-load and, as a side effect, settles `frame.loaded` and drops
+    // Turbo's handle on the request in flight, so the next row click no longer
+    // cancels it and its late answer replaces that row's detail.
     if (!frame.hasAttribute('complete')) return
 
     // Stash where the pane points before dropping `src`, so a traversal that

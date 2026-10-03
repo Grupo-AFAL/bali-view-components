@@ -320,6 +320,39 @@ describe('SplitView: a row clicked before the previous advance is cached (#1280)
     })
   })
 
+  // The skipped rewind must leave the second row's request with Turbo, so the
+  // next click still cancels it. The second row's answer is held back and a
+  // third row clicked meanwhile: if Turbo had lost its handle on the request,
+  // the late answer would land over the third row's detail.
+  it('keeps the last row clicked when the row before it answers late', () => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+
+    cy.get('.split-view-row').then(($rows) => {
+      const second = $rows[4]
+      const third = $rows[6]
+      const name = third.querySelector('[data-testid="row-title"]').textContent.trim()
+      const selected = new URL(second.href).searchParams.get('selected')
+      cy.intercept({ method: 'GET', pathname: '/split-view', query: { selected } },
+        (req) => { req.on('response', (res) => { res.setDelay(1500) }) })
+
+      cy.window().then((win) => {
+        win.addEventListener('turbo:before-cache', () => second.click(), { capture: true, once: true })
+      })
+      cy.wrap($rows[2]).click()
+      cy.wrap(second).should('have.attr', 'aria-current', 'true')
+      cy.get('.split-view-detail').should('have.attr', 'busy')
+      cy.wrap(third).click()
+
+      cy.location('href').should('eq', third.href)
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('have.text', name)
+      // Longer than the held-back answer, so one that was not cancelled has landed.
+      cy.wait(2000)
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('have.text', name)
+      cy.location('href').should('eq', third.href)
+    })
+  })
+
   // What leaving a loading frame alone costs: a page left before the detail
   // lands is cached with the row's `src`, and Turbo reloads any frame with a
   // `src` and no `complete` on restore. The detail is held back so the page is
