@@ -1,40 +1,42 @@
-<div class="p-6 bg-base-200 min-h-[480px]">
-  <%# No trigger slot: the component renders its search-well trigger. Size it
-      from the component's `class:`; the text comes from `trigger_label:`. %>
-  <%= render Bali::Command::Component.new(
-    placeholder: 'Search documents, folios, procedures…',
-    trigger_label: 'Search documents, folios, procedures…',
-    no_results_subtitle: 'Try a folio number or a committee name.',
-    class: 'max-w-md'
-  ) do |c| %>
+<% I18n.with_locale(locale) do %>
+  <div class="p-6 bg-base-200 min-h-[480px]">
+    <%# No trigger slot: the component renders its search-well trigger. Size it
+        from the component's `class:`; the text comes from `trigger_label:`. %>
+    <%= render Bali::Command::Component.new(
+      placeholder: 'Search documents, folios, procedures…',
+      trigger_label: 'Search documents, folios, procedures…',
+      no_results_subtitle: 'Try a folio number or a committee name.',
+      class: 'max-w-md'
+    ) do |c| %>
 
-    <%# A directory of pages is `:navigation`: browsable the moment the palette
-        opens, narrowed as soon as the user types. `:searchable` would leave the
-        panel empty on open, and `:action` — the mode hosts reached for to avoid
-        that — never filters (#1016). %>
-    <% c.with_group(name: 'Pages', mode: :navigation) do |g| %>
-      <% g.with_item(title: 'Policies', meta: 'Regulations', icon: 'book-open', href: '/lookbook') %>
-      <% g.with_item(title: 'Procedures', meta: 'Operations', icon: 'list-checks', href: '/lookbook') %>
-      <% g.with_item(title: 'Committees', meta: 'Structure', icon: 'users', href: '/lookbook') %>
-    <% end %>
+      <%# A directory of pages is `:navigation`: browsable the moment the palette
+          opens, narrowed as soon as the user types. `:searchable` would leave the
+          panel empty on open, and `:action` — the mode hosts reached for to avoid
+          that — never filters (#1016). %>
+      <% c.with_group(name: 'Pages', mode: :navigation) do |g| %>
+        <% g.with_item(title: 'Policies', meta: 'Regulations', icon: 'book-open', href: '/lookbook') %>
+        <% g.with_item(title: 'Procedures', meta: 'Operations', icon: 'list-checks', href: '/lookbook') %>
+        <% g.with_item(title: 'Committees', meta: 'Structure', icon: 'users', href: '/lookbook') %>
+      <% end %>
 
-    <% c.with_group(name: 'Documents') do |g| %>
-      <% g.with_item(title: 'Anti-Money Laundering Policy v3.2', meta: 'POL-2026-0218 · Active · Ethics Committee', icon: 'file-text', href: '/lookbook') %>
-      <% g.with_item(title: 'Code of Ethics and Conduct', meta: 'POL-2026-0211 · Active · Board', icon: 'file-text', href: '/lookbook') %>
-      <% g.with_item(title: 'Conflict of Interest Policy', meta: 'POL-2025-0184 · Active · Ethics Committee', icon: 'file-text', href: '/lookbook') %>
-      <% g.with_item(title: 'Reinforced KYC Procedure', meta: 'PRO-2026-0094 · In review', icon: 'file-check', href: '/lookbook') %>
-    <% end %>
+      <% c.with_group(name: 'Documents') do |g| %>
+        <% g.with_item(title: 'Anti-Money Laundering Policy v3.2', meta: 'POL-2026-0218 · Active · Ethics Committee', icon: 'file-text', href: '/lookbook') %>
+        <% g.with_item(title: 'Code of Ethics and Conduct', meta: 'POL-2026-0211 · Active · Board', icon: 'file-text', href: '/lookbook') %>
+        <% g.with_item(title: 'Conflict of Interest Policy', meta: 'POL-2025-0184 · Active · Ethics Committee', icon: 'file-text', href: '/lookbook') %>
+        <% g.with_item(title: 'Reinforced KYC Procedure', meta: 'PRO-2026-0094 · In review', icon: 'file-check', href: '/lookbook') %>
+      <% end %>
 
-    <% c.with_group(name: 'Recents', mode: :recent) do |g| %>
-      <% g.with_item(title: 'Anti-Money Laundering Policy v3.2', meta: 'POL-2026-0218 · Active', icon: 'file-text', href: '/lookbook') %>
-      <% g.with_item(title: 'Reinforced KYC Procedure', meta: 'PRO-2026-0094 · In review', icon: 'file-check', href: '/lookbook') %>
-      <% g.with_item(title: 'Inbox', meta: '7 pending', icon: 'inbox', href: '/lookbook') %>
-    <% end %>
+      <% c.with_group(name: 'Recents', mode: :recent) do |g| %>
+        <% g.with_item(title: 'Anti-Money Laundering Policy v3.2', meta: 'POL-2026-0218 · Active', icon: 'file-text', href: '/lookbook') %>
+        <% g.with_item(title: 'Reinforced KYC Procedure', meta: 'PRO-2026-0094 · In review', icon: 'file-check', href: '/lookbook') %>
+        <% g.with_item(title: 'Inbox', meta: '7 pending', icon: 'inbox', href: '/lookbook') %>
+      <% end %>
 
-    <% c.with_group(name: 'Actions', mode: :action) do |g| %>
-      <% g.with_item(title: 'New document request', meta: 'Start an approval flow', icon: 'plus', href: '/lookbook') %>
-      <% g.with_item(title: 'Upload committee minutes', meta: 'Signed PDF', icon: 'paperclip', href: '/lookbook') %>
-      <% g.with_item(title: 'Import regulations', meta: 'CSV or Excel', icon: 'upload', href: '/lookbook') %>
+      <% c.with_group(name: 'Actions', mode: :action) do |g| %>
+        <% g.with_item(title: 'New document request', meta: 'Start an approval flow', icon: 'plus', href: '/lookbook') %>
+        <% g.with_item(title: 'Upload committee minutes', meta: 'Signed PDF', icon: 'paperclip', href: '/lookbook') %>
+        <% g.with_item(title: 'Import regulations', meta: 'CSV or Excel', icon: 'upload', href: '/lookbook') %>
+      <% end %>
     <% end %>
-  <% end %>
-</div>
+  </div>
+<% end %>
