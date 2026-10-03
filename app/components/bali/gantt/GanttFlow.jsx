@@ -633,8 +633,9 @@ function GanttCanvas (props) {
     [maxFlowX, rowsHeight]
   ]
 
-  // Table width: adjustable via the splitter (tableWidth) or responsive — 42% of the board, or
-  // wide enough for every column while the timeline keeps 40% of it.
+  // Table width: adjustable via the splitter (tableWidth) or responsive. It opens wide enough for
+  // every column only as far as that leaves the timeline 40% of the board: on a board under
+  // 840 px it takes 60% and clips the right-hand columns.
   const fitsColumns = Math.min(FULL_TABLE_W, Math.round(rootWidth * 0.6))
   const defaultTableW = rootWidth ? Math.min(520, Math.max(300, Math.round(rootWidth * 0.42), fitsColumns)) : 380
   const effTableW = tableWidth != null ? tableWidth : defaultTableW
