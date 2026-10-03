@@ -89,7 +89,7 @@ describe('hovers, tints and edges over a base surface', () => {
     ['a TreeView item', () => cy.visit('/bali/tree_view/default'),
       '.tree-view-item-component .item:not(.is-active)'],
     ['an option of a multi-select condition the controller built', openBuiltMultiSelect,
-      '[data-condition-target="valueContainer"] .filters-multi-select-content label'],
+      '[data-condition-target="valueContainer"] [data-multi-select-target="dropdown"] label'],
     ['an option of a multi-select condition the server drew', openServerMultiSelect,
       '[data-condition-target="valueContainer"] [data-multi-select-target="dropdown"] label'],
     ['a Timeline item with an href', () => cy.visit('/bali/timeline/tracking'),
@@ -135,7 +135,7 @@ describe('hovers, tints and edges over a base surface', () => {
   const EDGES = [
     ['the Filters panel', openFilters, '[data-filters-target="dropdownContent"] > div'],
     ['the multi-select panel the controller built', openBuiltMultiSelect,
-      '[data-condition-target="valueContainer"] .filters-multi-select-content'],
+      '[data-condition-target="valueContainer"] [data-multi-select-target="dropdown"]'],
     ['the multi-select panel the server drew', openServerMultiSelect,
       '[data-condition-target="valueContainer"] [data-multi-select-target="dropdown"]'],
     ['the Gantt zoom controls', openGantt, 'div:has(> button[title="Zoom in"])'],

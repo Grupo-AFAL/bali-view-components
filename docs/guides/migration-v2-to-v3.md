@@ -1189,7 +1189,7 @@ Every overlay used to invent its own z-index. The full inventory, before and aft
 | `DataTable` saved views, column selector | through `Bali::Dropdown` (#1250) | `z-50` | `--bali-z-dropdown` |
 | `Filters` popover panel | `filters/component.html.erb` | `z-50` | `--bali-z-dropdown` |
 | `Filters::Condition` value menu | `filters/condition/component.html.erb` | `z-[100]` | `--bali-z-dropdown` |
-| `Filters` multi-select list (built in JS) | `condition_controller.js` | `z-50` | `.filters-multi-select-content` → `--bali-z-dropdown` |
+| `Filters` multi-select list (built in JS) | `condition_controller.js` | `z-50` | `--bali-z-dropdown` |
 | `Drawer` root | `drawer/component.rb` | `z-[60]` | `--bali-z-drawer` (300) |
 | `Drawer` scrim / panel (inside the root) | `drawer/*` | `z-[60]` / `z-[9999]` | `z-0` / `z-10` |
 | `FeedbackWidget` scrim / panel | `feedback_widget/component.html.erb` | `z-[60]` / `z-[61]` | `calc(--bali-z-drawer - 1)` / `--bali-z-drawer` |

@@ -75,10 +75,10 @@
                 <%= t('bali_view.filters.select_values') %>
               </span>
             </div>
-            <%# The option classes, and the panel classes other than the ones that position and
-                show it, match condition_controller.js#buildMultiSelectInput: change both.
-                The edge is /20, not a panel's /15: the list hangs over the filter group's 8%
-                tint, where /15 read 1.148:1 on afal. %>
+            <%# condition_controller.js#buildMultiSelectInput builds this same widget, attribute for
+                attribute, and its classes are generated only because they are written here:
+                change both. The edge is /20, not a panel's /15: the list hangs over the filter
+                group's 8% tint, where /15 read 1.148:1 on afal. %>
             <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto"
                  data-multi-select-target="dropdown">
               <% attribute_options.each do |opt| %>
@@ -138,9 +138,11 @@
           </option>
         </select>
 
-      <% when :date %>
+      <% when :date, :datetime %>
         <% if range_operator? %>
-          <%# Date range picker using Flatpickr range mode with hidden fields for Ransack %>
+          <%# condition_controller.js#syncRangeDates sends bare dates, which
+              Bali::FilterForm::WholeDayCasting reads as whole days: a time shown here would not
+              travel (#1282). %>
           <div class="w-full" data-condition-target="value">
             <input type="text"
                    class="input input-bordered input-sm w-full"
@@ -164,7 +166,7 @@
                    value="<%= range_values[:end] %>"
                    data-condition-target="rangeEnd">
           </div>
-        <% else %>
+        <% elsif attribute_type.to_sym == :date %>
           <%# Single date picker using Flatpickr %>
           <input type="text"
                  class="input input-bordered input-sm w-full"
@@ -178,35 +180,6 @@
                  data-datepicker-alt-format-value="<%= short_date_format %>"
                  data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
                  data-condition-target="value">
-        <% end %>
-
-      <% when :datetime %>
-        <% if range_operator? %>
-          <%# Datetime range picker using Flatpickr range mode with hidden fields for Ransack %>
-          <div class="w-full" data-condition-target="value">
-            <input type="text"
-                   class="input input-bordered input-sm w-full"
-                   placeholder="<%= t('bali_view.filters.select_datetime_range') %>"
-                   aria-label="<%= value_aria_label %>"
-                   data-controller="datepicker"
-                   data-datepicker-locale-value="<%= I18n.locale %>"
-                   data-datepicker-mode-value="range"
-                   data-datepicker-enable-time-value="true"
-                   data-datepicker-alt-format-value="<%= short_datetime_format %>"
-                   data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
-                   data-datepicker-default-dates-value="<%= [range_values[:start], range_values[:end]].compact.to_json %>"
-                   data-action="change->condition#syncRangeDates"
-                   data-condition-target="rangeInput">
-            <%# Hidden fields for Ransack gteq/lteq params %>
-            <input type="hidden"
-                   name="<%= range_field_names[:start] %>"
-                   value="<%= range_values[:start] %>"
-                   data-condition-target="rangeStart">
-            <input type="hidden"
-                   name="<%= range_field_names[:end] %>"
-                   value="<%= range_values[:end] %>"
-                   data-condition-target="rangeEnd">
-          </div>
         <% else %>
           <%# Single datetime picker using Flatpickr %>
           <input type="text"
