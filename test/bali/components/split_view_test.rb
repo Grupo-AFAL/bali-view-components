@@ -225,17 +225,19 @@ class BaliSplitViewComponentTest < ComponentTestCase
     end
   end
 
-  def test_frame_options_nil_renders_the_default_frame
+  def test_frame_options_nil_or_data_nil_renders_the_default_frame
     render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
       split.with_master { "MASTER" }
     end
-    default_frame = rendered_content[/<turbo-frame[^>]*>/]
+    default_frame = page.find("turbo-frame").native.to_h
 
-    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: nil)) do |split|
-      split.with_master { "MASTER" }
+    [ nil, { data: nil } ].each do |frame_options|
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: frame_options)) do |split|
+        split.with_master { "MASTER" }
+      end
+
+      assert_equal default_frame, page.find("turbo-frame").native.to_h, frame_options.inspect
     end
-
-    assert_equal default_frame, rendered_content[/<turbo-frame[^>]*>/]
   end
 
   # The rows, the list and the controller all find the frame by `frame_id:`, so it

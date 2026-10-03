@@ -172,7 +172,7 @@ module Bali
           # in the HTML, but three keys here, which would render it twice and leave
           # the browser keeping the first — advance's.
           data: { "turbo-action" => ("advance" if advance?) }
-                  .merge(frame_options.fetch(:data, {}).transform_keys { |key| key.to_s.dasherize })
+                  .merge(frame_options[:data].to_h.transform_keys { |key| key.to_s.dasherize })
         )
       end
     end
