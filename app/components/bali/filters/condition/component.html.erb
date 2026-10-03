@@ -75,10 +75,10 @@
                 <%= t('bali_view.filters.select_values') %>
               </span>
             </div>
-            <%# The option classes, and the panel classes other than the ones that position and
-                show it, match condition_controller.js#buildMultiSelectInput: change both.
-                The edge is /20, not a panel's /15: the list hangs over the filter group's 8%
-                tint, where /15 read 1.148:1 on afal. %>
+            <%# condition_controller.js#buildMultiSelectInput builds this same widget, attribute for
+                attribute, and its classes are generated only because they are written here:
+                change both. The edge is /20, not a panel's /15: the list hangs over the filter
+                group's 8% tint, where /15 read 1.148:1 on afal. %>
             <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto"
                  data-multi-select-target="dropdown">
               <% attribute_options.each do |opt| %>

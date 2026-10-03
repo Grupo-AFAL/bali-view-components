@@ -777,8 +777,9 @@ export class ConditionController extends Controller {
     `
   }
 
-  // The option classes, and the panel classes other than the ones that position and show it,
-  // match the multi-select in filters/condition/component.html.erb: change both.
+  // The multi-select filters/condition/component.html.erb draws, attribute for attribute: change
+  // both. Tailwind never scans this package's JavaScript, so a class here is generated only
+  // because that template writes it too.
   buildMultiSelectInput (fieldName, options) {
     const selectValuesLabel = this.t.placeholders?.select_values || 'Select values...'
     const selectedCountTemplate = this.t.selected_count || '%{count} selected'
@@ -802,7 +803,7 @@ export class ConditionController extends Controller {
       .join('')
 
     return `
-      <div class="dropdown w-full"
+      <div class="relative w-full"
            data-controller="multi-select"
            data-multi-select-translations-value='${JSON.stringify({
              select_values: selectValuesLabel,
@@ -811,14 +812,16 @@ export class ConditionController extends Controller {
            data-condition-target="value">
         <div tabindex="0"
              role="button"
-             class="select select-bordered select-sm w-full flex items-center"
+             aria-haspopup="listbox"
+             class="select select-bordered select-sm w-full flex items-center cursor-pointer"
+             data-action="click->multi-select#toggle keydown.enter->multi-select#toggle:prevent keydown.space->multi-select#toggle:prevent"
              data-multi-select-target="trigger">
           <span class="flex-1 truncate text-left" data-multi-select-target="label">
             ${this.escapeHtml(selectValuesLabel)}
           </span>
         </div>
-        <div tabindex="0"
-             class="dropdown-content filters-multi-select-content mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto">
+        <div class="absolute left-0 top-full hidden z-[var(--bali-z-dropdown)] mt-1 p-2 shadow-lg bg-base-100 border border-base-content/20 rounded-lg w-full max-h-60 overflow-y-auto"
+             data-multi-select-target="dropdown">
           ${optionsHtml}
         </div>
       </div>

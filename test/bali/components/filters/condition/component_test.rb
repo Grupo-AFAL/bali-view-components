@@ -178,6 +178,24 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     assert_selector('[data-multi-select-target="trigger"]:not([aria-label]):not([aria-labelledby])')
   end
 
+  # condition_controller.js#buildMultiSelectInput builds this same markup when the operator
+  # changes in the browser, and cypress/e2e/filters-built-multi-select.cy.js holds the two
+  # equal. A daisyUI .dropdown there opened its panel on focus, with nothing telling the
+  # trigger had one (#1282).
+  def test_the_multi_select_opens_only_on_its_controllers_toggle
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: { attribute: "status", operator: "in" }, group_index: 0, condition_index: 0,
+      available_attributes: @available_attributes
+    ))
+
+    trigger = '[data-multi-select-target="trigger"]'
+    assert_selector %(#{trigger}[role="button"][tabindex="0"][aria-haspopup="listbox"])
+    assert_equal %w[click->multi-select#toggle keydown.enter->multi-select#toggle:prevent
+                    keydown.space->multi-select#toggle:prevent], page.find(trigger)["data-action"].split
+    assert_selector('[data-multi-select-target="dropdown"].hidden', visible: :all)
+    assert_no_selector(".dropdown, .dropdown-content", visible: :all)
+  end
+
   # condition_controller.js rebuilds the value widget whenever the field changes, and names
   # it from here.
   def test_translations_carry_the_name_of_the_value_widget_built_in_js
