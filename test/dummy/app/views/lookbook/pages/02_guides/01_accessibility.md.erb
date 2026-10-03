@@ -96,14 +96,20 @@ Bali's Modal component automatically includes:
 
 ## Color Contrast
 
-DaisyUI themes are designed for accessibility. Use semantic colors:
+Use the theme's colours, never a fixed grey. A semantic colour is a fill, though: as text on
+the page `text-error`, `text-success`, `text-warning`, `text-info` and `text-accent` stay under
+AA on every light theme (`text-error` measured 2.75:1 on `afal`). Write text and icons in a
+semantic colour with `text-soft-<colour>`:
 
 ```erb
-<%# GOOD - Semantic colors adapt to themes %>
+<%# GOOD - follows the theme and reads on the page %>
 <p class="text-base-content">Regular text</p>
+<p class="text-soft-error">Error message</p>
+
+<%# BAD - the fill colour as text: 2.75:1 on afal %>
 <p class="text-error">Error message</p>
 
-<%# BAD - Hardcoded colors may not have contrast %>
+<%# BAD - a fixed grey ignores the theme %>
 <p class="text-gray-400">May not have sufficient contrast</p>
 ```
 
