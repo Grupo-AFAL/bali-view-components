@@ -208,6 +208,12 @@ class BaliChartComponentTest < ComponentTestCase
     assert_selector('canvas[data-chart-use-theme-colors-value="false"]')
   end
 
+  # chart/index.js paints series N in THEME_COLOR_VARS[N % 7], so the series Ruby names
+  # have to walk the whole cycle too or the JSON names one colour and the canvas shows another.
+  def test_theme_colors_hand_out_every_colour_of_the_cycle_before_repeating
+    assert_equal([ *Bali::Color::CYCLE.map(&:to_s), "primary" ], series_colors(8))
+  end
+
   # Everything Chart.js draws is pixels. Without a role and a name the canvas is
   # an unlabelled node the accessibility tree walks straight past.
   def test_a11y_canvas_is_an_image_named_after_the_title
@@ -282,5 +288,17 @@ class BaliChartComponentTest < ComponentTestCase
   def test_a11y_renders_no_table_wrapper_without_the_slot
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }))
     assert_no_selector("div.chart-fallback-table")
+  end
+
+  private
+
+  # The theme colour each of `count` series is painted in, read off the JSON the controller gets.
+  def series_colors(count)
+    datasets = Array.new(count) { |n| { label: "Series #{n + 1}", data: [ n ] } }
+    render_inline(Bali::Chart::Component.new(data: { labels: %w[Q1], datasets: datasets }))
+
+    JSON.parse(page.find("canvas.chart")["data-chart-data-value"])["datasets"].map do |dataset|
+      Array(dataset["borderColor"]).first[/var\(--color-([\w-]+)\)/, 1]
+    end
   end
 end

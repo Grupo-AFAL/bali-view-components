@@ -28,11 +28,9 @@ module Bali
       end
 
       def next_color
-        color = colors[@pointer]
+        @current = colors[@pointer % colors.size]
         @pointer += 1
-        reset_pointer if pointer_out_of_range?
-
-        @current = color
+        @current
       end
 
       def opacify_current(opacity = 5)
@@ -40,14 +38,6 @@ module Bali
       end
 
       private
-
-      def pointer_out_of_range?
-        @pointer >= (colors.size - 1)
-      end
-
-      def reset_pointer
-        @pointer = 0
-      end
 
       # A hex `custom_color:` takes the whole palette off the theme, not just its
       # first entry. Mixing the two would hand Chart.js one hex and six
