@@ -2417,8 +2417,8 @@ tritanopia in every theme Bali ships, where `afal`'s primary and secondary diffe
 `color:` rotates it so the colour it names comes first. A series' own colours reach the canvas
 as written; one that names a `var(--color-*)`, such as `Bali::Color.css(:error)` or
 `Bali::Color.with_alpha(:error, 50)`, is resolved in the page's theme, and again when the theme
-changes. On a line, the points and legend swatch take the series' own `backgroundColor:`, or its
-own `borderColor:` when it gives no fill, and otherwise the palette's colour.
+changes. On a line, the points and legend swatch take the palette's colour; a series with its own
+`borderColor:` hands them its `backgroundColor:`, or that border when it gives no fill.
 
 **Slots:** `with_data_table` — a real `<table>` visually hidden next to the canvas.
 

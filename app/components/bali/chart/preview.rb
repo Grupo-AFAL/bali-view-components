@@ -78,8 +78,8 @@ module Bali
       # @label Own Colours
       # A series' own colours reach the canvas as written, and one naming a
       # `var(--color-*)` in the theme's value for it: the third series is red.
-      # On a line, the points and legend swatch take the series' own
-      # `backgroundColor:`, or its own `borderColor:` when it gives no fill.
+      # On a line, a series with its own `borderColor:` hands the points and
+      # legend swatch its `backgroundColor:`, or that border when it gives no fill.
       def own_colors
         render Bali::Chart::Component.new(
           data: {
