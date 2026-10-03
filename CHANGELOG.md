@@ -216,8 +216,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   hora, Ransack leía `created_at_lteq=2026-08-27` como la medianoche del 27 y dejaba fuera las
   filas de ese día. `FilterForm` lee ahora la fecha sola de un `_lteq` o un `_gt` de cualquier
   grupo del panel, también anidado, como el final de ese día: así también «en o antes de»
-  incluye el día y «después de» lo deja fuera, en vez de traer sus filas. El rango de un campo `type: :datetime` elige días
-  enteros: mostraba una hora (12:00) que no viajaba. Lo notan los paneles que filtran una
+  incluye el día y «después de» lo deja fuera, en vez de traer sus filas. El rango de un campo
+  `type: :datetime` elige días enteros: mostraba una hora (12:00) que no viajaba. Lo notan los paneles que filtran una
   columna de fecha y hora con `type: :date`, como `created_at` y `last_active_at` en los
   usuarios de gobierno-corporativo o `last_sign_in_at` en las cuentas de identity: devuelven
   también las filas del último día. Sin nada que hacer en el anfitrión. Se retiran las claves
