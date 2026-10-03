@@ -560,15 +560,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de los nueve anfitriones lo hace (`git grep -n "document.body.addEventListener" origin/main`).
 
 - **`Bali::Topbar::UserMenu` contiene un nombre o un correo largo, y su disparador cabe a
-  320 px** (#1277). Las seis apps que lo usan lo reciben con el bump, sin nada que hacer.
-  - El nombre del disparador se corta con puntos suspensivos a 12rem: «María Fernanda Rodríguez
-    de la Garza» lo ensanchaba a 227 px.
+  320 px** (#1277). Las seis apps que lo usan lo reciben con el bump.
+  - El nombre del disparador se corta con puntos suspensivos a 12rem.
   - Las dos líneas del encabezado se cortan al ancho del panel, con el texto completo en
-    `title`. Un correo de 51 caracteres hacía de 342 px las filas de un panel de 208: el texto
-    se salía del panel y el interruptor de modo oscuro quedaba fuera de él.
+    `title`. Antes un correo largo se salía del panel y dejaba fuera de él el interruptor de
+    modo oscuro.
   - Bajo `sm` (640 px) el disparador es sólo el avatar, cuadrado como los `IconAction` de al
-    lado. A 320 px, con hamburguesa, paleta y dos acciones, el disparador de avatar y chevron
-    terminaba en x=335, 15 px fuera de la pantalla, que AppLayout recorta.
+    lado. A 320 px, junto a hamburguesa, paleta y dos acciones, el de avatar y chevron se
+    salía de la pantalla y AppLayout lo recortaba.
+  - El correo queda también en un `title`, y Sentry copia `title` al selector del breadcrumb
+    de un clic sobre esa línea, como ya copia el nombre del `aria-label` del disparador. Las
+    cinco apps con Sentry en el navegador (afal-apps, centinela-web, costa-norte,
+    gobierno-corporativo, opina) no filtran esos atributos en los breadcrumbs.
 
 ### Documentation
 
