@@ -55,8 +55,8 @@ export function neutralColor () {
 // so no opaque token the theme might not define is needed. `text` is `text-soft-*`
 // (app/assets/stylesheets/bali/utilities.css) written out for a variable no class can name: the
 // colour itself over its own tint read 1.55:1 on `afal` (#1281). For `--color-neutral` that text
-// is base-content, as `Bali::Color.variable_name(:neutral)` (app/components/bali/color.rb)
-// resolves it: a dark theme's neutral is a fill, and the mix read 4.20:1 under the pointer on
+// is base-content, `Bali::Color::GHOST_VARIABLE` (app/components/bali/color.rb), as Ruby
+// resolves `:neutral`: a dark theme's neutral is a fill, and the mix read 4.20:1 under the pointer on
 // `dark`. Only the text: `solid` lies under the bar's base-content label, 1.21:1 on `dark`.
 function varColor (cssVar) {
   const c = `var(${cssVar})`
