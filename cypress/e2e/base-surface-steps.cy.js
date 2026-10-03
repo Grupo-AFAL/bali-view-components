@@ -306,6 +306,31 @@ describe('hovers, tints and edges over a base surface', () => {
         expect(ring($days[0]), `${theme}: the border of a day of the range in the next month`).to.be.closeTo(1, 0.01)
       })
     })
+
+    // While the second end is picked, flatpickr marks inRange every day between the first end and
+    // the pointer, those of the previous month too. A month whose first day opens the week shows
+    // none of them, so the calendar moves on until it shows two.
+    it(`keeps the range fill on a day of the previous month while the second end is picked on the ${theme} theme`, () => {
+      cy.visit('/bali/form/date/date_range')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+      cy.get('form input.input:not([type="hidden"])').click()
+      const toTwoDaysOfThePreviousMonth = () => cy.get(DAY).then(($days) => {
+        if ($days.filter('.prevMonthDay').length >= 2) return
+        cy.get('.flatpickr-calendar.open .flatpickr-next-month').click()
+        toTwoDaysOfThePreviousMonth()
+      })
+      toTwoDaysOfThePreviousMonth()
+      cy.get(`${DAY}:not(.prevMonthDay):not(.nextMonthDay):not(.today)`).first().click()
+      cy.get(`${DAY}.prevMonthDay`).first().then(hover)
+
+      cy.get(`${DAY}.prevMonthDay.inRange`, { timeout: 10000 }).should(($days) => {
+        settled($days[0].ownerDocument)
+        expect($days[0].matches(':hover'), 'away from the pointer').to.equal(false)
+        expect(lift($days[0]), `${theme}: a day of the range in the previous month against the calendar`).to.be.at.least(STEP)
+        expect(paintedContrast($days[0]), `${theme}: the number on a day of the range in the previous month`).to.be.at.least(AA)
+        expect(ring($days[0]), `${theme}: the border of a day of the range in the previous month`).to.be.closeTo(1, 0.01)
+      })
+    })
   })
 
   // A day's looks replace each other, so each is painted on the page alone, never one over the
