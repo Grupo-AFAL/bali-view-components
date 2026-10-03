@@ -223,7 +223,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`RecurrentEventRuleForm` ya no desplaza la página de lado en un celular** (#1286). La fila
   anual «On the First / Sunday / of January» no se partía y estiraba su panel más allá de la
   pantalla; ahora sus selects pasan al renglón siguiente cuando no caben, y en escritorio siguen
-  en una línea. «On the» ya no se parte en dos renglones. Ninguna de las nueve apps usa el
+  en una línea, y su «On the» ya no se parte en dos renglones. Ninguna de las nueve apps usa el
   componente.
 
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro

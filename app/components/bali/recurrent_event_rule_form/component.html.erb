@@ -161,7 +161,9 @@
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
               data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs recurrent-event-rule#setRule' }) %>
-          <span class="text-sm font-medium min-w-[2.5rem] shrink-0"><%= t('.on_the') %></span>
+          <%# No `shrink-0`, unlike the yearly row: these selects do not wrap, and at 320px keeping
+              "On the" on one line takes 3px from each (79 instead of 82) and "Fourth" stops fitting. %>
+          <span class="text-sm font-medium min-w-[2.5rem]"><%= t('.on_the') %></span>
 
           <div class="flex items-center gap-1.5"
             data-recurrent-event-rule-target="freqCustomizationInputs"
