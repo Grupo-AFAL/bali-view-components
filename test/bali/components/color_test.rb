@@ -125,11 +125,11 @@ class BaliColorTest < ComponentTestCase
   end
 
   def test_gantt_status_pills_write_out_the_text_soft_utility
-    assert_equal(text_soft_mix("${c}"), gantt_var_color[/text: `([^`]+)`/, 1])
+    assert_equal(text_soft_mix("${ink}"), gantt_var_color[/text: `([^`]+)`/, 1])
   end
 
   # A host's catalog hands the Gantt a variable name, never `:neutral`, so ganttColors.js maps it
-  # on its own; cypress/e2e/gantt-table.cy.js measures the pill it paints.
+  # on its own; cypress/e2e/gantt-table.cy.js measures the pill text it paints.
   def test_gantt_paints_a_catalogs_neutral_as_neutral_resolves_here
     assert_equal(Bali::Color.variable_name(:neutral),
                  gantt_var_color[/cssVar === '--color-neutral' \? '([^']+)'/, 1])

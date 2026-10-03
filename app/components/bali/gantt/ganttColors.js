@@ -54,17 +54,18 @@ export function neutralColor () {
 // Color from a daisyUI variable (status). `fill`/`border` derive by color-mix
 // so no opaque token the theme might not define is needed. `text` is `text-soft-*`
 // (app/assets/stylesheets/bali/utilities.css) written out for a variable no class can name: the
-// colour itself over its own tint read 1.55:1 on `afal` (#1281). `--color-neutral` paints as
-// base-content, as `Bali::Color.variable_name(:neutral)` (app/components/bali/color.rb) does: a
-// dark theme's neutral is a fill, and without this mapping the pill's text-soft mix reads 4.20:1
-// under the pointer on `dark`.
+// colour itself over its own tint read 1.55:1 on `afal` (#1281). For `--color-neutral` that text
+// is base-content, as `Bali::Color.variable_name(:neutral)` (app/components/bali/color.rb)
+// resolves it: a dark theme's neutral is a fill, and the mix read 4.20:1 under the pointer on
+// `dark`. Only the text: `solid` lies under the bar's base-content label, 1.17:1 on `dark`.
 function varColor (cssVar) {
-  const c = `var(${cssVar === '--color-neutral' ? '--color-base-content' : cssVar})`
+  const c = `var(${cssVar})`
+  const ink = `var(${cssVar === '--color-neutral' ? '--color-base-content' : cssVar})`
   return {
     solid: c,
     fill: `color-mix(in oklch, ${c} 16%, transparent)`,
     border: `color-mix(in oklch, ${c} 50%, transparent)`,
-    text: `color-mix(in oklab, ${c} 40%, var(--color-base-content))`
+    text: `color-mix(in oklab, ${ink} 40%, var(--color-base-content))`
   }
 }
 

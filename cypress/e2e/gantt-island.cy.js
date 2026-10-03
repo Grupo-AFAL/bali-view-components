@@ -164,6 +164,32 @@ describe('Gantt island', () => {
     })
   })
 
+  // Only the status pill's text reads a catalog's --color-neutral as base-content (ganttColors.js).
+  // Under the bar's base-content label, a progress painted base-content read 1.17:1 on `dark`.
+  it("paints a catalog's --color-neutral progress in neutral, not in the bar label's ink", () => {
+    cy.intercept({ method: 'GET', url: /\/lookbook\/preview\/bali\/gantt\// }, (req) => {
+      req.on('response', (res) => {
+        res.body = String(res.body).replaceAll('&quot;--color-success&quot;', '&quot;--color-neutral&quot;')
+      })
+    })
+    cy.visit('/bali/gantt/default')
+    cy.get('[data-controller="gantt"]').should('have.attr', 'data-gantt-catalogs-value').and('include', '"--color-neutral"')
+    cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', 'dark'))
+
+    cy.get('.react-flow__node div[title="Stakeholder interviews"]').should(([bar]) => {
+      const doc = bar.ownerDocument
+      expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+      const style = (el) => doc.defaultView.getComputedStyle(el)
+      const neutral = doc.body.appendChild(Object.assign(doc.createElement('div'), { style: 'background: var(--color-neutral)' }))
+      const expected = style(neutral).backgroundColor
+      neutral.remove()
+
+      const progress = style(bar.querySelector('.inset-y-0.left-0')).backgroundColor
+      expect(progress, 'progress under the label').to.equal(expected)
+      expect(progress, 'the label\'s ink').to.not.equal(style(bar.querySelector('span.text-base-content')).color)
+    })
+  })
+
   it('dragging a bar posts the contract PATCH and reconciles', () => {
     cy.intercept('PATCH', '/admin/projects/*/schedule').as('patch')
     cy.visit('/bali/gantt/editable')
