@@ -154,6 +154,20 @@ describe('CommandController', () => {
       count().should('have.text', '1 resultado')
     })
 
+    // At 360px "9 resultados" does not fit beside the key hints, and on that line
+    // the panel's overflow-hidden would cut it to "resultad".
+    it('keeps the whole count inside the panel on a phone', () => {
+      cy.viewport(360, 760)
+      cy.visit('/bali/command/default?locale=es')
+      openPalette()
+
+      count().should('have.text', '9 resultados').then($count => {
+        const box = $count[0].getBoundingClientRect()
+        const panel = $count[0].closest('.cmd-panel').getBoundingClientRect()
+        expect(box.right, 'right edge of the count').to.be.at.most(panel.right)
+      })
+    })
+
     // Hosts pin the gem and the npm package separately, so this controller can
     // meet a palette rendered by a gem that sends no forms.
     it('falls back to English when the markup carries no forms', () => {

@@ -234,7 +234,7 @@ describe('muted text contrast', () => {
         ['trigger', '.bali-command-trigger', 1],
         ['group heading', '.cmd-group', 4],
         ['row meta', '.cmd-row-meta', 13],
-        ['footer hint', '.cmd-panel > :last-child > span:not(.flex-1)', 4],
+        ['footer hint', '.cmd-panel > :last-child > span', 4],
         ['placeholder', 'input.cmd-input', 1, '::placeholder']
       ]
     },
