@@ -216,9 +216,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `#main-modal` de `Bali::AppLayout`, y todo modal armado con contenido, pinta su ✕ en la
   esquina, y se encimaba sobre lo que el contenido pusiera a la derecha de su primera fila: una
   etiqueta junto al título, o la acción de un `ShowPage` abierto en el modal. Ahora el ✕ flota en
-  la misma esquina y esa fila se acorta a su lado. Un contenido cuya raíz sea `flex` o `grid`
-  —una Card, un `fieldset` del FormBuilder— se acorta en toda su altura, 24 px en escritorio y
-  32 en celular. Sin nada que hacer en el anfitrión.
+  la misma esquina y esa fila se acorta a su lado. Una caja `flex`, `grid` o con scroll que
+  empiece junto al ✕ —una Card, el primer `fieldset` del FormBuilder, una `Table`— se acorta en
+  toda su altura, 24 px en escritorio y 32 en celular. Sin nada que hacer en el anfitrión.
 
 - **`RecurrentEventRuleForm` ya no desplaza la página de lado en un celular** (#1286). La fila
   anual «On the First / Sunday / of January» no se partía y estiraba su panel más allá de la

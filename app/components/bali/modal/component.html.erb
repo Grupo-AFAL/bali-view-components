@@ -17,10 +17,10 @@
     <% if render_standalone_close_button? %>
       <%# Floated, not `absolute`: out of the flow it covered whatever the content put at the
           right of its first row (16×14 px of a tag at 1280 px wide, #1286), and floated that
-          row narrows beside it. A flex or grid box beside a float narrows for its whole height
-          instead, so a content rooted in one (a Card, a FormBuilder fieldset) loses 24px from
-          `sm:` up and 32px below. The negative margins undo the box's `p-4 sm:p-6` above, so
-          the button stays 8px from the corner. %>
+          row narrows beside it. A flex, grid or scrolling box that starts beside it (a Card,
+          the first FormBuilder fieldset, a Table) narrows for its whole height instead, by
+          24px from `sm:` up and 32px below. The negative margins undo the box's `p-4 sm:p-6`
+          above, so the button stays 8px from the corner. %>
       <button class="btn btn-sm btn-circle btn-ghost float-right ml-2 -mt-2 -mr-2 sm:-mt-4 sm:-mr-4" aria-label="<%= close_label %>" data-action="modal#close" type="button">✕</button>
     <% end %>
     <% if header? %>
