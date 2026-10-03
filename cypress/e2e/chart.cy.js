@@ -145,8 +145,8 @@ describe('Chart', () => {
       cy.visit('/bali/chart/series_palette')
     })
 
-    // Ruby names every colour from Bali::Color::CYCLE, a doughnut's rings carrying it on from one
-    // to the next, and the controller resolves each again in the theme the page switches to.
+    // Ruby names every colour from Bali::Color::CYCLE, and the controller resolves each again in
+    // the theme the page switches to.
     const PAINTED = { borderColor: 'colour', backgroundColor: 'fill' }
 
     ;['bar', 'doughnut'].forEach((type) => {

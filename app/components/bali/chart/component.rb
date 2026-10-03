@@ -101,9 +101,8 @@ module Bali
         @color = Bali::Color.name!(self.class, color)
         @options = build_options(options, legend)
         @html_options = html_options
-        @color_picker = Bali::Utils::ColorPicker.new(
-          use_theme_colors: use_theme_colors, color: @color, custom_color: @custom_color
-        )
+        @palette = { use_theme_colors: use_theme_colors, color: @color, custom_color: @custom_color }
+        @color_picker = Bali::Utils::ColorPicker.new(**@palette)
       end
 
       def chart_type
@@ -303,7 +302,10 @@ module Bali
           # Use labels count if available, otherwise count data points
           color_count = labels.any? ? labels.size : Array.wrap(data).size
           color_count = [ color_count, 1 ].max # Ensure at least 1 color
-          color_count.times.map { @color_picker.next_color }
+          # Every ring starts the cycle over: Chart.js draws the legend in the first ring's
+          # colours, and clicking label i hides slice i of every ring.
+          slice_picker = Bali::Utils::ColorPicker.new(**@palette)
+          color_count.times.map { slice_picker.next_color }
         else
           [ @color_picker.next_color ]
         end

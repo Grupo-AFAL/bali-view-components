@@ -222,6 +222,16 @@ class BaliChartComponentTest < ComponentTestCase
     assert_equal("#AAAA11", series_border_colors(10, use_theme_colors: false).last[0, 7])
   end
 
+  # Chart.js draws a doughnut's legend in the first ring's colours, and clicking label i hides
+  # slice i of every ring.
+  def test_every_doughnut_ring_paints_slice_i_in_the_colour_of_label_i
+    rings = Array.new(2) { |n| { label: "Ring #{n + 1}", data: [ 1, 2, 3, 4 ] } }
+    render_inline(Bali::Chart::Component.new(type: :doughnut, data: { labels: %w[Q1 Q2 Q3 Q4], datasets: rings }))
+
+    first, second = rendered_datasets.map { |ring| ring["backgroundColor"] }
+    assert_equal(first, second)
+  end
+
   # Everything Chart.js draws is pixels. Without a role and a name the canvas is
   # an unlabelled node the accessibility tree walks straight past.
   def test_a11y_canvas_is_an_image_named_after_the_title
@@ -305,9 +315,11 @@ class BaliChartComponentTest < ComponentTestCase
     datasets = Array.new(count) { |n| { label: "Series #{n + 1}", data: [ n ] } }
     render_inline(Bali::Chart::Component.new(data: { labels: %w[Q1], datasets: datasets }, **options))
 
-    JSON.parse(page.find("canvas.chart")["data-chart-data-value"])["datasets"].map do |dataset|
-      Array(dataset["borderColor"]).first
-    end
+    rendered_datasets.map { |dataset| Array(dataset["borderColor"]).first }
+  end
+
+  def rendered_datasets
+    JSON.parse(page.find("canvas.chart")["data-chart-data-value"])["datasets"]
   end
 
   def series_colors(count)

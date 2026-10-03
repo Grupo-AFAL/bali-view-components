@@ -2414,8 +2414,9 @@ a pie) take the theme's colours in this order — `primary`, `accent`, `secondar
 `warning`, `info`, `error` — and an eighth starts over at `primary`. It is not daisyUI's order on
 purpose: in it, neighbouring series stay apart for a reader with protanopia, deuteranopia or
 tritanopia in every theme Bali ships, where `afal`'s primary and secondary differ in hue alone.
-`color:` rotates it so the colour it names comes first. A series' own colours reach the canvas
-as written; one that names a `var(--color-*)`, such as `Bali::Color.css(:error)` or
+`color:` rotates it so the colour it names comes first. Every ring of a doughnut starts the order
+over, so slice i is the colour the legend gives label i in all of them. A series' own colours
+reach the canvas as written; one that names a `var(--color-*)`, such as `Bali::Color.css(:error)` or
 `Bali::Color.with_alpha(:error, 50)`, is resolved in the page's theme, and again when the theme
 changes. On a line, the points and legend swatch take the palette's colour; a series with its own
 `borderColor:` hands them its `backgroundColor:`, or that border when it gives no fill.

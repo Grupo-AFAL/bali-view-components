@@ -60,14 +60,17 @@ module Bali
       # @label Series Palette
       # One series per theme colour, in the order a multi-series chart hands
       # them out (`Bali::Color::CYCLE`). An eighth series would start over at
-      # the first. As a doughnut each ring takes four slices, carrying on the
-      # cycle where the one before it stopped.
+      # the first. As a doughnut each ring has one slice per colour, named
+      # after it, and every ring starts the cycle over.
       # @param type select { choices: [bar, line, doughnut] }
       def series_palette(type: :bar)
+        labels = type.to_s == 'doughnut' ? Bali::Color::CYCLE.map(&:to_s) : %w[Q1 Q2 Q3 Q4]
+        values = [3, 6, 4, 8, 5, 7, 2].first(labels.size)
+
         render Bali::Chart::Component.new(
           data: {
-            labels: %w[Q1 Q2 Q3 Q4],
-            datasets: (1..7).map { |n| { label: "Series #{n}", data: [n + 3, n + 6, n + 4, n + 8] } }
+            labels: labels,
+            datasets: (1..7).map { |n| { label: "Series #{n}", data: values.map { |value| n + value } } }
           },
           type: type.to_sym,
           card_style: :bordered,

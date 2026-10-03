@@ -256,11 +256,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#1281). El controlador resuelve en el tema de la página cada color que nombra un
   `var(--color-*)`, también dentro de un `color-mix()`, y deja como vienen los demás (hex,
   `rgb()`, `hsl()`). Antes recalculaba la paleta por la posición de la serie y adivinaba cuáles
-  eran de Ruby: cada anillo de una dona de varias series repetía los colores del primero en vez
-  de seguir el ciclo del JSON, un borde `Bali::Color.css(:error)` salía del color de su
-  posición, el relleno propio de una serie sin borde propio se cambiaba por el del tema y un
-  relleno `var(--color-*)` bajo un borde literal llegaba sin resolver al canvas. Ninguna gráfica
-  de las apps cambia: ninguna usa esas formas.
+  eran de Ruby: un borde `Bali::Color.css(:error)` salía del color de su posición, el relleno
+  propio de una serie sin borde propio se cambiaba por el del tema y un relleno
+  `var(--color-*)` bajo un borde literal llegaba sin resolver al canvas. Ninguna gráfica de las
+  apps cambia: ninguna usa esas formas.
+- **Cada anillo de una dona de `Bali::Chart` empieza la paleta desde el primer color** (#1281).
+  Chart.js pinta la leyenda de una dona con los colores del primer anillo y, al pulsar la
+  etiqueta i, oculta la porción i de todos los anillos, pero Ruby seguía el ciclo de un anillo
+  al siguiente: con `use_theme_colors: false` o `custom_color:`, la porción i del segundo
+  anillo no tenía el color que la leyenda da a la etiqueta i. Ahora lo tiene en todos. Con los
+  colores del tema no se veía, porque el controlador repintaba cada porción por su posición.
+  Las donas de las apps tienen un solo anillo y no cambian.
 - **`Bali::Chart` reparte la lista completa de colores antes de repetir** (#1281).
   `Bali::Utils::ColorPicker` volvía al primero al llegar al penúltimo: con `use_theme_colors:
   false` la serie 10 repetía el turquesa en vez de tomar el oliva, y con `custom_color:` la 11
