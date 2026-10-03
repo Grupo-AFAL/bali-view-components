@@ -38,7 +38,13 @@ module Bali
     # The order a component cycles through when one call site needs more than one
     # colour, e.g. the slices of a pie chart. `neutral` is left out: it is the
     # colour of furniture, and named for data it paints as base-content anyway.
-    CYCLE = %i[primary secondary accent info success warning error].freeze
+    #
+    # Not daisyUI's order: `afal`'s primary and secondary differ in hue alone (ΔL 0.005),
+    # and `afal-dark`'s measured ΔE_OK 0.003 apart under deuteranopia. In this order no
+    # two neighbouring theme colours, the last and the first included, come closer than
+    # 0.06 under protanopia, deuteranopia or tritanopia in the six themes; painted as a
+    # bar's half-opaque fill, about 0.03 (#1281).
+    CYCLE = %i[primary accent secondary success warning info error].freeze
 
     # #rgb, #rgba, #rrggbb, #rrggbbaa. Anything else is not something we can drop
     # into a style attribute without guessing what the caller meant.
@@ -95,15 +101,6 @@ module Bali
 
       def css_value?(color)
         color.is_a?(String) && (color.start_with?("#") || color.include?("("))
-      end
-
-      # The bare custom-property name, for the places that need to hand one to
-      # JavaScript rather than write it into a stylesheet.
-      def variable_name(color)
-        return if color.blank?
-        return GHOST_VARIABLE if page_ink?(color)
-
-        "--color-#{color}"
       end
 
       # Alpha through color-mix, not through an alpha channel. daisyUI 5 stores a

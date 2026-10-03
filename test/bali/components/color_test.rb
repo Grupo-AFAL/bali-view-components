@@ -85,7 +85,6 @@ class BaliColorTest < ComponentTestCase
   # cell); base-content is the same colour on Bali's light themes.
   def test_neutral_as_a_value_is_base_content
     assert_equal("var(--color-base-content)", Bali::Color.css(:neutral))
-    assert_equal("--color-base-content", Bali::Color.variable_name(:neutral))
   end
 
   def test_css_leaves_a_hex_alone

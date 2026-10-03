@@ -53,7 +53,7 @@ module Bali
         if line_chart?
           result[:pointRadius] = @options.fetch(:pointRadius, DEFAULT_POINT_RADIUS)
           result[:pointHoverRadius] = @options.fetch(:pointHoverRadius, DEFAULT_POINT_HOVER_RADIUS)
-          result[:pointBackgroundColor] = @options.fetch(:pointBackgroundColor, border_colors.first)
+          result[:pointBackgroundColor] = @options.fetch(:pointBackgroundColor) { point_background_color }
           result[:pointBorderColor] = @options.fetch(:pointBorderColor, DEFAULT_POINT_BORDER_COLOR)
           result[:pointBorderWidth] = @options.fetch(:pointBorderWidth, DEFAULT_POINT_BORDER_WIDTH)
         end
@@ -74,6 +74,16 @@ module Bali
         @options.except(*EXTRACTED_OPTIONS)
       end
 
+      # Chart.js fills a line's points, and its legend swatch, from pointBackgroundColor. A
+      # series with a border of its own hands them its fill first, the way Chart.js fills a
+      # point: bali-analytics' suppressed band is a hidden line (a transparent border) over a
+      # fill, and would lose its swatch.
+      def point_background_color
+        return border_colors.first unless @options.key?(:borderColor)
+
+        @options[:backgroundColor] || @options[:borderColor]
+      end
+
       def background_colors
         @colors.map { |c| apply_alpha(c, DEFAULT_BACKGROUND_OPACITY) }
       end
@@ -85,7 +95,8 @@ module Bali
       # Apply alpha to a color, handling hex, var(), and oklch formats
       def apply_alpha(color, alpha)
         if css_var_color?(color)
-          # For var(--color-*) format, use color-mix for transparency
+          # A canvas cannot paint it: chart/index.js resolves a var(--color-*), inside a
+          # color-mix() too, in the page's theme.
           "color-mix(in oklch, #{color} #{(alpha * 100).to_i}%, transparent)"
         elsif oklch_color?(color)
           # For oklch(var(...)) format, add alpha

@@ -201,6 +201,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   acciones. Las nueve llamadas de las apps pasan `[:csv]`
   (`git grep -n "with_export(" origin/main -- app`). Sin nada que hacer en el anfitrión.
 
+- **`Bali::Chart` pinta la segunda serie con el acento** (#1281). Las series, y las porciones de
+  un pastel, toman los colores del tema en el orden `primary`, `accent`, `secondary`, `success`,
+  `warning`, `info`, `error`, ya no en el de daisyUI. En `afal` la segunda serie era el violeta
+  secundario, que junto al azul primario sólo cambia de tono: con deuteranopia los dos colores
+  quedaban a ΔE_OK 0.024, y a 0.003 en `afal-dark`. Ahora dos colores vecinos quedan a 0.06 o
+  más con protanopia, deuteranopia y tritanopia en los seis temas; pintados como el relleno
+  semitransparente de una barra, a unas 0.03 (antes, menos de 0.003). En `afal` la serie 2
+  pasa de violeta a ámbar, la 3 de ámbar a violeta y la 4, 5 y 6 pasan a verde, amarillo y
+  celeste. Cambian las gráficas de dos o más series y las donas que usan los colores del tema:
+  **gobierno-corporativo** (sesiones programadas y celebradas de los órganos de gobierno, la
+  tendencia de conciliación, la actividad y la dona de operaciones de la importación de la
+  intranet), **centinela-web** (turnos finalizados y activos, y las donas de motivos de
+  rondines y de incidentes por tipo) y **afal-apps** (la línea «Meta» del peso en wellness). Las
+  de una sola serie, las que fijan sus colores en hex (los reportes de TDFlow) y las de garita y
+  bali-analytics no cambian. **gobierno-corporativo:** en la tendencia de conciliación la cuarta
+  serie, «mismatched», pasa de celeste a verde, el verde que la misma página da a «matched»; si
+  no debe leerse así, esa serie puede traer su color: `borderColor: Bali::Color.css(:info)` y
+  `backgroundColor: Bali::Color.with_alpha(:info, 50)` la dejan celeste. En `costa-norte-dark`,
+  donde el primario y el acento son dos dorados, las dos primeras series quedan más cerca que
+  antes (0.061 con tritanopia, antes 0.265); ninguna app pinta hoy una gráfica en ese tema.
+
+- **`afal-dark`: el acento pasa del ámbar 400 al 500 (`#F59E0B`), el de `afal`** (#1281). El
+  ámbar 400 (`#FBBF24`) era el `warning` (`#FBBD23`) a ΔE_OK 0.005, así que una gráfica de cinco
+  o más series repetía en la quinta el color de la segunda; ahora quedan a 0.075, y a 0.063 o más
+  con protanopia, deuteranopia y tritanopia. Los botones, etiquetas, Hero, Navbar y demás piezas
+  `accent` de `afal-dark` cambian a un ámbar más oscuro: su texto (`accent-content`) queda a
+  6.97:1 (antes 8.97) y el acento como texto sobre `base-100`, a 8.26 (antes 10.63). Hoy ninguna
+  app pinta `afal-dark`: garita importa el tema, sin el interruptor de modo oscuro.
+
 ### Removed
 
 - **`Topbar::ToolsMenu` deja de traducir la clave `:mission_control`** (#1208). Era la etiqueta
@@ -228,6 +257,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`git grep -n -E "theme: *(:|\"|')(light|dark)" origin/main -- app lib config` da cero). Una app
   que lo pasara no truena: cae como atributo HTML del `<div>` del editor y no hace nada.
   **Anfitrión:** si apareces en ese `git grep` con un BlockEditor, borra el `theme:`.
+
+- **`Bali::Utils::ColorPicker` pierde `#current`, `#opacify_current` y `#use_theme_colors`, y
+  `Bali::Color` pierde `.variable_name`** (#1281). No los leía nadie:
+  `git grep -n "opacify_current\|ColorPicker\|variable_name" origin/main -- app lib` da cero en
+  las nueve apps. **Anfitrión:** si apareces en ese `git grep`, guarda tú el color que devuelve
+  `#next_color` y pásalo a `ColorPicker.opacify`, y donde usabas `Bali::Color.variable_name(color)`
+  escribe `"--color-#{color}"`, o `Bali::Color::GHOST_VARIABLE` para `:ghost` y `:neutral`.
 
 ### Fixed
 
@@ -813,6 +849,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pantalla; ahora sus selects pasan al renglón siguiente cuando no caben, y en escritorio siguen
   en una línea, y su «On the» ya no se parte en dos renglones. Ninguna de las nueve apps usa el
   componente.
+
+- **Los puntos de una línea de `Bali::Chart` y su muestra en la leyenda toman el color de la
+  serie** (#1281). Ruby los escribía siempre con un `var(--color-*)` del tema, que un canvas no
+  resuelve, y el controlador sólo traducía el borde y el relleno: los puntos salían negros y la
+  muestra de la leyenda del gris de su texto. Ahora los de una serie sin `borderColor:` propio
+  llevan el color del tema de la serie, y los de una con borde propio, su `backgroundColor:` o,
+  si no lo da, ese borde.
+  Cambian las líneas con colores del tema: **gobierno-corporativo** (tendencia de conciliación,
+  actividad y clics de la importación de la intranet), **afal-apps** (peso en wellness),
+  **centinela-web** (tendencia diaria de incidentes), **bali-analytics** (la serie de personas
+  activas) y las gráficas grandes de línea de `Bali::Widget`. Y las que traen su color sin
+  `pointBackgroundColor:`: la tasa efectiva de comisión de **afal-apps**, y en la leyenda
+  semanal de **bali-analytics** la franja suprimida y los hitos, que toman su propio gris.
+  **afal-apps:** el `pointBackgroundColor:` de la curva de flujo acumulado de TDFlow ya no hace
+  falta; puedes borrarlo.
+
+- **`Bali::Chart` pinta cada color del tema que escribe Ruby, no el de la posición de la serie**
+  (#1281). El controlador resuelve en el tema de la página cada color que nombra un
+  `var(--color-*)`, también dentro de un `color-mix()`, y deja como vienen los demás (hex,
+  `rgb()`, `hsl()`). Antes recalculaba la paleta por la posición de la serie y adivinaba cuáles
+  eran de Ruby: un borde `Bali::Color.css(:error)` salía del color de su posición, el relleno
+  propio de una serie sin borde propio se cambiaba por el del tema y un relleno
+  `var(--color-*)` bajo un borde literal llegaba sin resolver al canvas. Ninguna gráfica de las
+  apps cambia: ninguna usa esas formas.
+
+- **Cada anillo de una dona de `Bali::Chart` empieza la paleta desde el primer color** (#1281).
+  Chart.js pinta la leyenda de una dona con los colores del primer anillo y, al pulsar la
+  etiqueta i, oculta la porción i de todos los anillos, pero Ruby seguía el ciclo de un anillo
+  al siguiente: con `use_theme_colors: false` o `custom_color:`, la porción i del segundo
+  anillo no tenía el color que la leyenda da a la etiqueta i. Ahora lo tiene en todos. Con los
+  colores del tema no se veía, porque el controlador repintaba cada porción por su posición.
+  Las donas de las apps tienen un solo anillo y no cambian.
+
+- **`Bali::Chart` reparte la lista completa de colores antes de repetir** (#1281).
+  `Bali::Utils::ColorPicker` volvía al primero al llegar al penúltimo: con `use_theme_colors:
+  false` la serie 10 repetía el turquesa en vez de tomar el oliva, y con `custom_color:` la 11
+  repetía ese color. Ninguna app usa esas opciones en una gráfica. Con los colores del tema no
+  se veía: el controlador ya repintaba la serie 7 con `error` aunque el JSON nombrara
+  `primary`.
 
 ### Documentation
 

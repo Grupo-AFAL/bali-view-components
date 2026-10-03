@@ -101,9 +101,8 @@ module Bali
         @color = Bali::Color.name!(self.class, color)
         @options = build_options(options, legend)
         @html_options = html_options
-        @color_picker = Bali::Utils::ColorPicker.new(
-          use_theme_colors: use_theme_colors, color: @color, custom_color: @custom_color
-        )
+        @palette = { use_theme_colors: use_theme_colors, color: @color, custom_color: @custom_color }
+        @color_picker = Bali::Utils::ColorPicker.new(**@palette)
       end
 
       def chart_type
@@ -178,21 +177,13 @@ module Bali
             chart_labels_value: labels_json,
             chart_options_value: options_json,
             chart_display_percent_value: display_percent?,
-            chart_use_theme_colors_value: use_theme_colors?,
-            chart_color_value: theme_color_variable
+            chart_use_theme_colors_value: use_theme_colors?
           }
         }
       end
 
       def use_theme_colors?
         @use_theme_colors
-      end
-
-      # The controller recomputes every theme colour in the browser (a canvas
-      # cannot resolve a `var()`), so it needs the same rotation Ruby applied or
-      # it hands the first dataset `--color-primary` again.
-      def theme_color_variable
-        Bali::Color.variable_name(@color)
       end
 
       private
@@ -311,7 +302,10 @@ module Bali
           # Use labels count if available, otherwise count data points
           color_count = labels.any? ? labels.size : Array.wrap(data).size
           color_count = [ color_count, 1 ].max # Ensure at least 1 color
-          color_count.times.map { @color_picker.next_color }
+          # Every ring starts the cycle over: Chart.js draws the legend in the first ring's
+          # colours, and clicking label i hides slice i of every ring.
+          slice_picker = Bali::Utils::ColorPicker.new(**@palette)
+          color_count.times.map { slice_picker.next_color }
         else
           [ @color_picker.next_color ]
         end
