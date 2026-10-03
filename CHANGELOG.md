@@ -571,10 +571,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   clara u oscura, también cuando el interruptor del UserMenu cambia el tema sin recargar; antes
   les decía siempre «claro», y en un tema oscuro los fondos de color que se le ponen al texto eran
   pasteles bajo texto claro (1.00–1.18:1). Ahora toman la paleta oscura de BlockNote, que todavía
-  deja bajo AA tres fondos (gris 2.27:1, amarillo 2.55 y naranja 3.62 en `afal-dark`) y cuatro
-  colores de texto (3.49–4.40). Lo ven BlockEditor, DocumentEditor y DocumentPage: en la flota,
-  **gobierno-corporativo** y los formularios con `block_editor_group` de **afal-apps**. Sin nada
-  que hacer en el anfitrión.
+  deja bajo AA tres fondos en cada tema oscuro (gris, amarillo y naranja: 2.27–3.62:1 en
+  `afal-dark`, 2.43–3.87 en `costa-norte-dark`, 2.62–4.17 en `dark`) y colores de texto: cuatro
+  en `afal-dark` (café 3.49, morado 3.54, rosa 3.87 y azul 4.40) y seis en `dark` y en
+  `costa-norte-dark` (desde 3.12, el café). Lo ven BlockEditor, DocumentEditor y DocumentPage:
+  en la flota, **gobierno-corporativo** y los formularios con `block_editor_group` de
+  **afal-apps**. Sin nada que hacer en el anfitrión.
 
 ### Documentation
 
