@@ -119,22 +119,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::Chart` pinta la segunda serie con el acento** (#1281). Las series, y las porciones de
   un pastel, toman los colores del tema en el orden `primary`, `accent`, `secondary`, `success`,
   `warning`, `info`, `error`, ya no en el de daisyUI. En `afal` la segunda serie era el violeta
-  secundario, que junto al azul primario sólo cambia de tono: con deuteranopia las dos quedaban
-  a ΔE_OK 0.024, y a 0.003 en `afal-dark`. Ahora dos series vecinas quedan a 0.06 o más con
-  protanopia, deuteranopia y tritanopia en los seis temas. En `afal` la serie 2 pasa de violeta
-  a ámbar, la 3 de ámbar a violeta y la 4, 5 y 6 pasan a verde, amarillo y celeste. Cambian las
-  gráficas de dos o más series y las donas que usan los colores del tema:
+  secundario, que junto al azul primario sólo cambia de tono: con deuteranopia los dos colores
+  quedaban a ΔE_OK 0.024, y a 0.003 en `afal-dark`. Ahora dos colores vecinos quedan a 0.06 o
+  más con protanopia, deuteranopia y tritanopia en los seis temas; pintados como el relleno
+  semitransparente de una barra, a 0.028 o más (antes 0.003). En `afal` la serie 2 pasa de
+  violeta a ámbar, la 3 de ámbar a violeta y la 4, 5 y 6 pasan a verde, amarillo y celeste.
+  Cambian las gráficas de dos o más series y las donas que usan los colores del tema:
   **gobierno-corporativo** (sesiones programadas y celebradas de los órganos de gobierno, la
   tendencia de conciliación, la actividad y la dona de operaciones de la importación de la
   intranet), **centinela-web** (turnos finalizados y activos, y las donas de motivos de
   rondines y de incidentes por tipo) y **afal-apps** (la línea «Meta» del peso en wellness). Las
   de una sola serie, las que fijan sus colores en hex (los reportes de TDFlow) y las de garita y
-  bali-analytics no cambian. En `costa-norte-dark`, donde el primario y el acento son dos
-  dorados, las dos primeras series quedan más cerca que antes (0.061 con tritanopia, antes
-  0.265); ninguna app pinta hoy una gráfica en ese tema. Con `use_theme_colors: false` o
-  `custom_color:`, la serie que llegaba al final de la lista repetía la primera en vez de tomar
-  el último color; ninguna app usa esas opciones en una gráfica. Sin nada que hacer en el
-  anfitrión.
+  bali-analytics no cambian. **gobierno-corporativo:** en la tendencia de conciliación la cuarta
+  serie, «mismatched», pasa de celeste a verde, el verde que la misma página da a «matched»; si
+  no debe leerse así, hoy la única salida es fijar un hex en `borderColor:` y
+  `backgroundColor:` de esa serie, porque el controlador repinta por posición cualquier
+  `var(--color-*)`. En `costa-norte-dark`, donde el primario y el acento son dos dorados, las
+  dos primeras series quedan más cerca que antes (0.061 con tritanopia, antes 0.265); ninguna
+  app pinta hoy una gráfica en ese tema.
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
   `base-200`: en el SideMenu, sus grupos y el disparador del switcher, en los ítems de
   `Bali::Dropdown` (comparten la clase `.menu-item`) y en las opciones de SlimSelect, también su
@@ -222,6 +224,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   segundo, cambia la llave de esa llamada a `t` por `bali_view.page_components.export.formats.*`,
   o por tu propio texto si era `button_label`; en el tercero, si bajo `bali_view:` traduces
   `data_table.export.formats`, mueve esas traducciones a `page_components.export.formats`.
+- **`Bali::Utils::ColorPicker` pierde `#current`, `#opacify_current` y `#use_theme_colors`**
+  (#1281). No los leía nadie: `git grep -n "opacify_current\|ColorPicker" origin/main -- app lib`
+  da cero en las nueve apps. **Anfitrión:** si apareces en ese `git grep`, guarda tú el color que
+  devuelve `#next_color` y pásalo a `ColorPicker.opacify`.
 
 ### Fixed
 
@@ -234,6 +240,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   incidentes), **bali-analytics** (la serie de personas activas) y las gráficas grandes de línea
   de `Bali::Widget`. Una serie con su propio `borderColor:` en hex queda como estaba. Sin nada
   que hacer en el anfitrión.
+- **`Bali::Chart` reparte la lista completa de colores antes de repetir** (#1281).
+  `Bali::Utils::ColorPicker` volvía al primero al llegar al penúltimo: con `use_theme_colors:
+  false` la serie 10 repetía el turquesa en vez de tomar el oliva, y con `custom_color:` la 11
+  repetía ese color. Ninguna app usa esas opciones en una gráfica. Con los colores del tema no
+  se veía: el controlador ya repintaba la serie 7 con `error` aunque el JSON nombrara
+  `primary`.
 
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
