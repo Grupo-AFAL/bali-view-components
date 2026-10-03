@@ -114,6 +114,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   «Más acciones del calendario» y un ancho —era `w-72`, que no está en la escala:
   `secondary_actions_width: :xl` (w-80)— que perdió al pasar a `with_secondary_action` (su #1224).
 
+- **`initials:` en `Bali::Topbar::UserMenu`** (#1277), que llega tal cual a `Bali::Avatar`. Sin
+  él, Avatar toma la primera y la última palabra del nombre, y con dos apellidos elige mal:
+  «Federico González Pérez» queda «FP». Hasta ahora `initials:` caía en las opciones del
+  Dropdown y salía como atributo `initials="…"` del `<div>`, sin llegar al avatar. **identity**
+  puede conservar con él sus iniciales de nombre y apellido al pasar su topbar a `UserMenu`
+  (Grupo-AFAL/identity#350); las otras seis apps no lo pasan y no cambian.
+
 ### Changed
 
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
@@ -551,6 +558,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   target element "template"` tras ese reemplazo hacia una página sin `#main-modal`. Un listener
   puesto a mano sobre `document.body` se pierde, como ya pasaba en cada visita de Turbo; ninguno
   de los nueve anfitriones lo hace (`git grep -n "document.body.addEventListener" origin/main`).
+
+- **`Bali::Topbar::UserMenu` contiene un nombre o un correo largo, y su disparador cabe a
+  320 px** (#1277). Las seis apps que lo usan lo reciben con el bump, sin nada que hacer.
+  - El nombre del disparador se corta con puntos suspensivos a 12rem: «María Fernanda Rodríguez
+    de la Garza» lo ensanchaba a 227 px.
+  - Las dos líneas del encabezado se cortan al ancho del panel, con el texto completo en
+    `title`. Un correo de 51 caracteres hacía de 342 px las filas de un panel de 208: el texto
+    se salía del panel y el interruptor de modo oscuro quedaba fuera de él.
+  - Bajo `sm` (640 px) el disparador es sólo el avatar, cuadrado como los `IconAction` de al
+    lado. A 320 px, con hamburguesa, paleta y dos acciones, el disparador de avatar y chevron
+    terminaba en x=335, 15 px fuera de la pantalla, que AppLayout recorta.
 
 ### Documentation
 
