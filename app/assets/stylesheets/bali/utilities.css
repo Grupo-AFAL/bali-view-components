@@ -19,13 +19,15 @@
   color: color-mix(in oklab, --value(--color-*) 40%, var(--color-base-content));
 }
 
-/* A `.table`'s thead and tfoot, which daisyUI paints at `/60`: 4.04:1 on `afal` (AA: 4.5).
- * A rule rather than a class on Bali's templates, because host views write that table by hand.
- * In @layer utilities itself, which outranks daisyUI's `daisyui.*` sublayers of it whatever the
- * specificity; under `:where()`, because this block is emitted after Tailwind's utilities and a
- * host's colour class on the thead has to keep winning on specificity. */
+/* A `.table`'s thead and tfoot and a `.fieldset-label`, which daisyUI paints at `/60`: 4.04:1
+ * on `afal` (AA: 4.5). A rule rather than a class on Bali's markup, because host views write
+ * both by hand. In @layer utilities itself, which outranks daisyUI's `daisyui.*` sublayers of it
+ * whatever the specificity; under `:where()`, because this block is emitted after Tailwind's
+ * utilities and a colour class on the element (a host's, or the FormBuilder's error red) has to
+ * keep winning on specificity. */
 @layer utilities {
-  :where(.table) :where(thead, tfoot) {
+  :where(.table) :where(thead, tfoot),
+  :where(.fieldset-label) {
     @apply text-base-content/70;
   }
 }
