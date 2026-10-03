@@ -147,27 +147,33 @@ describe('Chart', () => {
 
     // Ruby names every colour from Bali::Color::CYCLE, a doughnut's rings carrying it on from one
     // to the next, and the controller resolves each again in the theme the page switches to.
+    const PAINTED = { borderColor: 'colour', backgroundColor: 'fill' }
+
     ;['bar', 'doughnut'].forEach((type) => {
       it(`paints each ${type} colour in the one Ruby named, in every theme`, () => {
         cy.visit(`/bali/chart/series_palette?type=${type}`)
 
         canvas().then(($canvas) => {
-          const named = JSON.parse($canvas.attr('data-chart-data-value')).datasets
-            .map((dataset) => [dataset.borderColor].flat().map((colour) => colour.match(/var\((--color-[\w-]+)\)/)[1]))
+          const named = JSON.parse($canvas.attr('data-chart-data-value')).datasets.map((dataset) =>
+            Object.fromEntries(Object.keys(PAINTED).map((key) =>
+              [key, [dataset[key]].flat().map((colour) => colour.match(/var\((--color-[\w-]+)\)/)[1])])))
 
           THEMES.forEach((theme) => {
             cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', theme))
             cy.window().then((win) => {
-              const cycle = [...new Set(named.flat())].map((name) => opaque(win, cssVariable(win, name)).join())
+              const cycle = [...new Set(named.flatMap((keys) => keys.borderColor))]
+                .map((name) => opaque(win, cssVariable(win, name)).join())
               expect(new Set(cycle).size, `${theme} keeps the colours apart`).to.eq(cycle.length)
 
               chartInstance((chart) => {
                 expect(win.document.getAnimations(), 'transitions').to.have.length(0)
                 chart.data.datasets.forEach((dataset, series) => {
-                  [dataset.borderColor].flat().forEach((colour, index) => {
-                    const name = named[series][index]
-                    expect(opaque(win, colour), `${theme} series ${series + 1} colour ${index + 1}, ${name}`)
-                      .to.deep.eq(opaque(win, cssVariable(win, name)))
+                  Object.entries(PAINTED).forEach(([key, part]) => {
+                    [dataset[key]].flat().forEach((colour, index) => {
+                      const name = named[series][key][index]
+                      expect(opaque(win, colour), `${theme} series ${series + 1} ${part} ${index + 1}, ${name}`)
+                        .to.deep.eq(opaque(win, cssVariable(win, name)))
+                    })
                   })
                 })
               })
@@ -203,7 +209,7 @@ describe('Chart', () => {
           chartInstance((chart) => {
             expect(win.document.getAnimations(), 'transitions').to.have.length(0)
             const colours = chart.data.datasets.map((dataset) => opaque(win, firstColor(dataset)))
-            expect(colours[0], `${theme} repainted`).to.deep.eq(opaque(win, cssVariable(win, '--color-primary')))
+            expect(colours[0], `${theme} resolved`).to.deep.eq(opaque(win, cssVariable(win, '--color-primary')))
 
             colours.forEach((colour, index) => colours.slice(index + 1).forEach((other, offset) => {
               const distance = okDistance(colour, other)
@@ -229,7 +235,7 @@ describe('Chart', () => {
 
             // The series' own colour, not the 0.8 its border is painted at.
             const colours = chart.data.datasets.map((dataset) => opaque(win, firstColor(dataset)))
-            expect(colours[0], `${theme} repainted`).to.deep.eq(opaque(win, cssVariable(win, '--color-primary')))
+            expect(colours[0], `${theme} resolved`).to.deep.eq(opaque(win, cssVariable(win, '--color-primary')))
 
             colours.forEach((colour, index) => {
               const next = (index + 1) % colours.length
