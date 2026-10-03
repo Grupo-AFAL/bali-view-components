@@ -69,7 +69,7 @@ class BaliGaugeComponentTest < ComponentTestCase
   end
 
   # The colour is the ring's; the figure inside it is text on the page, which takes the soft mix.
-  # soft-text-contrast.cy.js measures what each paints.
+  # soft-text-contrast.cy.js measures the figure.
   def test_the_ring_keeps_the_colour_and_its_text_takes_the_soft_one
     render_inline(Bali::Gauge::Component.new(value: 7, max: 10, label: "shifts", color: :success))
 
