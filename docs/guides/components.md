@@ -49,6 +49,10 @@ Every component that colours something takes the same two keywords, resolved by
 | `color:` | one of `:neutral :primary :secondary :accent :info :success :warning :error :ghost` | Yes |
 | `custom_color:` | a hex string (`#rgb`, `#rrggbb`, and the alpha forms) | No — that is the point of it |
 
+The hex itself stays fixed. Where Bali paints ink over that hex's own tint — StatCard's icon —
+the ink is the hex mixed 40% into `base-content`, like `text-soft-*`, so it still follows light
+and dark.
+
 The seven components on this contract are `Tag`, `Status`, `Heatmap`, `Chart`,
 `Timeline::Item` / `Timeline::Header`, `StatCard` and `Kanban::Column`. A value
 outside the list raises `ArgumentError` at construction, naming the component and
@@ -3168,7 +3172,7 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
   icon: 'users',
   color: :primary
 ) do |c| %>
-  <% c.with_footer { tag.span('+12% from last month', class: 'text-success') } %>
+  <% c.with_footer { tag.span('+12% from last month', class: 'text-soft-success') } %>
 <% end %>
 ```
 
@@ -3177,8 +3181,8 @@ Metric card showing a title, value, and colored icon — ideal for dashboard KPI
 - `value` - Metric value to display (required)
 - `note` - A discreet muted line under the value (`'Creates value · 12.5% rate'`). Not the `footer` slot, which is the trend/status row at the bottom (default: nil)
 - `icon` - Bali/Lucide icon name; omit it and the card renders without one (default: nil). `icon_name:` still works, warns through `Bali.deprecator`, and goes away in v4
-- `color` - Icon accent — and the cell tint when `emphasis:` is on: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost` (default: :primary)
-- `custom_color` - Hex icon accent, applied inline instead of the semantic pair (default: nil)
+- `color` - Icon accent — and the cell tint when `emphasis:` is on: `:neutral`, `:primary`, `:secondary`, `:accent`, `:info`, `:success`, `:warning`, `:error`, `:ghost`. The icon is `text-soft-<colour>` over `bg-<colour>/10`; `:neutral` and `:ghost` paint it `text-base-content`, over `bg-base-content/10` and `bg-base-200` (default: :primary)
+- `custom_color` - Hex icon accent, applied inline instead of the semantic pair: the tint is the hex at 10%, the icon the hex mixed 40% into the theme's `base-content`, like `text-soft-*` (default: nil)
 - `surface` - `:card` (default, and what `nil` falls back to) or `:cell`. Anything else raises `ArgumentError`. See "Card or cell?" below
 - `emphasis` - Cell surface only: paints the cell with the soft pair of `color:` to single out one figure. On `surface: :card` it raises (default: false)
 - `value_class` - Classes appended to the value, after the library's own. Additive, and it filters nothing — see "What `value_class:` actually does" below (default: nil)
