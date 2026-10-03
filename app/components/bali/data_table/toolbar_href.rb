@@ -9,9 +9,10 @@ module Bali
     #
     # It is shared because the two separate derivations had already diverged: the listing's
     # `url:` CAN carry a query string (a host passing `request.fullpath`, or a path helper
-    # with params — Export, SavedViews and Filters already account for it), and concatenating
-    # a bare "?" produced `/movies?scope=x?view=grid`, which Rack parses as a single corrupt
-    # param with no `view`: the click did not switch views and dirtied the scope as well.
+    # with params — the page's export, SavedViews and Filters already account for it), and
+    # concatenating a bare "?" produced `/movies?scope=x?view=grid`, which Rack parses as a
+    # single corrupt param with no `view`: the click did not switch views and dirtied the
+    # scope as well.
     module ToolbarHref
       # One-shot orders: they are ACTIONS, not navigation state — dragging them along re-runs
       # the clearing on every later click (`clear_filters` also DELETES the user's filter

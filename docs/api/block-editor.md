@@ -26,7 +26,7 @@ yarn add shiki
 
 You can skip `shiki` if you render the component with `syntax_highlighting: false` (see [Syntax highlighting](#syntax-highlighting)). Leaving highlighting on *without* `shiki` installed still builds, but code blocks fail at runtime and the console shows `` BlockEditor: syntax highlighting is on but `shiki` could not be loaded ``.
 
-All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.53.0`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`.
+All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.53.0`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`, `shiki` `>= 1.17.4`.
 
 **Keep every `@blocknote/*` package on the same version.** Mixing, say, `@blocknote/core` 0.52.1 with `@blocknote/react` 0.51.0 is not a build error -- the packages share types and internal ProseMirror plugin keys across the boundary, so a mismatch surfaces as a menu that never opens or content that silently fails to serialise. Upgrade them as a set.
 

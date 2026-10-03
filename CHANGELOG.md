@@ -140,13 +140,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`#155DFC`)** (#1221): con blanco encima pintaba 3.68:1, bajo el 4.5 de AA, y ahora 5.25:1.
   Cambio visible en botones, enlaces y estados activos de afal-apps, garita y
   gobierno-corporativo, que importan el tema de la gema. **Anfitrión:** identity y opina cargan
-  su propio bloque `[data-theme="afal"]`, igual al de Bali salvo este valor: bórrenlo e importen
-  el de la gema, `@import "bali-view-components/css/themes/afal.css";`. centinela-web, cuyo
+  su propio bloque `[data-theme="afal"]`, igual al de Bali salvo este valor y el secundario
+  (abajo): bórrenlo e importen el de la gema,
+  `@import "bali-view-components/css/themes/afal.css";`. centinela-web, cuyo
   `themes/afal.css` difiere en más tokens, cambia sólo su `--color-primary` a
   `oklch(54.6% 0.245 262.881)`. Los hex copiados pasan a `#155DFC`
   (`git grep -n -i "3b82f6" origin/main -- app`), incluido el `PRIMARY` de
   `app/helpers/email_helper/theme.rb` en afal-apps, cuyo comentario `# --color-primary` deja de
   ser cierto.
+- **El secundario del tema `afal` pasa de violet-500 (`#8B5CF6`) a violet-600 (`#7C3AED`)**
+  (#1261): con blanco encima pintaba 4.23:1, bajo el 4.5 de AA, y ahora 5.70:1. Cambio visible
+  en todo lo que pinta `secondary` en afal-apps, garita y gobierno-corporativo, que importan el
+  tema de la gema (`git grep -n "css/themes/afal.css" origin/main -- app/assets`).
+  `afal-dark` no cambia. En un `Navbar` `color: :secondary`, la hamburguesa, la marca y «Log in»
+  pasan de 3.47 a 5.70:1 junto con #1257, que les da el blanco de la barra; ninguna de las nueve
+  apps renderiza `Bali::Navbar`. **Anfitrión:** identity y opina, con su bloque propio, lo
+  reciben al borrarlo e importar el de la gema, como en el primario. centinela-web, cuyo
+  `oklch(0.541 0.241 285.8)` ya pasa (5.62:1), no tiene que hacer nada; si quiere el canónico:
+  `--color-secondary: oklch(54.13% 0.2466 293.009)`. Los hex copiados pasan a `#7C3AED`
+  (`git grep -n -i "8b5cf6" origin/main -- app`), como el `purple: "8B5CF6"` de
+  `app/models/business_processes/sheet_pdf.rb` en gobierno-corporativo. En esa misma app, el
+  `badge: "bg-violet-500"` de `app/controllers/concerns/processes/catalog_builder.rb`, que
+  acompaña a `dot: "bg-secondary"` y quedaría más claro que él, pasa a `bg-violet-600`.
+
+- **`Bali::Status`: el naranja, el verde y el teal de la paleta fija pasan a -700 de Tailwind**
+  (#1259): `#ea580c` → `#c2410c`, `#16a34a` → `#15803d`, `#0d9488` → `#0f766e`. Con texto blanco
+  medían 3.56, 3.30 y 3.74:1, bajo el 4.5 de AA; ahora 5.18, 5.02 y 5.47. La paleta sigue igual
+  en todos los temas. Se ve en las píldoras de afal-apps, costa-norte y bali-analytics, en lo que
+  se pinta con `Bali::Status.palette` y en los avatares de iniciales que caen en esos colores
+  (`Avatar` con `name:`, `Topbar::UserMenu`). Acota lo que prometió v3.1: los doce nombres siguen
+  congelados, pero un hex puede cambiar para que su par llegue a AA. **Anfitrión:** quien pinte
+  el `bg` como color de un ícono o de un texto sobre una superficie oscura pierde contraste con
+  estos -700 (el ícono verde de la StatCard de costa-norte bajaría de 4.18 a 2.88:1 en
+  `costa-norte-dark`); revisen esos sitios:
+  `git grep -n -E "Status\.palette|Status::Component::PALETTE" origin/main -- app`.
+
+- **`page.with_export(formats:)` levanta `ArgumentError` ante una lista vacía o un formato que no
+  sea `csv`, `excel`, `pdf` o `json`** (#1275), como ya hacían `context:`, `heading:` y
+  `sidebar_width:`. Antes, un formato mal escrito (`%i[csv exel]`) desaparecía del ⋯ sin aviso, y
+  con `%i[xml]` o `[]` la exportación entera desaparecía, o dejaba su título solo en un ⋯ con otras
+  acciones. Las nueve llamadas de las apps pasan `[:csv]`
+  (`git grep -n "with_export(" origin/main -- app`). Sin nada que hacer en el anfitrión.
 
 ### Removed
 
@@ -156,8 +190,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   todavía la usara no truena: el menú cae a `humanize` y muestra «Mission control» en vez de
   «Panel de trabajos». **Anfitrión:** si apareces en ese `git grep`, cambia la clave a
   `:flightdeck` o pasa `name:`.
+- **`Bali::DataTable::Export::Component` se retira** (#1275), aunque la entrada de v3 lo dejaba
+  «usable standalone»: su plantilla no la pintaba nadie, porque desde v3 la exportación vive en
+  el ⋯ de la página (`page.with_export`), cuyo HTML no cambia. Se va con él la llave
+  `bali_view.data_table.export.button_label`, y las etiquetas de formato pasan de
+  `bali_view.data_table.export.formats.*` a `bali_view.page_components.export.formats.*`, junto a
+  `menu_title`. Ninguna de las nueve apps toca nada de esto:
+  `git grep -n "DataTable::Export" origin/main -- app lib config test spec`,
+  `git grep -n "data_table.export" origin/main` y
+  `git grep -n "^ *bali_view:" origin/main -- '*.yml'` dan cero. **Anfitrión:** si apareces en
+  el primero, cambia el `render` por `page.with_export(url:, formats:)` en la página; en el
+  segundo, cambia la llave de esa llamada a `t` por `bali_view.page_components.export.formats.*`,
+  o por tu propio texto si era `button_label`; en el tercero, si bajo `bali_view:` traduces
+  `data_table.export.formats`, mueve esas traducciones a `page_components.export.formats`.
 
 ### Fixed
+
+- **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
+  de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
+  dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
+  `base-content` fijo que le daba daisyUI: la hamburguesa y una marca `variant: :ghost` pasan
+  de 1.00 a 14.68:1 sobre `neutral` en `afal`. En un Navbar transparente de color toman, como
+  sus enlaces, el `-content` del preset: sobre un hero oscuro se leen sólo donde ese `-content`
+  es claro, y sobre la página pueden dejar de verse (#1284). Se retira además
+  `.navbar.is-transparent.is-active`, que nunca aplicaba: el controlador pone `is-active` en la
+  hamburguesa, no en el `<nav>`. Ninguna de las nueve apps tiene un `.navbar` de color (el
+  único escrito a mano, el de `assisted_reset` en `identity`, es `bg-base-100` sin color de
+  texto) ni le pone `is-active`: nada que hacer.
+
+- **Un drawer cerrado ya no anima su Skeleton** (#1273). El drawer cerrado sigue pintado fuera
+  de la pantalla para poder deslizarse, y el `.skeleton` de daisyUI anima sin fin: cada página
+  con `Bali::AppLayout` (`drawer: true` por omisión) mantenía 15 animaciones corriendo que nadie
+  veía. Ahora el `.skeleton` sólo anima mientras el drawer está abierto. Vale para todo
+  `Bali::Drawer`, también los que no pone AppLayout: el `main-drawer` de
+  `layouts/process_modeler.html.erb` en gobierno-corporativo y el drawer de detalle de los
+  tableros de bali-analytics. Sin nada que hacer en el anfitrión.
 
 - **Un color sobre su propio tinte pasa a `text-soft-<color>` también en íconos, botones y
   referencias** (#1274), o a la misma mezcla escrita a mano donde ninguna utilidad nombra el
@@ -195,19 +262,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   en `light`), el hover y el resaltado de las opciones son el texto al 8 %, y el contador de una
   selección larga sigue a `neutral`. Sin nada que hacer en el anfitrión.
 
-- **BlockEditor y las gráficas en un tema oscuro** (modo oscuro): el bloque de código pintaba la
-  tinta de `github-light` sobre fondo oscuro (1.00:1) y ahora usa la de `github-dark` según el
-  `color-scheme` del tema; los comentarios de una barra lateral fuera del editor salían en el gris
-  fijo de BlockNote (1.51–1.68:1); y `Bali::Chart` se vuelve a pintar cuando el tema cambia sin
-  recargar. Sin nada que hacer en el anfitrión.
+- **BlockEditor y las gráficas siguen al tema** (modo oscuro, #1258): el bloque de código pintaba
+  la tinta de `github-light` en todos los temas —1.00:1 sobre fondo oscuro, y las variables a
+  3.17:1 en `afal`— y ahora usa `github-light-high-contrast` o `github-dark-default` según el
+  `color-scheme` del tema, con todo token de los lenguajes que resalta en AA sobre `base-200` en
+  los seis temas (el más tenue, el comentario, mide 4.58 en `afal`); los comentarios de una barra
+  lateral fuera del editor salían en el gris fijo de BlockNote (1.51–1.68:1); y `Bali::Chart` se
+  vuelve a pintar cuando el tema cambia sin recargar. El código cambia de tono también en claro
+  donde el resaltado está encendido: en la flota, sólo **gobierno-corporativo** (afal-apps lo
+  apaga). Sin nada que hacer en el anfitrión: el peer `shiki` sube a `>=1.17.4`, la primera
+  versión que exporta `shiki/engine/javascript`, que el editor ya importaba, y
+  gobierno-corporativo trae 3.23.
 
 - **Las flechas de un `Bali::Dropdown` recorren también los `menuitemcheckbox` y
   `menuitemradio`**, no sólo los `menuitem` (lo pide el interruptor de modo oscuro). Un ítem de
   esos que ponga el anfitrión entra ahora en el recorrido con teclado.
 
+- **Un `Bali::Dropdown` con `popover: true` dentro de un `Modal` o un `Drawer` ya se puede
+  usar** (#1269): el menú colgaba de `<body>`, fuera del `<dialog>` que abren con
+  `showModal()` y que deja inerte todo lo que no contiene, y se abría debajo de él, fuera del
+  alcance del puntero y del teclado. Ahora cuelga del `<dialog>` modal, como el tooltip y el
+  hover card; fuera de uno sigue en `<body>`. En un `<dialog>` propio el navegador pone
+  `overflow: auto`, y uno más chico que la pantalla recorta el menú en su borde; el
+  `class="modal"` de daisyUI ocupa la pantalla y no lo recorta. Y Tab desde un menú
+  `popover: true` sigue desde el disparador sin salir del panel, también con el contenido de un
+  panel remoto. Ningún anfitrión tiene hoy un `popover: true` dentro de un diálogo: los de
+  **afal-apps** están en páginas (`git grep -n "popover: true" origin/main -- app/views`).
+  Lo que sí alcanza a los anfitriones es el Escape: dentro de un `Modal` o un `Drawer`, el que
+  cierra un menú abierto ya no cierra también el panel, que se cierra con el siguiente. Vale
+  para todo dropdown que pongan ahí, en cualquiera de los dos modos, como un `ActionsDropdown`
+  o los de la barra de un `DataTable`. Sin nada que hacer en el anfitrión.
+
 - **Un `slim_select_group` se anunciaba como «Combobox» y no con su etiqueta** (#1253):
-  SlimSelect nombra el combobox que dibuja sólo con el `aria-label` o `aria-labelledby` del
-  `<select>`, y el `<label for>` no le llega. Ahora el grupo apunta `aria-labelledby` a su
+  SlimSelect nombra el combobox que dibuja con el `aria-label` o `aria-labelledby` del `<select>`
+  y, hasta la 3.4, el `<label for>` no le llega. Ahora el grupo apunta `aria-labelledby` a su
   etiqueta, salvo que `html:` ya traiga uno de los dos. Siguen en «Combobox» y necesitan el
   nombre a mano: un `slim_select_group` con `label: false` (`html: { "aria-label": … }`; en
   **gobierno-corporativo**, `mdm/departments/cut_proposals/index.html.erb`), un
@@ -217,6 +305,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`finance/conciliacion/shared/_store_filter` y `td_flow/open_questions/_question`) y las
   cuatro de **gobierno-corporativo** (`git grep -l 'data-controller="slim-select"' origin/main
   -- app/views`).
+
+- **El combobox de SlimSelect anuncia el error y la ayuda de su campo, y su lista se llama
+  como él** (#1270). SlimSelect esconde el `<select>` y no copiaba a su combobox el
+  `aria-invalid` ni el `aria-describedby` que el FormBuilder escribe para el error y `help:`;
+  ahora el controlador los copia. La lista, que se llamaba «Combobox listbox» en todos los
+  campos (y con SlimSelect 2.x no tenía nombre), toma el del combobox. Nada que hacer en el
+  anfitrión. Un `<select>` sin nombre (los casos que lista la entrada de #1253) sigue sin
+  nombre propio en el combobox y en la lista hasta que se le ponga.
+
+- **Los controles de una condición de `Bali::Filters` se anuncian con su nombre** (#1271): el
+  campo y el operador salían sin nombre, y el valor como «Combobox» (SlimSelect), sin nombre
+  (booleano) o como «0» (número). Ahora se llaman «Campo», «Operador» y «Valor» («Field»,
+  «Operator», «Value» en inglés), también cuando el valor se rehace al cambiar de campo; el
+  texto y las fechas, que se nombraban con su placeholder, pasan también a «Valor». La
+  excepción es el multi-select de «es cualquiera de» / «no es ninguno de»: sigue nombrándose
+  por lo que muestra («Action, Adventure», «3 seleccionados»). Lo notan las apps que usan
+  `Bali::Filters`, solo o con `with_filters_panel` del `DataTable`. Sin nada que hacer en el
+  anfitrión.
+
+- **En un teléfono, los campos de fecha y de hora se anunciaban sin nombre** (#1271): flatpickr
+  pone ahí un campo nativo (`input.flatpickr-mobile`) y oculta su `altInput`, que era el único
+  al que el datepicker le pasaba el nombre. Ahora se lo pasa al nativo, con `aria-describedby`
+  y `aria-invalid`: `date_group`, `datetime_group`, `time_group` y el filtro de fecha de
+  `SimpleFilters` se anuncian con su etiqueta, y la fecha de una condición de `Bali::Filters`
+  como «Valor». Los rangos y los campos con `disable_weekends` o `disabled_dates` no cambian:
+  flatpickr no los pasa a un campo nativo y ya se anunciaban con su nombre. Sin nada que hacer
+  en el anfitrión.
 
 - **En el toolbar del `DataTable`, Columnas y Vistas se abrían con sólo enfocarlos y Escape no
   los cerraba** (#1250): eran `.dropdown` crudos que daisyUI abre por `:focus-within`. Ahora son
@@ -265,6 +380,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `base-content`. En `dark` de daisyUI el día marcado pinta 4.13:1 en reposo —el de su
   `.btn-primary`— y ahora también bajo el cursor (antes 5.33). Ninguna app lo usa hoy:
   `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en las ocho.
+
+- **En `RecurrentEventRuleForm`, un día o una opción deshabilitados ya no reaccionan al cursor**
+  (#1272): con `disabled: true`, o dentro de un `<fieldset disabled>`, los días de la semana
+  crecían y se teñían bajo el cursor, y las filas de opción de los paneles anual y mensual se
+  teñían y mostraban el cursor de mano, como si se pudieran elegir. Ahora no toman el puntero y el
+  cursor sobre ellos es `not-allowed`. Sin nada que hacer en el anfitrión; ninguna app lo usa:
+  `git grep -n -e recurrent_event_rule -e RecurrentEventRule origin/main` da cero en todas.
 
 - **`?q=x` era un 500 en cualquier página con pastillas de `SplitView` sobre un param anidado**
   (`param: "q[genre_in]"`, #1210). `q` llega crudo de la URL: como escalar o como lista
@@ -344,6 +466,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   los eventos del día para que se alcancen en celular (lo que hizo
   Grupo-AFAL/gobierno-corporativo#1218 queda a su criterio), y en afal-apps el punto numerado de
   `td_flow/reports/_matrix_plot` abre su tarjeta al primer tap y pide un segundo para navegar.
+
+- **`Bali::Status` llega a AA sin estado, y el editable también bajo el puntero y en su triángulo**
+  (#1259). El hover de las filas del panel era `filter: brightness(0.95)`, que oscurecía el fondo y
+  también el texto: blanco sobre rosa bajaba de 4.60 a 4.49:1. Ahora un 5 % de negro sobre el fondo
+  pinta el mismo fondo y el texto queda en su par, también en la fila sin estado. El texto de una
+  píldora sin estado, editable o no, y el de esa fila pasan del 60 % al 70 % de `base-content`:
+  medían 4.04:1 en `afal` y 4.32 en `costa-norte`; ahora 5.54 y 6.00. El triángulo de la píldora
+  editable deja su `opacity: 0.7` y se pinta en el color del texto: medía 2.89:1 sobre rosa y 2.99
+  sobre rojo, bajo el 3:1 de un ícono. Sin nada que hacer en el anfitrión.
+
+- **Las iniciales del responsable en el Gantt se leen** (#1260): eran blancas, en negrita de
+  9–9.5px, sobre `oklch(0.6 0.14 <tono>)`, y medían de 3.49 a 4.27:1 según el tono que sale del
+  id o del nombre (AA pide 4.5). El fondo baja a L 0.5: los 360 tonos quedan entre 5.15 y 6.52:1
+  y cada persona conserva su tono; el avatar se ve más oscuro, en la tabla y sobre la barra. Las
+  barras del modo «Owner» no cambian, y su leyenda pasa a pintarse con el mismo color que ellas
+  (`oklch(0.62 0.15 <tono>)` en vez de `0.6 0.14`, que era la copia del avatar). Lo nota el
+  cronograma de tareas de **afal-apps**, el único anfitrión que manda `assignee`. Sin nada que
+  hacer en el anfitrión.
+
+- **Bajo `AppLayout`, un ítem `drawer:` o `modal:` de un menú `popover: true` abre el overlay en
+  vez de navegar** (#1268). AppLayout montaba los controllers `modal drawer` en `<main>`, y tippy
+  cuelga el menú al final de `<body>`: sin el controller encima, el enlace cargaba su URL a página
+  completa. Lo mismo un disparador en los slots `banner`, `navbar`, `sidebar` o `topbar`. Ahora
+  van en el `<body>` que AppLayout rinde, junto a `app-layout`, y al cerrar el overlay el foco
+  vuelve al disparador del menú. Sin nada que hacer en el anfitrión: en **afal-apps**, los hasta
+  seis ítems `drawer: true` del menú de `td_flow/feedback_items/index.html.erb` pasan a abrir el
+  drawer, y el comentario de `finance/terminals/terminals/show.html.erb` que evita
+  `popover: true` por esto queda sin motivo (`git grep -n "popover: true" origin/main -- app/views`).
+
+- **Cuando el fetch o el envío de un modal/drawer acaba en redirect, la página de destino
+  reemplaza el elemento `<body>`, no sólo su contenido** (#1268), como en una visita de Turbo:
+  entran los controllers y las clases del `<body>` de destino y salen los de origen. Hacía falta
+  por el cambio de arriba. Un layout propio con `modal` en su `<body>` deja de lanzar `Missing
+  target element "template"` tras ese reemplazo hacia una página sin `#main-modal`. Un listener
+  puesto a mano sobre `document.body` se pierde, como ya pasaba en cada visita de Turbo; ninguno
+  de los nueve anfitriones lo hace (`git grep -n "document.body.addEventListener" origin/main`).
 
 ### Documentation
 

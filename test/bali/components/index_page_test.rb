@@ -100,9 +100,9 @@ class BaliIndexPageComponentTest < ComponentTestCase
     end
 
     assert_selector("span.menu-title", text: "Export filtered", visible: :all)
-    assert_selector('a[href="/movies?format=csv"][data-turbo="false"]', visible: :all)
-    assert_selector('a[href="/movies?format=excel"]', visible: :all)
-    assert_selector('a[href="/movies?format=pdf"]', visible: :all)
+    assert_selector('a[href="/movies?format=csv"][data-turbo="false"]', text: "CSV", visible: :all)
+    assert_selector('a[href="/movies?format=excel"]', text: "Excel", visible: :all)
+    assert_selector('a[href="/movies?format=pdf"]', text: "PDF", visible: :all)
   end
 
   def test_export_links_carry_the_active_slice
@@ -114,6 +114,113 @@ class BaliIndexPageComponentTest < ComponentTestCase
     href = page.find('[data-export-links-target="link"]', match: :first, visible: :all)["href"]
     assert_includes href, "q%5Bname_cont%5D=dune"
     refute_includes href, "page="
+  end
+
+  # On the server `clear_filters` runs `Rails.cache.delete(cache_key)`: a user standing on
+  # `?clear_filters=true` wiped their stored filters by clicking export.
+  def test_export_links_drop_the_one_shot_orders
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies", params: { "q" => { "name_cont" => "dune" },
+                                                 "clear_filters" => "true", "clear_search" => "true" })
+      page.with_body { "Content" }
+    end
+
+    assert_selector('a[href="/movies?format=csv&q%5Bname_cont%5D=dune"]', visible: :all)
+  end
+
+  # A bare `?` gave `/movies?scope=archived?format=csv`, which Rack reads as ONE corrupt scope and
+  # no format.
+  def test_export_links_keep_the_query_string_of_the_url
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies?scope=archived", params: {})
+      page.with_body { "Content" }
+    end
+
+    assert_selector('a[href="/movies?format=csv&scope=archived"]', visible: :all)
+  end
+
+  def test_export_offers_the_formats_in_the_order_given
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies", formats: %i[pdf csv])
+      page.with_body { "Content" }
+    end
+
+    links = page.all('[data-export-links-target="link"]', visible: :all)
+    assert_equal %w[/movies?format=pdf /movies?format=csv], links.pluck("href")
+  end
+
+  def test_export_takes_formats_given_as_strings
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies", formats: %w[excel])
+      page.with_body { "Content" }
+    end
+
+    assert_selector('a[href="/movies?format=excel"]', text: "Excel", visible: :all)
+  end
+
+  # Raised and not skipped: a misspelt format used to drop out of the ⋯ without a word.
+  def test_export_raises_on_an_unknown_format
+    error = assert_raises(ArgumentError) do
+      Bali::IndexPage::Component.new(title: "Movies").with_export(url: "/movies", formats: %w[csv xml])
+    end
+
+    assert_equal 'Invalid export formats: ["csv", "xml"]. Valid: one or more of csv, excel, pdf, json',
+                 error.message
+  end
+
+  # Raised and not skipped: an export left with no format vanishes without a word, or leaves its
+  # title alone in a ⋯ shared with other actions.
+  def test_export_raises_without_a_format
+    [ [], nil, [ nil ] ].each do |formats|
+      assert_raises(ArgumentError, "formats: #{formats.inspect}") do
+        Bali::IndexPage::Component.new(title: "Movies").with_export(url: "/movies", formats: formats)
+      end
+    end
+  end
+
+  # The label key is interpolated, so `i18n_usage_test` only checks its prefix.
+  def test_every_export_format_has_a_label_in_both_locales
+    %i[en es].each do |locale|
+      labels = I18n.t("bali_view.page_components.export.formats", locale: locale, default: {}).compact_blank
+
+      assert_equal Bali::PageComponents::Shared::EXPORT_FORMATS.sort, labels.keys.sort, locale
+    end
+  end
+
+  def test_export_links_read_the_slice_from_the_request_by_default
+    with_request_url "/admin/movies?q%5Bname_cont%5D=dune&page=2" do
+      render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+        page.with_export(url: "/admin/movies")
+        page.with_body { "Content" }
+      end
+    end
+
+    assert_selector('a[href="/admin/movies?format=csv&q%5Bname_cont%5D=dune"]', visible: :all)
+  end
+
+  # `{}` is the opt-out, "export everything, deliberately": it has to beat the query string of the
+  # request, which is the only place `nil` and `{}` give different links.
+  def test_export_links_with_empty_params_ignore_the_request
+    with_request_url "/admin/movies?q%5Bname_cont%5D=dune" do
+      render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+        page.with_export(url: "/admin/movies", params: {})
+        page.with_body { "Content" }
+      end
+    end
+
+    assert_selector('a[href="/admin/movies?format=csv"]', visible: :all)
+  end
+
+  # Bali::Dropdown items default to `method: :get`, which Link paints as Rails-UJS's
+  # `data-method="get"`: dead under Turbo.
+  def test_export_links_carry_no_rails_ujs_method
+    render_inline(Bali::IndexPage::Component.new(title: "Movies")) do |page|
+      page.with_export(url: "/movies")
+      page.with_body { "Content" }
+    end
+
+    assert_selector('[data-export-links-target="link"]', count: 3, visible: :all)
+    assert_no_selector('[data-export-links-target="link"][data-method]', visible: :all)
   end
 
   def test_export_links_are_kept_in_sync_by_their_controller

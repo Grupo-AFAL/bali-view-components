@@ -1,0 +1,6 @@
+<%= render Bali::Button::Component.new(name: 'Show details', variant: :primary,
+                                       drawer: { id: 'details-drawer', local: true }) %>
+
+<%= render Bali::Drawer::Component.new(drawer_id: 'details-drawer', shared: false, title: 'Details') do %>
+  <%= render Bali::Skeleton::Component.new(variant: :list, lines: 5) %>
+<% end %>

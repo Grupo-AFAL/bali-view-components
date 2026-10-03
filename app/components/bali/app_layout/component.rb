@@ -148,15 +148,21 @@ module Bali
       end
 
       # A host that puts its own `data: { controller: ... }` on the layout keeps
-      # it: Stimulus reads one attribute per element, so the two identifiers are
+      # it: Stimulus reads one attribute per element, so the identifiers are
       # joined rather than one silently replacing the other.
       def container_attributes
         attributes = @options.except(:class)
         data = (attributes[:data] || {}).symbolize_keys
 
-        attributes.merge(
-          data: data.merge(controller: [ LAYOUT_CONTROLLER, data[:controller] ].compact_blank.join(" "))
-        )
+        attributes.merge(data: data.merge(controller: body_controllers(data[:controller])))
+      end
+
+      # `modal` and `drawer` on <body>, not on <main>: a trigger in a chrome slot,
+      # or in a `popover: true` menu that tippy moves to the end of <body>, has no
+      # other ancestor to find them on, and its link navigates instead (#1268).
+      def body_controllers(host_controller)
+        [ LAYOUT_CONTROLLER, ("modal" if @modal), ("drawer" if @drawer), host_controller ]
+          .compact_blank.join(" ")
       end
 
       # The container renders whenever the caller passes `flash:` — even an empty
@@ -177,15 +183,6 @@ module Bali
           "app-layout-body-container",
           BODY_CONTAINERS.fetch(@body_container)
         )
-      end
-
-      def main_attributes
-        controllers = []
-        controllers << "modal" if @modal
-        controllers << "drawer" if @drawer
-        return {} if controllers.empty?
-
-        { data: { controller: controllers.join(" ") } }
       end
 
       def flash_hash

@@ -10,6 +10,12 @@
         variant: :primary,
         modal: true,
         id: 'redirecting-trigger') %>
+
+  <%= render Bali::Link::Component.new(
+        name: 'Open a drawer after the session expired',
+        href: modal_redirect_expired_path,
+        drawer: true,
+        id: 'expired-session-trigger') %>
 </div>
 
 <%= render Bali::Modal::Component.new(active: false, id: 'main-modal') %>

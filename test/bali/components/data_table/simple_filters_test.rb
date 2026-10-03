@@ -910,8 +910,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
   end
 
   # SlimSelect shrinks the real `<select>` to 1x1 and draws its own `div[role=combobox]`, which
-  # takes its name ONLY from the select's aria attributes: the `<label for>` does not travel. So
-  # this branch is mute in the captioned case too, which is every host's case today.
+  # before 3.5 takes its name ONLY from the select's aria attributes: the `<label for>` does not
+  # travel. So this branch is mute in the captioned case too, which is every host's case today.
   def test_a_captioned_slim_select_points_at_its_caption
     render_filter(attribute: :owner_id, collection: [ %w[Ana ana] ], blank: "All owners",
                   label: "Owner", type: :slim_select)
@@ -927,8 +927,9 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     assert_selector("select[aria-label='All owners']", visible: :all)
   end
 
-  # The datepicker copies the `label[for]` onto the altInput, and failing that the `aria-label`
-  # (datepicker-controller.js#forwardAccessibleName). With no caption there was neither.
+  # The datepicker points the field flatpickr shows at the `label[for]`, and failing that copies
+  # the `aria-label` onto it (datepicker-controller.js#forwardAccessibleName). With no caption
+  # there was neither.
   def test_an_uncaptioned_date_filter_carries_an_aria_label
     render_filter(attribute: :signed_on, type: :date, label: false, aria_label: "Fecha de firma")
 
