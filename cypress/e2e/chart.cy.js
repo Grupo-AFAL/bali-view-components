@@ -211,20 +211,37 @@ describe('Chart', () => {
     })
   })
 
-  // The controller repaints only the series whose border is the theme's, so a host's own
+  // The controller repaints only the series whose border is the theme's, so a host's literal
   // colours reach the points from Ruby. Before #1281 they stayed on the theme's CSS: black
   // points and a legend swatch in the legend's text colour.
   describe('with its own colours', () => {
-    it('paints the points and legend swatch of a line in its fill, else its border', () => {
+    beforeEach(() => {
       cy.visit('/bali/chart/own_colors')
+    })
 
+    it('paints the points and legend swatch of a line in its fill, else its border', () => {
       chartInstance((chart) => {
-        const expected = ['#2563eb', 'rgba(22, 163, 74, 0.5)']
+        const expected = { 'Border only': '#2563eb', 'Border and fill': 'rgba(22, 163, 74, 0.5)' }
 
         chart.data.datasets.forEach((dataset, index) => {
-          expect(dataset.pointBackgroundColor, `${dataset.label} points`).to.eq(expected[index])
-          expect(chart.legend.legendItems[index].fillStyle, `${dataset.label} legend`).to.eq(expected[index])
+          if (!(dataset.label in expected)) return
+
+          expect(dataset.pointBackgroundColor, `${dataset.label} points`).to.eq(expected[dataset.label])
+          expect(chart.legend.legendItems[index].fillStyle, `${dataset.label} legend`).to.eq(expected[dataset.label])
         })
+      })
+    })
+
+    // A `var(--color-*)` border is repainted by position, its fill with it, and Ruby handed
+    // the points that fill.
+    it('repaints the points of a line whose border is a theme var along with that border', () => {
+      chartInstance((chart) => {
+        const index = chart.data.datasets.findIndex((dataset) => dataset.label === 'Theme border, own fill')
+        const { borderColor, pointBackgroundColor } = chart.data.datasets[index]
+
+        expect(borderColor, 'repainted border').to.match(/^oklch\(/)
+        expect(pointBackgroundColor, 'points').to.eq(borderColor)
+        expect(chart.legend.legendItems[index].fillStyle, 'legend').to.eq(borderColor)
       })
     })
   })

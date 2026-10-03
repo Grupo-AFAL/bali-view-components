@@ -179,12 +179,13 @@ export class ChartController extends Controller {
         } else {
           // Single color (bar/line charts) - whole dataset gets one color
           // Use the computed color for this dataset based on its index
+          const ownFill = dataset.backgroundColor
           dataset.borderColor = colors.border
           dataset.backgroundColor = colors.background
           // Dataset#point_background_color (dataset.rb) leaves a theme series' points in its
-          // border's CSS, which a canvas cannot resolve, and Chart.js fills a line's legend
-          // swatch from the points.
-          if (this.isCssVarColor(dataset.pointBackgroundColor)) {
+          // border's CSS, which a canvas cannot resolve, or in the fill this just repainted,
+          // and Chart.js fills a line's legend swatch from the points.
+          if (this.isCssVarColor(dataset.pointBackgroundColor) || dataset.pointBackgroundColor === ownFill) {
             dataset.pointBackgroundColor = colors.border
           }
         }

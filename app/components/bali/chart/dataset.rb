@@ -76,10 +76,11 @@ module Bali
 
       # Without a border of its own a series takes the palette's, and under the theme
       # chart/index.js repaints it whole, a fill of its own included: its points follow that
-      # border. A host's own border is left alone, so its colour reaches the points from here,
-      # the fill before the border the way Chart.js fills a point: a hidden line over a fill,
-      # like bali-analytics' suppressed band, has a transparent border and would lose its
-      # legend swatch.
+      # border. A host's literal border is left alone, so its colour reaches the points from
+      # here, the fill before the border the way Chart.js fills a point: a hidden line over a
+      # fill, like bali-analytics' suppressed band, has a transparent border and would lose its
+      # legend swatch. A var(--color-*) border is repainted like the palette's, and the
+      # controller repaints with it the fill handed to the points here.
       def point_background_color
         return border_colors.first unless @options.key?(:borderColor)
 
