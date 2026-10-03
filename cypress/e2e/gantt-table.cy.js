@@ -137,9 +137,9 @@ describe('Gantt table', () => {
     })
   })
 
-  // Every column fits only on a board of 840 px or more. On a narrower one the table stops where
-  // the timeline keeps 40% of the board: opened with every column, it left a 358 px board at
-  // 390 no timeline at all.
+  // Every column fits only on a board of 840 px or more. Between 500 and 840 the table stops
+  // where the timeline keeps 40% of the board: opened with every column, it would leave a phone's
+  // 358 px board no timeline at all.
   it('leaves the timeline 40% of a tablet board and gives the table the rest', () => {
     cy.viewport(768, 1024)
     cy.visit('/bali/gantt/default')
