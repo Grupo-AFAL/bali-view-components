@@ -16,6 +16,7 @@ stays completely yours.
 - Previews: [SplitView](/lookbook/inspect/bali/split_view/default) ·
   [multi filters](/lookbook/inspect/bali/split_view/multi_filters) ·
   [height :full](/lookbook/inspect/bali/split_view/full_height/default) ·
+  [frame_options](/lookbook/inspect/bali/split_view/frame_options) ·
   [custom master](/lookbook/inspect/bali/split_view/custom_master)
 - Working reference in this app: [/split-view](/split-view)
 - Full guide, with the recipes this page leaves out: `docs/guides/master-detail.md`
@@ -56,6 +57,13 @@ its own `id:`.
 `frame_id:` is required. `master_width:` (default `"420px"`) sets the left column
 from `lg` up; below `lg` the panes stack, master on top. `advance:` (default `true`)
 makes the selection deep-linkable.
+`frame_options:` takes HTML attributes for the detail's `<turbo-frame>`. The
+[frame_options](/lookbook/inspect/bali/split_view/frame_options) preview uses it to
+scroll the detail into view after a click when the panes are stacked: `autoscroll`
+and `data: { autoscroll_block: "start" }` on the frame, and a `lg:hidden` marker as
+the detail's first child so a wide screen does not move. Its list is uncapped, so the
+frame is also `lg:sticky lg:top-4`: a wide screen that does not move must not leave
+the detail scrolled off the top.
 
 `with_item` takes `title:` and `href:` (required), plus `id:`, `subtitle:`, `icon:`,
 `meta:`, `meta_color:`, any number of `with_tag(text:, color:)`, and a block for

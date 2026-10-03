@@ -287,6 +287,181 @@ describe('SplitView: what gets cached after the frame is navigated (#1012)', () 
   })
 })
 
+// #1280 — a row clicked after one detail lands but before Turbo caches the page
+// for that click's `advance` used to be lost: the rewind removed the `src` the
+// new click had just set, and removing a frame's `src` cancels its request in
+// flight. The window runs from that `advance`'s `turbo:visit` to its
+// `turbo:before-cache`, about one animation frame: too narrow to time a
+// `cy.click()` into. So the second click goes out from a capture listener on
+// that very `turbo:before-cache`, which runs before the controller's listener on
+// `document`: the order the race produces, every time.
+describe('SplitView: a row clicked before the previous advance is cached (#1280)', () => {
+  it('loads the second row instead of cancelling its request', () => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+
+    cy.get('.split-view-row').eq(4).then(($second) => {
+      const second = $second[0]
+      const name = second.querySelector('[data-testid="row-title"]').textContent.trim()
+
+      cy.window().then((win) => {
+        win.addEventListener('turbo:before-cache', () => second.click(), { capture: true, once: true })
+      })
+      cy.get('.split-view-row').eq(2).click()
+
+      cy.location('href').should('eq', second.href)
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('have.text', name)
+      cy.get('.split-view-row[aria-current="true"]').should('have.length', 1)
+      cy.wrap($second).should('have.attr', 'aria-current', 'true')
+      // The rewind it skipped still happens: the second click's own `advance`
+      // caches the page once its detail lands, so #1012 holds.
+      cy.get('.split-view-detail').should('not.have.attr', 'src')
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', second.href)
+    })
+  })
+
+  // The skipped rewind must leave the second row's request with Turbo, so the
+  // next click still cancels it. The second row's answer is held back and a
+  // third row clicked meanwhile: if Turbo had lost its handle on the request,
+  // the late answer would land over the third row's detail.
+  it('keeps the last row clicked when the row before it answers late', () => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+
+    cy.get('.split-view-row').then(($rows) => {
+      const second = $rows[4]
+      const third = $rows[6]
+      const name = third.querySelector('[data-testid="row-title"]').textContent.trim()
+      const selected = new URL(second.href).searchParams.get('selected')
+      cy.intercept({ method: 'GET', pathname: '/split-view', query: { selected } },
+        (req) => { req.on('response', (res) => { res.setDelay(1500) }) })
+
+      cy.window().then((win) => {
+        win.addEventListener('turbo:before-cache', () => second.click(), { capture: true, once: true })
+      })
+      cy.wrap($rows[2]).click()
+      cy.wrap(second).should('have.attr', 'aria-current', 'true')
+      cy.get('.split-view-detail').should('have.attr', 'busy')
+      cy.wrap(third).click()
+
+      cy.location('href').should('eq', third.href)
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('have.text', name)
+      // Longer than the held-back answer, so one that was not cancelled has landed.
+      cy.wait(2000)
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('have.text', name)
+      cy.location('href').should('eq', third.href)
+    })
+  })
+
+  // What leaving a loading frame alone costs: a page left before the detail
+  // lands is cached with the row's `src`, and Turbo reloads any frame with a
+  // `src` and no `complete` on restore. The detail is held back so the page is
+  // certainly left mid-load, and a mark on `window` proves back was Turbo's
+  // restore and not a fresh load, which would come back pristine by itself.
+  it('does not paint, on back to the list, a detail still loading when the page was left', () => {
+    cy.visit('/bali/split_view/custom_master')
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+    cy.intercept({ method: 'GET', url: '/split-view*', headers: { 'turbo-frame': 'split-view-detail' } },
+      (req) => { req.on('response', (res) => { res.setDelay(1500) }) })
+
+    cy.window().then((win) => { win.leftMidLoad = true })
+    cy.get('.split-view-row').eq(2).click()
+    cy.get('.split-view-detail').should('have.attr', 'busy')
+    cy.window().then(win => win.Turbo.visit('/lookbook/preview/bali/split_view/without_advance'))
+    cy.location('pathname').should('include', 'without_advance')
+
+    cy.go('back')
+    cy.location('pathname').should('include', 'custom_master')
+    cy.window().its('leftMidLoad').should('eq', true)
+    // Longer than the held-back response, so a reload would have landed.
+    cy.wait(2000)
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('not.exist')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    cy.get('.split-view-row[aria-current]').should('not.exist')
+    cy.get('.split-view-detail').should('not.have.attr', 'src')
+  })
+})
+
+// On back, the page being left lives until Turbo's restore replaces its body. A
+// request its frame makes meanwhile, if it lands first, pushes the URL just
+// reached again: the frame still carries the row click's `advance`. This back
+// always misses the snapshot cache — Turbo files the page a row click leaves
+// under the last URL it rendered, not the row's — so the restore waits for its
+// own fetch, and that fetch is what the test holds back. Not the render:
+// `turbo:before-cache` fires when the fetch answers, before
+// `turbo:before-render`, and the rewind as it stood before #1280 cancelled the
+// frame's request there, so a held render passed on that code too.
+//
+// Against the dummy's own `/split-view`: from a preview, back to a row's URL
+// fetches that page, whose tracked stylesheet differs, and Turbo reloads.
+describe('SplitView: back to a row while the restore is held (#1280)', () => {
+  const app = path => `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
+  const title = () => cy.get('.split-view-detail [data-testid="detail-title"]')
+  const goBackHoldingRestore = (row) => {
+    const selected = new URL(row.href).searchParams.get('selected')
+    cy.intercept({ method: 'GET', pathname: '/split-view', query: { selected } }, (req) => {
+      if (!req.headers['turbo-frame']) req.on('response', (res) => { res.setDelay(1000) })
+    })
+    cy.window().then((win) => {
+      win.addEventListener('turbo:render', () => { win.restored = true }, { once: true })
+      cy.spy(win.history, 'pushState')
+    })
+    cy.go('back')
+    // One callback, not a wait for the render and then the spy: when the page
+    // being left does push, the restore can fail to render at all.
+    cy.window({ timeout: 5000 }).should((win) => {
+      expect(win.history.pushState).to.have.callCount(0)
+      expect(win.restored).to.eq(true)
+    })
+  }
+
+  beforeEach(() => {
+    cy.visit(app('/split-view'))
+    cy.get('.split-view-detail .empty-state-component', { timeout: 10000 }).should('be.visible')
+  })
+
+  it('pushes no history entry from the page being left', () => {
+    cy.get('.split-view-row').then(($rows) => {
+      const [first, second] = [$rows[1], $rows[3]]
+
+      cy.wrap(first).click()
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', first.href)
+      title().invoke('text').as('name')
+      cy.wrap(second).click()
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', second.href)
+
+      goBackHoldingRestore(first)
+
+      cy.location('href').should('eq', first.href)
+      cy.get('@name').then(name => title().should('have.text', name))
+      cy.go('forward')
+      cy.location('href').should('eq', second.href)
+    })
+  })
+
+  it('cancels the row the page being left was still loading', () => {
+    cy.get('.split-view-row').then(($rows) => {
+      const [first, second, third] = [$rows[1], $rows[3], $rows[4]]
+      const selected = new URL(third.href).searchParams.get('selected')
+      cy.intercept({ method: 'GET', pathname: '/split-view', query: { selected } },
+        (req) => { req.on('response', (res) => { res.setDelay(300) }) })
+
+      cy.wrap(first).click()
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', first.href)
+      cy.wrap(second).click()
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', second.href)
+      cy.wrap(third).click()
+      cy.get('.split-view-detail').should('have.attr', 'busy')
+
+      goBackHoldingRestore(first)
+
+      cy.location('href').should('eq', first.href)
+      cy.go('forward')
+      cy.location('href').should('eq', second.href)
+    })
+  })
+})
+
 // #1029 — the refetch guard compared the frame's `src` (which Turbo leaves
 // ABSOLUTE after navigating) against the row's `href` (relative, as written),
 // so they never matched: every popstate rewrote the `src` and refetched a
