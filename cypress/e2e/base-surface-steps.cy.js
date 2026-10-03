@@ -309,13 +309,14 @@ describe('hovers, tints and edges over a base surface', () => {
 
     // While the second end is picked, flatpickr marks inRange every day between the first end and
     // the pointer, those of the previous month too. A month whose first day opens the week shows
-    // none of them, so the calendar moves on until it shows two.
+    // none of them, so the calendar moves on until it shows two, and past a month where one of
+    // them is today: datepicker.css gives `.today` its primary border after it clears theirs.
     it(`keeps the range fill on a day of the previous month while the second end is picked on the ${theme} theme`, () => {
       cy.visit('/bali/form/date/date_range')
       cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
       cy.get('form input.input:not([type="hidden"])').click()
       const toTwoDaysOfThePreviousMonth = () => cy.get(DAY).then(($days) => {
-        if ($days.filter('.prevMonthDay').length >= 2) return
+        if ($days.filter('.prevMonthDay').length >= 2 && !$days.filter('.prevMonthDay.today').length) return
         cy.get('.flatpickr-calendar.open .flatpickr-next-month').click()
         toTwoDaysOfThePreviousMonth()
       })
