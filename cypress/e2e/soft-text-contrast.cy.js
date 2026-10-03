@@ -140,6 +140,12 @@ describe('a colour over a tint of itself, and its soft colour on base-100', () =
       ['error message', 'p.fieldset-label[id$="_error"]', 2],
       ['required asterisk', '.fieldset-legend span[aria-hidden="true"]', 1]
     ]],
+    ['form/text/with_char_counter', () => {
+      cy.get('#form_record_text').type('x'.repeat(41), { delay: 0 })
+      cy.get('[data-textarea-target="counter"]').first().should('have.text', '41 / 40')
+    }, [
+      ['counters, one past its maximum', '[data-textarea-target="counter"]', 2]
+    ]],
     ['filters/with_applied_tags', null, [
       ['"Clear all"', '.applied-filters > a', 1]
     ]],
@@ -182,9 +188,10 @@ describe('a colour over a tint of itself, and its soft colour on base-100', () =
       ['marker', '.timeline-middle svg', 5, GRAPHIC]
     ]],
     // Sci-Fi brings an overdue date into the first page: the seeds end Inception's production
-    // before the day they run. Infinite scroll keeps appending pages while the guard waits.
+    // before the day they run. Infinite scroll keeps appending pages while the guard waits. An
+    // overdue date is the one in `font-medium`, a weight the colour change leaves alone.
     ['split_view/default?q%5Bgenre_in%5D%5B%5D=Sci-Fi', null, [
-      ['date, red when overdue', '.split-view-item:nth-child(-n+5) .min-w-0 + span', 5]
+      ['overdue date', '.split-view-item:nth-child(-n+5) .min-w-0 + span.font-medium', 1]
     ]],
     ['boolean_icon/all_states', null, [
       ['yes and no icon', '.boolean-icon-component:not([class*="text-base-content/"]) svg', 2, GRAPHIC]
