@@ -122,9 +122,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   secundario, que junto al azul primario sólo cambia de tono: con deuteranopia los dos colores
   quedaban a ΔE_OK 0.024, y a 0.003 en `afal-dark`. Ahora dos colores vecinos quedan a 0.06 o
   más con protanopia, deuteranopia y tritanopia en los seis temas; pintados como el relleno
-  semitransparente de una barra, a 0.028 o más (antes 0.003). En `afal` la serie 2 pasa de
-  violeta a ámbar, la 3 de ámbar a violeta y la 4, 5 y 6 pasan a verde, amarillo y celeste.
-  Cambian las gráficas de dos o más series y las donas que usan los colores del tema:
+  semitransparente de una barra, a unas 0.03 (antes, menos de 0.003). En `afal` la serie 2
+  pasa de violeta a ámbar, la 3 de ámbar a violeta y la 4, 5 y 6 pasan a verde, amarillo y
+  celeste. Cambian las gráficas de dos o más series y las donas que usan los colores del tema:
   **gobierno-corporativo** (sesiones programadas y celebradas de los órganos de gobierno, la
   tendencia de conciliación, la actividad y la dona de operaciones de la importación de la
   intranet), **centinela-web** (turnos finalizados y activos, y las donas de motivos de

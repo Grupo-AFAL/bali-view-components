@@ -43,7 +43,7 @@ module Bali
     # and `afal-dark`'s measured ΔE_OK 0.003 apart under deuteranopia. In this order no
     # two neighbouring theme colours, the last and the first included, come closer than
     # 0.06 under protanopia, deuteranopia or tritanopia in the six themes; painted as a
-    # bar's half-opaque fill, 0.028 (#1281). Bali::Chart's controller repaints every
+    # bar's half-opaque fill, about 0.03 (#1281). Bali::Chart's controller repaints every
     # series from THEME_COLOR_VARS (chart/index.js), which lists the same order.
     CYCLE = %i[primary accent secondary success warning info error].freeze
 
