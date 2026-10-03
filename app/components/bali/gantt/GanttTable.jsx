@@ -44,8 +44,9 @@ const DEFAULT_COLS = { assignee: true, dates: true, days: true, status: true, pr
 // carries the whole label in its title.
 const COL_W = { assignee: 48, dates: 108, days: 32, status: 88, progress: 88 }
 
-// Neither a header nor a cell outgrows its column: grown to its content, `OWNER` pushed every
-// header after it 1 px out of line, and a `Ready for review` pill its row's Progress 33 px.
+// `minWidth: 0`, or a cell grows to its content and Name gives up the room, putting every edge
+// between them out of line: the padded `DAYS` header grows 6 px, a `Ready for review` pill its
+// cell 21 px. With Name at its minimum, the cells after the grown one are pushed instead.
 const colStyle = (key) => ({ flex: `0 0 ${COL_W[key]}px`, minWidth: 0 })
 
 // The Name column gives way to the others down to this: the toggle, the WBS and the start of
