@@ -22,7 +22,7 @@ module Bali
     #   render Bali::Icon::Component.new('check', size: 24)
     #
     # @example With custom classes
-    #   render Bali::Icon::Component.new('alert', class: 'text-error')
+    #   render Bali::Icon::Component.new('alert', class: 'text-soft-error')
     #
     class Component < ApplicationViewComponent
       attr_reader :name, :tag_name, :options

@@ -150,7 +150,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     { attribute: "logged_in_at", operator: "eq" } =>
       'input[data-controller="datepicker"][data-condition-target="value"][data-datepicker-enable-time-value="true"]',
     { attribute: "logged_in_at", operator: "between" } =>
-      'input[data-controller="datepicker"][data-condition-target="rangeInput"][data-datepicker-enable-time-value="true"]',
+      'input[data-controller="datepicker"][data-condition-target="rangeInput"]:not([data-datepicker-enable-time-value])',
     { attribute: "verified", operator: "eq" } => 'select[data-condition-target="value"]:not([data-slim-select-target])',
     { attribute: "status", operator: "eq" } => 'select[data-slim-select-target="select"]'
   }.freeze
@@ -167,6 +167,17 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     end
   end
 
+  def test_a_datetime_range_picks_whole_days
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: { attribute: "logged_in_at", operator: "between" }, group_index: 0, condition_index: 0,
+      available_attributes: @available_attributes + [ { key: :logged_in_at, label: "Logged in", type: :datetime } ]
+    ))
+
+    assert_selector('input[data-condition-target="rangeInput"][data-datepicker-alt-format-value="M j, Y"]' \
+                    ":not([data-datepicker-enable-time-value])")
+    assert_selector('input[data-condition-target="rangeInput"][placeholder="Select date range..."]')
+  end
+
   # Whatever is chosen, the server paints "Select values..." here: multi_select_controller.js
   # writes the choices in on connect, so the name they give it is read in
   # cypress/e2e/filters-condition-names.cy.js.
@@ -176,6 +187,24 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
       available_attributes: @available_attributes
     ))
     assert_selector('[data-multi-select-target="trigger"]:not([aria-label]):not([aria-labelledby])')
+  end
+
+  # condition_controller.js#buildMultiSelectInput builds this same markup when the operator
+  # changes in the browser, and cypress/e2e/filters-built-multi-select.cy.js holds the two
+  # equal. A daisyUI .dropdown there opened its panel on focus, with nothing telling the
+  # trigger had one (#1282).
+  def test_the_multi_select_opens_only_on_its_controllers_toggle
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: { attribute: "status", operator: "in" }, group_index: 0, condition_index: 0,
+      available_attributes: @available_attributes
+    ))
+
+    trigger = '[data-multi-select-target="trigger"]'
+    assert_selector %(#{trigger}[role="button"][tabindex="0"][aria-haspopup="listbox"])
+    assert_equal %w[click->multi-select#toggle keydown.enter->multi-select#toggle:prevent
+                    keydown.space->multi-select#toggle:prevent], page.find(trigger)["data-action"].to_s.split
+    assert_selector('[data-multi-select-target="dropdown"].hidden', visible: :all)
+    assert_no_selector(".dropdown, .dropdown-content", visible: :all)
   end
 
   # condition_controller.js rebuilds the value widget whenever the field changes, and names

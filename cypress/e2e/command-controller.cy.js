@@ -128,6 +128,91 @@ describe('CommandController', () => {
     })
   })
 
+  // The counter changes on every keystroke, so the controller writes it, with the
+  // plural forms component.html.erb hands over in the `results` value
+  // (command_test.rb checks that half).
+  context('the result counter in the footer', () => {
+    const count = () => cy.get('[data-command-target="count"]')
+    const openPalette = () => {
+      cy.get('.bali-command-trigger').click()
+      cy.get('[data-command-target="panel"]').should('not.have.class', 'hidden')
+    }
+
+    it('counts in the page language', () => {
+      cy.visit('/bali/command/default?locale=es')
+      openPalette()
+      count().should('have.text', '9 resultados')
+
+      cy.get('[data-command-target="input"]').type('Policy')
+      count().should('have.text', '2 resultados')
+    })
+
+    const noMatchCounts = [
+      ['default', 'es', '0 resultados'],
+      ['default', 'en', '0 results'],
+      ['compact', 'es', '0 resultados'],
+      ['compact', 'en', '0 results']
+    ]
+    noMatchCounts.forEach(([preview, locale, expected]) => {
+      it(`agrees with the no-results message when nothing matches (${preview}, ${locale})`, () => {
+        cy.visit(`/bali/command/${preview}?locale=${locale}`)
+        openPalette()
+        cy.get('[data-command-target="input"]').type('xyzzy')
+
+        cy.get('[data-command-target="noResults"]').should('not.have.class', 'hidden')
+        cy.get('.cmd-row[data-mode="action"]').should('not.have.class', 'hidden')
+        count().should('have.text', expected)
+      })
+    })
+
+    it('uses the singular form for a single result', () => {
+      cy.visit('/bali/command/compact?locale=es')
+      openPalette()
+
+      count().should('have.text', '1 resultado')
+    })
+
+    // 320px is the width WCAG 1.4.10 asks content to reflow at. Kept on one line
+    // there, "9 resultados" runs 42px past the panel, whose overflow-hidden leaves
+    // "9 res". Not 360px: there it overflows by about 2px, which a font can erase.
+    it('keeps the whole count inside the panel on a phone', () => {
+      cy.viewport(320, 760)
+      cy.visit('/bali/command/default?locale=es')
+      openPalette()
+
+      count().should('have.text', '9 resultados').then($count => {
+        const box = $count[0].getBoundingClientRect()
+        const panel = $count[0].closest('.cmd-panel').getBoundingClientRect()
+        expect(box.right, 'right edge of the count').to.be.at.most(panel.right)
+      })
+    })
+
+    it('ends the count at the right edge of the footer, on desktop and on a phone', () => {
+      [1280, 320].forEach(width => {
+        cy.viewport(width, 760)
+        cy.visit('/bali/command/default?locale=es')
+        openPalette()
+
+        count().should('have.text', '9 resultados').then($count => {
+          const footer = $count[0].parentElement
+          const edge = footer.getBoundingClientRect().right - parseFloat(getComputedStyle(footer).paddingRight)
+          expect($count[0].getBoundingClientRect().right, `right edge of the count at ${width}px`)
+            .to.be.closeTo(edge, 1)
+        })
+      })
+    })
+
+    // Hosts pin the gem and the npm package separately, so this controller can
+    // meet a palette rendered by a gem that sends no forms.
+    it('falls back to English when the markup carries no forms', () => {
+      cy.visit('/bali/command/compact?locale=es')
+      cy.get('[data-controller="command"]').invoke('removeAttr', 'data-command-results-value')
+      openPalette()
+
+      count().should('have.text', '1 result')
+    })
+  })
+
   // The trigger's hint is server-rendered, so the HTML says ⌘K to everyone.
   // Only the browser knows which keyboard is in front of the user, so the
   // controller is what corrects it — a Windows user was being pointed at a key

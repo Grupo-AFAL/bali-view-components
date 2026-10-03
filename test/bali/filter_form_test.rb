@@ -66,8 +66,7 @@ class DualChannelSearchFilterForm < Bali::FilterForm
 end
 
 # Test form with the full search_fields signature (#982): aria_label: is the
-# box's aria-label — the only accessible name that survives typing — and
-# width: the per-listing width override. Both were renderable by the
+# box's aria-label and width: the per-listing width override. Both were renderable by the
 # components but unreachable from the DSL. (`label:` was the beta spelling and
 # now raises — see the rename tests below, #1026.)
 class LabelledSearchMovieFilterForm < Bali::FilterForm
@@ -301,6 +300,63 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     )
 
     refute(@form.active_filters?)
+  end
+
+  # The bare dates the panel's range picker sends (condition_controller.js#syncRangeDates), over a
+  # datetime column.
+  def test_a_between_range_includes_its_whole_last_day
+    @tenant.movies.create!(name: "Last day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies,
+      grouped_params(0 => { created_at_gteq: "2026-08-25", created_at_lteq: "2026-08-27" })
+    )
+
+    assert_equal([ "Last day" ], form.result.pluck(:name))
+  end
+
+  # The bare date "on or before" sends: the single picker of a `type: :date` attribute
+  # (datepicker-controller.js#dateFormat), over a datetime column.
+  def test_on_or_before_a_date_includes_that_whole_day
+    @tenant.movies.create!(name: "Last day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { created_at_lteq: "2026-08-27" })
+    )
+
+    assert_equal([ "Last day" ], form.result.pluck(:name))
+  end
+
+  def test_after_a_date_excludes_that_whole_day
+    @tenant.movies.create!(name: "Last day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { created_at_gt: "2026-08-27", created_at_lt: "2026-08-29" })
+    )
+
+    assert_equal([ "Next day" ], form.result.pluck(:name))
+  end
+
+  def test_a_nested_group_includes_its_whole_last_day
+    @tenant.movies.create!(name: "Last day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { g: { "0" => { created_at_lteq: "2026-08-27" } } })
+    )
+
+    assert_equal([ "Last day" ], form.result.pluck(:name))
+  end
+
+  def test_a_between_range_over_a_date_column_still_compares_dates
+    @tenant.movies.create!(name: "Last day", production_starts_on: Date.new(2026, 8, 27))
+    @tenant.movies.create!(name: "Next day", production_starts_on: Date.new(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies,
+      grouped_params(0 => { production_starts_on_gteq: "2026-08-25",
+                            production_starts_on_lteq: "2026-08-27" })
+    )
+
+    assert_equal([ "Last day" ], form.result.pluck(:name))
   end
 
   # What is COUNTED and what TRAVELS have to be the same question: if they diverge, a bulk action

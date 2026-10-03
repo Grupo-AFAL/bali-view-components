@@ -56,7 +56,7 @@ class BaliFormBuilderEmailFieldsTest < FormBuilderTestCase
   def test_email_field_with_validation_errors_displays_error_message
     resource.errors.add(:contact_email, "is invalid")
     result = builder.email_field(:contact_email)
-    assert_html(result, "p.text-error", text: "Contact email is invalid")
+    assert_html(result, "p.text-soft-error", text: "Contact email is invalid")
   end
 
   def test_email_field_with_help_text_displays_help_text

@@ -114,6 +114,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   «Más acciones del calendario» y un ancho —era `w-72`, que no está en la escala:
   `secondary_actions_width: :xl` (w-80)— que perdió al pasar a `with_secondary_action` (su #1224).
 
+- **`initials:` en `Bali::Topbar::UserMenu`** (#1277), que llega tal cual a `Bali::Avatar`. Sin
+  él, Avatar toma la primera y la última palabra del nombre: «Federico González Pérez» queda
+  «FP». Ninguna de las siete apps que usan `UserMenu` lo pasa, así que ninguna cambia.
+  **identity** puede pasarlo para volver a las iniciales de `first_name` y `last_name` que
+  pintaba antes de Grupo-AFAL/identity#366.
+
+- **`frame_options:` en `Bali::SplitView`, atributos para el `<turbo-frame>` del detalle**
+  (#1279). Las demás opciones siguen yendo al contenedor. `class:` se suma a la del componente,
+  `data:` se mezcla clave a clave con el `turbo_action` de `advance:` (si nombras uno, gana el tuyo)
+  e `id:` levanta, porque es `frame_id:`.
+  Sirve para que, con los paneles apilados (bajo `lg`), un clic baje al detalle:
+  `frame_options: { autoscroll: true, data: { autoscroll_block: "start" } }` y un marcador
+  `lg:hidden` como primer hijo del detalle; la receta, y cuándo fijar además el frame con
+  `lg:sticky` (un maestro más alto que la pantalla), está en `docs/guides/master-detail.md`.
+  **gobierno-corporativo** puede borrar `RegulationSplitView` y su prueba de contrato y renderizar
+  `Bali::SplitView::Component` con ese `frame_options:`; el marcador de `_section.html.erb` se
+  queda, y su comentario deja de nombrar la subclase (`git grep -n "RegulationSplitView" origin/main`).
+  Mientras no lo haga, la subclase sigue funcionando: el método privado conserva su nombre.
+
 ### Changed
 
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
@@ -570,6 +589,179 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   target element "template"` tras ese reemplazo hacia una página sin `#main-modal`. Un listener
   puesto a mano sobre `document.body` se pierde, como ya pasaba en cada visita de Turbo; ninguno
   de los nueve anfitriones lo hace (`git grep -n "document.body.addEventListener" origin/main`).
+
+- **`Bali::Topbar::UserMenu` contiene un nombre o un correo largo, y su disparador cabe a
+  320 px** (#1277). Las siete apps que lo usan lo reciben con el bump, sin tocar nada.
+  - El nombre del disparador se corta con puntos suspensivos a 12rem.
+  - Nombre y correo del encabezado pasan de renglón dentro del panel; el correo, en
+    cualquier carácter.
+  - Bajo `sm` (640 px) el disparador es sólo el avatar, cuadrado como los `IconAction` de al
+    lado: con el chevron no cabía a 320 px junto a hamburguesa, paleta y dos acciones.
+
+- **El contador del pie de `Bali::Command` sale en el idioma de la página** (#1278): «9 results»
+  pasa a «9 resultados». Las formas `one`/`other` de `bali_view.command.results` llegan del
+  componente al controlador; una app que quiera otro texto las redefine en sus locales. Si el
+  pie no cabe en una línea, el contador baja a la segunda en vez de quedar cortado por el panel:
+  «9 resultados» no cabe junto a los atajos a 360 px, ni «9 results» a 320 px. Con una
+  búsqueda, el contador cuenta sólo las filas que coinciden; sin búsqueda, todo lo que lista,
+  como antes. Las dos filas `action` de gobierno-corporativo, la única app con ese grupo,
+  siguen en pantalla con cualquier búsqueda pero ya no cuentan: una búsqueda con una sola
+  coincidencia dice «1 resultado» con tres filas a la vista, y una sin ninguna, «0 resultados»
+  bajo el aviso de que nada coincide.
+  Lo ven las siete apps con paleta, sin nada que hacer más que subir la gema y el paquete npm
+  juntos: con uno solo, el contador sigue en inglés.
+
+- **`Bali::SplitView` ya no pierde el clic en una fila hecho justo al llegar el detalle
+  anterior** (#1280). Con `advance: true`, un clic hecho entre el arranque de la visita `advance`
+  que sigue a la llegada de un detalle y el momento en que esa visita cachea la página (un cuadro
+  de animación) dejaba la fila nueva marcada y el detalle y la URL en la anterior: el rebobinado
+  de #1012 quitaba en `turbo:before-cache` el `src` que ese clic acababa de poner, y Turbo
+  cancelaba su petición. Ahora el rebobinado deja en paz un frame que no ha terminado de cargar.
+  Lo ganan la bandeja de afal-apps y la bandeja y el reglamento de gobierno-corporativo, sin nada
+  que hacer.
+
+- **`Bali::SplitView`: volver atrás ya no puede duplicar la entrada del historial** (#1280). Con
+  `advance: true`, al volver a una fila la página que se deja apuntaba su frame a esa fila; si la
+  respuesta llegaba antes de que Turbo restaurara la página, el frame, que aún llevaba el `advance`
+  del clic, volvía a empujar ese URL y se perdía la entrada de adelante. Ahora esa página no pide
+  nada y cancela la carga que tuviera en curso; la restaurada pide el detalle si le falta. Las
+  mismas tres pantallas, sin nada que hacer.
+
+- **El texto y los íconos de color que Bali pinta sobre la página pasan a `text-soft-<color>`**
+  (#1281). Sobre `base-100`, `text-error`, `text-success`, `text-warning`, `text-info` y
+  `text-accent` quedan bajo AA en los tres temas claros —`text-error` medía 2.75:1 en `afal`,
+  `text-success` 1.92—, `text-secondary` en `light`, `costa-norte` (1.99) y `dark` (4.32), y
+  `text-primary` en `dark` (3.40); AA pide 4.5 para texto y 3:1 para un ícono. Con la mezcla, el
+  mínimo medido es 5.14:1 (`text-soft-warning` en `afal`). Cambian:
+  - FormBuilder: el mensaje de error de cada campo, el asterisco de requerido, el contador de
+    caracteres pasado el máximo y el «Clear» de `coordinates_polygon_group`.
+  - `DeleteLink`: el rojo del botón `ghost` o `link`, y con él cada ítem `method: :delete` de
+    `Dropdown` y `ActionsDropdown`, que bajo el puntero del menú medía 3.27 en `dark`, y el
+    cierre de sesión del `Topbar::UserMenu`, con el `:delete` por omisión y también con `:post`
+    (el de identity).
+  - `Filters`: los tres «Clear all» y la pista de una condición sin valor.
+  - `Widget`: la tendencia, el sí y el no del Check, que dibuja `BooleanIcon`, y el aviso de un
+    widget que no cargó.
+  - `Gauge` y `Loader`: el porcentaje y el texto; el anillo y el spinner conservan el color, y la
+    etiqueta del `Gauge` pasa a `text-base-content/70`.
+  - `Timeline`: el marcador, también el de `custom_color:`, con `Bali::Color.soft`; la línea
+    conserva el color.
+  - `SplitView`: el `meta_color:` de una fila y el error al cargar la página siguiente.
+  - `BooleanIcon`: el sí y el no.
+  - `DocumentEditor`: el estado de un guardado fallido y el error del historial.
+  - `DirectUpload`: el error de un archivo y el ícono de subido.
+  - El aviso de error de una isla de React (`react-island.js`), la caja que `BlockEditor` muestra
+    en development con el flag apagado y la mención de `RichTextEditor`.
+
+  Lo ve toda app con formularios, con un botón o un ítem de borrar o con el cierre de sesión del
+  `Topbar::UserMenu`, con cualquiera de los dos verbos: el rojo sale más oscuro en los temas
+  claros y más claro en los oscuros.
+  **Anfitrión:** una prueba que busca el error con `p.text-error` o el asterisco con
+  `label .text-error` pasa a `text-soft-error`, y una con `count: 0` deja de fallar sin avisar.
+  Son las de `test/controllers/finance/terminals/` en **afal-apps**
+  (`affiliations_controller_test.rb`, `census_assignments_controller_test.rb` y
+  `terminals_controller_test.rb`, la de `count: 0`) y, en **gobierno-corporativo**,
+  `document_classification_types_controller_test.rb` y
+  `governing_bodies/body_creation_requests_controller_test.rb`. Donde una app copió el marcado,
+  no cambia sola: **identity** escribe `fieldset-label text-error` en
+  `app/views/rodauth/_otp_digits.html.erb` (pasa a `text-soft-error`), y **gobierno-corporativo**
+  pinta de `text-error` su contador en `app/javascript/controllers/character_counter_controller.js`.
+
+- **El texto que daisyUI atenúa a `/60` pasa a `/70` en toda `.fieldset-label`, que es la ayuda
+  de cada campo del FormBuilder, y en el encabezado y el pie de toda `.table`** (#1281). Medían
+  4.04:1 en `afal` y 4.32 en `costa-norte`; a `/70`, 5.54 y 6.00. Es una regla de Bali y no una
+  clase en sus plantillas, así que alcanza también el marcado escrito a mano sin tocar nada: las
+  95 vistas con una `<table class="table">` y su `<thead>` o `<tfoot>` en seis apps, 69 de ellas
+  en **gobierno-corporativo** y 15 en **afal-apps**, y los tres `<p class="fieldset-label">` de
+  ayuda que **identity** escribe en `app/views/admin/connected_applications/_form.html.erb`. Una
+  clase de color propia en el elemento sigue ganando: el historial de documentos de
+  gobierno-corporativo, que escribe `text-base-content/60` en cada `<th>`, se queda en 4.04 en
+  `afal` hasta que la quite.
+
+- **`Bali::Footer` deja de atenuar el título, la descripción y el copyright** (#1281). Sobre
+  `primary` el título medía 2.83:1 en `afal`, y sobre `neutral` 4.15 en `afal-dark`. Con los
+  cuatro colores en los temas de Bali, una opacidad sólo pasa desde `.9`, que sobre `primary` en
+  `afal` lee 4.55 contra 5.25 a tinta plena: una atenuación que no se ve. El `secondary` de los
+  `light` y `dark` de daisyUI no llega a AA ni a tinta plena (3.04:1), y el `primary` de `dark`
+  tampoco (4.13). Ninguna app renderiza `Bali::Footer`.
+
+- **El Datepicker y SlimSelect se leen en los seis temas** (#1281, puntos 4 y 8).
+  - El calendario de `date_group`, `datetime_group` y `time_group` llevaba escritos a mano los
+    colores del `light` de daisyUI: en los temas oscuros, un día con foco o uno de otro mes bajo
+    el cursor era un cuadro casi blanco con el número ilegible, y las flechas de la hora no se
+    veían. Ahora sigue al tema. Los días de otro mes pasan de `/30` (1.86:1 en `afal`) a `/70`.
+    El hover y el foco de los días, de la hora y de AM/PM, y el hover de las flechas de la hora,
+    pasan al texto al 8 %; antes eran `base-200`, el literal claro (el foco de un día y el hover
+    de uno de otro mes) o, en las flechas, un blanco al 30 % que en los temas claros no se veía.
+    El borde del calendario y la línea sobre la hora pasan de `base-300` al texto al 15 %. Los
+    días de un rango pierden el marco que les dejaba su relleno pintado también en el borde.
+    En el encabezado, el mes, el año y las flechas del año marcan el hover con un anillo del
+    color del texto, no con un blanco al 20 % (al 30 % en las flechas) que bajaba el mes y el
+    año a 2.96:1 en `dark`, 3.75 en `afal` y 4.33 en `light`.
+  - En SlimSelect, la opción elegida y «Select all» pasan de `primary` (3.40:1 en el `dark` de
+    daisyUI) a `text-soft-primary`, y la marca de la opción elegida toma el color de su texto.
+    «Select all» ya no se atenúa bajo el cursor; le queda el subrayado.
+
+  Lo ve toda app que use esos campos, también en los temas claros: los días de otro mes se leen
+  más, el hover y el borde del calendario se marcan algo más, las flechas de la hora marcan el
+  hover, los días de un rango van sin marco, el hover del encabezado es un anillo y no un
+  tinte, y el primario de la opción elegida y de «Select all» sale más oscuro. Sin nada que
+  hacer en el anfitrión.
+
+- **La tabla del Gantt se lee en cualquier ancho y marca la fila bajo el puntero** (#1283). El
+  avatar del responsable es una imagen con su nombre: un lector de pantalla leía las iniciales.
+  Los encabezados ya no se pegan («OWNERDATES») y quedan sobre su columna. Una píldora de estado
+  más larga que su columna se corta con «…» y muestra el estado entero bajo el puntero, en vez de
+  correr el resto de la fila. Las columnas del responsable y del estado pasan de 38 a 48 px y de
+  76 a 88. La de nombre no baja de 140 px. La tabla abre al 60 % del tablero, entre 300 y 520 px
+  (antes el 42 %): todas las columnas entran desde un tablero de 840 px. En uno más angosto, como
+  el de una tableta, se ocultan las columnas de la derecha que no caben enteras, en vez de asomar
+  cortadas en el borde, y el cronograma conserva el 40 %: en un tablero de 736 px la tabla abre a
+  442, antes 309. En un teléfono sigue en 300. El esqueleto de carga abre su columna de nombre a
+  ese mismo ancho, no a 256 px. El hover de fila se pinta; la fila seleccionada conserva su
+  tinte. Lo nota **afal-apps**, el único anfitrión que rinde el Gantt: «Listo para revisión» y,
+  en el portafolio, «En despliegue», «Midiendo valor» y «Mantenimiento» se ven cortados. Sin nada
+  que hacer en el anfitrión.
+
+- **Las píldoras de estado del Gantt se leen** (#1281, punto 3): el texto era el color sobre su
+  propio tinte, 1.55–2.13:1 en los temas claros. Ahora es la mezcla de `text-soft-*`, y el gris
+  de la píldora neutra sube de `/62` a `/70`. Si un catálogo nombra `--color-neutral`, el texto de
+  su píldora va en `base-content`, como ya lo resuelve `Bali::Color`: en `dark`, `neutral` es más
+  oscuro que la fila sobre la que va la píldora. Las barras siguen en `neutral`. Con cualquiera
+  de los ocho colores de daisyUI o sin color, en reposo, bajo el puntero o en la fila
+  seleccionada, el peor caso mide 4.61:1 (`afal`). Sin nada que hacer en el anfitrión.
+
+- **`Filters`: «entre» sigue filtrando al pasar de un campo de fecha a otro** (#1282). Con
+  «entre» elegido, cambiar a otro campo de fecha o de fecha y hora dejaba el listado sin
+  filtrar bajo una condición que seguía diciendo «entre»: viajaba como `<campo>_between`, que
+  Ransack descarta sin aviso. Ahora viaja como `_gteq`/`_lteq`. Sin nada que hacer en el
+  anfitrión.
+
+- **`Filters`: un rango «entre» incluye su último día** (#1282). Sobre una columna de fecha y
+  hora, Ransack leía `created_at_lteq=2026-08-27` como la medianoche del 27 y dejaba fuera las
+  filas de ese día. `FilterForm` lee ahora la fecha sola de un `_lteq` o un `_gt` de cualquier
+  grupo del panel, también anidado, como el final de ese día: así también «en o antes de»
+  incluye el día y «después de» lo deja fuera, en vez de traer sus filas. El rango de un campo
+  `type: :datetime` elige días enteros: mostraba una hora (12:00) que no viajaba. Lo notan los
+  paneles que filtran una columna de fecha y hora con `type: :date`, como `created_at` y
+  `last_active_at` en los usuarios de gobierno-corporativo o `last_sign_in_at` en las cuentas de
+  identity: «entre» y «en o antes de» devuelven también las filas del último día, y «después de»
+  deja de traer las del día elegido. Sin nada que hacer en el anfitrión. Se retiran las claves
+  `bali_view.filters.select_datetime_range` y
+  `bali_view.filters.placeholders.select_datetime_range`, que ninguna de las nueve apps usa.
+
+- **La búsqueda rápida de `Filters` se nombra con su placeholder** cuando el anfitrión no pasa
+  `aria_label:` (#1282). Chromium le daba un nombre vacío, o el del botón de limpiar en cuanto
+  había texto. `aria_label:` sigue ganando. Lo notan las tres apps con
+  `with_filters_panel` —afal-apps, gobierno-corporativo e identity—, donde ningún
+  `search_fields` pasa `aria_label:`. Sin nada que hacer en el anfitrión.
+
+- **El multi-select que `Filters` arma en el navegador es el que pinta el servidor** (#1282),
+  el de «es cualquiera de» y «no es ninguno de»: se abre con clic, Enter o Espacio y ya no con
+  sólo enfocarlo, se cierra con Escape y el disparador lleva `aria-haspopup`. Los dos, el
+  armado y el del servidor, se cierran también cuando el foco sale con Tab, en vez de quedar
+  abiertos sobre el control que lo recibe. Se retira la clase `.filters-multi-select-content`,
+  que ninguna de las nueve apps usa. Sin nada que hacer en el anfitrión.
 
 ### Documentation
 

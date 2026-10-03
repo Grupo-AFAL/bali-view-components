@@ -34,7 +34,6 @@ es:
       select_date: "Seleccionar fecha..."
       select_datetime: "Seleccionar fecha y hora..."
       select_date_range: "Seleccionar rango de fechas..."
-      select_datetime_range: "Seleccionar rango de fecha y hora..."
 
       # Boolean values
       any: "Cualquiera"
@@ -63,7 +62,6 @@ es:
         select_date: "Seleccionar fecha..."
         select_datetime: "Seleccionar fecha y hora..."
         select_date_range: "Seleccionar rango de fechas..."
-        select_datetime_range: "Seleccionar rango de fecha y hora..."
         select: "Seleccionar..."
         select_values: "Seleccionar valores..."
 
@@ -141,6 +139,9 @@ es:
       navigate: "navegar"
       open_action: "abrir"
       close: "cerrar"
+      results:
+        one: "%{count} resultado"
+        other: "%{count} resultados"
 
     # Chat conversacional
     chat:

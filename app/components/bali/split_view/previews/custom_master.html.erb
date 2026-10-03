@@ -32,7 +32,7 @@
                   split_view_target: "row",
                   action: "click->split-view#select"
                 } do %>
-            <div class="font-medium text-sm leading-snug truncate"><%= movie.name %></div>
+            <div class="font-medium text-sm leading-snug truncate" data-testid="row-title"><%= movie.name %></div>
             <div class="flex items-center gap-2 mt-1">
               <%= render Bali::Tag::Component.new(text: movie.genre, color: :info, size: :sm) %>
               <span class="text-[11px] text-base-content/70 truncate"><%= movie.studio&.name %></span>

@@ -161,4 +161,100 @@ class BaliSplitViewComponentTest < ComponentTestCase
 
     assert_selector("div#inbox-split.split-view-component")
   end
+
+  # --- frame_options --------------------------------------------------------------------
+
+  def test_frame_options_reach_the_frame
+    render_inline(
+      Bali::SplitView::Component.new(frame_id: "inbox-detail",
+                                     frame_options: { autoscroll: true, aria: { label: "Detail" } })
+    ) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector('turbo-frame#inbox-detail[autoscroll][aria-label="Detail"]', visible: :all)
+  end
+
+  def test_frame_options_data_is_merged_with_the_turbo_action_advance_writes
+    render_inline(
+      Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: { data: { autoscroll_block: "start" } })
+    ) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector('turbo-frame[data-turbo-action="advance"][data-autoscroll-block="start"]', visible: :all)
+  end
+
+  def test_frame_options_data_reaches_the_frame_without_advance
+    render_inline(
+      Bali::SplitView::Component.new(frame_id: "inbox-detail", advance: false,
+                                     frame_options: { data: { autoscroll_block: "start" } })
+    ) do |split|
+      split.with_master { "MASTER" }
+    end
+
+    assert_selector('turbo-frame[data-autoscroll-block="start"]', visible: :all)
+    assert_no_selector("turbo-frame[data-turbo-action]", visible: :all)
+  end
+
+  # Read off the markup, not a parsed frame: an attribute written twice parses
+  # as its first copy, and an unnormalized string `"data"` key writes the host's
+  # copy first — so the duplicate would parse as the right answer.
+  def test_a_turbo_action_in_frame_options_replaces_advance_however_it_is_spelled
+    [
+      { data: { turbo_action: "replace" } },
+      { data: { "turbo_action" => "replace" } },
+      { data: { "turbo-action": "replace" } },
+      { "data" => { "turbo-action" => "replace" } }
+    ].each do |frame_options|
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: frame_options)) do |split|
+        split.with_master { "MASTER" }
+      end
+
+      assert_equal [ "replace" ], frame_tag_values("data-turbo-action"), frame_options.inspect
+    end
+  end
+
+  def test_frame_options_class_is_added_to_the_frame_class
+    [ { class: "scroll-mt-20" }, { "class" => "scroll-mt-20" } ].each do |frame_options|
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: frame_options)) do |split|
+        split.with_master { "MASTER" }
+      end
+
+      assert_equal [ "split-view-detail scroll-mt-20" ], frame_tag_values("class"), frame_options.inspect
+    end
+  end
+
+  def test_frame_options_nil_or_data_nil_renders_the_default_frame
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+      split.with_master { "MASTER" }
+    end
+    default_frame = page.find("turbo-frame").native.to_h
+
+    [ nil, { data: nil } ].each do |frame_options|
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: frame_options)) do |split|
+        split.with_master { "MASTER" }
+      end
+
+      assert_equal default_frame, page.find("turbo-frame").native.to_h, frame_options.inspect
+    end
+  end
+
+  # The rows, the list and the controller all find the frame by `frame_id:`, so it
+  # wins the merge, and without the raise an `id:` here would vanish in silence.
+  def test_frame_options_cannot_set_the_frame_id
+    [ { id: "other" }, { "id" => "other" } ].each do |frame_options|
+      error = assert_raises(ArgumentError, frame_options.inspect) do
+        Bali::SplitView::Component.new(frame_id: "inbox-detail", frame_options: frame_options)
+      end
+
+      assert_match(/frame_options cannot set id/, error.message)
+    end
+  end
+
+  private
+
+  def frame_tag_values(attribute)
+    rendered_content[/<turbo-frame[^>]*>/].scan(/ #{attribute}="([^"]*)"/).flatten
+  end
 end

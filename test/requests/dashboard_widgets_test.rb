@@ -47,7 +47,7 @@ class DashboardWidgetsRequestTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select %(section[data-widget-key="unavailable_feed"]) do
-      assert_select ".text-warning"
+      assert_select ".text-soft-warning"
     end
   end
 

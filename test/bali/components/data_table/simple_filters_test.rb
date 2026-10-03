@@ -1055,9 +1055,8 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
   # The sweep that prevents a #1155-bis: no branch renders an operable control without a name.
   # `hidden` and `submit` are out because they cannot be reached.
   #
-  # The quick search travels in the sweep with its `label:` set: it is the row's other control and
-  # its placeholder does NOT name it —a placeholder disappears as you type— so if the search's
-  # `aria-label` stopped being emitted this test would flag it just like a mute filter.
+  # The quick search travels in the sweep with its `label:` set, so a search whose `aria-label`
+  # stopped being emitted is flagged like a mute filter.
   def test_no_simple_filter_control_ships_without_an_accessible_name
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test", filters: every_widget,
@@ -1075,7 +1074,7 @@ class BaliSimpleFiltersAccessibleNameTest < ComponentTestCase
     end
 
     assert_empty(nameless.map { |c| c[:name] || c[:id] },
-                 "todo control de la fila tiene que salir con nombre accesible")
+                 "every control in the row has to ship with an accessible name")
   end
 
   # The whole chain, the way it arrives from a host: FilterForm → `simple_filters_config` → the

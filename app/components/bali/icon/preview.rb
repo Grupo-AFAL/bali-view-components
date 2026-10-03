@@ -34,8 +34,8 @@ module Bali
       # Add custom classes to style icons.
       #
       # @param name text
-      # @param color select { choices: [text-primary, text-secondary, text-accent, text-success, text-warning, text-error, text-info] }
-      def with_custom_class(name: 'star', color: 'text-primary')
+      # @param color select { choices: [text-soft-primary, text-soft-secondary, text-soft-accent, text-soft-success, text-soft-warning, text-soft-error, text-soft-info] }
+      def with_custom_class(name: 'star', color: 'text-soft-primary')
         render Icon::Component.new(name, class: color)
       end
 

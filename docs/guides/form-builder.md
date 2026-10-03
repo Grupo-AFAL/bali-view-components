@@ -341,7 +341,7 @@ text field and a textarea — the Stimulus controller behind it only reads
 <%= f.text_group :slug, char_counter: true %>              <%# "12" — no maximum %>
 ```
 
-Past the maximum the counter turns red (`text-error`) and **the typing is not
+Past the maximum the counter turns red (`text-soft-error`, like the error message) and **the typing is not
 stopped**: the count is an advisory, not a constraint. Pair it with `maxlength:`
 if the input really has to be cut off, and with a model validation either way —
 nothing here reaches the server.

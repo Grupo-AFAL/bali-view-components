@@ -130,7 +130,7 @@ class BaliFormBuilderRangeFieldGroupTest < FormBuilderTestCase
   def test_with_validation_errors_renders_error_message
     resource.errors.add(:rating, "is invalid")
     result = builder.range_group(:rating)
-    assert_html(result, "p.text-error", text: "Rating is invalid")
+    assert_html(result, "p.text-soft-error", text: "Rating is invalid")
   end
 
   # with custom class

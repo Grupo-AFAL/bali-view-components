@@ -386,7 +386,7 @@ class BaliWidgetComponentTest < ComponentTestCase
     Bali::Widget::SIZES.each do |size|
       render_inline(card(trend_widget(size: size)))
 
-      assert_selector(".text-success", text: "100%", visible: :all)
+      assert_selector(".text-soft-success", text: "100%", visible: :all)
     end
   end
 
