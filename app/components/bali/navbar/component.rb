@@ -43,7 +43,10 @@ module Bali
       renders_many :menus, Menu::Component
 
       # @param sticky [Boolean] Make navbar sticky at top (default: true)
-      # @param transparency [Boolean] Enable transparent mode
+      # @param transparency [Boolean] Start without background or shadow, and get both back once
+      #   the page scrolls past the bar's height. While transparent the bar takes the text colour
+      #   of its container, not its preset's; over a dark hero, pass the preset's own in `class:`
+      #   (`color: :neutral, class: "text-neutral-content"`).
       # @param fullscreen [Boolean] Full-width navbar without max-width constraint
       # @param color [Symbol, nil] Background color preset (:base, :primary, :secondary, :accent,
       #   :neutral). Pass nil to skip color classes and use your own via the class: option.
