@@ -215,6 +215,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Lo ganan la bandeja de afal-apps y la bandeja y el reglamento de gobierno-corporativo, sin nada
   que hacer.
 
+- **`Bali::SplitView`: volver atrás ya no puede duplicar la entrada del historial** (#1280). Con
+  `advance: true`, al volver a una fila la página que se deja apuntaba su frame a esa fila; si la
+  respuesta llegaba antes de que Turbo restaurara la página, el frame, que aún llevaba el `advance`
+  del clic, volvía a empujar ese URL y se perdía la entrada de adelante. Ahora esa página no pide
+  nada y cancela la carga que tuviera en curso; la restaurada pide el detalle si le falta.
+
 - **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
   de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
   dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
