@@ -32,18 +32,32 @@ describe('The multi-select a condition builds in the browser', () => {
         .sort()].join(' ')
     )
 
-  it('is the multi-select the server draws', () => {
-    // A `genre_in` with nothing chosen: the server draws the multi-select empty, as the
-    // controller builds it.
-    cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/admin/movies?q[g][0][genre_in][]=`)
-    cy.get('[data-action="click->filters#toggleDropdown"]').first().click()
-    cy.get('[data-action="filter-group#addCondition"]').first().click()
-    cy.get('[data-condition-target="attribute"]').eq(1).select('genre')
-    cy.get('[data-condition-target="operator"]').eq(1).select('in')
+  context('beside the one the server drew', () => {
+    beforeEach(() => {
+      // A `genre_in` with nothing chosen: the server draws the multi-select empty, as the
+      // controller builds it.
+      cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/admin/movies?q[g][0][genre_in][]=`)
+      cy.get('[data-action="click->filters#toggleDropdown"]').first().click()
+      cy.get('[data-action="filter-group#addCondition"]').first().click()
+      cy.get('[data-condition-target="attribute"]').eq(1).select('genre')
+      cy.get('[data-condition-target="operator"]').eq(1).select('in')
+      connected(2)
+    })
 
-    connected(2)
-    cy.get('[data-controller~="multi-select"]').should('have.length', 2).then(($widgets) => {
-      expect(markup($widgets[1])).to.deep.equal(markup($widgets[0]))
+    it('is the multi-select the server draws', () => {
+      cy.get('[data-controller~="multi-select"]').should('have.length', 2).then(($widgets) => {
+        expect(markup($widgets[1])).to.deep.equal(markup($widgets[0]))
+      })
+    })
+
+    // A press on an option's text hands focus to Bali::AppLayout's <main tabindex="-1">, outside
+    // the widget, before the click that checks the box.
+    it('stays open while an option is picked by its text', () => {
+      cy.get(trigger).last().click()
+      cy.get(panel).last().find('label span').eq(1).click()
+
+      cy.get(panel).last().should(($panel) => expect(display($panel[0]), 'panel display').not.to.equal('none'))
+      cy.get(panel).last().find('input[type="checkbox"]').eq(1).should('be.checked')
     })
   })
 
@@ -81,6 +95,21 @@ describe('The multi-select a condition builds in the browser', () => {
 
       press(' ')
       expectOpen()
+    })
+
+    // The old markup closed here for free, from daisyUI's :focus-within. Left open, the panel
+    // covers the control focus moved to: "Add condition" at 390px.
+    it('stays open while Tab walks its options, and closes once focus moves past them', () => {
+      cy.get(trigger).focus()
+      press('Enter')
+      cy.press(Cypress.Keyboard.Keys.TAB)
+      cy.focused().should('have.attr', 'type', 'checkbox')
+      expectOpen()
+
+      cy.get(`${panel} input[type="checkbox"]`).last().focus()
+      cy.press(Cypress.Keyboard.Keys.TAB)
+      cy.focused().should(($el) => expect($el.closest('[data-controller~="multi-select"]')).to.have.length(0))
+      expectClosed()
     })
   })
 })
