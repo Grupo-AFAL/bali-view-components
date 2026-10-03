@@ -165,7 +165,7 @@ describe('Gantt island', () => {
   })
 
   // Only the status pill's text reads a catalog's --color-neutral as base-content (ganttColors.js).
-  // Under the bar's base-content label, a progress painted base-content read 1.17:1 on `dark`.
+  // Under the bar's base-content label, a progress painted base-content read 1.21:1 on `dark`.
   it("paints a catalog's --color-neutral progress in neutral, not in the bar label's ink", () => {
     cy.intercept({ method: 'GET', url: /\/lookbook\/preview\/bali\/gantt\// }, (req) => {
       req.on('response', (res) => {
