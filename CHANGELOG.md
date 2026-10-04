@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.7.0] - 2026-10-03
+
 ### Added
 
 - **Modo oscuro: `costa-norte-dark` y el interruptor en el menú de usuario.** Bali trae
@@ -273,6 +275,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que lo pasara no truena: cae como atributo HTML del `<div>` del editor y no hace nada.
   **Anfitrión:** si apareces en ese `git grep` con un BlockEditor, borra el `theme:`.
 
+- **`Bali::Utils::ColorPicker` pierde `#current`, `#opacify_current` y `#use_theme_colors`, y
+  `Bali::Color` pierde `.variable_name`** (#1281). No los leía nadie:
+  `git grep -n "opacify_current\|ColorPicker\|variable_name" origin/main -- app lib` da cero en
+  las nueve apps. **Anfitrión:** si apareces en ese `git grep`, guarda tú el color que devuelve
+  `#next_color` y pásalo a `ColorPicker.opacify`, y donde usabas `Bali::Color.variable_name(color)`
+  escribe `"--color-#{color}"`, o `Bali::Color::GHOST_VARIABLE` para `:ghost` y `:neutral`.
+
+### Fixed
+
 - **Para quien trabaja en el repo: migrar la dummy ya no borra de `schema.rb` las tablas del
   engine.** Rails sólo suma las migraciones del engine a los rake corridos desde la raíz; con una
   base que el server ya había abierto, el botón «Run pending migrations» o un `db:migrate` desde
@@ -287,26 +298,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `bin/rails runner 'c = ActiveRecord::Base.lease_connection; c.assume_migrated_upto_version(c.pool.migration_context.current_version); c.change_column :bali_dashboard_widgets, :size, :string, limit: 32'`.
   `db:schema:load` no sirve aquí: sobre una base SQLite con datos choca con una llave foránea. La
   base de pruebas se rehace sola. Nada que hacer en un anfitrión.
-
-- **La hamburguesa del `Navbar` se ve sobre una barra de color** (#1257). Un `btn-ghost` dentro
-  de cualquier `.navbar` pinta en reposo el color que hereda —el de la barra, o el de un panel
-  dentro de ella que fije el suyo, como el `base-content` del menú abierto— y no el
-  `base-content` fijo que le daba daisyUI: la hamburguesa y una marca `variant: :ghost` pasan
-  de 1.00 a 14.68:1 sobre `neutral` en `afal`. En un Navbar transparente de color toman, como
-  sus enlaces, el `-content` del preset: sobre un hero oscuro se leen sólo donde ese `-content`
-  es claro, y sobre la página pueden dejar de verse (#1284). Se retira además
-  `.navbar.is-transparent.is-active`, que nunca aplicaba: el controlador pone `is-active` en la
-  hamburguesa, no en el `<nav>`. Ninguna de las nueve apps tiene un `.navbar` de color (el
-  único escrito a mano, el de `assisted_reset` en `identity`, es `bg-base-100` sin color de
-  texto) ni le pone `is-active`: nada que hacer.
-- **`Bali::Utils::ColorPicker` pierde `#current`, `#opacify_current` y `#use_theme_colors`, y
-  `Bali::Color` pierde `.variable_name`** (#1281). No los leía nadie:
-  `git grep -n "opacify_current\|ColorPicker\|variable_name" origin/main -- app lib` da cero en
-  las nueve apps. **Anfitrión:** si apareces en ese `git grep`, guarda tú el color que devuelve
-  `#next_color` y pásalo a `ColorPicker.opacify`, y donde usabas `Bali::Color.variable_name(color)`
-  escribe `"--color-#{color}"`, o `Bali::Color::GHOST_VARIABLE` para `:ghost` y `:neutral`.
-
-### Fixed
 
 - **Un drawer cerrado ya no anima su Skeleton** (#1273). El drawer cerrado sigue pintado fuera
   de la pantalla para poder deslizarse, y el `.skeleton` de daisyUI anima sin fin: cada página
