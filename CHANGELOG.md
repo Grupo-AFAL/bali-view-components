@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BlockEditor: el texto de las citas pasa AA en los seis temas.** BlockNote lo pinta en un gris
   fijo que medía 4.30:1 en los temas claros y 3.69–4.13 en los oscuros; ahora es el texto del tema
   al 70 % (5.54 a 7.97). Nada que hacer en la app.
+- **Clipboard: el contenido de éxito ya no declara `text-success`.** El controlador copia al botón
+  sólo el HTML de dentro del `<span>`, así que esa clase nunca se pintó: tras copiar, el botón
+  muestra la marca en el color del propio botón (12.64:1 en `afal`). Pintarla en `success` habría
+  medido 1.92:1 en `afal`. No cambia lo que se ve; quien quiera color lo pone en el contenido que
+  pasa a `with_success_content`, que sí se copia.
 
 ## [v3.7.0] - 2026-10-03
 
