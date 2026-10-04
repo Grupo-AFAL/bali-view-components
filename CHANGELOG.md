@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   medía 410); ahora van una debajo de otra, como ya iban en escritorio, que no cambia. Ninguna de
   las nueve apps usa el componente.
 
+- **La cabecera del `Calendar` cabe en un celular** (#1303). El título y los botones de periodo
+  iban en un solo renglón que no se partía: a 390 px la vista de mes medía 414 y la de año 364 a
+  320. Ahora los botones pasan debajo del título cuando no caben; a 1280 la captura es idéntica.
+  Lo ven gobierno-corporativo y ga-apps en pantallas angostas; nada que hacer.
+
 ### Documentation
 
 - **Los previews de `Card` caben en un celular** (#1303). Sus tarjetas `w-96` (384 px) pasan a
