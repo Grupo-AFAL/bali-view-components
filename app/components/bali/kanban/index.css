@@ -1,23 +1,22 @@
 /* Bali Kanban — the lane, the card on it, the card list's min-height and the
  * empty-column affordance.
  *
- * Imported into @layer components, so a host utility beats any of it without
- * `!` (`with_column(class: "bg-base-100")`, `with_card(class: "shadow-none")`).
- * That is why the templates carry none of these properties: a utility there
- * sits in @layer utilities and beats this sheet too. The card is not a daisyUI
- * `.card` for the same reason: `.card` and `.card-border` live in @layer
- * utilities, and `.card`'s `transition: outline .2s` replaced the card's own.
+ * Imported into @layer components, so a host utility beats the lane's and
+ * the card's fill, border and shadow without `!` (`with_column(class:
+ * "bg-base-100")`, `with_card(class: "shadow-none")`). A utility on the
+ * template would beat this sheet too, which is why the templates carry none of
+ * them. The card is not a daisyUI `.card` for the same reason: `.card` and
+ * `.card-border` live in @layer utilities, and `.card`'s `transition: outline
+ * .2s` replaced the card's own.
  *
- * The lane used to be base-100 like its cards: card against lane 1.00:1 on
- * all six themes, the card's border 1.05–1.10 (#1317). base-300 sits below
- * base-100 on all six, the dark ones too, so the card is the raised surface
- * either way: its fill steps 1.16–1.24 off the lane on the light themes, and on
- * the dark ones, where the fill steps 1.09–1.14, the border carries it at
- * 1.51–1.66. The tint Bali uses for steps elsewhere, base-content at 4–6% over
- * the base-200 page, would put the lane above base-100 on the dark themes and
- * sink the card (0.90–1.00). On base-300 the empty column's old base-300
- * outline measured 1.00; at 22% it is 1.52–1.97, and the footer's rule
- * 1.25–1.41.
+ * base-300 sits below base-100 on all six themes, the dark ones too, so the
+ * card is the raised surface either way: its fill steps 1.16–1.24 off the lane
+ * on the light themes; on the dark ones the fill steps 1.09–1.14 and the
+ * border carries it at 1.51–1.66. The tint Bali uses for steps elsewhere,
+ * base-content at 4–6% over the base-200 page, puts the lane above base-100
+ * on the dark themes and sinks the card (0.90–1.00). On the lane the empty
+ * column's outline measures 1.52–1.97 (base-300, its old colour, 1.00) and
+ * the footer's rule 1.25–1.41.
  *
  * The lane's transparent border paints nothing until forced colours repaint
  * its fill as Canvas, the page's colour; then it is the lane's only edge.
@@ -54,9 +53,6 @@
 }
 
 .kanban-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
   border-radius: var(--radius-box);
   background-color: var(--color-base-100);
   border: var(--border) solid color-mix(in oklab, var(--color-base-content) 13%, transparent);
@@ -64,9 +60,11 @@
   transition: border-color 150ms ease, box-shadow 150ms ease, translate 150ms ease;
 }
 
-/* Only a card the board will move: one with an update URL, in a column that is
- * not disabled. SortableJS keeps `sortable-chosen` on the card from pointerdown
- * to drop, under its ghost and drag classes, and on the touch clone. */
+/* Only a card the board will move: Ruby writes `data-sortable-update-url` from
+ * the card's `update_url:` and `data-sortable-list-disabled-value` from the
+ * column's `disabled:` (kanban_test.rb pins both). SortableJS keeps
+ * `sortable-chosen` on the card from pointerdown to drop, under its ghost and
+ * drag classes, and on the touch clone. */
 .kanban-column-list:not([data-sortable-list-disabled-value="true"])
   > .kanban-card[data-sortable-update-url]:not(.sortable-chosen):hover {
   border-color: color-mix(in oklab, var(--color-base-content) 24%, transparent);

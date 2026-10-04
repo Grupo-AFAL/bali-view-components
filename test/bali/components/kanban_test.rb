@@ -51,6 +51,7 @@ class BaliKanbanComponentTest < ComponentTestCase
     assert_text("Task 2")
   end
 
+  # kanban/index.css reads the attribute too: only a card that carries it lifts under the pointer.
   def test_card_renders_update_url
     render_inline(Bali::Kanban::Component.new) do |k|
       k.with_column(title: "Todo", status: "todo") do |col|
@@ -361,6 +362,7 @@ class BaliKanbanComponentTest < ComponentTestCase
     refute_match(/min-h/, page.find(".kanban-column-list")[:class])
   end
 
+  # kanban/index.css reads the attribute too: no card in a disabled column lifts under the pointer.
   def test_column_forwards_disabled_to_the_sortable_list
     render_inline(Bali::Kanban::Component.new) do |k|
       k.with_column(title: "Blocked", status: "blocked", disabled: true)
