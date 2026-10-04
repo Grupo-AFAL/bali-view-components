@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   la fila marcada y el detalle vacío. El panel limpio se recuerda ahora por frame y URL, y la
   página que se deja en un atrás/adelante ya no se modifica antes de que Turbo la guarde. Nada que
   hacer en un anfitrión.
+- **Página de referencia `/split-view` de la dummy: en el teléfono el detalle queda a la vista.** Con
+  los paneles apilados (debajo de `lg`) la lista mide 12rem en vez de 26rem, así que al tocar una fila
+  la ficha entera cabe en una pantalla de 390×844 sin desplazar la página (antes terminaba en y=998).
+  Se ajusta con la propiedad `--bali-split-master-max-h` y no con `max_height:`, que es un solo valor.
+  Un anfitrión que copie la página puede hacer lo mismo; nada que hacer si no.
 - **Previews de `Bali::SplitView`: la lista filtrada pide sus páginas siguientes con el filtro.** Con
   `?status=` o `?q[genre_in][]=` el scroll infinito traía páginas sin filtrar y sumaba filas que no
   correspondían, también cuando el filtro cabía en una página. Sólo afecta a Lookbook.

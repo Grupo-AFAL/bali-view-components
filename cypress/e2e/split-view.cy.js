@@ -587,3 +587,22 @@ describe('SplitView: a traversal restores the pane its URL was painted with (#13
     title().should('not.exist')
   })
 })
+
+// The reference page stacks the panes below `lg`, and the detail opens under
+// the list: on a phone the list is short enough that the whole detail is on
+// screen once a row is tapped, without scrolling the page.
+describe('SplitView: the reference page on a phone', () => {
+  const app = path => `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
+
+  it('shows the whole detail on screen after a row is tapped', () => {
+    cy.viewport(390, 844)
+    cy.visit(app('/split-view'))
+    // Cypress scrolls what it clicks to the top of the window by default.
+    cy.get('.split-view-row').eq(1).click({ scrollBehavior: false })
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('exist')
+    cy.window().then((win) => {
+      const card = win.document.querySelector('.split-view-detail .card').getBoundingClientRect()
+      expect(card.bottom, 'detail bottom').to.be.at.most(win.innerHeight)
+    })
+  })
+})
