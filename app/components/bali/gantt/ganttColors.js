@@ -1,14 +1,20 @@
 // Color system of the Gantt island (#705, ported from afal-apps and decoupled
 // from TDFlow via `catalogs` — decision D11). Every function returns INLINE
 // style values (var(--color-*) / oklch) — never interpolated Tailwind classes,
-// which v4 purges. Each color is a { solid, fill, border } set used to
-// paint bar (fill+border), progress overlay (solid) and badges/legend
-// uniformly across the color-by modes; a status color adds the `text` of its pill.
+// which v4 purges. Each color is a { solid, fill, border, content } set used to
+// paint bar (fill+border), progress overlay (solid), the bar label over that
+// overlay (content) and badges/legend uniformly across the color-by modes; a
+// status color adds the `text` of its pill.
 //
 // The formulas live here alone since #970: Ruby's copy went with the renderer
 // that used them. What Bali::Gantt::Colors still keeps is the DEFAULT STATUS
 // MAP below, which a host inherits when it passes no catalog — a test reads
 // this file and compares the two.
+
+// Ink of a bar's label over a progress fill with no `-content` token of its own: the neutral fill
+// and the L 0.62 hues. Over the opaque progress it reads 4.63:1 at worst (neutral, afal-dark) and
+// 4.99 on the hues; base-100 read 4.15 on costa-norte-dark, base-content 3.30 on dark.
+const INK_ON_UNTOKENED_FILL = 'oklch(0.15 0 0)'
 
 // Default catalogs: the island's historical status vocabulary (mirrors
 // Bali::Gantt::Colors::DEFAULT_STATUS_VARS) and priority hues. Hosts pass
@@ -47,7 +53,8 @@ export function neutralColor () {
     solid: 'color-mix(in oklch, var(--color-base-content) 42%, transparent)',
     fill: 'color-mix(in oklch, var(--color-base-content) 10%, transparent)',
     border: 'color-mix(in oklch, var(--color-base-content) 30%, transparent)',
-    text: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)'
+    text: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+    content: INK_ON_UNTOKENED_FILL
   }
 }
 
@@ -65,7 +72,8 @@ function varColor (cssVar) {
     solid: c,
     fill: `color-mix(in oklch, ${c} 16%, transparent)`,
     border: `color-mix(in oklch, ${c} 50%, transparent)`,
-    text: `color-mix(in oklab, ${ink} 40%, var(--color-base-content))`
+    text: `color-mix(in oklab, ${ink} 40%, var(--color-base-content))`,
+    content: `var(${cssVar}-content)`
   }
 }
 
@@ -88,7 +96,8 @@ export function hueColor (hue) {
   return {
     solid: `oklch(0.62 0.15 ${hue})`,
     fill: `oklch(0.62 0.15 ${hue} / 0.15)`,
-    border: `oklch(0.6 0.15 ${hue} / 0.5)`
+    border: `oklch(0.6 0.15 ${hue} / 0.5)`,
+    content: INK_ON_UNTOKENED_FILL
   }
 }
 
@@ -112,7 +121,7 @@ function priorityHue (priority, catalogs) {
 }
 
 // Color of an item under the color-by mode. `groupIndex` = index of its root
-// group (for the "group" mode). Returns { solid, fill, border }.
+// group (for the "group" mode). Returns { solid, fill, border, content }.
 export function colorForItem (item, colorBy, { groupIndex = 0, catalogs }) {
   switch (colorBy) {
     case 'assignee':

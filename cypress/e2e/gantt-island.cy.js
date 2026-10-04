@@ -1,3 +1,5 @@
+import { cdp, frameAt } from '../support/accessibility_tree'
+
 // Gantt island (#705): mounts GanttFlow through the COMPLETE circuit of a host —
 // startIslandLoader('gantt') in the main bundle reads the metas from
 // react_island_meta_tags, injects the gantt-island.js entry, registerIsland
@@ -180,13 +182,120 @@ describe('Gantt island', () => {
       const doc = bar.ownerDocument
       expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
       const style = (el) => doc.defaultView.getComputedStyle(el)
-      const neutral = doc.body.appendChild(Object.assign(doc.createElement('div'), { style: 'background: var(--color-neutral)' }))
-      const expected = style(neutral).backgroundColor
-      neutral.remove()
+      const token = (name) => {
+        const probe = doc.body.appendChild(Object.assign(doc.createElement('div'), { style: `background: var(--color-${name})` }))
+        const colour = style(probe).backgroundColor
+        probe.remove()
+        return colour
+      }
 
       const progress = style(bar.querySelector('.inset-y-0.left-0')).backgroundColor
-      expect(progress, 'progress under the label').to.equal(expected)
-      expect(progress, 'the label\'s ink').to.not.equal(style(bar.querySelector('span.text-base-content')).color)
+      expect(progress, 'progress under the label').to.equal(token('neutral'))
+      expect(progress, 'base-content, the label\'s ink off the progress').to.not.equal(token('base-content'))
+    })
+  })
+
+  // The warning comes from React Flow's first read of its pane, in an effect that runs before the
+  // board's measured height lands (it reads again on every resize). Opened at no height, the board
+  // logged #004 on every load; on a 358 px board the table also opened at 380 px and left the
+  // pane no width, and at 320 px its 300 px floor left none.
+  ;[[1280, 800], [390, 844], [320, 700]].forEach(([width, height]) => {
+    it(`mounts React Flow on a pane with a size in a ${width} px window`, () => {
+      cy.viewport(width, height)
+      cy.visit('/bali/gantt/default', { onBeforeLoad: (win) => cy.spy(win.console, 'warn').as('warn') })
+      cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+      cy.get('@warn').then((warn) => {
+        const flow = warn.args.map(([message]) => String(message)).filter((message) => message.includes('error#004'))
+        expect(flow, 'React Flow warning #004').to.deep.equal([])
+      })
+    })
+  })
+
+  // A board mounted hidden (an inactive tab) measures no width, and it measures again only when
+  // the body resizes: in a layout whose body is the window's height, showing it does not. Its
+  // table keeps the skeleton's CSS width, which is no number to drag from.
+  it('drags the splitter on a board that mounted hidden', () => {
+    cy.intercept({ method: 'GET', url: /\/lookbook\/preview\/bali\/gantt\/default/ }, (req) => {
+      req.on('response', (res) => {
+        res.body = String(res.body).replace('<div class="bali-gantt"',
+          '<style>body { height: 100vh; overflow: auto }</style><div class="bali-gantt" style="display: none"')
+      })
+    })
+    cy.visit('/bali/gantt/default')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+    cy.get('.bali-gantt').invoke('removeAttr', 'style')
+
+    cy.get('div[title="Drag to resize the table"]').then(([splitter]) => {
+      const table = splitter.previousElementSibling
+      expect(table.style.width, 'table at the skeleton width').to.equal('var(--gantt-name-col)')
+      const start = table.getBoundingClientRect().width
+      const { left, top } = splitter.getBoundingClientRect()
+      const at = (x) => ({ clientX: x, clientY: top + 10, button: 0, eventConstructor: 'PointerEvent' })
+
+      cy.wrap(splitter).trigger('pointerdown', at(left))
+      cy.document().trigger('pointermove', at(left + 40))
+      cy.document().trigger('pointerup', at(left + 40))
+      cy.document().should(() => {
+        expect(table.getBoundingClientRect().width, 'table width after a 40 px drag').to.be.closeTo(start + 40, 1)
+      })
+    })
+  })
+
+  // The minimap is 204 px wide and sits 14 px from the timeline's right edge. In a narrower
+  // timeline it spilled over the table, 218 px of it at 320 px, so there it is not drawn.
+  ;[[320, 700, false], [390, 844, false], [768, 1024, true], [1280, 800, true]].forEach(([width, height, drawn]) => {
+    it(`${drawn ? 'draws the minimap inside' : 'leaves out the minimap of'} the timeline in a ${width} px window`, () => {
+      cy.viewport(width, height)
+      cy.visit('/bali/gantt/default')
+      cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+      cy.get('.react-flow').then(([pane]) => {
+        const minimap = pane.parentElement.querySelector('div[title^="Minimap"]')
+        if (!drawn) {
+          expect(minimap, 'minimap').to.equal(null)
+          return
+        }
+        const outer = pane.getBoundingClientRect()
+        const inner = minimap.getBoundingClientRect()
+        expect(inner.left, 'minimap left edge inside the timeline').to.be.at.least(outer.left)
+        expect(inner.right, 'minimap right edge inside the timeline').to.be.at.most(outer.right)
+      })
+    })
+  })
+
+  // The row carets and the floating zoom controls draw inline SVGs inside named buttons. Left in
+  // Chromium's accessibility tree they read as nine images with no name.
+  it('keeps the icons out of the accessibility tree and leaves their buttons named', () => {
+    cy.visit('/bali/gantt/default')
+    cy.get('button[title="Zoom in"]').should('exist')
+
+    cy.url().then((url) =>
+      cdp('Page.getFrameTree')
+        .then(({ frameTree }) => cdp('Accessibility.getFullAXTree', { frameId: frameAt(frameTree, url).id }))
+    ).then(({ nodes }) => {
+      const shown = nodes.filter((n) => !n.ignored)
+      const named = (role) => shown.filter((n) => n.role?.value === role).map((n) => n.name?.value || '')
+      expect(named('image').filter((name) => !name), 'images with no name').to.have.length(0)
+      expect(named('button').filter((name) => !name), 'buttons with no name').to.have.length(0)
+      expect(named('button'), 'floating controls').to.include.members(['Zoom in', 'Zoom out', 'Fit to window', 'Go to today'])
+      expect(named('button'), 'row toggles').to.include('Collapse')
+    })
+  })
+
+  // At 390 px the toolbar wraps before the colour-by control, and the label naming it stayed
+  // behind, alone at the end of the line above.
+  it('wraps the colour-by label with its control in a 390 px window', () => {
+    cy.viewport(390, 844)
+    cy.visit('/bali/gantt/default')
+
+    cy.get('[role="group"][aria-label="Color by"]').should(([control]) => {
+      const label = [...control.closest('.flex-wrap').querySelectorAll('span')].find((span) => span.textContent === 'Color')
+      const middle = (el) => {
+        const { top, bottom } = el.getBoundingClientRect()
+        return (top + bottom) / 2
+      }
+      expect(middle(label), 'label on the line of its control').to.be.closeTo(middle(control), 1)
     })
   })
 
