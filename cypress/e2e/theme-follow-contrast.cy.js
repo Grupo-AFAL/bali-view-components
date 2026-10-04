@@ -37,6 +37,12 @@ describe('colours that follow the theme', () => {
       el => paintedContrast(el, { pseudo: '::after', property: 'borderBottomColor' }), 3]
   ]
 
+  // [what, the element in the Datepicker's header, the state focus puts it in]
+  const HEADER_FOCUSED = [
+    ['the month', '.flatpickr-monthDropdown-months', ':focus-visible'],
+    ['the year', 'input.cur-year', ':focus']
+  ]
+
   // An inset box-shadow is invisible to paintedContrast: its colour is read off the computed
   // style and painted over the header.
   const ringOf = (el) => {
@@ -207,6 +213,33 @@ describe('colours that follow the theme', () => {
           expect($el[0].matches(':hover'), 'under the pointer').to.equal(true)
           expect(painted($el[0]), `${theme}: ${what} under the pointer`).to.be.at.least(Math.min(floor, atRest))
           expect(ringOf($el[0]), `${theme}: the ring around ${what} under the pointer`).to.be.at.least(3)
+        })
+      })
+    })
+
+    // Under focus the year kept the white tint its hover lost, 2.96:1 on `dark`, and the month,
+    // `outline: none`, showed nothing at all.
+    HEADER_FOCUSED.forEach(([what, selector, state]) => {
+      it(`marks ${what} of the Datepicker header under focus and keeps it legible on the ${theme} theme`, () => {
+        const target = `.flatpickr-calendar.open .flatpickr-current-month ${selector}`
+        let atRest
+        cy.visit('/bali/form/date/default')
+        useTheme(theme)
+        cy.get('form input.input:not([type="hidden"])').click()
+
+        cy.get(target).should(($el) => {
+          expectSettled($el[0])
+          expect($el[0].matches(':focus'), 'at rest').to.equal(false)
+          atRest = paintedContrast($el[0])
+        })
+        cy.get(target).focus()
+
+        cy.get(target).should(($el) => {
+          expectSettled($el[0])
+          expect($el[0].matches(state), `under ${state}`).to.equal(true)
+          expect($el[0].matches(':hover'), 'away from the pointer').to.equal(false)
+          expect(paintedContrast($el[0]), `${theme}: ${what} under focus`).to.be.at.least(Math.min(AA, atRest))
+          expect(ringOf($el[0]), `${theme}: the ring around ${what} under focus`).to.be.at.least(3)
         })
       })
     })

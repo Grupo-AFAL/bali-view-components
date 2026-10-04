@@ -310,12 +310,10 @@
   line-height: inherit;
   vertical-align: middle;
   appearance: textfield;
-  transition: background var(--fp-animation-timing) ease;
 }
 
 .flatpickr-current-month input.cur-year:focus {
   outline: none;
-  background: oklch(1 0 0 / 0.2);
 }
 
 .flatpickr-current-month input.cur-year::-webkit-outer-spin-button,
@@ -363,7 +361,9 @@
    costa-norte-dark (5.78 → 7.06, 7.98 → 9.06): primary-content is the lighter side on some
    themes and the darker on others, so no one tint keeps them all. */
 .flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.flatpickr-current-month .flatpickr-monthDropdown-months:focus-visible,
 .flatpickr-current-month input.cur-year:hover,
+.flatpickr-current-month input.cur-year:focus,
 .flatpickr-current-month .numInputWrapper span:hover {
   box-shadow: inset 0 0 0 1px currentColor;
 }
