@@ -246,9 +246,10 @@ export default memo(function Toolbar ({
 
       <span className='flex-1' />
 
-      {/* Color-by. */}
-      <span className='shrink-0 text-[10px] font-bold uppercase tracking-wide text-base-content/70'>{t('color')}</span>
-      <div className='shrink-0'>
+      {/* Color-by: the label and its control are one flex item, or the label can stay behind at
+          the end of a line, as it did at 390 px. */}
+      <div className='flex shrink-0 items-center gap-2'>
+        <span className='text-[10px] font-bold uppercase tracking-wide text-base-content/70'>{t('color')}</span>
         <Segmented
           options={COLOR_MODES.map(([key, i18nKey]) => [key, t(i18nKey)])}
           value={colorBy}

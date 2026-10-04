@@ -227,6 +227,22 @@ describe('Gantt island', () => {
     })
   })
 
+  // At 390 px the toolbar wraps before the colour-by control, and the label naming it stayed
+  // behind, alone at the end of the line above.
+  it('wraps the colour-by label with its control in a 390 px window', () => {
+    cy.viewport(390, 844)
+    cy.visit('/bali/gantt/default')
+
+    cy.get('[role="group"][aria-label="Color by"]').should(([control]) => {
+      const label = [...control.closest('.flex-wrap').querySelectorAll('span')].find((span) => span.textContent === 'Color')
+      const middle = (el) => {
+        const { top, bottom } = el.getBoundingClientRect()
+        return (top + bottom) / 2
+      }
+      expect(middle(label), 'label on the line of its control').to.be.closeTo(middle(control), 1)
+    })
+  })
+
   it('dragging a bar posts the contract PATCH and reconciles', () => {
     cy.intercept('PATCH', '/admin/projects/*/schedule').as('patch')
     cy.visit('/bali/gantt/editable')
