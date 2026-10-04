@@ -59,9 +59,11 @@ end
 
 `render Bali::Card::Component.new`, never a bare `render Component.new` relying on
 nesting — and inside a `preview.rb`, sibling constants are ALWAYS fully qualified
-(`Bali::Icon::LucideMapping`, never `LucideMapping`). The short form works on a cold
-server and 500s after a reload (#843); `test/requests/icon_previews_test.rb` fails the
-build if the pattern comes back.
+(`Bali::Icon::LucideMapping`, never `LucideMapping`), and so is a class or module the
+preview defines itself when a method reads it (`Bali::Widget::Preview::Sized`). The short
+form works on a cold server; after a reload a sibling 500s (#843) and the preview's own
+class is the copy from before it, which no longer matches the new one (#1303).
+`test/requests/icon_previews_test.rb` fails the build if either pattern comes back.
 
 ## Variants, styles and sizes: the shared taxonomy
 

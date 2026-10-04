@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Para quien trabaja en el repo: el Lookbook y la dummy** (#1303).
+  - `widget/default` respeta `count` también después de guardar un `.js` con el servidor
+    corriendo. El preview leía `Sized` sin calificar y, tras la recarga, lo comparaba con la copia
+    vieja del módulo. La guarda de `test/requests/icon_previews_test.rb` falla ahora también si un
+    método de un `preview.rb` lee sin calificar una clase o un módulo que define el propio preview;
+    por ella se califican además tres lecturas de `data_table/preview.rb`.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added

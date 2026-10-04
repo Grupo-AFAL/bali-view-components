@@ -156,8 +156,8 @@ module Bali
       # @param failed toggle
       # @param editing toggle
       def default(size: :medium, pattern: :trend, count: 5, failed: false, editing: false)
-        klass = failed ? DemoFailed : Bali::Widget::Preview::PATTERNS.fetch(pattern.to_sym)
-        specimen = klass.include?(Sized) ? klass.new(count.to_i) : klass.new
+        klass = failed ? Bali::Widget::Preview::DemoFailed : Bali::Widget::Preview::PATTERNS.fetch(pattern.to_sym)
+        specimen = klass.include?(Bali::Widget::Preview::Sized) ? klass.new(count.to_i) : klass.new
 
         render_with_template(locals: { widget: specimen, size: size.to_sym, editing: editing })
       end
