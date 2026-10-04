@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mensuales pasan al renglón siguiente cuando no caben, como los anuales. Ninguna de las nueve
   apps usa el componente.
 
+- **El `Footer` centrado ya no se sale de la pantalla en un celular** (#1303). Con `center: true`
+  sus secciones iban lado a lado a cualquier ancho y a 390 px la última quedaba fuera (la página
+  medía 410); ahora van una debajo de otra, como ya iban en escritorio, que no cambia. Ninguna de
+  las nueve apps usa el componente.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added
