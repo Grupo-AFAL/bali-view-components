@@ -1,5 +1,9 @@
 import { Controller } from '@hotwired/stimulus'
 
+/**
+ * @deprecated Removed in 4.0 with `coordinates_polygon_group`: it draws through
+ * `google.maps.drawing.DrawingManager`, which the Maps JavaScript API dropped in 3.65.
+ */
 export class DrawingMapsController extends Controller {
   static targets = ['map', 'polygonField']
   static values = {

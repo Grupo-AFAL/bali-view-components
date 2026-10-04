@@ -84,14 +84,19 @@ export class MultiSelectController extends Controller {
     event.stopPropagation()
 
     if (this.hasDropdownTarget) {
-      this.dropdownTarget.classList.toggle('hidden')
+      this.setOpen(this.dropdownTarget.classList.contains('hidden'))
     }
   }
 
   close () {
     if (this.hasDropdownTarget) {
-      this.dropdownTarget.classList.add('hidden')
+      this.setOpen(false)
     }
+  }
+
+  setOpen (open) {
+    this.dropdownTarget.classList.toggle('hidden', !open)
+    if (this.hasTriggerTarget) this.triggerTarget.setAttribute('aria-expanded', String(open))
   }
 
   closeOnClickOutside (event) {

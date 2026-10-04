@@ -17,7 +17,9 @@ export class NavbarController extends Controller {
 
     if (!this.allowTransparencyValue) return
 
-    this.setIsTransparent()
+    // The server renders `is-transparent`; only the scroll position is news here.
+    this.isTransparent = this.element.classList.contains('is-transparent')
+    this.updateBackgroundColor()
     this.throttledUpdateBackgroundColor = throttle(this.updateBackgroundColor, this.throttleIntervalValue)
 
     document.addEventListener('scroll', this.throttledUpdateBackgroundColor)

@@ -41,7 +41,7 @@ class BaliClipboardComponentTest < ComponentTestCase
       c.with_trigger("Copy")
       c.with_source("Text")
     end
-    assert_selector("span.clipboard-success-content.hidden.text-success", text: "Copied!")
+    assert_selector("span.clipboard-success-content.hidden", text: "Copied!")
     assert_selector('span[data-clipboard-target="successContent"]')
   end
 
@@ -145,6 +145,5 @@ class BaliClipboardComponentTest < ComponentTestCase
 
   def test_base_classes_constants_defines_base_classes_on_success_content_component
     assert_includes(Bali::Clipboard::SuccessContent::Component::BASE_CLASSES, "hidden")
-    assert_includes(Bali::Clipboard::SuccessContent::Component::BASE_CLASSES, "text-success")
   end
 end

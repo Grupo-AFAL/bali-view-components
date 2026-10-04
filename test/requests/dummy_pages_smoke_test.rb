@@ -146,7 +146,8 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
       "admin/studios" => { "id" => @studio.to_param },
       "admin/projects" => { "id" => @project.to_param },
       "admin/projects/schedules" => { "project_id" => @project.to_param },
-      "documents" => { "id" => @document.to_param }
+      "documents" => { "id" => @document.to_param },
+      "pages" => { "project_slug" => "bali-demo" }
     }
   end
 

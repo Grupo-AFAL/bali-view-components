@@ -12,6 +12,7 @@ describe('colours that follow the theme', () => {
   afterEach(() => { unhover() })
 
   const AA = 4.5
+  const HIGHLIGHTS = ['gray', 'brown', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink']
 
   const useTheme = (theme) => {
     cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -24,6 +25,7 @@ describe('colours that follow the theme', () => {
   // [what, the form field that draws it, the element, { ringless }]
   const FOCUSED = [
     ['a Datepicker day', 'date', '.flatpickr-day:not(.prevMonthDay):not(.nextMonthDay):not(.today)', { ringless: true }],
+    ['a Datepicker day of another month', 'date', '.flatpickr-day.nextMonthDay', { ringless: true }],
     ['the hour of the time picker', 'time', 'input.flatpickr-hour'],
     ['the AM/PM toggle of the time picker', 'time', '.flatpickr-am-pm']
   ]
@@ -34,6 +36,12 @@ describe('colours that follow the theme', () => {
     ['the year', 'input.cur-year', el => paintedContrast(el), AA],
     ["the year's up arrow", '.numInputWrapper span.arrowUp',
       el => paintedContrast(el, { pseudo: '::after', property: 'borderBottomColor' }), 3]
+  ]
+
+  // [what, the element in the Datepicker's header, the state focus puts it in]
+  const HEADER_FOCUSED = [
+    ['the month', '.flatpickr-monthDropdown-months', ':focus-visible'],
+    ['the year', 'input.cur-year', ':focus']
   ]
 
   // An inset box-shadow is invisible to paintedContrast: its colour is read off the computed
@@ -117,7 +125,8 @@ describe('colours that follow the theme', () => {
 
     // A day's focus fill was the same light-theme literal as its hover: on the dark themes the
     // focused day turned a near-white square with its number at 1.00–1.08:1. The hour's and
-    // AM/PM's was base-200, 1.05–1.10:1 off the calendar. `ringless` as in base-surface-steps.
+    // AM/PM's was base-200, 1.05–1.10:1 off the calendar, and a day of another month had none:
+    // 1.00. `ringless` as in base-surface-steps.
     FOCUSED.forEach(([what, field, selector, { ringless = false } = {}]) => {
       it(`reads ${what} under keyboard focus on the ${theme} theme`, () => {
         cy.visit(`/bali/form/${field}/default`)
@@ -179,11 +188,28 @@ describe('colours that follow the theme', () => {
       })
     })
 
+    // Dimmed to 70% like the time picker's, over the header's primary: 2.80:1 on `dark`.
+    it(`draws the year's stepper arrows at 3:1 on the ${theme} theme`, () => {
+      cy.visit('/bali/form/date/default')
+      useTheme(theme)
+      cy.get('form input.input:not([type="hidden"])').click()
+
+      cy.get('.flatpickr-calendar.open .flatpickr-current-month .numInputWrapper').should(($wrapper) => {
+        const wrapper = $wrapper[0]
+        expectSettled(wrapper)
+        expect(wrapper.matches(':hover'), 'at rest').to.equal(false)
+        expect(paintedContrast(wrapper.querySelector('.arrowUp'), { pseudo: '::after', property: 'borderBottomColor' }),
+          `${theme}: up arrow`).to.be.at.least(3)
+        expect(paintedContrast(wrapper.querySelector('.arrowDown'), { pseudo: '::after', property: 'borderTopColor' }),
+          `${theme}: down arrow`).to.be.at.least(3)
+      })
+    })
+
     // A white tint over the primary header took the month and the year under the pointer to
     // 2.96:1 on `dark`, 3.75 on `afal` and 4.33 on `light`, and the year's arrow to 2.48 on `dark`.
     // Each is held to its contrast where it reaches it at rest and to its rest where it does not:
-    // `dark`'s month reads 4.13 at rest, its arrow 2.80. The ring sits at the element's edge,
-    // clear of the text and the arrow.
+    // `dark`'s month reads 4.13 at rest. The ring sits at the element's edge, clear of the text
+    // and the arrow.
     HEADER.forEach(([what, selector, painted, floor]) => {
       it(`marks ${what} of the Datepicker header under the pointer and keeps it legible on the ${theme} theme`, () => {
         const target = `.flatpickr-calendar.open .flatpickr-current-month ${selector}`
@@ -205,6 +231,33 @@ describe('colours that follow the theme', () => {
           expect($el[0].matches(':hover'), 'under the pointer').to.equal(true)
           expect(painted($el[0]), `${theme}: ${what} under the pointer`).to.be.at.least(Math.min(floor, atRest))
           expect(ringOf($el[0]), `${theme}: the ring around ${what} under the pointer`).to.be.at.least(3)
+        })
+      })
+    })
+
+    // Under focus the year kept the white tint its hover lost, 2.96:1 on `dark`, and the month,
+    // `outline: none`, showed nothing at all.
+    HEADER_FOCUSED.forEach(([what, selector, state]) => {
+      it(`marks ${what} of the Datepicker header under focus and keeps it legible on the ${theme} theme`, () => {
+        const target = `.flatpickr-calendar.open .flatpickr-current-month ${selector}`
+        let atRest
+        cy.visit('/bali/form/date/default')
+        useTheme(theme)
+        cy.get('form input.input:not([type="hidden"])').click()
+
+        cy.get(target).should(($el) => {
+          expectSettled($el[0])
+          expect($el[0].matches(':focus'), 'at rest').to.equal(false)
+          atRest = paintedContrast($el[0])
+        })
+        cy.get(target).focus()
+
+        cy.get(target).should(($el) => {
+          expectSettled($el[0])
+          expect($el[0].matches(state), `under ${state}`).to.equal(true)
+          expect($el[0].matches(':hover'), 'away from the pointer').to.equal(false)
+          expect(paintedContrast($el[0]), `${theme}: ${what} under focus`).to.be.at.least(Math.min(AA, atRest))
+          expect(ringOf($el[0]), `${theme}: the ring around ${what} under focus`).to.be.at.least(3)
         })
       })
     })
@@ -262,6 +315,37 @@ describe('colours that follow the theme', () => {
           expect(style(el).color, `${theme}: ${el.textContent.trim()}`).to.equal(ink)
         })
       })
+    })
+
+    // BlockNote's own palette read 2.11:1 for yellow text on the light themes and 2.27 for the
+    // text over the gray highlight on afal-dark.
+    it(`reads every text colour and highlight of the BlockEditor at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/block_editor/default')
+      const blockNote = ($el) => $el[0].ownerDocument.defaultView.Stimulus
+        .getControllerForElementAndIdentifier($el[0], 'block-editor').blockNoteEditor
+      cy.get('[data-controller~="block-editor"]').should(($el) => {
+        expect(blockNote($el), 'BlockNote editor').to.be.an('object')
+      }).then(($el) => {
+        const editor = blockNote($el)
+        editor.replaceBlocks(editor.document, HIGHLIGHTS.map(colour => ({
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: `${colour} text`, styles: { textColor: colour } },
+            { type: 'text', text: ' ', styles: {} },
+            { type: 'text', text: `${colour} highlight`, styles: { backgroundColor: colour } }
+          ]
+        })))
+      })
+      useTheme(theme)
+      everyReadsAtAA('.bn-editor [data-style-type="textColor"], .bn-editor [data-style-type="backgroundColor"]',
+        theme, HIGHLIGHTS.length * 2)
+    })
+
+    // BlockNote's fixed quote grey: 4.30:1 on the light themes, 3.69 on dark and costa-norte-dark.
+    it(`reads the BlockEditor's quote at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/block_editor/with_initial_content')
+      useTheme(theme)
+      everyReadsAtAA('.bn-editor [data-content-type="quote"] blockquote', theme)
     })
 
     // Icons, so 3:1 (WCAG 1.4.11). BlockNote's #cfcfcf painted 1.56:1 on the light themes.

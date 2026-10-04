@@ -4,9 +4,26 @@ require "test_helper"
 
 class BaliFormBuilderCoordinatesPolygonFieldsTest < FormBuilderTestCase
   def setup
-    @coordinates_polygon_group = builder.coordinates_polygon_group(:available_region)
-    @coordinates_polygon_field = builder.coordinates_polygon_field(:available_region)
+    silence_deprecations do
+      @coordinates_polygon_group = builder.coordinates_polygon_group(:available_region)
+      @coordinates_polygon_field = builder.coordinates_polygon_field(:available_region)
+    end
     render_inline(Bali::FieldGroupWrapper::Component.new(builder, :available_region)) { "" }
+  end
+
+  # Deprecated in v3 and removed in 4.0. The group renders the field's markup, so it must not
+  # warn twice for the one call a host wrote.
+  def test_each_helper_warns_once_through_the_bali_deprecator
+    %i[coordinates_polygon_group coordinates_polygon_field].each do |name|
+      warnings = []
+      with_deprecator_behavior(->(message, *) { warnings << message }) do
+        builder.public_send(name, :available_region)
+      end
+
+      assert_equal 1, warnings.size, "#{name} warned #{warnings.size} times"
+      assert_match(/Bali::FormBuilder##{name} is deprecated and is removed in 4.0/, warnings.first)
+      assert_match(/DrawingManager/, warnings.first)
+    end
   end
 
   def test_coordinates_polygon_group_renders_a_label_and_input_within_a_field_wrapper
@@ -43,7 +60,9 @@ class BaliFormBuilderCoordinatesPolygonFieldsTest < FormBuilderTestCase
   end
 
   def test_coordinates_polygon_field_accepts_custom_value_option
-    field = builder.coordinates_polygon_field(:available_region, value: [ [ 1, 2 ], [ 3, 4 ] ])
+    field = silence_deprecations do
+      builder.coordinates_polygon_field(:available_region, value: [ [ 1, 2 ], [ 3, 4 ] ])
+    end
     assert_html(field, 'input#movie_available_region[value="[[1,2],[3,4]]"]', visible: false)
   end
 end
