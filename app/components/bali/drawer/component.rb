@@ -54,7 +54,7 @@ module Bali
 
       def drawer_classes
         class_names(
-          "drawer-component group z-[var(--bali-z-drawer)] fixed",
+          "drawer-component z-[var(--bali-z-drawer)] fixed",
           @active && "drawer-open",
           @options[:class]
         )
@@ -75,6 +75,7 @@ module Bali
           position_config[:side],
           SIZES.fetch(@size, SIZES[:md]),
           "bg-base-100 [.drawer-open>&]:shadow-2xl",
+          # `duration-300` is also the delay that keeps a closing drawer visible in index.css.
           "transform transition-[transform,translate,box-shadow] duration-300 ease-in-out",
           "[.drawer-open>&]:transition-transform",
           position_config[:transform],

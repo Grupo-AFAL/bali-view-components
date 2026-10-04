@@ -65,6 +65,26 @@ describe('Drawer: the closed panel', () => {
       cy.get('#inner-drawer').should(([dialog]) => expectOffScreen(dialog))
       cy.get('#outer-drawer').should('have.class', 'drawer-open')
     })
+
+    // The closed drawer's ✕ comes last in the outer panel. It cannot take the focus, so as
+    // the edge of the outer drawer's Tab trap it let Tab out of the overlay.
+    it('leaves the Tab cycle of the open drawer to its own controls', () => {
+      const outerClose = '#outer-drawer > .drawer-panel > .drawer-header button'
+      const trigger = '#outer-drawer button[data-drawer-id="inner-drawer"]'
+      const expectFocusOn = (selector) => cy.document().should(doc => {
+        expect(doc.activeElement, 'the focused element').to.equal(doc.querySelector(selector))
+      })
+
+      cy.get(outerClose).focus()
+      cy.press(Cypress.Keyboard.Keys.TAB)
+      expectFocusOn(trigger)
+      cy.press(Cypress.Keyboard.Keys.TAB)
+      expectFocusOn(outerClose)
+
+      // `cy.press` takes no modifiers; the wrap backwards is the trap's own handler.
+      cy.focused().trigger('keydown', { key: 'Tab', shiftKey: true })
+      expectFocusOn(trigger)
+    })
   })
 
   context('on a phone', () => {

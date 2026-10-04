@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Modal y Drawer renderizados abiertos (`active: true`).** El foco inicial va al `autofocus`
   del contenido o al primer control del panel, igual que al abrirlos desde un botón; antes caía
   en el panel mismo. Nada que hacer.
+- **Trampa de Tab de Modal y Drawer.** Ya no cuenta controles que no se ven: el ✕ de un drawer
+  cerrado dentro del panel dejaba salir a Tab del overlay, y un `input[type=hidden]` al final
+  (el de un `button_to`) dejaba Shift+Tab atorado en el primer control. Nada que hacer.
+- **El `<dialog>` del Drawer ya no lleva la clase `group`.** Con ella, un `group-hover:` dentro
+  del drawer se encendía al pasar el puntero por cualquier parte del panel: el botón de quitar
+  imagen de `Bali::ImageField` y su velo aparecían sin tocar la imagen. Un `group-*` en el
+  contenido de un drawer responde ahora sólo a su propio `.group`; ninguna app dependía del del
+  drawer.
 
 ## [v3.7.0] - 2026-10-03
 
