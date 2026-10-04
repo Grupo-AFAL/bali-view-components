@@ -85,6 +85,21 @@ describe('ConditionController', () => {
     hint().should('have.class', 'is-shown')
   })
 
+  // The widget comes from the mark Bali::Filters::Operators.for_type puts on the operator, never
+  // from its name: Condition::Component#multiple_operator? and #range_operator? read the same
+  // mark, and test/bali/components/filters/condition/component_test.rb holds the server to it.
+  it('builds the widget the mark on the chosen operator asks for', () => {
+    operator().find('option[value="not_eq"]').invoke('attr', 'data-multiple', 'true')
+    operator().select('not_eq')
+    cy.get(`${container} [data-controller~="multi-select"]`).should('exist')
+
+    cy.visit('/bali/filters/all_field_types?popover=false')
+    cy.get('[data-condition-target="attribute"]').select('birth_date')
+    operator().find('option[value="gt"]').invoke('attr', 'data-range', 'true')
+    operator().select('gt')
+    cy.get(`${container} [data-condition-target="rangeInput"]`).should('exist')
+  })
+
   context('on Apply', () => {
     // The form is read at the moment it is submitted, with the navigation cancelled: that
     // is the only place where what actually travels can be observed.
