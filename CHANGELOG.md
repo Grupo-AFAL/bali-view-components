@@ -9,28 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **DocumentEditor: un guardado que falla dice «Save failed».** Tras una edición, el aviso de
-  error se sobrescribía en el mismo instante con «Unsaved changes», así que el fallo nunca se
-  veía. Además, lo que se escribe mientras el guardado está en camino queda como sin guardar en
-  vez de marcarse «Saved at…» sin haberse enviado. Nada que hacer en la app.
-- **BlockEditor en el teléfono: con `table_of_contents:` o `comments:` la página ya no se desplaza
-  de lado.** En la columna angosta (menos de 640 px con índice, de 768 con comentarios) el editor
-  tomaba el ancho mínimo de su contenido —una tabla de 392 px en una columna de 332— y a 390 px
-  la página medía 421 de ancho; ahora ocupa la columna y la tabla se desplaza dentro de su
-  marco. Nada que hacer en la app.
-- **DocumentEditor en el teléfono: el índice abierto se apila sobre el editor.** Lado a lado, a
-  390 px le dejaba al documento una columna de 70 px y el título se partía letra por letra (y el
-  menú «/» medía 91 px); debajo de `sm` el índice va arriba, a todo el ancho, y el editor conserva
-  sus 294 px. Desde `sm` no cambia nada. El menú «…» de un comentario del panel tenía las
-  esquinas a 0 px; ahora redondea como los demás menús (8 px). Nada que hacer en la app.
-- **BlockEditor: el texto de las citas pasa AA en los seis temas.** BlockNote lo pinta en un gris
-  fijo que medía 4.30:1 en los temas claros y 3.69–4.13 en los oscuros; ahora es el texto del tema
-  al 70 % (5.54 a 7.97). Nada que hacer en la app.
-- **Clipboard: el contenido de éxito ya no declara `text-success`.** El controlador copia al botón
-  sólo el HTML de dentro del `<span>`, así que esa clase nunca se pintó: tras copiar, el botón
-  muestra la marca en el color del propio botón (12.64:1 en `afal`). Pintarla en `success` habría
-  medido 1.92:1 en `afal`. No cambia lo que se ve; quien quiera color lo pone en el contenido que
-  pasa a `with_success_content`, que sí se copia.
+- **DocumentEditor.** Un guardado que falla muestra «Save failed»: «Unsaved changes» lo tapaba en
+  el mismo instante. Lo escrito mientras el guardado viaja queda como sin guardar, en vez de
+  «Saved at…». En el teléfono, el índice abierto se apila sobre el editor en vez de dejarle una
+  columna de 70 px. El menú «…» de un comentario del panel redondea sus esquinas como los demás
+  menús. Nada que hacer en la app.
+- **BlockEditor.** El texto de las citas pasa AA en los seis temas (medía 3.69–4.30:1). En el
+  teléfono, con `table_of_contents:` o `comments:`, la página ya no se desplaza de lado: el editor
+  ocupa su columna y una tabla ancha se desplaza dentro de su marco. Nada que hacer en la app.
+- **Clipboard.** El contenido de éxito deja de declarar `text-success`, que nunca se pintó: el
+  botón recibe sólo el HTML de dentro del `<span>`. Lo que se ve no cambia; quien quiera color lo
+  pone en el contenido que pasa a `with_success_content`.
 
 ## [v3.7.0] - 2026-10-03
 
