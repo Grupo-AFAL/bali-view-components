@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   otro abierto ya no entra a la pantalla con él ni tiende su fondo oscuro sobre el panel de
   afuera, que dejaba sin clic al botón que lo abre. En el teléfono el panel conserva el 85 % del
   ancho mientras se cierra, en vez de saltar al ancho completo. Nada que hacer en las apps.
+- **Modal y Drawer renderizados abiertos (`active: true`).** El foco inicial va al `autofocus`
+  del contenido o al primer control del panel, igual que al abrirlos desde un botón; antes caía
+  en el panel mismo. Nada que hacer.
 
 ## [v3.7.0] - 2026-10-03
 

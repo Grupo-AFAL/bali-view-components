@@ -165,12 +165,15 @@ export class ModalController extends Controller {
   // A panel rendered `active:` arrives with the open class already on it and no
   // script in the loop, so nothing has put it in the top layer. Promoting it here
   // is what makes a server-opened overlay behave like a user-opened one: same
-  // inertness behind it, same Escape, same handling of the popups inside it.
+  // inertness behind it, same Escape, same handling of the popups inside it, same
+  // first focus. Left to `showModal()`, that went to the panel itself, which is
+  // the first element in it carrying a tabindex.
   _promoteInitiallyOpenOverlay () {
     if (!this.hasTemplateTarget) return
     if (!this.templateTarget.classList.contains(this.openClass)) return
 
     this._showOverlay()
+    this.trapFocus()
   }
 
   disconnect () {
