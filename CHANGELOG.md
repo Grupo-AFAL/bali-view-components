@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Topbar: con tres acciones, el disparador del menú de usuario cabe a 320 px.** La zona de
   búsqueda cede espacio y la etiqueta del disparador de Command se corta con «…»; antes se
   quedaba en ~100 px y el avatar terminaba 17 px fuera de la pantalla.
+- **Command: una fila de acción que coincide con la búsqueda cuenta como resultado.** Ya no
+  aparece «Sin resultados» ni «0 resultados» con la fila a la vista, y la coincidencia se
+  resalta. Las filas de acción que no coinciden siguen fuera del conteo.
 
 ## [v3.7.0] - 2026-10-03
 
