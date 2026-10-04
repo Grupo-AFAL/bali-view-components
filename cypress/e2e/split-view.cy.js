@@ -538,16 +538,52 @@ describe('SplitView: a traversal restores the pane its URL was painted with (#13
     })
   })
 
-  it('keeps the detail of an appended row when going forward to it', () => {
+  // A row page painted in full, with its row beyond page one: the next pages are
+  // held, so it is cached with page one only and no row selects its URL when it
+  // comes back. Whatever the back changed on it is what the forward restores.
+  it('leaves the page a back leaves as it was, for the forward that restores it', () => {
     cy.visit(app('/split-view'))
     appendUntilInception()
-    inception().click()
-    title().should('have.text', 'Inception')
+    inception().invoke('attr', 'href').then((href) => {
+      // Longer than the test: a page 2 that landed would put Inception back on
+      // the cached page, and the restore would find its row.
+      cy.intercept({ method: 'GET', url: /[?&]page=\d/ }, (req) => {
+        req.on('response', (res) => { res.setDelay(30000) })
+      })
+      cy.window().then(win => win.Turbo.visit(href))
+      title().should('have.text', 'Inception')
+      cy.get('.split-view-row').should('not.contain', 'Inception')
+
+      cy.go('back')
+      cy.location('search').should('eq', '')
+      cy.go('forward')
+      cy.location('search').should('contain', 'selected=')
+      title().should('have.text', 'Inception')
+    })
+  })
+
+  // Turbo connects a redirected visit at the URL it asked for and replaces it
+  // with the one it landed on afterwards; back returns to the second.
+  it('comes back to the empty list reached through a redirect', () => {
+    cy.intercept('GET', '/split-view-redirect', req => req.redirect('/split-view?status=done'))
+    cy.visit(app('/split-view'))
+    cy.window().then(win => win.Turbo.visit('/split-view-redirect'))
+    cy.location('search').should('eq', '?status=done')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+
+    cy.get('.split-view-row').then(($rows) => {
+      const [first, second] = [$rows[1], $rows[3]]
+      cy.wrap(first).click()
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', first.href)
+      cy.wrap(second).click()
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', second.href)
+    })
 
     cy.go('back')
-    cy.location('search').should('eq', '')
-    cy.go('forward')
     cy.location('search').should('contain', 'selected=')
-    title().should('have.text', 'Inception')
+    cy.go('back')
+    cy.location('search').should('eq', '?status=done')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    title().should('not.exist')
   })
 })

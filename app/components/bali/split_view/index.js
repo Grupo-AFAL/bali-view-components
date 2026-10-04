@@ -19,7 +19,18 @@ if (typeof window !== 'undefined') {
 // server paints there depends on the URL: a session that starts on a deep link
 // (`?selected=3`) paints a DETAIL, and keyed by frame alone that detail became
 // what every later list was reset to. See `syncFrameFromLocation`.
+//
+// Each entry holds a whole pane, so only the most recently painted URLs are
+// kept: 20, twice Turbo's own snapshot cache (10 pages). A restore further back
+// than that is a fetch, and a fetched page is captured again when it lands.
 const pristineDetail = new Map()
+const PRISTINE_LIMIT = 20
+
+function rememberPristine (key, html) {
+  pristineDetail.delete(key)
+  pristineDetail.set(key, html)
+  if (pristineDetail.size > PRISTINE_LIMIT) pristineDetail.delete(pristineDetail.keys().next().value)
+}
 
 // Moves the master-pane row highlight when a row is clicked, so the detail
 // Turbo Frame can swap without the master re-rendering — which is what keeps
@@ -46,8 +57,10 @@ export class SplitViewController extends Controller {
   connect () {
     this.syncFromLocation = this.syncFromLocation.bind(this)
     this.rewindFrameBeforeCache = this.rewindFrameBeforeCache.bind(this)
+    this.capturePristineDetail = this.capturePristineDetail.bind(this)
     window.addEventListener('popstate', this.syncFromLocation)
     document.addEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
+    document.addEventListener('turbo:load', this.capturePristineDetail)
     this.capturePristineDetail()
     // A restore that DID replace the body lands here, on the new instance.
     if (restoringHistory) this.syncFromLocation()
@@ -60,8 +73,11 @@ export class SplitViewController extends Controller {
     return this.hasFrameValue ? document.getElementById(this.frameValue) : null
   }
 
+  // Without the fragment, as Turbo keys its own snapshots.
   get pristineKey () {
-    return `${this.frameValue} ${window.location.href}`
+    const url = new URL(window.location.href)
+    url.hash = ''
+    return `${this.frameValue} ${url.href}`
   }
 
   // Only from a frame the server painted and nobody has navigated since: a
@@ -69,11 +85,19 @@ export class SplitViewController extends Controller {
   // carries no `src` but still shows the detail its stash names (#1029). A
   // later paint of the same URL replaces the copy, so it is never staler than
   // the last time the server answered there.
+  //
+  // Again on `turbo:load`: a visit Turbo follows through a redirect connects
+  // this controller at the URL it asked for and only then replaces it with the
+  // one it landed on, which is the URL a later back returns to.
+  //
+  // A restore is captured too, which is why `syncFromLocation` leaves the page
+  // a Turbo popstate leaves untouched: reset there, it would be cached showing
+  // another URL's pane, and restoring it would capture that pane as this URL's.
   capturePristineDetail () {
     const frame = this.detailFrame
     if (!frame || frame.hasAttribute('src') || frame.hasAttribute('data-split-view-src')) return
 
-    pristineDetail.set(this.pristineKey, frame.innerHTML)
+    rememberPristine(this.pristineKey, frame.innerHTML)
   }
 
   // A frame the reader navigated in-page must not reach Turbo's snapshot cache
@@ -148,6 +172,7 @@ export class SplitViewController extends Controller {
   disconnect () {
     window.removeEventListener('popstate', this.syncFromLocation)
     document.removeEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
+    document.removeEventListener('turbo:load', this.capturePristineDetail)
   }
 
   // Back and forward, and only those. Measured: a row click promotes the frame

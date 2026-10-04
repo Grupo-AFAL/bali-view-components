@@ -104,7 +104,7 @@ class BaliSplitViewListComponentTest < ComponentTestCase
 
   Bali::SplitView::List::Item::Component::DEPRECATED_META_COLORS.each_key do |color|
     define_method("test_meta_color_#{color}_still_paints_but_is_deprecated") do
-      assert_deprecated(/meta_color: :#{color} is deprecated/, Bali.deprecator) do
+      assert_deprecated(/\(meta_color: :#{color}\) is deprecated/, Bali.deprecator) do
         render_list({}, items: [ { id: 1, title: "T", href: "/x", meta: "1 Jan", meta_color: color } ])
       end
       assert_selector(".split-view-item .text-soft-#{color}", text: "1 Jan")

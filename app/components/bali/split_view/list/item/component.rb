@@ -28,7 +28,7 @@ module Bali
             warning: "text-soft-warning font-medium"
           }.freeze
 
-          # @deprecated Removed in Bali 4.0. No host app paints a meta in either.
+          # @deprecated Removed in Bali 4.0.
           DEPRECATED_META_COLORS = {
             success: "text-soft-success",
             primary: "text-soft-primary"
@@ -73,8 +73,8 @@ module Bali
             return unless DEPRECATED_META_COLORS.key?(@meta_color)
 
             Bali.deprecator.warn(
-              "Bali::SplitView::List::Item::Component meta_color: #{@meta_color.inspect} is deprecated " \
-              "and will be removed in Bali 4.0. Use :error or :warning, or no meta_color for the neutral meta."
+              "Bali::SplitView::List::Item::Component(meta_color: #{@meta_color.inspect}) is deprecated and is " \
+              "removed in 4.0. Use `:error`, `:warning`, or no `meta_color:` for the neutral tone."
             )
           end
 

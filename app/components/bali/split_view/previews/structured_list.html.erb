@@ -1,4 +1,4 @@
-<%# The recommended shape. Locals: `scope` (a Movie relation), `selected`,
+<%# The recommended shape. Locals: `scope` (a Movie relation), `status`, `selected`,
     `filter_mode`, `filters`, and an optional `advance`.
 
     The filter pills take `param:`/`value:` and build their own URLs from the
@@ -24,7 +24,7 @@
 <%# The sentinel pages against the dummy's `/split-view`, which reads the genre
     filter only in multi mode — so the filter this preview applied has to be
     spelled out in its terms, or page 2 arrives unfiltered. %>
-<% page_two = { status: request.query_parameters["status"].presence,
+<% page_two = { status: local_assigns[:status].presence,
                 filter_mode: ("multi" if active_genres.any?),
                 q: ({ genre_in: active_genres } if active_genres.any?),
                 page: 2 }.compact %>

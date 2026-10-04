@@ -742,9 +742,9 @@ band between the header and the rows, and `with_group` puts runs of rows under
 headings.
 
 **`with_item` options:** `title` and `href` are required; `id`, `subtitle`,
-`icon`, `meta`, `meta_color` (`:error`, `:warning`; `:success` and `:primary` are deprecated, removed in 4.0) are
-optional, `with_tag(text:, color:)` adds any number of badges, and a block
-renders free content under the subtitle.
+`icon`, `meta`, `meta_color` (`:error`, `:warning`; `:success` and `:primary`
+are deprecated, removed in 4.0) are optional, `with_tag(text:, color:)` adds any
+number of badges, and a block renders free content under the subtitle.
 
 **Grouping is `with_group(key:, label:, count:)`,** and the rows move into it:
 `group.with_item(...)` takes exactly what `list.with_item` takes, so the row call
