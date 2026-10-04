@@ -78,6 +78,7 @@ Rails.application.routes.draw do
   # pairing the guide documents: an AppLayout with `viewport_locked: true`.
   get "split-view/full", to: "split_views#full", as: :split_view_full
   get "embed/feedback_posts", to: "pages#feedback_embed" # Stand-in for Opina's embed page
+  get "api/v1/projects/:project_slug/badge", to: "pages#feedback_badge" # ...and for its badge
 
   # Modal/Drawer content routes (for remote loading)
   get "modals/basic", to: "modals#basic"

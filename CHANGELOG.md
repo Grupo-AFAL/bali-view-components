@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ejemplos, que ERB borraba al pintar la página. `test/guide_pages_test.rb` falla si un ejemplo
     de una guía vuelve a llevar uno sin escapar: se escribe `<%%#`.
   - La guía de maestro-detalle repetía tres veces en una línea el título «What this is not».
+  - La dummy ya no le pide el badge del FeedbackWidget a `localhost:3008` en cada página de
+    admin, que dejaba un `ERR_CONNECTION_REFUSED` en la consola de toda revisión en navegador. El
+    widget del layout habla con los sustitutos de Opina de la propia dummy (`pages#feedback_embed`
+    y ahora `pages#feedback_badge`, que también quita el 404 de `/feedback-widget-demo`);
+    `OPINA_URL=http://localhost:3008` lo devuelve a un Opina local.
 
 ## [v3.7.0] - 2026-10-03
 
