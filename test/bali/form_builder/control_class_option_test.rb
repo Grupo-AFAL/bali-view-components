@@ -73,7 +73,7 @@ class BaliFormBuilderControlClassOptionTest < FormBuilderTestCase
     "range_group" => ->(b, o) { b.range_group(:rating, **o) },
     "boolean_group" => ->(b, o) { b.boolean_group(:indie, **o) },
     "switch_group" => ->(b, o) { b.switch_group(:indie, **o) },
-    "coordinates_polygon_group" => ->(b, o) { b.coordinates_polygon_group(:name, **o) },
+    "coordinates_polygon_group" => ->(b, o) { Bali.deprecator.silence { b.coordinates_polygon_group(:name, **o) } },
     "recurrent_event_rule_group" => ->(b, o) { b.recurrent_event_rule_group(:rule, **o) },
     "direct_upload_group" => ->(b, o) { b.direct_upload_group(:name, **o) },
     "time_period_group" => ->(b, o) { b.time_period_group(:release_date, [ %w[T t] ], **o) },

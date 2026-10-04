@@ -53,6 +53,11 @@ class PagesController < ApplicationController
     render layout: false
   end
 
+  # Stands in for Opina's unread count, which the widget asks for as it connects.
+  def feedback_badge
+    render json: { unread_count: 0 }
+  end
+
   def workspace
     # Reference page demonstrating the standard "navbar + sidebar + content" admin shell.
     @stats = [

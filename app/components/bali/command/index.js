@@ -13,7 +13,7 @@ import { Controller } from '@hotwired/stimulus'
  *   - shortcut   The kbd hint on the trigger, rewritten for the platform
  *   - group      One per <Group> component (used to show/hide group headers)
  *   - row        One per <Item> component (filtered + highlighted)
- *   - noResults  "No matches" message (shown when query has no regular hits)
+ *   - noResults  "No matches" message (shown when no row matches the query)
  *   - count      Result count display in the footer
  *
  * Global events (window), listened for:
@@ -147,7 +147,7 @@ export class CommandController extends Controller {
       : ''
     const isEmpty = query.length === 0
     let visibleCount = 0
-    let regularResultsCount = 0
+    let matchCount = 0
 
     this.rowTargets.forEach(row => {
       const mode = row.dataset.mode || 'searchable'
@@ -173,12 +173,12 @@ export class CommandController extends Controller {
       if (visible) visibleCount++
 
       // "This row answered the query": it counts against the no-results
-      // message and in the footer, and gets its match highlighted. `action`
-      // rows stay out of the count — they are always on screen, so counting
-      // them would suppress the message, or put "3 results" under it, for a
-      // query that nothing actually matched.
-      if (matches && (mode === 'searchable' || mode === 'navigation')) {
-        regularResultsCount++
+      // message and in the footer, and gets its match highlighted. An `action`
+      // row that does not match stays out of the count — it is on screen for
+      // every query, so counting it would suppress the message, or put
+      // "3 results" under it, for a query that nothing actually matched.
+      if (matches && visible) {
+        matchCount++
         this._highlight(row, query)
       } else {
         this._unhighlight(row)
@@ -191,17 +191,17 @@ export class CommandController extends Controller {
       group.classList.toggle('hidden', visibleItems === 0)
     })
 
-    // Show no-results message when there's a query but no regular matches
+    // Show no-results message when there's a query but nothing matched
     if (this.hasNoResultsTarget) {
       this.noResultsTarget.classList.toggle(
         'hidden',
-        isEmpty || regularResultsCount > 0
+        isEmpty || matchCount > 0
       )
     }
 
     if (this.hasCountTarget) {
       // With nothing typed there is no query to answer: count what is listed.
-      const count = isEmpty ? visibleCount : regularResultsCount
+      const count = isEmpty ? visibleCount : matchCount
       const { one, other } = this.resultsValue
       const form = count === 1 ? one : other
       this.countTarget.textContent = form.replace('%{count}', count)

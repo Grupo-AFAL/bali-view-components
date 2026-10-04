@@ -1,4 +1,4 @@
-<%= render Bali::Card::Component.new(class: 'w-96') do |c| %>
+<%= render Bali::Card::Component.new(class: 'w-96 max-w-full') do |c| %>
   <% c.with_image(figure_class: 'overflow-hidden') do %>
     <div class="group">
       <%# Use image_tag directly since with_image block already wraps in figure %>

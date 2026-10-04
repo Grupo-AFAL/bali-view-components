@@ -86,40 +86,45 @@
 
   <%# Main Content Area: TOC | Editor | Right Panel %>
   <div class="flex-1 flex overflow-hidden">
-    <%# Left: TOC Panel (populated via React portal from BlockNote) %>
-    <div class="document-editor-toc w-56 border-r border-base-300 overflow-y-auto shrink-0 p-4 hidden"
-         data-document-editor-target="tocPanel">
-      <h3 class="text-xs font-semibold text-base-content/70 uppercase tracking-wider mb-3"><%= t('.contents') %></h3>
-      <div id="<%= toc_container_id %>"></div>
-    </div>
-
-    <%# Center: Editor %>
-    <div class="flex-1 overflow-y-auto" data-action="input->document-editor#contentChanged" data-document-editor-target="editorArea">
-      <%# Preview Banner (hidden by default, shown when previewing a version) %>
-      <div class="hidden bg-info/10 border-b border-info/20 px-6 py-2.5 flex items-center justify-between"
-           data-document-editor-target="previewBanner">
-        <div class="flex items-center gap-2 text-sm">
-          <%= render Bali::Icon::Component.new('eye', size: :small) %>
-          <span><%= t('.previewing') %> <strong data-document-editor-target="previewVersionLabel"></strong></span>
-          <span class="text-base-content/70"><%= t('.read_only') %></span>
-        </div>
-        <%= render Bali::Button::Component.new(name: t('.back_to_current'), variant: :ghost, size: :sm,
-              data: { action: "document-editor#exitPreview" }) do |btn| %>
-          <% btn.with_icon("x", size: :small) %>
-        <% end %>
+    <%# Below `sm` the TOC stacks above the editor, as BlockEditor's own does: side by side at
+        390px it left the editor a 70px column. %>
+    <div class="flex-1 min-w-0 flex max-sm:flex-col">
+      <%# Left: TOC Panel (populated via React portal from BlockNote) %>
+      <div class="document-editor-toc w-56 border-r border-base-300 overflow-y-auto shrink-0 p-4 hidden
+                  max-sm:w-full max-sm:max-h-72 max-sm:border-r-0 max-sm:border-b"
+           data-document-editor-target="tocPanel">
+        <h3 class="text-xs font-semibold text-base-content/70 uppercase tracking-wider mb-3"><%= t('.contents') %></h3>
+        <div id="<%= toc_container_id %>"></div>
       </div>
-      <div class="px-12 py-8">
-        <%= render Bali::BlockEditor::Component.new(
-          config: config,
-          format: editor_format,
-          initial_content: initial_content,
-          editable: editable?,
-          input_name: editable? ? input_name : nil,
-          table_of_contents: true,
-          table_of_contents_container_id: toc_container_id,
-          comments_container_id: comments? ? comments_container_id : nil,
-          show_export_buttons: false
-        ) %>
+
+      <%# Center: Editor %>
+      <div class="flex-1 overflow-y-auto" data-action="input->document-editor#contentChanged" data-document-editor-target="editorArea">
+        <%# Preview Banner (hidden by default, shown when previewing a version) %>
+        <div class="hidden bg-info/10 border-b border-info/20 px-6 py-2.5 flex items-center justify-between"
+             data-document-editor-target="previewBanner">
+          <div class="flex items-center gap-2 text-sm">
+            <%= render Bali::Icon::Component.new('eye', size: :small) %>
+            <span><%= t('.previewing') %> <strong data-document-editor-target="previewVersionLabel"></strong></span>
+            <span class="text-base-content/70"><%= t('.read_only') %></span>
+          </div>
+          <%= render Bali::Button::Component.new(name: t('.back_to_current'), variant: :ghost, size: :sm,
+                data: { action: "document-editor#exitPreview" }) do |btn| %>
+            <% btn.with_icon("x", size: :small) %>
+          <% end %>
+        </div>
+        <div class="px-12 py-8">
+          <%= render Bali::BlockEditor::Component.new(
+            config: config,
+            format: editor_format,
+            initial_content: initial_content,
+            editable: editable?,
+            input_name: editable? ? input_name : nil,
+            table_of_contents: true,
+            table_of_contents_container_id: toc_container_id,
+            comments_container_id: comments? ? comments_container_id : nil,
+            show_export_buttons: false
+          ) %>
+        </div>
       </div>
     </div>
 

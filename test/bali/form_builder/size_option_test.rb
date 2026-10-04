@@ -97,7 +97,7 @@ class BaliFormBuilderSizeOptionTest < FormBuilderTestCase
   # #1076; the Trix editor still has no density to give the option to.)
   IGNORES = {
     "rich_text_area_group" => ->(b, o) { b.rich_text_area_group(:synopsis, **o) },
-    "coordinates_polygon_group" => ->(b, o) { b.coordinates_polygon_group(:name, **o) },
+    "coordinates_polygon_group" => ->(b, o) { Bali.deprecator.silence { b.coordinates_polygon_group(:name, **o) } },
     "recurrent_event_rule_group" => ->(b, o) { b.recurrent_event_rule_group(:rule, **o) },
     "direct_upload_group" => ->(b, o) { b.direct_upload_group(:name, **o) },
     "time_period_group" => ->(b, o) { b.time_period_group(:release_date, [ %w[T t] ], **o) },
