@@ -8,6 +8,13 @@ default: &default
   adapter: sqlite3
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
+  # Rails appends the engine's migrations only for rake run from the engine root. The server's
+  # pending check, its "Run pending migrations" button and rake from test/dummy read this key;
+  # `config.paths["db/migrate"]` would reach rake alone. Absolute: a relative path resolves against
+  # the cwd, and the dummy runs from either root.
+  migrations_paths:
+    - '<%= Rails.root.join("db/migrate") %>'
+    - '<%= Bali::Engine.root.join("db/migrate") %>'
 
 development:
   <<: *default
