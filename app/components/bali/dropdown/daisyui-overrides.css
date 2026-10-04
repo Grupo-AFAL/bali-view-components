@@ -1,0 +1,14 @@
+/* Dropdown — the keyboard ring daisyUI's `.menu` takes off its items.
+ *
+ * daisyUI 5.7.47 marks a `.menu` item under `:focus-visible` with a 10% base-content tint
+ * and `outline-style: none`, and that tint measured 1.21–1.34:1 against the panel in
+ * `light`, `dark` and Bali's four themes (WCAG 1.4.11 asks 3:1). An item wrapped in a
+ * `button_to` form, which daisyUI's `li > *` does not reach, got the browser's rgb(16, 16, 16)
+ * instead. Inset, so the first and last item of a scrolling panel are not clipped.
+ * Unlayered because daisyUI emits `.menu` inside `@layer utilities`.
+ */
+
+[data-dropdown-target="menu"] [role^="menuitem"]:focus-visible {
+  outline: 2px solid var(--color-base-content);
+  outline-offset: -2px;
+}

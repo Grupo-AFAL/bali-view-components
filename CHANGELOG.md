@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Navbar: con `transparency: true` la barra sale transparente desde el servidor.** Ya no se ve
   el relleno del preset hasta que conecta Stimulus, y una página que carga con scroll toma la
   barra opaca al conectar. Nada que hacer.
+- **Dropdown: el ítem con el foco de teclado lleva anillo**, `base-content` y por dentro del
+  ítem, en todos los menús hechos con Dropdown (UserMenu, ActionsDropdown, ToolsMenu…). Antes
+  sólo llevaba el tinte del 10 % de daisyUI (1.21–1.34:1), y «Cerrar sesión» el anillo del
+  navegador.
 
 ## [v3.7.0] - 2026-10-03
 
