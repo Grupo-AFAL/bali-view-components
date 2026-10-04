@@ -18,6 +18,9 @@ module Bali
     class Component < ApplicationViewComponent
       MAX_LABEL_LENGTH = 16
       MULTI_COLOR_TYPES = %i[pie doughnut polarArea].freeze
+      # Chart.js builds a scale for every key under `scales`, whatever the chart type, so an `x`
+      # and a `y` draw axes and a grid behind a chart that has none.
+      RADIAL_TYPES = %i[pie doughnut polarArea radar].freeze
       BAR_TYPES = %i[bar].freeze
 
       # System font stack matching DaisyUI/Tailwind
@@ -211,8 +214,12 @@ module Bali
       end
 
       def configure_theme_styling(opts)
-        configure_scales_styling(opts)
+        configure_scales_styling(opts) unless radial?
         configure_plugins_styling(opts)
+      end
+
+      def radial?
+        RADIAL_TYPES.include?(chart_type&.to_sym)
       end
 
       def configure_scales_styling(opts)

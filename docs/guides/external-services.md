@@ -173,6 +173,10 @@ Ensure both APIs are enabled:
 
 The polygon drawing field for defining geographic boundaries.
 
+**Deprecated, removed in 4.0, with no replacement.** The map draws through
+`google.maps.drawing.DrawingManager`, which the Maps JavaScript API no longer offers as of
+version 3.65, so the field cannot draw a polygon; each call warns through `Bali.deprecator`.
+
 ### Requirements
 
 Same as LocationsMap - requires **Maps JavaScript API**.

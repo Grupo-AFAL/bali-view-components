@@ -989,6 +989,10 @@ is why `link_to_remove_fields` takes `destroy_flag: false` here.
 
 Map-based polygon selection.
 
+**Deprecated, removed in 4.0, with no replacement.** The map draws through
+`google.maps.drawing.DrawingManager`, which the Maps JavaScript API no longer offers as of
+version 3.65, so the field cannot draw a polygon; each call warns through `Bali.deprecator`.
+
 ```erb
 <%= f.coordinates_polygon_group :coverage_area %>
 ```

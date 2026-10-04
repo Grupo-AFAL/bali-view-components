@@ -130,3 +130,19 @@ describe('An on-or-before condition', () => {
     })
   })
 })
+
+// #1303 — the widest text a range shows, measured over every pair of months, in the popover
+// the dummy's listing opens at 1280px.
+describe('A range in the filters popover', () => {
+  it('shows the widest range whole', () => {
+    cy.viewport(1280, 800)
+    cy.visit(`${movies()}?q[g][0][created_at_gteq]=2026-05-28&q[g][0][created_at_lteq]=2026-05-30`)
+    cy.get('[data-action="click->filters#toggleDropdown"]').first().click()
+
+    cy.get(`${container} [data-condition-target="rangeInput"]`).should(($input) => {
+      const shown = $input[0]._flatpickr.altInput
+      expect(shown.value).to.equal('May 28, 2026 to May 30, 2026')
+      expect(shown.scrollWidth, 'the text against its field').to.be.at.most(shown.clientWidth)
+    })
+  })
+})

@@ -148,6 +148,22 @@ describe('ModalController', () => {
     })
   })
 
+  // A panel rendered `active:` is opened by its controller's `connect`, with no trigger.
+  // Left to `showModal()`, the focus went to the panel itself, the first element in it
+  // carrying a tabindex.
+  context('focus of a panel rendered open', () => {
+    [
+      { path: '/bali/modal/default', firstControl: '.modal-box > button[data-action="modal#close"]' },
+      { path: '/bali/drawer/default', firstControl: '.drawer-header > button[data-action="drawer#close"]' }
+    ].forEach(({ path, firstControl }) => {
+      it(`goes to the first control, as when opened from a trigger: ${path}`, () => {
+        cy.visit(path)
+
+        cy.focused().should('match', firstControl)
+      })
+    })
+  })
+
   // The trigger-driven path, which the previews cannot exercise because they
   // render a modal that is already open. This page lives in the dummy app rather
   // than under the Lookbook preview path `baseUrl` points at, so the origin is

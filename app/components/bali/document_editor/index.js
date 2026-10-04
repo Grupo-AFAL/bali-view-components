@@ -154,20 +154,22 @@ export class DocumentEditorController extends Controller {
 
   scheduleSave () {
     this._dirty = true
+    if (this._saving) this._editedWhileSaving = true
     this._updateStatus(this.statusUnsavedValue)
-    if (!this.autoSaveValue) return
-    if (this.saveTimeout) clearTimeout(this.saveTimeout)
-    this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
+    this._queueSave()
   }
 
   async save () {
     if (this._saving) return
+    // The BlockEditor writes the hidden input 500ms after the last keystroke, and that
+    // write raises an `input` here: left pending, it lands mid-request and reads as a new
+    // edit. flush() writes it now and cancels the debounce; its own `input` queues another
+    // save, which this one already carries.
+    this._blockEditorController()?.flush()
+    clearTimeout(this.saveTimeout)
     this._saving = true
+    this._editedWhileSaving = false
     this._updateStatus(this.statusSavingValue)
-
-    // Flush content synchronously to avoid the 500ms debounce in useContentSync
-    // which can cause stale reads (e.g. missing comment marks)
-    this._flushContent()
 
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
     const attributes = {}
@@ -200,8 +202,8 @@ export class DocumentEditorController extends Controller {
         body: JSON.stringify(body)
       })
       if (response.ok) {
-        this._dirty = false
-        this._updateStatus(this._savedStatus())
+        this._dirty = this._editedWhileSaving
+        this._updateStatus(this._dirty ? this.statusUnsavedValue : this._savedStatus())
       } else {
         this._updateStatus(this.statusFailedValue, true)
         console.error('Auto-save failed:', response.status)
@@ -211,15 +213,14 @@ export class DocumentEditorController extends Controller {
       console.error('Auto-save error:', error)
     } finally {
       this._saving = false
-      // If new changes came in during save, show unsaved and re-schedule
-      if (this._dirty) {
-        this._updateStatus(this.statusUnsavedValue)
-        if (this.autoSaveValue) {
-          if (this.saveTimeout) clearTimeout(this.saveTimeout)
-          this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
-        }
-      }
+      if (this._dirty) this._queueSave()
     }
+  }
+
+  _queueSave () {
+    if (!this.autoSaveValue) return
+    if (this.saveTimeout) clearTimeout(this.saveTimeout)
+    this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
   }
 
   async loadVersions () {
@@ -393,29 +394,6 @@ export class DocumentEditorController extends Controller {
     el.querySelector('[data-action*="restoreVersion"]').dataset.versionId = v.id
 
     return fragment
-  }
-
-  _flushContent () {
-    const blockEditor = this._blockEditorController()
-    if (!blockEditor?.blockNoteEditor) return
-
-    const editor = blockEditor.blockNoteEditor
-    const contentInput = this.element.querySelector(`input[name='${this.inputNameValue}']`)
-    if (!contentInput) return
-
-    let hasComments = false
-    editor._tiptapEditor.state.doc.descendants((node) => {
-      if (!hasComments && node.marks?.some(m => m.type.name === 'comment')) {
-        hasComments = true
-      }
-      return !hasComments
-    })
-
-    if (hasComments) {
-      contentInput.value = JSON.stringify(editor._tiptapEditor.getJSON())
-    } else {
-      contentInput.value = JSON.stringify(editor.document)
-    }
   }
 
   _updateStatus (text, error = false) {
