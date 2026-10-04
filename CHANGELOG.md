@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ítem, en todos los menús hechos con Dropdown (UserMenu, ActionsDropdown, ToolsMenu…). Antes
   sólo llevaba el tinte del 10 % de daisyUI (1.21–1.34:1), y «Cerrar sesión» el anillo del
   navegador.
+- **Topbar: con tres acciones, el disparador del menú de usuario cabe a 320 px.** La zona de
+  búsqueda cede espacio y la etiqueta del disparador de Command se corta con «…»; antes se
+  quedaba en ~100 px y el avatar terminaba 17 px fuera de la pantalla.
 
 ## [v3.7.0] - 2026-10-03
 

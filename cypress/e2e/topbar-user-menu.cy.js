@@ -141,6 +141,26 @@ describe('Topbar::UserMenu', () => {
     })
   })
 
+  // With a third action the search well held at its 99px min-content and pushed the trigger
+  // to x=321, 17px past the topbar's content edge: the search zone is the one that yields.
+  it('fits its trigger inside a 320px topbar with a third action', () => {
+    cy.viewport(320, 640)
+    cy.visit('/bali/app_layout/with_topbar')
+    cy.get('.bali-topbar .btn[aria-label="Help"]').then(($help) => {
+      $help[0].after($help[0].cloneNode(true))
+    })
+
+    cy.get(`${userMenu} ${trigger}`).should(($t) => {
+      const bar = $t[0].closest('.bali-topbar')
+      expect(bar.querySelectorAll('.btn[aria-label="Help"]'), 'three actions').to.have.length(2)
+      const contentRight = bar.getBoundingClientRect().right - parseFloat(getComputedStyle(bar).paddingRight)
+      expect($t[0].getBoundingClientRect().right, 'trigger right edge').to.be.at.most(contentRight)
+    })
+    cy.get('.bali-command-trigger').should(($well) => {
+      expect($well[0].scrollWidth, 'the label stays inside the search well').to.be.at.most($well[0].clientWidth)
+    })
+  })
+
   // daisyUI marks a focused `.menu` item with a 10% tint alone, 1.21–1.34:1 against the panel,
   // and the sign-out `button_to`, out of its reach, got the browser's rgb(16, 16, 16).
   THEMES.forEach((theme) => {
