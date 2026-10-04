@@ -5,15 +5,14 @@
  * Built from scratch using DaisyUI patterns and Tailwind utilities.
  * ~500 lines vs ~900 lines vendor CSS
  *
- * UNLAYERED ON PURPOSE (see ../bali.css). Flatpickr names two of its state
- * classes `inline` and `static`, which collide with the Tailwind utilities of
- * the same name (`.inline{display:inline}`, `.static{position:static}`) — both
- * present in any app that uses them anywhere. Cascade layers beat specificity,
- * so from @layer components `.flatpickr-calendar.inline` and
+ * UNLAYERED ON PURPOSE (see ../bali.css). Flatpickr names one of its state
+ * classes `static`, which collides with the Tailwind utility of the same name
+ * (`.static{position:static}`) — present in any app that uses it anywhere.
+ * Cascade layers beat specificity, so from @layer components
  * `.flatpickr-calendar.static` (reachable through the controller's `static:`
- * value) would lose their `display` / `position` and the calendar would render
- * in the wrong place. Nothing here is markup a host can put utilities on
- * either — flatpickr builds this DOM itself — so the layer would buy nothing.
+ * value) would lose its `position` and the calendar would render in the wrong
+ * place. Nothing here is markup a host can put utilities on either — flatpickr
+ * builds this DOM itself — so the layer would buy nothing.
  */
 
 /* =============================================================================
@@ -71,8 +70,7 @@
   animation: none;
 }
 
-.flatpickr-calendar.open,
-.flatpickr-calendar.inline {
+.flatpickr-calendar.open {
   display: inline-block;
   opacity: 1;
   max-height: 640px;
@@ -96,12 +94,6 @@
   margin: 0;
   overflow: visible;
   color: inherit;
-}
-
-.flatpickr-calendar.inline {
-  display: block;
-  position: relative;
-  top: 2px;
 }
 
 .flatpickr-calendar.static {
@@ -598,12 +590,6 @@ span.flatpickr-weekday {
   visibility: hidden;
 }
 
-/* Week selection mode */
-.flatpickr-day.week.selected {
-  border-radius: 0;
-  box-shadow: -5px 0 0 var(--fp-primary-color), 5px 0 0 var(--fp-primary-color);
-}
-
 /* Range mode spacing */
 .rangeMode .flatpickr-day {
   margin-top: 1px;
@@ -768,49 +754,6 @@ span.flatpickr-weekday {
 
 .flatpickr-time .numInputWrapper span:hover {
   background: var(--fp-hover-bg);
-}
-
-/* =============================================================================
-   Week Numbers
-   ============================================================================= */
-.flatpickr-weekwrapper {
-  float: left;
-}
-
-.flatpickr-weekwrapper .flatpickr-weeks {
-  padding: 0 12px;
-  box-shadow: 1px 0 0 var(--fp-border-color);
-}
-
-.flatpickr-weekwrapper .flatpickr-weekday {
-  float: none;
-  width: 100%;
-  line-height: 28px;
-}
-
-.flatpickr-weekwrapper span.flatpickr-day,
-.flatpickr-weekwrapper span.flatpickr-day:hover {
-  display: block;
-  width: 100%;
-  max-width: none;
-  color: var(--fp-muted-color);
-  background: transparent;
-  cursor: default;
-  border: none;
-}
-
-/* =============================================================================
-   Calendar with time/weeks adjustments
-   ============================================================================= */
-.flatpickr-calendar .hasWeeks .dayContainer,
-.flatpickr-calendar .hasTime .dayContainer {
-  border-bottom: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-.flatpickr-calendar .hasWeeks .dayContainer {
-  border-left: 0;
 }
 
 /* =============================================================================
