@@ -1015,6 +1015,18 @@
   position: fixed !important;
 }
 
+/* emoji-mart draws the picker's edge with a soft shadow alone: 1.00:1 against the page on afal,
+ * 1.02 on afal-dark. The ring follows the 10px radius emoji-mart's `:host` rule gives the picker,
+ * and a rule on the host element from outside its shadow root beats that rule's shadow. The
+ * frame goes on the picker, not on the popover around it: a popover frame is what #1313 took
+ * off, since around the file panel it was a second one. The picker opened from DocumentEditor's
+ * comments panel is portaled here too, into the editor's own `.bn-root`. */
+.block-editor-component .bn-emoji-picker-popover em-emoji-picker {
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--color-base-content) 15%, transparent),
+    0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent);
+}
+
 .document-editor-panel .mantine-Popover-dropdown {
   z-index: var(--bali-z-popover) !important;
 }
