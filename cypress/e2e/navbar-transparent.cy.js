@@ -99,6 +99,23 @@ describe('Navbar: a transparent bar', () => {
     })
   })
 
+  // The server renders `is-transparent`, so a bar that connects on a page already scrolled past
+  // it (a restored scroll position) takes its background back on connecting, not on the next
+  // scroll. The served markup is put back in place of the bar, which connects a new controller.
+  it('connecting below the threshold takes its background back', () => {
+    open('neutral', 'afal', 'with_sidebar_burger', '')
+    cy.scrollTo(0, 600)
+    cy.get('nav.navbar').should('not.have.class', 'is-transparent').then(($nav) => {
+      const served = $nav[0].cloneNode(true)
+      served.classList.add('is-transparent')
+      served.dataset.served = ''
+      $nav[0].replaceWith(served)
+    })
+
+    cy.window().its('scrollY').should('be.greaterThan', 100)
+    cy.get('nav.navbar[data-served]').should('not.have.class', 'is-transparent')
+  })
+
   // Text colour and background swap at the threshold, so anything that fades one of them leaves
   // the links on a background they were not made for: with the bar's 1 s background fade,
   // `secondary` in `light` read under 3:1 for ~830 ms going down. The moment the controller flips

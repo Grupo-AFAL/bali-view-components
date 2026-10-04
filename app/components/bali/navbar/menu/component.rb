@@ -16,7 +16,7 @@ module Bali
 
         # Mobile: absolute positioned below navbar, full width, hidden by default
         # Desktop: inline with navbar, fills remaining space
-        # The ring variable goes with the text colour: navbar/daisyui-overrides.css reads it.
+        # The ring variable goes with the text colour: navbar/index.css says who reads it.
         WRAPPER_CLASSES_MOBILE = %w[
           hidden flex-col gap-4 absolute left-0 top-full
           w-full bg-base-100 max-lg:text-base-content max-lg:[--bali-navbar-ring:initial]

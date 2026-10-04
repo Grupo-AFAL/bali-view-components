@@ -162,7 +162,7 @@ describe('Topbar::UserMenu', () => {
   })
 
   // daisyUI marks a focused `.menu` item with a 10% tint alone, 1.21–1.34:1 against the panel,
-  // and the sign-out `button_to`, out of its reach, got the browser's rgb(16, 16, 16).
+  // and the sign-out `button_to`, out of its reach, kept the browser's ring.
   THEMES.forEach((theme) => {
     it(`rings the item the keyboard is on at 3:1, ${theme} theme`, () => {
       cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))

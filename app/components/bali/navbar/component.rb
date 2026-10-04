@@ -46,13 +46,18 @@ module Bali
       # @param transparency [Boolean] Start without background or shadow, and get both back once
       #   the page scrolls past the bar's height. While transparent the bar takes the text colour
       #   of its container, not its preset's. Over a dark hero, pass in `class:` a light colour
-      #   that also reads on the preset's fill: `color: :neutral, class: "text-neutral-content"`.
+      #   that also reads on the preset's fill, and the same colour for the focus ring:
+      #   `color: :neutral` with
+      #   `class: "text-neutral-content [--bali-navbar-ring:var(--color-neutral-content)]"`.
       #   Not just any preset's own `-content`: over that hero `text-accent-content` measured
       #   1.12–1.83:1 in `light`, `dark` and Bali's four themes, and `:primary`'s and
       #   `:secondary`'s fall as low in some of them.
       # @param fullscreen [Boolean] Full-width navbar without max-width constraint
       # @param color [Symbol, nil] Background color preset (:base, :primary, :secondary, :accent,
-      #   :neutral). Pass nil to skip color classes and use your own via the class: option.
+      #   :neutral). Pass nil to skip color classes and use your own via the class: option,
+      #   along with the focus ring's colour in `--bali-navbar-ring` (base-content otherwise):
+      #   `class: "bg-neutral text-neutral-content
+      #   [--bali-navbar-ring:var(--color-neutral-content)]"`.
       #   A preset paints its theme's `-content` on its fill: daisyUI's own `light` and `dark`
       #   pair `:secondary` at 3.04:1, and `dark` pairs `:primary` at 4.13, under AA's 4.5.
       # @param shadow [Boolean] Draw the drop shadow under the bar (default: true).

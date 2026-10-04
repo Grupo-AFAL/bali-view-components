@@ -2,9 +2,8 @@ import { paintedContrast } from '../support/painted_contrast'
 import { THEMES } from '../support/themes'
 
 // What sits in the bar rings in the bar's text colour. daisyUI rings a `.btn` in its own colour
-// and a `.menu` link not at all, and "More" got the browser's rgb(16, 16, 16): on a transparent
-// bar in the dark themes it measured 1.07–1.20:1 and the `btn-neutral` "Sign up" 1.26–1.72, and
-// on an opaque `neutral` bar both fell to 1.00. WCAG 1.4.11 asks 3:1.
+// and a `.menu` link not at all: the `btn-neutral` "Sign up" measured 1.26–1.72:1 on a
+// transparent bar in the dark themes and 1.00 on an opaque `neutral` bar. WCAG 1.4.11 asks 3:1.
 describe('Navbar: the focus ring', () => {
   const NON_TEXT = 3
   const BARS = [
@@ -44,6 +43,22 @@ describe('Navbar: the focus ring', () => {
           })
         })
       })
+    })
+  })
+
+  // The "More" panel is a base-100 surface of its own, and its items are plain `<li><a>`, not
+  // menuitems: with the preset's ring "About" measured 1.23:1 on a `primary` bar in `light`.
+  it('rings an item of a Dropdown panel in the bar in the panel\'s colour', () => {
+    cy.viewport(1280, 800)
+    open('primary', '', 'light')
+
+    cy.get('nav.navbar [data-dropdown-target="trigger"]').focus()
+      .trigger('keydown', { key: 'Enter', bubbles: true })
+    cy.get('nav.navbar').then($nav => stop($nav[0], 'About').focus())
+    cy.document().should((doc) => {
+      expect(doc.getAnimations(), 'colour transitions settled').to.have.length(0)
+      expect(doc.activeElement.textContent.trim(), 'the open panel took focus').to.equal('About')
+      expectRing(doc.activeElement, 'About in the More panel')
     })
   })
 
