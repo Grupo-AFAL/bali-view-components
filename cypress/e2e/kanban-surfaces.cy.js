@@ -2,12 +2,9 @@ import { contrastRatio, paintedContrast, paintedLuminance } from '../support/pai
 import { hover, press, release, tap, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 
-// The lane used to be a card of the same base-100 as the cards on it: card against lane 1.00:1 on
-// all six themes, the card's border 1.05–1.10, the ghost indicator 1.05–1.10, the empty column's
-// dashed outline 1.07–1.16 and the footer's rule 1.05–1.10 (#1317). The lane is now a base-300
-// surface and the card the raised one. On the light themes the card's white fill carries the step
-// and its border all but matches the lane; on the dark ones the fill steps less and the border
-// carries it.
+// The lane is a base-300 surface and the card the raised one. On the light themes the card's fill
+// carries the step and its border all but matches the lane; on the dark ones the fill steps less
+// and the border carries it.
 describe('Kanban lanes and cards', () => {
   const STEP = 1.15
   const EDGE = 1.45
@@ -121,7 +118,7 @@ describe('Kanban lanes and cards', () => {
     })
   }
 
-  it('lifts a card that can be dragged under the pointer', () => {
+  it('lifts a card whose drop is saved under the pointer', () => {
     board('scrollable_board')
     underThePointer(() => firstCard('To Do'), (hovered, atRest, card) => {
       expect(hovered.border, 'border').not.to.equal(atRest.border)
@@ -131,7 +128,7 @@ describe('Kanban lanes and cards', () => {
     })
   })
 
-  // Nothing happens when it is grabbed: a lift would promise a drag the board does not take.
+  // A lift would promise a drop the board does not save.
   ;[
     ['a card without update_url', 'default', 'To Do'],
     ['a card of a disabled column', 'scrollable_board', 'Blocked']
@@ -174,7 +171,7 @@ describe('Kanban lanes and cards', () => {
     beforeEach(() => reducedMotion('reduce'))
     afterEach(() => reducedMotion(''))
 
-    it('marks a card that can be dragged under the pointer without moving it', () => {
+    it('marks a card whose drop is saved under the pointer without moving it', () => {
       board('scrollable_board')
       cy.window().should((win) => {
         expect(win.matchMedia('(prefers-reduced-motion: reduce)').matches, 'reduced motion emulated').to.equal(true)

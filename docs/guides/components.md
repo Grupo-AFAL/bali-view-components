@@ -3784,7 +3784,7 @@ to SortableJS's preview. Both rules live in `kanban/index.css` inside
 
 **The lane is a surface and the card sits on it.** Each column is a
 `base-300` lane with no border or shadow; each card is a `base-100` card with
-a border and a small shadow, and one that can be dragged (it has `update_url:`
+a border and a small shadow, and one whose drop is saved (it has `update_url:`
 and its column is not `disabled:`) lifts under the pointer. Their fill, border
 and shadow live in `kanban/index.css` inside `@layer components`, so a utility
 passed through `class:` beats them without `!`:

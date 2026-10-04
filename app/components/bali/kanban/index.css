@@ -15,8 +15,7 @@
  * border carries it at 1.51–1.66. The tint Bali uses for steps elsewhere,
  * base-content at 4–6% over the base-200 page, puts the lane above base-100
  * on the dark themes and sinks the card (0.90–1.00). On the lane the empty
- * column's outline measures 1.52–1.97 (base-300, its old colour, 1.00) and
- * the footer's rule 1.25–1.41.
+ * column's outline measures 1.52–1.97 and the footer's rule 1.25–1.41.
  *
  * The lane's transparent border paints nothing until forced colours repaint
  * its fill as Canvas, the page's colour; then it is the lane's only edge.
