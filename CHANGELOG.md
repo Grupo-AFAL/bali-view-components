@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Navbar: con `transparency: true` la barra sale transparente desde el servidor.** Ya no se ve
+  el relleno del preset hasta que conecta Stimulus, y una página que carga con scroll toma la
+  barra opaca al conectar. Nada que hacer.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added

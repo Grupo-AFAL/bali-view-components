@@ -104,7 +104,8 @@ module Bali
           BASE_CLASSES,
           color_classes,
           @sticky && STICKY_CLASSES,
-          !@shadow && NO_SHADOW_CLASSES
+          !@shadow && NO_SHADOW_CLASSES,
+          @transparency && "is-transparent"
         )
       end
     end
