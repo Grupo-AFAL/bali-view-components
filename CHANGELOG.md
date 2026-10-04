@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.8.0] - 2026-10-04
+
 ### Added
 
 - **`Bali::FeedbackWidget` cabe en la barra superior.** `trigger: :icon` lo pinta como un botón
