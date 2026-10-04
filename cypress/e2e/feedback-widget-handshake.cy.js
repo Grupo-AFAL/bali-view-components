@@ -96,6 +96,108 @@ describe('FeedbackWidget handshake', () => {
     })
   })
 
+  // Opina keeps what has been read, per user: the badge asks with the widget's token and
+  // opening the panel tells it so. Without that the count lived in this page's memory, and
+  // came back on the next page load.
+  describe('read state', () => {
+    const readUrl = `${badgeUrl}/read`
+    const cors = { 'access-control-allow-origin': '*' }
+    const token = () => cy.get('[data-feedback-widget-token-value]')
+      .invoke('attr', 'data-feedback-widget-token-value')
+    const open = () => cy.get('[data-action="feedback-widget#open"]').click()
+
+    const stubRead = (reply = { statusCode: 204, headers: cors }) =>
+      cy.intercept('POST', readUrl, reply).as('read')
+
+    it('asks for the count with the token as a Bearer header, never in the URL', () => {
+      stubBadge({ unread_count: 3 })
+      cy.visit('/bali/feedback_widget/default')
+
+      token().then((jwt) => {
+        cy.wait('@badge').then(({ request }) => {
+          expect(request.headers.authorization).to.equal(`Bearer ${jwt}`)
+          expect(request.url).to.not.include(jwt)
+        })
+      })
+    })
+
+    it('tells Opina when the panel is opened, with the same Bearer', () => {
+      stubBadge({ unread_count: 3 })
+      stubRead()
+      stubEmbed()
+      cy.visit('/bali/feedback_widget/default')
+      cy.wait('@badge')
+
+      open()
+
+      token().then((jwt) => {
+        cy.wait('@read').then(({ request }) => {
+          expect(request.headers.authorization).to.equal(`Bearer ${jwt}`)
+        })
+      })
+    })
+
+    // A stand-in for an Opina that keeps read state: three unread until it is told otherwise.
+    it('does not bring the count back on the next page load', () => {
+      let read = false
+      cy.intercept('POST', readUrl, (req) => {
+        read = true
+        req.reply({ statusCode: 204, headers: cors })
+      }).as('read')
+      cy.intercept('GET', `${badgeUrl}*`, (req) => {
+        req.reply({ statusCode: 200, headers: cors, body: { unread_count: read ? 0 : 3 } })
+      }).as('badge')
+      stubEmbed()
+
+      cy.visit('/bali/feedback_widget/default')
+      badge().should('have.text', '3').and('not.have.class', 'hidden')
+
+      open()
+      cy.get('@read.all').should('have.length', 1)
+      cy.reload()
+
+      cy.wait('@badge')
+      badge().should('have.class', 'hidden')
+    })
+
+    // An Opina that does not keep read state has no such route, and a request that never
+    // arrives is no worse: the badge is cleared for this page either way.
+    it('says nothing when the read request fails', () => {
+      stubBadge({ unread_count: 3 })
+      stubRead({ forceNetworkError: true })
+      stubEmbed()
+      cy.visit('/bali/feedback_widget/default')
+      badge().should('have.text', '3')
+
+      open()
+
+      cy.wait('@read')
+      badge().should('have.class', 'hidden')
+      cy.get('#feedback-widget').should('have.class', 'drawer-open')
+    })
+
+    // One controller drives all three triggers, and the count is read out from the
+    // description, since the number in the badge is hidden from assistive technology.
+    ;['default', 'topbar_icon', 'topbar_labeled'].forEach((preview) => {
+      it(`shows and announces the count on the ${preview} trigger, and clears both on open`, () => {
+        stubBadge({ unread_count: 3 })
+        stubRead()
+        stubEmbed()
+        cy.visit(`/bali/feedback_widget/${preview}`)
+
+        badge().should('have.text', '3').and('not.have.class', 'hidden')
+        cy.get('[data-action="feedback-widget#open"]')
+          .invoke('attr', 'aria-describedby')
+          .then((id) => cy.get(`#${id}`).should('have.text', '3 unread'))
+
+        open()
+
+        badge().should('have.class', 'hidden')
+        cy.get('#feedback-widget-unread').should('have.text', '')
+      })
+    })
+  })
+
   describe('embed credential', () => {
     // The dummy's stand-in embed is served by the app itself, so the frame is
     // same-origin here and its document can be read. In production it is Opina

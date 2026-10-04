@@ -164,6 +164,67 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     assert_selector("#feedback-widget-title", text: "Send us feedback")
   end
 
+  def test_the_trigger_floats_unless_told_otherwise
+    render_inline(widget)
+
+    assert_selector("button.fixed[data-action='feedback-widget#open']")
+  end
+
+  def test_the_topbar_triggers_render_in_place_at_the_height_of_the_topbar_actions
+    %i[icon labeled].each do |trigger|
+      render_inline(widget(trigger: trigger))
+
+      assert_selector("button.btn-sm[data-action='feedback-widget#open']")
+      assert_no_selector("button.fixed")
+    end
+  end
+
+  def test_an_unknown_trigger_raises_naming_the_accepted_values
+    error = assert_raises(ArgumentError) { widget(trigger: :topbar) }
+
+    assert_match(/unknown trigger :topbar\. Valid: :floating, :icon, :labeled/, error.message)
+  end
+
+  def test_the_icon_triggers_are_named_by_their_aria_label
+    %i[floating icon].each do |trigger|
+      render_inline(widget(trigger: trigger))
+
+      assert_selector("button[aria-label='Open feedback']")
+    end
+  end
+
+  # Named by its text, so the name holds the words on screen even when the host's
+  # `title:` is not the one `open_label` was written around.
+  def test_the_labeled_trigger_is_named_by_the_title_it_shows
+    render_inline(widget(trigger: :labeled, title: "Send us feedback"))
+
+    assert_selector("button:not([aria-label])", text: "Send us feedback")
+  end
+
+  # The count in the badge is decoration; the description is what is read out, and it
+  # sits outside the button so the labeled trigger does not also take it into its name.
+  def test_every_trigger_is_described_by_the_unread_count_outside_it
+    Bali::FeedbackWidget::Component::TRIGGERS.each do |trigger|
+      render_inline(widget(trigger: trigger))
+
+      assert_selector("button[aria-describedby='feedback-widget-unread'] [data-feedback-widget-target='badge'][aria-hidden='true']")
+      assert_selector(".feedback-widget > #feedback-widget-unread.sr-only", visible: :all)
+    end
+  end
+
+  # The controller's `showUnread` replaces the `%{count}` left in it.
+  def test_passes_the_unread_text_with_its_count_placeholder
+    render_inline(widget)
+
+    assert_selector("[data-feedback-widget-unread-label-value='%{count} unread']")
+  end
+
+  def test_sets_the_url_that_marks_the_badge_read
+    render_inline(widget(project_slug: "my-project"))
+
+    assert_selector("[data-feedback-widget-read-url-value='https://opina.example.com/api/v1/projects/my-project/badge/read']")
+  end
+
   def test_threads_user_name_into_generated_token
     render_inline(Bali::FeedbackWidget::Component.new(
       project_slug: "test-project",
@@ -178,5 +239,13 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     payload = JSON.parse(Base64.urlsafe_decode64(token.split(".")[1]))
 
     assert_equal "Ana López", payload["name"]
+  end
+
+  private
+
+  def widget(**options)
+    Bali::FeedbackWidget::Component.new(
+      **{ project_slug: "test", opina_url: "https://opina.example.com", token: "abc" }.merge(options)
+    )
   end
 end

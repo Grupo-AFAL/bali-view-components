@@ -1,14 +1,17 @@
 <%= tag.div(**html_attributes) do %>
-  <%# Floating button %>
-  <button type="button"
-          class="btn btn-primary btn-circle shadow-lg fixed bottom-6 right-6 z-50"
-          data-action="feedback-widget#open"
-          data-feedback-widget-target="trigger"
-          aria-label="<%= open_label %>">
+  <%= tag.button(**trigger_attributes) do %>
     <%= render Bali::Icon::Component.new('message-circle') %>
-    <span class="badge badge-sm badge-error absolute -top-1 -right-1 hidden"
-          data-feedback-widget-target="badge">0</span>
-  </button>
+    <% if trigger == :labeled %>
+      <%# `sr-only` and not `hidden` below `sm`: this text is the button's accessible name. %>
+      <span class="max-sm:sr-only"><%= display_title %></span>
+    <% end %>
+    <span class="<%= BADGE_CLASSES.fetch(trigger) %> hidden"
+          data-feedback-widget-target="badge"
+          aria-hidden="true">0</span>
+  <% end %>
+  <%# Outside the button, or the labeled trigger would read it out twice: once in its name,
+      once as its description. %>
+  <span id="<%= unread_id %>" class="sr-only" data-feedback-widget-target="unread"></span>
 
   <%# The panel is a Bali::Drawer, not a second hand-written copy of one. That is
       where the overlay, the slide-in, the labelled header, the ✕, Escape, the

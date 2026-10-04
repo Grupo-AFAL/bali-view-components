@@ -26,7 +26,7 @@ const FRAMES_AFTER_HIDING = 3
 const FRAME_TIMEOUT = 500
 
 /**
- * Floating feedback button.
+ * Feedback button: floating, or in place in a Topbar.
  *
  * The panel itself is a `Bali::Drawer`, so opening, closing, Escape, the focus
  * containment and the `<dialog>` in the top layer are the drawer's job and this
@@ -35,13 +35,15 @@ const FRAME_TIMEOUT = 500
  * takes the screenshot the embed asks for.
  */
 export class FeedbackWidgetController extends Controller {
-  static targets = ['trigger', 'badge', 'iframe']
+  static targets = ['trigger', 'badge', 'unread', 'iframe']
   static values = {
     drawerId: String,
     embedUrl: String,
     embedOrigin: String,
     token: String,
     badgeUrl: String,
+    readUrl: String,
+    unreadLabel: String,
     interval: { type: Number, default: 300000 }
   }
 
@@ -78,9 +80,9 @@ export class FeedbackWidgetController extends Controller {
       detail: { id: this.drawerIdValue, content: null, options: {} }
     })
 
-    // Reset badge
-    this.badgeTarget.classList.add('hidden')
+    this.showUnread(0)
     this.lastChecked = new Date().toISOString()
+    this.markRead()
   }
 
   // Runs on every load of the frame. The embed is listening by then: it registers
@@ -258,22 +260,39 @@ export class FeedbackWidgetController extends Controller {
     }
   }
 
+  // The token says who is asking, and an Opina that keeps read state per user counts
+  // from that user's last `markRead`. `since` is for an Opina that does not: it ignores
+  // the header and counts from there, which only lasts as long as this page does.
   async checkBadge () {
     try {
       const since = this.lastChecked || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      const response = await fetch(`${this.badgeUrlValue}?since=${since}`)
+      const response = await fetch(`${this.badgeUrlValue}?since=${since}`, { headers: this.authorization })
       if (!response.ok) return
 
       const data = await response.json()
-      if (data.unread_count > 0) {
-        this.badgeTarget.textContent = data.unread_count
-        this.badgeTarget.classList.remove('hidden')
-      } else {
-        this.badgeTarget.classList.add('hidden')
-      }
+      this.showUnread(data.unread_count)
     } catch (e) {
       // Silently fail - badge is non-critical
     }
+  }
+
+  // An Opina without read state answers 404, and an expired token 401; either way the
+  // badge has already been cleared for this page, which is all `since` could ever do.
+  markRead () {
+    fetch(this.readUrlValue, { method: 'POST', headers: this.authorization }).catch(() => {})
+  }
+
+  // Never in the query string, for the reason `embed_url` gives in the component.
+  get authorization () {
+    return { Authorization: `Bearer ${this.tokenValue}` }
+  }
+
+  // `unreadLabel` is `bali_view.feedback_widget.unread`, passed with its `%{count}` intact.
+  showUnread (count) {
+    const unread = count > 0
+    if (unread) this.badgeTarget.textContent = count
+    this.badgeTarget.classList.toggle('hidden', !unread)
+    this.unreadTarget.textContent = unread ? this.unreadLabelValue.replace('%{count}', count) : ''
   }
 }
 

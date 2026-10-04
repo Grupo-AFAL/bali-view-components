@@ -524,6 +524,7 @@ en:
     feedback_widget:
       title: "Feedback"
       open: "Open feedback"
+      unread: "%{count} unread"
 
     document_editor:
       # App bar

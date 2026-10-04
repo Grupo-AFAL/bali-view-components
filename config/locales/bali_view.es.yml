@@ -519,6 +519,7 @@ es:
     feedback_widget:
       title: "Comentarios"
       open: "Abrir comentarios"
+      unread: "%{count} sin leer"
 
     document_editor:
       # Barra superior

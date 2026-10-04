@@ -1,0 +1,33 @@
+<%= render Bali::Topbar::Component.new do |topbar| %>
+  <% topbar.with_search do %>
+    <label class="input input-sm input-bordered flex items-center gap-2 bg-base-200 border-0">
+      <%= render Bali::Icon::Component.new('search', class: 'size-4 text-base-content/55') %>
+      <input type="text" class="grow" placeholder="Search..." />
+    </label>
+  <% end %>
+
+  <% topbar.with_action do %>
+    <%= render Bali::FeedbackWidget::Component.new(
+      project_slug: 'demo-project',
+      opina_url: 'https://opina-demo.example.com',
+      secret: 'preview-secret',
+      user_id: 'preview-user',
+      email: 'preview@example.com',
+      trigger: trigger
+    ) %>
+  <% end %>
+
+  <% topbar.with_action do %>
+    <%= render Bali::Topbar::IconAction::Component.new(icon: 'bell', aria_label: 'Notifications', badge: true) %>
+  <% end %>
+
+  <% topbar.with_action do %>
+    <%= render Bali::Topbar::IconAction::Component.new(icon: 'circle-help', aria_label: 'Help') %>
+  <% end %>
+
+  <% topbar.with_user_menu do %>
+    <%= render Bali::Topbar::UserMenu::Component.new(name: 'Ana García', email: 'ana@example.com') do |menu| %>
+      <% menu.with_item(name: 'Profile', href: '#', icon: 'user') %>
+    <% end %>
+  <% end %>
+<% end %>
