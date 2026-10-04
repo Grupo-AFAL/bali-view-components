@@ -3785,12 +3785,12 @@ to SortableJS's preview. Both rules live in `kanban/index.css` inside
 **The lane is a surface and the card sits on it.** Each column is a
 `base-300` lane with no border or shadow; each card is a `base-100` card with
 a border and a small shadow, and one that can be dragged (it has `update_url:`
-and its column is not `disabled:`) lifts under the pointer. The look lives in
-`kanban/index.css` inside `@layer components`, so a utility passed through
-`class:` beats it without `!`: `with_column(class: "bg-base-100")`,
-`with_card(class: "shadow-none")`. The card's class is `kanban-card`, not
-daisyUI's `card`; a stylesheet that reached the board's cards through `.card`
-targets `.kanban-card` instead.
+and its column is not `disabled:`) lifts under the pointer. Their fill, border
+and shadow live in `kanban/index.css` inside `@layer components`, so a utility
+passed through `class:` beats them without `!`:
+`with_column(class: "bg-base-100")`, `with_card(class: "shadow-none")`. The
+card's class is `kanban-card`, not daisyUI's `card`; a stylesheet that reached
+the board's cards through `.card` targets `.kanban-card` instead.
 
 `disabled: true` on `with_column` freezes that column (forwarded to the
 underlying SortableList): its cards cannot be dragged out and it stops

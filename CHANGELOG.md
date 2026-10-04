@@ -144,10 +144,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   línea del pie de 1.05–1.10 a 1.25–1.41, y el indicador `:ghost` y el contador del encabezado se
   tiñen para no perderse sobre el carril (1.21–1.31). Lo ve el tablero de roadmap de opina, que no
   tiene que hacer nada. La tarjeta lleva la clase `kanban-card` en vez de `card bg-base-100
-  card-border` de daisyUI. **Anfitrión:** el aspecto vive en `kanban/index.css`, dentro de
-  `@layer components`, así que una utilidad pasada con `class:` a `with_column` o a `with_card`
-  gana sin `!` (`bg-base-100`, `shadow-none`); un CSS propio que llegaba a las tarjetas del tablero
-  por `.card` tiene que apuntar a `.kanban-card`.
+  card-border` de daisyUI. **Anfitrión:** el fondo, el borde y la sombra del carril y de la tarjeta
+  viven en `kanban/index.css`, dentro de `@layer components`, así que una utilidad pasada con
+  `class:` a `with_column` o a `with_card` les gana sin `!` (`bg-base-100`, `shadow-none`); un CSS
+  propio que llegaba a las tarjetas del tablero por `.card` tiene que apuntar a `.kanban-card`.
 - **BlockEditor: el selector de emojis de una reacción lleva su propio borde** (parte de #1303):
   una línea de 1 px, `base-content` al 15 %, que sigue su radio de 10 px. emoji-mart lo dibuja
   sólo con una sombra suave, y su contorno medía 1.00:1 contra la página en `afal` y 1.02 en
