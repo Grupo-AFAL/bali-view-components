@@ -659,22 +659,20 @@ function GanttCanvas (props) {
   const weekend = useMemo(() => weekendBands(canvasStartIso, axisEndIso, pxPerDay, zoom, windowStart), [canvasStartIso, axisEndIso, pxPerDay, zoom, windowStart])
   const gridHeight = Math.max(rowsHeight, paneH || 600)
 
-  // Splitter: drag the table's right edge to adjust its width.
-  const onSplitterDown = useCallback(
-    (e) => {
-      e.preventDefault()
-      const startX = e.clientX
-      const startW = effTableW
-      const move = (ev) => setTableWidth(Math.max(260, Math.min(900, startW + (ev.clientX - startX))))
-      const up = () => {
-        document.removeEventListener('pointermove', move)
-        document.removeEventListener('pointerup', up)
-      }
-      document.addEventListener('pointermove', move)
-      document.addEventListener('pointerup', up)
-    },
-    [effTableW]
-  )
+  // Splitter: drag the table's right edge to adjust its width. It starts from the painted width:
+  // until the board is measured, `effTableW` is a CSS value, not a number.
+  const onSplitterDown = useCallback((e) => {
+    e.preventDefault()
+    const startX = e.clientX
+    const startW = e.currentTarget.previousElementSibling.getBoundingClientRect().width
+    const move = (ev) => setTableWidth(Math.max(260, Math.min(900, startW + (ev.clientX - startX))))
+    const up = () => {
+      document.removeEventListener('pointermove', move)
+      document.removeEventListener('pointerup', up)
+    }
+    document.addEventListener('pointermove', move)
+    document.addEventListener('pointerup', up)
+  }, [])
 
   // Stable identities: an inline arrow here would give `Toolbar` a new prop on
   // every canvas render and defeat its memo.

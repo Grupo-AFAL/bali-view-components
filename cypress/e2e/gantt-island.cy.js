@@ -192,9 +192,10 @@ describe('Gantt island', () => {
     })
   })
 
-  // React Flow reads its pane once, in an effect that runs before the board's measured height
-  // lands. Opened at no height, the board logged warning #004 on every load; on a 358 px board
-  // the table also opened at 380 px and left the pane no width.
+  // The warning comes from React Flow's first read of its pane, in an effect that runs before the
+  // board's measured height lands (it reads again on every resize). Opened at no height, the board
+  // logged #004 on every load; on a 358 px board the table also opened at 380 px and left the
+  // pane no width.
   ;[[1280, 800], [390, 844]].forEach(([width, height]) => {
     it(`mounts React Flow on a pane with a size in a ${width} px window`, () => {
       cy.viewport(width, height)
@@ -204,6 +205,36 @@ describe('Gantt island', () => {
       cy.get('@warn').then((warn) => {
         const flow = warn.args.map(([message]) => String(message)).filter((message) => message.includes('error#004'))
         expect(flow, 'React Flow warning #004').to.deep.equal([])
+      })
+    })
+  })
+
+  // A board mounted hidden (an inactive tab) measures no width, and it measures again only when
+  // the body resizes: in a layout whose body is the window's height, showing it does not. Its
+  // table keeps the skeleton's CSS width, which is no number to drag from.
+  it('drags the splitter on a board that mounted hidden', () => {
+    cy.intercept({ method: 'GET', url: /\/lookbook\/preview\/bali\/gantt\/default/ }, (req) => {
+      req.on('response', (res) => {
+        res.body = String(res.body).replace('<div class="bali-gantt"',
+          '<style>body { height: 100vh; overflow: auto }</style><div class="bali-gantt" style="display: none"')
+      })
+    })
+    cy.visit('/bali/gantt/default')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+    cy.get('.bali-gantt').invoke('removeAttr', 'style')
+
+    cy.get('div[title="Drag to resize the table"]').then(([splitter]) => {
+      const table = splitter.previousElementSibling
+      expect(table.style.width, 'table at the skeleton width').to.equal('var(--gantt-name-col)')
+      const start = table.getBoundingClientRect().width
+      const { left, top } = splitter.getBoundingClientRect()
+      const at = (x) => ({ clientX: x, clientY: top + 10, button: 0, eventConstructor: 'PointerEvent' })
+
+      cy.wrap(splitter).trigger('pointerdown', at(left))
+      cy.document().trigger('pointermove', at(left + 40))
+      cy.document().trigger('pointerup', at(left + 40))
+      cy.document().should(() => {
+        expect(table.getBoundingClientRect().width, 'table width after a 40 px drag').to.be.closeTo(start + 40, 1)
       })
     })
   })

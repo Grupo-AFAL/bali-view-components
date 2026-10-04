@@ -247,7 +247,7 @@ export default memo(function Toolbar ({
       <span className='flex-1' />
 
       {/* Color-by: the label and its control are one flex item, or the label can stay behind at
-          the end of a line, as it did at 390 px. */}
+          the end of a line. */}
       <div className='flex shrink-0 items-center gap-2'>
         <span className='text-[10px] font-bold uppercase tracking-wide text-base-content/70'>{t('color')}</span>
         <Segmented

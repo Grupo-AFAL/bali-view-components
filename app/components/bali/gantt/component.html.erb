@@ -21,7 +21,8 @@
   </noscript>
   <div class="bali-gantt-mount">
     <%# Neutral placeholder: the island's frame (same border/radius/shadow and
-        name-column width) with nothing of the real schedule in it. %>
+        name-column width) with nothing of the real schedule in it. Its
+        `min-h-[360px]` is GanttFlow.jsx's MIN_BOARD_H; change both together. %>
     <div class="bali-gantt-skeleton flex min-h-[360px] flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm"
          role="status" aria-busy="true" aria-label="<%= t('.loading') %>">
       <div class="flex items-center justify-between gap-2 border-b border-base-300 px-3 py-2">
