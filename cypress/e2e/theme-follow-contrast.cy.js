@@ -24,6 +24,7 @@ describe('colours that follow the theme', () => {
   // [what, the form field that draws it, the element, { ringless }]
   const FOCUSED = [
     ['a Datepicker day', 'date', '.flatpickr-day:not(.prevMonthDay):not(.nextMonthDay):not(.today)', { ringless: true }],
+    ['a Datepicker day of another month', 'date', '.flatpickr-day.nextMonthDay', { ringless: true }],
     ['the hour of the time picker', 'time', 'input.flatpickr-hour'],
     ['the AM/PM toggle of the time picker', 'time', '.flatpickr-am-pm']
   ]
@@ -117,7 +118,8 @@ describe('colours that follow the theme', () => {
 
     // A day's focus fill was the same light-theme literal as its hover: on the dark themes the
     // focused day turned a near-white square with its number at 1.00–1.08:1. The hour's and
-    // AM/PM's was base-200, 1.05–1.10:1 off the calendar. `ringless` as in base-surface-steps.
+    // AM/PM's was base-200, 1.05–1.10:1 off the calendar, and a day of another month had none:
+    // 1.00. `ringless` as in base-surface-steps.
     FOCUSED.forEach(([what, field, selector, { ringless = false } = {}]) => {
       it(`reads ${what} under keyboard focus on the ${theme} theme`, () => {
         cy.visit(`/bali/form/${field}/default`)
