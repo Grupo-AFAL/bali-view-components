@@ -1,3 +1,5 @@
+import { hover, unhover } from '../support/tap'
+
 // Uses the Lookbook preview (no DB dependency): the default preview renders
 // the editor overlay with versions_url "/lookbook", so both the versions
 // index and each version payload are stubbed with cy.intercept.
@@ -220,5 +222,68 @@ describe('DocumentEditor save status', () => {
 
     saveStatus().should('have.text', 'Unsaved changes')
     saveButton().should('be.enabled')
+  })
+})
+
+// The "…" menu of a comment in the side panel hangs outside every `.bn-root`, where BlockNote's
+// --bn-border-radius-medium is undefined: its corners were 0 against the 8px of every other menu
+// on the preview's light theme.
+describe('DocumentEditor comment menu', () => {
+  const timestamps = { created_at: '2026-08-02T17:43:55Z', updated_at: '2026-08-02T17:44:10Z' }
+
+  beforeEach(() => {
+    cy.intercept('GET', /\/block_editor_comments(\?|$)/, {
+      body: [{
+        id: 1,
+        resolved: false,
+        metadata: {},
+        ...timestamps,
+        comments: [{
+          id: 1,
+          user_id: 'user-2',
+          metadata: {},
+          deleted_at: null,
+          reactions: [],
+          ...timestamps,
+          body: [{
+            id: 'stub-comment-1',
+            type: 'paragraph',
+            props: {},
+            content: [{ type: 'text', text: 'Looks good to me', styles: {} }],
+            children: []
+          }]
+        }]
+      }]
+    }).as('threads')
+
+    cy.viewport(1280, 900)
+    cy.visit('/bali/document_editor/default')
+    cy.wait('@threads')
+  })
+
+  afterEach(() => { unhover() })
+
+  it('rounds its corners like every other menu', () => {
+    cy.get('[data-document-editor-target="commentsToggle"]').click()
+    cy.get('.document-editor-panel .bn-thread-comment').first().then(hover)
+    cy.get('.document-editor-panel .bn-action-toolbar button').last().click()
+
+    cy.get('.document-editor-panel .mantine-Menu-dropdown')
+      .should('contain.text', 'Delete comment')
+      .and('have.css', 'border-top-left-radius', '8px')
+  })
+})
+
+// Side by side at 390px, the open table of contents left the document a 70px column and broke
+// its title letter by letter.
+describe('DocumentEditor on a phone', () => {
+  it('stacks the open table of contents above a full-width editor', () => {
+    cy.viewport(390, 844)
+    cy.visit('/bali/document_editor/default')
+    cy.get('[data-document-editor-target="tocPanel"]').should('be.visible')
+
+    cy.get('[data-document-editor-target="editorArea"]').should(($area) => {
+      expect($area[0].getBoundingClientRect().width, 'editor area width').to.equal(390)
+    })
   })
 })

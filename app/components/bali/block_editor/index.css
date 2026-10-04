@@ -464,10 +464,15 @@
   color: var(--color-base-content);
 }
 
-/* Collapse TOC to a horizontal strip on narrow viewports */
+/* Collapse TOC to a horizontal strip on narrow viewports.
+   `stretch` because in a column the `flex-start` above sizes the editor to its min-content
+   instead of the column's width: at 390px a table's 392px made it overflow a 332px column,
+   and the page scrolled sideways (scrollWidth 421). Stretched, the table scrolls in its own
+   wrapper. */
 @media (max-width: 640px) {
   .bn-toc-layout {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .bn-toc {
@@ -1039,8 +1044,10 @@
 
 /* A comment's "…" menu hangs off its toolbar, outside every .bn-root in the portaled panel
  * (only each comment's text is one), so --bn-colors-menu-background is undefined there:
- * without this, the menu is transparent. */
+ * without this, the menu is transparent. --bn-border-radius-medium is undefined too, which
+ * left its corners at 0 against the 8px of every other menu. */
 .document-editor-panel .mantine-Menu-dropdown {
+  border-radius: var(--radius-box, 0.5rem);
   background-color: var(--color-base-100) !important;
   border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
   box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
@@ -1054,10 +1061,12 @@
 }
 
 /* Collapse comments sidebar on narrow viewports.
- * `>` for the same reason as the rule this overrides — see the note there. */
+ * `>` for the same reason as the rule this overrides — see the note there. `stretch` for the
+ * same reason as the table of contents' narrow rule. */
 @media (max-width: 768px) {
   .bn-with-comments > .bn-container {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .bn-with-comments .bn-threads-sidebar {

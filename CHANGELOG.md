@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   error se sobrescribía en el mismo instante con «Unsaved changes», así que el fallo nunca se
   veía. Además, lo que se escribe mientras el guardado está en camino queda como sin guardar en
   vez de marcarse «Saved at…» sin haberse enviado. Nada que hacer en la app.
+- **BlockEditor en el teléfono: con `table_of_contents:` o `comments:` la página ya no se desplaza
+  de lado.** En la columna angosta (menos de 640 px con índice, de 768 con comentarios) el editor
+  tomaba el ancho mínimo de su contenido —una tabla de 392 px en una columna de 332— y a 390 px
+  la página medía 421 de ancho; ahora ocupa la columna y la tabla se desplaza dentro de su
+  marco. Nada que hacer en la app.
+- **DocumentEditor en el teléfono: el índice abierto se apila sobre el editor.** Lado a lado, a
+  390 px le dejaba al documento una columna de 70 px y el título se partía letra por letra (y el
+  menú «/» medía 91 px); debajo de `sm` el índice va arriba, a todo el ancho, y el editor conserva
+  sus 294 px. Desde `sm` no cambia nada. El menú «…» de un comentario del panel tenía las
+  esquinas a 0 px; ahora redondea como los demás menús (8 px). Nada que hacer en la app.
 - **BlockEditor: el texto de las citas pasa AA en los seis temas.** BlockNote lo pinta en un gris
   fijo que medía 4.30:1 en los temas claros y 3.69–4.13 en los oscuros; ahora es el texto del tema
   al 70 % (5.54 a 7.97). Nada que hacer en la app.

@@ -108,3 +108,20 @@ describe('BlockEditor: the heading that opens the document', () => {
     })
   })
 })
+
+// In the narrow column layouts a `flex-start` cross axis sized the editor to its min-content: at
+// 390px the preview's table made it 392px in a 332px column, and the page scrolled sideways
+// (scrollWidth 421).
+describe('BlockEditor on a phone', () => {
+  ['with_table_of_contents', 'with_persistent_comments'].forEach((preview) => {
+    it(`keeps ${preview} inside the viewport`, () => {
+      cy.viewport(390, 844)
+      cy.visit(`/bali/block_editor/${preview}`)
+      cy.get('.bn-editor').should('contain.text', 'Block Editor Showcase')
+
+      cy.document().should(({ documentElement: root }) => {
+        expect(root.scrollWidth, 'page scroll width').to.equal(root.clientWidth)
+      })
+    })
+  })
+})
