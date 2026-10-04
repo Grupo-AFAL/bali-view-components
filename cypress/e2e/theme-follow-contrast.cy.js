@@ -187,11 +187,28 @@ describe('colours that follow the theme', () => {
       })
     })
 
+    // Dimmed to 70% like the time picker's, over the header's primary: 2.80:1 on `dark`.
+    it(`draws the year's stepper arrows at 3:1 on the ${theme} theme`, () => {
+      cy.visit('/bali/form/date/default')
+      useTheme(theme)
+      cy.get('form input.input:not([type="hidden"])').click()
+
+      cy.get('.flatpickr-calendar.open .flatpickr-current-month .numInputWrapper').should(($wrapper) => {
+        const wrapper = $wrapper[0]
+        expectSettled(wrapper)
+        expect(wrapper.matches(':hover'), 'at rest').to.equal(false)
+        expect(paintedContrast(wrapper.querySelector('.arrowUp'), { pseudo: '::after', property: 'borderBottomColor' }),
+          `${theme}: up arrow`).to.be.at.least(3)
+        expect(paintedContrast(wrapper.querySelector('.arrowDown'), { pseudo: '::after', property: 'borderTopColor' }),
+          `${theme}: down arrow`).to.be.at.least(3)
+      })
+    })
+
     // A white tint over the primary header took the month and the year under the pointer to
     // 2.96:1 on `dark`, 3.75 on `afal` and 4.33 on `light`, and the year's arrow to 2.48 on `dark`.
     // Each is held to its contrast where it reaches it at rest and to its rest where it does not:
-    // `dark`'s month reads 4.13 at rest, its arrow 2.80. The ring sits at the element's edge,
-    // clear of the text and the arrow.
+    // `dark`'s month reads 4.13 at rest. The ring sits at the element's edge, clear of the text
+    // and the arrow.
     HEADER.forEach(([what, selector, painted, floor]) => {
       it(`marks ${what} of the Datepicker header under the pointer and keeps it legible on the ${theme} theme`, () => {
         const target = `.flatpickr-calendar.open .flatpickr-current-month ${selector}`
