@@ -200,12 +200,12 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     end
   end
 
-  # Named by its text, so the name holds the words on screen even when the host's
-  # `title:` is not the one `open_label` was written around.
-  def test_the_labeled_trigger_is_named_by_the_title_it_shows
+  # The product's name, whatever the panel's title, and the name the button is read out by.
+  def test_the_labeled_trigger_shows_opina_and_is_named_by_it
     render_inline(widget(trigger: :labeled, title: "Send us feedback"))
 
-    assert_selector("button:not([aria-label])", text: "Send us feedback")
+    assert_selector("button:not([aria-label]) > span:not([aria-hidden])", exact_text: "Opina")
+    assert_no_selector("button", text: "Send us feedback")
   end
 
   # The count in the badge is decoration; the description is what is read out, and it

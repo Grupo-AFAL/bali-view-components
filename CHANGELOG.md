@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Bali::FeedbackWidget` cabe en la barra superior.** `trigger: :icon` lo pinta como un botón
   redondo primary de la altura de las acciones de `Bali::Topbar`, con el contador en la esquina;
-  `trigger: :labeled`, con el ícono y el título del panel y el contador al lado, y debajo de `sm`
+  `trigger: :labeled`, con el ícono, «Opina» y el contador al lado, y debajo de `sm`
   queda en el ícono solo. Va dentro de `topbar.with_action`. El flotante sigue siendo el default:
   quien no pase `trigger:` no ve nada distinto.
 

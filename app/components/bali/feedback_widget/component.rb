@@ -35,7 +35,7 @@ module Bali
       # @param trigger [Symbol] the button that opens the panel. `:floating` (default) pins a
       #   round button to the bottom-right corner of the viewport. `:icon` and `:labeled` render
       #   where the component is rendered, sized for `Bali::Topbar`'s `with_action`: a round
-      #   icon button, or the icon with the title beside it, which drops to the icon below `sm`.
+      #   icon button, or the icon with "Opina" beside it, which drops to the icon below `sm`.
       def initialize(project_slug:, opina_url:, token: nil, secret: nil, user_id: nil, email: nil,
                      user_name: nil, title: nil, token_expires_in: 3600, badge_interval: 300_000,
                      trigger: :floating, **options)
@@ -58,6 +58,10 @@ module Bali
 
       def open_label
         I18n.t("bali_view.feedback_widget.open")
+      end
+
+      def trigger_label
+        I18n.t("bali_view.feedback_widget.trigger_label")
       end
 
       private
@@ -122,8 +126,8 @@ module Bali
         BADGE_CLASSES.fetch(trigger)
       end
 
-      # The labeled trigger takes its name from its text, so the name always contains the
-      # words on screen — a host's `title:` included, which `open_label` would not.
+      # The labeled trigger takes its name from its text: an `aria-label` of `open_label` would
+      # name it something other than the word on screen.
       def trigger_attributes
         {
           type: "button",

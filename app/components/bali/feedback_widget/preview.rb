@@ -41,7 +41,7 @@ module Bali
       end
 
       # @label In Topbar: icon and text
-      # `trigger: :labeled`: the icon and the panel's title, with the unread count beside them.
+      # `trigger: :labeled`: the icon and "Opina", the product's name, with the unread count beside them.
       # Below `sm` the text goes and the button is the icon alone.
       def topbar_labeled
         render_with_template(template: "bali/feedback_widget/previews/in_topbar", locals: { trigger: :labeled })

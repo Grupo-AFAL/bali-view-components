@@ -524,6 +524,7 @@ en:
     feedback_widget:
       title: "Feedback"
       open: "Open feedback"
+      trigger_label: "Opina"
       unread: "%{count} unread"
 
     document_editor:

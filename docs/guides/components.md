@@ -4985,7 +4985,7 @@ ignores, so the count clears for the current page only. A `401` (the token outli
 - `title` - Drawer header title (default: `nil`, falls back to "Feedback")
 - `token_expires_in` - Token expiry in seconds (default: `3600`)
 - `badge_interval` - Polling interval in ms for the badge count (default: `300000`)
-- `trigger` - The button that opens the panel: `:floating` (fixed to the bottom-right corner), `:icon` (a round button the height of `Bali::Topbar::IconAction`) or `:labeled` (the icon and the title, icon alone below `sm`); any other value raises (default: `:floating`)
+- `trigger` - The button that opens the panel: `:floating` (fixed to the bottom-right corner), `:icon` (a round button the height of `Bali::Topbar::IconAction`) or `:labeled` (the icon and "Opina", icon alone below `sm`); any other value raises (default: `:floating`)
 
 ---
 

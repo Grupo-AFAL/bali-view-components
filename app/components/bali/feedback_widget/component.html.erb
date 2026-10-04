@@ -3,7 +3,7 @@
     <%= render Bali::Icon::Component.new('message-circle') %>
     <% if labeled? %>
       <%# `sr-only` and not `hidden` below `sm`: this text is the button's accessible name. %>
-      <span class="max-sm:sr-only"><%= display_title %></span>
+      <span class="max-sm:sr-only"><%= trigger_label %></span>
     <% end %>
     <span class="<%= badge_classes %> hidden"
           data-feedback-widget-target="badge"
