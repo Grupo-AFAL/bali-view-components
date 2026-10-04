@@ -494,3 +494,115 @@ describe('SplitView: a traversal to the URL the frame already shows (#1029)', ()
     cy.get('@detail.all').should('have.length', 0)
   })
 })
+
+// #1303 — what a traversal restores in the pane is decided by the URL it was
+// painted for. Keyed by frame alone, the first pane a session saw was what every
+// list came back to — a DETAIL, when the session began on a deep link. And a row
+// infinite scroll had appended is not on the page one a restore renders, so the
+// "no row selected" branch emptied the very detail its URL asks for.
+describe('SplitView: a traversal restores the pane its URL was painted with (#1303)', () => {
+  const app = path => `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
+  const title = () => cy.get('.split-view-detail [data-testid="detail-title"]')
+  const inception = () => cy.contains('.split-view-row', 'Inception')
+  const appendUntilInception = () => {
+    cy.get('[data-split-view-list-target="scroller"]').scrollTo('bottom', { ensureScrollable: false })
+    inception().should('exist')
+  }
+
+  it('comes back to the empty list after a session that began on a deep link', () => {
+    cy.visit('/bali/split_view/with_selection')
+    title().should('be.visible')
+    cy.window().then(win => win.Turbo.visit('/lookbook/preview/bali/split_view/default'))
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    cy.get('.split-view-row').eq(2).click()
+    title().should('be.visible')
+
+    cy.go('back')
+    cy.location('pathname').should('include', '/split_view/default')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    title().should('not.exist')
+  })
+
+  it('keeps the detail of an appended row when going back to it', () => {
+    cy.visit(app('/split-view'))
+    appendUntilInception()
+    inception().then(($row) => {
+      cy.wrap($row).click()
+      title().should('have.text', 'Inception')
+      cy.get('.split-view-row').first().click()
+      title().should('not.have.text', 'Inception')
+
+      cy.go('back')
+      cy.location('href').should('eq', $row[0].href)
+      title().should('have.text', 'Inception')
+    })
+  })
+
+  // A row page painted in full, with its row beyond page one: the next pages are
+  // held, so it is cached with page one only and no row selects its URL when it
+  // comes back. Whatever the back changed on it is what the forward restores.
+  it('leaves the page a back leaves as it was, for the forward that restores it', () => {
+    cy.visit(app('/split-view'))
+    appendUntilInception()
+    inception().invoke('attr', 'href').then((href) => {
+      // Longer than the test: a page 2 that landed would put Inception back on
+      // the cached page, and the restore would find its row.
+      cy.intercept({ method: 'GET', url: /[?&]page=\d/ }, (req) => {
+        req.on('response', (res) => { res.setDelay(30000) })
+      })
+      cy.window().then(win => win.Turbo.visit(href))
+      title().should('have.text', 'Inception')
+      cy.get('.split-view-row').should('not.contain', 'Inception')
+
+      cy.go('back')
+      cy.location('search').should('eq', '')
+      cy.go('forward')
+      cy.location('search').should('contain', 'selected=')
+      title().should('have.text', 'Inception')
+    })
+  })
+
+  // Turbo connects a redirected visit at the URL it asked for and replaces it
+  // with the one it landed on afterwards; back returns to the second.
+  it('comes back to the empty list reached through a redirect', () => {
+    cy.intercept('GET', '/split-view-redirect', req => req.redirect('/split-view?status=done'))
+    cy.visit(app('/split-view'))
+    cy.window().then(win => win.Turbo.visit('/split-view-redirect'))
+    cy.location('search').should('eq', '?status=done')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+
+    cy.get('.split-view-row').then(($rows) => {
+      const [first, second] = [$rows[1], $rows[3]]
+      cy.wrap(first).click()
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', first.href)
+      cy.wrap(second).click()
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', second.href)
+    })
+
+    cy.go('back')
+    cy.location('search').should('contain', 'selected=')
+    cy.go('back')
+    cy.location('search').should('eq', '?status=done')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    title().should('not.exist')
+  })
+})
+
+// The reference page stacks the panes below `lg`, and the detail opens under
+// the list: on a phone the list is short enough that the whole detail is on
+// screen once a row is tapped, without scrolling the page.
+describe('SplitView: the reference page on a phone', () => {
+  const app = path => `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
+
+  it('shows the whole detail on screen after a row is tapped', () => {
+    cy.viewport(390, 844)
+    cy.visit(app('/split-view'))
+    // Cypress scrolls what it clicks to the top of the window by default.
+    cy.get('.split-view-row').eq(1).click({ scrollBehavior: false })
+    cy.get('.split-view-detail [data-testid="detail-title"]').should('exist')
+    cy.window().then((win) => {
+      const card = win.document.querySelector('.split-view-detail .card').getBoundingClientRect()
+      expect(card.bottom, 'detail bottom').to.be.at.most(win.innerHeight)
+    })
+  })
+})

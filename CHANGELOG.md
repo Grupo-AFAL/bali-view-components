@@ -34,6 +34,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
+- **`Bali::SplitView` — `meta_color: :success` y `meta_color: :primary` en `with_item`.** Ninguna app
+  los usa (afal-apps y gobierno-corporativo pintan sólo `:error` y `:warning`). Siguen pintando
+  igual, avisan por `Bali.deprecator` y se retiran en 4.0. Si los usas: `:error`, `:warning` o
+  ningún `meta_color` para el tono neutro.
+
 - **`f.coordinates_polygon_group` y `f.coordinates_polygon_field`, el campo de polígono sobre un
   mapa** (#1303). Dibujan con `google.maps.drawing.DrawingManager`, que el API de Maps JavaScript
   dejó de ofrecer en la versión 3.65, así que el campo ya no puede dibujar un polígono. Cada
@@ -57,6 +62,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   quita la sombra de reposo, y ese panel sólo aparece con `images_url`, que ninguna app pasa.
 
 ### Fixed
+
+- **`Bali::SplitView`: atrás y adelante devuelven el detalle que corresponde a la URL.** Volver a una
+  lista después de una sesión que empezó en un enlace profundo (`?selected=3`) mostraba otra vez ese
+  detalle, y volver o avanzar a una fila que llegó por scroll infinito (fuera de la página 1) dejaba
+  la fila marcada y el detalle vacío. El panel limpio se recuerda ahora por frame y URL, y la
+  página que se deja en un atrás/adelante ya no se modifica antes de que Turbo la guarde. Nada que
+  hacer en un anfitrión.
+
+- **Página de referencia `/split-view` de la dummy: en el teléfono el detalle queda a la vista.** Con
+  los paneles apilados (debajo de `lg`) la lista mide 12rem en vez de 26rem, así que al tocar una fila
+  la ficha entera cabe en una pantalla de 390×844 sin desplazar la página (antes terminaba en y=998).
+  Se ajusta con la propiedad `--bali-split-master-max-h` y no con `max_height:`, que es un solo valor.
+  Un anfitrión que copie la página puede hacer lo mismo; nada que hacer si no.
+
+- **Previews de `Bali::SplitView`: la lista filtrada pide sus páginas siguientes con el filtro.** Con
+  `?status=` o `?q[genre_in][]=` el scroll infinito traía páginas sin filtrar y sumaba filas que no
+  correspondían, también cuando el filtro cabía en una página. Sólo afecta a Lookbook.
 
 - **Navbar: el anillo de foco toma el color del texto de la barra.** Enlaces, botones y el
   disparador «More» dibujan el anillo en el `-content` del preset, y en `base-content` con la
