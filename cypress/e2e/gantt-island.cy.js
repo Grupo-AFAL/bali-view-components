@@ -182,13 +182,16 @@ describe('Gantt island', () => {
       const doc = bar.ownerDocument
       expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
       const style = (el) => doc.defaultView.getComputedStyle(el)
-      const neutral = doc.body.appendChild(Object.assign(doc.createElement('div'), { style: 'background: var(--color-neutral)' }))
-      const expected = style(neutral).backgroundColor
-      neutral.remove()
+      const token = (name) => {
+        const probe = doc.body.appendChild(Object.assign(doc.createElement('div'), { style: `background: var(--color-${name})` }))
+        const colour = style(probe).backgroundColor
+        probe.remove()
+        return colour
+      }
 
       const progress = style(bar.querySelector('.inset-y-0.left-0')).backgroundColor
-      expect(progress, 'progress under the label').to.equal(expected)
-      expect(progress, 'the label\'s ink').to.not.equal(style(bar.querySelector('span.text-base-content')).color)
+      expect(progress, 'progress under the label').to.equal(token('neutral'))
+      expect(progress, 'base-content, the label\'s ink off the progress').to.not.equal(token('base-content'))
     })
   })
 

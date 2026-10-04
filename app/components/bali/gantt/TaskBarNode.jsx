@@ -114,13 +114,19 @@ export default function TaskBarNode ({ data, width, selected }) {
           {/* Progress overlay (% complete). */}
           <div
             className='absolute inset-y-0 left-0'
-            style={{ width: `${pct}%`, background: col.solid, opacity: pct > 0 ? 0.9 : 0 }}
+            style={{ width: `${pct}%`, background: col.solid, opacity: pct > 0 ? 1 : 0 }}
           />
+          {/* The label spans the bar, so its `pct%` is the overlay's edge: the part over the
+              overlay takes the fill's `content` ink, the rest base-content. In base-content all
+              over, a label on a complete bar read 1.82:1 on afal-dark. */}
           {!shortBar && (
             <span
-              className='relative z-10 truncate px-2 text-[10.5px] font-semibold text-base-content'
+              className='relative z-10 w-full truncate px-2 text-[10.5px] font-semibold'
               style={{
-                textShadow: '0 1px 1px color-mix(in oklch, var(--color-base-100) 50%, transparent)',
+                color: 'transparent',
+                backgroundImage: `linear-gradient(to right, ${col.content} ${pct}%, var(--color-base-content) ${pct}%)`,
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
                 paddingRight: showAvatar ? BAR_H - 2 : undefined // room for the avatar
               }}
             >
