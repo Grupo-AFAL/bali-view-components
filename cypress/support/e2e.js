@@ -41,14 +41,3 @@ import './commands'
 Cypress.on('uncaught:exception', (error, runnable, promise) => {
   if (promise && error?.name === 'AbortError') return false
 })
-
-// Chrome reports a ResizeObserver whose callback resized what it observes as an error on the
-// window, though by the spec nothing is lost: what it held back is delivered in the next frame.
-// The Gantt island measures its board that way, and on a loaded machine the report failed
-// `base-surface-steps.cy.js` twice in full runs (#1303). Cypress rewrites the message and quotes
-// the page's on a line of its own, so only that line, word for word, is let through.
-const RESIZE_OBSERVER_LOOP = /^ {2}> ResizeObserver loop completed with undelivered notifications\.$/m
-
-Cypress.on('uncaught:exception', (error) => {
-  if (RESIZE_OBSERVER_LOOP.test(error?.message ?? '')) return false
-})
