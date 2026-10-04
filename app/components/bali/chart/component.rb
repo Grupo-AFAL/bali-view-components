@@ -18,8 +18,8 @@ module Bali
     class Component < ApplicationViewComponent
       MAX_LABEL_LENGTH = 16
       MULTI_COLOR_TYPES = %i[pie doughnut polarArea].freeze
-      # Chart.js builds a scale for every key under `scales`, whatever the chart type: an `x`
-      # and a `y` drew two axes of ticks and a grid behind the ring.
+      # Chart.js builds a scale for every key under `scales`, whatever the chart type, so an `x`
+      # and a `y` draw axes and a grid behind a chart that has none.
       RADIAL_TYPES = %i[pie doughnut polarArea radar].freeze
       BAR_TYPES = %i[bar].freeze
 
@@ -219,7 +219,7 @@ module Bali
       end
 
       def radial?
-        RADIAL_TYPES.include?(chart_type.to_sym)
+        RADIAL_TYPES.include?(chart_type&.to_sym)
       end
 
       def configure_scales_styling(opts)

@@ -85,7 +85,7 @@ describe('Chart', () => {
         expect(before.tick, 'the old theme had other ink').to.not.include(ink)
 
         chartInstance((chart) => {
-          expect(chart, 'a fresh chart.js instance').to.not.eq(before.chart)
+          expect(chart, 'the same chart.js instance').to.eq(before.chart)
           expect(chart.options.scales.y.ticks.color, 'tick ink').to.include(ink)
         })
       })
@@ -112,10 +112,11 @@ describe('Chart', () => {
     })
   })
 
-  // A bar's legend hides a dataset and a doughnut's a data index, both on the Chart.js instance
-  // a theme switch replaces.
+  // A bar's legend hides a dataset and a doughnut's a data index, both on the Chart.js instance,
+  // which a theme switch has to repaint rather than replace.
   describe('legend', () => {
     const crossedOut = (chart) => chart.legend.legendItems.map((item) => item.hidden)
+    const firstSwatch = (chart) => chart.legend.legendItems[0].fillStyle
 
     ;['bar', 'doughnut'].forEach((type) => {
       it(`keeps what it hid on a ${type} when the theme switches`, () => {
@@ -128,14 +129,20 @@ describe('Chart', () => {
         let before
         chartInstance((chart) => {
           expect(crossedOut(chart), 'hidden by the click').to.deep.eq([false, true, false, false, false, false, false])
-          before = chart
+          before = { chart, swatch: firstSwatch(chart) }
         })
 
         cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', 'dark'))
 
-        chartInstance((chart) => {
-          expect(chart, 'a fresh chart.js instance').to.not.eq(before)
-          expect(crossedOut(chart), 'after the switch').to.deep.eq([false, true, false, false, false, false, false])
+        cy.window().then((win) => {
+          const primary = opaque(win, cssVariable(win, '--color-primary'))
+          expect(opaque(win, before.swatch), 'the old theme had another primary').to.not.deep.eq(primary)
+
+          chartInstance((chart) => {
+            expect(chart, 'the same chart.js instance').to.eq(before.chart)
+            expect(opaque(win, firstSwatch(chart)), 'first swatch in the new theme').to.deep.eq(primary)
+            expect(crossedOut(chart), 'after the switch').to.deep.eq([false, true, false, false, false, false, false])
+          })
         })
       })
     })
@@ -223,6 +230,27 @@ describe('Chart', () => {
           expect(dataset.pointBackgroundColor, `series ${index + 1} points`).to.match(/^oklch\(/)
           expect(dataset.pointBackgroundColor, `series ${index + 1} points`).to.eq(firstColor(dataset))
           expect(chart.legend.legendItems[index].fillStyle, `series ${index + 1} legend`).to.eq(firstColor(dataset))
+        })
+      })
+    })
+
+    // Chart.js refreshes the options a line's points share only in an animated update: repainted
+    // with `update('none')`, they kept the old theme's colour.
+    it('paints the points of a line again in the theme the page switches to', () => {
+      cy.visit('/bali/chart/series_palette?type=line')
+
+      const points = (win, chart) => chart.getDatasetMeta(0).data.map((point) => opaque(win, point.options.backgroundColor))
+      let before
+      cy.window().then((win) => chartInstance((chart) => { before = points(win, chart) }))
+
+      cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', 'dark'))
+
+      cy.window().then((win) => {
+        const primary = opaque(win, cssVariable(win, '--color-primary'))
+        expect(before[0], 'the old theme had another primary').to.not.deep.eq(primary)
+
+        chartInstance((chart) => {
+          points(win, chart).forEach((colour, index) => expect(colour, `point ${index + 1}`).to.deep.eq(primary))
         })
       })
     })

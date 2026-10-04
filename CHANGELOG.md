@@ -10,10 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Chart: las gráficas circulares sin ejes, y la leyenda sobrevive al cambio de tema.**
-  - `pie`, `doughnut`, `polarArea` y `radar` dibujaban detrás del anillo un eje x, un eje y y la
-    cuadrícula. Ya no; un `scales:` propio en `options:` se sigue aplicando.
+  - `pie`, `doughnut`, `polarArea` y `radar` dibujaban detrás de la gráfica un eje x, un eje y y
+    la cuadrícula. Ya no; un `scales:` propio en `options:` se sigue aplicando.
   - Cambiar de tema volvía a mostrar lo ocultado desde la leyenda. Ahora una serie, o una porción
-    de un pie, doughnut o polarArea, ocultada sigue oculta.
+    de un pie, doughnut o polarArea, ocultada sigue oculta, y la gráfica cambia de colores sin
+    repetir su animación de entrada.
 
   Lo ven las gráficas circulares de ga-apps, centinela-web y gobierno-corporativo; no hay nada que
   cambiar.

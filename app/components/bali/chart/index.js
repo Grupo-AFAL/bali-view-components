@@ -53,6 +53,16 @@ export class ChartController extends Controller {
       this.resolveThemeColors(data)
     }
 
+    // In place: a new instance would show again what the legend hid, and replay the entry animation.
+    // Animated, not `update('none')`: Chart.js 4.5 refreshes the options every element of a dataset
+    // shares — a line's points — only in an animated update, and they kept the old theme's colour.
+    if (this.chart) {
+      this.chart.options = options
+      this.chart.data.datasets.forEach((dataset, index) => Object.assign(dataset, data.datasets[index]))
+      this.chart.update()
+      return
+    }
+
     const chartjs = await import('chart.js').catch(optionalPeer('chart.js'))
     // disconnect() can land while the import is pending, and nothing would ever destroy a
     // chart built on the detached canvas.
@@ -61,28 +71,12 @@ export class ChartController extends Controller {
 
     Chart.register(...registerables)
 
-    // What the legend hid lives on the instance a theme switch replaces: a series as its
-    // dataset's visibility, which the new one reads from `hidden`, and a slice of a pie, doughnut
-    // or polar area by data index, which it can only be told once built.
-    if (this.chart) {
-      data.datasets?.forEach((dataset, index) => { dataset.hidden = !this.chart.isDatasetVisible(index) })
-    }
-    const hiddenSlices = this.hiddenSlices()
-
     this.chart?.destroy()
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,
       data,
       options
     })
-    hiddenSlices.forEach((index) => this.chart.toggleDataVisibility(index))
-    if (hiddenSlices.length) this.chart.update()
-  }
-
-  hiddenSlices () {
-    if (!this.chart) return []
-
-    return this.chart.data.labels.flatMap((_, index) => this.chart.getDataVisibility(index) ? [] : [index])
   }
 
   disconnect () {
