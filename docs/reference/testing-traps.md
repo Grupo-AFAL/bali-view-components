@@ -76,3 +76,11 @@ goes here.
   (`cypress/plugins/index.cjs` gives Chrome a pointer that hovers). The pointer stays where the
   previous test left it: `unhover()` in an `afterEach`, and assert `!el.matches(':hover')`
   before measuring a resting state.
+
+## Minitest
+
+- **`db:migrate` on a fresh database loads schema.rb instead of migrating.** Rails 8.1 does that
+  whenever `schema_migrations` does not exist yet and the schema file does
+  (`DatabaseTasks#initialize_database`), so a test that migrates a fresh database to compare its
+  dump with schema.rb compares the file with itself. Create `schema_migrations` empty first, as
+  the server's pending check does on the first request (`test/dummy_schema_test.rb`).
