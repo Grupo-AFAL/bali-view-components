@@ -9,11 +9,19 @@
           <thead>
             <tr>
               <% date_range.first(header_day_count).each do |day| %>
-                <%# `p-2 border-none` are utilities here, not only index.css's
+                <%# `py-2 px-0 border-none` are utilities here, not only index.css's
                     `.table th` rule: daisyUI styles `.table` cells from
-                    @layer utilities, which beats the component sheet. %>
-                <th class="text-center font-normal text-lg p-2 border-none">
-                  <%= t('date.day_names')[day.wday] %>
+                    @layer utilities, which beats the component sheet.
+                    The full name needs a 98px column, what «Wednesday» measures at
+                    text-lg; in less it spills out of its column, and at 390px each
+                    name ran into the next. The query is on the
+                    column, so `weekdays_only` and a host's sidebar count, and on a
+                    div because a table cell cannot be a size container. %>
+                <th class="text-center font-normal text-lg py-2 px-0 border-none">
+                  <div class="@container">
+                    <span class="hidden @min-[6.125rem]:inline"><%= t('date.day_names')[day.wday] %></span>
+                    <span class="text-sm @min-[6.125rem]:hidden"><%= t('date.abbr_day_names')[day.wday] %></span>
+                  </div>
                 </th>
               <% end %>
             </tr>

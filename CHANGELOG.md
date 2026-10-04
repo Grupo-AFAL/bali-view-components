@@ -45,6 +45,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`RecurrentEventRuleForm` ya no corta el texto de sus selects** (#1303). Los selects de las
+  filas anual y mensual miden lo que su opción más larga: antes el anual cortaba «Weekend day»
+  y los dos mensuales, a 101 px (82 a 320), cortaban «Wednesday» (a 320 px, 8 de los 10 días), y
+  en español «Fines de semana» y «Días laborales». Cada fila pasa sus selects al renglón
+  siguiente cuando no caben, como ya hacía la de «On the» anual. Ninguna de las nueve apps usa
+  el componente.
+
+- **El `Footer` centrado ya no se sale de la pantalla en un celular** (#1303). Con `center: true`
+  sus secciones iban lado a lado debajo de 640 px y a 390 la última quedaba fuera (la página
+  medía 410); ahora van una debajo de otra a cualquier ancho, como ya iban de 640 px para arriba,
+  que no cambia. Ninguna de las nueve apps usa el componente.
+
+- **El `Calendar` cabe en un celular** (#1303). El título y los botones de periodo iban en un
+  solo renglón que no se partía: a 390 px la vista de mes medía 414 y la de año 364 a 320. Ahora
+  los botones pasan debajo del título cuando no caben. Los nombres de los días, que a 390 px se
+  montaban unos sobre otros, se abrevian («Lun», «Mon»: los de `date.abbr_day_names`, como en la
+  vista de año) cuando su columna mide menos de 98 px, lo que mide «Wednesday». Decide el ancho de
+  la columna y no el de la pantalla, así que cuentan `weekdays_only` y la barra lateral del
+  anfitrión; donde caben siguen completos, y a 1024 y 1280 la captura es idéntica. Lo ven
+  gobierno-corporativo y ga-apps en pantallas angostas; nada que hacer.
+
 - **Drawer cerrado.** Ya no se alcanza con Tab: sus controles seguían en el orden de tabulación
   fuera de la pantalla (el ✕ en x=1744 de una ventana de 1280); ahora el cerrado queda
   `visibility: hidden` en cuanto termina de deslizarse. Un drawer cerrado dentro del contenido de
@@ -101,6 +122,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Lo ven las gráficas circulares de ga-apps, centinela-web y gobierno-corporativo; no hay nada que
   cambiar.
+
+### Documentation
+
+- **Los previews de `Card` caben en un celular** (#1303). Sus tarjetas `w-96` (384 px) pasan a
+  `w-96 max-w-full`: a 390 px la página ya no se desplaza de lado (medía 400), y a 1280 la
+  captura es idéntica. Sólo Lookbook; nada que hacer en un anfitrión.
 
 ## [v3.7.0] - 2026-10-03
 

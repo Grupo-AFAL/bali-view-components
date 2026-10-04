@@ -12,7 +12,7 @@ module Bali
       # @param size [Symbol] select [xs, sm, md, lg, xl]
       # @param shadow toggle
       def default(style: :default, size: :md, shadow: true)
-        render Card::Component.new(style: style, size: size, shadow: shadow, class: 'w-96') do |c|
+        render Card::Component.new(style: style, size: size, shadow: shadow, class: 'w-96 max-w-full') do |c|
           c.with_image(
             src: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp',
             href: '/',
@@ -33,7 +33,7 @@ module Bali
       # ---------------
       # Use `with_title` for simple text titles.
       def with_title
-        render Card::Component.new(class: 'w-96') do |c|
+        render Card::Component.new(class: 'w-96 max-w-full') do |c|
           c.with_title('Simple Title')
 
           tag.p('Use the title slot for simple text titles without extra features.')
@@ -46,7 +46,7 @@ module Bali
       # affordance. Content must not contain links or buttons then — interactive
       # content inside an `<a>` is invalid HTML.
       def clickable
-        render Card::Component.new(href: '/lookbook', style: :bordered, class: 'w-96') do |c|
+        render Card::Component.new(href: '/lookbook', style: :bordered, class: 'w-96 max-w-full') do |c|
           c.with_title('Clickable Card')
 
           tag.p('The whole card is one link. Use it for drill-downs where the card is the target.')
@@ -61,7 +61,7 @@ module Bali
       # ---------------
       # Use `with_header` for complex headers with subtitle, icon, or badge.
       def with_header
-        render Card::Component.new(class: 'w-96') do |c|
+        render Card::Component.new(class: 'w-96 max-w-full') do |c|
           c.with_header(title: 'Header Title', subtitle: 'A helpful subtitle')
 
           tag.p('Headers support subtitle, icon, and badge slots for richer content.')
@@ -72,7 +72,7 @@ module Bali
       # ---------------
       # Add an icon to draw attention to the card's purpose.
       def header_with_icon
-        render Card::Component.new(class: 'w-96') do |c|
+        render Card::Component.new(class: 'w-96 max-w-full') do |c|
           c.with_header(title: 'Settings', subtitle: 'Manage your preferences', icon: 'settings')
 
           tag.p('Icons help users quickly identify the card\'s purpose.')
@@ -84,7 +84,7 @@ module Bali
       # `icon_class` paints the icon alone. A class on the header would tint the
       # title with it, because the SVG inherits `currentColor` from the wrapper.
       def header_with_icon_class
-        render Card::Component.new(class: 'w-96') do |c|
+        render Card::Component.new(class: 'w-96 max-w-full') do |c|
           c.with_header(
             title: 'Needs your approval',
             subtitle: 'Due on Friday',
@@ -123,7 +123,7 @@ module Bali
       # ---------------
       # Card with border style
       def bordered
-        render Card::Component.new(style: :bordered, shadow: false, class: 'w-96') do |c|
+        render Card::Component.new(style: :bordered, shadow: false, class: 'w-96 max-w-full') do |c|
           c.with_title('Bordered Card')
 
           tag.p('This card has a border style instead of shadow.')
@@ -134,7 +134,7 @@ module Bali
       # ---------------
       # Card with dashed border
       def dash
-        render Card::Component.new(style: :dash, shadow: false, class: 'w-96') do |c|
+        render Card::Component.new(style: :dash, shadow: false, class: 'w-96 max-w-full') do |c|
           c.with_title('Dash Card')
 
           tag.p('This card has a dashed border style.')
@@ -165,7 +165,7 @@ module Bali
       # ---------------
       # Card with full background image
       def image_full
-        render Card::Component.new(image_full: true, class: 'w-96') do |c|
+        render Card::Component.new(image_full: true, class: 'w-96 max-w-full') do |c|
           c.with_image(
             src: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp',
             alt: 'Shoes'
@@ -189,7 +189,7 @@ module Bali
       # ---------------
       # Actions without href render as buttons.
       def button_actions
-        render Card::Component.new(class: 'w-96') do |c|
+        render Card::Component.new(class: 'w-96 max-w-full') do |c|
           c.with_title('Button Actions')
 
           c.with_action(class: 'btn-primary', data: { turbo: false, action: 'click->modal#open' }) do
@@ -219,7 +219,7 @@ module Bali
       # ---------------
       # Use `figure_class` to add padding or styling to the figure wrapper.
       def image_with_figure_class
-        render Card::Component.new(class: 'w-96') do |c|
+        render Card::Component.new(class: 'w-96 max-w-full') do |c|
           c.with_image(
             src: 'https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp',
             alt: 'Shoes with padding',
