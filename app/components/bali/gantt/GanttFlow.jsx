@@ -50,6 +50,8 @@ import { patchItem, addDependency, removeDependency, fetchSchedule, isStale } fr
 
 const nodeTypes = { taskBar: TaskBarNode }
 const ZOOM_ORDER = ['month', 'week', 'day'] // −  ...  + (more px/day = more zoom)
+// The skeleton's `min-h-[360px]` (component.html.erb) holds the same box.
+const MIN_BOARD_H = 360
 
 // Ephemeral daisyUI toast for server validation (422) or network errors.
 function showErrorToast (message) {
@@ -589,16 +591,18 @@ function GanttCanvas (props) {
 
   // Available height / container width (React Flow demands a defined height;
   // the width decides the responsive table). Measured under the toolbar with
-  // a ResizeObserver.
+  // a ResizeObserver. The board opens at the floor, not at no height: React
+  // Flow reads its pane in an effect that runs before this layout effect's
+  // re-render, and a board with no height logged its warning #004 on every load.
   const rootRef = useRef(null)
-  const [availableHeight, setAvailableHeight] = useState(0)
+  const [availableHeight, setAvailableHeight] = useState(MIN_BOARD_H)
   const [rootWidth, setRootWidth] = useState(0)
   useLayoutEffect(() => {
     const el = rootRef.current
     if (!el) return undefined
     const measure = () => {
       const rect = el.getBoundingClientRect()
-      setAvailableHeight(Math.max(360, window.innerHeight - rect.top - 16))
+      setAvailableHeight(Math.max(MIN_BOARD_H, window.innerHeight - rect.top - 16))
       setRootWidth(rect.width)
     }
     measure()
@@ -636,8 +640,9 @@ function GanttCanvas (props) {
   // Table width: the splitter's (tableWidth), or 60% of the board so the timeline keeps 40%. The
   // 520 cap has to hold every GanttTable column with Name at its minimum; on a board under 840 px
   // GanttTable leaves out the right-hand columns it cannot hold whole. The loading skeleton's name
-  // column (index.css) opens at the same width.
-  const defaultTableW = rootWidth ? Math.max(300, Math.min(520, Math.round(rootWidth * 0.6))) : 380
+  // column (index.css) opens at the same width, and the render before the board is measured takes
+  // it from there: a fixed 380 left a 358 px board no timeline, and React Flow warned (#004).
+  const defaultTableW = rootWidth ? Math.max(300, Math.min(520, Math.round(rootWidth * 0.6))) : 'var(--gantt-name-col)'
   const effTableW = tableWidth != null ? tableWidth : defaultTableW
   const cols = useMemo(
     () => ({
@@ -806,7 +811,7 @@ function GanttCanvas (props) {
     <div
       ref={rootRef}
       className='flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm'
-      style={{ height: availableHeight || undefined }}
+      style={{ height: availableHeight }}
     >
       <Toolbar
         search={search}

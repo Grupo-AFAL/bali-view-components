@@ -190,6 +190,22 @@ describe('Gantt island', () => {
     })
   })
 
+  // React Flow reads its pane once, in an effect that runs before the board's measured height
+  // lands. Opened at no height, the board logged warning #004 on every load; on a 358 px board
+  // the table also opened at 380 px and left the pane no width.
+  ;[[1280, 800], [390, 844]].forEach(([width, height]) => {
+    it(`mounts React Flow on a pane with a size in a ${width} px window`, () => {
+      cy.viewport(width, height)
+      cy.visit('/bali/gantt/default', { onBeforeLoad: (win) => cy.spy(win.console, 'warn').as('warn') })
+      cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+      cy.get('@warn').then((warn) => {
+        const flow = warn.args.map(([message]) => String(message)).filter((message) => message.includes('error#004'))
+        expect(flow, 'React Flow warning #004').to.deep.equal([])
+      })
+    })
+  })
+
   it('dragging a bar posts the contract PATCH and reconciles', () => {
     cy.intercept('PATCH', '/admin/projects/*/schedule').as('patch')
     cy.visit('/bali/gantt/editable')
