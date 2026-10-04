@@ -311,7 +311,9 @@
   padding: 0.25rem;
   padding-right: 1.25rem;
   margin: 0;
-  width: 6ch;
+  /* The box is border-box, so the padding comes out of the width: a bare `6ch` left the digits
+     3.3ch and cut «2026» to «202» (scrollWidth 61 against 55). */
+  width: calc(4ch + 1.5rem);
   height: auto;
   line-height: inherit;
   vertical-align: middle;
