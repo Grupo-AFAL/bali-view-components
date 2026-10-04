@@ -2,10 +2,9 @@ import { contrastRatio, paintedLuminance } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 
-// One frame per popover of the BlockEditor. Bali used to draw its own around every Mantine popover
-// and, around the file panel BlockNote already frames, that made two (#1313). The emoji picker of
-// a comment reaction is emoji-mart's and has none: its edge against the page was a soft shadow,
-// 1.00:1 on afal and 1.02 on afal-dark, so it draws a ring of its own (#1303).
+// One frame per popover of the BlockEditor. BlockNote frames the file panel itself, so its popover
+// carries none (#1313). emoji-mart's picker, a comment reaction's, has no edge but a soft shadow,
+// 1.00:1 against the page on afal and 1.02 on afal-dark, so Bali rings the picker (#1303).
 describe('BlockEditor popover frames', () => {
   // The floor base-surface-steps.cy.js holds a panel's edge to: above a base-300 edge on afal.
   const EDGE = 1.25
