@@ -3,17 +3,15 @@
  *
  * Self-contained CSS for Flatpickr without vendor CSS dependency.
  * Built from scratch using DaisyUI patterns and Tailwind utilities.
- * ~500 lines vs ~900 lines vendor CSS
  *
- * UNLAYERED ON PURPOSE (see ../bali.css). Flatpickr names two of its state
- * classes `inline` and `static`, which collide with the Tailwind utilities of
- * the same name (`.inline{display:inline}`, `.static{position:static}`) — both
- * present in any app that uses them anywhere. Cascade layers beat specificity,
- * so from @layer components `.flatpickr-calendar.inline` and
+ * UNLAYERED ON PURPOSE (see ../bali.css). Flatpickr names one of its state
+ * classes `static`, which collides with the Tailwind utility of the same name
+ * (`.static{position:static}`) — present in any app that uses it anywhere.
+ * Cascade layers beat specificity, so from @layer components
  * `.flatpickr-calendar.static` (reachable through the controller's `static:`
- * value) would lose their `display` / `position` and the calendar would render
- * in the wrong place. Nothing here is markup a host can put utilities on
- * either — flatpickr builds this DOM itself — so the layer would buy nothing.
+ * value) would lose its `position` and the calendar would render in the wrong
+ * place. Nothing here is markup a host can put utilities on either — flatpickr
+ * builds this DOM itself — so the layer would buy nothing.
  */
 
 /* =============================================================================
@@ -71,8 +69,7 @@
   animation: none;
 }
 
-.flatpickr-calendar.open,
-.flatpickr-calendar.inline {
+.flatpickr-calendar.open {
   display: inline-block;
   opacity: 1;
   max-height: 640px;
@@ -96,12 +93,6 @@
   margin: 0;
   overflow: visible;
   color: inherit;
-}
-
-.flatpickr-calendar.inline {
-  display: block;
-  position: relative;
-  top: 2px;
 }
 
 .flatpickr-calendar.static {
@@ -311,17 +302,18 @@
   padding: 0.25rem;
   padding-right: 1.25rem;
   margin: 0;
-  width: 6ch;
+  /* Four digits, with the padding the arrows sit in on top: as border-box, `6ch` left the
+     digits 3.3ch and cut 2026 to 202 (scrollWidth 61 against 55). */
+  box-sizing: content-box;
+  width: 4ch;
   height: auto;
   line-height: inherit;
   vertical-align: middle;
   appearance: textfield;
-  transition: background var(--fp-animation-timing) ease;
 }
 
 .flatpickr-current-month input.cur-year:focus {
   outline: none;
-  background: oklch(1 0 0 / 0.2);
 }
 
 .flatpickr-current-month input.cur-year::-webkit-outer-spin-button,
@@ -354,13 +346,18 @@
   padding: 0 4px 0 2px;
   height: 50%;
   line-height: 50%;
-  opacity: 0.7;
   cursor: pointer;
   box-sizing: border-box;
+}
+
+/* Only the time row dims its arrows at rest. Over the header's primary, at 70% the year's read
+   2.80:1 on `dark`, under the 3:1 of an icon. */
+.flatpickr-time .numInputWrapper span {
+  opacity: 0.7;
   transition: opacity 0.15s ease;
 }
 
-.numInputWrapper:hover span {
+.flatpickr-time .numInputWrapper:hover span {
   opacity: 1;
 }
 
@@ -369,7 +366,9 @@
    costa-norte-dark (5.78 → 7.06, 7.98 → 9.06): primary-content is the lighter side on some
    themes and the darker on others, so no one tint keeps them all. */
 .flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.flatpickr-current-month .flatpickr-monthDropdown-months:focus-visible,
 .flatpickr-current-month input.cur-year:hover,
+.flatpickr-current-month input.cur-year:focus,
 .flatpickr-current-month .numInputWrapper span:hover {
   box-shadow: inset 0 0 0 1px currentColor;
 }
@@ -539,11 +538,8 @@ span.flatpickr-weekday {
 
 /* Range selection. The fill runs under the transparent border, as on hover. No band either:
    flatpickr bridges the 5px between its days with a ±5px box-shadow, and here they are 1.7px
-   apart, so a translucent band paints twice over each neighbour. flatpickr marks the other
-   month's days inRange too, and the rule below that empties them is as specific as `.inRange`. */
-.flatpickr-day.inRange,
-.flatpickr-day.prevMonthDay.inRange,
-.flatpickr-day.nextMonthDay.inRange {
+   apart, so a translucent band paints twice over each neighbour. */
+.flatpickr-day.inRange {
   background: var(--fp-range-bg);
   border-radius: 0;
 }
@@ -567,17 +563,12 @@ span.flatpickr-weekday {
   border-radius: 0.5rem;
 }
 
-/* Previous/next month days (faded) */
+/* Previous/next month days (faded). No `background` here: as specific as `.flatpickr-day:focus`
+   and `.inRange` and later than both, it emptied a focused day and a range's. */
 .flatpickr-day.prevMonthDay,
 .flatpickr-day.nextMonthDay {
   color: var(--fp-muted-color);
-  background: transparent;
   border-color: transparent;
-}
-
-.flatpickr-day.prevMonthDay:hover,
-.flatpickr-day.nextMonthDay:hover {
-  background: var(--fp-hover-bg);
 }
 
 /* Disabled days */
@@ -594,12 +585,6 @@ span.flatpickr-weekday {
 /* Hidden day */
 .flatpickr-day.hidden {
   visibility: hidden;
-}
-
-/* Week selection mode */
-.flatpickr-day.week.selected {
-  border-radius: 0;
-  box-shadow: -5px 0 0 var(--fp-primary-color), 5px 0 0 var(--fp-primary-color);
 }
 
 /* Range mode spacing */
@@ -766,49 +751,6 @@ span.flatpickr-weekday {
 
 .flatpickr-time .numInputWrapper span:hover {
   background: var(--fp-hover-bg);
-}
-
-/* =============================================================================
-   Week Numbers
-   ============================================================================= */
-.flatpickr-weekwrapper {
-  float: left;
-}
-
-.flatpickr-weekwrapper .flatpickr-weeks {
-  padding: 0 12px;
-  box-shadow: 1px 0 0 var(--fp-border-color);
-}
-
-.flatpickr-weekwrapper .flatpickr-weekday {
-  float: none;
-  width: 100%;
-  line-height: 28px;
-}
-
-.flatpickr-weekwrapper span.flatpickr-day,
-.flatpickr-weekwrapper span.flatpickr-day:hover {
-  display: block;
-  width: 100%;
-  max-width: none;
-  color: var(--fp-muted-color);
-  background: transparent;
-  cursor: default;
-  border: none;
-}
-
-/* =============================================================================
-   Calendar with time/weeks adjustments
-   ============================================================================= */
-.flatpickr-calendar .hasWeeks .dayContainer,
-.flatpickr-calendar .hasTime .dayContainer {
-  border-bottom: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-.flatpickr-calendar .hasWeeks .dayContainer {
-  border-left: 0;
 }
 
 /* =============================================================================

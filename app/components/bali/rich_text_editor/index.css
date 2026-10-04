@@ -2,9 +2,6 @@
 
 /* === Content Styles === */
 .rich-editor-content {
-  --selected-cell-bg: oklch(var(--p) / 0.2);
-  --resize-handle-color: oklch(var(--p));
-
   p {
     @apply min-h-6;
   }
@@ -80,17 +77,6 @@
 
     th {
       @apply font-bold text-left bg-base-200;
-    }
-
-    .selectedCell:after {
-      @apply z-[2] absolute inset-0 pointer-events-none;
-      content: '';
-      background: var(--selected-cell-bg);
-    }
-
-    .column-resize-handle {
-      @apply absolute -right-0.5 top-0 -bottom-0.5 w-1 pointer-events-none;
-      background-color: var(--resize-handle-color);
     }
 
     p {
@@ -236,7 +222,6 @@
   --menu-border-radius: 0.25rem;
   --menu-dropdown-icon-size: 0.75em;
   --menu-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --selected-shadow: 0 0 0 2px oklch(var(--p) / 0.5);
 
   @apply flex text-center w-fit;
   box-shadow: var(--menu-box-shadow);
@@ -244,10 +229,6 @@
 
   .toolbar-link.is-active {
     @apply text-primary;
-
-    path {
-      fill: oklch(var(--p));
-    }
   }
 
   .dropdown-icon {
@@ -270,10 +251,6 @@
 
     .card {
       box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
-
-      &:hover {
-        box-shadow: var(--selected-shadow);
-      }
     }
   }
 
@@ -399,10 +376,6 @@
     .is-empty:before {
       content: attr(data-placeholder);
       @apply float-left text-base-content/70 pointer-events-none h-0;
-    }
-
-    img.ProseMirror-selectednode {
-      box-shadow: 0 0 0 3px oklch(var(--p) / 0.5);
     }
   }
 
