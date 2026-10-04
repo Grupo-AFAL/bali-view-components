@@ -10,12 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Gantt.** Con el cajón «sin fechas» en la página, el tablero ya no la desborda 12 px. React
-  Flow deja de avisar #004 («parent container needs a width and a height») en cada carga; sólo
-  queda en un teléfono de 320 px, donde el cronograma sigue sin ancho (pendiente de decisión,
-  #1303). La etiqueta «Color» baja de línea junto con su selector en vez de quedarse sola al final
-  de la anterior, y el caret de las filas y los íconos de los controles flotantes de zoom ya no
-  llegan a un lector de pantalla como imágenes sin nombre; sus botones conservan el nombre. Nada
-  que hacer en el anfitrión.
+  Flow deja de avisar #004 («parent container needs a width and a height») en cada carga. En un
+  teléfono la tabla deja al cronograma el 40 % del tablero, como en una tableta, hasta el mínimo
+  de 140 px del nombre: a 320 px el cronograma tenía 0 px y ahora 109. El minimapa no se dibuja
+  en un cronograma más angosto que él, donde tapaba las filas de la tabla. El nombre de una barra
+  se lee sobre su progreso: la parte que cae encima va en el `-content` de su color (o casi negro
+  en los rellenos sin ese token) y el progreso es opaco; una barra completa pasa de 1.82:1 a 7.32
+  en `afal-dark`. La etiqueta «Color» baja de línea junto con su selector, y el caret de las filas
+  y los íconos de los controles flotantes de zoom ya no llegan a un lector de pantalla como
+  imágenes sin nombre. Nada que hacer en el anfitrión; un catálogo que pinte un estado con el
+  `secondary` de los temas `light`/`dark` de daisyUI, o con el `primary` de `dark`, hereda el
+  contraste de esa pareja de daisyUI (3.04 y 4.13).
 
 ## [v3.7.0] - 2026-10-03
 
