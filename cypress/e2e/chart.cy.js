@@ -174,6 +174,10 @@ describe('Chart', () => {
     // measured 0.047 or less. The closest neighbours now are costa-norte's accent and secondary,
     // both golds, at 0.061 under tritanopia.
     const FLOOR = 0.05
+    // Series 1 and 2 are the whole of every two-series chart. costa-norte-dark's tan accent sat
+    // 0.061 from its gold primary under tritanopia; the sand that replaced it, 0.135. Every other
+    // theme's first pair measures 0.229 or more.
+    const FIRST_PAIR_FLOOR = 0.1
 
     const firstColor = (dataset) => [dataset.borderColor].flat()[0]
 
@@ -296,9 +300,10 @@ describe('Chart', () => {
 
             colours.forEach((colour, index) => {
               const next = (index + 1) % colours.length
+              const floor = index === 0 ? FIRST_PAIR_FLOOR : FLOOR
               DEFICIENCIES.forEach((deficiency) => {
                 const distance = cvdDistance(colour, colours[next], deficiency)
-                if (distance < FLOOR) {
+                if (distance < floor) {
                   collapsed.push(`${theme} series ${index + 1}-${next + 1} ${deficiency} ${distance.toFixed(3)}`)
                 }
               })
@@ -307,7 +312,7 @@ describe('Chart', () => {
         })
       })
 
-      cy.then(() => expect(collapsed, `neighbours closer than ΔE_OK ${FLOOR}`).to.deep.eq([]))
+      cy.then(() => expect(collapsed, `neighbours closer than ΔE_OK ${FLOOR}, series 1-2 than ${FIRST_PAIR_FLOOR}`).to.deep.eq([]))
     })
   })
 
