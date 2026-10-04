@@ -205,16 +205,16 @@ function FloatingControls ({ onZoomIn, onZoomOut, onFit, onToday, t }) {
   return (
     <div className='absolute bottom-3.5 left-3.5 z-30 flex flex-col overflow-hidden rounded-lg border border-base-content/15 bg-base-100 shadow-lg'>
       <button type='button' className={`${btn} border-b border-base-300`} onClick={onZoomIn} title={t('zoom_in')}>
-        <svg viewBox='0 0 16 16' width='16' height='16' className='fill-current'><path d='M7 3h2v4h4v2H9v4H7V9H3V7h4z' /></svg>
+        <svg viewBox='0 0 16 16' width='16' height='16' className='fill-current' aria-hidden='true'><path d='M7 3h2v4h4v2H9v4H7V9H3V7h4z' /></svg>
       </button>
       <button type='button' className={`${btn} border-b border-base-300`} onClick={onZoomOut} title={t('zoom_out')}>
-        <svg viewBox='0 0 16 16' width='16' height='16' className='fill-current'><path d='M3 7h10v2H3z' /></svg>
+        <svg viewBox='0 0 16 16' width='16' height='16' className='fill-current' aria-hidden='true'><path d='M3 7h10v2H3z' /></svg>
       </button>
       <button type='button' className={`${btn} border-b border-base-300`} onClick={onFit} title={t('fit')}>
-        <svg viewBox='0 0 16 16' width='15' height='15' className='fill-current'><path d='M2 2h5v2H4v3H2V2zm12 0v5h-2V4H9V2h5zM2 9h2v3h3v2H2V9zm10 3V9h2v5H9v-2h3z' /></svg>
+        <svg viewBox='0 0 16 16' width='15' height='15' className='fill-current' aria-hidden='true'><path d='M2 2h5v2H4v3H2V2zm12 0v5h-2V4H9V2h5zM2 9h2v3h3v2H2V9zm10 3V9h2v5H9v-2h3z' /></svg>
       </button>
       <button type='button' className={btn} onClick={onToday} title={t('go_to_today')}>
-        <svg viewBox='0 0 16 16' width='14' height='14' className='fill-current'><path d='M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2a3 3 0 100 6 3 3 0 000-6z' /></svg>
+        <svg viewBox='0 0 16 16' width='14' height='14' className='fill-current' aria-hidden='true'><path d='M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2a3 3 0 100 6 3 3 0 000-6z' /></svg>
       </button>
     </div>
   )

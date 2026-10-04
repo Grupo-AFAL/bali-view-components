@@ -1,3 +1,5 @@
+import { cdp, frameAt } from '../support/accessibility_tree'
+
 // Gantt island (#705): mounts GanttFlow through the COMPLETE circuit of a host —
 // startIslandLoader('gantt') in the main bundle reads the metas from
 // react_island_meta_tags, injects the gantt-island.js entry, registerIsland
@@ -203,6 +205,25 @@ describe('Gantt island', () => {
         const flow = warn.args.map(([message]) => String(message)).filter((message) => message.includes('error#004'))
         expect(flow, 'React Flow warning #004').to.deep.equal([])
       })
+    })
+  })
+
+  // The row carets and the floating zoom controls draw inline SVGs inside named buttons. Left in
+  // Chromium's accessibility tree they read as nine images with no name.
+  it('keeps the icons out of the accessibility tree and leaves their buttons named', () => {
+    cy.visit('/bali/gantt/default')
+    cy.get('button[title="Zoom in"]').should('exist')
+
+    cy.url().then((url) =>
+      cdp('Page.getFrameTree')
+        .then(({ frameTree }) => cdp('Accessibility.getFullAXTree', { frameId: frameAt(frameTree, url).id }))
+    ).then(({ nodes }) => {
+      const shown = nodes.filter((n) => !n.ignored)
+      const named = (role) => shown.filter((n) => n.role?.value === role).map((n) => n.name?.value || '')
+      expect(named('image').filter((name) => !name), 'images with no name').to.have.length(0)
+      expect(named('button').filter((name) => !name), 'buttons with no name').to.have.length(0)
+      expect(named('button'), 'floating controls').to.include.members(['Zoom in', 'Zoom out', 'Fit to window', 'Go to today'])
+      expect(named('button'), 'row toggles').to.include('Collapse')
     })
   })
 

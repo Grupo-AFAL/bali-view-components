@@ -19,6 +19,7 @@ function Caret ({ collapsed }) {
       width='12'
       height='12'
       className={`shrink-0 fill-current transition-transform ${collapsed ? '' : 'rotate-90'}`}
+      aria-hidden='true'
     >
       <path d='M6 4l4 4-4 4z' />
     </svg>
