@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `type: :date`, como `created_at` y `last_active_at` en los usuarios de gobierno-corporativo o
   `last_sign_in_at` en las cuentas de identity. Sin nada que hacer en el anfitrión.
 
+- **`Filters`: el disparador del multi-select dice si está abierto** (#1303), el de «es
+  cualquiera de» y «no es ninguno de»: lleva `aria-expanded` y deja de anunciar con
+  `aria-haspopup="listbox"` una lista de opciones que no existe; el panel son casillas. El que
+  arma el navegador lleva además entera una traducción con apóstrofo («Choisissez l'option»),
+  que cortaba el atributo y lo dejaba sin traducciones. Sin nada que hacer en el anfitrión.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added

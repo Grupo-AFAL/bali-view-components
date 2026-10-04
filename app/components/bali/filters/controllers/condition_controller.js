@@ -776,14 +776,14 @@ export class ConditionController extends Controller {
     return `
       <div class="relative w-full"
            data-controller="multi-select"
-           data-multi-select-translations-value='${JSON.stringify({
+           data-multi-select-translations-value="${this.escapeHtml(JSON.stringify({
              select_values: selectValuesLabel,
              selected_count: selectedCountTemplate
-           })}'
+           }))}"
            data-condition-target="value">
         <div tabindex="0"
              role="button"
-             aria-haspopup="listbox"
+             aria-expanded="false"
              class="select select-bordered select-sm w-full flex items-center cursor-pointer"
              data-action="click->multi-select#toggle keydown.enter->multi-select#toggle:prevent keydown.space->multi-select#toggle:prevent"
              data-multi-select-target="trigger">
