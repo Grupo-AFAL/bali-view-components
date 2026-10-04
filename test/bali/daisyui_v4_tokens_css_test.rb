@@ -4,8 +4,7 @@ require "test_helper"
 
 # daisyUI 5 renamed its colour tokens (`--p` is `--color-primary`, `--b2` is `--color-base-200`)
 # and defines none of the old ones, so a declaration that reads one is invalid at computed-value
-# time and the browser drops it without a word, as it did `.box-row`'s border and five
-# declarations of the RichTextEditor's.
+# time: it still wins the cascade and computes to `unset`.
 class BaliDaisyuiV4TokensCssTest < ActiveSupport::TestCase
   DAISYUI_V4_COLOUR_TOKENS = %w[
     p pc pf s sc sf a ac af n nc nf b1 b2 b3 bc in inc su suc wa wac er erc

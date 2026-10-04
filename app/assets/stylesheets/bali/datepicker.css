@@ -3,7 +3,6 @@
  *
  * Self-contained CSS for Flatpickr without vendor CSS dependency.
  * Built from scratch using DaisyUI patterns and Tailwind utilities.
- * ~500 lines vs ~900 lines vendor CSS
  *
  * UNLAYERED ON PURPOSE (see ../bali.css). Flatpickr names one of its state
  * classes `static`, which collides with the Tailwind utility of the same name
@@ -303,9 +302,10 @@
   padding: 0.25rem;
   padding-right: 1.25rem;
   margin: 0;
-  /* The box is border-box, so the padding comes out of the width: a bare `6ch` left the digits
-     3.3ch and cut «2026» to «202» (scrollWidth 61 against 55). */
-  width: calc(4ch + 1.5rem);
+  /* Four digits, with the padding the arrows sit in on top: as border-box, `6ch` left the
+     digits 3.3ch and cut 2026 to 202 (scrollWidth 61 against 55). */
+  box-sizing: content-box;
+  width: 4ch;
   height: auto;
   line-height: inherit;
   vertical-align: middle;
