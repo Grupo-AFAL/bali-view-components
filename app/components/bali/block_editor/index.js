@@ -1,4 +1,5 @@
 import { ReactIslandController } from '../../../frontend/bali/react-island'
+import { EXPORT_COLORS } from './constants'
 
 // BlockNote appends an EMPTY <style> per editor to the head (its rules go in
 // through insertRule) and takes it out with `head.removeChild`. Turbo's head
@@ -273,7 +274,8 @@ export class BlockEditorController extends ReactIslandController {
       }
 
       const exporter = new PDFExporter(this.blockNoteEditor.schema, mappings, {
-        resolveFileUrl: this._resolveFileUrl
+        resolveFileUrl: this._resolveFileUrl,
+        colors: EXPORT_COLORS
       })
       const pdfDocument = await exporter.toReactPDFDocument(this.blockNoteEditor.document)
       const blob = await pdf(pdfDocument).toBlob()
@@ -302,7 +304,8 @@ export class BlockEditorController extends ReactIslandController {
       }
 
       const exporter = new DOCXExporter(this.blockNoteEditor.schema, mappings, {
-        resolveFileUrl: this._resolveFileUrl
+        resolveFileUrl: this._resolveFileUrl,
+        colors: EXPORT_COLORS
       })
       const docxDocument = await exporter.toDocxJsDocument(this.blockNoteEditor.document)
       const blob = await docx.Packer.toBlob(docxDocument)

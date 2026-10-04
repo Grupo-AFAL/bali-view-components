@@ -12,6 +12,7 @@ describe('colours that follow the theme', () => {
   afterEach(() => { unhover() })
 
   const AA = 4.5
+  const HIGHLIGHTS = ['gray', 'brown', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink']
 
   const useTheme = (theme) => {
     cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
@@ -262,6 +263,30 @@ describe('colours that follow the theme', () => {
           expect(style(el).color, `${theme}: ${el.textContent.trim()}`).to.equal(ink)
         })
       })
+    })
+
+    // BlockNote's own palette read 2.11:1 for yellow text on the light themes and 2.27 for the
+    // text over the gray highlight on afal-dark.
+    it(`reads every text colour and highlight of the BlockEditor at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/block_editor/default')
+      const blockNote = ($el) => $el[0].ownerDocument.defaultView.Stimulus
+        .getControllerForElementAndIdentifier($el[0], 'block-editor').blockNoteEditor
+      cy.get('[data-controller~="block-editor"]').should(($el) => {
+        expect(blockNote($el), 'BlockNote editor').to.be.an('object')
+      }).then(($el) => {
+        const editor = blockNote($el)
+        editor.replaceBlocks(editor.document, HIGHLIGHTS.map(colour => ({
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: `${colour} text`, styles: { textColor: colour } },
+            { type: 'text', text: ' ', styles: {} },
+            { type: 'text', text: `${colour} highlight`, styles: { backgroundColor: colour } }
+          ]
+        })))
+      })
+      useTheme(theme)
+      everyReadsAtAA('.bn-editor [data-style-type="textColor"], .bn-editor [data-style-type="backgroundColor"]',
+        theme, HIGHLIGHTS.length * 2)
     })
 
     // BlockNote's fixed quote grey: 4.30:1 on the light themes, 3.69 on dark and costa-norte-dark.
