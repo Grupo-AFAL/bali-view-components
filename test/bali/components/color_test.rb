@@ -124,7 +124,7 @@ class BaliColorTest < ComponentTestCase
   end
 
   def test_gantt_status_pills_write_out_the_text_soft_utility
-    assert_equal(text_soft_mix("${ink}"), gantt_var_color[/text: .*`([^`]+)`$/, 1])
+    assert_equal(text_soft_mix("${ink}"), gantt_var_color[/text: [^\n]*`([^`\n]+)`/, 1])
   end
 
   def test_error_ink_keeps_the_text_soft_mix_on_a_dark_scheme

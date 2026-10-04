@@ -176,7 +176,7 @@ yours and not the component's.
 | `subtitle` | Second line, truncated. |
 | `icon` | Leading icon. |
 | `meta` | Trailing column — a date, a count. |
-| `meta_color` | `:error`, `:warning`, `:success`, `:primary`. The overdue case both source listings paint red. |
+| `meta_color` | `:error`, `:warning` (`:success` and `:primary` are deprecated, removed in 4.0). The overdue case both source listings paint red. |
 | `with_tag(text:, color:)` | Any number of badges above the title. |
 | a block | Free content under the subtitle, for whatever the fields do not name. |
 

@@ -248,6 +248,18 @@ describe('SplitView structured list', () => {
       cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
     })
 
+    // The preview narrows its own page one but pages against the dummy's
+    // `/split-view`, so the filter has to reach that URL in its terms: 4 Action
+    // and 2 Comedy over pages of five, and an unfiltered page 2 would add five.
+    it('carries a preview filter into the pages the sentinel fetches', () => {
+      cy.visit('/bali/split_view/multi_filters?q%5Bgenre_in%5D%5B%5D=Action&q%5Bgenre_in%5D%5B%5D=Comedy')
+      cy.get('[data-testid="list-count"]').should('have.text', '6')
+
+      scrollToBottom()
+      rows().should('have.length', 6)
+      cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
+    })
+
     // Multi mode: several pills on at once, each one removing only its own value.
     // Against the dummy page, which renders `filter_mode: :multi` over a
     // multi-valued param when asked for it.

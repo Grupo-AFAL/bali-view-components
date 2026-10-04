@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`Filters`: el widget de valor sale de una sola lista de operadores** (#1303).
+  `Filters::Condition::Component#range_operator?` y `#multiple_operator?` leen la marca
+  `range:`/`multiple:` que `Filters::Operators.for_type` pone en el operador, la misma que lee
+  el navegador, en vez de repetir `between`, `in` y `not_in`; y `condition_controller.js` deja
+  su copia en inglés de los operadores, que nunca se usaba. Sin nada que hacer en el anfitrión.
+
+- **`DataTable`: en el teléfono el switch de vistas va al «⋯»** (#1303), primero en el menú, y
+  la búsqueda toma su lugar en la fila: a 320 px el campo de búsqueda de `/admin/movies` pasa de
+  29 a 131 px (a 390, de 99 a 201). Desde 640 px nada cambia: el switch sigue en la fila y sólo se encoge.
+  Lo notan los listados con `with_view_switch`, dos en afal-apps. Sin nada que hacer en el
+  anfitrión.
+
+- **`Filters`: el popover mide 42rem en vez de 40rem** (#1303), para que el campo de un rango de
+  fechas lo muestre entero: el más ancho, «May 28, 2026 to May 30, 2026», ocupa 191 px y el
+  campo pasa de 172 a 204. Sin nada que hacer en el anfitrión.
+
+- **`costa-norte-dark`: el accent pasa del tostado a arena, `oklch(0.87 0.05 78)`.** Con el
+  tostado, las dos primeras series de una gráfica (el primary dorado y el accent) quedaban a
+  ΔE_OK 0.061 con tritanopía; con arena, a 0.135. Todo lo que usa accent en ese tema se ve más
+  claro y su texto gana contraste (botón 6.85 → 10.69:1). `costa-norte` claro no cambia. Hoy no
+  lo ve nadie: costa-norte pinta su menú lateral con su propio bloque `costa-norte-dark`. Lo verá
+  el día que importe el tema de Bali o active el modo oscuro; no tiene que cambiar nada.
+
+### Deprecated
+
+- **`Bali::SplitView` — `meta_color: :success` y `meta_color: :primary` en `with_item`.** Ninguna app
+  los usa (afal-apps y gobierno-corporativo pintan sólo `:error` y `:warning`). Siguen pintando
+  igual, avisan por `Bali.deprecator` y se retiran en 4.0. Si los usas: `:error`, `:warning` o
+  ningún `meta_color` para el tono neutro.
+
+- **`f.coordinates_polygon_group` y `f.coordinates_polygon_field`, el campo de polígono sobre un
+  mapa** (#1303). Dibujan con `google.maps.drawing.DrawingManager`, que el API de Maps JavaScript
+  dejó de ofrecer en la versión 3.65, así que el campo ya no puede dibujar un polígono. Cada
+  llamada avisa por `Bali.deprecator`, y en 4.0 se borran sin reemplazo, junto con el controlador
+  `drawing-maps`; su preview de Lookbook ya no está. Ninguna app de la flota los llama.
+  **ga-apps** conserva `pin 'bali/drawing-maps'` en `config/importmap.rb`: hoy resuelve, pero en
+  4.0 se borra `bali/controllers/drawing-maps-controller.js`, al que apunta, y deja de resolver.
+  Quitarlo antes de subir.
+
+### Removed
+
+- **Datepicker: las reglas de `weekNumbers`, `weekSelect` e `inline`.** El controlador nunca pasa
+  esas opciones y ninguna app llama a flatpickr por su cuenta, así que no tocaban nada. Una app que
+  arme su propio flatpickr con `inline: true` ve ahora el calendario oculto: nunca recibe `.open`,
+  así que queda en el `display: none` de la regla base, y tiene que mostrarlo con su propio CSS.
+
+- **Las variables de daisyUI 4 que quedaban** (`oklch(var(--b2))` en `.box-row` y cinco
+  `oklch(var(--p)…)` en el RichTextEditor). daisyUI 5 no las define, así que esas declaraciones
+  computaban a `unset` y ya no pintaban nada; nada cambia en pantalla. La única salvedad es el
+  hover de `.image-grid-component .card` en el panel de imágenes del RichTextEditor, que ya no
+  quita la sombra de reposo, y ese panel sólo aparece con `images_url`, que ninguna app pasa.
+
 ### Fixed
 
 - **`text-soft-error` vuelve a ser rojo en los temas claros.** En v3.7.0 el texto de error
@@ -18,6 +72,173 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `text-soft-*`. Un tema oscuro propio tiene que declarar `color-scheme: dark`, como ya hacen los
   de todas las apps. Un navegador sin `light-dark()` o sin colores relativos ve el café de antes
   en la utilidad y el color del texto de alrededor en la píldora del Gantt.
+
+- **Gantt.** Con el cajón «sin fechas» en la página, el tablero ya no la desborda 12 px. React
+  Flow deja de avisar #004 («parent container needs a width and a height») en cada carga. En un
+  teléfono la tabla deja al cronograma el 40 % del tablero, como en una tableta, hasta el mínimo
+  de 140 px del nombre: a 320 px el cronograma tenía 0 px y ahora 109. El minimapa no se dibuja
+  en un cronograma más angosto que él, donde tapaba las filas de la tabla. El nombre de una barra
+  se lee sobre su progreso: la parte que cae encima va en el `-content` de su color (o casi negro
+  en los rellenos sin ese token) y el progreso es opaco; una barra completa pasa de 1.82:1 a 7.32
+  en `afal-dark`. La etiqueta «Color» baja de línea junto con su selector, y el caret de las filas
+  y los íconos de los controles flotantes de zoom ya no llegan a un lector de pantalla como
+  imágenes sin nombre. Nada que hacer en el anfitrión; un catálogo que pinte un estado con el
+  `secondary` de los temas `light`/`dark` de daisyUI, o con el `primary` de `dark`, hereda el
+  contraste de esa pareja de daisyUI (3.04 y 4.13).
+
+- **`Bali::SplitView`: atrás y adelante devuelven el detalle que corresponde a la URL.** Volver a una
+  lista después de una sesión que empezó en un enlace profundo (`?selected=3`) mostraba otra vez ese
+  detalle, y volver o avanzar a una fila que llegó por scroll infinito (fuera de la página 1) dejaba
+  la fila marcada y el detalle vacío. El panel limpio se recuerda ahora por frame y URL, y la
+  página que se deja en un atrás/adelante ya no se modifica antes de que Turbo la guarde. Nada que
+  hacer en un anfitrión.
+
+- **Página de referencia `/split-view` de la dummy: en el teléfono el detalle queda a la vista.** Con
+  los paneles apilados (debajo de `lg`) la lista mide 12rem en vez de 26rem, así que al tocar una fila
+  la ficha entera cabe en una pantalla de 390×844 sin desplazar la página (antes terminaba en y=998).
+  Se ajusta con la propiedad `--bali-split-master-max-h` y no con `max_height:`, que es un solo valor.
+  Un anfitrión que copie la página puede hacer lo mismo; nada que hacer si no.
+
+- **Previews de `Bali::SplitView`: la lista filtrada pide sus páginas siguientes con el filtro.** Con
+  `?status=` o `?q[genre_in][]=` el scroll infinito traía páginas sin filtrar y sumaba filas que no
+  correspondían, también cuando el filtro cabía en una página. Sólo afecta a Lookbook.
+
+- **Navbar: el anillo de foco toma el color del texto de la barra.** Enlaces, botones y el
+  disparador «More» dibujan el anillo en el `-content` del preset, y en `base-content` con la
+  barra transparente, en el menú del teléfono y en el panel de un Dropdown. El de un botón
+  relleno (`btn-neutral`) medía 1.26–1.72:1 sobre la página en los temas oscuros y 1.00 sobre
+  una barra `neutral`, y los enlaces del menú no tenían anillo. Con `color: nil`, o con la barra
+  transparente sobre una sección oscura, el host fija el color del anillo en
+  `--bali-navbar-ring`; el YARD de `transparency:` trae el ejemplo.
+
+- **Navbar: con `transparency: true` la barra sale transparente desde el servidor.** Ya no se ve
+  el relleno del preset hasta que conecta Stimulus, y una página que carga con scroll toma la
+  barra opaca al conectar. Nada que hacer.
+
+- **Dropdown: el ítem con el foco de teclado lleva anillo**, `base-content` y por dentro del
+  ítem, en todos los menús hechos con Dropdown (UserMenu, ActionsDropdown, ToolsMenu…). Antes
+  sólo llevaba el tinte del 10 % de daisyUI (1.21–1.34:1), y «Cerrar sesión» el anillo del
+  navegador. El checkbox de ColumnSelector conserva el anillo de daisyUI.
+
+- **Topbar: con tres acciones, el disparador del menú de usuario cabe a 320 px.** La zona de
+  búsqueda cede espacio y la etiqueta del disparador de Command se corta con «…»; antes se
+  quedaba en ~100 px y el avatar terminaba 17 px fuera de la pantalla.
+
+- **Command: una fila de acción que coincide con la búsqueda cuenta como resultado.** Ya no
+  aparece «Sin resultados» ni «0 resultados» con la fila a la vista, y la coincidencia se
+  resalta. Las filas de acción que no coinciden siguen fuera del conteo.
+
+- **DocumentEditor.** Un guardado que falla muestra «Save failed»: «Unsaved changes» lo tapaba en
+  el mismo instante. Lo escrito mientras el guardado viaja queda como sin guardar, en vez de
+  «Saved at…». Con `format: :prosemirror` —el que toma por omisión con `comments:`— guardar
+  mandaba el Array de bloques de BlockNote mientras el documento no tuviera ningún comentario;
+  ahora manda el formato fijado (el editor sigue leyendo los dos). En el teléfono, el índice
+  abierto se apila sobre el editor en vez de dejarle una columna de 70 px. El menú «…» de un
+  comentario del panel redondea sus esquinas como los demás menús. Nada que hacer en la app.
+
+- **BlockEditor.** El texto de las citas pasa AA en los seis temas (medía 3.69–4.30:1). Los
+  colores de texto y de resaltado conservan su tono con la luminosidad justa para pasar AA en los
+  seis temas (el texto amarillo medía 2.11:1 en los claros), y la exportación a PDF y Word usa el
+  mismo juego claro. Como campo de formulario, el editor muestra sólo el asa «⠿» del bloque, dentro
+  del campo —el texto empieza 16 px más adentro—; el «+», que hace lo mismo que Enter o «/», ya no
+  aparece. DocumentEditor y DocumentPage no cambian. En el teléfono, con `table_of_contents:` o
+  `comments:`, la página ya no se desplaza de lado: el editor ocupa su columna y una tabla ancha se
+  desplaza dentro de su marco. Nada que hacer en la app.
+
+- **Clipboard.** El contenido de éxito deja de declarar `text-success`, que nunca se pintó: el
+  botón recibe sólo el HTML de dentro del `<span>`. Lo que se ve no cambia; quien quiera color lo
+  pone en el contenido que pasa a `with_success_content`.
+
+- **Datepicker: el encabezado del calendario y el foco de teclado.** El año ya no se corta
+  («2026» se leía «202»). Con foco, el año lleva el anillo del color del texto que ya marcaba su
+  hover en vez del tinte blanco que lo bajaba a 2.96:1 en `dark`, y el select del mes muestra
+  ese mismo anillo, donde antes el foco no se veía en ningún tema. Las flechas del año quedan
+  enteras en reposo (al 70 % medían 2.80:1 en `dark`), y un día de otro mes con foco de teclado
+  muestra el relleno de cualquier día con foco. Nada que hacer en la app.
+
+- **`RecurrentEventRuleForm` ya no corta el texto de sus selects** (#1303). Los selects de las
+  filas anual y mensual miden lo que su opción más larga: antes el anual cortaba «Weekend day»
+  y los dos mensuales, a 101 px (82 a 320), cortaban «Wednesday» (a 320 px, 8 de los 10 días), y
+  en español «Fines de semana» y «Días laborales». Cada fila pasa sus selects al renglón
+  siguiente cuando no caben, como ya hacía la de «On the» anual. Ninguna de las nueve apps usa
+  el componente.
+
+- **El `Footer` centrado ya no se sale de la pantalla en un celular** (#1303). Con `center: true`
+  sus secciones iban lado a lado debajo de 640 px y a 390 la última quedaba fuera (la página
+  medía 410); ahora van una debajo de otra a cualquier ancho, como ya iban de 640 px para arriba,
+  que no cambia. Ninguna de las nueve apps usa el componente.
+
+- **El `Calendar` cabe en un celular** (#1303). El título y los botones de periodo iban en un
+  solo renglón que no se partía: a 390 px la vista de mes medía 414 y la de año 364 a 320. Ahora
+  los botones pasan debajo del título cuando no caben. Los nombres de los días, que a 390 px se
+  montaban unos sobre otros, se abrevian («Lun», «Mon»: los de `date.abbr_day_names`, como en la
+  vista de año) cuando su columna mide menos de 98 px, lo que mide «Wednesday». Decide el ancho de
+  la columna y no el de la pantalla, así que cuentan `weekdays_only` y la barra lateral del
+  anfitrión; donde caben siguen completos, y a 1024 y 1280 la captura es idéntica. Lo ven
+  gobierno-corporativo y ga-apps en pantallas angostas; nada que hacer.
+
+- **Drawer cerrado.** Ya no se alcanza con Tab: sus controles seguían en el orden de tabulación
+  fuera de la pantalla (el ✕ en x=1744 de una ventana de 1280); ahora el cerrado queda
+  `visibility: hidden` en cuanto termina de deslizarse. Un drawer cerrado dentro del contenido de
+  otro abierto ya no entra a la pantalla con él ni tiende su fondo oscuro sobre el panel de
+  afuera, que dejaba sin clic al botón que lo abre. En el teléfono el panel conserva el 85 % del
+  ancho mientras se cierra, en vez de saltar al ancho completo. Nada que hacer en las apps.
+
+- **Modal y Drawer renderizados abiertos (`active: true`).** El foco inicial va al `autofocus`
+  del contenido o al primer control del panel, igual que al abrirlos desde un botón; antes caía
+  en el panel mismo. Nada que hacer.
+
+- **Trampa de Tab de Modal y Drawer.** Ya no cuenta controles que no se ven: el ✕ de un drawer
+  cerrado dentro del panel dejaba salir a Tab del overlay, y un `input[type=hidden]` al final
+  (el de un `button_to`) dejaba Shift+Tab atorado en el primer control. Nada que hacer.
+
+- **El `<dialog>` del Drawer ya no lleva la clase `group`.** Con ella, un `group-hover:` dentro
+  del drawer se encendía al pasar el puntero por cualquier parte del panel: el botón de quitar
+  imagen de `Bali::ImageField` y su velo aparecían sin tocar la imagen. Un `group-*` en el
+  contenido de un drawer responde ahora sólo a su propio `.group`; ninguna app dependía del del
+  drawer.
+
+- **Para quien trabaja en el repo: el Lookbook y la dummy** (#1303). Nada que hacer en las apps.
+  - `widget/default` respeta `count` también después de guardar un `.js` con el servidor
+    corriendo; la guarda de `test/requests/icon_previews_test.rb` cubre ahora las clases que
+    define el propio preview y las constantes que las guardan.
+  - La guía de patrones de componentes vuelve a mostrar los `<%#` de sus ejemplos, y
+    `test/guide_pages_test.rb` prohíbe uno sin escapar (`<%%#`) en cualquier guía.
+  - La guía de maestro-detalle repetía tres veces en una línea el título «What this is not».
+  - El FeedbackWidget de las páginas de admin habla con los sustitutos de Opina de la propia
+    dummy en vez de con `localhost:3008`, y la consola queda limpia.
+
+- **`Filters`: «en» con una fecha trae las filas de ese día** (#1303). Sobre una columna de fecha
+  y hora, Ransack leía `created_at_eq=2026-08-27` como la medianoche del 27 y no traía nada.
+  `FilterForm` lee ahora la fecha sola de un `_eq` del panel de filtros (`q[g]`) sobre una
+  columna de fecha y hora como el día entero, en un grupo propio para no cambiar lo que pide un
+  grupo «o»; sobre una columna de fecha o de texto sigue comparando igual. Un `_eq` suelto en
+  `q`, fuera de `q[g]`, sigue comparando contra la medianoche. Una vista guardada con ese
+  filtro lo guarda tal cual y trae el día al aplicarse. Lo notan los paneles que filtran una columna de fecha y hora con
+  `type: :date`, como `created_at` y `last_active_at` en los usuarios de gobierno-corporativo o
+  `last_sign_in_at` en las cuentas de identity. Sin nada que hacer en el anfitrión.
+
+- **`Filters`: el disparador del multi-select dice si está abierto** (#1303), el de «es
+  cualquiera de» y «no es ninguno de»: lleva `aria-expanded` y deja de anunciar con
+  `aria-haspopup="listbox"` una lista de opciones que no existe; el panel son casillas. El que
+  arma el navegador lleva además entera una traducción con apóstrofo («Choisissez l'option»),
+  que cortaba el atributo y lo dejaba sin traducciones. Sin nada que hacer en el anfitrión.
+
+- **Chart: las gráficas circulares sin ejes, y la leyenda sobrevive al cambio de tema.**
+  - `pie`, `doughnut`, `polarArea` y `radar` dibujaban detrás de la gráfica un eje x, un eje y y
+    la cuadrícula. Ya no; un `scales:` propio en `options:` se sigue aplicando.
+  - Cambiar de tema volvía a mostrar lo ocultado desde la leyenda. Ahora una serie, o una porción
+    de un pie, doughnut o polarArea, ocultada sigue oculta, y la gráfica cambia de colores sin
+    repetir su animación de entrada.
+
+  Lo ven las gráficas circulares de ga-apps, centinela-web y gobierno-corporativo; no hay nada que
+  cambiar.
+
+### Documentation
+
+- **Los previews de `Card` caben en un celular** (#1303). Sus tarjetas `w-96` (384 px) pasan a
+  `w-96 max-w-full`: a 390 px la página ya no se desplaza de lado (medía 400), y a 1280 la
+  captura es idéntica. Sólo Lookbook; nada que hacer en un anfitrión.
 
 ## [v3.7.0] - 2026-10-03
 

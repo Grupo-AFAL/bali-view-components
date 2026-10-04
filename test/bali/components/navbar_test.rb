@@ -47,6 +47,17 @@ class BaliNavbarComponentTest < ComponentTestCase
     assert_selector('[data-navbar-allow-transparency-value="true"]')
   end
 
+  # From the first paint, not from `connect()`: until Stimulus connected, the bar
+  # painted its preset's fill and shadow.
+  def test_transparency_renders_the_bar_transparent_from_the_server
+    render_inline(Bali::Navbar::Component.new(transparency: true))
+    assert_selector("nav.navbar.is-transparent")
+
+    render_inline(Bali::Navbar::Component.new)
+    assert_selector("nav.navbar")
+    assert_no_selector("nav.is-transparent")
+  end
+
   def test_with_custom_burger_button_renders_navbar_component_with_custom_burger
     render_inline(Bali::Navbar::Component.new) do |c|
       c.with_brand { '<a class="btn btn-ghost text-xl">Bali</a>'.html_safe }

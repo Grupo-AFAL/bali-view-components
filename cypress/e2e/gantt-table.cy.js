@@ -155,20 +155,22 @@ describe('Gantt table', () => {
     })
   })
 
-  // Every column fits only on a board of 840 px or more. Between 500 and 840 the table stops
-  // where the timeline keeps 40% of the board: opened with every column, it would leave a phone's
-  // 358 px board no timeline at all.
-  it('leaves the timeline 40% of a tablet board and gives the table the rest', () => {
-    cy.viewport(768, 1024)
-    cy.visit('/bali/gantt/default')
-    cy.get(ROWS).should('have.length.at.least', 1)
+  // Every column fits only on a board of 840 px or more. Below that the table stops where the
+  // timeline keeps 40% of the board: opened with every column, it would leave a phone's 358 px
+  // board no timeline at all, and a 300 px floor left a 288 px one none.
+  ;[['tablet', 768, 1024], ['phone', 320, 700]].forEach(([device, width, height]) => {
+    it(`leaves the timeline 40% of a ${device} board and gives the table the rest`, () => {
+      cy.viewport(width, height)
+      cy.visit('/bali/gantt/default')
+      cy.get(ROWS).should('have.length.at.least', 1)
 
-    cy.document().should((doc) => {
-      const { table } = tableOf(doc)
-      const board = box(table.parentElement.parentElement).width
-      expect(board - box(table).width, 'px beside the table, for the splitter and the timeline')
-        .to.be.at.least(Math.floor(board * 0.4))
-      expect(box(table).width, 'table width').to.be.closeTo(board * 0.6, 0.5)
+      cy.document().should((doc) => {
+        const { table } = tableOf(doc)
+        const board = box(table.parentElement.parentElement).width
+        expect(board - box(table).width, 'px beside the table, for the splitter and the timeline')
+          .to.be.at.least(Math.floor(board * 0.4))
+        expect(box(table).width, 'table width').to.be.closeTo(board * 0.6, 0.5)
+      })
     })
   })
 

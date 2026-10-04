@@ -162,10 +162,10 @@ module Bali
             group_by: group_by.presence,
             saved_view: saved_view.presence
           )
-          filter_form = MovieFilterForm.new(
+          filter_form = Bali::DataTable::Preview::CanonicalIndex::MovieFilterForm.new(
             Movie.all, filter_params,
             storage_id: "lookbook_movies",
-            saved_views_store: SavedViewsStore.new
+            saved_views_store: Bali::DataTable::Preview::CanonicalIndex::SavedViewsStore.new
           )
           pagy, movies = pagy(filter_form.result.includes(:studio), limit: 8, page: page)
 
@@ -195,7 +195,7 @@ module Bali
         filter_form = Bali::FilterForm.new(
           Movie.all,
           ActionController::Parameters.new(saved_view: saved_view),
-          saved_views_store: PreviewSavedViewsStore.new
+          saved_views_store: Bali::DataTable::Preview::PreviewSavedViewsStore.new
         )
         render_with_template(
           template: "bali/data_table/previews/with_saved_views",

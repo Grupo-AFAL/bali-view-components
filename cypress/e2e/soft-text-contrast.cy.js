@@ -35,7 +35,6 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
     cy.get('[data-dropdown-target="trigger"]').first().click()
     cy.get(DELETE_ITEM).should('be.visible')
   }
-  const CLEAR_POLYGON = '[data-action="drawing-maps#clear"]'
   // The row direct-upload clones from its template once a file is picked, in the state the
   // controller leaves it after a failed and after a finished upload.
   const uploadRow = () => {
@@ -239,14 +238,6 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
       cy.get(DELETE_ITEM).then(hover)
     }, [
       ['hovered "Delete" item', DELETE_ITEM, 1]
-    ], true],
-    ['form/coordinates_polygon/default', null, [
-      ['"Clear"', CLEAR_POLYGON, 1]
-    ]],
-    ['form/coordinates_polygon/default', () => {
-      cy.get(CLEAR_POLYGON).then(hover)
-    }, [
-      ['hovered "Clear"', CLEAR_POLYGON, 1]
     ], true],
     ['widget/default?failed=true', null, [
       ['load error', '.bali-widget-body p.text-xs', 1]

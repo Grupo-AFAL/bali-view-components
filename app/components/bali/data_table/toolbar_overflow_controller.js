@@ -17,11 +17,12 @@ const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tab
  * replaces the container; an in-memory map of "where each control used to live" would be lost
  * on the reconnect and would leave them trapped inside the ⋯.
  *
- * WHAT can collapse is declared by the priority (`threshold`, see OVERFLOW_PRIORITIES in the
- * component); HOW MUCH collapses is decided by MEASURING the row. The breakpoint is only still
- * the mobile floor: the width the toolbar has is not set by the viewport but by the host's
- * layout —a sidebar eats 300px of it— and with the cut fixed at `sm` the row got squeezed
- * without collapsing anything, leaving the search painted on top of grouping and columns.
+ * WHAT can collapse is declared by the priority (`threshold`, and `narrowThreshold` below the
+ * breakpoint; see OVERFLOW_PRIORITIES in the component); HOW MUCH collapses is decided by
+ * MEASURING the row. The breakpoint is only still the mobile floor: the width the toolbar has
+ * is not set by the viewport but by the host's layout —a sidebar eats 300px of it— and with
+ * the cut fixed at `sm` the row got squeezed without collapsing anything, leaving the search
+ * painted on top of grouping and columns.
  *
  *   <div data-controller="toolbar-overflow">
  *     <div data-toolbar-overflow-target="group" data-toolbar-overflow-group="left">
@@ -42,7 +43,9 @@ export default class extends Controller {
 
   static values = {
     breakpoint: { type: Number, default: 640 }, // Tailwind `sm`
-    threshold: { type: Number, default: 50 }
+    threshold: { type: Number, default: 50 },
+    // Below the breakpoint. See NARROW_OVERFLOW_THRESHOLD in the component, which emits both.
+    narrowThreshold: { type: Number, default: 50 }
   }
 
   connect () {
@@ -171,7 +174,7 @@ export default class extends Controller {
   collapseAll () {
     if (!this.hasMenuTarget) return
 
-    this.collapsibleItems()
+    this.collapsibleItems(this.narrowThresholdValue)
       .filter(item => !this.menuTarget.contains(item))
       .forEach(item => this.menuTarget.appendChild(item))
   }
@@ -185,7 +188,7 @@ export default class extends Controller {
   collapseUntilItFits () {
     if (!this.hasMenuTarget) return
 
-    for (const item of this.collapsibleItems().reverse()) {
+    for (const item of this.collapsibleItems(this.thresholdValue).reverse()) {
       if (!this.overflowing()) return
 
       this.menuTarget.appendChild(item)
@@ -235,9 +238,9 @@ export default class extends Controller {
   // toolbar's. It holds because the priorities descend following the row (see
   // OVERFLOW_PRIORITIES); renumbering them without looking at the layout breaks this
   // correspondence without anything failing.
-  collapsibleItems () {
+  collapsibleItems (threshold) {
     return this.itemTargets
-      .filter(item => this.priorityOf(item) < this.thresholdValue)
+      .filter(item => this.priorityOf(item) < threshold)
       .sort((a, b) => this.priorityOf(b) - this.priorityOf(a))
   }
 
@@ -299,7 +302,7 @@ export default class extends Controller {
     // highest-priority control that has just come back to the row — the first thing the menu
     // offered.
     if (element === this.overflowTarget) {
-      const home = this.isRendered(element) ? this.overflowTrigger() : this.collapsibleItems()[0]
+      const home = this.isRendered(element) ? this.overflowTrigger() : this.collapsibleItems(this.narrowThresholdValue)[0]
       this.focusableWithin(home)?.focus({ preventScroll: true })
       return
     }

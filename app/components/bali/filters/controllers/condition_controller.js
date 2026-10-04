@@ -94,7 +94,7 @@ export class ConditionController extends Controller {
       this.attributeHiddenTarget.value = attributeKey
     }
 
-    // Update operators for this type (from data attribute or fallback)
+    // Update operators for this type (from the data attribute or the translations)
     this.updateOperators(type, operators)
 
     // The operator may have changed with the list
@@ -363,7 +363,8 @@ export class ConditionController extends Controller {
   }
 
   // `range` or `multiple`, as Bali::Filters::Operators.for_type marks the chosen operator: its
-  // <option> carries the mark, from condition/component.html.erb or #updateOperators.
+  // <option> carries the mark, from condition/component.html.erb or #updateOperators. The
+  // template draws its own widget from the same mark (Condition::Component#range_operator?).
   operatorFlag (flag) {
     const option = this.hasOperatorTarget ? this.operatorTarget.selectedOptions[0] : null
     return option?.dataset[flag] === 'true'
@@ -372,12 +373,13 @@ export class ConditionController extends Controller {
   /**
    * Update the operator dropdown based on attribute type
    * @param {string} type - The attribute type
-   * @param {Array} operatorsFromData - Optional operators from data attribute (single source of truth)
+   * @param {Array} operatorsFromData - The attribute option's data-operators, if it has them
    */
   updateOperators (type, operatorsFromData = null) {
     if (!this.hasOperatorTarget) return
 
-    // Use operators from data attribute if provided, otherwise fall back to defaults
+    // The blank "Select field" option carries no data-operators: it gets its type's from the
+    // translations, which come from the same Operators.for_type.
     const operators = operatorsFromData?.length > 0
       ? operatorsFromData
       : this.getOperatorsForType(type)
@@ -519,61 +521,10 @@ export class ConditionController extends Controller {
     }
   }
 
-  /**
-   * Get operators for a given type.
-   * Uses translations from Ruby if available, falls back to hardcoded defaults.
-   */
+  // Bali::Filters::Operators.for_type, sent per type in component.rb's translations_json. An
+  // unknown type gets the text operators, as `for_type` gives it.
   getOperatorsForType (type) {
-    // Try to get operators from translations (provided by Ruby)
-    const translatedOperators = this.t.operators?.[type]
-    if (translatedOperators && translatedOperators.length > 0) {
-      return translatedOperators
-    }
-
-    // Fallback to hardcoded defaults (English)
-    const fallbackOperators = {
-      text: [
-        { value: 'cont', label: 'contains' },
-        { value: 'eq', label: 'is exactly' },
-        { value: 'start', label: 'starts with' },
-        { value: 'end', label: 'ends with' },
-        { value: 'not_cont', label: 'does not contain' },
-        { value: 'not_eq', label: 'is not' }
-      ],
-      number: [
-        { value: 'eq', label: '=' },
-        { value: 'not_eq', label: '≠' },
-        { value: 'gt', label: '>' },
-        { value: 'lt', label: '<' },
-        { value: 'gteq', label: '≥' },
-        { value: 'lteq', label: '≤' }
-      ],
-      date: [
-        { value: 'eq', label: 'is' },
-        { value: 'between', label: 'between', range: true },
-        { value: 'gt', label: 'after' },
-        { value: 'lt', label: 'before' },
-        { value: 'gteq', label: 'on or after' },
-        { value: 'lteq', label: 'on or before' }
-      ],
-      datetime: [
-        { value: 'eq', label: 'is' },
-        { value: 'between', label: 'between', range: true },
-        { value: 'gt', label: 'after' },
-        { value: 'lt', label: 'before' },
-        { value: 'gteq', label: 'on or after' },
-        { value: 'lteq', label: 'on or before' }
-      ],
-      select: [
-        { value: 'eq', label: 'is' },
-        { value: 'not_eq', label: 'is not' },
-        { value: 'in', label: 'is any of', multiple: true },
-        { value: 'not_in', label: 'is not any of', multiple: true }
-      ],
-      boolean: [{ value: 'eq', label: 'is' }]
-    }
-
-    return fallbackOperators[type] || fallbackOperators.text
+    return this.t.operators?.[type] || this.t.operators?.text || []
   }
 
   /**
@@ -776,14 +727,14 @@ export class ConditionController extends Controller {
     return `
       <div class="relative w-full"
            data-controller="multi-select"
-           data-multi-select-translations-value='${JSON.stringify({
+           data-multi-select-translations-value="${this.escapeHtml(JSON.stringify({
              select_values: selectValuesLabel,
              selected_count: selectedCountTemplate
-           })}'
+           }))}"
            data-condition-target="value">
         <div tabindex="0"
              role="button"
-             aria-haspopup="listbox"
+             aria-expanded="false"
              class="select select-bordered select-sm w-full flex items-center cursor-pointer"
              data-action="click->multi-select#toggle keydown.enter->multi-select#toggle:prevent keydown.space->multi-select#toggle:prevent"
              data-multi-select-target="trigger">

@@ -1,3 +1,6 @@
+import { paintedContrast } from '../support/painted_contrast'
+import { THEMES } from '../support/themes'
+
 // Bali::Topbar::UserMenu is a preset of Bali::Dropdown, so the point of this file is not
 // to re-test the menu mechanics (dropdown-controller.cy.js owns those) but to prove the
 // preset actually inherits them — the hand-rolled `<details class="dropdown">` it replaces
@@ -135,6 +138,52 @@ describe('Topbar::UserMenu', () => {
       expect(display($c)).not.to.equal('none')
       const triggerRight = $c[0].closest(trigger).getBoundingClientRect().right
       expect($c[0].getBoundingClientRect().right, 'chevron right edge').to.be.at.most(triggerRight)
+    })
+  })
+
+  // With a third action the search well held at its 99px min-content and pushed the trigger
+  // to x=321, 17px past the topbar's content edge: the search zone is the one that yields.
+  it('fits its trigger inside a 320px topbar with a third action', () => {
+    cy.viewport(320, 640)
+    cy.visit('/bali/app_layout/with_topbar')
+    cy.get('.bali-topbar .btn[aria-label="Help"]').then(($help) => {
+      $help[0].after($help[0].cloneNode(true))
+    })
+
+    cy.get(`${userMenu} ${trigger}`).should(($t) => {
+      const bar = $t[0].closest('.bali-topbar')
+      expect(bar.querySelectorAll('.btn[aria-label="Help"]'), 'three actions').to.have.length(2)
+      const contentRight = bar.getBoundingClientRect().right - parseFloat(getComputedStyle(bar).paddingRight)
+      expect($t[0].getBoundingClientRect().right, 'trigger right edge').to.be.at.most(contentRight)
+    })
+    cy.get('.bali-command-trigger').should(($well) => {
+      expect($well[0].scrollWidth, 'the label stays inside the search well').to.be.at.most($well[0].clientWidth)
+    })
+  })
+
+  // daisyUI marks a focused `.menu` item with a 10% tint alone, 1.21–1.34:1 against the panel,
+  // and the sign-out `button_to`, out of its reach, kept the browser's ring.
+  THEMES.forEach((theme) => {
+    it(`rings the item the keyboard is on at 3:1, ${theme} theme`, () => {
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+      cy.get(userMenu).first().find(trigger).focus()
+      press('ArrowDown')
+      cy.focused().should('contain', 'Profile')
+
+      cy.get(userMenu).first().find(`${menu} [role^="menuitem"]`).should('have.length', 4).each(($item) => {
+        cy.wrap($item).focus()
+        cy.document().should((doc) => {
+          expect(doc.getAnimations(), 'colour transitions settled').to.have.length(0)
+          const item = doc.activeElement
+          const label = `${theme}: ${item.textContent.trim()}`
+          expect(item.matches(':focus-visible'), `${label} has keyboard focus`).to.equal(true)
+          expect(getComputedStyle(item).outlineStyle, `${label} ring drawn`).to.equal('solid')
+          // Inset: the ring sits on the item's tint and borders the panel.
+          expect(paintedContrast(item, { property: 'outlineColor' }), `${label} on its tint`).to.be.at.least(3)
+          expect(paintedContrast(item, { over: item.closest(menu), property: 'outlineColor' }), `${label} on the panel`)
+            .to.be.at.least(3)
+        })
+      })
     })
   })
 })

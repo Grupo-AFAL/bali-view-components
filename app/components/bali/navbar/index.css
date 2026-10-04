@@ -36,18 +36,22 @@
 
   &.navbar-primary {
     @apply bg-primary text-primary-content;
+    --bali-navbar-ring: var(--color-primary-content);
   }
 
   &.navbar-secondary {
     @apply bg-secondary text-secondary-content;
+    --bali-navbar-ring: var(--color-secondary-content);
   }
 
   &.navbar-accent {
     @apply bg-accent text-accent-content;
+    --bali-navbar-ring: var(--color-accent-content);
   }
 
   &.navbar-neutral {
     @apply bg-neutral text-neutral-content;
+    --bali-navbar-ring: var(--color-neutral-content);
   }
 
   /* daisyUI 5.7.47 paints a resting `.btn-ghost` with `var(--btn-rest-fg, var(--btn-color,
@@ -67,6 +71,23 @@
   &.is-transparent {
     @apply bg-transparent shadow-none;
     color: inherit;
+    --bali-navbar-ring: initial;
+  }
+
+  /* A Dropdown panel in the bar is a base-100 surface of its own: the preset's ring on it
+   * measured 1.00–1.23:1. */
+  & .dropdown-content {
+    --bali-navbar-ring: initial;
+  }
+
+  /* The focus ring of what sits in the bar, in the bar's text colour. `--bali-navbar-ring` is
+   * set next to every text colour the bar gets: the presets, `.is-transparent` and a Dropdown
+   * panel here, the mobile menu in Navbar::Menu::Component, and, with `color: nil`, the host.
+   * The `.btn`s and `.menu` links get the same ring from navbar/daisyui-overrides.css, because
+   * daisyUI rings them from @layer utilities. */
+  & :is(a, button, [role="button"]):not([role^="menuitem"]):focus-visible {
+    outline: 2px solid var(--bali-navbar-ring, var(--color-base-content));
+    outline-offset: 2px;
   }
 }
 

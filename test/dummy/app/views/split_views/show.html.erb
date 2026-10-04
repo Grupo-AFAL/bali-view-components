@@ -5,10 +5,13 @@
   subtitle: 'Master-detail con listado estructurado e infinite scroll'
 ) do |page| %>
   <% page.with_body do %>
+    <%# Below `lg` the panes stack and the detail opens under the list: at 26rem its
+        title sat at y=713 of a 390×844 screen, at 12rem it is at 489. The knob is
+        the custom property and not `max_height:`, which is one value inline. %>
     <%= render Bali::SplitView::Component.new(frame_id: 'split-view-detail') do |split| %>
       <% split.with_list(header: 'Catálogo', count: @pagy.count, selected: params[:selected],
-                         pagy: @pagy, item_name: 'películas', max_height: '26rem',
-                         filter_mode: @filter_mode) do |list| %>
+                         pagy: @pagy, item_name: 'películas', filter_mode: @filter_mode,
+                         class: '[--bali-split-master-max-h:12rem] lg:[--bali-split-master-max-h:26rem]') do |list| %>
         <%# The pills are links and the component builds their URLs: all that is
             declared here is which param each one filters by. A click is an ordinary
             navigation, so the server repaints page 1 and the sentinel starts from a

@@ -9,6 +9,9 @@ import { ROW_H } from './useGanttModel'
 
 const MINI_W = 204
 const MINI_H = 96
+// The map and its `right-3.5` margin on both sides. In a narrower timeline it spilled over the
+// table: 218 px of it at 320 px.
+const MINI_ROOM = MINI_W + 2 * 14
 
 export default memo(function Minimap ({ nodes = [], canvasWidth, canvasMinX = 0, canvasHeight, todayXValue, hint }) {
   const { setViewport } = useReactFlow()
@@ -74,7 +77,7 @@ export default memo(function Minimap ({ nodes = [], canvasWidth, canvasMinX = 0,
     [seek]
   )
 
-  if (!canvasWidth || !canvasHeight) return null
+  if (!canvasWidth || !canvasHeight || paneW < MINI_ROOM) return null
 
   const vpW = Math.min(MINI_W, (paneW || 0) * sx)
   const vpH = Math.min(MINI_H, (paneH || 0) * sy)
