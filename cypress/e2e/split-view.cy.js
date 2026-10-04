@@ -502,7 +502,9 @@ describe('SplitView: a traversal to the URL the frame already shows (#1029)', ()
 // "no row selected" branch emptied the very detail its URL asks for.
 describe('SplitView: a traversal restores the pane its URL was painted with (#1303)', () => {
   const app = path => `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
-  const title = () => cy.get('.split-view-detail [data-testid="detail-title"]')
+  const title = options => cy.get('.split-view-detail [data-testid="detail-title"]', options)
+  // Same margin as the rest of this file: a traversal can repaint the whole preview in CI.
+  const AFTER_TRAVERSAL = { timeout: 10000 }
   const inception = () => cy.contains('.split-view-row', 'Inception')
   const appendUntilInception = () => {
     cy.get('[data-split-view-list-target="scroller"]').scrollTo('bottom', { ensureScrollable: false })
@@ -519,7 +521,7 @@ describe('SplitView: a traversal restores the pane its URL was painted with (#13
 
     cy.go('back')
     cy.location('pathname').should('include', '/split_view/default')
-    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    cy.get('.split-view-detail .empty-state-component', AFTER_TRAVERSAL).should('be.visible')
     title().should('not.exist')
   })
 
@@ -534,7 +536,7 @@ describe('SplitView: a traversal restores the pane its URL was painted with (#13
 
       cy.go('back')
       cy.location('href').should('eq', $row[0].href)
-      title().should('have.text', 'Inception')
+      title(AFTER_TRAVERSAL).should('have.text', 'Inception')
     })
   })
 
@@ -558,7 +560,7 @@ describe('SplitView: a traversal restores the pane its URL was painted with (#13
       cy.location('search').should('eq', '')
       cy.go('forward')
       cy.location('search').should('contain', 'selected=')
-      title().should('have.text', 'Inception')
+      title(AFTER_TRAVERSAL).should('have.text', 'Inception')
     })
   })
 
@@ -583,7 +585,7 @@ describe('SplitView: a traversal restores the pane its URL was painted with (#13
     cy.location('search').should('contain', 'selected=')
     cy.go('back')
     cy.location('search').should('eq', '?status=done')
-    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    cy.get('.split-view-detail .empty-state-component', AFTER_TRAVERSAL).should('be.visible')
     title().should('not.exist')
   })
 })
