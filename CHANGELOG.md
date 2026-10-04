@@ -32,7 +32,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lo ve nadie: costa-norte pinta su menú lateral con su propio bloque `costa-norte-dark`. Lo verá
   el día que importe el tema de Bali o active el modo oscuro; no tiene que cambiar nada.
 
+### Deprecated
+
+- **`f.coordinates_polygon_group` y `f.coordinates_polygon_field`, el campo de polígono sobre un
+  mapa** (#1303). Dibujan con `google.maps.drawing.DrawingManager`, que el API de Maps JavaScript
+  dejó de ofrecer en la versión 3.65, así que el campo ya no puede dibujar un polígono. Cada
+  llamada avisa por `Bali.deprecator`, y en 4.0 se borran sin reemplazo, junto con el controlador
+  `drawing-maps`; su preview de Lookbook ya no está. Ninguna app de la flota los llama.
+  **ga-apps** conserva `pin 'bali/drawing-maps'` en `config/importmap.rb`: hoy resuelve, pero en
+  4.0 se borra `bali/controllers/drawing-maps-controller.js`, al que apunta, y deja de resolver.
+  Quitarlo antes de subir.
+
 ### Fixed
+
+- **Para quien trabaja en el repo: el Lookbook y la dummy** (#1303). Nada que hacer en las apps.
+  - `widget/default` respeta `count` también después de guardar un `.js` con el servidor
+    corriendo; la guarda de `test/requests/icon_previews_test.rb` cubre ahora las clases que
+    define el propio preview y las constantes que las guardan.
+  - La guía de patrones de componentes vuelve a mostrar los `<%#` de sus ejemplos, y
+    `test/guide_pages_test.rb` prohíbe uno sin escapar (`<%%#`) en cualquier guía.
+  - La guía de maestro-detalle repetía tres veces en una línea el título «What this is not».
+  - El FeedbackWidget de las páginas de admin habla con los sustitutos de Opina de la propia
+    dummy en vez de con `localhost:3008`, y la consola queda limpia.
 
 - **`Filters`: «en» con una fecha trae las filas de ese día** (#1303). Sobre una columna de fecha
   y hora, Ransack leía `created_at_eq=2026-08-27` como la medianoche del 27 y no traía nada.
