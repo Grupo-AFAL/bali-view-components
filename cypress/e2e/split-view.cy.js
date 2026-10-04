@@ -494,3 +494,60 @@ describe('SplitView: a traversal to the URL the frame already shows (#1029)', ()
     cy.get('@detail.all').should('have.length', 0)
   })
 })
+
+// #1303 — what a traversal restores in the pane is decided by the URL it was
+// painted for. Keyed by frame alone, the first pane a session saw was what every
+// list came back to — a DETAIL, when the session began on a deep link. And a row
+// infinite scroll had appended is not on the page one a restore renders, so the
+// "no row selected" branch emptied the very detail its URL asks for.
+describe('SplitView: a traversal restores the pane its URL was painted with (#1303)', () => {
+  const app = path => `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
+  const title = () => cy.get('.split-view-detail [data-testid="detail-title"]')
+  const inception = () => cy.contains('.split-view-row', 'Inception')
+  const appendUntilInception = () => {
+    cy.get('[data-split-view-list-target="scroller"]').scrollTo('bottom', { ensureScrollable: false })
+    inception().should('exist')
+  }
+
+  it('comes back to the empty list after a session that began on a deep link', () => {
+    cy.visit('/bali/split_view/with_selection')
+    title().should('be.visible')
+    cy.window().then(win => win.Turbo.visit('/lookbook/preview/bali/split_view/default'))
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    cy.get('.split-view-row').eq(2).click()
+    title().should('be.visible')
+
+    cy.go('back')
+    cy.location('pathname').should('include', '/split_view/default')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    title().should('not.exist')
+  })
+
+  it('keeps the detail of an appended row when going back to it', () => {
+    cy.visit(app('/split-view'))
+    appendUntilInception()
+    inception().then(($row) => {
+      cy.wrap($row).click()
+      title().should('have.text', 'Inception')
+      cy.get('.split-view-row').first().click()
+      title().should('not.have.text', 'Inception')
+
+      cy.go('back')
+      cy.location('href').should('eq', $row[0].href)
+      title().should('have.text', 'Inception')
+    })
+  })
+
+  it('keeps the detail of an appended row when going forward to it', () => {
+    cy.visit(app('/split-view'))
+    appendUntilInception()
+    inception().click()
+    title().should('have.text', 'Inception')
+
+    cy.go('back')
+    cy.location('search').should('eq', '')
+    cy.go('forward')
+    cy.location('search').should('contain', 'selected=')
+    title().should('have.text', 'Inception')
+  })
+})

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::SplitView`: atrás y adelante devuelven el detalle que corresponde a la URL.** Volver a una
+  lista después de una sesión que empezó en un enlace profundo (`?selected=3`) mostraba otra vez ese
+  detalle, y volver o avanzar a una fila que llegó por scroll infinito (fuera de la página 1) dejaba
+  la fila marcada y el detalle vacío. El panel limpio se recuerda ahora por URL y no por frame, y la
+  página que se deja en un atrás/adelante ya no se modifica antes de que Turbo la guarde. Nada que
+  hacer en un anfitrión.
+- **Previews de `Bali::SplitView`: la lista filtrada pide sus páginas siguientes con el filtro.** Con
+  `?status=` o `?q[genre_in][]=` el scroll infinito traía páginas sin filtrar y sumaba filas que no
+  correspondían, también cuando el filtro cabía en una página. Sólo afecta a Lookbook.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added

@@ -21,6 +21,14 @@
 <% movies = scope.includes(:studio).order(*[ group_by, :name ].compact).limit(5) %>
 <% total = scope.count %>
 <% pagy = Pagy::Offset.new(count: [ total, 1 ].max, page: 1, limit: 5) %>
+<%# The sentinel pages against the dummy's `/split-view`, which reads the genre
+    filter only in multi mode — so the filter this preview applied has to be
+    spelled out in its terms, or page 2 arrives unfiltered. %>
+<% page_two = { status: request.query_parameters["status"].presence,
+                filter_mode: ("multi" if active_genres.any?),
+                q: ({ genre_in: active_genres } if active_genres.any?),
+                page: 2 }.compact %>
+<% next_url = local_assigns[:next_url] || ("/split-view?#{page_two.to_query}" if pagy.next) %>
 <%= render Bali::SplitView::Component.new(
   frame_id: "split-view-detail",
   advance: local_assigns.fetch(:advance, true)
@@ -33,8 +41,7 @@
   <% split.with_list(header: "Catálogo", count: total, selected: selected&.id,
                      pagy: pagy, item_name: "películas", max_height: "16rem",
                      filter_mode: filter_mode,
-                     next_url: [ local_assigns[:next_url] || "/split-view?page=2",
-                                 ("selected=#{selected.id}" if selected) ].compact.join("&")) do |list| %>
+                     next_url: next_url && [ next_url, ("selected=#{selected.id}" if selected) ].compact.join("&")) do |list| %>
     <% filters.each do |filter| %>
       <% list.with_filter(**filter) %>
     <% end %>
