@@ -359,6 +359,56 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal([ "Last day" ], form.result.pluck(:name))
   end
 
+  # The bare date "on" sends from the single picker of a `type: :date` attribute, over a
+  # datetime column.
+  def test_on_a_date_includes_that_whole_day
+    @tenant.movies.create!(name: "Late that day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { created_at_eq: "2026-08-27" })
+    )
+
+    assert_equal([ "Late that day" ], form.result.pluck(:name))
+  end
+
+  def test_on_a_date_stays_one_term_of_an_or_group
+    @tenant.movies.create!(name: "Late that day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Named", created_at: Time.zone.local(2026, 1, 1))
+    @tenant.movies.create!(name: "Neither", created_at: Time.zone.local(2026, 1, 1))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies,
+      grouped_params(0 => { m: "or", created_at_eq: "2026-08-27", name_eq: "Named",
+                            g: { "0" => { name_eq: "Neither", created_at_gt: "2026-06-01" } } })
+    )
+
+    assert_equal([ "Late that day", "Named" ], form.result.reorder(:name).pluck(:name))
+  end
+
+  # A string column answers `_eq` exactly; a day-long range over it would match nothing.
+  def test_on_a_date_over_a_string_column_still_compares_exactly
+    @tenant.movies.create!(name: "2026-08-27")
+    form = AdvancedMovieFilterForm.new(@tenant.movies, grouped_params(0 => { name_eq: "2026-08-27" }))
+
+    assert_equal([ "2026-08-27" ], form.result.pluck(:name))
+  end
+
+  # A saved view keeps the date the picker sent: the day is widened only on the way to Ransack.
+  def test_a_saved_view_with_on_a_date_brings_that_whole_day
+    @tenant.movies.create!(name: "Late that day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    payload = { "groupings" => { "0" => { "created_at_eq" => "2026-08-27" } } }
+    view = Struct.new(:id, :name, :payload, keyword_init: true).new(id: 1, name: "August 27", payload:)
+    store = Struct.new(:views) do
+      def list = views
+      def find(id) = views.find { |view| view.id.to_s == id.to_s }
+    end.new([ view ])
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, ActionController::Parameters.new(saved_view: "1"), saved_views_store: store
+    )
+
+    assert_equal([ "Late that day" ], form.result.pluck(:name))
+    assert_equal(payload["groupings"], form.current_view_payload["groupings"])
+  end
+
   # What is COUNTED and what TRAVELS have to be the same question: if they diverge, a bulk action
   # acts on a different set than the listing says it is showing.
   def test_what_counts_as_applied_is_what_travels
