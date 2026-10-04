@@ -74,3 +74,14 @@ export const hover = ($el) => {
 // The pointer stays where the last test left it, over whatever the next page draws
 // there. The runner's corner is outside the app.
 export const unhover = () => moveMouse({ x: 0, y: 0 })
+
+const mouseButton = (type, point) =>
+  Cypress.automation('remote:debugger:protocol', {
+    command: 'Input.dispatchMouseEvent',
+    params: { type, button: 'left', clickCount: 1, ...point }
+  })
+
+// The left button held down on the element and let go, through the same pipeline: what a
+// drag library such as SortableJS sees before the pointer moves.
+export const press = ($el) => mouseButton('mousePressed', inRunner(...centreOf($el)))
+export const release = ($el) => mouseButton('mouseReleased', inRunner(...centreOf($el)))

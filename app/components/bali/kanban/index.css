@@ -1,14 +1,31 @@
-/* Bali Kanban — the card list's min-height and the empty-column affordance.
+/* Bali Kanban — the lane, the card on it, the card list's min-height and the
+ * empty-column affordance.
  *
- * Both rules set `min-height`, and that is why both live here instead of as
- * utilities on the template: a default and the state that overrides it must
- * share a layer (see .claude/CLAUDE.md). A `min-h-0` utility on the list would
- * sit in @layer utilities and beat the empty-state rule below no matter what.
+ * Imported into @layer components, so a host utility beats the lane's and
+ * the card's fill, border and shadow without `!` (`with_column(class:
+ * "bg-base-100")`, `with_card(class: "shadow-none")`). A utility on the
+ * template would beat this sheet too, which is why the templates carry none of
+ * them. The card is not a daisyUI `.card` for the same reason: `.card` and
+ * `.card-border` live in @layer utilities, and `.card`'s `transition: outline
+ * .2s` replaced the card's own.
+ *
+ * base-300 sits below base-100 on all six themes, the dark ones too, so the
+ * card is the raised surface either way: its fill steps 1.16–1.24 off the lane
+ * on the light themes; on the dark ones the fill steps 1.09–1.14 and the
+ * border carries it at 1.51–1.66. The tint Bali uses for steps elsewhere,
+ * base-content at 4–6% over the base-200 page, puts the lane above base-100
+ * on the dark themes and sinks the card (0.90–1.00). On the lane the empty
+ * column's outline measures 1.52–1.97 and the footer's rule 1.25–1.41.
+ *
+ * The lane's transparent border paints nothing until forced colours repaint
+ * its fill as Canvas, the page's colour; then it is the lane's only edge.
  *
  * `min-height: 0` is what lets the list actually scroll on a height-capped
  * board: the list is a `flex-1` item and a flex item's default `min-height:
  * auto` refuses to shrink below its content, so without this rule the column
- * grows and the page scrolls instead (#643).
+ * grows and the page scrolls instead (#643). The empty state overrides it, and
+ * a default and the state that overrides it must share a layer: a `min-h-0`
+ * utility on the list would beat the empty-state rule no matter what.
  *
  * The empty state is `:not(:has(*))` — no element children — rather than a
  * render-time `cards.empty?` flag because the DOM changes under drag and
@@ -17,11 +34,12 @@
  * and SortableJS inserts its ghost (a child element, so `:has(*)` matches) and
  * the affordance correctly yields to the preview. The 100px floor is the drop
  * area the template used to carry as `min-h-[100px]`.
- *
- * Imported into @layer components: a host utility (`min-h-40`, `border-solid`)
- * still wins, and daisyUI declares nothing on these classes, so there is
- * nothing in @layer utilities to fight.
  */
+
+.kanban-column {
+  background-color: var(--color-base-300);
+  border: 1px solid transparent;
+}
 
 .kanban-column-list {
   min-height: 0;
@@ -30,5 +48,36 @@
 .kanban-column-list:not(:has(*)) {
   min-height: 100px;
   border-radius: var(--radius-box, 1rem);
-  border: 1px dashed color-mix(in oklab, var(--color-base-300) 70%, transparent);
+  border: 1px dashed color-mix(in oklab, var(--color-base-content) 22%, transparent);
+}
+
+.kanban-card {
+  border-radius: var(--radius-box);
+  background-color: var(--color-base-100);
+  border: var(--border) solid color-mix(in oklab, var(--color-base-content) 13%, transparent);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 1px 3px 0 rgb(0 0 0 / 0.08);
+  transition: border-color 150ms ease, box-shadow 150ms ease, translate 150ms ease;
+}
+
+/* Only a card whose drop the board saves: Ruby writes `data-sortable-update-url`
+ * from the card's `update_url:` and `data-sortable-list-disabled-value` from
+ * the column's `disabled:` (kanban_test.rb pins both). SortableJS keeps
+ * `sortable-chosen` on the card from pointerdown to drop, under its ghost and
+ * drag classes, and on the touch clone. A tap leaves `:hover` on the card it
+ * touched, so a screen that cannot hover would keep it lifted: `(hover:
+ * hover)`, the same gate Tailwind puts on every `hover:` utility. */
+@media (hover: hover) {
+  .kanban-column-list:not([data-sortable-list-disabled-value="true"])
+    > .kanban-card[data-sortable-update-url]:not(.sortable-chosen):hover {
+    border-color: color-mix(in oklab, var(--color-base-content) 24%, transparent);
+    box-shadow: 0 3px 6px -1px rgb(0 0 0 / 0.12), 0 1px 3px 0 rgb(0 0 0 / 0.08);
+
+    @media (prefers-reduced-motion: no-preference) {
+      translate: 0 -1px;
+    }
+  }
+}
+
+.kanban-column-footer {
+  border-top: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent);
 }

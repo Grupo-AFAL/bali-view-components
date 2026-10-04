@@ -135,6 +135,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Kanban: el carril es un fondo y la tarea es la tarjeta** (#1317). El carril deja de ser una
+  tarjeta `base-100` con borde y sombra y pasa a un fondo `base-300` sin ninguno de los dos; cada
+  tarea es una tarjeta `base-100` con borde y una sombra leve, y si su arrastre se guarda (tiene
+  `update_url:` y su columna no está `disabled:`) se levanta al pasar el cursor. El indicador
+  `:ghost`, el contador, el punteado de la columna vacía y la línea del pie se tiñen para verse
+  sobre el carril. Lo ve el tablero de roadmap de opina, que no tiene que hacer nada.
+  **Anfitrión:** la tarjeta lleva la clase `kanban-card` en vez de `card bg-base-100 card-border`
+  de daisyUI, así que un CSS propio que llegaba a las tarjetas del tablero por `.card` tiene que
+  apuntar a `.kanban-card`. El fondo, el borde y la sombra del carril y de la tarjeta viven en
+  `kanban/index.css`, dentro de `@layer components`: una utilidad pasada con `class:` a
+  `with_column` o a `with_card` les gana sin `!` (`bg-base-100`, `shadow-none`).
+- **BlockEditor: el selector de emojis de una reacción lleva su propio borde** (parte de #1303):
+  un anillo de 1 px, `base-content` al 15 %, donde emoji-mart sólo pone una sombra suave. Se ve en
+  los comentarios del BlockEditor y del panel de DocumentEditor, como los de gobierno-corporativo;
+  sin nada que hacer en el anfitrión.
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
   `base-200`: en el SideMenu, sus grupos y el disparador del switcher, en los ítems de
   `Bali::Dropdown` (comparten la clase `.menu-item`) y en las opciones de SlimSelect, también su
