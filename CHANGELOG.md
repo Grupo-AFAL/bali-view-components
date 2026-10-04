@@ -58,6 +58,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Navbar: el anillo de foco toma el color del texto de la barra.** Enlaces, botones y el
+  disparador «More» dibujan el anillo en el `-content` del preset, y en `base-content` con la
+  barra transparente, en el menú del teléfono y en el panel de un Dropdown. El de un botón
+  relleno (`btn-neutral`) medía 1.26–1.72:1 sobre la página en los temas oscuros y 1.00 sobre
+  una barra `neutral`, y los enlaces del menú no tenían anillo. Con `color: nil`, o con la barra
+  transparente sobre una sección oscura, el host fija el color del anillo en
+  `--bali-navbar-ring`; el YARD de `transparency:` trae el ejemplo.
+
+- **Navbar: con `transparency: true` la barra sale transparente desde el servidor.** Ya no se ve
+  el relleno del preset hasta que conecta Stimulus, y una página que carga con scroll toma la
+  barra opaca al conectar. Nada que hacer.
+
+- **Dropdown: el ítem con el foco de teclado lleva anillo**, `base-content` y por dentro del
+  ítem, en todos los menús hechos con Dropdown (UserMenu, ActionsDropdown, ToolsMenu…). Antes
+  sólo llevaba el tinte del 10 % de daisyUI (1.21–1.34:1), y «Cerrar sesión» el anillo del
+  navegador. El checkbox de ColumnSelector conserva el anillo de daisyUI.
+
+- **Topbar: con tres acciones, el disparador del menú de usuario cabe a 320 px.** La zona de
+  búsqueda cede espacio y la etiqueta del disparador de Command se corta con «…»; antes se
+  quedaba en ~100 px y el avatar terminaba 17 px fuera de la pantalla.
+
+- **Command: una fila de acción que coincide con la búsqueda cuenta como resultado.** Ya no
+  aparece «Sin resultados» ni «0 resultados» con la fila a la vista, y la coincidencia se
+  resalta. Las filas de acción que no coinciden siguen fuera del conteo.
+
 - **DocumentEditor.** Un guardado que falla muestra «Save failed»: «Unsaved changes» lo tapaba en
   el mismo instante. Lo escrito mientras el guardado viaja queda como sin guardar, en vez de
   «Saved at…». Con `format: :prosemirror` —el que toma por omisión con `comments:`— guardar
