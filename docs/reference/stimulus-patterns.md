@@ -165,9 +165,10 @@ A Turbo render replaces the body and destroys the controller instance mid-flight
 state that must survive a restore lives at module scope, keyed if needed — see the
 worked example at the top of `app/components/bali/split_view/index.js`
 (`restoringHistory`, `pristineDetail`). And on a `popstate`, **Turbo caches the
-leaving page synchronously before your controller's own popstate listener runs** —
-any `turbo:before-cache` hook has already fired by the time you compare DOM state
-(#1029).
+leaving page after your controller's own popstate listener runs** (measured on
+Turbo 8.0.23): whatever that listener changes on the page being left is what lands
+in the snapshot, filed under the last URL Turbo rendered — so leave that page alone
+and re-derive on the restored one (#1303).
 
 ## React islands
 

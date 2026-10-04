@@ -88,7 +88,7 @@ class BaliGoogleMapsKeyTest < ActiveSupport::TestCase
   def test_the_coordinates_polygon_field_reads_the_setting
     Bali.google_maps_key = "polygon-key"
 
-    html = builder.coordinates_polygon_field(:name).to_s
+    html = Bali.deprecator.silence { builder.coordinates_polygon_field(:name).to_s }
 
     assert_includes html, 'data-drawing-maps-key="polygon-key"'
   end

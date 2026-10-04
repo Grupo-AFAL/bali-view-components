@@ -171,7 +171,7 @@ module Bali
       def wrapper_attributes
         @options.except(:class, :data).merge(
           id: @id,
-          class: class_names("bali-gantt space-y-3", @options[:class]),
+          class: class_names("bali-gantt", @options[:class]),
           data: island_values
         ).compact
       end

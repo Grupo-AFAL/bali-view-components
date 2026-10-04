@@ -29,6 +29,16 @@ describe('Gantt undated drawer', () => {
     })
   })
 
+  // The board sizes itself to end 16 px above the bottom of the window. Tailwind 4's `space-y-*`
+  // gives every child but the last a bottom margin, and with the drawer after it the mount was
+  // no longer last: 12 px more than the window, and the page scrolled.
+  it('fits the board in the window with the drawer beside it', () => {
+    cy.get('.bali-gantt > dialog.drawer-component').should('exist')
+    cy.document().then((doc) => {
+      expect(doc.scrollingElement.scrollHeight - doc.defaultView.innerHeight, 'px the page scrolls').to.equal(0)
+    })
+  })
+
   it('the footer gives away the undated items and the link opens the drawer with the list', () => {
     cy.contains('button', 'with no dates').should('be.visible').click()
 

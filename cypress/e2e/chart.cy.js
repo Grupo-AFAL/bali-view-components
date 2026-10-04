@@ -85,7 +85,7 @@ describe('Chart', () => {
         expect(before.tick, 'the old theme had other ink').to.not.include(ink)
 
         chartInstance((chart) => {
-          expect(chart, 'a fresh chart.js instance').to.not.eq(before.chart)
+          expect(chart, 'the same chart.js instance').to.eq(before.chart)
           expect(chart.options.scales.y.ticks.color, 'tick ink').to.include(ink)
         })
       })
@@ -108,6 +108,42 @@ describe('Chart', () => {
         }
 
         expect(painted, 'painted pixels').to.be.greaterThan(0)
+      })
+    })
+  })
+
+  // A bar's legend hides a dataset and a doughnut's a data index, both on the Chart.js instance,
+  // which a theme switch has to repaint rather than replace.
+  describe('legend', () => {
+    const crossedOut = (chart) => chart.legend.legendItems.map((item) => item.hidden)
+    const firstSwatch = (chart) => chart.legend.legendItems[0].fillStyle
+
+    ;['bar', 'doughnut'].forEach((type) => {
+      it(`keeps what it hid on a ${type} when the theme switches`, () => {
+        cy.visit(`/bali/chart/series_palette?type=${type}`)
+
+        let box
+        chartInstance((chart) => { box = chart.legend.legendHitBoxes[1] })
+        cy.then(() => canvas().click(box.left + box.width / 2, box.top + box.height / 2))
+
+        let before
+        chartInstance((chart) => {
+          expect(crossedOut(chart), 'hidden by the click').to.deep.eq([false, true, false, false, false, false, false])
+          before = { chart, swatch: firstSwatch(chart) }
+        })
+
+        cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', 'dark'))
+
+        cy.window().then((win) => {
+          const primary = opaque(win, cssVariable(win, '--color-primary'))
+          expect(opaque(win, before.swatch), 'the old theme had another primary').to.not.deep.eq(primary)
+
+          chartInstance((chart) => {
+            expect(chart, 'the same chart.js instance').to.eq(before.chart)
+            expect(opaque(win, firstSwatch(chart)), 'first swatch in the new theme').to.deep.eq(primary)
+            expect(crossedOut(chart), 'after the switch').to.deep.eq([false, true, false, false, false, false, false])
+          })
+        })
       })
     })
   })
@@ -138,6 +174,10 @@ describe('Chart', () => {
     // measured 0.047 or less. The closest neighbours now are costa-norte's accent and secondary,
     // both golds, at 0.061 under tritanopia.
     const FLOOR = 0.05
+    // Series 1 and 2 are the whole of every two-series chart. costa-norte-dark's tan accent sat
+    // 0.061 from its gold primary under tritanopia; the sand that replaced it, 0.135. Every other
+    // theme's first pair measures 0.229 or more.
+    const FIRST_PAIR_FLOOR = 0.1
 
     const firstColor = (dataset) => [dataset.borderColor].flat()[0]
 
@@ -198,6 +238,27 @@ describe('Chart', () => {
       })
     })
 
+    // Chart.js refreshes the options a line's points share only in an animated update: repainted
+    // with `update('none')`, they kept the old theme's colour.
+    it('paints the points of a line again in the theme the page switches to', () => {
+      cy.visit('/bali/chart/series_palette?type=line')
+
+      const points = (win, chart) => chart.getDatasetMeta(0).data.map((point) => opaque(win, point.options.backgroundColor))
+      let before
+      cy.window().then((win) => chartInstance((chart) => { before = points(win, chart) }))
+
+      cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', 'dark'))
+
+      cy.window().then((win) => {
+        const primary = opaque(win, cssVariable(win, '--color-primary'))
+        expect(before[0], 'the old theme had another primary').to.not.deep.eq(primary)
+
+        chartInstance((chart) => {
+          points(win, chart).forEach((colour, index) => expect(colour, `point ${index + 1}`).to.deep.eq(primary))
+        })
+      })
+    })
+
     // Seven series show each theme colour once, unless two of them are one colour: afal-dark's
     // amber-400 accent was its warning to 0.005, and series 5 repeated series 2.
     it('keeps every pair of series apart in every theme', () => {
@@ -239,9 +300,10 @@ describe('Chart', () => {
 
             colours.forEach((colour, index) => {
               const next = (index + 1) % colours.length
+              const floor = index === 0 ? FIRST_PAIR_FLOOR : FLOOR
               DEFICIENCIES.forEach((deficiency) => {
                 const distance = cvdDistance(colour, colours[next], deficiency)
-                if (distance < FLOOR) {
+                if (distance < floor) {
                   collapsed.push(`${theme} series ${index + 1}-${next + 1} ${deficiency} ${distance.toFixed(3)}`)
                 }
               })
@@ -250,7 +312,7 @@ describe('Chart', () => {
         })
       })
 
-      cy.then(() => expect(collapsed, `neighbours closer than ΔE_OK ${FLOOR}`).to.deep.eq([]))
+      cy.then(() => expect(collapsed, `neighbours closer than ΔE_OK ${FLOOR}, series 1-2 than ${FIRST_PAIR_FLOOR}`).to.deep.eq([]))
     })
   })
 

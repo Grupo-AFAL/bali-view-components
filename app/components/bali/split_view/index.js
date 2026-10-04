@@ -13,12 +13,24 @@ if (typeof window !== 'undefined') {
   document.addEventListener('turbo:load', () => { restoringHistory = false })
 }
 
-// The detail frame as the server first painted it, per frame id. Module scope
-// for the same reason `restoringHistory` is: the instance that captured it does
-// not survive the render this has to outlive. Captured only from a frame that
-// has never been navigated in-page (no `src`), which is exactly the state the
-// server sent — so a restore can be rewound to it. See `rewindFrameBeforeCache`.
+// The detail frame as the server painted it, per frame id AND per URL. Module
+// scope for the same reason `restoringHistory` is: the instance that captured it
+// does not survive the render this has to outlive. Per URL because what the
+// server paints there depends on the URL: a session that starts on a deep link
+// (`?selected=3`) paints a DETAIL, and keyed by frame alone that detail became
+// what every later list was reset to. See `syncFrameFromLocation`.
+//
+// Each entry holds a whole pane, so only the most recently painted URLs are
+// kept: 20, twice Turbo's own snapshot cache (10 pages). A restore further back
+// than that is a fetch, and a fetched page is captured again when it lands.
 const pristineDetail = new Map()
+const PRISTINE_LIMIT = 20
+
+function rememberPristine (key, html) {
+  pristineDetail.delete(key)
+  pristineDetail.set(key, html)
+  if (pristineDetail.size > PRISTINE_LIMIT) pristineDetail.delete(pristineDetail.keys().next().value)
+}
 
 // Moves the master-pane row highlight when a row is clicked, so the detail
 // Turbo Frame can swap without the master re-rendering — which is what keeps
@@ -45,8 +57,10 @@ export class SplitViewController extends Controller {
   connect () {
     this.syncFromLocation = this.syncFromLocation.bind(this)
     this.rewindFrameBeforeCache = this.rewindFrameBeforeCache.bind(this)
+    this.capturePristineDetail = this.capturePristineDetail.bind(this)
     window.addEventListener('popstate', this.syncFromLocation)
     document.addEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
+    document.addEventListener('turbo:load', this.capturePristineDetail)
     this.capturePristineDetail()
     // A restore that DID replace the body lands here, on the new instance.
     if (restoringHistory) this.syncFromLocation()
@@ -59,25 +73,31 @@ export class SplitViewController extends Controller {
     return this.hasFrameValue ? document.getElementById(this.frameValue) : null
   }
 
+  // Without the fragment, as Turbo keys its own snapshots.
+  get pristineKey () {
+    const url = new URL(window.location.href)
+    url.hash = ''
+    return `${this.frameValue} ${url.href}`
+  }
+
   // Only from a frame the server painted and nobody has navigated since: a
-  // `src` means Turbo has already swapped content in, and caching THAT as the
-  // pristine state would defeat the rewind below.
+  // `src` means Turbo has already swapped content in, and a rewound frame
+  // carries no `src` but still shows the detail its stash names (#1029). A
+  // later paint of the same URL replaces the copy, so it is never staler than
+  // the last time the server answered there.
   //
-  // Captured once per frame id and never overwritten. Since the rewind now keeps
-  // the loaded detail in place (only the `src` is dropped), a restored snapshot
-  // can connect with the frame holding a detail and no `src`; recapturing there
-  // would replace the true empty state with that detail, and a later back to the
-  // list would restore a stale record instead of the empty pane.
+  // Again on `turbo:load`: a visit Turbo follows through a redirect connects
+  // this controller at the URL it asked for and only then replaces it with the
+  // one it landed on, which is the URL a later back returns to.
+  //
+  // A restore is captured too, which is why `syncFromLocation` leaves the page
+  // a Turbo popstate leaves untouched: reset there, it would be cached showing
+  // another URL's pane, and restoring it would capture that pane as this URL's.
   capturePristineDetail () {
-    if (pristineDetail.has(this.frameValue)) return
-
     const frame = this.detailFrame
-    if (!frame || frame.hasAttribute('src')) return
-    // A rewound frame carries no `src` but is NOT pristine — the stash names
-    // the detail it still shows (#1029).
-    if (frame.hasAttribute('data-split-view-src')) return
+    if (!frame || frame.hasAttribute('src') || frame.hasAttribute('data-split-view-src')) return
 
-    pristineDetail.set(this.frameValue, frame.innerHTML)
+    rememberPristine(this.pristineKey, frame.innerHTML)
   }
 
   // A frame the reader navigated in-page must not reach Turbo's snapshot cache
@@ -121,8 +141,8 @@ export class SplitViewController extends Controller {
 
     // Stash where the pane points before dropping `src`, so a traversal that
     // lands back on this URL can recognise the pane as already right instead
-    // of refetching it (#1029). Turbo strips the `src` HERE, synchronously,
-    // before the controller's own popstate listener gets to compare anything —
+    // of refetching it (#1029). Each row click's own `advance` caches the page,
+    // so the `src` is gone long before any traversal compares anything —
     // without the stash a src-less pane cannot say what it shows. The stash
     // survives into the snapshot deliberately: unlike `src`, Turbo does not
     // reload a frame over a data attribute.
@@ -152,6 +172,7 @@ export class SplitViewController extends Controller {
   disconnect () {
     window.removeEventListener('popstate', this.syncFromLocation)
     document.removeEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
+    document.removeEventListener('turbo:load', this.capturePristineDetail)
   }
 
   // Back and forward, and only those. Measured: a row click promotes the frame
@@ -169,11 +190,28 @@ export class SplitViewController extends Controller {
   // Only on a traversal. On a first paint the server's markup wins, because a
   // master can be rendered on a page whose URL is not in the rows' URL space at
   // all and deriving there would erase a correct selection.
+  //
+  // Not on the page a Turbo popstate leaves, either: its restore replaces this
+  // body, and Turbo caches the page being left AFTER this listener — so all a
+  // change here reaches is that snapshot, filed under whatever URL Turbo last
+  // rendered. Resetting it to the list there is how a row's URL came back with
+  // an empty pane. The restored page re-derives from `connect()`.
   syncFromLocation (event) {
+    if (event?.state?.turbo) return this.cancelLoadingDetail()
+
     const current = this.rowTargets.find(row => this.selectsCurrentLocation(row)) ?? null
     this.selectedHref = current?.href ?? null
     this.rowTargets.forEach(row => this.applySelection(row, row === current))
-    this.syncFrameFromLocation(current, Boolean(event?.state?.turbo))
+    this.syncFrameFromLocation(current)
+  }
+
+  // A detail still loading on the page being left lands, if it beats the
+  // restore, through the row click's `advance` the frame still carries: it
+  // pushes the URL just reached a second time and the forward entry is lost.
+  // Dropping the `src` cancels the request (#1280).
+  cancelLoadingDetail () {
+    const frame = this.detailFrame
+    if (frame?.hasAttribute('src') && !frame.hasAttribute('complete')) frame.removeAttribute('src')
   }
 
   // The other half of the rewind. A navigated frame is cached without its `src`
@@ -184,35 +222,26 @@ export class SplitViewController extends Controller {
   //     detail): point the frame at the row it belongs to and let it refetch —
   //     the request Turbo would have made had the `src` survived, now made only
   //     where it is right.
-  //   - Back to a URL that selects no row (the list) while the cached pane still
-  //     shows the last detail: reset it to the pristine empty state, so the list
-  //     view is not left showing a stale record.
+  //   - Back to a URL that selects no loaded row while the cached pane shows
+  //     something else: reset it to what the server painted at this URL. Only
+  //     if this session has seen that paint — a row infinite scroll appended is
+  //     not on the page one a restore renders, and the server painted ITS
+  //     detail there, which an empty list pane must not replace.
   //   - Back to the list, cached while a row's detail was still loading: the
   //     pane keeps that row's `src` (the rewind leaves a loading frame alone)
   //     and Turbo reloads it on restore, even when the pane still looks
   //     pristine. Dropping the `src` cancels that reload.
-  syncFrameFromLocation (current, leaving = false) {
+  syncFrameFromLocation (current) {
     const frame = this.detailFrame
     if (!frame) return
 
     if (!current) {
-      const pristine = pristineDetail.get(this.frameValue)
+      const pristine = pristineDetail.get(this.pristineKey)
       if (pristine !== undefined && (frame.hasAttribute('src') || frame.innerHTML !== pristine)) {
         frame.removeAttribute('src')
         frame.removeAttribute('data-split-view-src')
         frame.innerHTML = pristine
       }
-      return
-    }
-
-    // A popstate onto an entry Turbo wrote is followed by its restore, which
-    // replaces this body. A request this frame makes before then, if it lands
-    // first, pushes the URL just reached a second time (the frame still carries
-    // the row click's `advance`) and the forward entry is lost. So no refetch
-    // here, and a load still in flight is cancelled; the restored page refetches
-    // from `connect()` if its pane needs it.
-    if (leaving) {
-      frame.removeAttribute('src')
       return
     }
 

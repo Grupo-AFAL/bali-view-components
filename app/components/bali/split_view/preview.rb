@@ -118,6 +118,7 @@ module Bali
           template: Bali::SplitView::Preview::STRUCTURED,
           locals: {
             scope: scope,
+            status: status,
             selected: selected,
             filter_mode: filter_mode,
             filters: filters || status_filters,

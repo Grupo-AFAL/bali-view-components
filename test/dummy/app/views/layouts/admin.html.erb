@@ -18,10 +18,11 @@
     <% end %>
   <% end %>
 
-  <%# FeedbackWidget - floats on all admin pages %>
+  <%# On every admin page, and `drawer-broadcast.cy.js` depends on it here beside AppLayout's
+      drawer. It talks to this app's stand-ins for Opina (`pages#feedback_embed`, `#feedback_badge`). %>
   <%= render Bali::FeedbackWidget::Component.new(
     project_slug: "bali-demo",
-    opina_url: "http://localhost:3008",
+    opina_url: request.base_url,
     secret: "dev-shared-secret",
     user_id: 1,
     email: "demo@example.com"

@@ -165,6 +165,19 @@ describe('CommandController', () => {
       })
     })
 
+    // Only the "Upload committee minutes" action row matches: it was on screen
+    // under "No results" and "0 results".
+    it('counts an action row that matches the query', () => {
+      cy.visit('/bali/command/default?locale=en')
+      openPalette()
+      cy.get('[data-command-target="input"]').type('upload')
+
+      cy.get('[data-command-target="noResults"]').should('have.class', 'hidden')
+      count().should('have.text', '1 result')
+      cy.contains('.cmd-row', 'Upload committee minutes').should('not.have.class', 'hidden')
+        .find('mark.cmd-mark').should('have.text', 'Upload')
+    })
+
     it('uses the singular form for a single result', () => {
       cy.visit('/bali/command/compact?locale=es')
       openPalette()

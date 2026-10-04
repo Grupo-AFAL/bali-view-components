@@ -124,7 +124,20 @@ class BaliColorTest < ComponentTestCase
   end
 
   def test_gantt_status_pills_write_out_the_text_soft_utility
-    assert_equal(text_soft_mix("${ink}"), gantt_var_color[/text: `([^`]+)`/, 1])
+    assert_equal(text_soft_mix("${ink}"), gantt_var_color[/text: [^\n]*`([^`\n]+)`/, 1])
+  end
+
+  def test_error_ink_keeps_the_text_soft_mix_on_a_dark_scheme
+    utilities = Bali::Engine.root.join("app/assets/stylesheets/bali/utilities.css").read
+
+    assert_includes(utilities[/--soft-ink-error: ([^;]+);/, 1], text_soft_mix("var(--color-error)"))
+  end
+
+  def test_gantt_error_pills_write_out_text_soft_errors_own_ink
+    utilities = Bali::Engine.root.join("app/assets/stylesheets/bali/utilities.css").read
+    js = Bali::Engine.root.join("app/components/bali/gantt/ganttColors.js").read
+
+    assert_equal(utilities[/--soft-ink-error: ([^;]+);/, 1], js[/^const ERROR_INK = '([^']+)'/, 1])
   end
 
   # A host's catalog hands the Gantt a variable name, never `:neutral`, so ganttColors.js maps it

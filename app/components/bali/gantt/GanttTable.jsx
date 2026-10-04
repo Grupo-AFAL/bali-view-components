@@ -19,6 +19,7 @@ function Caret ({ collapsed }) {
       width='12'
       height='12'
       className={`shrink-0 fill-current transition-transform ${collapsed ? '' : 'rotate-90'}`}
+      aria-hidden='true'
     >
       <path d='M6 4l4 4-4 4z' />
     </svg>
@@ -53,7 +54,7 @@ const colStyle = (key) => ({ flex: `0 0 ${COL_W[key]}px`, minWidth: 0 })
 // the name of a second-level row. Below it the header and every row wrap, and a column they
 // cannot hold whole drops below Name's full height, where their `overflow-hidden` hides it. Cut
 // at the table's edge instead, the first 4 px of `DAYS` showed after `DATES` at 390 px.
-const NAME_MIN_W = 140
+export const NAME_MIN_W = 140
 
 export default memo(function GanttTable ({
   rows,

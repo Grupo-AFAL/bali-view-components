@@ -1,3 +1,5 @@
+import { hover, unhover } from '../support/tap'
+
 // Uses the Lookbook preview (no DB dependency): the default preview renders
 // the editor overlay with versions_url "/lookbook", so both the versions
 // index and each version payload are stubbed with cy.intercept.
@@ -178,6 +180,137 @@ describe('DocumentEditor tooltip cascade', () => {
 
     wrapper().then($wrapper => {
       expect($wrapper[0].getBoundingClientRect().height, 'no empty pill').to.equal(0)
+    })
+  })
+})
+
+// The preview saves to its own `document_url`, "/lookbook", with `auto_save: false`: the
+// Save button is the only thing that sends the PATCH, so each test decides when it goes out.
+describe('DocumentEditor save status', () => {
+  const editor = () => cy.get('[data-document-editor-target="editorArea"]:visible .bn-editor')
+  const saveStatus = () => cy.get('[data-document-editor-target="saveStatus"]')
+  const saveButton = () => cy.get('[data-document-editor-target="saveButton"]')
+  const edit = text => editor().find('.bn-inline-content').last().click().type(text)
+
+  beforeEach(() => {
+    cy.viewport(1280, 900)
+    cy.visit('/bali/document_editor/default')
+    editor().should('contain.text', 'Key Objectives')
+    edit(' edited')
+    saveStatus().should('have.text', 'Unsaved changes')
+  })
+
+  it('says the save failed when the server refuses it', () => {
+    cy.intercept('PATCH', /\/lookbook$/, { statusCode: 500, body: {} }).as('save')
+
+    saveButton().click()
+    cy.wait('@save')
+
+    saveStatus().should('have.text', 'Save failed').and('have.class', 'text-soft-error')
+    saveButton().should('be.enabled')
+    // Past the 500ms after the last keystroke in which the BlockEditor writes its hidden
+    // input: that write's `input` must not come back and cover the failure.
+    cy.wait(600)
+    saveStatus().should('have.text', 'Save failed')
+  })
+
+  // Saved within that same window, with the write still pending when the request leaves.
+  it('says the save went through when it leaves before the content sync', () => {
+    cy.intercept('PATCH', /\/lookbook$/, { statusCode: 200, body: {}, delay: 1000 }).as('save')
+
+    saveButton().click()
+    cy.wait('@save')
+
+    saveStatus().should('contain.text', 'Saved at')
+    saveButton().should('be.disabled')
+  })
+
+  // The preview has comments on, which pins `format: :prosemirror`. The save used to serialize
+  // on its own and sent BlockNote's block Array until the document held a comment mark.
+  it('sends the content in the format the editor is pinned to', () => {
+    cy.intercept('PATCH', /\/lookbook$/, { statusCode: 200, body: {} }).as('save')
+
+    saveButton().click()
+
+    cy.wait('@save').its('request.body.document.content').then((content) => {
+      expect(JSON.parse(content)).to.have.property('type', 'doc')
+    })
+  })
+
+  // The delay outlasts the BlockEditor's 500ms content sync, whose `input` would otherwise
+  // land after the response and flag the edit again by itself.
+  it('keeps an edit made while the save was in flight unsaved', () => {
+    cy.intercept('PATCH', /\/lookbook$/, { statusCode: 200, body: {}, delay: 3000 }).as('save')
+
+    saveButton().click()
+    saveStatus().should('have.text', 'Saving...')
+    edit(' again')
+    cy.wait('@save')
+
+    saveStatus().should('have.text', 'Unsaved changes')
+    saveButton().should('be.enabled')
+  })
+})
+
+// The "…" menu of a comment in the side panel hangs outside every `.bn-root`, where BlockNote's
+// --bn-border-radius-medium is undefined: its corners were 0 against the 8px of every other menu
+// on the preview's light theme.
+describe('DocumentEditor comment menu', () => {
+  const timestamps = { created_at: '2026-08-02T17:43:55Z', updated_at: '2026-08-02T17:44:10Z' }
+
+  beforeEach(() => {
+    cy.intercept('GET', /\/block_editor_comments(\?|$)/, {
+      body: [{
+        id: 1,
+        resolved: false,
+        metadata: {},
+        ...timestamps,
+        comments: [{
+          id: 1,
+          user_id: 'user-2',
+          metadata: {},
+          deleted_at: null,
+          reactions: [],
+          ...timestamps,
+          body: [{
+            id: 'stub-comment-1',
+            type: 'paragraph',
+            props: {},
+            content: [{ type: 'text', text: 'Looks good to me', styles: {} }],
+            children: []
+          }]
+        }]
+      }]
+    }).as('threads')
+
+    cy.viewport(1280, 900)
+    cy.visit('/bali/document_editor/default')
+    cy.wait('@threads')
+  })
+
+  afterEach(() => { unhover() })
+
+  it('rounds its corners like every other menu', () => {
+    cy.get('[data-document-editor-target="commentsToggle"]').click()
+    cy.get('.document-editor-panel .bn-thread-comment').first().then(hover)
+    cy.get('.document-editor-panel .bn-action-toolbar button').last().click()
+
+    cy.get('.document-editor-panel .mantine-Menu-dropdown')
+      .should('contain.text', 'Delete comment')
+      .and('have.css', 'border-top-left-radius', '8px')
+  })
+})
+
+// Side by side at 390px, the open table of contents left the document a 70px column and broke
+// its title letter by letter.
+describe('DocumentEditor on a phone', () => {
+  it('stacks the open table of contents above a full-width editor', () => {
+    cy.viewport(390, 844)
+    cy.visit('/bali/document_editor/default')
+    cy.get('[data-document-editor-target="tocPanel"]').should('be.visible')
+
+    cy.get('[data-document-editor-target="editorArea"]').should(($area) => {
+      expect($area[0].getBoundingClientRect().width, 'editor area width').to.equal(390)
     })
   })
 })

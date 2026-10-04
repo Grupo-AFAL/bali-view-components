@@ -64,7 +64,15 @@ describe('hovers, tints and edges over a base surface', () => {
     cy.get('button[title="Zoom in"]').should('exist')
   }
 
+  // Chrome's ResizeObserver loop report failed this spec twice in full runs, opening the Gantt's
+  // filter menu, and 0 times in 30 runs of the spec alone; where it comes from is not known. By
+  // the spec nothing is lost: what the observer held back is delivered in the next frame. Cypress
+  // rewrites the message and quotes the page's between blank lines, so only that block, word for
+  // word, is let through, and only in the tests that open these menus.
+  const RESIZE_OBSERVER_LOOP = /\n\n {2}> ResizeObserver loop completed with undelivered notifications\.\n\n/
+
   const openGanttMenu = (label) => () => {
+    cy.on('uncaught:exception', (error) => !RESIZE_OBSERVER_LOOP.test(error.message))
     openGantt()
     cy.contains('details > summary', label).click()
   }

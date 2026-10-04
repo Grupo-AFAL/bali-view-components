@@ -30,7 +30,7 @@ import '@xyflow/react/dist/style.css'
 import './flow.css'
 import TaskBarNode from './TaskBarNode'
 import TimeHeader, { HEADER_H } from './TimeHeader'
-import GanttTable from './GanttTable'
+import GanttTable, { NAME_MIN_W } from './GanttTable'
 import Toolbar from './Toolbar'
 import GanttFooter from './GanttFooter'
 import Minimap from './Minimap'
@@ -50,6 +50,8 @@ import { patchItem, addDependency, removeDependency, fetchSchedule, isStale } fr
 
 const nodeTypes = { taskBar: TaskBarNode }
 const ZOOM_ORDER = ['month', 'week', 'day'] // −  ...  + (more px/day = more zoom)
+// The skeleton's `min-h-[360px]` (component.html.erb) holds the same box.
+const MIN_BOARD_H = 360
 
 // Ephemeral daisyUI toast for server validation (422) or network errors.
 function showErrorToast (message) {
@@ -203,16 +205,16 @@ function FloatingControls ({ onZoomIn, onZoomOut, onFit, onToday, t }) {
   return (
     <div className='absolute bottom-3.5 left-3.5 z-30 flex flex-col overflow-hidden rounded-lg border border-base-content/15 bg-base-100 shadow-lg'>
       <button type='button' className={`${btn} border-b border-base-300`} onClick={onZoomIn} title={t('zoom_in')}>
-        <svg viewBox='0 0 16 16' width='16' height='16' className='fill-current'><path d='M7 3h2v4h4v2H9v4H7V9H3V7h4z' /></svg>
+        <svg viewBox='0 0 16 16' width='16' height='16' className='fill-current' aria-hidden='true'><path d='M7 3h2v4h4v2H9v4H7V9H3V7h4z' /></svg>
       </button>
       <button type='button' className={`${btn} border-b border-base-300`} onClick={onZoomOut} title={t('zoom_out')}>
-        <svg viewBox='0 0 16 16' width='16' height='16' className='fill-current'><path d='M3 7h10v2H3z' /></svg>
+        <svg viewBox='0 0 16 16' width='16' height='16' className='fill-current' aria-hidden='true'><path d='M3 7h10v2H3z' /></svg>
       </button>
       <button type='button' className={`${btn} border-b border-base-300`} onClick={onFit} title={t('fit')}>
-        <svg viewBox='0 0 16 16' width='15' height='15' className='fill-current'><path d='M2 2h5v2H4v3H2V2zm12 0v5h-2V4H9V2h5zM2 9h2v3h3v2H2V9zm10 3V9h2v5H9v-2h3z' /></svg>
+        <svg viewBox='0 0 16 16' width='15' height='15' className='fill-current' aria-hidden='true'><path d='M2 2h5v2H4v3H2V2zm12 0v5h-2V4H9V2h5zM2 9h2v3h3v2H2V9zm10 3V9h2v5H9v-2h3z' /></svg>
       </button>
       <button type='button' className={btn} onClick={onToday} title={t('go_to_today')}>
-        <svg viewBox='0 0 16 16' width='14' height='14' className='fill-current'><path d='M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2a3 3 0 100 6 3 3 0 000-6z' /></svg>
+        <svg viewBox='0 0 16 16' width='14' height='14' className='fill-current' aria-hidden='true'><path d='M8 1a7 7 0 100 14A7 7 0 008 1zm0 2a5 5 0 110 10A5 5 0 018 3zm0 2a3 3 0 100 6 3 3 0 000-6z' /></svg>
       </button>
     </div>
   )
@@ -589,16 +591,18 @@ function GanttCanvas (props) {
 
   // Available height / container width (React Flow demands a defined height;
   // the width decides the responsive table). Measured under the toolbar with
-  // a ResizeObserver.
+  // a ResizeObserver. The board opens at the floor, not at no height: React
+  // Flow reads its pane in an effect that runs before this layout effect's
+  // re-render, and a board with no height logged its warning #004 on every load.
   const rootRef = useRef(null)
-  const [availableHeight, setAvailableHeight] = useState(0)
+  const [availableHeight, setAvailableHeight] = useState(MIN_BOARD_H)
   const [rootWidth, setRootWidth] = useState(0)
   useLayoutEffect(() => {
     const el = rootRef.current
     if (!el) return undefined
     const measure = () => {
       const rect = el.getBoundingClientRect()
-      setAvailableHeight(Math.max(360, window.innerHeight - rect.top - 16))
+      setAvailableHeight(Math.max(MIN_BOARD_H, window.innerHeight - rect.top - 16))
       setRootWidth(rect.width)
     }
     measure()
@@ -633,11 +637,13 @@ function GanttCanvas (props) {
     [maxFlowX, rowsHeight]
   ]
 
-  // Table width: the splitter's (tableWidth), or 60% of the board so the timeline keeps 40%. The
-  // 520 cap has to hold every GanttTable column with Name at its minimum; on a board under 840 px
-  // GanttTable leaves out the right-hand columns it cannot hold whole. The loading skeleton's name
-  // column (index.css) opens at the same width.
-  const defaultTableW = rootWidth ? Math.max(300, Math.min(520, Math.round(rootWidth * 0.6))) : 380
+  // Table width: the splitter's (tableWidth), or 60% of the board so the timeline keeps 40%, never
+  // under Name's minimum. The 520 cap has to hold every GanttTable column with Name at its minimum;
+  // on a board under 840 px GanttTable leaves out the right-hand columns it cannot hold whole. A
+  // 300 px floor left a 288 px phone board no timeline. The loading skeleton's name column
+  // (index.css) opens at the same width, and the render before the board is measured takes it from
+  // there: a fixed 380 left a 358 px board no timeline, and React Flow warned (#004).
+  const defaultTableW = rootWidth ? Math.max(NAME_MIN_W, Math.min(520, Math.round(rootWidth * 0.6))) : 'var(--gantt-name-col)'
   const effTableW = tableWidth != null ? tableWidth : defaultTableW
   const cols = useMemo(
     () => ({
@@ -654,22 +660,20 @@ function GanttCanvas (props) {
   const weekend = useMemo(() => weekendBands(canvasStartIso, axisEndIso, pxPerDay, zoom, windowStart), [canvasStartIso, axisEndIso, pxPerDay, zoom, windowStart])
   const gridHeight = Math.max(rowsHeight, paneH || 600)
 
-  // Splitter: drag the table's right edge to adjust its width.
-  const onSplitterDown = useCallback(
-    (e) => {
-      e.preventDefault()
-      const startX = e.clientX
-      const startW = effTableW
-      const move = (ev) => setTableWidth(Math.max(260, Math.min(900, startW + (ev.clientX - startX))))
-      const up = () => {
-        document.removeEventListener('pointermove', move)
-        document.removeEventListener('pointerup', up)
-      }
-      document.addEventListener('pointermove', move)
-      document.addEventListener('pointerup', up)
-    },
-    [effTableW]
-  )
+  // Splitter: drag the table's right edge to adjust its width. It starts from the painted width:
+  // until the board is measured, `effTableW` is a CSS value, not a number.
+  const onSplitterDown = useCallback((e) => {
+    e.preventDefault()
+    const startX = e.clientX
+    const startW = e.currentTarget.previousElementSibling.getBoundingClientRect().width
+    const move = (ev) => setTableWidth(Math.max(260, Math.min(900, startW + (ev.clientX - startX))))
+    const up = () => {
+      document.removeEventListener('pointermove', move)
+      document.removeEventListener('pointerup', up)
+    }
+    document.addEventListener('pointermove', move)
+    document.addEventListener('pointerup', up)
+  }, [])
 
   // Stable identities: an inline arrow here would give `Toolbar` a new prop on
   // every canvas render and defeat its memo.
@@ -806,7 +810,7 @@ function GanttCanvas (props) {
     <div
       ref={rootRef}
       className='flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm'
-      style={{ height: availableHeight || undefined }}
+      style={{ height: availableHeight }}
     >
       <Toolbar
         search={search}

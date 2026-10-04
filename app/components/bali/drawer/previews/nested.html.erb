@@ -1,0 +1,9 @@
+<%= render Bali::Drawer::Component.new(active: true, drawer_id: 'outer-drawer', title: 'Project') do %>
+  <p class="mb-4">The history below opens in a drawer of its own.</p>
+  <%= render Bali::Button::Component.new(name: 'Show history', variant: :primary,
+                                         drawer: { id: 'inner-drawer', local: true }) %>
+
+  <%= render Bali::Drawer::Component.new(drawer_id: 'inner-drawer', shared: false, size: :sm, title: 'History') do %>
+    <p>Created three days ago.</p>
+  <% end %>
+<% end %>

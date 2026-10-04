@@ -1,4 +1,4 @@
-import { paintedContrast } from '../support/painted_contrast'
+import { oklch, paintedContrast, paintedPixel } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 
@@ -35,7 +35,6 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
     cy.get('[data-dropdown-target="trigger"]').first().click()
     cy.get(DELETE_ITEM).should('be.visible')
   }
-  const CLEAR_POLYGON = '[data-action="drawing-maps#clear"]'
   // The row direct-upload clones from its template once a file is picked, in the state the
   // controller leaves it after a failed and after a finished upload.
   const uploadRow = () => {
@@ -80,6 +79,14 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
     // custom property on `:root`.
     ['side_menu/dark_chrome', null, [
       ['active item under its own data-theme', '.menu-item.active.side-menu-expanded', 1]
+    ]],
+    // text-soft-error's `light-dark()` has to read the sidebar's own color-scheme, not the page's.
+    ['side_menu/dark_chrome', () => {
+      cy.get('nav[data-theme]').then(($nav) => {
+        $nav[0].insertAdjacentHTML('beforeend', '<span class="text-soft-error injected-error">Overdue</span>')
+      })
+    }, [
+      ['error text under its own data-theme', 'nav[data-theme] .injected-error', 1]
     ]],
     ['tree_view/default', null, [
       ['active item', '.item.is-active', 1]
@@ -232,14 +239,6 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
     }, [
       ['hovered "Delete" item', DELETE_ITEM, 1]
     ], true],
-    ['form/coordinates_polygon/default', null, [
-      ['"Clear"', CLEAR_POLYGON, 1]
-    ]],
-    ['form/coordinates_polygon/default', () => {
-      cy.get(CLEAR_POLYGON).then(hover)
-    }, [
-      ['hovered "Clear"', CLEAR_POLYGON, 1]
-    ], true],
     ['widget/default?failed=true', null, [
       ['load error', '.bali-widget-body p.text-xs', 1]
     ]],
@@ -362,6 +361,25 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
           expect($chip[0].matches(':hover'), 'under the pointer').to.equal(true)
           expectReads($chip[0])
         })
+      })
+    })
+  })
+
+  // The 40% mix with base-content read brown for error on a light theme: rgb(114, 72, 80) on
+  // `afal`, chroma 0.05. A dark theme keeps that mix, a pale red.
+  const LIGHT_THEMES = ['light', 'afal', 'costa-norte']
+  LIGHT_THEMES.forEach((theme) => {
+    it(`paints text-soft-error red on the ${theme} theme`, () => {
+      cy.visit('/bali/delete_link/default')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+      cy.document({ timeout: 10000 }).should((doc) => {
+        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+        const link = doc.querySelector('form.bali-delete-link-form button')
+        const [, chroma, hue] = oklch(paintedPixel(doc, doc.defaultView.getComputedStyle(link).color))
+        expect(chroma, `${theme}: chroma`).to.be.at.least(0.12)
+        expect(hue < 40 || hue > 340, `${theme}: hue ${hue.toFixed(0)} is red`).to.equal(true)
+        expect(paintedContrast(link), `${theme}: on the page`).to.be.at.least(AA)
       })
     })
   })

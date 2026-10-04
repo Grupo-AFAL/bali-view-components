@@ -15,6 +15,8 @@
 //
 // The editor is React mounted by Stimulus: wait for the content, not the container, or
 // you measure the empty div the server sent.
+import { hover, unhover } from '../support/tap'
+
 const editor = () => cy.get('.bn-editor.bn-default-styles')
 const blocks = () => cy.get('.bn-block-content')
 
@@ -106,5 +108,58 @@ describe('BlockEditor: the heading that opens the document', () => {
     headings().eq(1).should($h => {
       expect(parseFloat(getComputedStyle($h[0]).paddingTop)).to.eq(13.5)
     })
+  })
+})
+
+// In the narrow column layouts a `flex-start` cross axis sized the editor to its min-content: at
+// 390px the preview's table made it 392px in a 332px column, and the page scrolled sideways
+// (scrollWidth 421).
+describe('BlockEditor on a phone', () => {
+  ['with_table_of_contents', 'with_persistent_comments'].forEach((preview) => {
+    it(`keeps ${preview} inside the viewport`, () => {
+      cy.viewport(390, 844)
+      cy.visit(`/bali/block_editor/${preview}`)
+      cy.get('.bn-editor').should('contain.text', 'Block Editor Showcase')
+
+      cy.document().should(({ documentElement: root }) => {
+        expect(root.scrollWidth, 'page scroll width').to.equal(root.clientWidth)
+      })
+    })
+  })
+})
+
+// The handle BlockNote floats left of a block hung outside the field's border, from x=-19 on a page
+// with a 16px margin. The field keeps only the drag handle, inside its padding; the "+" beside it
+// goes, as Enter and "/" do the same. DocumentEditor's canvas keeps both.
+describe('BlockEditor block handle', () => {
+  afterEach(() => { unhover() })
+
+  const addButton = () => cy.get('.bn-side-menu > button:not([draggable="true"])')
+  const dragHandle = () => cy.get('.bn-side-menu > button[draggable="true"]')
+  const display = $el => $el[0].ownerDocument.defaultView.getComputedStyle($el[0]).display
+
+  it('shows only the drag handle, inside the field', () => {
+    openPreview('/bali/block_editor/with_initial_content')
+    cy.get('.bn-editor [data-content-type="paragraph"]').first().then(hover)
+
+    dragHandle().should('be.visible')
+    addButton().should(($add) => { expect(display($add), 'the "+"').to.equal('none') })
+    cy.get('.block-editor-component').then(($field) => {
+      dragHandle().should(($handle) => {
+        const field = $field[0].getBoundingClientRect()
+        const handle = $handle[0].getBoundingClientRect()
+        const border = parseFloat($field[0].ownerDocument.defaultView.getComputedStyle($field[0]).borderLeftWidth)
+        expect(handle.left, 'handle clear of the left border').to.be.at.least(field.left + border)
+      })
+    })
+  })
+
+  it('keeps the "+" in the DocumentEditor', () => {
+    cy.viewport(1280, 900)
+    openPreview('/bali/document_editor/default')
+    cy.get('[data-document-editor-target="editorArea"] .bn-editor .bn-block-content').first().then(hover)
+
+    dragHandle().should('be.visible')
+    addButton().should(($add) => { expect(display($add), 'the "+"').to.not.equal('none') })
   })
 })

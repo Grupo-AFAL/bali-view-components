@@ -11,13 +11,14 @@ module Bali
         full: "max-w-full"
       }.freeze
 
-      # Tailwind safelist: group-[.drawer-open]:translate-x-0
-      # Tailwind safelist: max-md:group-[.drawer-open]:max-w-[85%]
+      # `[.drawer-open>&]`, not `group-[.drawer-open]`: the group variant matches an open
+      # drawer anywhere up the tree, so a closed drawer rendered inside an open one slid
+      # on screen with it.
       POSITIONS = {
         left: { side: "left-0", transform: "-translate-x-full",
-                open_class: "group-[.drawer-open]:translate-x-0" },
+                open_class: "[.drawer-open>&]:translate-x-0" },
         right: { side: "right-0", transform: "translate-x-full",
-                 open_class: "group-[.drawer-open]:translate-x-0" }
+                 open_class: "[.drawer-open>&]:translate-x-0" }
       }.freeze
 
       renders_one :header
@@ -53,7 +54,7 @@ module Bali
 
       def drawer_classes
         class_names(
-          "drawer-component group z-[var(--bali-z-drawer)] fixed",
+          "drawer-component z-[var(--bali-z-drawer)] fixed",
           @active && "drawer-open",
           @options[:class]
         )
@@ -73,9 +74,10 @@ module Bali
           "text-base-content",
           position_config[:side],
           SIZES.fetch(@size, SIZES[:md]),
-          "bg-base-100 group-[.drawer-open]:shadow-2xl",
+          "bg-base-100 [.drawer-open>&]:shadow-2xl",
+          # `duration-300` is also the delay that keeps a closing drawer visible in index.css.
           "transform transition-[transform,translate,box-shadow] duration-300 ease-in-out",
-          "group-[.drawer-open]:transition-transform",
+          "[.drawer-open>&]:transition-transform",
           position_config[:transform],
           "overflow-auto z-10"
         )

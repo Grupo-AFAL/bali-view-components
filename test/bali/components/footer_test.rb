@@ -23,6 +23,17 @@ class BaliFooterComponentTest < ComponentTestCase
     assert_selector(".footer-center")
   end
 
+  # `.footer-center` without `.footer-horizontal` puts every section side by side on a phone.
+  def test_rendering_stacks_centered_sections_at_every_width
+    render_inline(Bali::Footer::Component.new(center: true))
+    assert_selector(".footer.footer-horizontal.footer-center")
+  end
+
+  def test_rendering_lays_sections_side_by_side_from_sm_up_when_not_centered
+    render_inline(Bali::Footer::Component.new)
+    assert_selector(".footer.sm\\:footer-horizontal:not(.footer-horizontal)")
+  end
+
   def test_brand_slot_renders_brand_with_name_and_description
     render_inline(Bali::Footer::Component.new) do |footer|
       footer.with_brand(name: "ACME", description: "Building the future")
