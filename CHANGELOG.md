@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   el navegador, en vez de repetir `between`, `in` y `not_in`; y `condition_controller.js` deja
   su copia en inglés de los operadores, que nunca se usaba. Sin nada que hacer en el anfitrión.
 
+- **`DataTable`: en el teléfono el switch de vistas va al «⋯»** (#1303), primero en el menú, y
+  la búsqueda toma su lugar en la fila: a 320 px el campo de búsqueda de `/admin/movies` pasa de
+  29 a 131 px (a 390, de 99 a 201). Desde 640 px nada cambia: el switch sigue en la fila y sólo se encoge.
+  Lo notan los listados con `with_view_switch`, dos en afal-apps. Sin nada que hacer en el
+  anfitrión.
+
+- **`Filters`: el popover mide 42rem en vez de 40rem** (#1303), para que el campo de un rango de
+  fechas lo muestre entero: el más ancho, «May 28, 2026 to May 30, 2026», ocupa 191 px y el
+  campo pasa de 172 a 204. Sin nada que hacer en el anfitrión.
+
 ### Fixed
 
 - **`Filters`: «en» con una fecha trae las filas de ese día** (#1303). Sobre una columna de fecha
@@ -22,8 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `FilterForm` lee ahora la fecha sola de un `_eq` del panel de filtros (`q[g]`) sobre una
   columna de fecha y hora como el día entero, en un grupo propio para no cambiar lo que pide un
   grupo «o»; sobre una columna de fecha o de texto sigue comparando igual. Un `_eq` suelto en
-  `q`, fuera de `q[g]`, sigue comparando contra la medianoche. Una vista guardada con ese filtro lo guarda tal cual y trae
-  el día al aplicarse. Lo notan los paneles que filtran una columna de fecha y hora con
+  `q`, fuera de `q[g]`, sigue comparando contra la medianoche. Una vista guardada con ese
+  filtro lo guarda tal cual y trae el día al aplicarse. Lo notan los paneles que filtran una columna de fecha y hora con
   `type: :date`, como `created_at` y `last_active_at` en los usuarios de gobierno-corporativo o
   `last_sign_in_at` en las cuentas de identity. Sin nada que hacer en el anfitrión.
 
