@@ -83,5 +83,6 @@
 @import "../../../components/bali/button/daisyui-overrides.css";
 /* daisyUI's `.skeleton` animates forever, and a closed drawer stays rendered. */
 @import "../../../components/bali/drawer/daisyui-overrides.css";
-/* daisyUI's `.menu` drops the focus ring of its items. */
+/* daisyUI's `.menu` drops the focus ring of its items, and `.btn` rings in its own colour. */
 @import "../../../components/bali/dropdown/daisyui-overrides.css";
+@import "../../../components/bali/navbar/daisyui-overrides.css";

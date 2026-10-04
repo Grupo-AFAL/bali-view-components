@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Navbar: el anillo de foco toma el color del texto de la barra.** Enlaces, botones y el
+  disparador «More» dibujan el anillo en el `-content` del preset, y en `base-content` con la
+  barra transparente o en el menú del teléfono; antes medía 1.07–1.72:1 sobre la página en los
+  temas oscuros y 1.00 sobre una barra `neutral`. Los enlaces del menú, que no tenían anillo,
+  ahora lo tienen. Nada que hacer.
 - **Navbar: con `transparency: true` la barra sale transparente desde el servidor.** Ya no se ve
   el relleno del preset hasta que conecta Stimulus, y una página que carga con scroll toma la
   barra opaca al conectar. Nada que hacer.

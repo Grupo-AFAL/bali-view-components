@@ -1,0 +1,19 @@
+/* Navbar — the focus ring of what sits in the bar, in the bar's text colour.
+ *
+ * daisyUI 5.7.47 rings a `.btn` in its own `--btn-color` and gives a `.menu` link no ring at
+ * all, and the "More" Dropdown trigger, which has no daisyUI class, got the browser's
+ * rgb(16, 16, 16). On a transparent bar in the dark themes "More" measured 1.07–1.20:1 against
+ * the page and a `btn-neutral` 1.26–1.72; on an opaque `neutral` bar both fell to 1.00–1.85
+ * (WCAG 1.4.11 asks 3:1). Unlayered because daisyUI emits `.btn` and `.menu` inside
+ * `@layer utilities`. The items of a Dropdown in the bar keep the Dropdown's ring.
+ *
+ * Not `currentColor`: under `:focus-visible` daisyUI repaints a `.menu` link and a ghost
+ * button in base-content, which measured 1.69–2.80 on a `primary` bar. The colour is
+ * `--bali-navbar-ring`, set next to every text colour the bar gets: the presets and
+ * `.is-transparent` in navbar/index.css, the mobile menu in Navbar::Menu::Component.
+ */
+
+.navbar :is(a, button, [role="button"]):not([role^="menuitem"]):focus-visible {
+  outline: 2px solid var(--bali-navbar-ring, var(--color-base-content));
+  outline-offset: 2px;
+}

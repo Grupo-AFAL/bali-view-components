@@ -36,18 +36,22 @@
 
   &.navbar-primary {
     @apply bg-primary text-primary-content;
+    --bali-navbar-ring: var(--color-primary-content);
   }
 
   &.navbar-secondary {
     @apply bg-secondary text-secondary-content;
+    --bali-navbar-ring: var(--color-secondary-content);
   }
 
   &.navbar-accent {
     @apply bg-accent text-accent-content;
+    --bali-navbar-ring: var(--color-accent-content);
   }
 
   &.navbar-neutral {
     @apply bg-neutral text-neutral-content;
+    --bali-navbar-ring: var(--color-neutral-content);
   }
 
   /* daisyUI 5.7.47 paints a resting `.btn-ghost` with `var(--btn-rest-fg, var(--btn-color,
@@ -67,6 +71,7 @@
   &.is-transparent {
     @apply bg-transparent shadow-none;
     color: inherit;
+    --bali-navbar-ring: initial;
   }
 }
 

@@ -187,7 +187,8 @@ Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`
 `toast/index.css`, `feedback_widget/index.css`, `side_menu/daisyui-overrides.css`,
 `calendar/daisyui-overrides.css`, `rich_text_editor/daisyui-overrides.css`,
 `gauge/daisyui-overrides.css`, `alert/daisyui-overrides.css`, `tag/daisyui-overrides.css`,
-`button/daisyui-overrides.css`, `drawer/daisyui-overrides.css`, `dropdown/daisyui-overrides.css`.
+`button/daisyui-overrides.css`, `drawer/daisyui-overrides.css`, `dropdown/daisyui-overrides.css`,
+`navbar/daisyui-overrides.css`.
 Each file's header names the rule it has to beat and the measurement that put it there —
 read it before adding to one.
 
