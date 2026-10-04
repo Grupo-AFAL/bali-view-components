@@ -13,7 +13,7 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
 
   def test_renders_a_delete_link
     render_inline(component)
-    assert_selector("button.text-error.btn-ghost", text: "Delete")
+    assert_selector("button.text-soft-error.btn-ghost", text: "Delete")
     assert_selector("[data-turbo-confirm='Are you sure?']")
     assert_selector("[action='/delete-url']")
   end
@@ -21,7 +21,7 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
   def test_overrides_the_link_name
     @options.merge!(name: "Cancel")
     render_inline(component)
-    assert_selector("button.text-error.btn-ghost", text: "Cancel")
+    assert_selector("button.text-soft-error.btn-ghost", text: "Cancel")
   end
 
   def test_overrides_the_link_confirm_message
@@ -33,7 +33,7 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
   def test_add_a_css_class_to_the_link
     @options.merge!(class: "btn-lg")
     render_inline(component)
-    assert_selector("button.text-error.btn-ghost.btn-lg")
+    assert_selector("button.text-soft-error.btn-ghost.btn-lg")
   end
 
   def test_raises_an_error_without_model_or_href
@@ -44,7 +44,7 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
   def test_renders_a_delete_link_with_custom_form_classes
     @options.merge!(form_class: "bg-success")
     render_inline(component)
-    assert_selector("button.text-error.btn-ghost", text: "Delete")
+    assert_selector("button.text-soft-error.btn-ghost", text: "Delete")
     # `form_class:` ADDS, as its documentation says: the default stays put alongside.
     assert_selector("form.bali-delete-link-form.bg-success")
   end
@@ -115,12 +115,12 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
 
   def test_variants_keeps_the_destructive_red_only_where_the_variant_has_no_colour
     render_inline(Bali::DeleteLink::Component.new(**@options))
-    assert_selector("button.btn-ghost.text-error")
+    assert_selector("button.btn-ghost.text-soft-error")
 
     @options.merge!(variant: :error)
     render_inline(component)
     assert_selector("button.btn-error")
-    assert_no_selector("button.text-error")
+    assert_no_selector("button.text-error, button.text-soft-error")
   end
 
   def test_styles_applies_outline
@@ -170,7 +170,7 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
 
   def test_with_active_record_model_renders_a_delete_link
     render_inline(component)
-    assert_selector("button.text-error.btn-ghost", text: "Delete")
+    assert_selector("button.text-soft-error.btn-ghost", text: "Delete")
     assert_selector("[action='/delete-url']")
   end
 

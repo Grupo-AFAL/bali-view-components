@@ -14,7 +14,7 @@ module Bali
 
       # The slot and the `icon:` keyword are the same concept written two ways, and now
       # under the same word: the slot is the one that takes options (`with_icon('star',
-      # class: 'text-error')`), so it wins when both are given.
+      # class: 'text-soft-error')`), so it wins when both are given.
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
       renders_one :icon_right, ->(name, **options) { Icon::Component.new(name, **options) }
 

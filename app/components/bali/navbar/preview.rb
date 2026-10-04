@@ -13,6 +13,9 @@ module Bali
       # **Shadow**: on by default. Turn it off in a layout where the bar already
       # separates itself — an app shell whose navbar carries a bottom border that
       # continues the sidebar's draws two dividers otherwise.
+      #
+      # **Transparency**: no background or shadow until the page scrolls past the bar.
+      # Meanwhile the bar takes the text colour of its container, not its preset's.
       def default(fullscreen: false, transparency: false, shadow: true, color: :base)
         render_with_template(
           template: 'bali/navbar/previews/default',

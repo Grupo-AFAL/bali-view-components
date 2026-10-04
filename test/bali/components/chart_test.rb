@@ -208,6 +208,30 @@ class BaliChartComponentTest < ComponentTestCase
     assert_selector('canvas[data-chart-use-theme-colors-value="false"]')
   end
 
+  # The order the guide publishes to hosts; Bali::Color::CYCLE says why it is not daisyUI's.
+  def test_theme_colors_paint_the_series_in_the_published_order
+    assert_equal(%w[primary accent secondary success warning info error], series_colors(7))
+  end
+
+  def test_theme_colors_hand_out_every_colour_of_the_cycle_before_repeating
+    assert_equal([ *Bali::Color::CYCLE.map(&:to_s), "primary" ], series_colors(8))
+  end
+
+  # Without the theme the controller resolves nothing: the hex in the JSON is what is drawn.
+  def test_without_theme_colors_the_tenth_series_takes_the_last_hex
+    assert_equal("#AAAA11", series_border_colors(10, use_theme_colors: false).last[0, 7])
+  end
+
+  # Chart.js draws a doughnut's legend in the first ring's colours, and clicking label i hides
+  # slice i of every ring.
+  def test_every_doughnut_ring_paints_slice_i_in_the_colour_of_label_i
+    rings = Array.new(2) { |n| { label: "Ring #{n + 1}", data: [ 1, 2, 3, 4 ] } }
+    render_inline(Bali::Chart::Component.new(type: :doughnut, data: { labels: %w[Q1 Q2 Q3 Q4], datasets: rings }))
+
+    first, second = rendered_datasets.map { |ring| ring["backgroundColor"] }
+    assert_equal(first, second)
+  end
+
   # Everything Chart.js draws is pixels. Without a role and a name the canvas is
   # an unlabelled node the accessibility tree walks straight past.
   def test_a11y_canvas_is_an_image_named_after_the_title
@@ -282,5 +306,23 @@ class BaliChartComponentTest < ComponentTestCase
   def test_a11y_renders_no_table_wrapper_without_the_slot
     render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }))
     assert_no_selector("div.chart-fallback-table")
+  end
+
+  private
+
+  # The border colour of each of `count` series, read off the JSON the controller gets.
+  def series_border_colors(count, **options)
+    datasets = Array.new(count) { |n| { label: "Series #{n + 1}", data: [ n ] } }
+    render_inline(Bali::Chart::Component.new(data: { labels: %w[Q1], datasets: datasets }, **options))
+
+    rendered_datasets.map { |dataset| Array(dataset["borderColor"]).first }
+  end
+
+  def rendered_datasets
+    JSON.parse(page.find("canvas.chart")["data-chart-data-value"])["datasets"]
+  end
+
+  def series_colors(count)
+    series_border_colors(count).map { |color| color[/var\(--color-([\w-]+)\)/, 1] }
   end
 end

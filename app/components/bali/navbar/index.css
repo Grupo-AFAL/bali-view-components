@@ -14,7 +14,6 @@
  * purpose: that one comes from @layer utilities. */
 .navbar {
   @apply shadow-sm;
-  transition: background-color 1s;
 
   &>.container {
     & .navbar-brand {
@@ -61,11 +60,13 @@
     --btn-rest-fg: var(--btn-color, currentColor);
   }
 
-  /* The text color is NOT touched here: a transparent navbar over a dark hero still
-   * wants the light `*-content` of its preset. */
+  /* The preset's `-content` is made for the preset's fill, not for what shows through: over
+   * the page it measured 1.00:1 on `primary` in `afal`, under 3:1 in 15 of the 24 colour ×
+   * theme pairs (#1284). `inherit` and not base-content: inside a section with a text colour
+   * of its own, the bar reads in that colour. */
   &.is-transparent {
     @apply bg-transparent shadow-none;
-    transition: background-color 1s;
+    color: inherit;
   }
 }
 

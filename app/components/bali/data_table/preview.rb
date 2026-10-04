@@ -432,8 +432,6 @@ module Bali
           Studio.all, filter_params,
           simple_filters: Studio.filter_options,
           search_fields: %i[name],
-          # The search box is named by `search_aria_label:`; without it the placeholder
-          # names it, and that disappears as soon as the user types (#1155, review).
           search_aria_label: "Search studios by name",
           search_icon: "search"
         )

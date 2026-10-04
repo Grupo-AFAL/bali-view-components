@@ -42,8 +42,7 @@ module Bali
       # @label With Color
       # `color:` names the DaisyUI colour the palette starts from, so a
       # single-series chart is painted in it and a multi-series one cycles from
-      # it. `custom_color:` takes a hex and drops the theme palette entirely —
-      # a canvas cannot resolve a `var()`, so a chart cannot mix the two.
+      # it. `custom_color:` takes a hex and drops the theme palette entirely.
       # @param color select { choices: [neutral, primary, secondary, accent, info, success, warning, error, ghost] }
       # @param custom_color text
       def with_color(color: :success, custom_color: nil)
@@ -54,6 +53,54 @@ module Bali
           legend: true,
           color: color.to_sym,
           custom_color: custom_color.presence
+        )
+      end
+
+      # @label Series Palette
+      # One series per theme colour, in the order a multi-series chart hands
+      # them out (`Bali::Color::CYCLE`). An eighth series would start over at
+      # the first. As a doughnut each ring has one slice per colour, named
+      # after it, and every ring starts the cycle over.
+      # @param type select { choices: [bar, line, doughnut] }
+      def series_palette(type: :bar)
+        labels = type.to_s == 'doughnut' ? Bali::Color::CYCLE.map(&:to_s) : %w[Q1 Q2 Q3 Q4]
+        values = [3, 6, 4, 8, 5, 7, 2].first(labels.size)
+
+        render Bali::Chart::Component.new(
+          data: {
+            labels: labels,
+            datasets: (1..7).map { |n| { label: "Series #{n}", data: values.map { |value| n + value } } }
+          },
+          type: type.to_sym,
+          card_style: :bordered,
+          legend: true
+        )
+      end
+
+      # @label Own Colours
+      # A series' own colours reach the canvas as written, and one naming a
+      # `var(--color-*)` in the theme's value for it: the third series is red.
+      # On a line, a series with its own `borderColor:` hands the points and
+      # legend swatch its `backgroundColor:`, or that border when it gives no fill.
+      # The fourth keeps the theme's border under a transparent fill and hollow
+      # points of its own (#1065).
+      def own_colors
+        render Bali::Chart::Component.new(
+          data: {
+            labels: %w[Jan Feb Mar Apr May],
+            datasets: [
+              { label: 'Border only', data: [12, 15, 13, 18, 16], borderColor: '#2563eb' },
+              { label: 'Border and fill', data: [8, 9, 11, 10, 12],
+                borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.5)' },
+              { label: 'Theme border, own fill', data: [4, 6, 5, 7, 6],
+                borderColor: Bali::Color.css(:error), backgroundColor: 'rgba(220, 38, 38, 0.5)' },
+              { label: 'Fill only', data: [2, 3, 2, 4, 3], backgroundColor: 'rgba(0, 0, 0, 0)',
+                pointBackgroundColor: 'rgba(0, 0, 0, 0)', pointBorderColor: 'rgba(100, 116, 139, 0.90)' }
+            ]
+          },
+          type: :line,
+          card_style: :bordered,
+          legend: true
         )
       end
 

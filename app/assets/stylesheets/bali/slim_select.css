@@ -124,19 +124,19 @@
 /* =============================================================================
    Select All / Deselect All Toggle Button
    ============================================================================= */
+/* Not `primary` as text, which read 3.40:1 on daisyUI's `dark`, and not dimmed under the
+   pointer: at 70% it fell under AA on all six themes, 2.33–4.48:1. */
 .ss-toggle-btn {
   display: inline-flex;
   align-items: center;
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--ss-primary-color);
+  @apply text-soft-primary;
   cursor: pointer;
   padding: var(--ss-spacing-s) 0;
   margin-bottom: var(--ss-spacing-s);
-  transition: opacity var(--ss-animation-timing) ease;
 
   &:hover {
-    opacity: 0.7;
     text-decoration: underline;
   }
 
@@ -685,10 +685,11 @@
     background-color: color-mix(in oklab, var(--color-base-content) 8%, transparent);
   }
 
-  /* Selected state — blue text + checkmark, no background tint */
+  /* Selected state: the soft primary and a check, no background tint. `primary` as text read
+     3.40:1 on daisyUI's `dark`, and 2.69 under the pointer. */
   &.ss-selected {
     background-color: transparent;
-    color: var(--ss-primary-color);
+    @apply text-soft-primary;
     font-weight: 500;
     padding-right: calc(12px + 1.25rem);
 
@@ -704,7 +705,7 @@
       transform: translateY(-50%);
       width: 1rem;
       height: 1rem;
-      background-color: var(--ss-primary-color);
+      background-color: currentColor;
       -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") no-repeat center;
       mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") no-repeat center;
       -webkit-mask-size: contain;

@@ -50,7 +50,14 @@ export class CommandController extends Controller {
   ]
 
   static values = {
-    open: { type: Boolean, default: false }
+    open: { type: Boolean, default: false },
+    // `bali_view.command.results`, from component.html.erb. Keep the English
+    // default: hosts pin the gem and the npm package separately, so this
+    // controller can meet markup from a gem that sends no forms.
+    results: {
+      type: Object,
+      default: { one: '%{count} result', other: '%{count} results' }
+    }
   }
 
   connect () {
@@ -165,10 +172,11 @@ export class CommandController extends Controller {
       row.classList.toggle('hidden', !visible)
       if (visible) visibleCount++
 
-      // Both halves of "this row answered the query": it counts against the
-      // no-results message and gets its match highlighted. `action` rows stay
-      // out of the count — they are always on screen, so counting them would
-      // suppress the message for a query that nothing actually matched.
+      // "This row answered the query": it counts against the no-results
+      // message and in the footer, and gets its match highlighted. `action`
+      // rows stay out of the count — they are always on screen, so counting
+      // them would suppress the message, or put "3 results" under it, for a
+      // query that nothing actually matched.
       if (matches && (mode === 'searchable' || mode === 'navigation')) {
         regularResultsCount++
         this._highlight(row, query)
@@ -192,8 +200,11 @@ export class CommandController extends Controller {
     }
 
     if (this.hasCountTarget) {
-      const label = visibleCount === 1 ? 'result' : 'results'
-      this.countTarget.textContent = `${visibleCount} ${label}`
+      // With nothing typed there is no query to answer: count what is listed.
+      const count = isEmpty ? visibleCount : regularResultsCount
+      const { one, other } = this.resultsValue
+      const form = count === 1 ? one : other
+      this.countTarget.textContent = form.replace('%{count}', count)
     }
 
     this._activeIndex = 0

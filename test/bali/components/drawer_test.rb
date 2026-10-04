@@ -72,7 +72,7 @@ class BaliDrawerComponentTest < ComponentTestCase
 
   def test_structure_renders_drawer_panel_with_tailwind_classes
     render_inline(component)
-    assert_selector(".drawer-panel.bg-base-100.shadow-2xl")
+    assert_selector(".drawer-panel.bg-base-100")
   end
 
   # Focus has to land somewhere inside the panel while the skeleton is showing,

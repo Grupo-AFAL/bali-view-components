@@ -1,3 +1,7 @@
+import { DEFICIENCIES, cvdDistance, okDistance } from '../support/color_vision'
+import { paintedPixel } from '../support/painted_contrast'
+import { THEMES } from '../support/themes'
+
 // #1041 — Chart had no E2E spec, and a canvas is the one component where a
 // broken render looks exactly like an empty one. Ruby writes the dataset colors
 // as `color-mix(in oklch, var(--color-primary) ...)` — CSS a canvas cannot
@@ -21,6 +25,10 @@ describe('Chart', () => {
 
   const cssVariable = (win, name) =>
     win.getComputedStyle(win.document.documentElement).getPropertyValue(name).trim()
+
+  // A colour as the canvas paints it, alpha left out: the theme's `oklch(45% .24 277.023)` and
+  // the browser's `oklch(0.45 0.24 277.023 / 0.8)` are one pixel.
+  const opaque = (win, colour) => paintedPixel(win.document, colour.replace(/\s*\/\s*[\d.]+\)$/, ')'))
 
   describe('default bar chart', () => {
     beforeEach(() => {
@@ -115,11 +123,194 @@ describe('Chart', () => {
         expect(success).to.not.eq(primary)
 
         chartInstance((chart) => {
-          const first = [chart.data.datasets[0].borderColor].flat()[0]
+          const first = opaque(win, [chart.data.datasets[0].borderColor].flat()[0])
 
-          expect(first).to.include(success.replace(/^oklch\(|\)$/g, ''))
-          expect(first).to.not.include(primary.replace(/^oklch\(|\)$/g, ''))
+          expect(first).to.deep.eq(opaque(win, success))
+          expect(first).to.not.deep.eq(opaque(win, primary))
         })
+      })
+    })
+  })
+
+  describe('series palette', () => {
+    // Measured between the series' own colours. Before #1281 `afal-dark`'s first two series
+    // were 0.003 apart under deuteranopia, and every pair the daisyUI order brought too close
+    // measured 0.047 or less. The closest neighbours now are costa-norte's accent and secondary,
+    // both golds, at 0.061 under tritanopia.
+    const FLOOR = 0.05
+
+    const firstColor = (dataset) => [dataset.borderColor].flat()[0]
+
+    beforeEach(() => {
+      cy.visit('/bali/chart/series_palette')
+    })
+
+    // Ruby names every colour from Bali::Color::CYCLE, and the controller resolves each again in
+    // the theme the page switches to.
+    const PAINTED = { borderColor: 'colour', backgroundColor: 'fill' }
+
+    ;['bar', 'doughnut'].forEach((type) => {
+      it(`paints each ${type} colour in the one Ruby named, in every theme`, () => {
+        cy.visit(`/bali/chart/series_palette?type=${type}`)
+
+        canvas().then(($canvas) => {
+          const named = JSON.parse($canvas.attr('data-chart-data-value')).datasets.map((dataset) =>
+            Object.fromEntries(Object.keys(PAINTED).map((key) =>
+              [key, [dataset[key]].flat().map((colour) => colour.match(/var\((--color-[\w-]+)\)/)[1])])))
+
+          THEMES.forEach((theme) => {
+            cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', theme))
+            cy.window().then((win) => {
+              const cycle = [...new Set(named.flatMap((keys) => keys.borderColor))]
+                .map((name) => opaque(win, cssVariable(win, name)).join())
+              expect(new Set(cycle).size, `${theme} keeps the colours apart`).to.eq(cycle.length)
+
+              chartInstance((chart) => {
+                expect(win.document.getAnimations(), 'transitions').to.have.length(0)
+                chart.data.datasets.forEach((dataset, series) => {
+                  Object.entries(PAINTED).forEach(([key, part]) => {
+                    [dataset[key]].flat().forEach((colour, index) => {
+                      const name = named[series][key][index]
+                      expect(opaque(win, colour), `${theme} series ${series + 1} ${part} ${index + 1}, ${name}`)
+                        .to.deep.eq(opaque(win, cssVariable(win, name)))
+                    })
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+
+    // Chart.js fills a line's points, and its legend swatch under `usePointStyle`, from
+    // `pointBackgroundColor`, which Ruby writes as the same CSS as the border. Left unresolved,
+    // the swatches came out grey and the points black.
+    it('paints the points and legend swatch of a line in its series colour', () => {
+      cy.visit('/bali/chart/series_palette?type=line')
+
+      chartInstance((chart) => {
+        chart.data.datasets.forEach((dataset, index) => {
+          expect(dataset.pointBackgroundColor, `series ${index + 1} points`).to.match(/^oklch\(/)
+          expect(dataset.pointBackgroundColor, `series ${index + 1} points`).to.eq(firstColor(dataset))
+          expect(chart.legend.legendItems[index].fillStyle, `series ${index + 1} legend`).to.eq(firstColor(dataset))
+        })
+      })
+    })
+
+    // Seven series show each theme colour once, unless two of them are one colour: afal-dark's
+    // amber-400 accent was its warning to 0.005, and series 5 repeated series 2.
+    it('keeps every pair of series apart in every theme', () => {
+      const alike = []
+
+      THEMES.forEach((theme) => {
+        cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', theme))
+        cy.window().then((win) => {
+          chartInstance((chart) => {
+            expect(win.document.getAnimations(), 'transitions').to.have.length(0)
+            const colours = chart.data.datasets.map((dataset) => opaque(win, firstColor(dataset)))
+            expect(colours[0], `${theme} resolved`).to.deep.eq(opaque(win, cssVariable(win, '--color-primary')))
+
+            colours.forEach((colour, index) => colours.slice(index + 1).forEach((other, offset) => {
+              const distance = okDistance(colour, other)
+              if (distance < FLOOR) alike.push(`${theme} series ${index + 1}-${index + offset + 2} ${distance.toFixed(3)}`)
+            }))
+          })
+        })
+      })
+
+      cy.then(() => expect(alike, `series closer than ΔE_OK ${FLOOR}`).to.deep.eq([]))
+    })
+
+    // The pair after the last series counts too: series 8 repeats series 1, and a `color:`
+    // rotates the cycle so that pair lands anywhere.
+    it('keeps neighbouring series apart under colour-vision deficiencies in every theme', () => {
+      const collapsed = []
+
+      THEMES.forEach((theme) => {
+        cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', theme))
+        cy.window().then((win) => {
+          chartInstance((chart) => {
+            expect(win.document.getAnimations(), 'transitions').to.have.length(0)
+
+            // The series' own colour, not the 0.8 its border is painted at.
+            const colours = chart.data.datasets.map((dataset) => opaque(win, firstColor(dataset)))
+            expect(colours[0], `${theme} resolved`).to.deep.eq(opaque(win, cssVariable(win, '--color-primary')))
+
+            colours.forEach((colour, index) => {
+              const next = (index + 1) % colours.length
+              DEFICIENCIES.forEach((deficiency) => {
+                const distance = cvdDistance(colour, colours[next], deficiency)
+                if (distance < FLOOR) {
+                  collapsed.push(`${theme} series ${index + 1}-${next + 1} ${deficiency} ${distance.toFixed(3)}`)
+                }
+              })
+            })
+          })
+        })
+      })
+
+      cy.then(() => expect(collapsed, `neighbours closer than ΔE_OK ${FLOOR}`).to.deep.eq([]))
+    })
+  })
+
+  // Only a colour naming a `var(--color-*)` is the theme's to resolve: a host's literal colours
+  // reach Chart.js as written, and Ruby hands a line's points the series' own fill or border.
+  describe('with its own colours', () => {
+    const series = (chart, label) => {
+      const index = chart.data.datasets.findIndex((dataset) => dataset.label === label)
+      return { ...chart.data.datasets[index], legend: chart.legend.legendItems[index].fillStyle }
+    }
+
+    beforeEach(() => {
+      cy.visit('/bali/chart/own_colors')
+    })
+
+    it('paints the points and legend swatch of a line in its fill, else its border', () => {
+      chartInstance((chart) => {
+        const borderOnly = series(chart, 'Border only')
+        const withFill = series(chart, 'Border and fill')
+
+        expect(borderOnly.borderColor, 'Border only border').to.eq('#2563eb')
+        expect(borderOnly.pointBackgroundColor, 'Border only points').to.eq('#2563eb')
+        expect(borderOnly.legend, 'Border only legend').to.eq('#2563eb')
+        expect(withFill.pointBackgroundColor, 'Border and fill points').to.eq('rgba(22, 163, 74, 0.5)')
+        expect(withFill.legend, 'Border and fill legend').to.eq('rgba(22, 163, 74, 0.5)')
+      })
+    })
+
+    it('paints a theme var border in the colour it names, beside a fill of its own', () => {
+      cy.window().then((win) => {
+        chartInstance((chart) => {
+          const { borderColor, pointBackgroundColor } = series(chart, 'Theme border, own fill')
+
+          expect(opaque(win, borderColor), 'border').to.deep.eq(opaque(win, cssVariable(win, '--color-error')))
+          expect(pointBackgroundColor, 'points').to.eq('rgba(220, 38, 38, 0.5)')
+        })
+      })
+    })
+
+    it('paints the theme fill Ruby names under a border the host wrote', () => {
+      canvas().then(($canvas) => {
+        const named = JSON.parse($canvas.attr('data-chart-data-value')).datasets
+          .find((dataset) => dataset.label === 'Border only').backgroundColor[0].match(/var\((--color-[\w-]+)\)/)[1]
+
+        cy.window().then((win) => {
+          chartInstance((chart) => {
+            const { backgroundColor } = series(chart, 'Border only')
+
+            expect(opaque(win, [backgroundColor].flat()[0]), `fill, ${named}`).to.deep.eq(opaque(win, cssVariable(win, named)))
+          })
+        })
+      })
+    })
+
+    it('keeps a fill of its own under the theme border', () => {
+      chartInstance((chart) => {
+        const fillOnly = series(chart, 'Fill only')
+
+        expect(fillOnly.backgroundColor, 'fill').to.eq('rgba(0, 0, 0, 0)')
+        expect(fillOnly.pointBackgroundColor, 'points').to.eq('rgba(0, 0, 0, 0)')
       })
     })
   })

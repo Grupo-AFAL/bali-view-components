@@ -5,7 +5,8 @@
 // This file used to (#719) also compare the geometry of the server-rendered
 // board against the island's. That board no longer exists: there are no two
 // renderers that can disagree, so the only geometry that is still a boundary is
-// the ZOOM the island opens at, which the server resolves.
+// the ZOOM the island opens at, which the server resolves, and the width of the
+// skeleton's name column, which index.css writes for the table GanttFlow opens.
 //
 // Presence/visibility of nodes is what is measured, not loose textContent (repo
 // memory).
@@ -29,6 +30,15 @@ const withoutIsland = () =>
   cy.intercept({ method: 'GET', url: /\/lookbook\/preview\/bali\/gantt\// }, (req) => {
     req.on('response', (res) => {
       res.body = String(res.body).replace(/<meta name="bali-gantt-(?:js|css)"[^>]*>/g, '')
+    })
+  })
+
+// The island's page overflows a 768 x 1024 window by 12 px and the skeleton's does not: a
+// scrollbar on one of them only would narrow its board by the scrollbar's width.
+const withoutScrollbar = () =>
+  cy.intercept({ method: 'GET', url: /\/lookbook\/preview\/bali\/gantt\// }, (req) => {
+    req.on('response', (res) => {
+      res.body = String(res.body).replace('</head>', '<style>html { scrollbar-width: none }</style></head>')
     })
   })
 
@@ -119,6 +129,26 @@ describe('Gantt: the skeleton and the swap to the island', () => {
       .should('have.attr', 'data-gantt-initial-zoom-value', 'day')
 
     cy.get('[role="group"][aria-label="Zoom"] .btn-active').should('have.text', 'Day')
+  })
+
+  // The skeleton's name column opened at 256 px under a table the island opens at 300 to 520, so
+  // the column jumped when the island replaced it. The island rounds 60% of its border box; the
+  // skeleton's 60% is of its content box, 2 px narrower.
+  ;[[390, 844], [768, 1024], [1280, 800]].forEach(([width, height]) => {
+    it(`opens the skeleton's name column as wide as the island's table in a ${width} px window`, () => {
+      cy.viewport(width, height)
+      withoutScrollbar()
+      cy.visit('/bali/gantt/default')
+      cy.get('.bali-gantt .cursor-col-resize').prev().then(($table) => {
+        const island = $table[0].getBoundingClientRect().width
+
+        withoutIsland()
+        cy.visit('/bali/gantt/default')
+        cy.get('.bali-gantt-skeleton .bali-gantt-name-cell').should(($cell) => {
+          expect($cell[0].getBoundingClientRect().width, 'skeleton name column').to.be.closeTo(island, 2)
+        })
+      })
+    })
   })
 
   it('mounts with 300 items over the skeleton', () => {

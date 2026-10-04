@@ -82,9 +82,9 @@ export const paintedContrast = (el, { over = el, property = 'color', pseudo, und
   return Math.min(contrast(ink, ground), contrast(ink, bed))
 }
 
-// The luminance of colours painted one over the other, in order, on a 1px canvas: a
+// The 8-bit sRGB pixel of colours painted one over the other, in order, on a 1px canvas: a
 // translucent border has to land on what it is drawn over, or it reads as its opaque ink.
-export const paintedLuminance = (doc, ...colours) => {
+export const paintedPixel = (doc, ...colours) => {
   const ctx = Object.assign(doc.createElement('canvas'), { width: 1, height: 1 })
     .getContext('2d', { willReadFrequently: true })
   colours.forEach((colour) => {
@@ -94,6 +94,8 @@ export const paintedLuminance = (doc, ...colours) => {
   const pixel = [...ctx.getImageData(0, 0, 1, 1).data]
   // A canvas hands back a translucent pixel un-premultiplied — the bare ink — so a colour
   // with nothing opaque under it would measure as if it were solid.
-  if (pixel[3] !== 255) throw new Error(`paintedLuminance: ${colours.join(' over ')} is not opaque`)
-  return luminance(pixel)
+  if (pixel[3] !== 255) throw new Error(`paintedPixel: ${colours.join(' over ')} is not opaque`)
+  return pixel.slice(0, 3)
 }
+
+export const paintedLuminance = (doc, ...colours) => luminance(paintedPixel(doc, ...colours))

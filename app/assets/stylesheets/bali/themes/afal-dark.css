@@ -11,6 +11,9 @@
  * - Brand hues are kept but lifted to their Tailwind 400 step so they
  *   hold contrast on dark surfaces, paired with -950 content colors.
  *   Every pair measures >= 4.5:1 (WCAG AA).
+ * - Accent stays on the light theme's amber-500: amber-400 (#FBBF24) is warning's
+ *   #FBBD23 to ΔE_OK 0.005, so a chart's fifth series repeated its second.
+ *   amber-500 sits 0.075 from it, with amber-950 content at 6.97:1.
  * - Neutral is a fill, gray-700 under gray-200, one step above base-100 so a
  *   neutral button, badge or navbar still shows on the page (daisyUI's dark
  *   puts it below). As text it does not read here; Bali paints neutral ink
@@ -32,7 +35,7 @@
   --color-primary-content: oklch(28.23% 0.0874 267.935);   /* #172554 (blue-950) */
   --color-secondary: oklch(70.90% 0.1592 293.541);         /* #A78BFA (violet-400) */
   --color-secondary-content: oklch(28.27% 0.1351 291.089); /* #2E1065 (violet-950) */
-  --color-accent: oklch(83.69% 0.1644 84.429);             /* #FBBF24 (amber-400) */
+  --color-accent: oklch(76.86% 0.1647 70.080);             /* #F59E0B (amber-500) */
   --color-accent-content: oklch(27.91% 0.0742 45.635);     /* #451A03 (amber-950) */
   --color-neutral: oklch(37.29% 0.0306 259.733);          /* #374151 (gray-700) */
   --color-neutral-content: oklch(92.76% 0.0058 264.531);   /* #E5E7EB (gray-200) */

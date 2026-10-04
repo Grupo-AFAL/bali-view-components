@@ -142,7 +142,6 @@ module Bali
             select_date: t("bali_view.filters.placeholders.select_date"),
             select_datetime: t("bali_view.filters.placeholders.select_datetime"),
             select_date_range: t("bali_view.filters.placeholders.select_date_range"),
-            select_datetime_range: t("bali_view.filters.placeholders.select_datetime_range"),
             select: t("bali_view.filters.placeholders.select"),
             select_values: t("bali_view.filters.placeholders.select_values")
           }

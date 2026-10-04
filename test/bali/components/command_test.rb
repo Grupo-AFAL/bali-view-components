@@ -36,6 +36,21 @@ class BaliCommandComponentTest < ComponentTestCase
     assert_text("cerrar")
   end
 
+  # The footer counter changes on every keystroke, so index.js writes it, from
+  # the forms this attribute hands over; command-controller.cy.js checks that half.
+  def test_hands_the_footer_counter_its_plural_forms_in_the_page_language
+    { en: %w[result results], es: %w[resultado resultados] }.each do |locale, (one, other)|
+      I18n.with_locale(locale) { render_inline(Bali::Command::Component.new) }
+
+      root = ".bali-command[data-controller='command'][data-command-results-value]"
+      assert_selector(root)
+      # Compared as text, not parsed: a missing key renders a translation_missing
+      # <span>, which JSON.parse would raise on instead of showing in the diff.
+      assert_equal({ one: "%{count} #{one}", other: "%{count} #{other}" }.to_json,
+                   page.find(root)["data-command-results-value"])
+    end
+  end
+
   def test_uses_custom_placeholder
     render_inline(Bali::Command::Component.new(placeholder: "Find anything"))
     assert_selector("input[placeholder='Find anything']")
