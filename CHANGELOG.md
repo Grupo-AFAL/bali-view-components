@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     vieja del módulo. La guarda de `test/requests/icon_previews_test.rb` falla ahora también si un
     método de un `preview.rb` lee sin calificar una clase o un módulo que define el propio preview;
     por ella se califican además tres lecturas de `data_table/preview.rb`.
+  - La guía de patrones de componentes vuelve a mostrar los siete comentarios `<%#` de sus
+    ejemplos, que ERB borraba al pintar la página. `test/guide_pages_test.rb` falla si un ejemplo
+    de una guía vuelve a llevar uno sin escapar: se escribe `<%%#`.
+  - La guía de maestro-detalle repetía tres veces en una línea el título «What this is not».
 
 ## [v3.7.0] - 2026-10-03
 
