@@ -49,7 +49,7 @@ class BaliFormBuilderInputNameOptionTest < FormBuilderTestCase
     "rich_text_group" => ->(b, o) { b.rich_text_group(:synopsis, **o) },
     # ActionText's Trix helper, and a plain named hidden field underneath.
     "rich_text_area_group" => ->(b, o) { b.rich_text_area_group(:synopsis, **o) },
-    "coordinates_polygon_group" => ->(b, o) { b.coordinates_polygon_group(:name, **o) },
+    "coordinates_polygon_group" => ->(b, o) { Bali.deprecator.silence { b.coordinates_polygon_group(:name, **o) } },
     "time_period_group" => ->(b, o) { b.time_period_group(:release_date, [ %w[T t] ], **o) },
     # Every radio in a group shares one name, which is exactly what the hatch is
     # for. `input_id:` is the half it cannot take — see the ids test below.
@@ -134,7 +134,7 @@ class BaliFormBuilderInputNameOptionTest < FormBuilderTestCase
     "radio_group" => ->(b, o) { b.radio_group(:status, [ %w[One 1], %w[Two 2] ], **o) },
     "block_editor_group" => ->(b, o) { b.block_editor_group(:synopsis, **o) },
     "rich_text_group" => ->(b, o) { b.rich_text_group(:synopsis, **o) },
-    "coordinates_polygon_group" => ->(b, o) { b.coordinates_polygon_group(:name, **o) },
+    "coordinates_polygon_group" => ->(b, o) { Bali.deprecator.silence { b.coordinates_polygon_group(:name, **o) } },
     "time_period_group" => ->(b, o) { b.time_period_group(:release_date, [ %w[T t] ], **o) }
   }.freeze
 
