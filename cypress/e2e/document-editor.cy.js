@@ -208,6 +208,33 @@ describe('DocumentEditor save status', () => {
 
     saveStatus().should('have.text', 'Save failed').and('have.class', 'text-soft-error')
     saveButton().should('be.enabled')
+    // Past the 500ms after the last keystroke in which the BlockEditor writes its hidden
+    // input: that write's `input` must not come back and cover the failure.
+    cy.wait(600)
+    saveStatus().should('have.text', 'Save failed')
+  })
+
+  // Saved within that same window, with the write still pending when the request leaves.
+  it('says the save went through when it leaves before the content sync', () => {
+    cy.intercept('PATCH', /\/lookbook$/, { statusCode: 200, body: {}, delay: 1000 }).as('save')
+
+    saveButton().click()
+    cy.wait('@save')
+
+    saveStatus().should('contain.text', 'Saved at')
+    saveButton().should('be.disabled')
+  })
+
+  // The preview has comments on, which pins `format: :prosemirror`. The save used to serialize
+  // on its own and sent BlockNote's block Array until the document held a comment mark.
+  it('sends the content in the format the editor is pinned to', () => {
+    cy.intercept('PATCH', /\/lookbook$/, { statusCode: 200, body: {} }).as('save')
+
+    saveButton().click()
+
+    cy.wait('@save').its('request.body.document.content').then((content) => {
+      expect(JSON.parse(content)).to.have.property('type', 'doc')
+    })
   })
 
   // The delay outlasts the BlockEditor's 500ms content sync, whose `input` would otherwise

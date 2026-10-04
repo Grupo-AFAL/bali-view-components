@@ -11,9 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **DocumentEditor.** Un guardado que falla muestra «Save failed»: «Unsaved changes» lo tapaba en
   el mismo instante. Lo escrito mientras el guardado viaja queda como sin guardar, en vez de
-  «Saved at…». En el teléfono, el índice abierto se apila sobre el editor en vez de dejarle una
-  columna de 70 px. El menú «…» de un comentario del panel redondea sus esquinas como los demás
-  menús. Nada que hacer en la app.
+  «Saved at…». Con `format: :prosemirror` —el que toma por omisión con `comments:`— guardar
+  mandaba el Array de bloques de BlockNote mientras el documento no tuviera ningún comentario;
+  ahora manda el formato fijado (el editor sigue leyendo los dos). En el teléfono, el índice
+  abierto se apila sobre el editor en vez de dejarle una columna de 70 px. El menú «…» de un
+  comentario del panel redondea sus esquinas como los demás menús. Nada que hacer en la app.
 - **BlockEditor.** El texto de las citas pasa AA en los seis temas (medía 3.69–4.30:1). En el
   teléfono, con `table_of_contents:` o `comments:`, la página ya no se desplaza de lado: el editor
   ocupa su columna y una tabla ancha se desplaza dentro de su marco. Nada que hacer en la app.

@@ -232,6 +232,12 @@ export class BlockEditorController extends ReactIslandController {
     this.blockNoteEditor = null
   }
 
+  // Writes the content to the hidden input now, without waiting out the debounce: what
+  // a form submit does, for a host (DocumentEditor's save) that sends it over fetch.
+  flush () {
+    this._flush?.()
+  }
+
   async exportPdf () {
     if (!this.blockNoteEditor || !this.exportPdfValue) return
 
