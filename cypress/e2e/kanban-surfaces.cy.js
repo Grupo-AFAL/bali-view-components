@@ -6,9 +6,16 @@ import { THEMES } from '../support/themes'
 // carries the step and its border all but matches the lane; on the dark ones the fill steps less
 // and the border carries it.
 describe('Kanban lanes and cards', () => {
+  // The floor base-surface-steps.cy.js holds a hover or a tint to: a card on a base-100 lane reads
+  // 1.00, and light's 1.16 is the lowest.
   const STEP = 1.15
+  // Above the 1.04–1.06 of daisyUI's base-200 card-border on the dark themes; afal-dark's 1.51 is
+  // the lowest.
   const EDGE = 1.45
+  // Above the 1.13 that base-200, badge-ghost's fill, reads on the lane at most (costa-norte); the
+  // indicator's 1.21 on afal is the lowest.
   const MARK = 1.2
+  // Above the 1.00 of a base-300 dash; afal's 1.52 is the lowest.
   const OUTLINE = 1.5
   const FILL_CARRIES = ['light', 'afal', 'costa-norte']
 
