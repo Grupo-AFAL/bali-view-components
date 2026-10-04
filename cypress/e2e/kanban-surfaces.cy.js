@@ -1,5 +1,5 @@
 import { contrastRatio, paintedContrast, paintedLuminance } from '../support/painted_contrast'
-import { hover, press, release, unhover } from '../support/tap'
+import { hover, press, release, tap, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 
 // The lane used to be a card of the same base-100 as the cards on it: card against lane 1.00:1 on
@@ -291,6 +291,39 @@ describe('Kanban lanes and cards', () => {
       const footer = rectOf($column[0].querySelector('.kanban-column-footer'))
       expect(footer.left, 'footer in line with the cards, left').to.be.closeTo(card.left, 0.5)
       expect(footer.right, 'footer in line with the cards, right').to.be.closeTo(card.right, 0.5)
+    })
+  })
+
+  // A tap leaves the card matching `:hover` until the next tap lands elsewhere. Last in the file:
+  // once touch emulation is off, Chrome reports (hover: none) for the rest of the tab, reloads
+  // included, and every hover() after it would throw.
+  context('on a screen that cannot hover', () => {
+    const touchScreen = (enabled) => cy.wrap(Cypress.automation('remote:debugger:protocol', {
+      command: 'Emulation.setTouchEmulationEnabled',
+      params: { enabled, maxTouchPoints: 1 }
+    }))
+
+    beforeEach(() => touchScreen(true))
+    afterEach(() => touchScreen(false))
+
+    it('leaves a tapped card as it is', () => {
+      board('scrollable_board')
+      waitForSortable()
+      cy.window().should((win) => {
+        expect(win.matchMedia('(hover: none)').matches, 'a screen that cannot hover').to.equal(true)
+      })
+      let atRest
+      firstCard('To Do').should(($card) => {
+        settled($card[0])
+        atRest = look($card[0])
+      }).then(tap)
+
+      firstCard('To Do').should(($card) => {
+        expect($card[0].matches(':hover'), 'the tap left :hover on the card').to.equal(true)
+        expect($card[0].classList.contains('sortable-chosen'), 'let go by SortableJS').to.equal(false)
+        settled($card[0])
+        expect(look($card[0]), 'tapped').to.deep.equal(atRest)
+      })
     })
   })
 })

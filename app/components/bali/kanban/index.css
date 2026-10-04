@@ -60,18 +60,22 @@
   transition: border-color 150ms ease, box-shadow 150ms ease, translate 150ms ease;
 }
 
-/* Only a card the board will move: Ruby writes `data-sortable-update-url` from
- * the card's `update_url:` and `data-sortable-list-disabled-value` from the
- * column's `disabled:` (kanban_test.rb pins both). SortableJS keeps
+/* Only a card whose drop the board saves: Ruby writes `data-sortable-update-url`
+ * from the card's `update_url:` and `data-sortable-list-disabled-value` from
+ * the column's `disabled:` (kanban_test.rb pins both). SortableJS keeps
  * `sortable-chosen` on the card from pointerdown to drop, under its ghost and
- * drag classes, and on the touch clone. */
-.kanban-column-list:not([data-sortable-list-disabled-value="true"])
-  > .kanban-card[data-sortable-update-url]:not(.sortable-chosen):hover {
-  border-color: color-mix(in oklab, var(--color-base-content) 24%, transparent);
-  box-shadow: 0 3px 6px -1px rgb(0 0 0 / 0.12), 0 1px 3px 0 rgb(0 0 0 / 0.08);
+ * drag classes, and on the touch clone. A tap leaves `:hover` on the card it
+ * touched, so a screen that cannot hover would keep it lifted: `(hover:
+ * hover)`, the same gate Tailwind puts on every `hover:` utility. */
+@media (hover: hover) {
+  .kanban-column-list:not([data-sortable-list-disabled-value="true"])
+    > .kanban-card[data-sortable-update-url]:not(.sortable-chosen):hover {
+    border-color: color-mix(in oklab, var(--color-base-content) 24%, transparent);
+    box-shadow: 0 3px 6px -1px rgb(0 0 0 / 0.12), 0 1px 3px 0 rgb(0 0 0 / 0.08);
 
-  @media (prefers-reduced-motion: no-preference) {
-    translate: 0 -1px;
+    @media (prefers-reduced-motion: no-preference) {
+      translate: 0 -1px;
+    }
   }
 }
 
