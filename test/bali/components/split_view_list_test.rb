@@ -102,6 +102,23 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     end
   end
 
+  Bali::SplitView::List::Item::Component::DEPRECATED_META_COLORS.each_key do |color|
+    define_method("test_meta_color_#{color}_still_paints_but_is_deprecated") do
+      assert_deprecated(/meta_color: :#{color} is deprecated/, Bali.deprecator) do
+        render_list({}, items: [ { id: 1, title: "T", href: "/x", meta: "1 Jan", meta_color: color } ])
+      end
+      assert_selector(".split-view-item .text-soft-#{color}", text: "1 Jan")
+    end
+  end
+
+  def test_meta_colors_in_use_are_not_deprecated
+    assert_not_deprecated(Bali.deprecator) do
+      render_list({}, items: [ { id: 1, title: "T", href: "/x", meta: "1 Jan", meta_color: :error },
+                               { id: 2, title: "U", href: "/y", meta: "2 Jan", meta_color: :warning },
+                               { id: 3, title: "V", href: "/z", meta: "3 Jan" } ])
+    end
+  end
+
   def test_meta_is_neutral_without_a_color
     render_list({}, items: [ { id: 1, title: "T", href: "/x", meta: "1 Jan" } ])
     assert_selector(".split-view-item .text-base-content\\/70", text: "1 Jan")

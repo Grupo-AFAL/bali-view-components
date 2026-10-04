@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Deprecated
+
+- **`Bali::SplitView` — `meta_color: :success` y `meta_color: :primary` en `with_item`.** Ninguna app
+  los usa (afal-apps y gobierno-corporativo pintan sólo `:error` y `:warning`). Siguen pintando
+  igual, avisan por `Bali.deprecator` y se retiran en 4.0. Si los usas: `:error`, `:warning` o
+  ningún `meta_color` para el tono neutro.
+
 ### Fixed
 
 - **`Bali::SplitView`: atrás y adelante devuelven el detalle que corresponde a la URL.** Volver a una

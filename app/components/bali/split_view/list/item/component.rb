@@ -25,7 +25,11 @@ module Bali
           # read 2.75:1 on `afal`, `text-primary` 3.40 on `dark` (AA wants 4.5).
           META_COLORS = {
             error: "text-soft-error font-medium",
-            warning: "text-soft-warning font-medium",
+            warning: "text-soft-warning font-medium"
+          }.freeze
+
+          # @deprecated Removed in Bali 4.0. No host app paints a meta in either.
+          DEPRECATED_META_COLORS = {
             success: "text-soft-success",
             primary: "text-soft-primary"
           }.freeze
@@ -47,8 +51,9 @@ module Bali
             @subtitle = subtitle
             @icon = icon
             @meta = meta
-            @meta_color = meta_color
+            @meta_color = meta_color&.to_sym
             @options = options
+            warn_deprecated_meta_color
           end
 
           def selected?
@@ -60,7 +65,17 @@ module Bali
           attr_reader :options
 
           def meta_classes
-            class_names(META_CLASSES, META_COLORS[@meta_color&.to_sym] || "text-base-content/70")
+            color = META_COLORS[@meta_color] || DEPRECATED_META_COLORS[@meta_color]
+            class_names(META_CLASSES, color || "text-base-content/70")
+          end
+
+          def warn_deprecated_meta_color
+            return unless DEPRECATED_META_COLORS.key?(@meta_color)
+
+            Bali.deprecator.warn(
+              "Bali::SplitView::List::Item::Component meta_color: #{@meta_color.inspect} is deprecated " \
+              "and will be removed in Bali 4.0. Use :error or :warning, or no meta_color for the neutral meta."
+            )
           end
 
           def link_attributes
