@@ -239,6 +239,28 @@ describe('Gantt island', () => {
     })
   })
 
+  // The minimap is 204 px wide and sits 14 px from the timeline's right edge. In a narrower
+  // timeline it spilled over the table, 218 px of it at 320 px, so there it is not drawn.
+  ;[[320, 700, false], [390, 844, false], [768, 1024, true], [1280, 800, true]].forEach(([width, height, drawn]) => {
+    it(`${drawn ? 'draws the minimap inside' : 'leaves out the minimap of'} the timeline in a ${width} px window`, () => {
+      cy.viewport(width, height)
+      cy.visit('/bali/gantt/default')
+      cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+      cy.get('.react-flow').then(([pane]) => {
+        const minimap = pane.parentElement.querySelector('div[title^="Minimap"]')
+        if (!drawn) {
+          expect(minimap, 'minimap').to.equal(null)
+          return
+        }
+        const outer = pane.getBoundingClientRect()
+        const inner = minimap.getBoundingClientRect()
+        expect(inner.left, 'minimap left edge inside the timeline').to.be.at.least(outer.left)
+        expect(inner.right, 'minimap right edge inside the timeline').to.be.at.most(outer.right)
+      })
+    })
+  })
+
   // The row carets and the floating zoom controls draw inline SVGs inside named buttons. Left in
   // Chromium's accessibility tree they read as nine images with no name.
   it('keeps the icons out of the accessibility tree and leaves their buttons named', () => {
