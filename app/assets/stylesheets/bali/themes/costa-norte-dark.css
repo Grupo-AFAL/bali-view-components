@@ -16,6 +16,9 @@
  *   unusable as a fill or as text.
  * - Secondary is the brand teal lifted until it reads on those surfaces, so it
  *   stays distinct from primary.
+ * - Accent is the light theme's tan lifted to sand. It follows primary in a
+ *   chart's series (Bali::Color::CYCLE): the tan itself sat ΔE_OK 0.061 from
+ *   the gold under tritanopia, the sand 0.135.
  * - Neutral is a fill one step above base-100, under the light text, so a
  *   neutral button, badge or navbar still shows on the page. Bali paints
  *   neutral ink with base-content instead.
@@ -45,7 +48,7 @@
   --color-secondary: oklch(0.72 0.09 197.73);
   --color-secondary-content: oklch(0.2493 0.0385 215.27);
 
-  --color-accent: oklch(0.7417 0.0864 72.83);
+  --color-accent: oklch(0.87 0.05 78);
   --color-accent-content: oklch(0.2493 0.0385 215.27);
 
   --color-neutral: oklch(0.37 0.04 215.27);

@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`costa-norte-dark`: el accent pasa del tostado a arena, `oklch(0.87 0.05 78)`.** Con el
+  tostado, las dos primeras series de una gráfica (el primary dorado y el accent) quedaban a
+  ΔE_OK 0.061 con tritanopía; con arena, a 0.135. Todo lo que usa accent en ese tema se ve más
+  claro y su texto gana contraste (botón 6.85 → 10.69:1). `costa-norte` claro no cambia. Hoy no
+  lo ve nadie: costa-norte pinta su menú lateral con su propio bloque `costa-norte-dark`. Lo verá
+  el día que importe el tema de Bali o active el modo oscuro; no tiene que cambiar nada.
+
+### Fixed
+
+- **Chart: las gráficas circulares sin ejes, y la leyenda sobrevive al cambio de tema.**
+  - `pie`, `doughnut`, `polarArea` y `radar` dibujaban detrás de la gráfica un eje x, un eje y y
+    la cuadrícula. Ya no; un `scales:` propio en `options:` se sigue aplicando.
+  - Cambiar de tema volvía a mostrar lo ocultado desde la leyenda. Ahora una serie, o una porción
+    de un pie, doughnut o polarArea, ocultada sigue oculta, y la gráfica cambia de colores sin
+    repetir su animación de entrada.
+
+  Lo ven las gráficas circulares de ga-apps, centinela-web y gobierno-corporativo; no hay nada que
+  cambiar.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added
