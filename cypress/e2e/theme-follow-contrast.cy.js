@@ -264,6 +264,13 @@ describe('colours that follow the theme', () => {
       })
     })
 
+    // BlockNote's fixed quote grey: 4.30:1 on the light themes, 3.69 on dark and costa-norte-dark.
+    it(`reads the BlockEditor's quote at AA on the ${theme} theme`, () => {
+      cy.visit('/bali/block_editor/with_initial_content')
+      useTheme(theme)
+      everyReadsAtAA('.bn-editor [data-content-type="quote"] blockquote', theme)
+    })
+
     // Icons, so 3:1 (WCAG 1.4.11). BlockNote's #cfcfcf painted 1.56:1 on the light themes.
     it(`shows the BlockEditor's side menu on the ${theme} theme`, () => {
       cy.visit('/bali/block_editor/with_initial_content')

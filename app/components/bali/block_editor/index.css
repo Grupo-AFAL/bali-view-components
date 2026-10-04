@@ -257,6 +257,13 @@
   color: color-mix(in oklch, var(--color-primary) 80%, black);
 }
 
+/* BlockNote paints a quote in a fixed rgb(125 121 122): 4.30:1 on the light themes, 4.13 on
+   `afal-dark`, 3.69 on `dark` and `costa-norte-dark` (AA wants 4.5). At 70% the lowest is
+   5.54, on `afal`; 60% would read 4.04 there. */
+.block-editor-component [data-content-type="quote"] blockquote {
+  color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
+}
+
 /* Code block styling - override BlockNote's default dark bg (rgb(22 22 22))
  * to integrate with DaisyUI theming. Target the [data-content-type] wrapper
  * so the background is consistent with the inner <pre> element. */

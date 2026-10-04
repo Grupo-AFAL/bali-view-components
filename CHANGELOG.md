@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   error se sobrescribía en el mismo instante con «Unsaved changes», así que el fallo nunca se
   veía. Además, lo que se escribe mientras el guardado está en camino queda como sin guardar en
   vez de marcarse «Saved at…» sin haberse enviado. Nada que hacer en la app.
+- **BlockEditor: el texto de las citas pasa AA en los seis temas.** BlockNote lo pinta en un gris
+  fijo que medía 4.30:1 en los temas claros y 3.69–4.13 en los oscuros; ahora es el texto del tema
+  al 70 % (5.54 a 7.97). Nada que hacer en la app.
 
 ## [v3.7.0] - 2026-10-03
 
