@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`text-soft-error` vuelve a ser rojo en los temas claros.** En v3.7.0 el texto de error
+  (DeleteLink, los ítems «delete» de Dropdown, los mensajes de error del FormBuilder, «Cerrar
+  sesión», los indicadores que bajan) se leía café: rgb(114, 72, 80) en `afal`. Ahora es el rojo
+  del tema oscurecido lo justo: rgb(167, 37, 48) en `afal`, 7.12:1 sobre la página y al menos
+  4.97 bajo el puntero de un menú. Los temas oscuros no cambian. Los demás `text-soft-*` tampoco.
+  Las apps no tienen que hacer nada; un navegador sin `light-dark()` o sin colores relativos sigue
+  viendo el café.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added

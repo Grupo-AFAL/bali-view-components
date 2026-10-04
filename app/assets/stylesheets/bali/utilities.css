@@ -17,9 +17,23 @@
  *
  * A utility and not a custom property on `:root`: a property declared there resolves its
  * `var()`s there, and a SideMenu with its own `theme:` inherits the page's mix — 1.05:1 on
- * `side_menu/dark_chrome`, against 7.97 for the utility. */
+ * `side_menu/dark_chrome`, against 7.97 for the utility.
+ *
+ * Error is the exception on a light scheme: base-content is navy, and 40% of a salmon error
+ * read brown, rgb(114, 72, 80) on `afal` (chroma 0.05). There it keeps the error's chroma and
+ * hue and takes lightness 0.48: 4.97:1 at worst, a Dropdown's delete item under the pointer on
+ * `light` (0.52 read 4.22 there). A dark scheme keeps the mix, a pale red. `inline reference`
+ * for the reason above: the value lands in the utility, never on `:root`. The same
+ * declarations in a plain `@utility text-soft-error` compiled to the brown mix alone. */
+@theme inline reference {
+  --soft-ink-error: light-dark(oklch(from var(--color-error) 0.48 c h), color-mix(in oklab, var(--color-error) 40%, var(--color-base-content)));
+}
+
 @utility text-soft-* {
   color: color-mix(in oklab, --value(--color-*) 40%, var(--color-base-content));
+  @supports (color: light-dark(oklch(from red l c h), red)) {
+    color: --value(--soft-ink-*);
+  }
 }
 
 /* A `.table`'s thead and tfoot and a `.fieldset-label`, which daisyUI paints at `/60`: 4.04:1

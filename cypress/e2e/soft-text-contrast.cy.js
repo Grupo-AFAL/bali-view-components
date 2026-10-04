@@ -1,4 +1,4 @@
-import { paintedContrast } from '../support/painted_contrast'
+import { paintedContrast, paintedPixel } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 
@@ -365,4 +365,39 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
       })
     })
   })
+
+  // The 40% mix with base-content read brown for error on a light theme: rgb(114, 72, 80) on
+  // `afal`, chroma 0.05. A dark theme keeps that mix, a pale red.
+  const LIGHT_THEMES = ['light', 'afal', 'costa-norte']
+  LIGHT_THEMES.forEach((theme) => {
+    it(`paints text-soft-error red on the ${theme} theme`, () => {
+      cy.visit('/bali/delete_link/default')
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+      cy.document({ timeout: 10000 }).should((doc) => {
+        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
+        const link = doc.querySelector('form.bali-delete-link-form button')
+        const [, chroma, hue] = oklch(paintedPixel(doc, doc.defaultView.getComputedStyle(link).color))
+        expect(chroma, `${theme}: chroma`).to.be.at.least(0.12)
+        expect(hue < 40 || hue > 340, `${theme}: hue ${hue.toFixed(0)} is red`).to.equal(true)
+        expect(paintedContrast(link), `${theme}: on the page`).to.be.at.least(AA)
+      })
+    })
+  })
 })
+
+const oklch = (rgb) => {
+  const [r, g, b] = rgb.map((c) => {
+    c /= 255
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
+  })
+  const [l, m, s] = [
+    0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b,
+    0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b,
+    0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b
+  ].map(Math.cbrt)
+  const a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s
+  const bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s
+  const lightness = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s
+  return [lightness, Math.hypot(a, bb), (Math.atan2(bb, a) * 180 / Math.PI + 360) % 360]
+}
