@@ -242,7 +242,7 @@ describe('Kanban lanes and cards', () => {
   })
 
   // The list scrolls, and a scroll container clips what its children paint past its padding box:
-  // the card's shadow, and the lift's pixel at the top.
+  // the shadow of a card under the pointer, lifted a pixel.
   const reach = (card) => {
     const shadows = style(card).boxShadow.split(/,(?![^(]*\))/)
     return shadows.reduce((most, shadow) => {
@@ -256,24 +256,42 @@ describe('Kanban lanes and cards', () => {
     }, { top: 0, right: 0, bottom: 0, left: 0 })
   }
   const rectOf = (el) => el.getBoundingClientRect()
+  const roomAround = (card) => {
+    const list = rectOf(card.parentElement)
+    const box = rectOf(card)
+    return { top: box.top - list.top, right: list.right - box.right, bottom: list.bottom - box.bottom, left: box.left - list.left }
+  }
 
-  it('keeps room for the shadow inside the list, and the cards, the empty column and the footer in line', () => {
+  it('keeps room inside the list for the shadow of a card under the pointer', () => {
+    board('scrollable_board')
+    underThePointer(() => firstCard('To Do'), (hovered, atRest, card) => {
+      const room = roomAround(card)
+      const shadow = reach(card)
+      expect(room.top, 'room above the first card').to.be.at.least(shadow.top)
+      expect(room.left, 'room left of the card').to.be.at.least(shadow.left)
+      expect(room.right, 'room right of the card').to.be.at.least(shadow.right)
+    })
+
+    // Only a full list scrolled to its end leaves no more than its padding below the last card.
+    column('Backlog').find('.kanban-column-list').then(($list) => {
+      expect($list[0].scrollHeight, 'a full list').to.be.above($list[0].clientHeight)
+      $list[0].scrollTop = $list[0].scrollHeight
+    })
+    underThePointer(() => column('Backlog').find('.kanban-card').last(), (hovered, atRest, card) => {
+      const list = card.parentElement
+      expect(list.scrollTop + list.clientHeight, 'scrolled to its end').to.be.closeTo(list.scrollHeight, 1)
+      expect(roomAround(card).bottom, 'room below the last card').to.be.at.least(reach(card).bottom)
+    })
+  })
+
+  it('lines the cards, the empty column and the footer up with the header', () => {
     board('scrollable_board')
     column('To Do').should(($column) => {
       const header = rectOf($column[0].querySelector('h3'))
-      const list = $column[0].querySelector('.kanban-column-list')
-      const cards = [...list.children]
-      const room = rectOf(list)
-      const shadow = reach(cards[0])
-
-      cards.forEach((card) => {
+      $column.find('.kanban-card').each((_, card) => {
         expect(rectOf(card).left, 'card in line with the header, left').to.be.closeTo(header.left, 0.5)
         expect(rectOf(card).right, 'card in line with the header, right').to.be.closeTo(header.right, 0.5)
       })
-      expect(rectOf(cards[0]).top - room.top, 'room above the first card').to.be.at.least(shadow.top + 1)
-      expect(rectOf(cards[0]).left - room.left, 'room left of the cards').to.be.at.least(shadow.left)
-      expect(room.right - rectOf(cards[0]).right, 'room right of the cards').to.be.at.least(shadow.right)
-      expect(room.bottom - rectOf(cards.at(-1)).bottom, 'room below the last card').to.be.at.least(shadow.bottom)
     })
     column('Done').should(($column) => {
       const header = rectOf($column[0].querySelector('h3'))

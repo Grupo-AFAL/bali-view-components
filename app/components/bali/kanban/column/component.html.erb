@@ -26,7 +26,7 @@
       SortableList's own `p-0` is one and would beat ../index.css. %>
   <%= render Bali::SortableList::Component.new(
         **sortable_options,
-        class: "kanban-column-list space-y-2 overflow-y-auto flex-1 has-[*]:p-1.5 has-[*]:-m-1.5",
+        class: "kanban-column-list space-y-2 overflow-y-auto flex-1 has-[*]:p-2 has-[*]:-m-2",
         role: "list",
         'aria-label': list_label,
         data: { kanban_column_title: title }
