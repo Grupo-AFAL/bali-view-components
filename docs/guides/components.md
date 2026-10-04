@@ -4932,8 +4932,9 @@ Standard empty state: a centered block with an optional icon in a soft circle, a
 
 #### FeedbackWidget
 
-Floating feedback button that opens a `Bali::Drawer` with an embedded Opina iframe, and
-polls a badge endpoint for the unread count.
+Feedback button that opens a `Bali::Drawer` with an embedded Opina iframe, and polls a
+badge endpoint for the unread count. The button floats in the bottom-right corner by
+default; `trigger: :icon` or `trigger: :labeled` renders it in place, sized for the Topbar.
 
 The embed's JWT is **not** passed in the frame's URL — a bearer credential in a URL is
 written to the server's access log, offered in the `Referer` of anything the embed loads,
@@ -4951,6 +4952,29 @@ never to `*`. The Opina instance has to listen for that message; see the migrati
 ) %>
 ```
 
+In the Topbar, as one of its actions:
+
+```erb
+<% topbar.with_action do %>
+  <%= render Bali::FeedbackWidget::Component.new(
+    project_slug: 'my-project',
+    opina_url: 'https://opina.example.com',
+    secret: Rails.application.credentials.opina_secret,
+    user_id: current_user.id,
+    email: current_user.email,
+    trigger: :labeled
+  ) %>
+<% end %>
+```
+
+The badge asks `GET {opina_url}/api/v1/projects/{slug}/badge` with the token as
+`Authorization: Bearer`, and opening the panel sends `POST .../badge/read` with the same
+header. Read state only persists across page loads with an Opina that keeps it per user
+(Grupo-AFAL/opina#106). Until that is deployed nothing changes: Opina ignores the header,
+answers the `since` parameter the widget still sends, and 404s the `POST`, which the widget
+ignores, so the count clears for the current page only. A `401` (the token outlived
+`token_expires_in`) hides the count and stops the polling until the next page load.
+
 **Options:**
 - `project_slug` - The project slug in Opina (required)
 - `opina_url` - Base URL of the Opina instance (required)
@@ -4962,6 +4986,7 @@ never to `*`. The Opina instance has to listen for that message; see the migrati
 - `title` - Drawer header title (default: `nil`, falls back to "Feedback")
 - `token_expires_in` - Token expiry in seconds (default: `3600`)
 - `badge_interval` - Polling interval in ms for the badge count (default: `300000`)
+- `trigger` - The button that opens the panel: `:floating` (fixed to the bottom-right corner), `:icon` (a round button the height of `Bali::Topbar::IconAction`) or `:labeled` (the icon and "Opina", icon alone below `sm`); any other value raises (default: `:floating`)
 
 ---
 

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::FeedbackWidget` cabe en la barra superior.** `trigger: :icon` lo pinta como un botón
+  redondo primary de la altura de las acciones de `Bali::Topbar`, con el contador en la esquina;
+  `trigger: :labeled`, con el ícono, «Opina» y el contador al lado, y debajo de `sm`
+  queda en el ícono solo. Va dentro de `topbar.with_action`. El flotante sigue siendo el default:
+  quien no pase `trigger:` no ve nada distinto.
+
 ### Changed
 
 - **`Filters`: el widget de valor sale de una sola lista de operadores** (#1303).
@@ -62,6 +70,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   quita la sombra de reposo, y ese panel sólo aparece con `images_url`, que ninguna app pasa.
 
 ### Fixed
+
+- **`Bali::FeedbackWidget`: lo leído deja de volver al recargar**, una vez desplegado en Opina
+  Grupo-AFAL/opina#106, que guarda la lectura por usuario; hasta entonces nada cambia. El contador
+  se pide con el token en `Authorization: Bearer` y abrir el panel avisa con `POST …/badge/read`;
+  antes la lectura vivía en la memoria de la página. Si Opina rechaza el token (vence a la hora,
+  `token_expires_in`), el contador se oculta y deja de consultarse, en vez de quedarse con el número
+  viejo. Las apps no tienen que cambiar nada.
+
+- **`Bali::FeedbackWidget`: el contador se anuncia** («3 sin leer») como descripción del botón;
+  antes sólo se veía.
 
 - **`text-soft-error` vuelve a ser rojo en los temas claros.** En v3.7.0 el texto de error
   (DeleteLink, los ítems «delete» de Dropdown, los mensajes de error del FormBuilder, «Cerrar

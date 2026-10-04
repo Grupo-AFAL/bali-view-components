@@ -519,6 +519,8 @@ es:
     feedback_widget:
       title: "Comentarios"
       open: "Abrir comentarios"
+      trigger_label: "Opina"
+      unread: "%{count} sin leer"
 
     document_editor:
       # Barra superior
