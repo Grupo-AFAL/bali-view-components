@@ -376,4 +376,70 @@ class BaliKanbanComponentTest < ComponentTestCase
 
     assert_selector("[data-sortable-list-disabled-value='false']")
   end
+
+  # The lane and the card are painted by kanban/index.css, in @layer components, so a host
+  # utility beats them without `!`. A utility left on the template sits in @layer utilities and
+  # beats the sheet instead (#1317).
+  def test_column_leaves_its_surface_to_the_sheet
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo", class: "bg-primary")
+    end
+
+    column_classes = page.find(".kanban-column")[:class].split
+    assert_empty(column_classes & %w[bg-base-100 shadow-sm border border-base-200])
+    assert_includes(column_classes, "bg-primary")
+  end
+
+  # daisyUI's `.card` and `.card-border` live in @layer utilities: `.card` declares a
+  # `transition` and `.card-border` a border, and either would beat the sheet's. A class of its
+  # own also reaches the touch-drag clone SortableJS hangs off <body>, which no selector
+  # through the column does.
+  def test_card_is_a_kanban_card_and_not_a_daisyui_card
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo") do |col|
+        col.with_card(class: "cursor-move") { "Task" }
+      end
+    end
+
+    card_classes = page.find("[role='listitem']")[:class].split
+    assert_includes(card_classes, "kanban-card")
+    assert_includes(card_classes, "cursor-move")
+    assert_empty(card_classes & %w[card card-border bg-base-100])
+  end
+
+  # `border-base-200` on the template would beat the sheet's rule, and on the base-300 lane it
+  # is all but invisible.
+  def test_column_footer_leaves_its_rule_to_the_sheet
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Todo", status: "todo") do |col|
+        col.with_footer { "+ Add card" }
+      end
+    end
+
+    footer_classes = page.find(".kanban-column-footer")[:class].split
+    assert_empty(footer_classes & %w[border-t border-base-200])
+  end
+
+  # daisyUI paints `badge-ghost` base-200, which all but vanishes on the base-300 lane, and
+  # does it from @layer utilities, where only another utility reaches it.
+  def test_ghost_badges_in_the_header_are_tinted_for_the_lane
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Backlog", status: "backlog", color: :ghost) do |col|
+        col.with_card { "A" }
+      end
+    end
+
+    badges = page.all("h3 .badge-ghost").map { |badge| badge[:class].split }
+    assert_equal(2, badges.size)
+    badges.each { |classes| assert_empty(%w[bg-base-content/10 border-transparent] - classes) }
+  end
+
+  def test_a_coloured_indicator_is_not_tinted
+    render_inline(Bali::Kanban::Component.new) do |k|
+      k.with_column(title: "Done", status: "done", color: :success)
+    end
+
+    indicator_classes = page.find("h3 .badge-success")[:class].split
+    assert_empty(indicator_classes & %w[bg-base-content/10 border-transparent])
+  end
 end

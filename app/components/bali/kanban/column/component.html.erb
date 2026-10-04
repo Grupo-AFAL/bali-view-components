@@ -3,7 +3,7 @@
     <%= render Bali::Tag::Component.new(**indicator_options) %>
     <%= title %>
     <% if display_count > 0 %>
-      <%= render Bali::Tag::Component.new(text: display_count.to_s, color: :ghost, size: :sm) %>
+      <%= render Bali::Tag::Component.new(**count_options) %>
     <% end %>
   </h3>
 
@@ -17,10 +17,18 @@
       scrolls, and the whole body of an empty column is a drop target. The
       list's min-height lives in ../index.css next to the empty-column
       affordance that overrides it — a `min-h-*` utility here would beat both
-      (utilities layer wins over components) and kill the affordance. %>
+      (utilities layer wins over components) and kill the affordance.
+
+      A scroll container clips what its children paint past its padding box:
+      the cards' shadow and their lift under the pointer. The padding makes
+      room for them and the negative margin gives it back, so the cards stay
+      in line with the header; only while the list has children, so the empty
+      column's outline stays in line too. They are utilities, not rules in
+      ../index.css, because SortableList's own `p-0` is one and would beat the
+      sheet. %>
   <%= render Bali::SortableList::Component.new(
         **sortable_options,
-        class: "kanban-column-list space-y-2 overflow-y-auto flex-1",
+        class: "kanban-column-list space-y-2 overflow-y-auto flex-1 has-[*]:p-1.5 has-[*]:-m-1.5",
         role: "list",
         'aria-label': list_label,
         data: { kanban_column_title: title }
@@ -31,7 +39,7 @@
   <% end %>
 
   <% if footer? %>
-    <div class="kanban-column-footer shrink-0 mt-2 pt-2 border-t border-base-200">
+    <div class="kanban-column-footer shrink-0 mt-2 pt-2">
       <%= footer %>
     </div>
   <% end %>

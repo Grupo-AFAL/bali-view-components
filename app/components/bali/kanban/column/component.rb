@@ -6,6 +6,10 @@ module Bali
       class Component < ApplicationViewComponent
         renders_many :cards, Card::Component
 
+        # daisyUI paints `badge-ghost` base-200, 1.04–1.13:1 on the base-300 lane (1.21–1.31
+        # with this tint), and declares it in @layer utilities, where kanban/index.css can't reach.
+        GHOST_BADGE_CLASSES = "bg-base-content/10 border-transparent"
+
         # Rendered after the SortableList so its content is never draggable —
         # the "+ add card" pattern at the foot of a column.
         renders_one :footer
@@ -52,7 +56,12 @@ module Bali
         # The duplicate table this column used to keep answered `:ghost` to
         # anything it did not recognise, which quietly disagreed.
         def indicator_options
-          { text: " ", color: color, custom_color: custom_color, size: :sm }
+          { text: " ", color: color, custom_color: custom_color, size: :sm,
+            class: (GHOST_BADGE_CLASSES if color == Bali::Color::GHOST) }
+        end
+
+        def count_options
+          { text: display_count.to_s, color: :ghost, size: :sm, class: GHOST_BADGE_CLASSES }
         end
 
         def sortable_options
@@ -72,7 +81,7 @@ module Bali
         # inside never overflows, so nothing ever scrolls.
         def column_classes
           class_names(
-            "kanban-column bg-base-100 rounded-xl shadow-sm border border-base-200 p-4",
+            "kanban-column rounded-xl p-4",
             "flex flex-col min-h-0",
             { "w-72 shrink-0" => layout == :flow },
             options[:class]

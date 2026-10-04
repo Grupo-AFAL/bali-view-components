@@ -25,7 +25,7 @@ module Bali
         # depends on it reaching the card element.
         def html_attributes
           attrs = options.except(:class, :data)
-          attrs[:class] = class_names("card bg-base-100 card-border p-3", options[:class])
+          attrs[:class] = class_names("kanban-card p-3", options[:class])
           attrs[:role] ||= "listitem"
           data = (options[:data] || {}).dup
           data[:sortable_update_url] = update_url if update_url

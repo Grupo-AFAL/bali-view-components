@@ -12,7 +12,9 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       # @label Default
       # A basic Kanban board with three status columns.
-      # Drag cards between columns to reorder.
+      # Drag cards between columns to reorder. These cards carry no
+      # `update_url`, so a drop saves nothing and they do not lift under the
+      # pointer: see Scrollable Board for cards that do.
       def default
         render_with_template
       end
@@ -47,8 +49,9 @@ module Bali
       # the affordance appears; hover a drag over the empty column and it
       # yields to SortableJS's preview.
       #
-      # "Blocked" is rendered with `disabled: true`, so its cards cannot be
-      # dragged out.
+      # Every card has an `update_url` and lifts under the pointer, except in
+      # "Blocked": rendered with `disabled: true`, its cards cannot be dragged
+      # out and do not lift.
       def scrollable_board
         render_with_template
       end
