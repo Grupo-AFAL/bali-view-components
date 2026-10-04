@@ -14,26 +14,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dejó de ofrecer en la versión 3.65, así que el campo ya no puede dibujar un polígono. Cada
   llamada avisa por `Bali.deprecator`, y en 4.0 se borran sin reemplazo, junto con el controlador
   `drawing-maps`; su preview de Lookbook ya no está. Ninguna app de la flota los llama.
-  **ga-apps** sólo conserva `pin 'bali/drawing-maps'` en `config/importmap.rb`: quitarlo antes de
-  subir a 4.0, cuando ese archivo deja de existir.
+  **ga-apps** conserva `pin 'bali/drawing-maps'` en `config/importmap.rb`: hoy resuelve, pero en
+  4.0 se borra `bali/controllers/drawing-maps-controller.js`, al que apunta, y deja de resolver.
+  Quitarlo antes de subir.
 
 ### Fixed
 
-- **Para quien trabaja en el repo: el Lookbook y la dummy** (#1303).
+- **Para quien trabaja en el repo: el Lookbook y la dummy** (#1303). Nada que hacer en las apps.
   - `widget/default` respeta `count` también después de guardar un `.js` con el servidor
-    corriendo. El preview leía `Sized` sin calificar y, tras la recarga, lo comparaba con la copia
-    vieja del módulo. La guarda de `test/requests/icon_previews_test.rb` falla ahora también si un
-    método de un `preview.rb` lee sin calificar una clase o un módulo que define el propio preview;
-    por ella se califican además tres lecturas de `data_table/preview.rb`.
-  - La guía de patrones de componentes vuelve a mostrar los siete comentarios `<%#` de sus
-    ejemplos, que ERB borraba al pintar la página. `test/guide_pages_test.rb` falla si un ejemplo
-    de una guía vuelve a llevar uno sin escapar: se escribe `<%%#`.
+    corriendo; la guarda de `test/requests/icon_previews_test.rb` cubre ahora las clases que
+    define el propio preview y las constantes que las guardan.
+  - La guía de patrones de componentes vuelve a mostrar los `<%#` de sus ejemplos, y
+    `test/guide_pages_test.rb` prohíbe uno sin escapar (`<%%#`) en cualquier guía.
   - La guía de maestro-detalle repetía tres veces en una línea el título «What this is not».
-  - La dummy ya no le pide el badge del FeedbackWidget a `localhost:3008` en cada página de
-    admin, que dejaba un `ERR_CONNECTION_REFUSED` en la consola de toda revisión en navegador. El
-    widget del layout habla con los sustitutos de Opina de la propia dummy (`pages#feedback_embed`
-    y ahora `pages#feedback_badge`, que también quita el 404 de `/feedback-widget-demo`);
-    `OPINA_URL=http://localhost:3008` lo devuelve a un Opina local.
+  - El FeedbackWidget de las páginas de admin habla con los sustitutos de Opina de la propia
+    dummy en vez de con `localhost:3008`, y la consola queda limpia.
 
 ## [v3.7.0] - 2026-10-03
 

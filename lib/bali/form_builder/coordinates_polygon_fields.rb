@@ -52,9 +52,9 @@ module Bali
 
       def deprecated_coordinates_polygon(name)
         Bali.deprecator.warn(
-          "Bali::FormBuilder##{name} is deprecated and has no replacement. It draws with " \
-          "google.maps.drawing.DrawingManager, which the Maps JavaScript API no longer offers " \
-          "as of version 3.65, so the field cannot draw a polygon any more."
+          "Bali::FormBuilder##{name} is deprecated and is removed in 4.0, with no replacement. " \
+          "It draws with google.maps.drawing.DrawingManager, which the Maps JavaScript API no " \
+          "longer offers as of version 3.65, so the field cannot draw a polygon any more."
         )
       end
 

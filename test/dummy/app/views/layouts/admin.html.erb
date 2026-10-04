@@ -18,11 +18,11 @@
     <% end %>
   <% end %>
 
-  <%# On every admin page because `drawer-broadcast.cy.js` needs it beside AppLayout's drawer.
-      It talks to this app's stand-ins for Opina unless OPINA_URL names a running one. %>
+  <%# On every admin page, and `drawer-broadcast.cy.js` depends on it here beside AppLayout's
+      drawer. It talks to this app's stand-ins for Opina (`pages#feedback_embed`, `#feedback_badge`). %>
   <%= render Bali::FeedbackWidget::Component.new(
     project_slug: "bali-demo",
-    opina_url: ENV.fetch("OPINA_URL") { request.base_url },
+    opina_url: request.base_url,
     secret: "dev-shared-secret",
     user_id: 1,
     email: "demo@example.com"

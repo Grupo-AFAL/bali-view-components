@@ -21,7 +21,7 @@ class BaliFormBuilderCoordinatesPolygonFieldsTest < FormBuilderTestCase
       end
 
       assert_equal 1, warnings.size, "#{name} warned #{warnings.size} times"
-      assert_match(/Bali::FormBuilder##{name} is deprecated/, warnings.first)
+      assert_match(/Bali::FormBuilder##{name} is deprecated and is removed in 4.0/, warnings.first)
       assert_match(/DrawingManager/, warnings.first)
     end
   end

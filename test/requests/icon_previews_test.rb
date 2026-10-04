@@ -62,20 +62,19 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
     MSG
   end
 
-  # The same stale nesting reaches the classes and modules a preview defines inside itself, read
-  # from a method: the class body runs during the load that defines them, a method on every later
-  # request, on the class Lookbook kept from boot. After a reload, `Sized` in
-  # `Bali::Widget::Preview#default` was the old module while `Bali::Widget::Preview::PATTERNS`
-  # handed back classes including the new one, so `widget/default` ignored `count` after any `.js`
-  # was saved (#1303). Data constants are left alone: the old copy holds the same values, and only
-  # a class or module is compared by identity.
+  # The same stale nesting reaches what a preview defines inside itself — a class, a module, or a
+  # constant holding one — when a method reads it: the method runs on the class Lookbook kept from
+  # boot, so after a reload the short name is the copy from before it, which no longer matches the
+  # new one in an `include?`, an `is_a?` or a `case` (#1303). A constant holding only values is left
+  # alone: its old copy reads the same.
   def test_no_preview_method_reads_its_own_classes_unqualified
     offenders = preview_files.flat_map { |path| unqualified_own_classes_in_methods(path) }
 
     assert_empty offenders, <<~MSG
-      These `preview.rb` read a class or module they define, unqualified, from a method. Write it
-      in full (`Bali::Widget::Preview::Sized`, not `Sized`): the method runs on the class Lookbook
-      loaded at boot, and its nesting still points at what a reload has since replaced.
+      These `preview.rb` read a class or module they define, or a constant holding one,
+      unqualified from a method. Write it in full (`Bali::Widget::Preview::PATTERNS`, not
+      `PATTERNS`): the method runs on the class Lookbook loaded at boot, and its nesting still
+      points at what a reload has since replaced.
 
       #{offenders.join("\n")}
     MSG
@@ -166,7 +165,8 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
                  .select { |node| node.first == :class && defined_name(node) == "Preview" }
 
     previews.flat_map do |preview|
-      own = sexp_nodes(preview).filter_map { |node| defined_name(node) } - [ "Preview" ]
+      classes = sexp_nodes(preview).filter_map { |node| defined_name(node) } - [ "Preview" ]
+      own = classes + sexp_nodes(preview).filter_map { |node| constant_holding(node, classes) }
 
       sexp_nodes(preview).select { |node| %i[def defs].include?(node.first) }
                          .flat_map { |method| sexp_nodes(method).to_a }
@@ -181,6 +181,14 @@ class IconPreviewsTest < ActionDispatch::IntegrationTest
 
   def defined_name(node)
     node.dig(1, 1, 1) if %i[class module].include?(node.first) && node.dig(1, 0) == :const_ref
+  end
+
+  # `NAME = …` whose right-hand side reads one of `classes`: `PATTERNS = { value: DemoValue }`.
+  def constant_holding(node, classes)
+    return unless node.first == :assign && node.dig(1, 0) == :var_field && node.dig(1, 1, 0) == :@const
+
+    reads_a_class = sexp_nodes(node[2]).any? { |read| read.first == :var_ref && classes.include?(read.dig(1, 1)) }
+    node.dig(1, 1, 1) if reads_a_class
   end
 
   def sexp_nodes(node, &block)
