@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Gantt.** Con el cajón «sin fechas» en la página, el tablero ya no la desborda 12 px. React
+  Flow deja de avisar #004 («parent container needs a width and a height») en cada carga; sólo
+  queda en un teléfono de 320 px, donde el cronograma sigue sin ancho (pendiente de decisión,
+  #1303). La etiqueta «Color» baja de línea junto con su selector en vez de quedarse sola al final
+  de la anterior, y el caret de las filas y los íconos de los controles flotantes de zoom ya no
+  llegan a un lector de pantalla como imágenes sin nombre; sus botones conservan el nombre. Nada
+  que hacer en el anfitrión.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added
