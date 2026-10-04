@@ -65,6 +65,9 @@ export function neutralColor () {
 // is base-content, as `Bali::Color.css(:neutral)` resolves it (`page_ink?` in
 // app/components/bali/color.rb): a dark theme's neutral is a fill, and the mix read 4.20:1 under the pointer on
 // `dark`. Only the text: `solid` lies under the bar's base-content label, 1.21:1 on `dark`.
+// `--color-error` takes text-soft-error's own ink, `--soft-ink-error` in that same file.
+const ERROR_INK = 'light-dark(oklch(from var(--color-error) 0.48 c h), color-mix(in oklab, var(--color-error) 40%, var(--color-base-content)))'
+
 function varColor (cssVar) {
   const c = `var(${cssVar})`
   const ink = `var(${cssVar === '--color-neutral' ? '--color-base-content' : cssVar})`
@@ -72,7 +75,7 @@ function varColor (cssVar) {
     solid: c,
     fill: `color-mix(in oklch, ${c} 16%, transparent)`,
     border: `color-mix(in oklch, ${c} 50%, transparent)`,
-    text: `color-mix(in oklab, ${ink} 40%, var(--color-base-content))`,
+    text: cssVar === '--color-error' ? ERROR_INK : `color-mix(in oklab, ${ink} 40%, var(--color-base-content))`,
     content: `var(${cssVar}-content)`
   }
 }

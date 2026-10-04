@@ -63,6 +63,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`text-soft-error` vuelve a ser rojo en los temas claros.** En v3.7.0 el texto de error
+  (DeleteLink, los ítems «delete» de Dropdown, los mensajes de error del FormBuilder, «Cerrar
+  sesión», los indicadores que bajan, la píldora de un estado en `--color-error` del Gantt) se
+  leía café: rgb(114, 72, 80) en `afal`. Ahora es el rojo del tema oscurecido lo justo:
+  rgb(167, 37, 48) en `afal`, 7.12:1 sobre la página; el peor caso es 4.97, el ítem «delete» de
+  un Dropdown bajo el puntero en `light`. Los temas oscuros no cambian, y tampoco los demás
+  `text-soft-*`. Un tema oscuro propio tiene que declarar `color-scheme: dark`, como ya hacen los
+  de todas las apps. Un navegador sin `light-dark()` o sin colores relativos ve el café de antes
+  en la utilidad y el color del texto de alrededor en la píldora del Gantt.
+
 - **Gantt.** Con el cajón «sin fechas» en la página, el tablero ya no la desborda 12 px. React
   Flow deja de avisar #004 («parent container needs a width and a height») en cada carga. En un
   teléfono la tabla deja al cronograma el 40 % del tablero, como en una tableta, hasta el mínimo

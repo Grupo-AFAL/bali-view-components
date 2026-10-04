@@ -17,9 +17,26 @@
  *
  * A utility and not a custom property on `:root`: a property declared there resolves its
  * `var()`s there, and a SideMenu with its own `theme:` inherits the page's mix — 1.05:1 on
- * `side_menu/dark_chrome`, against 7.97 for the utility. */
+ * `side_menu/dark_chrome`, against 7.97 for the utility.
+ *
+ * Error has an ink of its own on a light scheme, `--soft-ink-error` below, which the Gantt's
+ * status pill copies (../../../components/bali/gantt/ganttColors.js). On `afal`, whose
+ * base-content is navy, 40% of its salmon error read brown, rgb(114, 72, 80), chroma 0.05. At
+ * lightness 0.48 the worst case reads 4.97:1, a Dropdown's delete item under the pointer on
+ * `light`; 0.52 read 4.22 there. `light-dark()` follows `color-scheme`, so a dark theme block
+ * has to declare `color-scheme: dark`, as daisyUI's and Bali's do. The `@supports` is not
+ * optional: the `var()` lets an unsupported `light-dark()` past the parser, and the colour would
+ * then be inherited rather than fall back to the mix. `inline reference` for the reason above.
+ * A separate `@utility text-soft-error` lost to this functional rule, which is emitted after it. */
+@theme inline reference {
+  --soft-ink-error: light-dark(oklch(from var(--color-error) 0.48 c h), color-mix(in oklab, var(--color-error) 40%, var(--color-base-content)));
+}
+
 @utility text-soft-* {
   color: color-mix(in oklab, --value(--color-*) 40%, var(--color-base-content));
+  @supports (color: light-dark(oklch(from red l c h), red)) {
+    color: --value(--soft-ink-*);
+  }
 }
 
 /* A `.table`'s thead and tfoot and a `.fieldset-label`, which daisyUI paints at `/60`: 4.04:1
