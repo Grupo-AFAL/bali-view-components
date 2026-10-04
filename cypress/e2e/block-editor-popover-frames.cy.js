@@ -50,6 +50,44 @@ describe('BlockEditor popover frames', () => {
     })
   })
 
+  // DocumentEditor's comments panel hangs outside `.block-editor-component`, which the rule is
+  // scoped to; the picker a comment there opens is portaled back inside it, into the editor's
+  // `.bn-root`. The preview's threads come from a database the seeds leave empty.
+  it("draws the ring of the emoji picker opened from DocumentEditor's comments panel", () => {
+    const timestamps = { created_at: '2026-08-02T17:43:55Z', updated_at: '2026-08-02T17:44:10Z' }
+    cy.intercept('GET', /\/block_editor_comments(\?|$)/, {
+      body: [{
+        id: 1,
+        resolved: false,
+        metadata: {},
+        ...timestamps,
+        comments: [{
+          id: 1,
+          user_id: 'user-2',
+          metadata: {},
+          deleted_at: null,
+          reactions: [],
+          ...timestamps,
+          body: [{ id: 'stub-comment-1', type: 'paragraph', props: {}, content: [{ type: 'text', text: 'Looks good to me', styles: {} }], children: [] }]
+        }]
+      }]
+    }).as('threads')
+    cy.viewport(1280, 900)
+    cy.visit('/bali/document_editor/default')
+    cy.wait('@threads')
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', 'afal'))
+    withoutFade('.bn-emoji-picker-popover')
+    cy.get('[data-action*="document-editor#toggleComments"]:visible').first().click()
+    cy.get('[data-document-editor-target="commentsList"] .bn-thread-comment').first().then(hover)
+    cy.get('[data-document-editor-target="commentsList"] [data-test="addreaction"]').first().click()
+
+    cy.get('.bn-emoji-picker-popover').should('have.css', 'opacity', '1')
+    cy.get('.bn-emoji-picker-popover em-emoji-picker').should(($picker) => {
+      settled($picker[0].ownerDocument)
+      expect(ringOnPage($picker[0]), "afal: the ring of DocumentEditor's emoji picker against the page").to.be.above(EDGE)
+    })
+  })
+
   it('leaves the file panel inside the one frame BlockNote draws', () => {
     cy.viewport(1280, 900)
     cy.visit('/bali/block_editor/default')
