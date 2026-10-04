@@ -1,8 +1,6 @@
 <%= tag.footer(**html_options) do %>
   <div class="container mx-auto max-w-6xl">
-    <%# daisyUI's `.footer-center` alone is `grid-auto-flow: column dense`, every section side by
-        side at any width; only `.footer-horizontal.footer-center` stacks them. %>
-    <div class="footer <%= center? ? 'footer-horizontal footer-center' : 'sm:footer-horizontal' %>">
+    <div class="<%= layout_classes %>">
       <%= brand if brand? %>
       <% sections.each do |section| %>
         <%= section %>

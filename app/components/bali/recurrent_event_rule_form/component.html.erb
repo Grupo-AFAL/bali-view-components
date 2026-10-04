@@ -67,7 +67,7 @@
               data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs recurrent-event-rule#setRule' }) %>
           <span class="text-sm font-medium min-w-[2.5rem]"><%= t('.on_option') %></span>
 
-          <div class="flex items-center gap-1.5"
+          <div class="flex flex-wrap items-center gap-1.5"
             data-recurrent-event-rule-target="freqCustomizationInputs"
             data-rrule-freq-option="yearly_on_1">
             <%= select_tag :bymonth, options_for_select(bymonth_options),
@@ -141,13 +141,13 @@
               data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs recurrent-event-rule#setRule' }) %>
           <span class="text-sm font-medium min-w-[2.5rem]"><%= t('.on_day') %></span>
 
-          <div class="flex items-center gap-1.5"
+          <div class="flex flex-wrap items-center gap-1.5"
             data-recurrent-event-rule-target="freqCustomizationInputs"
             data-rrule-freq-option="monthly_on_1">
             <%= select_tag :bymonthday, options_for_select(bymonthday_options),
                 id: control_id('monthly_on_1_bymonthday'),
                 aria: { label: t('.monthday_label') },
-                class: 'select select-bordered select-sm w-20',
+                class: 'select select-bordered select-sm w-auto',
                 disabled: disabled,
                 data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' } %>
           </div>

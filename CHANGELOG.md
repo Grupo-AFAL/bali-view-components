@@ -11,15 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`RecurrentEventRuleForm` ya no corta el texto de sus selects** (#1303). Los selects de las
   filas anual y mensual miden lo que su opción más larga: antes el anual cortaba «Weekend day»
-  y los dos mensuales, a 101 px a cualquier ancho, cortaban «Wednesday» (a 320 px, 8 de los 10
-  días), y en español «Fines de semana» y «Días laborales». En un celular los dos selects
-  mensuales pasan al renglón siguiente cuando no caben, como los anuales. Ninguna de las nueve
-  apps usa el componente.
+  y los dos mensuales, a 101 px (82 a 320), cortaban «Wednesday» (a 320 px, 8 de los 10 días), y
+  en español «Fines de semana» y «Días laborales». Cada fila pasa sus selects al renglón
+  siguiente cuando no caben, como ya hacía la de «On the» anual. Ninguna de las nueve apps usa
+  el componente.
 
 - **El `Footer` centrado ya no se sale de la pantalla en un celular** (#1303). Con `center: true`
-  sus secciones iban lado a lado a cualquier ancho y a 390 px la última quedaba fuera (la página
-  medía 410); ahora van una debajo de otra, como ya iban en escritorio, que no cambia. Ninguna de
-  las nueve apps usa el componente.
+  sus secciones iban lado a lado debajo de 640 px y a 390 la última quedaba fuera (la página
+  medía 410); ahora van una debajo de otra a cualquier ancho, como ya iban de 640 px para arriba,
+  que no cambia. Ninguna de las nueve apps usa el componente.
 
 - **La cabecera del `Calendar` cabe en un celular** (#1303). El título y los botones de periodo
   iban en un solo renglón que no se partía: a 390 px la vista de mes medía 414 y la de año 364 a

@@ -39,6 +39,12 @@ module Bali
 
       private
 
+      # daisyUI's `.footer-center` alone is `grid-auto-flow: column dense`, every section side by
+      # side below 640px; only `.footer-horizontal.footer-center` stacks them.
+      def layout_classes
+        center? ? "footer footer-horizontal footer-center" : "footer sm:footer-horizontal"
+      end
+
       def component_classes
         [
           "footer-component p-10",

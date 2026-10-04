@@ -446,6 +446,18 @@ describe('RecurrentEventRuleForm', () => {
         })
       })
 
+      // A modal or a side panel gives the form less than a 320px page does: in 280px the yearly
+      // "On" row, before it could wrap, measured 285.
+      it(`fit the ${panel} panel into a 280px container`, () => {
+        cy.viewport(390, 844)
+        open(rule)
+
+        cy.get('.recurrent-event-rule-form-component').then(([form]) => { form.style.width = '280px' })
+        cy.get('.recurrent-event-rule-form-component').should(([form]) => {
+          expect(form.scrollWidth, 'scrollWidth of a form 280px wide').to.equal(form.clientWidth)
+        })
+      })
+
       // Every row wraps now, and a select without `w-auto` takes daisyUI's 100% width once it
       // can: the monthly pair went one under the other at 208px each.
       it(`keep each ${panel} row on one line at 1280px`, () => {
@@ -463,7 +475,7 @@ describe('RecurrentEventRuleForm', () => {
       })
 
       // A closed select draws only the chosen option, clipped to its own width: a fixed `w-28`
-      // cut "Weekend day", and the monthly pair, shrunk to 101px at any width, cut "Wednesday".
+      // cut "Weekend day", and the monthly pair, shrunk to 101px (82 at 320), cut "Wednesday".
       ;[...widths, 1280].forEach((width) => {
         it(`fit every option of the ${panel} selects at ${width}px`, () => {
           cy.viewport(width, 844)
