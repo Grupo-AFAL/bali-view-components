@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Datepicker: el encabezado del calendario y el foco de teclado.** El año ya no se corta
+  («2026» se leía «202»). Con foco, el año lleva el anillo del color del texto que ya marcaba su
+  hover en vez del tinte blanco que lo bajaba a 2.96:1 en `dark`, y el select del mes muestra
+  ese mismo anillo, donde antes el foco no se veía en ningún tema. Las flechas del año quedan
+  enteras en reposo (al 70 % medían 2.80:1 en `dark`), y un día de otro mes con foco de teclado
+  muestra el relleno de cualquier día con foco. Nada que hacer en la app.
+
+### Removed
+
+- **Datepicker: las reglas de `weekNumbers`, `weekSelect` e `inline`.** El controlador nunca pasa
+  esas opciones y ninguna app llama a flatpickr por su cuenta, así que no tocaban nada. Si una app
+  arma su propio flatpickr con alguna de ellas, tiene que darle estilo ella misma.
+- **Las variables de daisyUI 4 que quedaban** (`oklch(var(--b2))` en `.box-row` y cinco
+  `oklch(var(--p)…)` en el RichTextEditor). daisyUI 5 no las define y el navegador ya descartaba
+  esas declaraciones, así que nada cambia en pantalla.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added
