@@ -45,6 +45,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Drawer cerrado.** Ya no se alcanza con Tab: sus controles seguían en el orden de tabulación
+  fuera de la pantalla (el ✕ en x=1744 de una ventana de 1280); ahora el cerrado queda
+  `visibility: hidden` en cuanto termina de deslizarse. Un drawer cerrado dentro del contenido de
+  otro abierto ya no entra a la pantalla con él ni tiende su fondo oscuro sobre el panel de
+  afuera, que dejaba sin clic al botón que lo abre. En el teléfono el panel conserva el 85 % del
+  ancho mientras se cierra, en vez de saltar al ancho completo. Nada que hacer en las apps.
+
+- **Modal y Drawer renderizados abiertos (`active: true`).** El foco inicial va al `autofocus`
+  del contenido o al primer control del panel, igual que al abrirlos desde un botón; antes caía
+  en el panel mismo. Nada que hacer.
+
+- **Trampa de Tab de Modal y Drawer.** Ya no cuenta controles que no se ven: el ✕ de un drawer
+  cerrado dentro del panel dejaba salir a Tab del overlay, y un `input[type=hidden]` al final
+  (el de un `button_to`) dejaba Shift+Tab atorado en el primer control. Nada que hacer.
+
+- **El `<dialog>` del Drawer ya no lleva la clase `group`.** Con ella, un `group-hover:` dentro
+  del drawer se encendía al pasar el puntero por cualquier parte del panel: el botón de quitar
+  imagen de `Bali::ImageField` y su velo aparecían sin tocar la imagen. Un `group-*` en el
+  contenido de un drawer responde ahora sólo a su propio `.group`; ninguna app dependía del del
+  drawer.
+
 - **Para quien trabaja en el repo: el Lookbook y la dummy** (#1303). Nada que hacer en las apps.
   - `widget/default` respeta `count` también después de guardar un `.js` con el servidor
     corriendo; la guarda de `test/requests/icon_previews_test.rb` cubre ahora las clases que
