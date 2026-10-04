@@ -61,12 +61,28 @@ export class ChartController extends Controller {
 
     Chart.register(...registerables)
 
+    // What the legend hid lives on the instance a theme switch replaces: a series as its
+    // dataset's visibility, which the new one reads from `hidden`, and a slice of a pie, doughnut
+    // or polar area by data index, which it can only be told once built.
+    if (this.chart) {
+      data.datasets?.forEach((dataset, index) => { dataset.hidden = !this.chart.isDatasetVisible(index) })
+    }
+    const hiddenSlices = this.hiddenSlices()
+
     this.chart?.destroy()
     this.chart = new Chart(element.getContext('2d'), {
       type: this.typeValue,
       data,
       options
     })
+    hiddenSlices.forEach((index) => this.chart.toggleDataVisibility(index))
+    if (hiddenSlices.length) this.chart.update()
+  }
+
+  hiddenSlices () {
+    if (!this.chart) return []
+
+    return this.chart.data.labels.flatMap((_, index) => this.chart.getDataVisibility(index) ? [] : [index])
   }
 
   disconnect () {

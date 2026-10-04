@@ -112,6 +112,35 @@ describe('Chart', () => {
     })
   })
 
+  // A bar's legend hides a dataset and a doughnut's a data index, both on the Chart.js instance
+  // a theme switch replaces.
+  describe('legend', () => {
+    const crossedOut = (chart) => chart.legend.legendItems.map((item) => item.hidden)
+
+    ;['bar', 'doughnut'].forEach((type) => {
+      it(`keeps what it hid on a ${type} when the theme switches`, () => {
+        cy.visit(`/bali/chart/series_palette?type=${type}`)
+
+        let box
+        chartInstance((chart) => { box = chart.legend.legendHitBoxes[1] })
+        cy.then(() => canvas().click(box.left + box.width / 2, box.top + box.height / 2))
+
+        let before
+        chartInstance((chart) => {
+          expect(crossedOut(chart), 'hidden by the click').to.deep.eq([false, true, false, false, false, false, false])
+          before = chart
+        })
+
+        cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', 'dark'))
+
+        chartInstance((chart) => {
+          expect(chart, 'a fresh chart.js instance').to.not.eq(before)
+          expect(crossedOut(chart), 'after the switch').to.deep.eq([false, true, false, false, false, false, false])
+        })
+      })
+    })
+  })
+
   describe('with a declared color', () => {
     it('starts the palette from the colour Ruby named', () => {
       cy.visit('/bali/chart/with_color')

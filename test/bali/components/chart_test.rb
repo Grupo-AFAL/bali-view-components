@@ -125,6 +125,24 @@ class BaliChartComponentTest < ComponentTestCase
     assert_equal(true, x_axis["ticks"]["useThemeColors"])
   end
 
+  def test_scales_gives_a_radial_chart_no_x_or_y_axis
+    %i[pie doughnut polarArea radar].each do |type|
+      render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, type: type))
+      options = JSON.parse(page.find("canvas.chart")["data-chart-options-value"])
+
+      assert_nil(options["scales"], "#{type} scales")
+    end
+  end
+
+  def test_scales_still_merges_a_callers_scales_into_a_radial_chart
+    render_inline(Bali::Chart::Component.new(
+      data: { chocolate: 3 }, type: "polarArea", options: { scales: { r: { beginAtZero: true } } }
+    ))
+    options = JSON.parse(page.find("canvas.chart")["data-chart-options-value"])
+
+    assert_equal({ "r" => { "beginAtZero" => true } }, options["scales"])
+  end
+
   def test_plugins_merges_callers_string_keyed_plugins_into_the_theme_config
     render_inline(Bali::Chart::Component.new(
       data: { chocolate: 3 },
