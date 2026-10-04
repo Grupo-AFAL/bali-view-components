@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   medía 410); ahora van una debajo de otra, como ya iban en escritorio, que no cambia. Ninguna de
   las nueve apps usa el componente.
 
+### Documentation
+
+- **Los previews de `Card` caben en un celular** (#1303). Sus tarjetas `w-96` (384 px) pasan a
+  `w-96 max-w-full`: a 390 px la página ya no se desplaza de lado (medía 400), y a 1280 la
+  captura es idéntica. Sólo Lookbook; nada que hacer en un anfitrión.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added
