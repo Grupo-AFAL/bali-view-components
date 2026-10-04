@@ -55,12 +55,15 @@ module Bali
           Operators.for_type(attribute_type)
         end
 
+        # Both read the mark Operators.for_type puts on the chosen operator, the same mark
+        # condition_controller.js#operatorFlag reads off the <option> component.html.erb writes,
+        # so the server draws the widget the browser builds for that operator.
         def multiple_operator?
-          %w[in not_in].include?(operator)
+          operator_marked?(:multiple)
         end
 
         def range_operator?
-          operator == "between"
+          operator_marked?(:range)
         end
 
         # Build field names for range operators (between)
@@ -119,6 +122,10 @@ module Bali
         end
 
         private
+
+        def operator_marked?(mark)
+          operators_for_current_type.find { |op| op[:value] == operator }&.dig(mark) || false
+        end
 
         def value_aria_label
           t("bali_view.filters.aria_labels.value")

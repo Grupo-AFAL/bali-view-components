@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`Filters`: el widget de valor sale de una sola lista de operadores** (#1303).
+  `Filters::Condition::Component#range_operator?` y `#multiple_operator?` leen la marca
+  `range:`/`multiple:` que `Filters::Operators.for_type` pone en el operador, la misma que lee
+  el navegador, en vez de repetir `between`, `in` y `not_in`; y `condition_controller.js` deja
+  su copia en inglés de los operadores, que nunca se usaba. Sin nada que hacer en el anfitrión.
+
 ### Fixed
 
 - **`Filters`: «en» con una fecha trae las filas de ese día** (#1303). Sobre una columna de fecha

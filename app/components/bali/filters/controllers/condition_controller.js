@@ -363,7 +363,8 @@ export class ConditionController extends Controller {
   }
 
   // `range` or `multiple`, as Bali::Filters::Operators.for_type marks the chosen operator: its
-  // <option> carries the mark, from condition/component.html.erb or #updateOperators.
+  // <option> carries the mark, from condition/component.html.erb or #updateOperators. The
+  // template draws its own widget from the same mark (Condition::Component#range_operator?).
   operatorFlag (flag) {
     const option = this.hasOperatorTarget ? this.operatorTarget.selectedOptions[0] : null
     return option?.dataset[flag] === 'true'
@@ -519,61 +520,10 @@ export class ConditionController extends Controller {
     }
   }
 
-  /**
-   * Get operators for a given type.
-   * Uses translations from Ruby if available, falls back to hardcoded defaults.
-   */
+  // Bali::Filters::Operators.for_type, sent per type in component.rb's translations_json. An
+  // unknown type gets the text operators, as `for_type` gives it.
   getOperatorsForType (type) {
-    // Try to get operators from translations (provided by Ruby)
-    const translatedOperators = this.t.operators?.[type]
-    if (translatedOperators && translatedOperators.length > 0) {
-      return translatedOperators
-    }
-
-    // Fallback to hardcoded defaults (English)
-    const fallbackOperators = {
-      text: [
-        { value: 'cont', label: 'contains' },
-        { value: 'eq', label: 'is exactly' },
-        { value: 'start', label: 'starts with' },
-        { value: 'end', label: 'ends with' },
-        { value: 'not_cont', label: 'does not contain' },
-        { value: 'not_eq', label: 'is not' }
-      ],
-      number: [
-        { value: 'eq', label: '=' },
-        { value: 'not_eq', label: '≠' },
-        { value: 'gt', label: '>' },
-        { value: 'lt', label: '<' },
-        { value: 'gteq', label: '≥' },
-        { value: 'lteq', label: '≤' }
-      ],
-      date: [
-        { value: 'eq', label: 'is' },
-        { value: 'between', label: 'between', range: true },
-        { value: 'gt', label: 'after' },
-        { value: 'lt', label: 'before' },
-        { value: 'gteq', label: 'on or after' },
-        { value: 'lteq', label: 'on or before' }
-      ],
-      datetime: [
-        { value: 'eq', label: 'is' },
-        { value: 'between', label: 'between', range: true },
-        { value: 'gt', label: 'after' },
-        { value: 'lt', label: 'before' },
-        { value: 'gteq', label: 'on or after' },
-        { value: 'lteq', label: 'on or before' }
-      ],
-      select: [
-        { value: 'eq', label: 'is' },
-        { value: 'not_eq', label: 'is not' },
-        { value: 'in', label: 'is any of', multiple: true },
-        { value: 'not_in', label: 'is not any of', multiple: true }
-      ],
-      boolean: [{ value: 'eq', label: 'is' }]
-    }
-
-    return fallbackOperators[type] || fallbackOperators.text
+    return this.t.operators?.[type] || this.t.operators?.text || []
   }
 
   /**
