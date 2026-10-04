@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Deprecated
+
+- **`f.coordinates_polygon_group` y `f.coordinates_polygon_field`, el campo de polígono sobre un
+  mapa** (#1303). Dibujan con `google.maps.drawing.DrawingManager`, que el API de Maps JavaScript
+  dejó de ofrecer en la versión 3.65, así que el campo ya no puede dibujar un polígono. Cada
+  llamada avisa por `Bali.deprecator`, y en 4.0 se borran sin reemplazo, junto con el controlador
+  `drawing-maps`; su preview de Lookbook ya no está. Ninguna app de la flota los llama.
+  **ga-apps** sólo conserva `pin 'bali/drawing-maps'` en `config/importmap.rb`: quitarlo antes de
+  subir a 4.0, cuando ese archivo deja de existir.
+
 ### Fixed
 
 - **Para quien trabaja en el repo: el Lookbook y la dummy** (#1303).

@@ -11,17 +11,31 @@ module Bali
       MAP_CLASSES = "map h-[400px]"
       BUTTON_WRAPPER_CLASSES = "flex justify-end items-center mb-3"
 
+      # @deprecated Removed in 4.0, with no replacement: the map draws through
+      #   `google.maps.drawing.DrawingManager`, which the Maps JavaScript API dropped
+      #   in 3.65, so the field can no longer draw a polygon.
+      #
       # The caption stays a `<legend>`: the only form control here is a hidden
       # field the map writes into, and a hidden input is not labelable.
       def coordinates_polygon_group(method, **options)
+        deprecated_coordinates_polygon(:coordinates_polygon_group)
+
         @template.render Bali::FieldGroupWrapper::Component.new(
           self, method, options.merge(control_id: false)
         ) do
-          coordinates_polygon_field(method, options)
+          polygon_map(method, options)
         end
       end
 
+      # @deprecated Removed in 4.0; see {#coordinates_polygon_group}.
       def coordinates_polygon_field(method, options = {})
+        deprecated_coordinates_polygon(:coordinates_polygon_field)
+        polygon_map(method, options)
+      end
+
+      private
+
+      def polygon_map(method, options)
         value = serialize_value(options.fetch(:value, []))
         attributes = setup_options(widget_attributes(dup_options(options)).except(:value))
 
@@ -36,7 +50,13 @@ module Bali
         end
       end
 
-      private
+      def deprecated_coordinates_polygon(name)
+        Bali.deprecator.warn(
+          "Bali::FormBuilder##{name} is deprecated and has no replacement. It draws with " \
+          "google.maps.drawing.DrawingManager, which the Maps JavaScript API no longer offers " \
+          "as of version 3.65, so the field cannot draw a polygon any more."
+        )
+      end
 
       # `input_name:` names the hidden field the map writes into — the only control
       # this family submits. Not `input_id:`: the caption is a `<legend>` here
