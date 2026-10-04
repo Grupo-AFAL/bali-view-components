@@ -3782,6 +3782,16 @@ last card out and it appears, hover a drag over the empty column and it yields
 to SortableJS's preview. Both rules live in `kanban/index.css` inside
 `@layer components` — a host utility on the list still wins.
 
+**The lane is a surface and the card sits on it.** Each column is a
+`base-300` lane with no border or shadow; each card is a `base-100` card with
+a border and a small shadow, and one that can be dragged (it has `update_url:`
+and its column is not `disabled:`) lifts under the pointer. The look lives in
+`kanban/index.css` inside `@layer components`, so a utility passed through
+`class:` beats it without `!`: `with_column(class: "bg-base-100")`,
+`with_card(class: "shadow-none")`. The card's class is `kanban-card`, not
+daisyUI's `card`; a stylesheet that reached the board's cards through `.card`
+targets `.kanban-card` instead.
+
 `disabled: true` on `with_column` freezes that column (forwarded to the
 underlying SortableList): its cards cannot be dragged out and it stops
 accepting drops. To only stop specific cards from *leaving* a live column,
@@ -3823,8 +3833,8 @@ end
 DOM as the drop left it. Use `response_kind: :turbo_stream` when the server
 re-renders — e.g. to refresh the per-column count badges and `aria-label`s,
 which are server-rendered and go stale after a client-side drop. Cards without
-`update_url:` still drag (the DOM moves) but send nothing — fine for a demo,
-wrong for persistence.
+`update_url:` still drag (the DOM moves) but send nothing and do not lift under
+the pointer — fine for a demo, wrong for persistence.
 
 A column's header indicator is a `Bali::Tag`, so `color:` takes the same semantic names it does (`:neutral :primary :secondary :accent :info :success :warning :error :ghost`) and `custom_color:` takes a hex. A name outside that list raises — the private `BADGE_COLORS` table this component used to keep answered `:ghost` to anything it did not recognise.
 

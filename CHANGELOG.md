@@ -135,6 +135,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Kanban: el carril es un fondo y la tarea es la tarjeta** (#1317). El carril deja de ser una
+  tarjeta `base-100` con borde y sombra y pasa a un fondo `base-300` sin ninguno de los dos; cada
+  tarea es una tarjeta `base-100` con borde y una sombra leve, y si se puede arrastrar (tiene
+  `update_url:` y su columna no está `disabled:`) se levanta al pasar el cursor. Tarjeta y carril
+  medían 1.00:1 en los seis temas; ahora la tarjeta se separa 1.16–1.24 en los claros, y en los
+  oscuros su borde 1.51–1.66. El punteado de la columna vacía pasa de 1.07–1.16 a 1.52–1.97, la
+  línea del pie de 1.05–1.10 a 1.25–1.41, y el indicador `:ghost` y el contador del encabezado se
+  tiñen para no perderse sobre el carril (1.21–1.31). Lo ve el tablero de roadmap de opina, que no
+  tiene que hacer nada. La tarjeta lleva la clase `kanban-card` en vez de `card bg-base-100
+  card-border` de daisyUI. **Anfitrión:** el aspecto vive en `kanban/index.css`, dentro de
+  `@layer components`, así que una utilidad pasada con `class:` a `with_column` o a `with_card`
+  gana sin `!` (`bg-base-100`, `shadow-none`); un CSS propio que llegaba a las tarjetas del tablero
+  por `.card` tiene que apuntar a `.kanban-card`.
+- **BlockEditor: el selector de emojis de una reacción lleva su propio borde** (parte de #1303):
+  una línea de 1 px, `base-content` al 15 %, que sigue su radio de 10 px. emoji-mart lo dibuja
+  sólo con una sombra suave, y su contorno medía 1.00:1 contra la página en `afal` y 1.02 en
+  `afal-dark`; ahora 1.47–1.51 en los temas claros y 1.71–1.85 en los oscuros. El panel de archivo
+  («Replace image») sigue sin marco propio, como lo dejó #1313. Se ve en los comentarios del
+  BlockEditor y del panel de DocumentEditor, como los de gobierno-corporativo; sin nada que hacer
+  en el anfitrión.
 - **El hover de los ítems de menú y de las opciones de SlimSelect es el texto al 8 %**, no
   `base-200`: en el SideMenu, sus grupos y el disparador del switcher, en los ítems de
   `Bali::Dropdown` (comparten la clase `.menu-item`) y en las opciones de SlimSelect, también su
