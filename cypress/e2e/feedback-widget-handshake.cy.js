@@ -160,6 +160,27 @@ describe('FeedbackWidget handshake', () => {
       badge().should('have.class', 'hidden')
     })
 
+    // The token lasts `token_expires_in`, so a tab left open long enough gets a 401. The
+    // number it was showing can no longer be refreshed, and it goes.
+    it('hides the count once Opina stops accepting the token', () => {
+      cy.clock(Date.now(), ['setInterval', 'clearInterval', 'Date'])
+      let expired = false
+      cy.intercept('GET', `${badgeUrl}*`, (req) => {
+        req.reply(expired
+          ? { statusCode: 401, headers: cors }
+          : { statusCode: 200, headers: cors, body: { unread_count: 3 } })
+      }).as('badge')
+      cy.visit('/bali/feedback_widget/default')
+      badge().should('have.text', '3').and('not.have.class', 'hidden')
+
+      cy.then(() => { expired = true })
+      cy.tick(300000)
+
+      cy.get('@badge.all').should('have.length', 2)
+      badge().should('have.class', 'hidden')
+      cy.get('#feedback-widget-unread').should('have.text', '')
+    })
+
     // An Opina that does not keep read state has no such route, and a request that never
     // arrives is no worse: the badge is cleared for this page either way.
     it('says nothing when the read request fails', () => {

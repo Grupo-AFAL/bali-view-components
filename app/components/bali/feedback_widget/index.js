@@ -267,6 +267,10 @@ export class FeedbackWidgetController extends Controller {
     try {
       const since = this.lastChecked || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const response = await fetch(`${this.badgeUrlValue}?since=${since}`, { headers: this.authorization })
+      // The token has expired (it lasts `token_expires_in`) or is no longer valid. The number on
+      // screen can no longer be refreshed, and asking without the token would count again what
+      // this user has already read.
+      if (response.status === 401) return this.showUnread(0)
       if (!response.ok) return
 
       const data = await response.json()

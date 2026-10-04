@@ -20,8 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Bali::FeedbackWidget`: lo leído deja de volver al recargar**, con un Opina que guarde la
   lectura por usuario. El contador se pide con el token en `Authorization: Bearer` y abrir el panel
-  avisa con `POST …/badge/read`; antes la lectura vivía en la memoria de la página. Con un Opina que
-  todavía no lo soporta todo sigue igual que hoy. Las apps no tienen que cambiar nada.
+  avisa con `POST …/badge/read`; antes la lectura vivía en la memoria de la página. Si Opina rechaza
+  el token (vence a la hora, `token_expires_in`), el contador se oculta en vez de quedarse con el
+  número viejo. Con un Opina que todavía no lo soporta todo sigue igual que hoy. Las apps no tienen
+  que cambiar nada.
 
 ## [v3.7.0] - 2026-10-03
 

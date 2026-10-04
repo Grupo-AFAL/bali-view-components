@@ -4969,9 +4969,9 @@ In the Topbar, as one of its actions:
 The badge asks `GET {opina_url}/api/v1/projects/{slug}/badge` with the token as
 `Authorization: Bearer`, and opening the panel sends `POST .../badge/read` with the same
 header, so an Opina that keeps read state per user stops counting what that user has seen,
-across page loads. An Opina without it ignores the header, answers the `since` parameter the
-widget still sends, and 404s the `POST`, which the widget ignores: the count then clears for
-the current page only.
+across page loads. A `401` (the token outlived `token_expires_in`) hides the count. An Opina
+without read state ignores the header, answers the `since` parameter the widget still sends,
+and 404s the `POST`, which the widget ignores: the count then clears for the current page only.
 
 **Options:**
 - `project_slug` - The project slug in Opina (required)
