@@ -21,10 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   medía 410); ahora van una debajo de otra a cualquier ancho, como ya iban de 640 px para arriba,
   que no cambia. Ninguna de las nueve apps usa el componente.
 
-- **La cabecera del `Calendar` cabe en un celular** (#1303). El título y los botones de periodo
-  iban en un solo renglón que no se partía: a 390 px la vista de mes medía 414 y la de año 364 a
-  320. Ahora los botones pasan debajo del título cuando no caben; a 1280 la captura es idéntica.
-  Lo ven gobierno-corporativo y ga-apps en pantallas angostas; nada que hacer.
+- **El `Calendar` cabe en un celular** (#1303). El título y los botones de periodo iban en un
+  solo renglón que no se partía: a 390 px la vista de mes medía 414 y la de año 364 a 320. Ahora
+  los botones pasan debajo del título cuando no caben. Los nombres de los días, que a 390 px se
+  montaban unos sobre otros, se abrevian («Lun», «Mon»: los de `date.abbr_day_names`, como en la
+  vista de año) cuando su columna mide menos de 98 px, lo que mide «Wednesday». Decide el ancho de
+  la columna y no el de la pantalla, así que cuentan `weekdays_only` y la barra lateral del
+  anfitrión; donde caben siguen completos, y a 1024 y 1280 la captura es idéntica. Lo ven
+  gobierno-corporativo y ga-apps en pantallas angostas; nada que hacer.
 
 ### Documentation
 
