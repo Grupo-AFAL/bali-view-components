@@ -11,10 +11,16 @@ describe('The multi-select a condition builds in the browser', () => {
   const panel = `${container} [data-controller~="multi-select"] > div:has(input[type="checkbox"])`
 
   // daisyUI fades a .dropdown-content in from `opacity: 0`, which Cypress counts as hidden: the
-  // state is read from `display` (docs/reference/testing-traps.md).
+  // state is read from `display` (docs/reference/testing-traps.md). The trigger tells it too.
   const display = (el) => el.ownerDocument.defaultView.getComputedStyle(el).display
-  const expectClosed = () => cy.get(panel).should(($panel) => expect(display($panel[0]), 'panel display').to.equal('none'))
-  const expectOpen = () => cy.get(panel).should(($panel) => expect(display($panel[0]), 'panel display').not.to.equal('none'))
+  const expectClosed = () => {
+    cy.get(panel).should(($panel) => expect(display($panel[0]), 'panel display').to.equal('none'))
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
+  }
+  const expectOpen = () => {
+    cy.get(panel).should(($panel) => expect(display($panel[0]), 'panel display').not.to.equal('none'))
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'true')
+  }
 
   // multi_select_controller.js mutes the label while nothing is chosen, on connect: the sign
   // that a widget built from a string has its controller.
@@ -111,5 +117,24 @@ describe('The multi-select a condition builds in the browser', () => {
       cy.focused().should(($el) => expect($el.closest('[data-controller~="multi-select"]')).to.have.length(0))
       expectClosed()
     })
+  })
+
+  // A host's own translation: written between single quotes, the apostrophe closed the
+  // attribute and the multi-select's controller could not read its translations.
+  it('carries a translation with an apostrophe whole', () => {
+    cy.visit('/bali/filters/all_field_types?popover=false')
+    cy.get('[data-controller="condition"]').then(($condition) => {
+      const translations = JSON.parse($condition.attr('data-condition-translations-value'))
+      translations.placeholders.select_values = "Choisissez l'option"
+      $condition.attr('data-condition-translations-value', JSON.stringify(translations))
+    })
+    cy.get('[data-condition-target="attribute"]').select('status')
+    cy.get('[data-condition-target="operator"]').select('in')
+
+    cy.get(`${container} [data-controller~="multi-select"]`)
+      .invoke('attr', 'data-multi-select-translations-value')
+      .should('contain', "Choisissez l'option")
+    connected()
+    cy.get('[data-multi-select-target="label"]').should('have.text', "Choisissez l'option")
   })
 })

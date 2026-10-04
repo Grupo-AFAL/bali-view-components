@@ -82,7 +82,7 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     "radio_field" => ->(b, o) { b.radio_field(:name, [ %w[One 1] ], html: o) },
     "radio_group" => ->(b, o) { b.radio_group(:name, [ %w[One 1] ], html: o) },
     "rich_text_area" => ->(b, o) { b.rich_text_area(:name, **o) },
-    "coordinates_polygon_field" => ->(b, o) { b.coordinates_polygon_field(:name, **o) },
+    "coordinates_polygon_field" => ->(b, o) { Bali.deprecator.silence { b.coordinates_polygon_field(:name, **o) } },
     "recurrent_event_rule_field" => ->(b, o) { b.recurrent_event_rule_field(:name, **o) },
     "time_period_field" => ->(b, o) { b.time_period_field(:name, [ %w[Today today] ], **o) },
     "submit_field" => ->(b, o) { b.submit_field("Save", **o) },

@@ -53,11 +53,11 @@ end
 ### Using Variants
 
 ```erb
-<%# Different variants %>
+<%%# Different variants %>
 <%%= render Bali::Button::Component.new(name: 'Primary', variant: :primary) %>
 <%%= render Bali::Button::Component.new(name: 'Error', variant: :error) %>
 
-<%# Different sizes %>
+<%%# Different sizes %>
 <%%= render Bali::Button::Component.new(name: 'Small', size: :sm) %>
 <%%= render Bali::Button::Component.new(name: 'Large', size: :lg) %>
 ```
@@ -78,7 +78,7 @@ renders_many :items
 ```
 
 ```erb
-<%# Usage %>
+<%%# Usage %>
 <%%= render MyComponent.new do |c| %>
   <%% c.with_header { "Title" } %>
   <%% c.with_item { "Item 1" } %>
@@ -148,19 +148,19 @@ Use the correct component based on **what the element does**:
 | Link styled as button | `Bali::Link::Component` with `variant:` | `<a class="btn">` |
 
 ```erb
-<%# Button for actions %>
+<%%# Button for actions %>
 <%%= render Bali::Button::Component.new(
   name: 'Save',
   type: :submit
 ) %>
 
-<%# Link for navigation %>
+<%%# Link for navigation %>
 <%%= render Bali::Link::Component.new(
   name: 'View Details',
   href: user_path(@user)
 ) %>
 
-<%# Link styled as button (still navigates) %>
+<%%# Link styled as button (still navigates) %>
 <%%= render Bali::Link::Component.new(
   name: 'Create New',
   href: new_user_path,
@@ -190,7 +190,7 @@ end
 ```
 
 ```erb
-<%# In template %>
+<%%# In template %>
 <button class="<%%= component_classes %>" <%%= tag.attributes(component_attributes) %>>
   <%%= content %>
 </button>

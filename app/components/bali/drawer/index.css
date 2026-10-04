@@ -37,19 +37,25 @@ dialog.drawer-component::backdrop {
   background: transparent;
 }
 
-/* Overlay - hidden by default, visible when drawer is open */
-.drawer-component .drawer-overlay {
+/* Closed, the panel waits off screen but rendered, and its controls stayed in the tab order:
+   Tab reached the ✕ at x=1744 of a 1280px window. The delay matches the panel's
+   `duration-300`, so it stays painted through the slide-out. Opening has none on purpose:
+   `showModal()` focuses into the panel in the same task, and a `hidden` control cannot
+   take the focus. */
+.drawer-component:not(.drawer-open) {
+  visibility: hidden;
+  transition: visibility 0s 300ms;
+}
+
+/* `>`, not a descendant selector: inside an open drawer's content, a closed drawer's
+   overlay would show. */
+.drawer-component > .drawer-overlay {
   display: none !important;
   pointer-events: none !important;
 }
 
-.drawer-component.drawer-open .drawer-overlay {
+.drawer-component.drawer-open > .drawer-overlay {
   display: block !important;
   opacity: 1;
   pointer-events: auto !important;
-}
-
-/* Panel slide-in animation when drawer is open */
-.drawer-component.drawer-open .drawer-panel {
-  transform: translateX(0) !important;
 }

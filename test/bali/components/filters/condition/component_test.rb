@@ -200,7 +200,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     ))
 
     trigger = '[data-multi-select-target="trigger"]'
-    assert_selector %(#{trigger}[role="button"][tabindex="0"][aria-haspopup="listbox"])
+    assert_selector %(#{trigger}[role="button"][tabindex="0"][aria-expanded="false"]:not([aria-haspopup]))
     assert_equal %w[click->multi-select#toggle keydown.enter->multi-select#toggle:prevent
                     keydown.space->multi-select#toggle:prevent], page.find(trigger)["data-action"].to_s.split
     assert_selector('[data-multi-select-target="dropdown"].hidden', visible: :all)
@@ -293,5 +293,27 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
       condition: condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
     )
     refute(component.multiple_operator?)
+  end
+
+  # condition_controller.js#operatorFlag reads the same mark off the <option>, and
+  # cypress/e2e/filters-condition-controller.cy.js holds the browser to it.
+  def test_the_widget_follows_the_mark_operators_for_type_puts_on_the_operator
+    render_inline(marked_condition({ attribute: "status", operator: "eq" }, :multiple))
+    assert_selector('[data-controller~="multi-select"]')
+
+    render_inline(marked_condition({ attribute: "created_at", operator: "gt" }, :range))
+    assert_selector('[data-condition-target="rangeInput"]', visible: :all)
+  end
+
+  private
+
+  def marked_condition(condition, mark)
+    component = Bali::Filters::Condition::Component.new(
+      condition: condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+    )
+    marked = component.operators_for_current_type.map do |op|
+      op[:value] == condition[:operator] ? op.merge(mark => true) : op
+    end
+    component.tap { |c| c.define_singleton_method(:operators_for_current_type) { marked } }
   end
 end

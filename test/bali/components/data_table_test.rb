@@ -1110,18 +1110,22 @@ class BaliDataTableComponentTest < ComponentTestCase
     assert_no_selector('[data-toolbar-overflow-target="menu"]', visible: :all)
   end
 
-  def test_view_switch_does_not_open_the_overflow_menu_by_itself
-    # Priority 50 = the threshold: the switch SHRINKS (icon_only responsive), it does not collapse.
-    # If it opened the ⋯ while being the only extra declared, the menu would come out empty.
+  # Priority 50 = the threshold: above sm the switch SHRINKS. Below, it is what fills the ⋯,
+  # so it opens the menu on its own and arrives reserved only there (#1303).
+  def test_view_switch_alone_opens_the_overflow_menu_for_the_phone
     render_inline(component) do |c|
       declare_views(c)
       c.with_filters_panel(available_attributes: filter_attributes)
       c.with_table { '<div class="table-component"></div>'.html_safe }
     end
 
-    assert_selector('[data-toolbar-overflow-target="item"][data-toolbar-overflow-priority="50"]',
-                    count: 1, visible: :all)
-    assert_no_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
+    switch = page.find('[data-toolbar-overflow-target="item"][data-toolbar-overflow-priority="50"]',
+                       visible: :all)
+    assert_equal(Bali::DataTable::Component::NARROW_RESERVED_CLASSES, switch[:class])
+    assert_selector('[data-toolbar-overflow-target="overflow"]', visible: :all)
+    assert_selector('[data-controller~="toolbar-overflow"]' \
+                    "[data-toolbar-overflow-narrow-threshold-value=\"#{Bali::DataTable::Component::NARROW_OVERFLOW_THRESHOLD}\"]",
+                    visible: :all)
   end
 
   def test_view_switch_collapses_its_labels_below_the_breakpoint

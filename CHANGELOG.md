@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`Filters`: el widget de valor sale de una sola lista de operadores** (#1303).
+  `Filters::Condition::Component#range_operator?` y `#multiple_operator?` leen la marca
+  `range:`/`multiple:` que `Filters::Operators.for_type` pone en el operador, la misma que lee
+  el navegador, en vez de repetir `between`, `in` y `not_in`; y `condition_controller.js` deja
+  su copia en inglés de los operadores, que nunca se usaba. Sin nada que hacer en el anfitrión.
+
+- **`DataTable`: en el teléfono el switch de vistas va al «⋯»** (#1303), primero en el menú, y
+  la búsqueda toma su lugar en la fila: a 320 px el campo de búsqueda de `/admin/movies` pasa de
+  29 a 131 px (a 390, de 99 a 201). Desde 640 px nada cambia: el switch sigue en la fila y sólo se encoge.
+  Lo notan los listados con `with_view_switch`, dos en afal-apps. Sin nada que hacer en el
+  anfitrión.
+
+- **`Filters`: el popover mide 42rem en vez de 40rem** (#1303), para que el campo de un rango de
+  fechas lo muestre entero: el más ancho, «May 28, 2026 to May 30, 2026», ocupa 191 px y el
+  campo pasa de 172 a 204. Sin nada que hacer en el anfitrión.
+
+- **`costa-norte-dark`: el accent pasa del tostado a arena, `oklch(0.87 0.05 78)`.** Con el
+  tostado, las dos primeras series de una gráfica (el primary dorado y el accent) quedaban a
+  ΔE_OK 0.061 con tritanopía; con arena, a 0.135. Todo lo que usa accent en ese tema se ve más
+  claro y su texto gana contraste (botón 6.85 → 10.69:1). `costa-norte` claro no cambia. Hoy no
+  lo ve nadie: costa-norte pinta su menú lateral con su propio bloque `costa-norte-dark`. Lo verá
+  el día que importe el tema de Bali o active el modo oscuro; no tiene que cambiar nada.
+
+### Deprecated
+
+- **`f.coordinates_polygon_group` y `f.coordinates_polygon_field`, el campo de polígono sobre un
+  mapa** (#1303). Dibujan con `google.maps.drawing.DrawingManager`, que el API de Maps JavaScript
+  dejó de ofrecer en la versión 3.65, así que el campo ya no puede dibujar un polígono. Cada
+  llamada avisa por `Bali.deprecator`, y en 4.0 se borran sin reemplazo, junto con el controlador
+  `drawing-maps`; su preview de Lookbook ya no está. Ninguna app de la flota los llama.
+  **ga-apps** conserva `pin 'bali/drawing-maps'` en `config/importmap.rb`: hoy resuelve, pero en
+  4.0 se borra `bali/controllers/drawing-maps-controller.js`, al que apunta, y deja de resolver.
+  Quitarlo antes de subir.
+
 ### Fixed
 
 - **`RecurrentEventRuleForm` ya no corta el texto de sus selects** (#1303). Los selects de las
@@ -29,6 +65,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   la columna y no el de la pantalla, así que cuentan `weekdays_only` y la barra lateral del
   anfitrión; donde caben siguen completos, y a 1024 y 1280 la captura es idéntica. Lo ven
   gobierno-corporativo y ga-apps en pantallas angostas; nada que hacer.
+
+- **Drawer cerrado.** Ya no se alcanza con Tab: sus controles seguían en el orden de tabulación
+  fuera de la pantalla (el ✕ en x=1744 de una ventana de 1280); ahora el cerrado queda
+  `visibility: hidden` en cuanto termina de deslizarse. Un drawer cerrado dentro del contenido de
+  otro abierto ya no entra a la pantalla con él ni tiende su fondo oscuro sobre el panel de
+  afuera, que dejaba sin clic al botón que lo abre. En el teléfono el panel conserva el 85 % del
+  ancho mientras se cierra, en vez de saltar al ancho completo. Nada que hacer en las apps.
+
+- **Modal y Drawer renderizados abiertos (`active: true`).** El foco inicial va al `autofocus`
+  del contenido o al primer control del panel, igual que al abrirlos desde un botón; antes caía
+  en el panel mismo. Nada que hacer.
+
+- **Trampa de Tab de Modal y Drawer.** Ya no cuenta controles que no se ven: el ✕ de un drawer
+  cerrado dentro del panel dejaba salir a Tab del overlay, y un `input[type=hidden]` al final
+  (el de un `button_to`) dejaba Shift+Tab atorado en el primer control. Nada que hacer.
+
+- **El `<dialog>` del Drawer ya no lleva la clase `group`.** Con ella, un `group-hover:` dentro
+  del drawer se encendía al pasar el puntero por cualquier parte del panel: el botón de quitar
+  imagen de `Bali::ImageField` y su velo aparecían sin tocar la imagen. Un `group-*` en el
+  contenido de un drawer responde ahora sólo a su propio `.group`; ninguna app dependía del del
+  drawer.
+
+- **Para quien trabaja en el repo: el Lookbook y la dummy** (#1303). Nada que hacer en las apps.
+  - `widget/default` respeta `count` también después de guardar un `.js` con el servidor
+    corriendo; la guarda de `test/requests/icon_previews_test.rb` cubre ahora las clases que
+    define el propio preview y las constantes que las guardan.
+  - La guía de patrones de componentes vuelve a mostrar los `<%#` de sus ejemplos, y
+    `test/guide_pages_test.rb` prohíbe uno sin escapar (`<%%#`) en cualquier guía.
+  - La guía de maestro-detalle repetía tres veces en una línea el título «What this is not».
+  - El FeedbackWidget de las páginas de admin habla con los sustitutos de Opina de la propia
+    dummy en vez de con `localhost:3008`, y la consola queda limpia.
+
+- **`Filters`: «en» con una fecha trae las filas de ese día** (#1303). Sobre una columna de fecha
+  y hora, Ransack leía `created_at_eq=2026-08-27` como la medianoche del 27 y no traía nada.
+  `FilterForm` lee ahora la fecha sola de un `_eq` del panel de filtros (`q[g]`) sobre una
+  columna de fecha y hora como el día entero, en un grupo propio para no cambiar lo que pide un
+  grupo «o»; sobre una columna de fecha o de texto sigue comparando igual. Un `_eq` suelto en
+  `q`, fuera de `q[g]`, sigue comparando contra la medianoche. Una vista guardada con ese
+  filtro lo guarda tal cual y trae el día al aplicarse. Lo notan los paneles que filtran una columna de fecha y hora con
+  `type: :date`, como `created_at` y `last_active_at` en los usuarios de gobierno-corporativo o
+  `last_sign_in_at` en las cuentas de identity. Sin nada que hacer en el anfitrión.
+
+- **`Filters`: el disparador del multi-select dice si está abierto** (#1303), el de «es
+  cualquiera de» y «no es ninguno de»: lleva `aria-expanded` y deja de anunciar con
+  `aria-haspopup="listbox"` una lista de opciones que no existe; el panel son casillas. El que
+  arma el navegador lleva además entera una traducción con apóstrofo («Choisissez l'option»),
+  que cortaba el atributo y lo dejaba sin traducciones. Sin nada que hacer en el anfitrión.
+
+- **Chart: las gráficas circulares sin ejes, y la leyenda sobrevive al cambio de tema.**
+  - `pie`, `doughnut`, `polarArea` y `radar` dibujaban detrás de la gráfica un eje x, un eje y y
+    la cuadrícula. Ya no; un `scales:` propio en `options:` se sigue aplicando.
+  - Cambiar de tema volvía a mostrar lo ocultado desde la leyenda. Ahora una serie, o una porción
+    de un pie, doughnut o polarArea, ocultada sigue oculta, y la gráfica cambia de colores sin
+    repetir su animación de entrada.
+
+  Lo ven las gráficas circulares de ga-apps, centinela-web y gobierno-corporativo; no hay nada que
+  cambiar.
 
 ### Documentation
 
