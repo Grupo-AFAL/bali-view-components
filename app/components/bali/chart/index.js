@@ -53,6 +53,16 @@ export class ChartController extends Controller {
       this.resolveThemeColors(data)
     }
 
+    // In place: a new instance would show again what the legend hid, and replay the entry animation.
+    // Animated, not `update('none')`: Chart.js 4.5 refreshes the options every element of a dataset
+    // shares — a line's points — only in an animated update, and they kept the old theme's colour.
+    if (this.chart) {
+      this.chart.options = options
+      this.chart.data.datasets.forEach((dataset, index) => Object.assign(dataset, data.datasets[index]))
+      this.chart.update()
+      return
+    }
+
     const chartjs = await import('chart.js').catch(optionalPeer('chart.js'))
     // disconnect() can land while the import is pending, and nothing would ever destroy a
     // chart built on the detached canvas.

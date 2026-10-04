@@ -165,12 +165,15 @@ export class ModalController extends Controller {
   // A panel rendered `active:` arrives with the open class already on it and no
   // script in the loop, so nothing has put it in the top layer. Promoting it here
   // is what makes a server-opened overlay behave like a user-opened one: same
-  // inertness behind it, same Escape, same handling of the popups inside it.
+  // inertness behind it, same Escape, same handling of the popups inside it, same
+  // first focus. Left to `showModal()`, that went to the panel itself, which is
+  // the first element in it carrying a tabindex.
   _promoteInitiallyOpenOverlay () {
     if (!this.hasTemplateTarget) return
     if (!this.templateTarget.classList.contains(this.openClass)) return
 
     this._showOverlay()
+    this.trapFocus()
   }
 
   disconnect () {
@@ -381,10 +384,14 @@ export class ModalController extends Controller {
   // `innerHTML =`, before the content's controllers connect, and a `popover: true`
   // dropdown connecting there moves its items out of the panel. Kept, the last of
   // them stayed the trap's edge and Tab from the trigger stopped wrapping (#1269).
+  //
+  // Only what Tab can land on: a closed drawer inside this panel is `visibility:
+  // hidden`, and as the trap's last edge its ✕ let Tab out of the overlay. The
+  // same filter drops the `input[type=hidden]` of a `form_with` or `button_to`.
   get focusableElements () {
-    return this.wrapperTarget.querySelectorAll(
+    return [...this.wrapperTarget.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
+    )].filter(element => element.checkVisibility({ visibilityProperty: true }))
   }
 
   // The host's `autofocus` wins. It used to lose: this ran after

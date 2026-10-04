@@ -3,14 +3,9 @@
   .box-row:first-child {
     padding-top: 0;
   }
-
-  .box-row:last-child {
-    border-bottom: 0;
-  }
 }
 
 .box-row {
-  border-bottom: 1px solid oklch(var(--b2));
   padding-top: 1rem;
   padding-bottom: 1rem;
 }

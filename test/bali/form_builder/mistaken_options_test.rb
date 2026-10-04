@@ -58,8 +58,14 @@ class BaliFormBuilderMistakenOptionsTest < FormBuilderTestCase
 
   def test_every_family_says_out_loud_that_it_ignored_the_key
     Bali::FormBuilder::HtmlUtils::MISTAKEN_OPTIONS.each_key do |key|
+      # Every warning and not the first: `coordinates_polygon_group` opens with its own
+      # deprecation, which would answer for the key it was never asked about.
       silent = HELPERS.reject do |_, render|
-        capture_deprecation { render.call(fresh_builder, key => "Formato CSV") }
+        warnings = []
+        with_deprecator_behavior(->(message, *) { warnings << message }) do
+          render.call(fresh_builder, key => "Formato CSV")
+        end
+        warnings.any? { |message| message.include?("`#{key}:` is not an option") }
       end
 
       assert_empty silent.keys,
