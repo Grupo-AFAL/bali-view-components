@@ -410,14 +410,14 @@ describe('RecurrentEventRuleForm', () => {
   // #1286: at 390px the yearly row "On the First / Sunday / of January" stretched its panel to
   // 485px, and the page scrolled sideways under it, with "On the" broken over two lines.
   describe('the yearly and monthly rows', () => {
-    // The monthly row already fit on main: at 320px it is a guard.
     const panels = {
-      yearly: { freq: YEARLY, rule: 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1', widths: [390, 320] },
-      monthly: { freq: MONTHLY, rule: 'FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=FR', widths: [320] }
+      yearly: { freq: YEARLY, rule: 'FREQ=YEARLY;BYMONTH=1;BYMONTHDAY=1' },
+      monthly: { freq: MONTHLY, rule: 'FREQ=MONTHLY;INTERVAL=1;BYSETPOS=-1;BYDAY=FR' }
     }
+    const widths = [390, 320]
     const open = (rule) => cy.visit(`/bali/recurrent_event_rule_form/with_value?value=${encodeURIComponent(rule)}`)
 
-    Object.entries(panels).forEach(([panel, { freq, rule, widths }]) => {
+    Object.entries(panels).forEach(([panel, { freq, rule }]) => {
       widths.forEach((width) => {
         it(`fit the ${panel} panel into ${width}px without scrolling the page sideways`, () => {
           cy.viewport(width, 844)
@@ -429,22 +429,61 @@ describe('RecurrentEventRuleForm', () => {
             expect(scrollWidth, `scrollWidth of a page ${clientWidth}px wide`).to.equal(clientWidth)
           })
         })
+
+        it(`keep each ${panel} row label on one line at ${width}px`, () => {
+          cy.viewport(width, 844)
+          open(rule)
+
+          cy.get(`fieldset[data-rrule-freq="${freq}"] label > span`).should(($labels) => {
+            expect($labels, 'row labels').to.have.length(2)
+            $labels.each((_, text) => {
+              const range = text.ownerDocument.createRange()
+              range.selectNodeContents(text)
+              const lines = new Set([...range.getClientRects()].map((rect) => Math.round(rect.top)))
+              expect(lines.size, `lines of "${text.textContent.trim()}"`).to.equal(1)
+            })
+          })
+        })
       })
-    })
 
-    // Not the monthly row: its "On the" still breaks from 360px down, as on main (see the template).
-    panels.yearly.widths.forEach((width) => {
-      it(`keep each yearly row label on one line at ${width}px`, () => {
-        cy.viewport(width, 844)
-        open(panels.yearly.rule)
+      // Every row wraps now, and a select without `w-auto` takes daisyUI's 100% width once it
+      // can: the monthly pair went one under the other at 208px each.
+      it(`keep each ${panel} row on one line at 1280px`, () => {
+        cy.viewport(1280, 800)
+        open(rule)
 
-        cy.get(`fieldset[data-rrule-freq="${YEARLY}"] label > span`).should(($labels) => {
-          expect($labels, 'row labels').to.have.length(2)
-          $labels.each((_, text) => {
-            const range = text.ownerDocument.createRange()
-            range.selectNodeContents(text)
-            const lines = new Set([...range.getClientRects()].map((rect) => Math.round(rect.top)))
-            expect(lines.size, `lines of "${text.textContent.trim()}"`).to.equal(1)
+        cy.get(`fieldset[data-rrule-freq="${freq}"] [data-recurrent-event-rule-target="freqCustomizationInputs"]`)
+          .should(($rows) => {
+            expect($rows, 'rows').to.have.length(2)
+            $rows.each((_, row) => {
+              const tops = [...row.querySelectorAll('select')].map((select) => Math.round(select.getBoundingClientRect().top))
+              expect(new Set(tops).size, `lines in ${row.dataset.rruleFreqOption}`).to.equal(1)
+            })
+          })
+      })
+
+      // A closed select draws only the chosen option, clipped to its own width: a fixed `w-28`
+      // cut "Weekend day", and the monthly pair, shrunk to 101px at any width, cut "Wednesday".
+      ;[...widths, 1280].forEach((width) => {
+        it(`fit every option of the ${panel} selects at ${width}px`, () => {
+          cy.viewport(width, 844)
+          open(rule)
+
+          cy.get(`fieldset[data-rrule-freq="${freq}"] select`).should(($selects) => {
+            // The page's own document: the spec's has none of its web fonts.
+            const context = $selects[0].ownerDocument.createElement('canvas').getContext('2d')
+
+            $selects.each((_, select) => {
+              const style = getComputedStyle(select)
+              const room = select.getBoundingClientRect().width -
+                ['borderLeftWidth', 'paddingLeft', 'paddingRight', 'borderRightWidth']
+                  .reduce((sum, side) => sum + parseFloat(style[side]), 0)
+              context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
+
+              ;[...select.options].forEach((option) => {
+                expect(context.measureText(option.text).width, `${select.id}: "${option.text}"`).to.be.at.most(room)
+              })
+            })
           })
         })
       })

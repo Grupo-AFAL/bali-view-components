@@ -73,13 +73,13 @@
             <%= select_tag :bymonth, options_for_select(bymonth_options),
                 id: control_id('yearly_on_1_bymonth'),
                 aria: { label: t('.month_label') },
-                class: 'select select-bordered select-sm',
+                class: 'select select-bordered select-sm w-auto',
                 disabled: disabled,
                 data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
             <%= select_tag :bymonthday, options_for_select(bymonthday_options),
                 id: control_id('yearly_on_1_bymonthday'),
                 aria: { label: t('.monthday_label') },
-                class: 'select select-bordered select-sm w-20',
+                class: 'select select-bordered select-sm w-auto',
                 disabled: disabled,
                 data: { rrule_attr: 'bymonthday', action: 'recurrent-event-rule#setRule' } %>
           </div>
@@ -101,20 +101,20 @@
             <%= select_tag :bysetpos, options_for_select(bysetpos_options),
                 id: control_id('yearly_on_2_bysetpos'),
                 aria: { label: t('.setpos_label') },
-                class: 'select select-bordered select-sm w-24',
+                class: 'select select-bordered select-sm w-auto',
                 disabled: disabled,
                 data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' } %>
             <%= select_tag :byweekday, options_for_select(byweekday_options),
                 id: control_id('yearly_on_2_byweekday'),
                 aria: { label: t('.weekday_label') },
-                class: 'select select-bordered select-sm w-28',
+                class: 'select select-bordered select-sm w-auto',
                 disabled: disabled,
                 data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
             <span class="text-sm text-base-content/70"><%= t('.of') %></span>
             <%= select_tag :bymonth, options_for_select(bymonth_options),
                 id: control_id('yearly_on_2_bymonth'),
                 aria: { label: t('.month_label') },
-                class: 'select select-bordered select-sm w-28',
+                class: 'select select-bordered select-sm w-auto',
                 disabled: disabled,
                 data: { rrule_attr: 'bymonth', action: 'recurrent-event-rule#setRule' } %>
           </div>
@@ -161,23 +161,21 @@
               class: 'radio radio-sm radio-primary',
               disabled: disabled,
               data: { action: 'recurrent-event-rule#toggleFreqCustomizationInputs recurrent-event-rule#setRule' }) %>
-          <%# No `shrink-0`, unlike the yearly row: these selects do not wrap, and at 320px keeping
-              "On the" on one line takes 3px from each (79 instead of 82) and "Fourth" stops fitting. %>
-          <span class="text-sm font-medium min-w-[2.5rem]"><%= t('.on_the') %></span>
+          <span class="text-sm font-medium min-w-[2.5rem] shrink-0"><%= t('.on_the') %></span>
 
-          <div class="flex items-center gap-1.5"
+          <div class="flex flex-wrap items-center gap-1.5"
             data-recurrent-event-rule-target="freqCustomizationInputs"
             data-rrule-freq-option="monthly_on_2">
             <%= select_tag :bysetpos, options_for_select(bysetpos_options),
                 id: control_id('monthly_on_2_bysetpos'),
                 aria: { label: t('.setpos_label') },
-                class: 'select select-bordered select-sm',
+                class: 'select select-bordered select-sm w-auto',
                 disabled: disabled,
                 data: { rrule_attr: 'bysetpos', action: 'recurrent-event-rule#setRule' } %>
             <%= select_tag :byweekday, options_for_select(byweekday_options),
                 id: control_id('monthly_on_2_byweekday'),
                 aria: { label: t('.weekday_label') },
-                class: 'select select-bordered select-sm',
+                class: 'select select-bordered select-sm w-auto',
                 disabled: disabled,
                 data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
           </div>

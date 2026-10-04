@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`RecurrentEventRuleForm` ya no corta el texto de sus selects** (#1303). Los selects de las
+  filas anual y mensual miden lo que su opción más larga: antes el anual cortaba «Weekend day»
+  y los dos mensuales, a 101 px a cualquier ancho, cortaban «Wednesday» (a 320 px, 8 de los 10
+  días), y en español «Fines de semana» y «Días laborales». En un celular los dos selects
+  mensuales pasan al renglón siguiente cuando no caben, como los anuales. Ninguna de las nueve
+  apps usa el componente.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added
