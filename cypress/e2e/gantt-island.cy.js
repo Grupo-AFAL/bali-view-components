@@ -195,8 +195,8 @@ describe('Gantt island', () => {
   // The warning comes from React Flow's first read of its pane, in an effect that runs before the
   // board's measured height lands (it reads again on every resize). Opened at no height, the board
   // logged #004 on every load; on a 358 px board the table also opened at 380 px and left the
-  // pane no width.
-  ;[[1280, 800], [390, 844]].forEach(([width, height]) => {
+  // pane no width, and at 320 px its 300 px floor left none.
+  ;[[1280, 800], [390, 844], [320, 700]].forEach(([width, height]) => {
     it(`mounts React Flow on a pane with a size in a ${width} px window`, () => {
       cy.viewport(width, height)
       cy.visit('/bali/gantt/default', { onBeforeLoad: (win) => cy.spy(win.console, 'warn').as('warn') })

@@ -30,7 +30,7 @@ import '@xyflow/react/dist/style.css'
 import './flow.css'
 import TaskBarNode from './TaskBarNode'
 import TimeHeader, { HEADER_H } from './TimeHeader'
-import GanttTable from './GanttTable'
+import GanttTable, { NAME_MIN_W } from './GanttTable'
 import Toolbar from './Toolbar'
 import GanttFooter from './GanttFooter'
 import Minimap from './Minimap'
@@ -637,12 +637,13 @@ function GanttCanvas (props) {
     [maxFlowX, rowsHeight]
   ]
 
-  // Table width: the splitter's (tableWidth), or 60% of the board so the timeline keeps 40%. The
-  // 520 cap has to hold every GanttTable column with Name at its minimum; on a board under 840 px
-  // GanttTable leaves out the right-hand columns it cannot hold whole. The loading skeleton's name
-  // column (index.css) opens at the same width, and the render before the board is measured takes
-  // it from there: a fixed 380 left a 358 px board no timeline, and React Flow warned (#004).
-  const defaultTableW = rootWidth ? Math.max(300, Math.min(520, Math.round(rootWidth * 0.6))) : 'var(--gantt-name-col)'
+  // Table width: the splitter's (tableWidth), or 60% of the board so the timeline keeps 40%, never
+  // under Name's minimum. The 520 cap has to hold every GanttTable column with Name at its minimum;
+  // on a board under 840 px GanttTable leaves out the right-hand columns it cannot hold whole. A
+  // 300 px floor left a 288 px phone board no timeline. The loading skeleton's name column
+  // (index.css) opens at the same width, and the render before the board is measured takes it from
+  // there: a fixed 380 left a 358 px board no timeline, and React Flow warned (#004).
+  const defaultTableW = rootWidth ? Math.max(NAME_MIN_W, Math.min(520, Math.round(rootWidth * 0.6))) : 'var(--gantt-name-col)'
   const effTableW = tableWidth != null ? tableWidth : defaultTableW
   const cols = useMemo(
     () => ({

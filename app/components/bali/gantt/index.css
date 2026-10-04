@@ -10,9 +10,10 @@
  *
  * Imported from bali/components.css with layer(components) on purpose (D7):
  * nothing here fights daisyUI, and host utility classes must keep winning. */
-/* Mirrors GanttFlow.jsx's `defaultTableW`; change both together. */
+/* Mirrors GanttFlow.jsx's `defaultTableW`, whose floor is GanttTable.jsx's NAME_MIN_W; change
+ * them together. */
 .bali-gantt {
-  --gantt-name-col: clamp(300px, 60%, 520px);
+  --gantt-name-col: clamp(140px, 60%, 520px);
 }
 
 .bali-gantt-name-cell {

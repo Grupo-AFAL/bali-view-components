@@ -131,10 +131,10 @@ describe('Gantt: the skeleton and the swap to the island', () => {
     cy.get('[role="group"][aria-label="Zoom"] .btn-active').should('have.text', 'Day')
   })
 
-  // The skeleton's name column opened at 256 px under a table the island opens at 300 to 520, so
+  // The skeleton's name column opened at 256 px under a table the island opens at 140 to 520, so
   // the column jumped when the island replaced it. The island rounds 60% of its border box; the
   // skeleton's 60% is of its content box, 2 px narrower.
-  ;[[390, 844], [768, 1024], [1280, 800]].forEach(([width, height]) => {
+  ;[[320, 700], [390, 844], [768, 1024], [1280, 800]].forEach(([width, height]) => {
     it(`opens the skeleton's name column as wide as the island's table in a ${width} px window`, () => {
       cy.viewport(width, height)
       withoutScrollbar()
