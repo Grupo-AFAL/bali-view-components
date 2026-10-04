@@ -58,6 +58,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **DocumentEditor.** Un guardado que falla muestra «Save failed»: «Unsaved changes» lo tapaba en
+  el mismo instante. Lo escrito mientras el guardado viaja queda como sin guardar, en vez de
+  «Saved at…». Con `format: :prosemirror` —el que toma por omisión con `comments:`— guardar
+  mandaba el Array de bloques de BlockNote mientras el documento no tuviera ningún comentario;
+  ahora manda el formato fijado (el editor sigue leyendo los dos). En el teléfono, el índice
+  abierto se apila sobre el editor en vez de dejarle una columna de 70 px. El menú «…» de un
+  comentario del panel redondea sus esquinas como los demás menús. Nada que hacer en la app.
+
+- **BlockEditor.** El texto de las citas pasa AA en los seis temas (medía 3.69–4.30:1). Los
+  colores de texto y de resaltado conservan su tono con la luminosidad justa para pasar AA en los
+  seis temas (el texto amarillo medía 2.11:1 en los claros), y la exportación a PDF y Word usa el
+  mismo juego claro. Como campo de formulario, el editor muestra sólo el asa «⠿» del bloque, dentro
+  del campo —el texto empieza 16 px más adentro—; el «+», que hace lo mismo que Enter o «/», ya no
+  aparece. DocumentEditor y DocumentPage no cambian. En el teléfono, con `table_of_contents:` o
+  `comments:`, la página ya no se desplaza de lado: el editor ocupa su columna y una tabla ancha se
+  desplaza dentro de su marco. Nada que hacer en la app.
+
+- **Clipboard.** El contenido de éxito deja de declarar `text-success`, que nunca se pintó: el
+  botón recibe sólo el HTML de dentro del `<span>`. Lo que se ve no cambia; quien quiera color lo
+  pone en el contenido que pasa a `with_success_content`.
+
 - **Datepicker: el encabezado del calendario y el foco de teclado.** El año ya no se corta
   («2026» se leía «202»). Con foco, el año lleva el anillo del color del texto que ya marcaba su
   hover en vez del tinte blanco que lo bajaba a 2.96:1 en `dark`, y el select del mes muestra

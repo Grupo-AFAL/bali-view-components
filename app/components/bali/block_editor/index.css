@@ -65,6 +65,35 @@
   --bn-font-family: inherit;
 }
 
+/* The text and highlight colours BlockNote offers, kept in its hue (OKLCH c and h) with only the
+   lightness moved, to 4.6:1 on every theme of the scheme. BlockNote's own read 2.11:1 for yellow
+   text on the light themes, 2.81 gray, 3.28 orange, 4.26 red; on the dark ones 3.12–4.27 for six
+   texts, and the editor's text over the gray, yellow and orange highlights 2.27–3.62. The light
+   set is also EXPORT_COLORS in constants.js, which the PDF and Word exporters paint on white
+   paper: change one, change the other. */
+.block-editor-component .bn-root:not([data-color-scheme="dark"]),
+.bn-threads-sidebar .bn-root:not([data-color-scheme="dark"]) {
+  --bn-colors-highlights-gray-text: #767572;
+  --bn-colors-highlights-red-text: #d93638;
+  --bn-colors-highlights-orange-text: #ba5700;
+  --bn-colors-highlights-yellow-text: #9d6b00;
+}
+
+.block-editor-component .bn-root[data-color-scheme="dark"],
+.bn-threads-sidebar .bn-root[data-color-scheme="dark"] {
+  --bn-colors-highlights-gray-background: #676663;
+  --bn-colors-highlights-brown-text: #ac816d;
+  --bn-colors-highlights-red-text: #f94d4b;
+  --bn-colors-highlights-red-background: #bc3233;
+  --bn-colors-highlights-orange-background: #a34e00;
+  --bn-colors-highlights-yellow-background: #875e00;
+  --bn-colors-highlights-green-text: #71918d;
+  --bn-colors-highlights-blue-text: #2895cb;
+  --bn-colors-highlights-blue-background: #076d98;
+  --bn-colors-highlights-purple-text: #a170f8;
+  --bn-colors-highlights-pink-text: #f440a5;
+}
+
 /* Editor content area.
    The height is a custom property so a form can size a field the way it sizes a
    textarea with `rows`, instead of every editor claiming 200px. */
@@ -94,7 +123,20 @@
     0 1px color-mix(in oklab, var(--input-color) calc(var(--depth, 1) * 10%), #0000) inset,
     0 -1px oklch(100% 0 0 / calc(var(--depth, 1) * 0.1)) inset;
   padding-block: 0.5rem;
-  padding-inline: 0.75rem;
+  /* The start side holds the block handle, which BlockNote floats left of the block, outside
+     the text: at 0.75rem it sat on the border, and on a page with a 16px margin the menu began at
+     x=-19. 1.75rem puts the 24px handle 4px inside the border. */
+  padding-inline: 1.75rem 0.75rem;
+}
+
+/* The field keeps only the handle, which opens the block menu and drags. BlockNote's "+" beside
+   it is what Enter and "/" already do, and it needed another 24px of the field. Picked out as
+   the button that is not `draggable`: its aria-label is translated. */
+.block-editor-component[data-block-editor-editable-value="true"]:not(
+  .document-page-component *,
+  .document-editor-overlay *
+) .bn-side-menu > button:not([draggable="true"]) {
+  display: none;
 }
 
 .block-editor-component[data-block-editor-editable-value="true"]:focus-within:not(
@@ -255,6 +297,13 @@
 
 .block-editor-component .bn-editor a:hover {
   color: color-mix(in oklch, var(--color-primary) 80%, black);
+}
+
+/* BlockNote paints a quote in a fixed rgb(125 121 122): 4.30:1 on the light themes, 4.13 on
+   `afal-dark`, 3.69 on `dark` and `costa-norte-dark` (AA wants 4.5). At 70% the lowest is
+   5.54, on `afal`; 60% would read 4.04 there. */
+.block-editor-component [data-content-type="quote"] blockquote {
+  color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
 }
 
 /* Code block styling - override BlockNote's default dark bg (rgb(22 22 22))
@@ -457,10 +506,15 @@
   color: var(--color-base-content);
 }
 
-/* Collapse TOC to a horizontal strip on narrow viewports */
+/* Collapse TOC to a horizontal strip on narrow viewports.
+   `stretch` because in a column the `flex-start` above sizes the editor to its min-content
+   instead of the column's width: at 390px a table's 392px made it overflow a 332px column,
+   and the page scrolled sideways (scrollWidth 421). Stretched, the table scrolls in its own
+   wrapper. */
 @media (max-width: 640px) {
   .bn-toc-layout {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .bn-toc {
@@ -1032,8 +1086,10 @@
 
 /* A comment's "…" menu hangs off its toolbar, outside every .bn-root in the portaled panel
  * (only each comment's text is one), so --bn-colors-menu-background is undefined there:
- * without this, the menu is transparent. */
+ * without this, the menu is transparent. --bn-border-radius-medium is undefined too, which
+ * left its corners at 0 against the 8px of every other menu. */
 .document-editor-panel .mantine-Menu-dropdown {
+  border-radius: var(--radius-box, 0.5rem);
   background-color: var(--color-base-100) !important;
   border: 1px solid color-mix(in oklch, var(--color-base-content) 15%, transparent) !important;
   box-shadow: 0 4px 12px color-mix(in oklch, var(--color-base-content) 12%, transparent) !important;
@@ -1047,10 +1103,12 @@
 }
 
 /* Collapse comments sidebar on narrow viewports.
- * `>` for the same reason as the rule this overrides — see the note there. */
+ * `>` for the same reason as the rule this overrides — see the note there. `stretch` for the
+ * same reason as the table of contents' narrow rule. */
 @media (max-width: 768px) {
   .bn-with-comments > .bn-container {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .bn-with-comments .bn-threads-sidebar {
