@@ -185,6 +185,13 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     assert_match(/unknown trigger :topbar\. Valid: :floating, :icon, :labeled/, error.message)
   end
 
+  # What a caller who knows `Bali::Command::Component.new(trigger: false)` writes.
+  def test_a_trigger_that_is_not_a_name_raises_the_same_way
+    error = assert_raises(ArgumentError) { widget(trigger: false) }
+
+    assert_match(/unknown trigger false\. Valid: :floating, :icon, :labeled/, error.message)
+  end
+
   def test_the_icon_triggers_are_named_by_their_aria_label
     %i[floating icon].each do |trigger|
       render_inline(widget(trigger: trigger))
@@ -208,7 +215,7 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
       render_inline(widget(trigger: trigger))
 
       assert_selector("button[aria-describedby='feedback-widget-unread'] [data-feedback-widget-target='badge'][aria-hidden='true']")
-      assert_selector(".feedback-widget > #feedback-widget-unread.sr-only", visible: :all)
+      assert_selector(".feedback-widget > #feedback-widget-unread[hidden]", visible: :all)
     end
   end
 

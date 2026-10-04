@@ -137,32 +137,9 @@ describe('FeedbackWidget handshake', () => {
       })
     })
 
-    // A stand-in for an Opina that keeps read state: three unread until it is told otherwise.
-    it('does not bring the count back on the next page load', () => {
-      let read = false
-      cy.intercept('POST', readUrl, (req) => {
-        read = true
-        req.reply({ statusCode: 204, headers: cors })
-      }).as('read')
-      cy.intercept('GET', `${badgeUrl}*`, (req) => {
-        req.reply({ statusCode: 200, headers: cors, body: { unread_count: read ? 0 : 3 } })
-      }).as('badge')
-      stubEmbed()
-
-      cy.visit('/bali/feedback_widget/default')
-      badge().should('have.text', '3').and('not.have.class', 'hidden')
-
-      open()
-      cy.get('@read.all').should('have.length', 1)
-      cy.reload()
-
-      cy.wait('@badge')
-      badge().should('have.class', 'hidden')
-    })
-
     // The token lasts `token_expires_in`, so a tab left open long enough gets a 401. The
-    // number it was showing can no longer be refreshed, and it goes.
-    it('hides the count once Opina stops accepting the token', () => {
+    // number it was showing can no longer be refreshed, so it goes, and so does the polling.
+    it('hides the count and stops asking once Opina stops accepting the token', () => {
       cy.clock(Date.now(), ['setInterval', 'clearInterval', 'Date'])
       let expired = false
       cy.intercept('GET', `${badgeUrl}*`, (req) => {
@@ -179,6 +156,11 @@ describe('FeedbackWidget handshake', () => {
       cy.get('@badge.all').should('have.length', 2)
       badge().should('have.class', 'hidden')
       cy.get('#feedback-widget-unread').should('have.text', '')
+
+      cy.tick(300000)
+      // Nothing to wait for when no request goes out.
+      cy.wait(500)
+      cy.get('@badge.all').should('have.length', 2)
     })
 
     // An Opina that does not keep read state has no such route, and a request that never

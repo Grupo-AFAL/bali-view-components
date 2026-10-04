@@ -12,7 +12,7 @@ module Bali
     # - Stimulus controller `feedback-widget`
     #
     # **Note:** In this preview the iframe will not load (fake URL),
-    # but you can interact with the floating button and drawer.
+    # but you can interact with the button and the drawer.
     #
     # The panel is a composed `Bali::Drawer`, so it is a native `<dialog>`. The
     # embed token is not in the frame's URL: it is sent with `postMessage` once
@@ -23,15 +23,13 @@ module Bali
       # @label Default
       # Click the floating button in the bottom-right corner to open the drawer.
       # Uses the `secret:` API to generate the embed token automatically.
-      # @param trigger select [floating, icon, labeled]
-      def default(trigger: :floating)
+      def default
         render Bali::FeedbackWidget::Component.new(
           project_slug: "demo-project",
           opina_url: "https://opina-demo.example.com",
           secret: "preview-secret",
           user_id: "preview-user",
-          email: "preview@example.com",
-          trigger: trigger.to_sym
+          email: "preview@example.com"
         )
       end
 

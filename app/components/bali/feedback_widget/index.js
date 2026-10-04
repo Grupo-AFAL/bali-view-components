@@ -59,7 +59,7 @@ export class FeedbackWidgetController extends Controller {
   }
 
   // There is no matching `close`, and there cannot be: while the drawer is open
-  // the rest of the page is inert, so the floating button is not clickable. The
+  // the rest of the page is inert, so the button is not clickable. The
   // drawer's own ✕, its overlay and Escape are the ways out.
   open () {
     // The drawer restores its markup on close, so the frame is a fresh one on
@@ -267,10 +267,13 @@ export class FeedbackWidgetController extends Controller {
     try {
       const since = this.lastChecked || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const response = await fetch(`${this.badgeUrlValue}?since=${since}`, { headers: this.authorization })
-      // The token has expired (it lasts `token_expires_in`) or is no longer valid. The number on
-      // screen can no longer be refreshed, and asking without the token would count again what
-      // this user has already read.
-      if (response.status === 401) return this.showUnread(0)
+      // The token has expired (it lasts `token_expires_in`) or is no longer valid, and it is the
+      // same one for as long as this controller lives: asking again only gets another 401, and
+      // asking without it would count again what this user has already read.
+      if (response.status === 401) {
+        this.stopPolling()
+        return this.showUnread(0)
+      }
       if (!response.ok) return
 
       const data = await response.json()

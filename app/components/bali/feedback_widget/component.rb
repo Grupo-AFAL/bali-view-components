@@ -7,14 +7,14 @@ module Bali
       # component's accessible name has always been read from.
       DRAWER_ID = "feedback-widget"
 
-      TRIGGERS = %i[floating icon labeled].freeze
-
       # `:icon` and `:labeled` are `btn-sm`, the height of `Bali::Topbar::IconAction`.
       TRIGGER_CLASSES = {
         floating: "btn btn-primary btn-circle shadow-lg fixed bottom-6 right-6 z-50",
         icon: "btn btn-primary btn-sm btn-circle relative",
         labeled: "btn btn-primary btn-sm relative max-sm:btn-circle"
       }.freeze
+
+      TRIGGERS = TRIGGER_CLASSES.keys.freeze
 
       BADGE_CLASSES = {
         floating: "badge badge-sm badge-error absolute -top-1 -right-1",
@@ -65,7 +65,7 @@ module Bali
       attr_reader :project_slug, :opina_url, :token, :badge_interval, :trigger, :options
 
       def validated_trigger(value)
-        key = value&.to_sym
+        key = value.respond_to?(:to_sym) ? value.to_sym : value
         return key if TRIGGERS.include?(key)
 
         raise ArgumentError,
@@ -114,6 +114,14 @@ module Bali
         "#{DRAWER_ID}-unread"
       end
 
+      def labeled?
+        trigger == :labeled
+      end
+
+      def badge_classes
+        BADGE_CLASSES.fetch(trigger)
+      end
+
       # The labeled trigger takes its name from its text, so the name always contains the
       # words on screen — a host's `title:` included, which `open_label` would not.
       def trigger_attributes
@@ -122,7 +130,7 @@ module Bali
           class: TRIGGER_CLASSES.fetch(trigger),
           title: (open_label if trigger == :icon),
           data: { action: "feedback-widget#open", feedback_widget_target: "trigger" },
-          aria: { label: (open_label unless trigger == :labeled), describedby: unread_id }
+          aria: { label: (open_label unless labeled?), describedby: unread_id }
         }
       end
 
