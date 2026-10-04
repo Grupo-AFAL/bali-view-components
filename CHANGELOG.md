@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`Filters`: el widget de valor sale de una sola lista de operadores** (#1303).
+  `Filters::Condition::Component#range_operator?` y `#multiple_operator?` leen la marca
+  `range:`/`multiple:` que `Filters::Operators.for_type` pone en el operador, la misma que lee
+  el navegador, en vez de repetir `between`, `in` y `not_in`; y `condition_controller.js` deja
+  su copia en inglés de los operadores, que nunca se usaba. Sin nada que hacer en el anfitrión.
+
+- **`DataTable`: en el teléfono el switch de vistas va al «⋯»** (#1303), primero en el menú, y
+  la búsqueda toma su lugar en la fila: a 320 px el campo de búsqueda de `/admin/movies` pasa de
+  29 a 131 px (a 390, de 99 a 201). Desde 640 px nada cambia: el switch sigue en la fila y sólo se encoge.
+  Lo notan los listados con `with_view_switch`, dos en afal-apps. Sin nada que hacer en el
+  anfitrión.
+
+- **`Filters`: el popover mide 42rem en vez de 40rem** (#1303), para que el campo de un rango de
+  fechas lo muestre entero: el más ancho, «May 28, 2026 to May 30, 2026», ocupa 191 px y el
+  campo pasa de 172 a 204. Sin nada que hacer en el anfitrión.
+
+- **`costa-norte-dark`: el accent pasa del tostado a arena, `oklch(0.87 0.05 78)`.** Con el
+  tostado, las dos primeras series de una gráfica (el primary dorado y el accent) quedaban a
+  ΔE_OK 0.061 con tritanopía; con arena, a 0.135. Todo lo que usa accent en ese tema se ve más
+  claro y su texto gana contraste (botón 6.85 → 10.69:1). `costa-norte` claro no cambia. Hoy no
+  lo ve nadie: costa-norte pinta su menú lateral con su propio bloque `costa-norte-dark`. Lo verá
+  el día que importe el tema de Bali o active el modo oscuro; no tiene que cambiar nada.
+
 ### Deprecated
 
 - **`f.coordinates_polygon_group` y `f.coordinates_polygon_field`, el campo de polígono sobre un
@@ -29,6 +54,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - La guía de maestro-detalle repetía tres veces en una línea el título «What this is not».
   - El FeedbackWidget de las páginas de admin habla con los sustitutos de Opina de la propia
     dummy en vez de con `localhost:3008`, y la consola queda limpia.
+
+- **`Filters`: «en» con una fecha trae las filas de ese día** (#1303). Sobre una columna de fecha
+  y hora, Ransack leía `created_at_eq=2026-08-27` como la medianoche del 27 y no traía nada.
+  `FilterForm` lee ahora la fecha sola de un `_eq` del panel de filtros (`q[g]`) sobre una
+  columna de fecha y hora como el día entero, en un grupo propio para no cambiar lo que pide un
+  grupo «o»; sobre una columna de fecha o de texto sigue comparando igual. Un `_eq` suelto en
+  `q`, fuera de `q[g]`, sigue comparando contra la medianoche. Una vista guardada con ese
+  filtro lo guarda tal cual y trae el día al aplicarse. Lo notan los paneles que filtran una columna de fecha y hora con
+  `type: :date`, como `created_at` y `last_active_at` en los usuarios de gobierno-corporativo o
+  `last_sign_in_at` en las cuentas de identity. Sin nada que hacer en el anfitrión.
+
+- **`Filters`: el disparador del multi-select dice si está abierto** (#1303), el de «es
+  cualquiera de» y «no es ninguno de»: lleva `aria-expanded` y deja de anunciar con
+  `aria-haspopup="listbox"` una lista de opciones que no existe; el panel son casillas. El que
+  arma el navegador lleva además entera una traducción con apóstrofo («Choisissez l'option»),
+  que cortaba el atributo y lo dejaba sin traducciones. Sin nada que hacer en el anfitrión.
+
+- **Chart: las gráficas circulares sin ejes, y la leyenda sobrevive al cambio de tema.**
+  - `pie`, `doughnut`, `polarArea` y `radar` dibujaban detrás de la gráfica un eje x, un eje y y
+    la cuadrícula. Ya no; un `scales:` propio en `options:` se sigue aplicando.
+  - Cambiar de tema volvía a mostrar lo ocultado desde la leyenda. Ahora una serie, o una porción
+    de un pie, doughnut o polarArea, ocultada sigue oculta, y la gráfica cambia de colores sin
+    repetir su animación de entrada.
+
+  Lo ven las gráficas circulares de ga-apps, centinela-web y gobierno-corporativo; no hay nada que
+  cambiar.
 
 ## [v3.7.0] - 2026-10-03
 

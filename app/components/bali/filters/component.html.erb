@@ -75,8 +75,10 @@
                       max-sm:fixed max-sm:top-0 max-sm:right-0 max-sm:bottom-0 max-sm:left-0
                       sm:absolute sm:top-full sm:left-0 sm:mt-2"
              data-filters-target="dropdownContent">
+            <%# 42rem gives a date range's field 204px: its widest text, "May 28, 2026 to May 30,
+                2026", takes 191, and at 40rem the field had 172 (#1303). %>
             <div class="bg-base-100 max-sm:flex max-sm:flex-col max-sm:h-full
-                        sm:shadow-xl sm:rounded-box sm:border sm:border-base-content/15 sm:w-[40rem] sm:max-w-[calc(100vw-2rem)]">
+                        sm:shadow-xl sm:rounded-box sm:border sm:border-base-content/15 sm:w-[42rem] sm:max-w-[calc(100vw-2rem)]">
 
             <%# Mobile header with close button %>
             <div class="max-sm:flex items-center justify-between p-4 border-b border-base-200 sm:hidden">

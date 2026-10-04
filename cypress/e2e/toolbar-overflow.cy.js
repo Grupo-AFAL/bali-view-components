@@ -33,9 +33,10 @@ describe('DataTable toolbar overflow', () => {
     cy.get('[data-controller~="column-selector"]').should('have.length', 1)
     cy.get(overflow).should('not.have.class', 'hidden')
 
-    // Search/filters and the view switch stay in the row: the switch SHRINKS.
+    // Search/filters stay in the row. The view switch goes too, first: kept in the row on a
+    // 320px phone it left the search of /admin/movies 29px wide (#1303).
     cy.get(`${menu} ${filtersItem}`).should('not.exist')
-    cy.get(`${menu} ${viewSwitchItem}`).should('not.exist')
+    cy.get(`${menu} > [data-toolbar-overflow-target="item"]`).first().should('match', viewSwitchItem)
 
     cy.viewport(1440, 800)
 
@@ -43,6 +44,17 @@ describe('DataTable toolbar overflow', () => {
     cy.get(columnsItem).should('have.length', 1)
     cy.get('[data-controller~="column-selector"]').should('have.length', 1)
     cy.get(overflow).should('have.class', 'hidden')
+  })
+
+  // Above the breakpoint the row is measured, and only the phone's cut takes the switch: with
+  // a single one it went into the ⋯ at 768px on /admin/movies, with the search already fitting.
+  it('keeps the view switch in the row above the breakpoint while the rest collapses', () => {
+    cy.viewport(768, 800)
+    cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/admin/movies`)
+
+    cy.get(`${menu} ${columnsItem}`).should('have.length', 1)
+    cy.get(`${menu} ${viewSwitchItem}`).should('not.exist')
+    cy.get(viewSwitchItem).should('be.visible')
   })
 
   it('restores the toolbar ordered by priority after a round trip', () => {

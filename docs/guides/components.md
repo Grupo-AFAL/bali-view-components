@@ -1062,7 +1062,7 @@ Segmented control (DaisyUI `join` of buttons) to switch between sibling views of
 **Options:**
 - `aria_label` - Accessible label for the button group (required)
 - `size` - Button size: `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:sm`)
-- `icon_only` - `true` for square icon-only buttons at every size, or `:responsive` to collapse only the label below `sm` (what `DataTable` uses: the switch shrinks instead of folding into the `⋯` menu). Either way each view's `name:` becomes the native tooltip (`title`) and the accessible label, so the buttons never lose their accessible name (default: `false`)
+- `icon_only` - `true` for square icon-only buttons at every size, or `:responsive` to collapse only the label below `sm` (what `DataTable` uses: above `sm` the switch shrinks instead of folding into the `⋯` menu; below, it sits in the `⋯`, icons only). Either way each view's `name:` becomes the native tooltip (`title`) and the accessible label, so the buttons never lose their accessible name (default: `false`)
 - `mode` - `:navigation` for sibling views of the same content — the active view gets `aria-current="page"`. `:selector` for a control that slices the data shown (year, scenario, months window) — the active view gets `aria-current="true"` ("the current item of a set"). The links navigate either way; only the announced semantics change. Never `aria-pressed`: browsers discard it on links (default: `:navigation`)
 - `**options` - Additional HTML attributes for the container `div`
 
@@ -2626,15 +2626,16 @@ the toolbar with `overflow` (a drawer, a card with `overflow-hidden`) clips thei
 **Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
 `⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
 copies of the column selector would be two Stimulus controllers driving one table. Survival
-order lives in `OVERFLOW_PRIORITIES` — search/filters and the view switch stay in the row;
-group by, columns, saved views, the persistence bookmark and host `toolbar_buttons`
-collapse. Three consequences worth knowing:
+order lives in `OVERFLOW_PRIORITIES` — search/filters stay in the row; group by, columns,
+saved views, the persistence bookmark and host `toolbar_buttons` collapse; and the view
+switch collapses only below `sm` (`NARROW_OVERFLOW_THRESHOLD`), first in the `⋯`, so on a
+phone the search has the row to itself. Three consequences worth knowing:
 
 - **The order inside a group** is defined by `OVERFLOW_PRIORITIES`, not by the template:
   expanding re-sorts each group by descending priority, which is what lets the controller be
   stateless across Turbo reconnects. **The order of the groups** is the template's. The
   numbers descend in reading order, so the `⋯` lists the collapsed controls in the same
-  order the row does.
+  order the row does — except the view switch, last in the row and first in the phone's `⋯`.
 - The separator is not a control: it carries no priority and is not an `item`, so it can
   never travel into the `⋯`. The controller only hides it — when a collapse empties either
   of the two groups it flanks, and by CSS (`max-sm:hidden`) when the bundle has not loaded.

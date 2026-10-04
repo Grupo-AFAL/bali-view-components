@@ -64,10 +64,12 @@
                data-multi-select-translations-value="<%= multi_select_translations_json %>"
                data-condition-target="value">
             <%# A div with role=button does not fire click on Enter/Space the way a real
-                <button> does: the keyboard needs actions of its own (#1028). %>
+                <button> does: the keyboard needs actions of its own (#1028). It discloses a
+                panel of checkboxes, so it says aria-expanded: aria-haspopup="listbox" would
+                announce a list of role=option that is not there. %>
             <div tabindex="0"
                  role="button"
-                 aria-haspopup="listbox"
+                 aria-expanded="false"
                  class="select select-bordered select-sm w-full flex items-center cursor-pointer"
                  data-action="click->multi-select#toggle keydown.enter->multi-select#toggle:prevent keydown.space->multi-select#toggle:prevent"
                  data-multi-select-target="trigger">

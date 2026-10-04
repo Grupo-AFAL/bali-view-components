@@ -14,12 +14,13 @@ module Bali
       # block in the template moves nothing in the browser.
       #
       # The order BETWEEN groups is fixed by the template (see #show_toolbar_left? and its
-      # siblings), which is the only thing that lets the view switch survive everything and
-      # still read last.
+      # siblings), which is the only thing that lets the view switch outlast every measured
+      # collapse and still read last.
       #
       # The numbers descend in the same order the controls of the row are read in: that is
       # what keeps the reading order of the ⋯ identical to the toolbar's (see
-      # `collapsibleItems` in the controller). `search` and `filters` are THE SAME node
+      # `collapsibleItems` in the controller). The view switch is the one exception, last in
+      # the row and first in the phone's ⋯. `search` and `filters` are THE SAME node
       # (Bali::Filters paints the search input and the filters button together), hence a
       # single entry. Kept as a scale and not as an ordered list so that adding a second
       # threshold is a one-line change.
@@ -33,9 +34,13 @@ module Bali
         toolbar_buttons: 10
       }.freeze
 
-      # Collapses whatever sits BELOW the threshold. With a single breakpoint the scale
-      # reduces to this one cut.
+      # Collapses whatever sits BELOW the threshold. Below the breakpoint the cut is the
+      # higher one and takes the view switch too: kept in the row at 320px it left the search
+      # of /admin/movies 29px wide (#1303). Not a lower priority for the switch instead: above
+      # the breakpoint the row is measured against the search's natural width, and the switch
+      # went into the ⋯ at 640, 768 and 1024px with the search already fitting at 230px.
       OVERFLOW_THRESHOLD = 50
+      NARROW_OVERFLOW_THRESHOLD = 60
 
       attr_reader :pagy
 
@@ -288,7 +293,8 @@ module Bali
       # @param options [Hash] Bali::ViewSwitch options (size:, icon_only:, class:)
       # @yield [view_switch] Block to declare the views with `with_view`
       renders_one :view_switch, ->(aria_label: nil, **options, &block) do
-        # The switch does NOT collapse into the ⋯ (priority 50 = threshold): it SHRINKS.
+        # Above sm the switch does NOT collapse into the ⋯ (priority 50 = threshold): it
+        # SHRINKS. Below, it goes there (NARROW_OVERFLOW_THRESHOLD) with the same icons.
         # `:responsive` hides the text below sm keeping title/aria-label, so the button is
         # never left without an accessible name — which is what hiding the label by hand
         # would do.
@@ -486,7 +492,8 @@ module Bali
         # number, and with two independent defaults moving it on one side left the other
         # painting a menu that never fills. The controller's default only covers hand-written
         # markup.
-        prepend_values(attrs, "toolbar-overflow", threshold: OVERFLOW_THRESHOLD)
+        prepend_values(attrs, "toolbar-overflow", threshold: OVERFLOW_THRESHOLD,
+                                                  narrow_threshold: NARROW_OVERFLOW_THRESHOLD)
         return attrs unless bulk_actions?
 
         attrs[:data][:bulk_actions_target] = "toolbar"
@@ -522,12 +529,17 @@ module Bali
       # sheet whose header explains that it is unlayered for another reason.
       SETTLING_ATTRIBUTE = "data-toolbar-overflow-settling"
       RESERVED_CLASSES = "[[data-toolbar-overflow-settling]_&]:invisible"
+      NARROW_RESERVED_CLASSES = "max-sm:[[data-toolbar-overflow-settling]_&]:invisible"
 
       def overflow_item_attributes(key, group:, css_class: nil)
         priority = overflow_priority(key)
+        reserved =
+          if priority < OVERFLOW_THRESHOLD then RESERVED_CLASSES
+          elsif priority < NARROW_OVERFLOW_THRESHOLD then NARROW_RESERVED_CLASSES
+          end
 
         {
-          class: class_names(css_class, (RESERVED_CLASSES if priority < OVERFLOW_THRESHOLD)),
+          class: class_names(css_class, reserved),
           data: {
             toolbar_overflow_target: "item",
             toolbar_overflow_group: group,
@@ -554,7 +566,7 @@ module Bali
       # The ⋯ is not painted when there is nothing to collapse: without this, a listing
       # that only has search would show a button opening an empty menu.
       def overflow_menu?
-        declared_toolbar_controls.any? { |key| overflow_priority(key) < OVERFLOW_THRESHOLD }
+        declared_toolbar_controls.any? { |key| overflow_priority(key) < NARROW_OVERFLOW_THRESHOLD }
       end
 
       def overflow_priority(key)
