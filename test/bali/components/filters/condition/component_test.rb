@@ -298,11 +298,11 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
   # condition_controller.js#operatorFlag reads the same mark off the <option>, and
   # cypress/e2e/filters-condition-controller.cy.js holds the browser to it.
   def test_the_widget_follows_the_mark_operators_for_type_puts_on_the_operator
-    multiple = marked_condition({ attribute: "status", operator: "eq" }, :multiple)
-    range = marked_condition({ attribute: "created_at", operator: "gt" }, :range)
+    render_inline(marked_condition({ attribute: "status", operator: "eq" }, :multiple))
+    assert_selector('[data-controller~="multi-select"]')
 
-    assert(multiple.multiple_operator?)
-    assert(range.range_operator?)
+    render_inline(marked_condition({ attribute: "created_at", operator: "gt" }, :range))
+    assert_selector('[data-condition-target="rangeInput"]', visible: :all)
   end
 
   private

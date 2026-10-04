@@ -19,9 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Filters`: «en» con una fecha trae las filas de ese día** (#1303). Sobre una columna de fecha
   y hora, Ransack leía `created_at_eq=2026-08-27` como la medianoche del 27 y no traía nada.
-  `FilterForm` lee ahora la fecha sola de un `_eq` sobre una columna de fecha y hora como el día
-  entero, en un grupo propio para no cambiar lo que pide un grupo «o»; sobre una columna de fecha
-  o de texto sigue comparando igual. Una vista guardada con ese filtro lo guarda tal cual y trae
+  `FilterForm` lee ahora la fecha sola de un `_eq` del panel de filtros (`q[g]`) sobre una
+  columna de fecha y hora como el día entero, en un grupo propio para no cambiar lo que pide un
+  grupo «o»; sobre una columna de fecha o de texto sigue comparando igual. Un `_eq` suelto en
+  `q`, fuera de `q[g]`, sigue comparando contra la medianoche. Una vista guardada con ese filtro lo guarda tal cual y trae
   el día al aplicarse. Lo notan los paneles que filtran una columna de fecha y hora con
   `type: :date`, como `created_at` y `last_active_at` en los usuarios de gobierno-corporativo o
   `last_sign_in_at` en las cuentas de identity. Sin nada que hacer en el anfitrión.

@@ -18,9 +18,10 @@ module Bali
       # 27th" stay complementary over a datetime column.
       END_OF_DAY_PREDICATES = %w[_lteq _gt].freeze
 
-      # The column types Ransack casts a bare date to midnight on (Ransack::Nodes::Value#cast),
-      # and the only ones `_eq` is widened on: a date column already answers it with the day,
-      # and a string column holding dates answers it exactly.
+      # The only column types `_eq` is widened on: Ransack casts a bare date to midnight on
+      # these (Ransack::Nodes::Value#cast, which also lists `:time`, a time of day with no day
+      # to widen). A date column already answers `_eq` with the day, and a string column
+      # holding dates answers it exactly.
       TIMESTAMP_TYPES = %i[datetime timestamp timestamptz].freeze
 
       private
@@ -47,7 +48,7 @@ module Bali
         casted = group.each_with_object({}) do |(key, value), result|
           name = key.to_s
           if EnumCasting::GROUPING_KEYS.include?(name) then result[key] = cast_whole_day_groupings(value)
-          elsif (day = whole_day_grouping(name, value)) then whole_days[name] = day
+          elsif (grouping = whole_day_grouping(name, value)) then whole_days[name] = grouping
           elsif name.end_with?(*END_OF_DAY_PREDICATES) then result[key] = end_of_day(value)
           else result[key] = value
           end
@@ -87,7 +88,7 @@ module Bali
       end
 
       # Keyed by the condition each one replaces, a key no sibling group's index can take; and a
-      # hash, the shape the host's own `ransack_params` overrides walk.
+      # hash, the indexed shape FilterForm#extract_groupings gives the top-level `g`.
       def with_nested_groupings(group, groupings)
         key = group.key?(:g) ? :g : "g"
         nested = group[key]

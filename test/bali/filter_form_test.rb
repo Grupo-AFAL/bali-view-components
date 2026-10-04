@@ -378,10 +378,10 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     form = AdvancedMovieFilterForm.new(
       @tenant.movies,
       grouped_params(0 => { m: "or", created_at_eq: "2026-08-27", name_eq: "Named",
-                            g: { "0" => { name_eq: "Neither", created_at_gt: "2026-06-01" } } })
+                            g: { "0" => { name_eq: "Neither", created_at_lt: "2026-06-01" } } })
     )
 
-    assert_equal([ "Late that day", "Named" ], form.result.reorder(:name).pluck(:name))
+    assert_equal([ "Late that day", "Named", "Neither" ], form.result.reorder(:name).pluck(:name))
   end
 
   # A string column answers `_eq` exactly; a day-long range over it would match nothing.

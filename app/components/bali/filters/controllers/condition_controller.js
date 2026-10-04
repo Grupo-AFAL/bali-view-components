@@ -94,7 +94,7 @@ export class ConditionController extends Controller {
       this.attributeHiddenTarget.value = attributeKey
     }
 
-    // Update operators for this type (from data attribute or fallback)
+    // Update operators for this type (from the data attribute or the translations)
     this.updateOperators(type, operators)
 
     // The operator may have changed with the list
@@ -373,12 +373,13 @@ export class ConditionController extends Controller {
   /**
    * Update the operator dropdown based on attribute type
    * @param {string} type - The attribute type
-   * @param {Array} operatorsFromData - Optional operators from data attribute (single source of truth)
+   * @param {Array} operatorsFromData - The attribute option's data-operators, if it has them
    */
   updateOperators (type, operatorsFromData = null) {
     if (!this.hasOperatorTarget) return
 
-    // Use operators from data attribute if provided, otherwise fall back to defaults
+    // The blank "Select field" option carries no data-operators: it gets its type's from the
+    // translations, which come from the same Operators.for_type.
     const operators = operatorsFromData?.length > 0
       ? operatorsFromData
       : this.getOperatorsForType(type)
