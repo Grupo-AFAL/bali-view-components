@@ -30,7 +30,7 @@ controller by hand.
 | [`checkbox-reveal`](#checkbox-reveal) | Shows its `item` targets while at least one checkbox is checked | hand markup |
 | [`checkbox-toggle`](#checkbox-toggle) | Toggles `on`/`off` targets from the state of one checkbox | hand markup |
 | [`datepicker`](#datepicker) | flatpickr date picker, fully configured via values | `f.date_group`, `f.datetime_group`, `f.time_group` |
-| [`drawing-maps`](#drawing-maps) | Google Map with polygon drawing serialized to a form field | `f.coordinates_polygon_group` |
+| [`drawing-maps`](#drawing-maps) | Google Map with polygon drawing serialized to a form field — deprecated | `f.coordinates_polygon_group` |
 | [`dynamic-fields`](#dynamic-fields) | Adds/removes rows of nested form fields | `f.dynamic_fields_group` |
 | [`elements-overlap`](#elements-overlap) | Keeps a fixed element from overlapping a dynamic one | hand markup |
 | [`file-input`](#file-input) | Shows the chosen filename(s) next to a file input | `f.file_group`, `f.file_field` |
@@ -159,6 +159,10 @@ itself. Inside a modal or drawer the calendar moves itself to the top layer so t
 overlay cannot cover it; `static` and an `appendTo` target opt out of that.
 
 ## `drawing-maps`
+
+**Deprecated, removed in 4.0, with no replacement.** It draws through
+`google.maps.drawing.DrawingManager`, which the Maps JavaScript API no longer offers as of
+version 3.65.
 
 Google Map with polygon drawing: shapes the user draws (including holes) are
 serialized as JSON into the `polygonField` target on every edit.

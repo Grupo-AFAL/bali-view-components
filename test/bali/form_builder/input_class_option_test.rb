@@ -94,7 +94,7 @@ class BaliFormBuilderInputClassOptionTest < FormBuilderTestCase
     "block_editor_group" => ->(b, o) { b.block_editor_group(:synopsis, **o) },
     "rich_text_group" => ->(b, o) { b.rich_text_group(:synopsis, **o) },
     "radio_buttons_group" => ->(b, o) { b.radio_buttons_group(:status, { a: [ %w[One 1] ] }, **o) },
-    "coordinates_polygon_group" => ->(b, o) { b.coordinates_polygon_group(:name, **o) },
+    "coordinates_polygon_group" => ->(b, o) { Bali.deprecator.silence { b.coordinates_polygon_group(:name, **o) } },
     "recurrent_event_rule_group" => ->(b, o) { b.recurrent_event_rule_group(:rule, **o) },
     "direct_upload_group" => ->(b, o) { b.direct_upload_group(:name, **o) },
     "time_period_group" => ->(b, o) { b.time_period_group(:release_date, [ %w[T t] ], **o) },
