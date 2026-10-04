@@ -92,6 +92,15 @@ module Bali
         render_with_template
       end
 
+      # Nested
+      # ---
+      # A drawer rendered inside another drawer's content — a component that ships its own
+      # drawer, loaded into the shared one. It stays closed and off screen until its own
+      # trigger opens it. Used by the Cypress suite.
+      def nested
+        render_with_template
+      end
+
       # Left Position
       # ---
       # Drawer opens from the left side.

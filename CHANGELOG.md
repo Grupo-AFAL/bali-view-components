@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Drawer cerrado.** Ya no se alcanza con Tab: sus controles seguían en el orden de tabulación
+  fuera de la pantalla (el ✕ en x=1744 de una ventana de 1280); ahora el cerrado queda
+  `visibility: hidden` en cuanto termina de deslizarse. Un drawer cerrado dentro del contenido de
+  otro abierto ya no entra a la pantalla con él ni tiende su fondo oscuro sobre el panel de
+  afuera, que dejaba sin clic al botón que lo abre. En el teléfono el panel conserva el 85 % del
+  ancho mientras se cierra, en vez de saltar al ancho completo. Nada que hacer en las apps.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added
