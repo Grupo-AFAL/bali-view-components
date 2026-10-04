@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **DocumentEditor: un guardado que falla dice «Save failed».** Tras una edición, el aviso de
+  error se sobrescribía en el mismo instante con «Unsaved changes», así que el fallo nunca se
+  veía. Además, lo que se escribe mientras el guardado está en camino queda como sin guardar en
+  vez de marcarse «Saved at…» sin haberse enviado. Nada que hacer en la app.
+
 ## [v3.7.0] - 2026-10-03
 
 ### Added

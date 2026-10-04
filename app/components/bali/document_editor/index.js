@@ -154,15 +154,15 @@ export class DocumentEditorController extends Controller {
 
   scheduleSave () {
     this._dirty = true
+    if (this._saving) this._editedWhileSaving = true
     this._updateStatus(this.statusUnsavedValue)
-    if (!this.autoSaveValue) return
-    if (this.saveTimeout) clearTimeout(this.saveTimeout)
-    this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
+    this._queueSave()
   }
 
   async save () {
     if (this._saving) return
     this._saving = true
+    this._editedWhileSaving = false
     this._updateStatus(this.statusSavingValue)
 
     // Flush content synchronously to avoid the 500ms debounce in useContentSync
@@ -211,15 +211,21 @@ export class DocumentEditorController extends Controller {
       console.error('Auto-save error:', error)
     } finally {
       this._saving = false
-      // If new changes came in during save, show unsaved and re-schedule
-      if (this._dirty) {
-        this._updateStatus(this.statusUnsavedValue)
-        if (this.autoSaveValue) {
-          if (this.saveTimeout) clearTimeout(this.saveTimeout)
-          this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
-        }
+      // Not `if (this._dirty)`: a failed save leaves it set as well, and writing
+      // "Unsaved changes" here overwrote "Save failed" in the same tick. A failed
+      // save is still retried; only an edit made mid-request says "Unsaved" again.
+      if (this._editedWhileSaving) {
+        this.scheduleSave()
+      } else if (this._dirty) {
+        this._queueSave()
       }
     }
+  }
+
+  _queueSave () {
+    if (!this.autoSaveValue) return
+    if (this.saveTimeout) clearTimeout(this.saveTimeout)
+    this.saveTimeout = setTimeout(() => { this.save() }, this.autoSaveDelayValue)
   }
 
   async loadVersions () {

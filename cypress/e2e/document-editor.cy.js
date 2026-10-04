@@ -181,3 +181,44 @@ describe('DocumentEditor tooltip cascade', () => {
     })
   })
 })
+
+// The preview saves to its own `document_url`, "/lookbook", with `auto_save: false`: the
+// Save button is the only thing that sends the PATCH, so each test decides when it goes out.
+describe('DocumentEditor save status', () => {
+  const editor = () => cy.get('[data-document-editor-target="editorArea"]:visible .bn-editor')
+  const saveStatus = () => cy.get('[data-document-editor-target="saveStatus"]')
+  const saveButton = () => cy.get('[data-document-editor-target="saveButton"]')
+  const edit = text => editor().find('.bn-inline-content').last().click().type(text)
+
+  beforeEach(() => {
+    cy.viewport(1280, 900)
+    cy.visit('/bali/document_editor/default')
+    editor().should('contain.text', 'Key Objectives')
+    edit(' edited')
+    saveStatus().should('have.text', 'Unsaved changes')
+  })
+
+  it('says the save failed when the server refuses it', () => {
+    cy.intercept('PATCH', /\/lookbook$/, { statusCode: 500, body: {} }).as('save')
+
+    saveButton().click()
+    cy.wait('@save')
+
+    saveStatus().should('have.text', 'Save failed').and('have.class', 'text-soft-error')
+    saveButton().should('be.enabled')
+  })
+
+  // The delay outlasts the BlockEditor's 500ms content sync, whose `input` would otherwise
+  // land after the response and flag the edit again by itself.
+  it('keeps an edit made while the save was in flight unsaved', () => {
+    cy.intercept('PATCH', /\/lookbook$/, { statusCode: 200, body: {}, delay: 3000 }).as('save')
+
+    saveButton().click()
+    saveStatus().should('have.text', 'Saving...')
+    edit(' again')
+    cy.wait('@save')
+
+    saveStatus().should('have.text', 'Unsaved changes')
+    saveButton().should('be.enabled')
+  })
+})
