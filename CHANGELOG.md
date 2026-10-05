@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.9.0] - 2026-10-04
+
+### Added
+
+- **`Bali.layout_banners`**: una gema registra un callable (`call(view)`) y `Bali::AppLayout`
+  pinta lo que devuelve en su franja, arriba del `with_banner` de la página; con `nil`, nada
+  (#1341). Sin nada registrado el HTML no cambia. Una excepción del callable no se atrapa.
+
 ## [v3.8.1] - 2026-10-04
 
 ### Fixed

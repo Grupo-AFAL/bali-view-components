@@ -285,6 +285,55 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_no_selector(".app-layout-content .app-layout-banner")
   end
 
+  def test_a_registered_banner_fills_the_strip_with_nothing_in_the_slot
+    with_layout_banners(maintenance: ->(view) { view.tag.p("Maintenance at 9pm") }) do
+      render_inline(Bali::AppLayout::Component.new) { |layout| layout.with_body { "Content" } }
+    end
+
+    assert_selector(".app-layout-banner[data-app-layout-target='banner'] p", text: "Maintenance at 9pm")
+  end
+
+  # Blank as well as nil: a partial wrapped in `<% if impersonating? %>` renders
+  # "" when the condition is false, not nil.
+  def test_registered_banners_with_nothing_to_show_leave_no_strip
+    with_layout_banners(impersonation: ->(_view) { }, maintenance: ->(_view) { "".html_safe }) do
+      render_inline(Bali::AppLayout::Component.new) { |layout| layout.with_body { "Content" } }
+    end
+
+    assert_no_selector(".app-layout-banner")
+  end
+
+  def test_registered_banners_paint_before_the_slot
+    with_layout_banners(impersonation: ->(view) { view.tag.p("Viewing as John") }) do
+      render_inline(Bali::AppLayout::Component.new) do |layout|
+        layout.with_banner { "<p>Beta</p>".html_safe }
+        layout.with_body { "Content" }
+      end
+    end
+
+    assert_equal [ "Viewing as John", "Beta" ], page.all(".app-layout-banner p").map(&:text)
+  end
+
+  def test_a_registered_banner_reaches_the_host_apps_helpers
+    banner = ->(view) { view.tag.p("Viewing as #{view.current_user.name}") if view.respond_to?(:current_user) }
+
+    with_layout_banners(impersonation: banner) do
+      render_inline(Bali::AppLayout::Component.new) { |layout| layout.with_body { "Content" } }
+    end
+
+    assert_selector(".app-layout-banner p", text: "Viewing as #{User.demo.name}")
+  end
+
+  def test_a_registered_banner_that_raises_takes_the_page_down
+    with_layout_banners(broken: ->(_view) { raise "banner bug" }) do
+      error = assert_raises(RuntimeError) do
+        render_inline(Bali::AppLayout::Component.new) { |layout| layout.with_body { "Content" } }
+      end
+
+      assert_equal "banner bug", error.message
+    end
+  end
+
   # Off by default: 4rem of air under every mobile page is a visual change no
   # host asked for.
   def test_mobile_bottom_padding_is_opt_in
@@ -656,6 +705,16 @@ class BaliAppLayoutComponentTest < ComponentTestCase
   end
 
   private
+
+  # `Bali.layout_banners` is one Hash for the whole process, so whatever a test
+  # registers would otherwise paint in every layout rendered after it.
+  def with_layout_banners(**banners)
+    registered = Bali.layout_banners.dup
+    Bali.layout_banners.merge!(banners)
+    yield
+  ensure
+    Bali.layout_banners.replace(registered)
+  end
 
   # Real SideMenu markup, so the sync check is exercised against what the
   # component actually emits rather than a hand-written class list.

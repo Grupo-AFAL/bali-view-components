@@ -238,6 +238,44 @@ whose JavaScript has not run yet — or a host that never registers the
 controller — renders exactly as it did before: the fallback in
 `var(--bali-banner-height, 0px)` is the old behaviour.
 
+##### A banner from a gem
+
+A gem can paint its banner in the strip of every `AppLayout` with nothing
+written in the host app — the case it exists for is an auth gem's "you are
+viewing as" warning. It registers a callable in `Bali.layout_banners` from its
+engine:
+
+```ruby
+# lib/my_gem/engine.rb
+module MyGem
+  class Engine < ::Rails::Engine
+    initializer "my_gem.layout_banner" do
+      Bali.layout_banners[:my_gem_impersonation] = lambda do |view|
+        view.render("my_gem/impersonation_banner") if view.try(:impersonating?)
+      end
+    end
+  end
+end
+```
+
+The layout calls it with its view context, so it reaches the host's helpers,
+and paints what it returns, in registration order, **above** what the page puts
+in `with_banner`. The host does nothing: the strip, the sidebar offset and the
+sticky position are the ones described above.
+
+- **Return `nil` when there is nothing to show**, and decide that in the
+  callable, not inside the partial: in development
+  `annotate_rendered_view_with_filenames` wraps every partial in
+  `<!-- BEGIN … -->` comments, so a partial that renders nothing still paints an
+  empty strip there.
+- **It runs on every page that renders an `AppLayout`**, whatever the controller — hence the `try`.
+- **The key is the identity.** Registering the same key again replaces the
+  banner, so code that runs again on reload (`config.to_prepare`) leaves one.
+- **An exception is not rescued.** It takes the page down, as it would in
+  `with_banner`. A banner that may vanish on error can rescue itself; one that
+  must not, like an impersonation warning, could not opt out of a rescue in the
+  layout.
+
 ##### Reaching the bottom of the page on a phone
 
 `mobile_bottom_padding: true` puts breathing room under the content so the last
