@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.9.0] - 2026-10-04
+
 ### Added
 
 - **`Bali.layout_banners`**: una gema registra un callable (`call(view)`) y `Bali::AppLayout`
