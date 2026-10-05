@@ -3,6 +3,11 @@ import { Controller } from '@hotwired/stimulus'
 // The Opina embed reads its credential from a message, not from its URL.
 const TOKEN_MESSAGE_TYPE = 'bali:feedback:token'
 
+// Read by Opina's `Embed::BaseController`, which paints the embed dark or light from it.
+// The embed cannot find this out for itself: the host's `bali_theme` cookie is written
+// for the host alone, and Opina's own says what the person picked in Opina.
+const COLOR_SCHEME_PARAM = 'color_scheme'
+
 // What the embed cannot find out for itself. It is cross-origin to the page being
 // reported on, so `document.referrer` gives it that page's origin and nothing else:
 // the path, the query and the title have to be handed over deliberately.
@@ -72,7 +77,7 @@ export class FeedbackWidgetController extends Controller {
     // keeps that part to itself.
     this.pendingToken = this.hasTokenValue
     this.iframeTarget.addEventListener('load', this.handshake)
-    this.iframeTarget.src = this.embedUrlValue
+    this.iframeTarget.src = this.embedUrl
 
     this.dispatch('open', {
       prefix: 'bali:drawer',
@@ -239,6 +244,14 @@ export class FeedbackWidgetController extends Controller {
 
   // -- Private ----------------------------------------------------------------
 
+  // Read on every opening, so a theme switched without a reload is followed. Nothing on
+  // the page can change it while the panel is open: the page behind it is inert.
+  get embedUrl () {
+    const url = new URL(this.embedUrlValue)
+    url.searchParams.set(COLOR_SCHEME_PARAM, hostColorScheme())
+    return url.toString()
+  }
+
   // Addressed to the embed's exact origin, never to `*`: a wildcard would hand
   // the token to whatever document happened to be in the frame.
   postToEmbed (message) {
@@ -310,4 +323,13 @@ function captureFailure (error) {
   if (error?.message === 'unsupported' || error?.name === 'NotSupportedError') return 'unsupported'
 
   return 'failed'
+}
+
+// The scheme the host page declares on `<html>`, as Bali's themes do. `only dark` is
+// still dark; `light dark` leaves it to the operating system, which is not a choice
+// the person made in this app.
+function hostColorScheme () {
+  const scheme = getComputedStyle(document.documentElement).colorScheme
+
+  return scheme.replace('only', '').trim() === 'dark' ? 'dark' : 'light'
 }

@@ -4942,6 +4942,12 @@ and kept in browser history. The widget sends it to the frame with `postMessage`
 has loaded, as `{ type: 'bali:feedback:token', token }`, addressed to the Opina origin and
 never to `*`. The Opina instance has to listen for that message; see the migration guide.
 
+What the URL does carry is `color_scheme`, so the embed can follow the host's theme:
+`dark` when `<html>` declares `color-scheme: dark` (or `only dark`) at the moment the panel
+opens, as Bali's dark themes do, and `light` for anything else, `light dark` included. Only
+the embed's first page receives it, so the embed has to carry it through its own
+navigations; an Opina that does not read it ignores it, and the panel stays light.
+
 ```erb
 <%= render Bali::FeedbackWidget::Component.new(
   project_slug: 'my-project',

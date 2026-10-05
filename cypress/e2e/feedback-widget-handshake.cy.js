@@ -201,6 +201,63 @@ describe('FeedbackWidget handshake', () => {
     })
   })
 
+  // The page loads light and the theme is switched in place, as the UserMenu's switch
+  // does: the scheme is read when the panel opens, not when the widget connects.
+  describe('colour scheme', () => {
+    const expectScheme = (setUp, scheme) => {
+      stubBadge({ unread_count: 0 })
+      stubEmbed()
+      cy.visit('/bali/feedback_widget/default')
+      cy.document().then((doc) => setUp(doc.documentElement))
+
+      cy.get('[data-action="feedback-widget#open"]').click()
+
+      cy.wait('@embed').then(({ request }) => {
+        expect(new URL(request.url).searchParams.get('color_scheme')).to.equal(scheme)
+      })
+    }
+
+    const themes = {
+      light: 'light',
+      dark: 'dark',
+      afal: 'light',
+      'afal-dark': 'dark',
+      'costa-norte': 'light',
+      'costa-norte-dark': 'dark'
+    }
+
+    Object.entries(themes).forEach(([theme, scheme]) => {
+      it(`asks for a ${scheme} embed under ${theme}`, () => {
+        expectScheme((html) => html.setAttribute('data-theme', theme), scheme)
+      })
+    })
+
+    // No Bali theme declares either, but a host's own CSS can.
+    it('asks for a dark embed under color-scheme: only dark', () => {
+      expectScheme((html) => { html.style.colorScheme = 'only dark' }, 'dark')
+    })
+
+    // `light dark` hands the choice to the operating system, so the test makes that one dark:
+    // with the runner's light default, following the OS would pass unnoticed.
+    describe('with the operating system in dark mode', () => {
+      const emulate = (features) => Cypress.automation('remote:debugger:protocol', {
+        command: 'Emulation.setEmulatedMedia',
+        params: { features }
+      })
+
+      beforeEach(() => cy.then(() => emulate([{ name: 'prefers-color-scheme', value: 'dark' }])))
+      afterEach(() => cy.then(() => emulate([])))
+
+      it('asks for a light embed under color-scheme: light dark', () => {
+        expectScheme((html) => {
+          expect(html.ownerDocument.defaultView.matchMedia('(prefers-color-scheme: dark)').matches,
+            'operating system in dark mode').to.equal(true)
+          html.style.colorScheme = 'light dark'
+        }, 'light')
+      })
+    })
+  })
+
   describe('embed credential', () => {
     // The dummy's stand-in embed is served by the app itself, so the frame is
     // same-origin here and its document can be read. In production it is Opina
@@ -223,7 +280,7 @@ describe('FeedbackWidget handshake', () => {
     it('sends the token by message and never in the URL', () => {
       // A URL is the one place a bearer credential must not travel: access
       // logs, `Referer` headers and browser history all keep a copy.
-      expectInEmbed('#query-string', '(empty)')
+      expectInEmbed('#query-string', 'color_scheme=light')
       expectInEmbed('#received-token', 'demo-token-123')
     })
 
@@ -242,7 +299,7 @@ describe('FeedbackWidget handshake', () => {
     })
 
     it('reloads the embed on the next opening instead of showing the old one', () => {
-      expectInEmbed('#query-string', '(empty)')
+      expectInEmbed('#query-string', 'color_scheme=light')
       cy.get('#feedback-widget iframe').then(($frame) => {
         $frame[0].contentDocument.querySelector('#go-deeper').click()
       })
@@ -255,7 +312,7 @@ describe('FeedbackWidget handshake', () => {
 
       // A fresh frame, back at the embed's front page — and the token goes out
       // again, because this document has never seen it.
-      expectInEmbed('#query-string', '(empty)')
+      expectInEmbed('#query-string', 'color_scheme=light')
       expectInEmbed('#received-token', 'demo-token-123')
     })
   })
