@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.8.1] - 2026-10-04
+
 ### Fixed
 
 - **`Bali::FeedbackWidget`: el panel de Opina sigue el modo oscuro de la app** (#1337). Al
