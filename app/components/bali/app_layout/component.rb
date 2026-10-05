@@ -98,6 +98,18 @@ module Bali
         MAIN_ID
       end
 
+      # Called with `helpers` and not the component: what a banner asks
+      # (`impersonating?`) is a helper of the host app, and the component only
+      # carries Bali's. Not rescued, as `with_banner` is not: an impersonation
+      # banner that vanished on error would tell the person they are themselves.
+      def registered_banners
+        @registered_banners ||= Bali.layout_banners.values.filter_map { |banner| banner.call(helpers).presence }
+      end
+
+      def banner_strip?
+        registered_banners.any? || banner?
+      end
+
       def skip_link_label
         I18n.t("bali_view.app_layout.skip_to_content")
       end

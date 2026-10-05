@@ -11,8 +11,8 @@
   <%# 1. Banner (impersonation, maintenance, beta) — a full-width strip above
       everything, including the pinned sidebar, which starts below it. The
       target is what the controller measures; the offset itself is CSS. %>
-  <% if banner? %>
-    <div class="app-layout-banner" data-app-layout-target="banner"><%= banner %></div>
+  <% if banner_strip? %>
+    <div class="app-layout-banner" data-app-layout-target="banner"><%= safe_join(registered_banners) %><%= banner %></div>
   <% end %>
 
   <%# 2. Navbar (full-width) %>

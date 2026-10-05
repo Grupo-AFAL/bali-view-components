@@ -100,6 +100,29 @@ module Bali
         )
       end
 
+      # @label Registered Banner
+      # A banner a gem paints with nothing written in the layout — an auth gem's
+      # "you are viewing as" warning, say. `Bali.layout_banners` is a Hash of
+      # callables; the AppLayout calls each one with its view context, so it can
+      # ask the host's helpers, and paints what it returns in the banner strip,
+      # above whatever the page puts in `with_banner`. `nil` paints nothing.
+      #
+      # ```ruby
+      # # In the gem's engine
+      # Bali.layout_banners[:bali_auth_impersonation] = lambda do |view|
+      #   view.render("bali_auth/shared/impersonation_banner") if view.impersonating?
+      # end
+      # ```
+      #
+      # Toggle **slot_banner** to see the page's own banner stack under it.
+      # @param slot_banner toggle
+      def registered_banner(slot_banner: true)
+        render_with_template(
+          template: "bali/app_layout/previews/registered_banner",
+          locals: { slot_banner: slot_banner }
+        )
+      end
+
       # @label Navbar + Content
       # Config C: Public/marketing layout with top navbar and full-width content —
       # the layout where the top bar IS the navigation, which is what makes Navbar

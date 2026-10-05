@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali.layout_banners`: una gema pinta su banner en la franja de `Bali::AppLayout` sin que la
+  app escriba nada** (#1341). Es un `Hash` de nombre a algo que responde a `call(view)`: el
+  layout lo llama con su vista, así que llega a los helpers de la app, y pinta lo que devuelve
+  arriba de lo que la página ponga en `with_banner`; con `nil` no pinta nada. Es para las gemas
+  de la flota: bali-auth lo usará para el banner de suplantación, que hoy cada app cablea a mano
+  y centinela-web y costa-norte no cablearon. Sin nada registrado, el HTML del layout no cambia.
+  Una excepción en un banner registrado no se atrapa: tumba la página, como la misma llamada en
+  `with_banner`.
+
 ## [v3.8.1] - 2026-10-04
 
 ### Fixed

@@ -133,6 +133,22 @@ module Bali
     @@themes = themes # rubocop:disable Style/ClassVars
   end
 
+  # @!attribute [rw] layout_banners
+  #   Banners a gem puts in the banner strip of every `Bali::AppLayout`, with nothing
+  #   written in the host app. Each one is called with the layout's view context, so it
+  #   reaches the host's helpers, and returns HTML, or `nil` on the pages it has nothing
+  #   for. They paint in registration order, above what the host puts in `with_banner`.
+  #
+  #   A Hash and not an Array because an engine may register from `to_prepare`, which every
+  #   reload runs again: assigning the same key twice leaves one banner, appending two.
+  #
+  #   @return [Hash{Symbol => #call}]
+  #   @example From a gem's engine
+  #     Bali.layout_banners[:bali_auth_impersonation] = lambda do |view|
+  #       view.render("bali_auth/shared/impersonation_banner") if view.impersonating?
+  #     end
+  mattr_accessor :layout_banners, default: {}
+
   # Rich Text Editor configuration
   # Set to true to enable the Rich Text Editor component (requires TipTap dependencies)
   mattr_accessor :rich_text_editor_enabled, default: false
