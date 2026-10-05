@@ -110,7 +110,7 @@ module Bali
       # ```ruby
       # # In the gem's engine
       # Bali.layout_banners[:bali_auth_impersonation] = lambda do |view|
-      #   view.render("bali_auth/shared/impersonation_banner") if view.impersonating?
+      #   view.render("bali_auth/shared/impersonation_banner") if view.try(:impersonating?)
       # end
       # ```
       #

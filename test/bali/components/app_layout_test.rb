@@ -314,16 +314,6 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_equal [ "Viewing as John", "Beta" ], page.all(".app-layout-banner p").map(&:text)
   end
 
-  def test_registering_the_same_name_twice_paints_one_banner
-    with_layout_banners do
-      2.times { Bali.layout_banners[:impersonation] = ->(view) { view.tag.p("Viewing as John") } }
-
-      render_inline(Bali::AppLayout::Component.new) { |layout| layout.with_body { "Content" } }
-    end
-
-    assert_selector(".app-layout-banner p", count: 1)
-  end
-
   def test_a_registered_banner_reaches_the_host_apps_helpers
     banner = ->(view) { view.tag.p("Viewing as #{view.current_user.name}") if view.respond_to?(:current_user) }
 

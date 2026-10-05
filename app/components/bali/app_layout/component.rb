@@ -100,8 +100,10 @@ module Bali
 
       # Called with `helpers` and not the component: what a banner asks
       # (`impersonating?`) is a helper of the host app, and the component only
-      # carries Bali's. Not rescued, as `with_banner` is not: an impersonation
-      # banner that vanished on error would tell the person they are themselves.
+      # carries Bali's.
+      #
+      # Not rescued: a banner that may vanish on error can rescue itself; one that
+      # must not — an impersonation warning — could not opt out of a rescue here.
       def registered_banners
         @registered_banners ||= Bali.layout_banners.values.filter_map { |banner| banner.call(helpers).presence }
       end
