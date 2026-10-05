@@ -1384,8 +1384,8 @@ default also removes that double ring.
 
 **This one needs a change on the Opina side, not just here.** The frame's `src` used to be
 `{opina_url}/embed/feedback_posts?token=<JWT>`. It is now `{opina_url}/embed/feedback_posts`
-with no query string, and the widget hands the token to the frame with `postMessage` once
-it has loaded:
+with no token in its query string, and the widget hands the token to the frame with
+`postMessage` once it has loaded:
 
 ```js
 { type: 'bali:feedback:token', token: '<JWT>' }

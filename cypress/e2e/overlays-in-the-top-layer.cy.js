@@ -160,7 +160,7 @@ describe('overlays in the top layer', () => {
       cy.get('.feedback-widget-embed')
         .its('0.contentDocument.body')
         .find('#query-string')
-        .should('have.text', '(empty)')
+        .should('have.text', 'color_scheme=light')
       cy.get('.feedback-widget-embed')
         .its('0.contentDocument.body')
         .find('#received-token')
