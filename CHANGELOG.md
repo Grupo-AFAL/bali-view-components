@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   abrirlo, el widget pone en la URL del iframe `color_scheme=dark` si el `<html>` declara
   `color-scheme: dark`, como los temas oscuros de Bali, y `light` si no, para que Opina lo dibuje
   con el mismo tema. Sin nada que hacer en el anfitrión; hace falta una Opina que lea
-  `color_scheme` (opina#NNN): una anterior lo ignora y el panel sigue claro, como hasta ahora.
+  `color_scheme` (opina#111): una anterior lo ignora y el panel sigue claro, como hasta ahora.
 
 ## [v3.8.0] - 2026-10-04
 
