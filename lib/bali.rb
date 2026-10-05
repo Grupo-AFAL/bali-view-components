@@ -141,8 +141,8 @@ module Bali
   #
   #   A Hash and not an Array because an engine may register from `to_prepare`, which every
   #   reload runs again: assigning the same key twice leaves one banner, appending two.
-  #   No writer: a host's initializer runs after the engines', and `Bali.layout_banners = {}`
-  #   there would drop their banners without a word.
+  #   No writer: entries come and go by key. An engine's `initializer` runs after the host's
+  #   `config/initializers`, so a host drops a gem's banner in `config.after_initialize`.
   #
   #   @return [Hash{Symbol => #call}]
   #   @example From a gem's engine
