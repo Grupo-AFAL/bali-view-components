@@ -1,6 +1,6 @@
 import { contrastRatio, paintedContrast, paintedLuminance } from '../support/painted_contrast'
 import { hover, press, release, unhover } from '../support/tap'
-import { THEMES } from '../support/themes'
+import { eachTheme } from '../support/themes'
 
 // The lane is a base-300 surface and the card the raised one. On the light themes the card's fill
 // carries the step and its border all but matches the lane; on the dark ones the fill steps less
@@ -55,11 +55,6 @@ describe('Kanban lanes and cards', () => {
   }
 
   // The board loads once and the theme switches in place.
-  const eachTheme = (check) => THEMES.forEach((theme) => {
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-    check(theme)
-  })
-
   it('steps the card off its lane on every theme', () => {
     board('scrollable_board')
     eachTheme((theme) => {

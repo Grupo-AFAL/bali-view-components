@@ -107,6 +107,7 @@ describe('Status palette contrast', () => {
 
     cy.get('[data-status-target="trigger"]').click()
     THEMES.forEach((theme) => {
+      cy.then(unhover)
       cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.get('.status-option--none').should('have.length', 1).should(([row]) => {

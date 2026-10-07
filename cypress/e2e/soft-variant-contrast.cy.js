@@ -1,5 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { THEMES, useTheme } from '../support/themes'
 
 // The text colour of the soft, outline and dash variants, which only exists in
 // compiled CSS and so cannot be seen by a component test.
@@ -42,10 +42,6 @@ describe('tinted variant text contrast', () => {
     ctx.fillStyle = css
     ctx.fillRect(0, 0, 1, 1)
     return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
-  }
-
-  const useTheme = (theme) => {
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
   }
 
   // Nothing is measured while a transition runs anywhere in the document: its

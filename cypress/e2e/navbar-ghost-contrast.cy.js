@@ -1,5 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { THEMES, useTheme } from '../support/themes'
 
 // The burger and a `variant: :ghost` brand are daisyUI ghost buttons, and daisyUI paints one at
 // rest with base-content whatever bar it sits on: the burger on a `neutral` navbar measured
@@ -17,7 +17,6 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
     // Proves the preview honoured `?color=`: one it ignored renders `navbar-base`.
     cy.get('nav.navbar').should('have.class', `navbar-${color}`)
   }
-  const useTheme = (theme) => cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
   // The bar loads once per colour and the theme switches in place.
   COLORS.forEach((color) => {

@@ -20,9 +20,13 @@ import { THEMES } from '../support/themes'
 // Gauge's ring and a Loader's spinner keep the colour itself and are not measured here.
 //
 // A soft colour straight on base-100, with nothing between, is the theme's pair, and
-// test/bali/theme_contrast_test.rb computes it for every colour and theme: DeleteLink at rest,
-// Loader, Widget's trend, SplitView's overdue date and BooleanIcon, whose own Minitests pin the
-// `text-soft-*` class. What stays here is reached by a state or composed over something.
+// test/bali/theme_contrast_test.rb computes it for every colour and theme. The pair says nothing
+// of which element wears it, so a row left this spec only where a component's own Minitest pins
+// the `text-soft-*` class: DeleteLink, Loader, Widget's trend, SplitView's overdue date and
+// BooleanIcon.
+// The pairs still measured here at rest — Widget's load error, the FormBuilder's required
+// asterisk, Filters' "Clear all", DashboardPage's change line, the guide's StatCard trend — are
+// the only check on their class.
 describe('a colour over a tint of itself, and its soft colour on the page', () => {
   const AA = 4.5
   // WCAG 1.4.11: an icon is a graphical object, not text.

@@ -57,7 +57,8 @@ const [part, parts] = process.argv.slice(2).map(Number)
 if (parts !== LISTS.length + 1) fail(`the matrix has ${parts} parts and this script splits the run in ${LISTS.length + 1}`)
 if (!(part >= 1 && part <= parts)) fail(`no part ${process.argv[2]} of ${parts}`)
 
-const specs = readdirSync('cypress/e2e').filter(name => name.endsWith('.cy.js'))
+// Cypress's own specPattern, cypress/e2e/**/*.cy.{js,jsx,ts,tsx}.
+const specs = readdirSync('cypress/e2e', { recursive: true }).filter(name => /\.cy\.[jt]sx?$/.test(name))
 const listed = LISTS.flat()
 const gone = listed.filter(name => !specs.includes(name))
 if (gone.length) fail(`listed but not in cypress/e2e: ${gone.join(', ')}`)

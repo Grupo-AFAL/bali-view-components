@@ -1,5 +1,5 @@
 import { contrastRatio, paintedContrast, paintedLuminance } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { THEMES, eachTheme, useTheme } from '../support/themes'
 import { hover, unhover } from '../support/tap'
 
 // Pieces that used to paint fixed colours instead of the theme's: SlimSelect's and the
@@ -13,10 +13,6 @@ describe('colours that follow the theme', () => {
 
   const AA = 4.5
   const HIGHLIGHTS = ['gray', 'brown', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink']
-
-  const useTheme = (theme) => {
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-  }
 
   const expectSettled = (el) => {
     expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
@@ -81,11 +77,6 @@ describe('colours that follow the theme', () => {
 
   // Each state is reached once and the theme switched in place. Where a test compares a state with
   // the element at rest, every theme is read at rest first and then in that state.
-  const eachTheme = (check) => THEMES.forEach((theme) => {
-    useTheme(theme)
-    check(theme)
-  })
-
   it("reads SlimSelect's value and its open list at AA on every theme", () => {
     cy.visit('/bali/form/slim_select/default')
     eachTheme(theme => everyReadsAtAA('.ss-main .ss-single', theme))

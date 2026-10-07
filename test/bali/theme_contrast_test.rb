@@ -87,25 +87,33 @@ class BaliThemeContrastTest < ActiveSupport::TestCase
   def tokens(css)
     colours = css.scan(/--color-([\w-]+):\s*oklch\(([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)\)/)
                  .to_h { |name, l, percent, c, h| [ name, lab_of(l.to_f / (percent.empty? ? 1 : 100), c.to_f, h.to_f) ] }
-    colours.merge(scheme: css[/color-scheme:\s*(light|dark)/, 1])
+    scheme = css[/color-scheme:\s*(light|dark)/, 1]
+    refute_nil(scheme, "a theme without color-scheme would take the dark branch of light-dark()")
+    colours.merge(scheme: scheme)
   end
 
   # The declaration in utilities.css, read from it: base-content tinted toward the colour, and
   # error's own ink on a light scheme, the error token at a lightness of its own.
   def soft_ink(tokens, colour)
-    css = UTILITIES.read
-    weight = css[/@utility text-soft-\* \{\s*color: color-mix\(in oklab, --value\(--color-\*\) ([\d.]+)%, var\(--color-base-content\)\);/, 1]
-    lightness = css[/--soft-ink-error: light-dark\(oklch\(from var\(--color-error\) ([\d.]+) c h\),/, 1]
-    refute_nil(weight, "bali/utilities.css no longer writes text-soft-* as a color-mix with base-content")
-    refute_nil(lightness, "bali/utilities.css no longer gives error an ink of its own on a light scheme")
+    weight, lightness = soft_declaration
 
     if colour == "error" && tokens[:scheme] == "light"
       _, chroma, hue = oklch_of(tokens["error"])
-      return lab_of(lightness.to_f, chroma, hue)
+      return lab_of(lightness, chroma, hue)
     end
 
-    weight = weight.to_f / 100
     tokens[colour].zip(tokens["base-content"]).map { |ink, base| (weight * ink) + ((1 - weight) * base) }
+  end
+
+  def soft_declaration
+    @soft_declaration ||= begin
+      css = UTILITIES.read
+      weight = css[/@utility text-soft-\* \{\s*color: color-mix\(in oklab, --value\(--color-\*\) ([\d.]+)%, var\(--color-base-content\)\);/, 1]
+      lightness = css[/--soft-ink-error: light-dark\(oklch\(from var\(--color-error\) ([\d.]+) c h\),/, 1]
+      refute_nil(weight, "bali/utilities.css no longer writes text-soft-* as a color-mix with base-content")
+      refute_nil(lightness, "bali/utilities.css no longer gives error an ink of its own on a light scheme")
+      [ weight.to_f / 100, lightness.to_f ]
+    end
   end
 
   # The OKLab of the 8-bit pixel a colour paints, clipped channels and all.
