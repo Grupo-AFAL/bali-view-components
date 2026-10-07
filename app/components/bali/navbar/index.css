@@ -64,6 +64,14 @@
     --btn-rest-fg: var(--btn-color, currentColor);
   }
 
+  /* button/index.css mixes a coloured outline button's text toward base-content, which is right
+   * over the page and wrong over a preset's fill: on `neutral` in `afal` a warning outline read
+   * 8.67:1 in its own colour and 2.46 mixed. A soft button keeps the mix: it paints its own
+   * ground. */
+  &:is(.navbar-primary, .navbar-secondary, .navbar-accent, .navbar-neutral):not(.is-transparent) :is(.btn-outline, .btn-dash) {
+    --btn-rest-fg: initial;
+  }
+
   /* The preset's `-content` is made for the preset's fill, not for what shows through: over
    * the page it measured 1.00:1 on `primary` in `afal`, under 3:1 in 15 of the 24 colour ×
    * theme pairs (#1284). `inherit` and not base-content: inside a section with a text colour

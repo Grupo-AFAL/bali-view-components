@@ -124,9 +124,20 @@ class BaliColorTest < ComponentTestCase
   end
 
   def test_tinted_buttons_write_out_the_text_soft_utility
-    css = Bali::Engine.root.join("app/components/bali/button/daisyui-overrides.css").read
+    css = Bali::Engine.root.join("app/components/bali/button/index.css").read
 
     assert_equal(text_soft_mix("var(--btn-color)"), css[/--btn-rest-fg: (color-mix[^;]+);/, 1])
+  end
+
+  # `--theme(--soft-ink-error)` copies the ink, not the `@supports` that has to guard it.
+  def test_tinted_error_buttons_guard_the_ink_as_the_utility_does
+    utilities = Bali::Engine.root.join("app/assets/stylesheets/bali/utilities.css").read
+    css = Bali::Engine.root.join("app/components/bali/button/index.css").read
+
+    guard = utilities[/@supports (\([^{]+\)) \{\s*color: --value\(--soft-ink-/, 1]
+
+    refute_nil(guard, "bali/utilities.css no longer guards text-soft-*'s own ink")
+    assert_equal(guard, css[/@supports (\([^{]+\)) \{[^}]*--theme\(--soft-ink-error\)/, 1])
   end
 
   def test_gantt_status_pills_write_out_the_text_soft_utility

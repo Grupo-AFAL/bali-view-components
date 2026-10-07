@@ -35,13 +35,6 @@ module Bali
       def button_group
         render_with_template
       end
-
-      # @label All Combinations
-      # Every colour in each fill. cypress/e2e/tinted-button-and-error-ink.cy.js measures this
-      # page in every theme.
-      def all_combinations
-        render_with_template
-      end
     end
   end
 end

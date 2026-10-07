@@ -37,6 +37,7 @@
 @import "../../../components/bali/reveal/index.css" layer(components);
 
 /* Form Components */
+@import "../../../components/bali/button/index.css" layer(components);
 @import "../../../components/bali/delete_link/index.css" layer(components);
 @import "../../../components/bali/filters/index.css" layer(components);
 @import "../../../components/bali/rich_text_editor/index.css" layer(components);
@@ -78,8 +79,8 @@
    that contrasts (#1126). */
 @import "../../../components/bali/alert/daisyui-overrides.css";
 @import "../../../components/bali/tag/daisyui-overrides.css";
-/* daisyUI paints a button's text at rest and its focus ring in the button's own colour,
-   which is a fill. */
+/* daisyUI paints the neutral outline button with `neutral` as text, a dark fill on the
+   dark themes. */
 @import "../../../components/bali/button/daisyui-overrides.css";
 /* daisyUI's `.skeleton` animates forever, and a closed drawer stays rendered. */
 @import "../../../components/bali/drawer/daisyui-overrides.css";

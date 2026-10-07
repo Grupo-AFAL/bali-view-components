@@ -1,10 +1,9 @@
-/* Button — the text and the focus ring daisyUI paints in the button's own colour.
+/* Button — the neutral outline button, which daisyUI paints with `neutral` as text.
  *
- * The neutral outline button first. daisyUI 5 colours `.btn-outline` at rest with
- * `var(--btn-rest-fg, var(--btn-color))`, and `.btn-neutral` sets `--btn-rest-fg: initial` so
- * the text falls through to `neutral`. That is a fill colour: on a dark theme it is a dark grey,
- * and over the page the label measured 1.72:1 on `afal-dark`, 1.54 on `costa-norte-dark` and
- * 1.26 on daisyUI's `dark`.
+ * daisyUI 5 colours `.btn-outline` at rest with `var(--btn-rest-fg, var(--btn-color))`, and
+ * `.btn-neutral` sets `--btn-rest-fg: initial` so the text falls through to `neutral`. That is
+ * a fill colour: on a dark theme it is a dark grey, and over the page the label measured 1.72:1
+ * on `afal-dark`, 1.54 on `costa-norte-dark` and 1.26 on daisyUI's `dark`.
  *
  * Unscoped, like the alert and tag sheets: it applies on every theme and to a host's own
  * `btn-neutral btn-outline` markup. On Bali's light themes `base-content` is `neutral`, so
@@ -17,27 +16,4 @@
 
 .btn-neutral.btn-outline {
   --btn-rest-fg: var(--color-base-content);
-}
-
-/* The coloured outline and soft buttons, whose text daisyUI paints at rest in the colour itself,
- * a fill on a light theme: 1.63–2.75:1 on `afal` for warning, success, info, accent and error,
- * and 1.89 for secondary on `costa-norte` (AA: 4.5). They take text-soft-*'s mix from
- * bali/utilities.css, and error its own ink under the `@supports` that file explains. Primary
- * keeps daisyUI's colour: 4.70:1 at worst on the four themes the gem ships (soft, `afal`), 3.16
- * on daisyUI's `dark`. */
-:is(.btn-secondary, .btn-accent, .btn-info, .btn-success, .btn-warning, .btn-error):is(.btn-outline, .btn-soft) {
-  --btn-rest-fg: color-mix(in oklab, var(--btn-color) 40%, var(--color-base-content));
-}
-
-@supports (color: light-dark(oklch(from red l c h), red)) {
-  .btn-error:is(.btn-outline, .btn-soft) {
-    --btn-rest-fg: --theme(--soft-ink-error);
-  }
-}
-
-/* daisyUI rings a `.btn` in its own colour, and `neutral` is a fill: on the dark themes the ring
- * of a `btn-neutral` measured 1.26–1.72:1 against the page (WCAG 1.4.11 asks 3:1). In a Navbar,
- * navbar/daisyui-overrides.css rings it in the bar's text colour instead. */
-.btn-neutral {
-  outline-color: var(--color-base-content);
 }

@@ -9,13 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Botones con contorno y suaves: el texto en reposo pasa AA** (#1336). En `secondary`,
-  `accent`, `info`, `success`, `warning` y `error`, daisyUI pinta el texto con el color mismo, que
-  en los temas claros es un relleno: 1.63–2.75:1 en `afal`. Ahora toma la mezcla de `text-soft-*`
-  y el error la tinta roja de `text-soft-error` (`btn-error btn-outline`: 2.75 → 7.12 en `afal`).
-  Cambia igual con `Bali::Button`/`Link`/`DeleteLink` (`style: :outline`/`:soft`) que con
-  `btn btn-error btn-outline` a mano, como el «Archivar» de centinela-web. Borde, hover y foco no
-  cambian; `primary` tampoco.
+- **Botones con contorno y suaves: el texto en reposo pasa AA** (#1336). daisyUI pinta el
+  texto con el color mismo, que en los temas claros es un relleno: `warning`, `success`, `info`,
+  `accent` y `error` medían 1.63–2.75:1 en `afal`, y `secondary` 1.89 en `costa-norte`. Ahora
+  toman la mezcla de `text-soft-*`, y el error la tinta roja de `text-soft-error`
+  (`btn-error btn-outline`: 2.75 → 7.12 en `afal`). Cambia igual con `Bali::Button`/`Link`/
+  `DeleteLink` (`style: :outline`/`:soft`) que con `btn btn-error btn-outline` a mano, como el
+  «Archivar» de centinela-web. Borde, hover y foco no cambian; `primary` tampoco, ni un botón con
+  contorno sobre una Navbar de color, que conserva el de daisyUI.
 - **Alertas y badges de error `soft`, `outline` y `dash` con la tinta de `text-soft-error`**
   (#1333): en los temas claros dejan el café (rgb(114, 72, 80) en `afal`) y leen el mismo rojo
   que el error del FormBuilder. En los oscuros no cambia nada.
