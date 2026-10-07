@@ -1,0 +1,22 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%# The cap is CSS, not an option: whatever `max-height` the cascade resolves is the
+      ceiling, and the field scrolls once it is reached. %>
+  <%= form.text_area_group :text,
+      rows: 2,
+      auto_grow: true,
+      input_class: 'max-h-32',
+      input_id: 'auto_grow_capped',
+      placeholder: 'Keep typing: it grows to 8rem and then scrolls.',
+      help: 'Capped with max-h-32. Reset returns it to two rows.' %>
+
+  <%# Rendered WITH content: the floor is the height of the field empty, so emptying it
+      returns it to its two rows and not to whatever the server happened to send. %>
+  <%= form.text_area_group :text,
+      rows: 2,
+      auto_grow: true,
+      input_id: 'auto_grow_prefilled',
+      value: "First line\nsecond\nthird\nfourth\nfifth\nsixth",
+      help: 'Rendered pre-filled. Select all and delete: it goes back to two rows.' %>
+
+  <button type="reset" class="btn btn-sm btn-ghost">Reset</button>
+<% end %>
