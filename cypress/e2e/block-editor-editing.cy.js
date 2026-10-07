@@ -126,6 +126,21 @@ describe('BlockEditor on a phone', () => {
       })
     })
   })
+
+  // `nowrap` let a long reference run out of the editor: at 320px on /showcase the chip ended at
+  // x=369, past the editor's 266.
+  it('keeps every entity reference inside the editor at 320px', () => {
+    cy.viewport(320, 844)
+    cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/showcase`)
+    cy.get('.bn-entity-reference').should('have.length.at.least', 3)
+
+    cy.get('.bn-entity-reference-name').should(($names) => {
+      $names.each((_, name) => {
+        const editorRight = name.closest('.bn-editor').getBoundingClientRect().right
+        expect(name.getBoundingClientRect().right, name.textContent).to.be.at.most(editorRight)
+      })
+    })
+  })
 })
 
 // The handle BlockNote floats left of a block hung outside the field's border, from x=-19 on a page

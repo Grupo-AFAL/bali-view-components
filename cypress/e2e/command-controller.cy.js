@@ -128,6 +128,27 @@ describe('CommandController', () => {
     })
   })
 
+  // #1333 — an `action` row is listed for every query, and the preview's Actions group
+  // puts "New document request" above the one row that matches "upload".
+  context('the row Enter opens', () => {
+    it('is the first row that matches the query, not the first one listed', () => {
+      cy.window().then(win => {
+        win.Turbo = { visit: cy.stub().as('turboVisit') }
+      })
+      // Every row of the preview goes to /lookbook: the one that should open gets a
+      // destination of its own.
+      cy.contains('.cmd-row', 'Upload committee minutes').invoke('attr', 'data-href', '/upload-minutes')
+
+      cy.get('body').type('{meta+k}')
+      cy.get('[data-command-target="input"]').type('upload')
+      cy.get('.cmd-row:not(.hidden)').first().should('contain', 'New document request')
+
+      cy.get('.cmd-row.is-active').should('have.length', 1).and('contain', 'Upload committee minutes')
+      cy.get('[data-command-target="input"]').type('{enter}')
+      cy.get('@turboVisit').should('have.been.calledOnceWith', '/upload-minutes')
+    })
+  })
+
   // The counter changes on every keystroke, so the controller writes it, with the
   // plural forms component.html.erb hands over in the `results` value
   // (command_test.rb checks that half).

@@ -172,6 +172,10 @@ export class ModalController extends Controller {
     if (!this.hasTemplateTarget) return
     if (!this.templateTarget.classList.contains(this.openClass)) return
 
+    // An `autofocus` in the panel takes the focus on page load, before this connects, and
+    // leaves no opener to remember; `<body>` hands the close to `_focusAfterClose`.
+    this._rememberFocus()
+    this.previouslyFocusedElement ||= document.body
     this._showOverlay()
     this.trapFocus()
   }
@@ -248,14 +252,7 @@ export class ModalController extends Controller {
     // A freshly opened modal starts clean
     this._dirty = false
 
-    // Store the element that triggered the modal for focus restoration. Only
-    // while the focus is still outside the panel: `open()` calls this twice —
-    // once for the skeleton, once for the loaded content — and now that the
-    // skeleton pulls the focus in, the second call would otherwise overwrite
-    // the trigger with the panel itself, and closing would restore nothing.
-    if (!this.templateTarget.contains(document.activeElement)) {
-      this.previouslyFocusedElement = this._focusReturnTarget(document.activeElement)
-    }
+    this._rememberFocus()
 
     if (this.wrapperClasses) {
       this.wrapperTarget.classList.add(...this.wrapperClasses)
@@ -278,6 +275,16 @@ export class ModalController extends Controller {
     // — a sibling subtree — so for the whole length of the fetch Escape never
     // reached the panel's handler and Tab walked the page behind the overlay.
     this.trapFocus()
+  }
+
+  // The element to give the focus back to on close. Only while the focus is still
+  // outside the panel: `open()` calls `openModal` twice — once for the skeleton, once
+  // for the loaded content — and now that the skeleton pulls the focus in, the second
+  // call would otherwise overwrite the trigger with the panel itself.
+  _rememberFocus () {
+    if (!this.templateTarget.contains(document.activeElement)) {
+      this.previouslyFocusedElement = this._focusReturnTarget(document.activeElement)
+    }
   }
 
   // A trigger inside a tippy popper — an item of a `popover: true` menu — is gone by the
@@ -385,13 +392,13 @@ export class ModalController extends Controller {
   // dropdown connecting there moves its items out of the panel. Kept, the last of
   // them stayed the trap's edge and Tab from the trigger stopped wrapping (#1269).
   //
-  // Only what Tab can land on: a closed drawer inside this panel is `visibility:
-  // hidden`, and as the trap's last edge its ✕ let Tab out of the overlay. The
-  // same filter drops the `input[type=hidden]` of a `form_with` or `button_to`.
+  // Only what Tab can land on: a closed drawer inside this panel is `inert`, and as
+  // the trap's last edge its ✕ let Tab out of the overlay. `checkVisibility` drops
+  // the `input[type=hidden]` of a `form_with` or `button_to`.
   get focusableElements () {
     return [...this.wrapperTarget.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )].filter(element => element.checkVisibility({ visibilityProperty: true }))
+    )].filter(element => !element.closest('[inert]') && element.checkVisibility({ visibilityProperty: true }))
   }
 
   // The host's `autofocus` wins. It used to lose: this ran after
@@ -558,9 +565,21 @@ export class ModalController extends Controller {
 
     // Restore focus to the element that triggered the modal
     if (this.previouslyFocusedElement) {
-      this.previouslyFocusedElement.focus()
+      this._focusAfterClose(this.previouslyFocusedElement).focus()
       this.previouslyFocusedElement = null
     }
+  }
+
+  // A panel the server opened — rendered `active:`, or by an open event no click sent —
+  // had only `<body>` to remember, and a trigger can be removed while its panel is open
+  // (not by the stream of a submit: that one lands the frame after the close). From
+  // `<body>` the next Tab carries on from where the panel sits, the end of
+  // AppLayout's `<main>`, and wraps to the top of the page; `<main>`, focusable for the
+  // skip link, starts it at the content.
+  _focusAfterClose (element) {
+    if (element.isConnected && element !== document.body) return element
+
+    return document.querySelector('main') || element
   }
 
   _buildURL = (path, redirectTo = null) => {

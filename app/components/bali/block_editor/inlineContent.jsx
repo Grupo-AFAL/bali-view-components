@@ -80,14 +80,14 @@ export const EntityReference = createReactInlineContentSpec(
         >
           <span className='bn-entity-reference-icon'>{config.icon}</span>
           {typeLabel && <span className='bn-entity-reference-label'>{typeLabel}</span>}
-          {display}
+          <span className='bn-entity-reference-name'>{display}</span>
         </span>
       )
 
-      // `url` viaja DENTRO del contenido guardado, así que lo escribe quien pueda editar el
-      // documento — y cuando la resolución no corre (sin referencesResolveUrl, o si el fetch
-      // falla) llega tal cual hasta el href. React renderea un `javascript:` con nada más que
-      // un warning en consola, así que el esquema se valida aquí.
+      // `url` travels INSIDE the saved content, so whoever can edit the document writes it —
+      // and when resolution does not run (no referencesResolveUrl, or the fetch fails) it
+      // reaches the href as is. React renders a `javascript:` with nothing but a console
+      // warning, so the scheme is checked here.
       const href = SAFE_URL_SCHEME.test(url || '') ? url : null
       if (href) {
         return <a href={href} className='bn-entity-reference-link'>{chip}</a>

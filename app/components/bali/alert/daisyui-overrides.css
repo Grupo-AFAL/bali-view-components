@@ -72,3 +72,10 @@
     var(--color-base-content)
   );
 }
+
+/* Error takes text-soft-error's own ink (bali/utilities.css), so an error alert reads the same
+ * red as the FormBuilder's error beside it. On the light themes the mix above read brown:
+ * rgb(114, 72, 80) on `afal`, chroma 0.058, against 0.165 for the utility. */
+.alert-error:is(.alert-soft, .alert-outline, .alert-dash) {
+  @apply text-soft-error;
+}
