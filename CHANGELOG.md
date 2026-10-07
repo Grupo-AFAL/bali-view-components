@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **El anillo de foco de todos los botones va en el color del texto** (`base-content`), como el
+  de `btn-neutral` desde #1361: el de `accent`, `info`, `success`, `warning` y `error` no llegaba
+  a 3:1 sobre la página en los temas claros. El del `primary` deja de ser de su color: en `afal`,
+  `#155DFC` → `#1F2937`. Afecta a todas las apps, también a los `btn` escritos a mano; no hay
+  nada que hacer. Salvedad: sobre el relleno de un `Footer` (`neutral` por omisión) o de un `Hero`
+  con `color:`, un botón de color empeora en los temas claros (sobre `neutral`, de 2.39–11.29 a
+  1.12 en `light` y de 2.58–8.67 a 1.00 en `afal`), lo mismo que ya medían ahí `ghost` y el botón
+  sin color. Ninguna app v3 usa `Hero` ni `Footer`; si una pone un botón de color sobre un
+  relleno, `focus-visible:outline-<relleno>-content` en el botón le gana a esta regla.
+
 ## [v3.10.0] - 2026-10-07
 
 ### Added
