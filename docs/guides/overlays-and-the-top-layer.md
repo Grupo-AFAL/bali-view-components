@@ -68,10 +68,9 @@ These controllers use it, and each takes only what it needs:
 | `tooltip`, `hover_card` and `dropdown` with `popover: true` (tippy) | The popper is appended to the dialog instead of the configured `appendTo` (`<body>`, for the dropdown). No popover: Popper recomputes its offsets against whatever `offsetParent` the popper ends up with, and the dialog root is `position: fixed`, so the arithmetic stays right by itself. |
 | `image_grid` | The lightbox is built inside the dialog and shown as a popover. It is `position: fixed; inset: 0`, so there are no offsets to keep correct. |
 
-Two small CSS blocks — in `bali/datepicker.css` and `bali/slim_select.css` — undo the
-`[popover]` rules from the UA stylesheet that those sheets do not already override:
-`inset: 0`, `margin: auto`, and for the calendar `overflow: auto`, which would turn it into a
-scroll container that clips its own arrow.
+Two small CSS blocks — in `bali/datepicker.css` and `bali/slim_select.css` — undo the two
+`[popover]` rules from the UA stylesheet that get in their way and that those sheets do not
+already override: `inset: 0` and `margin: auto`.
 
 **Outside a modal dialog nothing happens at all.** `topLayerHost` returns `null`, every
 widget behaves exactly as it did, and the stacking scale keeps meaning what it says.

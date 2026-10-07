@@ -194,11 +194,10 @@ read it before adding to one.
 
 Rule of thumb for a new unlayered rule: the right-most compound is a daisyUI class, and you
 are only setting declarations daisyUI also sets. Anything else belongs in `@layer components`.
-`container-overrides.css` and `datepicker.css` are the same shape against Tailwind's
-`.container` and `.static` utilities — the reason is the layer, not the vendor. The third shape
-is a component that redefines a theme token inside itself (a SideMenu rail with `theme:`): its
-adversary is the theme's own unlayered `[data-theme]` block, so it goes unlayered and outranks
-it on specificity.
+`container-overrides.css` is the same shape against Tailwind's `.container` utility — the
+reason is the layer, not the vendor. The third shape is a component that redefines a theme
+token inside itself (a SideMenu rail with `theme:`): its adversary is the theme's own unlayered
+`[data-theme]` block, so it goes unlayered and outranks it on specificity.
 
 **Specificity only settles ties inside a layer.** Across layers the later one wins outright,
 so a `:where()` selector in `base` is not "weak" against `@layer theme` — it beats it. The

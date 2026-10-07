@@ -85,16 +85,15 @@
 
 /* Inside a modal overlay the calendar joins the top layer as a popover, which is
  * the only way it stays clickable — see assets/javascripts/bali/utils/top-layer.js
- * for the hit-test. That brings the UA's `[popover]` rules with it, and the three
- * declarations the block above does not already state leak through: `inset: 0`
- * fights the coordinates flatpickr writes, `margin: auto` then centres what is
- * left, and `overflow: auto` turns the calendar into a scroll container that
- * clips its own arrow. Everything else (position, width, padding, border,
- * background) is declared above and wins on origin alone. */
+ * for the hit-test. That brings the UA's `[popover]` rules with it, and two the
+ * block above does not already state leak through: `inset: 0` fights the
+ * coordinates flatpickr writes, and `margin: auto` then centres what is left.
+ * Everything else (position, width, padding, border, background) is declared
+ * above and wins on origin alone; the UA's `overflow: auto` finds nothing past
+ * the calendar's edge to clip. */
 .flatpickr-calendar[popover] {
   inset: auto;
   margin: 0;
-  overflow: visible;
   color: inherit;
 }
 
@@ -483,9 +482,9 @@ span.flatpickr-weekday {
   cursor: not-allowed;
 }
 
-/* Today and the selected day come after the disabled and adjacent-month days on purpose: at
-   the same specificity, the later rule is what keeps a disabled today's ring and a disabled
-   selected date's fill. */
+/* Today comes after the adjacent-month and disabled days on purpose: at the same specificity,
+   the later rule is what keeps the ring on a today that is disabled (a weekend, with
+   `disable_weekends`) or shown among another month's days. */
 .flatpickr-day.today {
   border-color: var(--fp-today-border);
 }

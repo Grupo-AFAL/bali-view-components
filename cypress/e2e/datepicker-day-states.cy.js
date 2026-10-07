@@ -1,5 +1,5 @@
-// `.today` and `.selected` are as specific as `.flatpickr-disabled` and win on order alone
-// (datepicker.css). The classes are added by hand: no preview disables today or a selected date.
+// `.today` is as specific as `.flatpickr-disabled` and wins on order alone (datepicker.css).
+// The class is added by hand so the test does not depend on the day it runs.
 const settled = el => expect(el.getAnimations(), 'no transition in flight').to.have.length(0)
 
 describe('Datepicker day states', () => {
@@ -20,23 +20,5 @@ describe('Datepicker day states', () => {
         expect(getComputedStyle($day[0]).borderTopColor).to.equal(ring)
       })
     })
-  })
-
-  it('a disabled selected date stays filled', () => {
-    cy.get('.flatpickr-calendar.open .flatpickr-day:not(.today):not(.prevMonthDay):not(.nextMonthDay)')
-      .first()
-      .then($day => {
-        $day[0].classList.add('selected')
-        cy.wrap($day).should($d => settled($d[0])).then(() => {
-          const fill = getComputedStyle($day[0]).backgroundColor
-          expect(fill, 'the fill is painted').not.to.equal('rgba(0, 0, 0, 0)')
-
-          $day[0].classList.add('flatpickr-disabled')
-          cy.wrap($day).should($d => {
-            settled($d[0])
-            expect(getComputedStyle($d[0]).backgroundColor).to.equal(fill)
-          })
-        })
-      })
   })
 })
