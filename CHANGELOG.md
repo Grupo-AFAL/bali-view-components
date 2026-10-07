@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::FeedbackWidget`: el contador se topa en «99+»** (#1333), el mismo tope que
+  `Bali::Topbar::IconAction`, con el que comparte la barra; lo lee de
+  `IconAction::Component::MAX_COUNT`. Un lector de pantalla sigue oyendo el número real.
+
+- **`Bali::FeedbackWidget`: abrir el panel cancela el conteo que iba en camino** (#1333). Si la
+  respuesta llegaba después de abrir, volvía a pintar el número de antes sobre el cero.
+
+- **`Bali::FeedbackWidget` pasa sus atributos HTML al `div` que lo envuelve** (#1333): `id:`,
+  `data:`, `aria:`… Antes descartaba todo menos `class:`. Un `data: { controller: }` se suma a
+  `feedback-widget`. De las siete apps sólo gobierno-corporativo pasa algo, `class:`, que sigue
+  igual (`git grep -n "FeedbackWidget::Component.new" -- '*.erb'`). Sin nada que hacer en el
+  anfitrión.
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added

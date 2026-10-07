@@ -5017,7 +5017,9 @@ header. Read state only persists across page loads with an Opina that keeps it p
 (Grupo-AFAL/opina#106). Until that is deployed nothing changes: Opina ignores the header,
 answers the `since` parameter the widget still sends, and 404s the `POST`, which the widget
 ignores, so the count clears for the current page only. A `401` (the token outlived
-`token_expires_in`) hides the count and stops the polling until the next page load.
+`token_expires_in`) hides the count and stops the polling until the next page load. Above
+99 the badge reads "99+", the cap of `Bali::Topbar::IconAction`; the count announced to
+screen readers is the real one.
 
 **Options:**
 - `project_slug` - The project slug in Opina (required)
@@ -5031,6 +5033,7 @@ ignores, so the count clears for the current page only. A `401` (the token outli
 - `token_expires_in` - Token expiry in seconds (default: `3600`)
 - `badge_interval` - Polling interval in ms for the badge count (default: `300000`)
 - `trigger` - The button that opens the panel: `:floating` (fixed to the bottom-right corner), `:icon` (a round button the height of `Bali::Topbar::IconAction`) or `:labeled` (the icon and "Opina", icon alone below `sm`); any other value raises (default: `:floating`)
+- `**options` - HTML attributes for the wrapper `div` (e.g. `id:`); `class:` and `data:` are added to the component's own, and a `data: { controller: }` joins `feedback-widget`
 
 ---
 

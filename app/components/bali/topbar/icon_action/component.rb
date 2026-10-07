@@ -25,6 +25,9 @@ module Bali
 
         COUNT_CLASSES = "bali-topbar-badge absolute -top-1 -right-1"
 
+        # Also the cap of `Bali::FeedbackWidget`'s count, which sits beside these in the Topbar.
+        MAX_COUNT = 99
+
         # @param icon [String, Symbol] icon name (Bali::Icon pipeline).
         # @param aria_label [String] accessible name, e.g. t-ed "Notifications".
         # @param href [String, nil] renders an `<a>` (navigation) instead of a
@@ -42,7 +45,7 @@ module Bali
         #   that formats its own count keeps full control.
         # rubocop:disable Metrics/ParameterLists
         def initialize(icon:, aria_label: nil, href: nil, badge: nil, badge_id: nil,
-                       active: false, max_count: 99, **options)
+                       active: false, max_count: MAX_COUNT, **options)
           # rubocop:enable Metrics/ParameterLists
           @icon = icon
           @label = resolve_aria_label(aria_label, options)
@@ -119,6 +122,7 @@ module Bali
 
         # The cap only reads an Integer badge: a String is a count the host
         # already formatted, and capping it would double-apply the decision.
+        # `showUnread` in feedback_widget/index.js draws the same "99+".
         def badge_text
           return "#{@max_count}+" if @badge.is_a?(Integer) && @badge > @max_count
 
