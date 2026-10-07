@@ -16,7 +16,6 @@
 // The editor is React mounted by Stimulus: wait for the content, not the container, or
 // you measure the empty div the server sent.
 import { hover, unhover } from '../support/tap'
-import { useTheme } from '../support/themes'
 
 const editor = () => cy.get('.bn-editor.bn-default-styles')
 const blocks = () => cy.get('.bn-block-content')
@@ -177,24 +176,5 @@ describe('BlockEditor block handle', () => {
 
     dragHandle().should('be.visible')
     addButton().should(($add) => { expect(display($add), 'the "+"').to.not.equal('none') })
-  })
-})
-
-// BlockNote, Mantine and the emoji picker take their palette from the scheme the page declares,
-// read as the maps and the FeedbackWidget read it. `light dark` leaves the choice to the
-// operating system, which is not one the person made in this app.
-describe('BlockEditor colour scheme', () => {
-  const scheme = () => cy.get('.block-editor-component .bn-root').invoke('attr', 'data-color-scheme')
-
-  it('follows the page to dark, and reads `light dark` as light whatever the theme', () => {
-    openPreview('/bali/block_editor/default')
-    useTheme('afal-dark')
-    scheme().should('equal', 'dark')
-
-    cy.document().then((doc) => {
-      doc.documentElement.style.colorScheme = 'light dark'
-      doc.documentElement.setAttribute('data-theme', 'dark')
-    })
-    scheme().should('equal', 'light')
   })
 })

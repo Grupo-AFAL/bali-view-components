@@ -9,8 +9,9 @@ describe('SideMenu: the focus ring', () => {
   const NON_TEXT = 3
   // Header button (icon-only, found by its name), current item, plain item, group trigger,
   // an item of the group's open `.menu` panel, the module switcher and a rail with `theme:`.
-  // The first two load once and switch the page's theme in place; the rail's theme is the
-  // preview's `?theme=`, which the server renders, so that one is a visit per theme.
+  // `with_bottom_groups` and `with_menu_switcher` load once and switch the page's theme in
+  // place; the rail's theme is `dark_chrome`'s `?theme=`, which the server renders, so that
+  // one is a visit per theme.
   const IN_PLACE = [
     ['with_bottom_groups?collapsible=true', ['Collapse sidebar', 'Dashboard', 'Projects', 'Configuration', 'Profile']],
     ['with_menu_switcher', ['Back of House']]
