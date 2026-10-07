@@ -57,9 +57,10 @@ describe('tinted variant text contrast', () => {
     expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
   }
 
-  THEMES.forEach((theme) => {
-    it(`every tinted alert reads at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/alert/all_combinations')
+  // Each preview loads once and the theme switches in place.
+  it('every tinted alert reads at AA on every theme', () => {
+    cy.visit('/bali/alert/all_combinations')
+    THEMES.forEach((theme) => {
       useTheme(theme)
 
       cy.get(ALERTS).should(($alerts) => {
@@ -72,9 +73,11 @@ describe('tinted variant text contrast', () => {
         })
       })
     })
+  })
 
-    it(`every tinted tag reads at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/tag/all_combinations')
+  it('every tinted tag reads at AA on every theme', () => {
+    cy.visit('/bali/tag/all_combinations')
+    THEMES.forEach((theme) => {
       useTheme(theme)
 
       cy.get(TAGS).should(($tags) => {

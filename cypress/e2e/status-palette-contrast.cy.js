@@ -91,9 +91,9 @@ describe('Status palette contrast', () => {
   // No status is base-content mixed with transparent, over the page under the pill and over the
   // panel under its row, so it follows the theme: mixed at 60% the text read 4.04:1 on `afal`
   // and 4.32 on `costa-norte`.
-  THEMES.forEach((theme) => {
-    it(`reads the no-status pill, its caret and its panel row at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/status/palette')
+  it('reads the no-status pill, its caret and its panel row at AA on every theme', () => {
+    cy.visit('/bali/status/palette')
+    THEMES.forEach((theme) => {
       cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.get('.status-pill--none').should('have.length', 1).should(([pill]) => {
@@ -103,9 +103,14 @@ describe('Status palette contrast', () => {
         expect(caretContrast(pill.querySelector('.status-pill__caret')), `${theme}: pill caret`)
           .to.be.at.least(NON_TEXT)
       })
+    })
 
-      cy.get('[data-status-target="trigger"]').click()
+    cy.get('[data-status-target="trigger"]').click()
+    THEMES.forEach((theme) => {
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
       cy.get('.status-option--none').should('have.length', 1).should(([row]) => {
+        expect(row.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
         expect(paintedContrast(row), `${theme}: row text`).to.be.at.least(AA)
       }).then(($row) => {
         hoverRow($row, (row, changed) => expectFlatBlackAtAA(row, changed, `${theme}: row`))

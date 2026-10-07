@@ -22,10 +22,7 @@ describe('Kanban lanes and cards', () => {
   beforeEach(() => cy.viewport(1600, 900))
   afterEach(() => cy.then(unhover))
 
-  const board = (preview, theme) => {
-    cy.visit(`/bali/kanban/${preview}`)
-    if (theme) cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-  }
+  const board = (preview) => cy.visit(`/bali/kanban/${preview}`)
   const column = (title) => cy.contains('.kanban-column', title)
   const firstCard = (title) => column(title).find('.kanban-card').first()
 
@@ -57,9 +54,15 @@ describe('Kanban lanes and cards', () => {
     return contrastRatio(paintedLuminance(doc, ...lane, backgroundColor, borderTopColor), paintedLuminance(doc, ...lane))
   }
 
-  THEMES.forEach((theme) => {
-    it(`steps the card off its lane on the ${theme} theme`, () => {
-      board('scrollable_board', theme)
+  // The board loads once and the theme switches in place.
+  const eachTheme = (check) => THEMES.forEach((theme) => {
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+    check(theme)
+  })
+
+  it('steps the card off its lane on every theme', () => {
+    board('scrollable_board')
+    eachTheme((theme) => {
       firstCard('To Do').should(($card) => {
         settled($card[0])
         expect($card[0].matches(':hover'), 'at rest').to.equal(false)
@@ -71,11 +74,13 @@ describe('Kanban lanes and cards', () => {
         }
       })
     })
+  })
 
-    // daisyUI's badge-ghost is base-200: on the base-300 lane the indicator, a pill with no
-    // text, is all that tells the column's colour and it all but disappears.
-    it(`shows the ghost indicator and the count on the lane on the ${theme} theme`, () => {
-      board('scrollable_board', theme)
+  // daisyUI's badge-ghost is base-200: on the base-300 lane the indicator, a pill with no
+  // text, is all that tells the column's colour and it all but disappears.
+  it('shows the ghost indicator and the count on the lane on every theme', () => {
+    board('scrollable_board')
+    eachTheme((theme) => {
       column('Backlog').find('h3 .badge-ghost').should(($badges) => {
         settled($badges[0])
         expect($badges, 'the indicator and the count').to.have.length(2)
@@ -85,18 +90,22 @@ describe('Kanban lanes and cards', () => {
         })
       })
     })
+  })
 
-    it(`outlines the empty column against its lane on the ${theme} theme`, () => {
-      board('scrollable_board', theme)
+  it('outlines the empty column against its lane on every theme', () => {
+    board('scrollable_board')
+    eachTheme((theme) => {
       column('Done').find('.kanban-column-list').should(($list) => {
         settled($list[0])
         expect(style($list[0]).borderTopStyle, 'dashed').to.equal('dashed')
         expect(line($list[0]), `${theme}: the empty column's outline against its lane`).to.be.at.least(OUTLINE)
       })
     })
+  })
 
-    it(`rules the footer off the lane on the ${theme} theme`, () => {
-      board('with_footer', theme)
+  it('rules the footer off the lane on every theme', () => {
+    board('with_footer')
+    eachTheme((theme) => {
       cy.get('.kanban-column-footer').first().should(($footer) => {
         settled($footer[0])
         expect(parseFloat(style($footer[0]).borderTopWidth), 'rule width').to.be.at.least(1)
