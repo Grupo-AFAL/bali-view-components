@@ -54,10 +54,11 @@
     @apply text-base-content/70;
   }
 
-  /* daisyUI rings a `.btn` in its own colour, and `neutral` is a fill: on the dark themes the
-   * ring of a `btn-neutral` measured 1.26–1.72:1 against the page (WCAG 1.4.11 asks 3:1). In a
+  /* daisyUI rings a `.btn` in its own colour, which measured against the page 1.69–2.86:1 for
+   * accent, info, success, warning and error on the light themes, 1.99 for secondary on
+   * `costa-norte` and 1.26–1.72 for neutral on the dark themes (WCAG 1.4.11 asks 3:1). In a
    * Navbar, navbar/daisyui-overrides.css rings it in the bar's text colour instead. */
-  :where(.btn-neutral) {
+  :where(.btn) {
     outline-color: var(--color-base-content);
   }
 }
