@@ -1,5 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { THEMES, useTheme } from '../support/themes'
 
 // The text colour of the soft, outline and dash variants, which only exists in
 // compiled CSS and so cannot be seen by a component test.
@@ -64,10 +64,6 @@ describe('tinted variant text contrast', () => {
     })
   }
 
-  const useTheme = (theme) => {
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-  }
-
   // Nothing is measured while a transition runs anywhere in the document: its
   // first frame still paints the previous theme — on the text, or on the
   // ancestor an outline variant takes its ground from — and that frame can pass
@@ -77,9 +73,9 @@ describe('tinted variant text contrast', () => {
     expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
   }
 
-  THEMES.forEach((theme) => {
-    it(`every tinted alert reads at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/alert/all_combinations')
+  it('every tinted alert reads at AA on every theme', () => {
+    cy.visit('/bali/alert/all_combinations')
+    THEMES.forEach((theme) => {
       useTheme(theme)
 
       cy.get(ALERTS).should(($alerts) => {
@@ -93,9 +89,11 @@ describe('tinted variant text contrast', () => {
         expectErrorInk(alerts, 3, theme)
       })
     })
+  })
 
-    it(`every tinted tag reads at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/tag/all_combinations')
+  it('every tinted tag reads at AA on every theme', () => {
+    cy.visit('/bali/tag/all_combinations')
+    THEMES.forEach((theme) => {
       useTheme(theme)
 
       cy.get(TAGS).should(($tags) => {

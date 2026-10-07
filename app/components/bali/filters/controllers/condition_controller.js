@@ -673,7 +673,7 @@ export class ConditionController extends Controller {
 
   buildSelectInput (fieldName, options) {
     const placeholder = this.t.placeholders?.select || 'Select...'
-    const searchPlaceholder = this.t.search || 'Buscar...'
+    const searchPlaceholder = this.t.search || 'Search...'
     const noResults = this.t.no_results || 'No results'
     const optionsHtml = options
       .map((opt) => {

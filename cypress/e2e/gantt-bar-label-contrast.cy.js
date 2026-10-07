@@ -11,11 +11,12 @@ describe('Gantt bar label over its progress', () => {
   const MODES = ['Status', 'Owner', 'Group', 'Priority']
   const COLOUR = /(?:rgba?|oklch|oklab|lab|lch|color)\([^()]*\)/g
 
-  THEMES.forEach((theme) => {
-    it(`reads every label at AA over its progress and over the rest of the bar, on the ${theme} theme`, () => {
-      cy.viewport(1280, 800)
-      cy.visit('/bali/gantt/default')
-      cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+  it('reads every label at AA over its progress and over the rest of the bar, on every theme', () => {
+    cy.viewport(1280, 800)
+    cy.visit('/bali/gantt/default')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+    THEMES.forEach((theme) => {
       cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', theme))
 
       MODES.forEach((mode) => {

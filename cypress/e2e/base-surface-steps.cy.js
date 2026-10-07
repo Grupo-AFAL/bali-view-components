@@ -168,14 +168,17 @@ describe('hovers, tints and edges over a base surface', () => {
   // paints over it a second time, a darker ring.
   const ring = (el) => paintedContrast(el, { property: 'borderTopColor' })
 
+  // Each state is reached once and the theme switched in place; the pointer leaves before each
+  // theme is measured at rest.
   HOVERS.forEach(([what, reach, selector, { filled = false, text, icon, ringless = false } = {}]) => {
-    THEMES.forEach((theme) => {
-      const name = filled
-        ? `tints ${what} off its surface and lifts it further under the pointer on the ${theme} theme`
-        : `lifts ${what} under the pointer off its surface on the ${theme} theme`
-      it(name, () => {
+    const name = filled
+      ? `tints ${what} off its surface and lifts it further under the pointer on every theme`
+      : `lifts ${what} under the pointer off its surface on every theme`
+    it(name, () => {
+      reach()
+      THEMES.forEach((theme) => {
         let atRest
-        reach()
+        cy.then(unhover)
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
         cy.get(selector).first({ timeout: 10000 }).should(($el) => {
@@ -207,9 +210,9 @@ describe('hovers, tints and edges over a base surface', () => {
   })
 
   EDGES.forEach(([what, reach, selector, measure = edge]) => {
-    THEMES.forEach((theme) => {
-      it(`draws the edge of ${what} off the surface under it on the ${theme} theme`, () => {
-        reach()
+    it(`draws the edge of ${what} off the surface under it on every theme`, () => {
+      reach()
+      THEMES.forEach((theme) => {
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
         cy.get(selector).first({ timeout: 10000 }).should(($panel) => {
@@ -225,9 +228,9 @@ describe('hovers, tints and edges over a base surface', () => {
   // The group has no border: its tint is all that draws it on the panel. The remove-condition
   // icon is the one glyph on that tint with no fill of its own; at /50 it read 2.92:1 over the
   // ink at 8% on afal, under the 3:1 an icon needs.
-  THEMES.forEach((theme) => {
-    it(`tints a Filters group off its panel, its remove icon at 3:1, on the ${theme} theme`, () => {
-      openFilters()
+  it('tints a Filters group off its panel, its remove icon at 3:1, on every theme', () => {
+    openFilters()
+    THEMES.forEach((theme) => {
       cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.get('.filter-group').first({ timeout: 10000 }).should(($group) => {
@@ -256,9 +259,8 @@ describe('hovers, tints and edges over a base surface', () => {
 
   // Picks the two days `ends` chooses among every day of the calendar, then reopens it on the
   // range. A pick redraws the days, so the second one is found again by its label.
-  const pickRange = (theme, ends) => {
+  const pickRange = (ends) => {
     cy.visit('/bali/form/date/date_range')
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
     cy.get('form input.input:not([type="hidden"])').click()
     cy.get(DAY).then(($days) => {
       ends($days.toArray()).map(day => day.getAttribute('aria-label'))
@@ -269,15 +271,18 @@ describe('hovers, tints and edges over a base surface', () => {
 
   // The days of a range wore their translucent fill on the border too, and flatpickr's band over
   // each neighbour: a ring and stripes, 1.21–1.45:1 against their own inside.
-  THEMES.forEach((theme) => {
-    it(`tints the days of a Datepicker range off the calendar, without a ring or a band, on the ${theme} theme`, () => {
-      const IN_RANGE = `${DAY}.inRange:not(.today)`
-      pickRange(theme, (days) => {
-        const inMonth = days.filter(day => !day.matches('.prevMonthDay, .nextMonthDay'))
-        const week = Object.values(Cypress._.groupBy(inMonth, day => day.getBoundingClientRect().top))
-          .find(row => row.length === 7 && !row.some(day => day.classList.contains('today')))
-        return [week[1], week[5]]
-      })
+  it('tints the days of a Datepicker range off the calendar, without a ring or a band, on every theme', () => {
+    const IN_RANGE = `${DAY}.inRange:not(.today)`
+    pickRange((days) => {
+      const inMonth = days.filter(day => !day.matches('.prevMonthDay, .nextMonthDay'))
+      const week = Object.values(Cypress._.groupBy(inMonth, day => day.getBoundingClientRect().top))
+        .find(row => row.length === 7 && !row.some(day => day.classList.contains('today')))
+      return [week[1], week[5]]
+    })
+
+    THEMES.forEach((theme) => {
+      cy.then(unhover)
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.get(IN_RANGE, { timeout: 10000 }).should(($days) => {
         settled($days[0].ownerDocument)
@@ -296,14 +301,18 @@ describe('hovers, tints and edges over a base surface', () => {
         expect(ring($day[0]), `${theme}: the border of a day of the range under the pointer`).to.be.closeTo(1, 0.01)
       })
     })
+  })
 
-    // flatpickr marks the days of the next month inRange too, and the rule that empties those
-    // days has the specificity of the range's own: whichever comes later wins.
-    it(`carries a Datepicker range on into the days of the next month on the ${theme} theme`, () => {
-      pickRange(theme, (days) => {
-        const inMonth = days.filter(day => !day.matches('.prevMonthDay, .nextMonthDay, .today'))
-        return [inMonth.at(-1), days.filter(day => day.matches('.nextMonthDay'))[1]]
-      })
+  // flatpickr marks the days of the next month inRange too, and the rule that empties those
+  // days has the specificity of the range's own: whichever comes later wins.
+  it('carries a Datepicker range on into the days of the next month on every theme', () => {
+    pickRange((days) => {
+      const inMonth = days.filter(day => !day.matches('.prevMonthDay, .nextMonthDay, .today'))
+      return [inMonth.at(-1), days.filter(day => day.matches('.nextMonthDay'))[1]]
+    })
+
+    THEMES.forEach((theme) => {
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.get(`${DAY}.nextMonthDay.inRange:not(.selected)`, { timeout: 10000 }).should(($days) => {
         settled($days[0].ownerDocument)
@@ -314,23 +323,26 @@ describe('hovers, tints and edges over a base surface', () => {
         expect(ring($days[0]), `${theme}: the border of a day of the range in the next month`).to.be.closeTo(1, 0.01)
       })
     })
+  })
 
-    // While the second end is picked, flatpickr marks inRange every day between the first end and
-    // the pointer, those of the previous month too. A month whose first day opens the week shows
-    // none of them, so the calendar moves on until it shows two, and past a month where one of
-    // them is today: datepicker.css gives `.today` its primary border after it clears theirs.
-    it(`keeps the range fill on a day of the previous month while the second end is picked on the ${theme} theme`, () => {
-      cy.visit('/bali/form/date/date_range')
-      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-      cy.get('form input.input:not([type="hidden"])').click()
-      const toTwoDaysOfThePreviousMonth = () => cy.get(DAY).then(($days) => {
-        if ($days.filter('.prevMonthDay').length >= 2 && !$days.filter('.prevMonthDay.today').length) return
-        cy.get('.flatpickr-calendar.open .flatpickr-next-month').click()
-        toTwoDaysOfThePreviousMonth()
-      })
+  // While the second end is picked, flatpickr marks inRange every day between the first end and
+  // the pointer, those of the previous month too. A month whose first day opens the week shows
+  // none of them, so the calendar moves on until it shows two, and past a month where one of
+  // them is today: datepicker.css gives `.today` its primary border after it clears theirs.
+  it('keeps the range fill on a day of the previous month while the second end is picked on every theme', () => {
+    cy.visit('/bali/form/date/date_range')
+    cy.get('form input.input:not([type="hidden"])').click()
+    const toTwoDaysOfThePreviousMonth = () => cy.get(DAY).then(($days) => {
+      if ($days.filter('.prevMonthDay').length >= 2 && !$days.filter('.prevMonthDay.today').length) return
+      cy.get('.flatpickr-calendar.open .flatpickr-next-month').click()
       toTwoDaysOfThePreviousMonth()
-      cy.get(`${DAY}:not(.prevMonthDay):not(.nextMonthDay):not(.today)`).first().click()
-      cy.get(`${DAY}.prevMonthDay`).first().then(hover)
+    })
+    toTwoDaysOfThePreviousMonth()
+    cy.get(`${DAY}:not(.prevMonthDay):not(.nextMonthDay):not(.today)`).first().click()
+    cy.get(`${DAY}.prevMonthDay`).first().then(hover)
+
+    THEMES.forEach((theme) => {
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.get(`${DAY}.prevMonthDay.inRange`, { timeout: 10000 }).should(($days) => {
         settled($days[0].ownerDocument)
@@ -361,15 +373,16 @@ describe('hovers, tints and edges over a base surface', () => {
     return day
   }
   const fill = (el) => el.ownerDocument.defaultView.getComputedStyle(el).backgroundColor
-  const openYear = (theme) => {
+  const openYear = () => {
     cy.viewport(1440, 1200)
     cy.visit('/bali/calendar/year?start_date=2026-01-01')
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
   }
 
-  THEMES.forEach((theme) => {
-    it(`tints a ghost day off an empty one on the ${theme} theme`, () => {
-      openYear(theme)
+  it('tints a ghost day off an empty one on every theme', () => {
+    openYear()
+
+    THEMES.forEach((theme) => {
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.document({ timeout: 10000 }).should((doc) => {
         const day = dayWith(doc, 'ghost')
@@ -378,10 +391,15 @@ describe('hovers, tints and edges over a base surface', () => {
         expect(lift(day), `${theme}: ghost day against an empty one`).to.be.at.least(STEP)
       })
     })
+  })
 
-    it(`lifts a hovered ghost day further off the page, off a neutral day, number at AA on the ${theme} theme`, () => {
+  it('lifts a hovered ghost day further off the page, off a neutral day, number at AA on every theme', () => {
+    openYear()
+
+    THEMES.forEach((theme) => {
       let atRest, neutralAtRest
-      openYear(theme)
+      cy.then(unhover)
+      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.document({ timeout: 10000 }).should((doc) => {
         const day = dayWith(doc, 'ghost')

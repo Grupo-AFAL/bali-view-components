@@ -583,7 +583,7 @@ module Bali
       # assigns at the end) and binding against it would add joins for a mere check.
       # `attribute_method?` walks associations without building any.
       def group_by_probe_context
-        @group_by_probe_context ||= Ransack::Context.for(scope)
+        @group_by_probe_context ||= Ransack::Context.for(scope).tap { |context| context.auth_object = ransack_auth_object }
       end
 
       # The model the declarations are validated against, or nil when the scope is not an

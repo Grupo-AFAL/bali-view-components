@@ -16,7 +16,7 @@
  *
  * These are overrides of a third-party layer, not Bali's own look, so being
  * unlayered is the correct position for them — same reason
- * ../breadcrumb/index.css and ../data_table/index.css are unlayered. The
+ * ../breadcrumb/daisyui-overrides.css and ../data_table/index.css are unlayered. The
  * component's own styling stays in ./index.css, where host utilities beat it.
  *
  * Rule of thumb when adding here: only rules whose right-most compound is a
