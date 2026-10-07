@@ -206,8 +206,9 @@ export class DatepickerController extends Controller {
   }
 
   dateFormat () {
-    // Without a time, Bali::FilterForm::WholeDayCasting::BARE_DATE reads a Filters `_lteq` or
-    // `_gt` in this format as the end of that day.
+    // Bali::FilterForm::WholeDayCasting reads a Filters value in either format as the whole day
+    // (BARE_DATE) or minute (BARE_MINUTE) it names, counting on the panel's picker to write
+    // seconds as 00.
     let format = 'Y-m-d'
 
     if (this.noCalendarValue || this.enableTimeValue) {

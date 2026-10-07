@@ -137,6 +137,16 @@ class DatePredicateFilterForm < Bali::FilterForm
                    predicate: :gteq, label: "Created after"
 end
 
+# Dates at the root of `q`, outside the panel's `q[g]`: where the `:date` widget of the
+# SimpleFilters row sends its `_eq`, and an `attribute` its predicate. With a panel beside them.
+class FlatDateMovieFilterForm < Bali::FilterForm
+  filter_attribute :created_at, type: :date, input: :date, simple: true, advanced: false
+  filter_attribute :name, type: :text
+  filter_attribute :genre, type: :select, options: [ %w[Action Action], %w[Drama Drama] ]
+
+  attribute :created_at_lteq
+end
+
 # Test form with group_by_attribute DSL. No custom scope order so the
 # group-first ordering is the sole ORDER BY (sort-within-groups assertions).
 class GroupableMovieFilterForm < Bali::FilterForm
@@ -401,6 +411,79 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
     assert_equal([ "Late that day" ], form.result.pluck(:name))
     assert_equal(payload["groupings"], form.current_view_payload["groupings"])
+  end
+
+  def test_on_a_date_outside_the_panel_includes_that_whole_day
+    @tenant.movies.create!(name: "Late that day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = FlatDateMovieFilterForm.new(
+      @tenant.movies, ActionController::Parameters.new(q: { created_at_eq: "2026-08-27" })
+    )
+
+    assert_equal([ "Late that day" ], form.result.pluck(:name))
+  end
+
+  # The day narrows the listing the panel's OR returns; it is not one more term of that OR.
+  def test_on_a_date_outside_the_panel_narrows_an_or_between_groups
+    @tenant.movies.create!(name: "Action that day", genre: "Action", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Drama that day", genre: "Drama", created_at: Time.zone.local(2026, 8, 27, 9))
+    @tenant.movies.create!(name: "Action another day", genre: "Action", created_at: Time.zone.local(2026, 8, 1))
+    form = FlatDateMovieFilterForm.new(
+      @tenant.movies,
+      ActionController::Parameters.new(q: { created_at_eq: "2026-08-27", m: "or",
+                                            g: { "0" => { genre_eq: "Action" },
+                                                 "1" => { name_eq: "Drama that day" } } })
+    )
+
+    assert_equal([ "Action that day", "Drama that day" ], form.result.reorder(:name).pluck(:name))
+  end
+
+  def test_on_or_before_a_date_outside_the_panel_includes_that_whole_day
+    @tenant.movies.create!(name: "Late that day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
+    form = FlatDateMovieFilterForm.new(
+      @tenant.movies, ActionController::Parameters.new(q: { created_at_lteq: "2026-08-27" })
+    )
+
+    assert_equal([ "Late that day" ], form.result.pluck(:name))
+  end
+
+  # The minute "on" sends from the picker of a `type: :datetime` attribute, which has no
+  # control for seconds (datepicker-controller.js#dateFormat).
+  def test_on_a_minute_includes_that_whole_minute
+    @tenant.movies.create!(name: "That minute", created_at: Time.zone.local(2026, 8, 27, 21, 22, 37))
+    @tenant.movies.create!(name: "Next minute", created_at: Time.zone.local(2026, 8, 27, 21, 23))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { created_at_eq: "2026-08-27 21:22:00" })
+    )
+
+    assert_equal([ "That minute" ], form.result.pluck(:name))
+  end
+
+  def test_on_or_before_and_after_a_minute_split_at_its_end
+    @tenant.movies.create!(name: "That minute", created_at: Time.zone.local(2026, 8, 27, 21, 22, 37))
+    @tenant.movies.create!(name: "Next minute", created_at: Time.zone.local(2026, 8, 27, 21, 23))
+    on_or_before = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { created_at_lteq: "2026-08-27 21:22:00" })
+    )
+    after = AdvancedMovieFilterForm.new(
+      @tenant.movies,
+      grouped_params(0 => { created_at_gt: "2026-08-27 21:22:00", created_at_lt: "2026-08-28" })
+    )
+
+    assert_equal([ "That minute" ], on_or_before.result.pluck(:name))
+    assert_equal([ "Next minute" ], after.result.pluck(:name))
+  end
+
+  # Seconds the picker cannot write are compared as written.
+  def test_on_a_time_with_seconds_compares_exactly
+    @tenant.movies.create!(name: "That second", created_at: Time.zone.local(2026, 8, 27, 21, 22, 37))
+    @tenant.movies.create!(name: "Later that minute", created_at: Time.zone.local(2026, 8, 27, 21, 22, 50))
+    form = AdvancedMovieFilterForm.new(
+      @tenant.movies, grouped_params(0 => { created_at_eq: "2026-08-27 21:22:37" })
+    )
+
+    assert_equal([ "That second" ], form.result.pluck(:name))
   end
 
   # What is COUNTED and what TRAVELS have to be the same question: if they diverge, a bulk action

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`FilterForm`: una fecha sola fuera del panel también es el día entero** (#1333). Lo que
+  #1321 hizo dentro de `q[g]` vale ahora en la raíz de `q`, sobre una columna de fecha y hora: el
+  `_eq` del widget `:date` de SimpleFilters trae ese día, y un `_lteq` o `_gt` corta al final del
+  día. El día se suma con «y» a todo lo demás, también cuando el panel une sus grupos con «o».
+  Alcanza lo que un form añade en su `ransack_params` (los `_eq` planos de gobierno-corporativo);
+  como el anidamiento de #1345, se lo salta un form que sobreescribe `ransack_search`. Hoy
+  ninguna app filtra así una columna de fecha y hora.
+
+- **`Filters`: «en» sobre un atributo `type: :datetime` trae las filas de ese minuto** (#1333).
+  Comparaba contra el instante exacto que manda el selector (`21:22:00`) y dejaba fuera una fila
+  de las 21:22:37; «en o antes» y «después» cortan ahora al final del minuto, como con una fecha
+  cortan al final del día. Unos segundos escritos a mano se comparan tal cual. En la raíz de `q`
+  también se lee así un `AAAA-MM-DD HH:MM:00`. Hoy ninguna app declara un atributo
+  `type: :datetime` ni arma un valor así para `q`.
+
 ## [v3.9.1] - 2026-10-07
 
 ### Added
