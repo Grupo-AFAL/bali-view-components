@@ -130,6 +130,25 @@ colour on `afal` and `costa-norte`:
 git grep -n -E 'text-neutral([^-]|$)' -- app
 ```
 
+### 6. No `color-scheme` of your own
+
+Every theme declares its own `color-scheme`, and `text-soft-error`, the BlockEditor and the
+FeedbackWidget's panel read it to choose their light or dark face. An app rule that sets it on
+the root
+
+```css
+:root { color-scheme: light; }
+```
+
+has the specificity of `[data-theme="afal-dark"]`, so unlayered and after the theme's `@import`
+it wins: under `afal-dark` the page stays `light`, and `text-soft-error` paints its light-theme
+ink, 2.49:1 on the dark `base-100` instead of 10.64. Delete it, and a
+`[data-theme="dark"] { color-scheme: dark; }` with it, which daisyUI's `dark` already declares:
+
+```sh
+git grep -n 'color-scheme' -- '*.css'
+```
+
 Preview both dark themes in Lookbook under *Theme Sampler → Afal Dark* and *Costa Norte Dark*.
 
 ## Creating Your Own Theme

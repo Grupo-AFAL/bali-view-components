@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).
+  Bali pasó su propio texto de error a `text-soft-error` en v3.7.0 (#1281), pero el que escribe
+  una app sigue en `text-error`, que sobre `base-100` mide 2.75:1 en `afal` y 2.86 en `light` y
+  `costa-norte` (AA pide 4.5, y un ícono 3). **Anfitrión:** pásalo a `text-soft-error`, 7.12:1 en
+  `afal`; en los temas oscuros los dos pasan (6.45 y 10.64 en `afal-dark`). Los sitios:
+  `git grep -n -E 'text-error([^-]|$)' origin/main -- app`, y en `test` las pruebas que los
+  buscan por esa clase.
+
+- **BlockEditor: las fuentes van con `loader: file` y sin `publicPath`** (#1336).
+  `docs/api/block-editor.md` pedía `dataurl` y culpaba a `file` de un 404. Lo causa
+  `publicPath: '/assets'`: la URL de la fuente sale absoluta, Propshaft no la reescribe y lee el
+  hash de esbuild como su digest. Sin `publicPath` sale relativa, Propshaft la digiere y responde
+  200. Con `file`, el CSS del editor baja de 395 KB a 35 KB con gzip. `dataurl` sigue
+  funcionando. **Anfitrión:** afal-apps y gobierno-corporativo, los dos que montan el editor, ya
+  están así. centinela-web, identity y opina tienen `publicPath: '/assets'`: si un día lo
+  montan, lo quitan (`git grep -n publicPath origin/main -- esbuild.config.mjs`).
+
+- **El README e `installation.md` dejan de enseñar `:root { color-scheme: light; }`** (#1336),
+  la regla que tapa el `color-scheme` del tema oscuro y que cinco apps borraron al subir a
+  v3.8.0. Sale con su `[data-theme="dark"] { color-scheme: dark; }`: cada tema declara el suyo,
+  también el claro por omisión de daisyUI. `custom-themes.md` gana el paso que le faltaba a la
+  receta de modo oscuro de v3.7.0, y esa entrada, su corrección.
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added
@@ -310,6 +335,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sobra su `.menu-switcher .dropdown-content`: el SideMenu ya pinta igual el panel de un riel con
   tema. Cambian el texto sobre info y error, que ahora pasa AA, el secundario y `neutral`.
 
+  _Corrección del 2026-10-07 (#1336):_ falta un paso. Un `:root { color-scheme: light; }` del
+  anfitrión, sin capa y escrito después del `@import` del tema oscuro, le gana a su
+  `color-scheme: dark`: misma especificidad, y va después. En `afal-dark` la página queda en
+  `light`, así que `text-soft-error` pinta su tinta del tema claro (2.49:1 sobre `base-100`, en
+  vez de 10.64), y el BlockEditor y, desde v3.8.1, el panel de Opina se dibujan claros. Bórralo,
+  y con él un `[data-theme="dark"] { color-scheme: dark; }`: cada tema declara el suyo
+  (`git grep -n 'color-scheme' origin/main -- '*.css'`).
+
 - **`text-soft-<color>`, el color del texto sobre un tinte de ese mismo color** (#1245, #1247):
   cualquier color del tema mezclado al 40% con `base-content`, que llega a AA donde `text-<color>`
   no. Úsala en vez de `text-primary` sobre `bg-primary/10`:
@@ -595,6 +628,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de la píldora de estatus, así que hay que corregir los dos comentarios que lo afirman, el de
   `shipment_status_hex` y el de `dashboard/show.html.erb`.
 
+  _Corrección del 2026-10-07 (#1336):_ sí cambian las pruebas que buscan el ícono de `StatCard` o
+  la línea `change:` por su clase: `.text-<color>` pasa a `.text-soft-<color>`, y una con
+  `count: 0` y la clase vieja deja de fallar sin avisar. En afal-apps fueron cuatro, las del
+  tablero de conciliación. De lo que da
+  `git grep -n -E '\.text-(primary|secondary|accent|info|success|warning|error)\b' origin/main -- test spec`,
+  las que miran dentro de una StatCard o de un `with_stat`.
+
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
   dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más oscuro
@@ -711,6 +751,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   encuentra el disparador. `[data-controller='column-selector']` y
   `[data-controller='saved-views']` siguen valiendo tal cual, con sus `li label` e
   `input[data-column-index]`.
+
+  _Corrección del 2026-10-07 (#1336):_ ese `git grep` sólo ve las pruebas que nombran el
+  controlador. El disparador de Vistas dice el nombre de la vista aplicada, o «Vistas», y una
+  prueba que lo buscaba por ese texto también deja de encontrarlo: en afal-apps,
+  `assert_select "button", text: "Nada que ver"`. De lo que da
+  `git grep -n -E '"button", text:|click_button' origin/main -- test spec`, las que buscan el
+  nombre de una vista guardada o el rótulo del disparador.
 
 - **El texto pintado sobre un tinte de su mismo color llega a AA** (#1245, #1247): el resaltado
   de `Bali::Command`, el ítem activo y los badges de `SideMenu`, el ítem activo de `TreeView`, el

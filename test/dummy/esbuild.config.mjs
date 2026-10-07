@@ -81,9 +81,10 @@ const config = {
     rrule: path.join(__dirname, 'node_modules/rrule/dist/es5/rrule.js')
   },
   loader: {
-    // Inline fonts as data URIs — Propshaft's digest-based path resolution
-    // misinterprets esbuild's content hash as its own digest, stripping it and
-    // returning 404 for the mangled path. Data URIs bypass this entirely.
+    // Data URIs because of `publicPath` above: with `file` the font URL comes
+    // out absolute, Propshaft does not rewrite it, and its server reads
+    // esbuild's content hash as a digest and 404s. A host drops `publicPath`
+    // and uses `file` (docs/api/block-editor.md, Step 2).
     '.woff': 'dataurl',
     '.woff2': 'dataurl',
     '.ttf': 'dataurl',
