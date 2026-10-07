@@ -141,7 +141,7 @@ describe('CommandController', () => {
 
       cy.get('body').type('{meta+k}')
       cy.get('[data-command-target="input"]').type('upload')
-      cy.contains('.cmd-row', 'New document request').should('not.have.class', 'hidden')
+      cy.get('.cmd-row:not(.hidden)').first().should('contain', 'New document request')
 
       cy.get('.cmd-row.is-active').should('have.length', 1).and('contain', 'Upload committee minutes')
       cy.get('[data-command-target="input"]').type('{enter}')
