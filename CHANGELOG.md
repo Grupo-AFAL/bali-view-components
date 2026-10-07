@@ -9,6 +9,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`FilterForm`: una fecha sola fuera del panel también es el día entero** (#1333). Lo que
+  #1321 hizo dentro de `q[g]` vale ahora en la raíz de `q`, sobre una columna de fecha y hora: el
+  `_eq` del widget `:date` de SimpleFilters trae ese día, y un `_lteq` o `_gt` corta al final del
+  día. El día se suma con «y» a todo lo demás, también cuando el panel une sus grupos con «o».
+  Alcanza lo que un form añade en su `ransack_params` (los `_eq` planos de gobierno-corporativo);
+  como el anidamiento de #1345, se lo salta un form que sobreescribe `ransack_search`. Hoy
+  ninguna app filtra así una columna de fecha y hora.
+
+- **`Filters`: «en» sobre un atributo `type: :datetime` trae las filas de ese minuto** (#1333).
+  Comparaba contra el instante exacto que manda el selector (`21:22:00`) y dejaba fuera una fila
+  de las 21:22:37; «en o antes» y «después» cortan ahora al final del minuto, como con una fecha
+  cortan al final del día. Unos segundos escritos a mano se comparan tal cual. En la raíz de `q`
+  también se lee así un `AAAA-MM-DD HH:MM:00`. Hoy ninguna app declara un atributo
+  `type: :datetime` ni arma un valor así para `q`.
+
+- **`Filters`: el panel cabe en la pantalla** (#1333). Con el botón a media pantalla se salía
+  por la derecha y escondía «Apply»; ahora, al abrirse, se corre a la izquierda lo que sobra.
+  Donde ya cabía no se mueve. Sin nada que hacer en el anfitrión.
+
+- **`Bali::Breadcrumb`: las migas enlazadas se ven como enlaces** (#1343). Toman el primary del
+  tema; la página actual sigue en color de texto. En el `dark` de daisyUI, donde el primary no
+  llega a AA como texto, se aclara; los demás temas lo pintan tal cual. Cuando las migas no
+  caben (un teléfono), el desplazamiento arranca en la última, así que la página actual queda a
+  la vista; las que caben siguen alineadas a la izquierda. Sin nada que hacer en las apps.
+
+- **Botones con contorno y suaves: el texto en reposo pasa AA** (#1336). daisyUI pinta el
+  texto con el color mismo, que en los temas claros es un relleno: `warning`, `success`, `info`,
+  `accent` y `error` medían 1.63–2.75:1 en `afal`, y `secondary` 1.89 en `costa-norte`. Ahora
+  toman la mezcla de `text-soft-*`, y el error la tinta roja de `text-soft-error`
+  (`btn-error btn-outline`: 2.75 → 7.12 en `afal`). Cambia igual con `Bali::Button`/`Link`/
+  `DeleteLink` (`style: :outline`/`:soft`) que con `btn btn-error btn-outline` a mano, como el
+  «Archivar» de centinela-web. Borde, hover y foco no cambian; `primary` tampoco, ni un botón con
+  contorno en una Navbar con un `color:` de preset, que conserva el de daisyUI. Una Navbar con
+  `color: nil` y un `bg-*` propio sí toma la mezcla, que sobre un fondo oscuro no contrasta;
+  ninguna app de la flota la usa así.
+- **Alertas y badges de error `soft`, `outline` y `dash` con la tinta de `text-soft-error`**
+  (#1333): en los temas claros dejan el café (rgb(114, 72, 80) en `afal`) y leen el mismo rojo
+  que el error del FormBuilder. En los oscuros no cambia nada.
+- **El anillo de foco de un `btn-neutral` va en `base-content`** (#1333): fuera de una Navbar
+  medía 1.26–1.72:1 sobre la página en los temas oscuros; ahora 13.7 o más. En los claros de Bali
+  es el mismo color; en el `light` de daisyUI, un gris apenas más claro. Sin nada que hacer en el
+  anfitrión en ninguno de los tres.
+
+- **`Bali::Topbar`: la búsqueda se pliega a su ícono cuando las acciones no le dejan sitio**
+  (#1336). Con menos de 7rem en la zona de búsqueda, el disparador por defecto de
+  `Bali::Command` queda en un cuadro de 32 px con la lupa; el texto sigue siendo su nombre
+  accesible y su `title`. En escritorio se ve igual. Si ni el ícono cabe (seis acciones a
+  320 px), la app oculta una acción debajo de `sm`, como ya hace gobierno-corporativo.
+- **`Bali::Command`: Enter abre la primera fila que coincide con lo escrito** (#1333), y es la
+  que queda resaltada, aunque una fila `mode: :action` vaya antes en la lista.
+- **`Bali::SideMenu`: anillo de foco del tema** (#1333). Con el teclado, los ítems, los
+  disparadores de grupo, los botones de la cabecera y el selector de módulo llevaban el anillo
+  `auto` del navegador, y los ítems de sus paneles, sólo el tinte de daisyUI. Ahora todos llevan
+  un contorno de 2 px en `base-content`, hacia dentro.
+
+- **Drawer cerrado: `inert` en vez de `visibility: hidden`** (#1333). Un descendiente con
+  `visibility: visible` (la clase `.visible`, o el `collapse` abierto de daisyUI en un navegador
+  sin `content-visibility`) seguía alcanzable con Tab. El `<dialog>` cerrado sale del servidor
+  con `inert` y el controlador lo quita al abrir. Un drawer que alguien abra poniéndole
+  `drawer-open` a mano se vería pero no respondería; ninguna app lo hace.
+- **Drawer por debajo de 768 px: el tope de `size:` sigue valiendo.** El 85 % de la pantalla era
+  un segundo `max-width` que reemplazaba al del tamaño: un `sm` (384 px) medía 544 px a 640 y 652
+  a 767. Ahora mide el menor de los dos. Nada que hacer.
+- **Drawer: el fondo oscuro se desvanece con el panel al cerrar**, en sus 300 ms, en vez de
+  desaparecer en el primer cuadro. Al abrir sigue apareciendo de golpe.
+- **Modal y Drawer abiertos sin un clic devuelven el foco a `<main>` al cerrar.** Un panel
+  renderizado `active: true` o abierto por `bali:modal:open` / `bali:drawer:open` sin un clic
+  dejaba el foco en `<body>`, y en `Bali::AppLayout` el siguiente Tab saltaba al enlace del
+  principio de la página. Ahora va al `<main>` de AppLayout, que muestra el mismo anillo que al
+  llegar por ese enlace; también si el botón que lo abrió desapareció con el panel abierto. Sin
+  AppLayout, un `<main>` sin `tabindex="-1"` no toma el foco y queda como antes.
+
 - **DocumentEditor en el teléfono: la barra superior cabe y los paneles ya no aplastan el
   editor** (#1333). Debajo de `sm`, con cambios sin guardar, el botón de cerrar se salía de la
   pantalla y el título quedaba casi sin ancho. Ahora Guardar queda en su icono, con un punto
@@ -19,6 +91,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   siempre.** Sin título ni contenido que enviar, el estado ya no cambia. Nada que hacer en la app.
 - **BlockEditor: el nombre de una referencia larga se trunca con «…» dentro del editor** en vez
   de salirse por la derecha. Nada que hacer en la app.
+
+### Documentation
+
+- **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).
+  Bali pasó su propio texto de error a `text-soft-error` en v3.7.0 (#1281), pero el que escribe
+  una app sigue en `text-error`, que sobre `base-100` mide 2.75:1 en `afal` y 2.86 en `light` y
+  `costa-norte` (AA pide 4.5, y un ícono 3). **Anfitrión:** pásalo a `text-soft-error`, 7.12:1 en
+  `afal`. En los tres temas oscuros pasan los dos: `text-error` mide 5.53:1 o más, y
+  `text-soft-error` 9.83. Los sitios: `git grep -n -E 'text-error([^-]|$)' origin/main -- app`,
+  y en `test` las pruebas que los buscan por esa clase. Uno con opacidad (`text-error/80`) va
+  caso por caso: `text-soft-error/80` no existe, Tailwind no la genera y el elemento hereda el
+  color de su padre sin avisar.
+
+- **BlockEditor: las fuentes van con `loader: file` y sin `publicPath`** (#1336).
+  `docs/api/block-editor.md` pedía `dataurl` y culpaba a `file` de un 404 que en realidad causa
+  `publicPath: '/assets'`. Con `file`, el CSS de BlockNote y Mantine pesa 35 KB con gzip en vez
+  de 395. **Anfitrión:** `dataurl` sigue funcionando. afal-apps y gobierno-corporativo, los dos
+  que montan el editor, ya usan `file` sin `publicPath`. centinela-web, identity y opina tienen
+  `publicPath: '/assets'` y ningún `loader`: si un día lo montan, lo quitan
+  (`git grep -n -E 'publicPath|loader' origin/main -- esbuild.config.mjs`).
+
+- **El README e `installation.md` dejan de enseñar `:root { color-scheme: light; }`** (#1336),
+  la regla que tapa el `color-scheme` del tema oscuro y que cinco apps borraron al subir a
+  v3.8.0. Sale con su `[data-theme="dark"] { color-scheme: dark; }`: cada tema declara el suyo,
+  también el claro por omisión de daisyUI. `custom-themes.md` gana el paso que le faltaba a la
+  receta de modo oscuro de v3.7.0, y esa entrada, su corrección. Ninguna app la tiene hoy
+  (`git grep -n 'color-scheme' origin/main -- '*.css'`): nada que hacer.
+
+## [v3.9.1] - 2026-10-07
+
+### Added
+
+- **`FilterForm#ransack_auth_object`** (#1348): el `auth_object:` que reciben todas las búsquedas
+  de Ransack que arma el form (la del listado, la validación de `group_by_attribute` y las
+  pruebas internas por condición). `nil` por omisión. Un form que sobreescribe `ransack_search`
+  solo para pasar `auth_object:` lo cambia por `def ransack_auth_object = …`, con lo que lea
+  asignado antes de `super`. Si sigue sobreescribiendo `ransack_search`, se salta el anidamiento
+  de #1345.
+
+### Fixed
+
+- **`FilterForm`: el «O» entre los grupos del panel ya no ensancha la búsqueda rápida** (#1345).
+  Los grupos entran a Ransack como un solo grupo anidado, unido con AND a la búsqueda, a los
+  atributos planos y a los filtros simples. «ana» con Drama O Action ya no trae todo Action. Lo
+  que se pinta y lo que viaja no cambia (`filter_groups`, píldoras, `q[m]`, «seleccionar los N»,
+  vistas guardadas). La forma de `ransack_params` tampoco: el anidamiento ocurre en
+  `ransack_search`, después de lo que un anfitrión reescriba en `ransack_params[:g]`.
+
+- **`FilterForm`: a Ransack solo llega lo que el panel puede escribir** (#1346). Pasa cada
+  atributo de `available_attributes` (el de la instancia) con los operadores que su tipo
+  ofrece. Las listas, solo en `_in` y `_not_in`, y con miembros que quepan en el tipo de su
+  columna. Los valores, escalares y sin caracteres de control. Lo demás no filtra y el panel no
+  lo pinta: antes daba 500 (un NUL, un id más largo que su columna dentro de un `_in`) o
+  filtraba sin pintarse (un `g` anidado, la forma `c`). Vale para la URL, las vistas guardadas
+  y el caché de filtros. La caja de búsqueda rápida sigue la misma regla de valores; un
+  `attribute` plano con el mismo nombre, no. Un form que no le ofrece atributos al panel
+  (ninguno declarado, o todos `advanced: false`) deja pasar cualquier condición, menos las que
+  tumban la consulta. **Qué revisar:**
+  - Un enlace, una prueba o una vista guardada que mande en `q[g]` un atributo que el panel no
+    ofrece deja de filtrar.
+  - Si pasas `available_attributes:` a `with_filters_panel`, el form tiene que ofrecer los
+    mismos.
+  - Un `available_attributes` propio que consulta la base corre una vez más cuando la URL trae
+    condiciones del panel; memoízalo.
+
+- **`FilterForm`: una vista guardada con datos que no son Hash abre el listado sin ese filtro**
+  (#1347), en lugar de dar 500 cada vez que alguien la abre. Aplica al payload entero y a
+  `attributes`, `simple_filters` y `groupings`. Unos `groupings` en forma de lista de grupos se
+  leen como los de la URL (`q[g][]`).
 
 ## [v3.9.0] - 2026-10-04
 
@@ -323,6 +464,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sobra su `.menu-switcher .dropdown-content`: el SideMenu ya pinta igual el panel de un riel con
   tema. Cambian el texto sobre info y error, que ahora pasa AA, el secundario y `neutral`.
 
+  _Corrección del 2026-10-07 (#1336):_ falta un paso. Un `:root { color-scheme: light; }` del
+  anfitrión, sin capa y escrito después del `@import` del tema oscuro, le gana a su
+  `color-scheme: dark`: misma especificidad, y va después. En `afal-dark` la página queda en
+  `light`, así que `text-soft-error` pinta su tinta del tema claro (2.49:1 sobre `base-100`, en
+  vez de 10.64), y el BlockEditor y, desde v3.8.1, el panel de Opina se dibujan claros. Al
+  `dark` de daisyUI, que va en una capa, le gana en cualquier orden. Bórralo, y con él un
+  `[data-theme="dark"] { color-scheme: dark; }`: cada tema declara el suyo
+  (`git grep -n 'color-scheme' origin/main -- '*.css'`).
+
 - **`text-soft-<color>`, el color del texto sobre un tinte de ese mismo color** (#1245, #1247):
   cualquier color del tema mezclado al 40% con `base-content`, que llega a AA donde `text-<color>`
   no. Úsala en vez de `text-primary` sobre `bg-primary/10`:
@@ -608,6 +758,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de la píldora de estatus, así que hay que corregir los dos comentarios que lo afirman, el de
   `shipment_status_hex` y el de `dashboard/show.html.erb`.
 
+  _Corrección del 2026-10-07 (#1336):_ sí cambian las pruebas que buscan el ícono de `StatCard` o
+  la línea `change:` por su clase: `.text-<color>` pasa a `.text-soft-<color>`, y una con
+  `count: 0` y la clase vieja deja de fallar sin avisar. En afal-apps fueron dos pruebas del
+  tablero de conciliación, con cuatro aserciones. De lo que da
+  `git grep -n -E '\.text-(primary|secondary|accent|info|success|warning|error)([^-a-z]|$)' origin/main -- test spec`,
+  las que miran dentro de una StatCard o de un `with_stat`.
+
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
   dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más oscuro
@@ -724,6 +881,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   encuentra el disparador. `[data-controller='column-selector']` y
   `[data-controller='saved-views']` siguen valiendo tal cual, con sus `li label` e
   `input[data-column-index]`.
+
+  _Corrección del 2026-10-07 (#1336):_ ese `git grep` sólo ve las pruebas que nombran el
+  controlador. Los disparadores llevan texto —el de Vistas, el nombre de la vista aplicada o
+  «Vistas»; el de Columnas, «Columnas»— y una prueba que los buscaba por ese texto también deja
+  de encontrarlos: en afal-apps, `assert_select "button", text: "Nada que ver"`. De lo que da
+  `git grep -n -E '"button", text:|click_(button|on|link_or_button)|(assert|refute|has)_(no_)?button' origin/main -- test spec`,
+  las que buscan el nombre de una vista guardada o el rótulo de uno de los dos.
 
 - **El texto pintado sobre un tinte de su mismo color llega a AA** (#1245, #1247): el resaltado
   de `Bali::Command`, el ítem activo y los badges de `SideMenu`, el ítem activo de `TreeView`, el

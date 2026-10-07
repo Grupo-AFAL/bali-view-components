@@ -306,7 +306,7 @@ describe('SplitView structured list', () => {
     })
 
     // The active pill is the theme's own primary pair, held to AA on Bali's themes by
-    // theme-primary-contrast.cy.js; daisyUI's `dark` paints it at 4.13:1. So here its count only
+    // test/bali/theme_contrast_test.rb; daisyUI's `dark` paints it at 4.13:1. So here its count only
     // has to read no dimmer than its label. The pills carry `transition-colors`, and a frame of
     // the transition still has the previous theme's colours — which can pass — so nothing is
     // measured until the transitions settle.

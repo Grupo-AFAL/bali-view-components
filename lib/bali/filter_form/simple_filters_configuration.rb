@@ -219,9 +219,9 @@ module Bali
       # Replace the simple filter values with the ones a saved view carries. A view
       # is a complete state and not a merge, so whatever came in the URL is dropped
       # — the same contract {FilterForm#apply_saved_view_state} applies to the
-      # declared attributes.
+      # declared attributes. Values that are not a hash apply none (#1347).
       def apply_simple_filter_state(values)
-        @q_params = (values || {}).to_h.stringify_keys
+        @q_params = values.is_a?(Hash) ? values.stringify_keys : {}
       end
 
       def simple_date_range_attributes

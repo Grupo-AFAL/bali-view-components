@@ -10,7 +10,9 @@
   <% end %>
 
   <% if search? %>
-    <div class="flex-1 min-w-0 max-w-md">
+    <%# A size container, so the Command trigger inside can fold to its icon when the
+        actions leave this slot too narrow for its label. %>
+    <div class="@container flex-1 min-w-0 max-w-md">
       <%= search %>
     </div>
   <% end %>

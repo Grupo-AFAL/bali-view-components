@@ -49,6 +49,14 @@ module Bali
         render_with_template(template: "bali/topbar/previews/icon_actions")
       end
 
+      # @label Six Actions
+      # A full bar: the Command palette's trigger in the search slot, then Opina, inbox,
+      # help, tools, notifications and the user menu. Narrow the viewport to see the search
+      # fold down to its icon when the actions leave it no room.
+      def six_actions
+        render_with_template(template: "bali/topbar/previews/six_actions")
+      end
+
       # @label Tools Menu
       # Topbar with the internal tools menu: a mounted tool that brings its own chrome (new
       # tab), a mounted tool that keeps the host chrome (same tab), a second one with its own

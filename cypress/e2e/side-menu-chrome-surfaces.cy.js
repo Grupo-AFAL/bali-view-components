@@ -9,8 +9,11 @@ import { paintedLuminance as luminance } from '../support/painted_contrast'
 describe('SideMenu chrome surfaces', () => {
   afterEach(() => { unhover() })
 
-  ;['dark', 'afal-dark', 'costa-norte-dark'].forEach((theme) => {
-    it(`lifts the panel and the borders above a ${theme} rail`, () => {
+  const DARK_THEMES = ['dark', 'afal-dark', 'costa-norte-dark']
+
+  // The rail's theme is the preview's `?theme=`, rendered by the server: one visit per theme.
+  DARK_THEMES.forEach((theme) => {
+    it(`lifts the panel and the borders above a ${theme} rail, and shows the hovered item inside the panel`, () => {
       cy.visit(`/bali/side_menu/dark_chrome?theme=${theme}`)
 
       cy.get(`.side-menu-component[data-theme="${theme}"]`).should(($rail) => {
@@ -23,12 +26,9 @@ describe('SideMenu chrome surfaces', () => {
         expect(panel, `${theme}: panel above the rail`).to.be.above(rail)
         expect(border, `${theme}: border above the panel`).to.be.above(panel)
       })
-    })
 
-    // The bottom group's items are `.menu-item`s, whose hover was base-200 — the panel's own
-    // colour inside a themed rail, so the hovered item measured 1.00:1 against it.
-    it(`shows the hovered item inside the panel of a ${theme} rail`, () => {
-      cy.visit(`/bali/side_menu/dark_chrome?theme=${theme}`)
+      // The bottom group's items are `.menu-item`s, whose hover was base-200 — the panel's own
+      // colour inside a themed rail, so the hovered item measured 1.00:1 against it.
       cy.get('.side-menu-component').contains('Configuration').click()
       cy.get('.side-menu-bottom-section .dropdown-content .menu-item').first().then(hover)
 
@@ -50,9 +50,9 @@ describe('SideMenu chrome surfaces', () => {
 
   // Without a `theme:` the rail is base-100 like its panels, and on a dark page the shadow
   // does not show: same edge as Bali::Dropdown, same border.
-  ;['dark', 'afal-dark', 'costa-norte-dark'].forEach((theme) => {
-    it(`draws the edge of a panel opened from an unthemed rail on a ${theme} page`, () => {
-      cy.visit('/bali/side_menu/with_bottom_groups')
+  it('draws the edge of a panel opened from an unthemed rail on every dark page', () => {
+    cy.visit('/bali/side_menu/with_bottom_groups')
+    DARK_THEMES.forEach((theme) => {
       cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.get('.side-menu-component:not([data-theme]) .dropdown-content').first().should(($panel) => {
@@ -62,6 +62,7 @@ describe('SideMenu chrome surfaces', () => {
         const rail = luminance(doc, railColour)
         const edge = luminance(doc, railColour, style($panel[0]).borderTopColor)
 
+        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
         expect(parseFloat(style($panel[0]).borderTopWidth), 'border width').to.be.at.least(1)
         expect((Math.max(edge, rail) + 0.05) / (Math.min(edge, rail) + 0.05), `${theme}: edge against the rail`)
           .to.be.above(1.2)
@@ -88,12 +89,12 @@ describe('SideMenu chrome surfaces', () => {
   }
 
   ;[['fixed', '/bali/side_menu/default'], ['inline', '/bali/side_menu/with_icons']].forEach(([kind, url]) => {
-    THEMES.forEach((theme) => {
-      it(`shows the hovered item of an unthemed ${kind} rail on the ${theme} theme`, () => {
-        cy.viewport(1280, 800)
-        cy.visit(url)
+    it(`shows the hovered item of an unthemed ${kind} rail on every theme`, () => {
+      cy.viewport(1280, 800)
+      cy.visit(url)
+      cy.get('.side-menu-component a.menu-item:not(.active):visible').eq(1).then(hover)
+      THEMES.forEach((theme) => {
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-        cy.get('.side-menu-component a.menu-item:not(.active):visible').eq(1).then(hover)
 
         cy.get('.side-menu-component a.menu-item:hover').should(($item) => {
           const doc = $item[0].ownerDocument
