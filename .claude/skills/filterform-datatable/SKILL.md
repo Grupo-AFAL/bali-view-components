@@ -314,8 +314,44 @@ FilterForm is organized into focused concerns for maintainability:
 | `search_config` | `Hash` | The `search:` hash BOTH filter surfaces take — every `Bali::SearchConfig::KEYS` entry (`fields`, `value`, `placeholder`, `label`, `icon`, `width`) |
 | `available_attributes` | `Array<Hash>` | Filter attributes from DSL |
 | `filter_groups` | `Array<Hash>` | Parsed filter groups from params |
-| `combinator` | `String` | Top-level combinator ('and' or 'or') |
+| `combinator` | `String` | Combinator between the panel's groups ('and' or 'or') |
 | `active_filter_details` | `Array<Hash>` | Detailed info about active filters |
+| `ransack_auth_object` | `Object, nil` | Override it to hand Ransack an `auth_object:` (see below) |
+
+### What reaches Ransack from the panel
+
+- **The panel's groups are one term of the query.** They go in as ONE nested grouping that the
+  root ANDs with the quick search, the flat attributes and the simple filters, so `q[m]=or`
+  combines the groups and nothing else (#1345). `ransack_params` keeps the flat shape
+  (`params[:g]`, `params[:m]`) for a host that rewrites conditions after `super`; the nesting
+  happens in `ransack_search`.
+- **Only what the panel can write gets through** (#1346): each key of the INSTANCE's
+  `available_attributes` with the operators its type offers (`Filters::Operators.for_type`),
+  lists only on `_in`/`_not_in`, scalar values with no control characters that fit their
+  column's type. Anything else, from a URL, a saved view or the filter cache, is no filter,
+  and the panel does not paint it. A form that declares no attribute lets any condition through
+  except the ones that break the query. So an attribute passed to
+  `with_filters_panel(available_attributes:)` and not offered by the form filters nothing:
+  offer it from the form.
+- **`groupings` is the state as it arrived; `filter_groups` is what is applied.** The gate runs
+  lazily, after the host's `initialize`, because a host's `available_attributes` may need state
+  set after `super`.
+- **`ransack_auth_object`** (#1348) is the `auth_object:` every Ransack search of the form gets:
+  the listing's, `group_by_attribute`'s validation and the per-condition probes. Return what
+  `ransackable_attributes(auth_object)` narrows on, set before `super`:
+
+  ```ruby
+  class StudioMoviesFilterForm < Bali::FilterForm
+    def initialize(scope, params = {}, studio:, **)
+      @studio = studio
+      super(scope, params, **)
+    end
+
+    def ransack_auth_object = @studio
+  end
+  ```
+
+  Do not override `ransack_search` for it: that skips the nesting above and the other searches.
 
 ## FilterForm Parameters
 
