@@ -169,11 +169,11 @@ module Bali
       end
 
       # The payload comes either from a jsonb round-trip (String keys) or from a freshly built
-      # Hash (Symbol keys): it is normalized to String and trimmed to the contract.
+      # Hash (Symbol keys): it is normalized to String and trimmed to the contract. A jsonb
+      # holds any JSON, and a payload that is not a hash applies nothing (#1347).
       def normalized_view_payload(view)
-        payload = view.payload || {}
-        payload = payload.to_h if payload.respond_to?(:to_h)
-        payload.transform_keys(&:to_s).slice(*PAYLOAD_KEYS)
+        payload = unwrap_params(view.payload)
+        payload.is_a?(Hash) ? payload.transform_keys(&:to_s).slice(*PAYLOAD_KEYS) : {}
       end
 
       # Replaces the state derived from `q` with the applied view's. Returns the attributes
@@ -182,7 +182,7 @@ module Bali
       # withdrawn attribute simply loses it, without blowing up.
       def apply_saved_view_state
         payload = normalized_view_payload(current_saved_view)
-        @groupings = payload["groupings"]
+        @groupings = normalize_groupings(payload["groupings"])
         # A view saved before combinator sanitization landed could still carry a poisoned
         # `m`; collapse it here too, so an old payload cannot re-emit it.
         @combinator = sanitized_combinator(payload["combinator"])
@@ -200,7 +200,10 @@ module Bali
         # default existed carries, and there the default still speaks (#1156).
         @group_by = @group_by.presence || resolve_group_by(payload["group_by"])
         @group_by_chosen ||= payload.key?("group_by")
-        (payload["attributes"] || {}).select { |k, _v| self.class.attribute_names.include?(k.to_s) }
+        attributes = payload["attributes"]
+        return {} unless attributes.is_a?(Hash)
+
+        attributes.select { |k, _v| self.class.attribute_names.include?(k.to_s) }
       end
     end
   end
