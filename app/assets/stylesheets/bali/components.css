@@ -5,10 +5,10 @@
  *
  * Layers: see the header of ../bali.css. Everything goes into
  * @layer components so host utility classes win, except the unlayered sheets
- * grouped at the bottom, which exist to beat rules daisyUI emits inside
- * @layer utilities. Each of those explains itself in its own header. Counted
- * rather than named here on purpose — the count went stale the last two times
- * one was added.
+ * grouped at the bottom, each of which outranks a rule it would lose to from
+ * inside a layer: daisyUI's, mostly, and a few of Tailwind's or a theme's. Each
+ * names that rule in its own header; they are neither named nor counted here,
+ * because the count went stale the last two times one was added.
  */
 
 /* Navigation Components */
@@ -61,8 +61,8 @@
 /* Deferred loading */
 @import "../../../components/bali/frame/index.css" layer(components);
 
-/* Unlayered on purpose: each sheet below beats a rule daisyUI emits inside
-   @layer utilities, and names that rule in its own header. */
+/* Unlayered on purpose: each sheet below names, in its own header, the rule it
+   has to outrank. */
 @import "../../../components/bali/breadcrumb/daisyui-overrides.css";
 @import "../../../components/bali/side_menu/daisyui-overrides.css";
 @import "../../../components/bali/data_table/index.css";
