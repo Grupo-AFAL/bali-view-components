@@ -146,6 +146,25 @@ describe('ModalController', () => {
         expect($el.closest('[data-modal-target="wrapper"]')).to.have.length(1)
       })
     })
+
+    // The panel's last stop, as the trap has to see it. Left out of the trap, a summary, an
+    // editable region or a player was skipped: Tab from the field before it wrapped to the ✕.
+    // Counted in, a disabled Save let Tab out of the overlay from the Cancel before it.
+    ;[
+      ['the summary of a details', '<details><summary id="last">More</summary><p>Detail</p></details>'],
+      ['an editable region', '<div id="last" contenteditable="true">Notes</div>'],
+      ['an audio player', '<audio id="last" controls></audio>'],
+      ['a video player', '<video id="last" controls></video>'],
+      ['the Cancel before a disabled Save', '<button id="last" type="button">Cancel</button><button type="submit" disabled>Save</button>']
+    ].forEach(([what, html]) => {
+      it(`wraps Shift+Tab from the ✕ to ${what} at the end of the panel`, () => {
+        openWith(`<input id="first-field">${html}`)
+        cy.focused().should('have.attr', 'aria-label')
+
+        cy.focused().trigger('keydown', { key: 'Tab', shiftKey: true })
+        cy.focused().should('have.id', 'last')
+      })
+    })
   })
 
   // A panel rendered `active:` is opened by its controller's `connect`, with no trigger.
