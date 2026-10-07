@@ -21,7 +21,7 @@ module Bali
       # one 1.80 on every light theme (3:1 for a graphic). `Bali::DashboardPage#stat_change_class`
       # paints its change line with it too, on base-100, where `text-success` read 1.96 (AA: 4.5).
       # `neutral` paints base-content: a dark theme's neutral is a fill and does not read as ink
-      # (theme-follow-contrast.cy.js); on Bali's light themes the two are the same colour.
+      # (soft-text-contrast.cy.js); on Bali's light themes the two are the same colour.
       COLORS = {
         neutral: { bg: "bg-base-content/10", text: "text-base-content",
                    border: "border-base-content/30" },

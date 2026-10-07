@@ -60,6 +60,13 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     assert_no_selector("form.contents")
   end
 
+  # A Dropdown's `method: :delete` item; test/bali/theme_contrast_test.rb measures the pair.
+  def test_plain_keeps_the_soft_red_without_the_btn_box
+    @options.merge!(plain: true)
+    render_inline(component)
+    assert_selector("button.text-soft-error:not(.btn)", text: "Delete")
+  end
+
   def test_form_class_is_what_takes_the_form_out_of_the_box_tree
     @options.merge!(form_class: "contents")
     render_inline(component)

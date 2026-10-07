@@ -99,20 +99,3 @@ export const paintedPixel = (doc, ...colours) => {
 }
 
 export const paintedLuminance = (doc, ...colours) => luminance(paintedPixel(doc, ...colours))
-
-// OKLCH of an 8-bit sRGB pixel: [lightness, chroma, hue in degrees].
-export const oklch = (rgb) => {
-  const [r, g, b] = rgb.map((c) => {
-    c /= 255
-    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-  })
-  const [l, m, s] = [
-    0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b,
-    0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b,
-    0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b
-  ].map(Math.cbrt)
-  const a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s
-  const bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s
-  const lightness = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s
-  return [lightness, Math.hypot(a, bb), (Math.atan2(bb, a) * 180 / Math.PI + 360) % 360]
-}

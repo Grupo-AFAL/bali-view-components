@@ -95,7 +95,7 @@ Bali is not published to RubyGems. Add to your `Gemfile`, pinning a tag:
 gem "lucide-rails"
 gem "view_component-contrib"
 
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.9.0"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.9.1"
 ```
 
 Run bundler:
@@ -220,14 +220,6 @@ prints rather than writes:
    Enable proper dark mode support with DaisyUI themes.
 */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
-:root {
-  color-scheme: light;
-}
-
-[data-theme="dark"] {
-  color-scheme: dark;
-}
 ```
 
 > **Note**: Bali components define Tailwind classes in Ruby files (e.g., `'flex gap-2 btn-primary'`) and in JavaScript — `modal/index.js` swaps the submit button for `loading loading-spinner loading-sm` while a drawer form is in flight — and the FormBuilder, which lives entirely under `lib/bali/form_builder/`, is the only place that writes the error and state classes: `input-error`, `select-error`, `textarea-error`, `checkbox-error`, `radio-error`, `toggle-error`, `fieldset-label`, the whole `range-*` family. `engine.css` scans `app/**/*.{rb,erb,js,jsx,ts,tsx,mjs,cjs}` and `lib/bali/**/*.rb` for exactly that reason; scanning only `app/` would compile without a warning and silently drop every form error style, and a glob without `jsx` compiled just as quietly while leaving out 54 classes of Gantt and BlockEditor — the React components — which is how v3.2.1 shipped (#1124).
@@ -247,10 +239,10 @@ A handful of sheets stay unlayered on purpose, because their whole job is to
 beat a rule daisyUI emits inside `@layer utilities` (daisyUI 5 does not use
 `@layer components`) — or, for `container-overrides.css`, Tailwind's own
 `.container`: `forms.css`, `datepicker.css`, `slim_select.css`,
-`container-overrides.css`, `prose-invert.css`, `breadcrumb/index.css`, `data_table/index.css`,
+`container-overrides.css`, `prose-invert.css`, `data_table/index.css`,
 `toast/index.css`, `feedback_widget/index.css`, and the `daisyui-overrides.css`
-of `side_menu`, `calendar`, `rich_text_editor`, `gauge`, `alert`, `tag`,
-`button` and `drawer`. Each file's header names the rule it is fighting. To override one of those from your app, use a `!` utility variant or
+of `breadcrumb`, `side_menu`, `calendar`, `rich_text_editor`, `gauge`, `alert`, `tag`,
+`button`, `drawer`, `dropdown` and `navbar`. Each file's header names the rule it is fighting. To override one of those from your app, use a `!` utility variant or
 plain unlayered CSS imported after Bali.
 
 ### DaisyUI Themes
@@ -442,7 +434,7 @@ See [External Services](external-services.md) for the full setup.
 ```bash
 bundle exec rails console
 > Bali::VERSION
-=> "3.9.0"  # the tag you pinned in Step 1, without the leading v
+=> "3.9.1"  # the tag you pinned in Step 1, without the leading v
 ```
 
 ### 2. Check Component Rendering

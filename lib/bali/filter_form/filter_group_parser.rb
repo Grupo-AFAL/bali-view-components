@@ -43,9 +43,9 @@ module Bali
       #     }
       #   ]
       def filter_groups
-        return [] if @groupings.blank?
+        return [] if applied_groupings.blank?
 
-        @groupings.map do |_index, group_params|
+        applied_groupings.map do |_index, group_params|
           parse_filter_group(group_params.deep_symbolize_keys)
         end
       end
