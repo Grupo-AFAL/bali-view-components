@@ -67,7 +67,9 @@
   /* button/index.css mixes a coloured outline button's text toward base-content, which is right
    * over the page and wrong over a preset's fill: on `neutral` in `afal` a warning outline read
    * 8.67:1 in its own colour and 2.46 mixed. A soft button keeps the mix: it paints its own
-   * ground. */
+   * ground. The base-100 surfaces inside the bar (the mobile menu, a Dropdown panel) get
+   * daisyUI's colour too, as before the mix. A bar painted with `color: nil` and a `bg-*` class
+   * of the host's is not matched. */
   &:is(.navbar-primary, .navbar-secondary, .navbar-accent, .navbar-neutral):not(.is-transparent) :is(.btn-outline, .btn-dash) {
     --btn-rest-fg: initial;
   }

@@ -16,7 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`btn-error btn-outline`: 2.75 → 7.12 en `afal`). Cambia igual con `Bali::Button`/`Link`/
   `DeleteLink` (`style: :outline`/`:soft`) que con `btn btn-error btn-outline` a mano, como el
   «Archivar» de centinela-web. Borde, hover y foco no cambian; `primary` tampoco, ni un botón con
-  contorno sobre una Navbar de color, que conserva el de daisyUI.
+  contorno en una Navbar con un `color:` de preset, que conserva el de daisyUI. Una Navbar con
+  `color: nil` y un `bg-*` propio sí toma la mezcla, que sobre un fondo oscuro no contrasta;
+  ninguna app de la flota la usa así.
 - **Alertas y badges de error `soft`, `outline` y `dash` con la tinta de `text-soft-error`**
   (#1333): en los temas claros dejan el café (rgb(114, 72, 80) en `afal`) y leen el mismo rojo
   que el error del FormBuilder. En los oscuros no cambia nada.

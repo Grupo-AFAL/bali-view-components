@@ -42,7 +42,9 @@ describe('Tinted buttons', () => {
           expect(button.matches(':hover, :focus-visible'), `${button.className}: at rest`).to.equal(false)
           expect(paintedContrast(button), `${theme}: ${button.className}`).to.be.at.least(AA)
         })
-        tinted.filter(button => button.matches('.btn-error')).forEach((button) => {
+        const errors = tinted.filter(button => button.matches('.btn-error'))
+        expect(errors, 'error outline and soft, twice').to.have.length(4)
+        errors.forEach((button) => {
           expect(pixel(button), `${theme}: ${button.className} in text-soft-error's ink`).to.deep.equal(errorInk(doc))
         })
       })
@@ -63,8 +65,7 @@ describe('Tinted buttons', () => {
     })
   })
 
-  // Over a preset's fill the mix leans on the fill itself: a warning outline on the `neutral` bar
-  // in `afal` read 8.67:1 in its own colour and 2.46 mixed. A soft button paints its own ground.
+  // The measurement is in navbar/index.css, next to the rule.
   it('keeps daisyUI\'s colour on an outline button over a coloured Navbar', () => {
     cy.visit('/bali/navbar/default?color=neutral')
     cy.get('nav.navbar').then(([nav]) => {
