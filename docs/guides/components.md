@@ -368,6 +368,12 @@ The AppLayout previews model both: "Topbar + Sidebar + Content" and
 
 The root element is a `<header>` (the page's banner landmark) and the hamburger is a `Bali::SideMenu::Trigger::Component`.
 
+The search zone takes whatever width the actions leave. Below 6rem the Command's default
+trigger folds to a 32px square with the magnifier, and its label stays the button's
+accessible name; a `with_trigger` slot is left as it is. With six actions at 320px the zone
+gets 2px and not even the icon fits: hide an action below `sm`, as in
+`IconAction::Component.new(..., class: "max-sm:hidden")`.
+
 ##### Topbar::UserMenu
 
 The prefabricated user dropdown for the `with_user_menu` slot — a preset of
