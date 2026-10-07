@@ -14,8 +14,8 @@
 
 /* A trail wider than its box scrolls from its end, so the current page is the part in view: a
  * reversed axis puts the scroll origin at the end, and the auto margin keeps a trail that fits
- * at the start. At 320px the current page used to show 26 of its 113px. `ol` and `menu` too:
- * daisyUI styles all three, and a host may write the markup by hand. */
+ * at the start. `ol` and `menu` too: daisyUI styles all three, and a host may write the markup
+ * by hand. */
 .breadcrumbs {
   display: flex;
   flex-direction: row-reverse;
