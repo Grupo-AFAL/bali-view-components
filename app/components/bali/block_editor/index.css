@@ -344,7 +344,7 @@
 
 /* Each token carries both themes' colours (withBothThemes in BlockNoteEditorWrapper.jsx);
    light-dark() reads the color-scheme Mantine sets on the editor, which is the page's
-   (usePageColorScheme there). */
+   (hostColorScheme there). */
 .block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki {
   color: light-dark(var(--shiki-light), var(--shiki-dark));
 }

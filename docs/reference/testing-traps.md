@@ -57,7 +57,7 @@ goes here.
   `useEffect` missed a switch landing between its first render and the effect, and stayed light
   on a dark page: 3 of 30 switches under Cypress, so the guard went green most runs. Treat such
   a flake as the bug. `useSyncExternalStore` reads the value again once it has subscribed
-  (`usePageColorScheme` in `BlockNoteEditorWrapper.jsx`): 0 of 50.
+  (the editor's scheme in `BlockNoteEditorWrapper.jsx`): 0 of 50.
 - **Hidden text is still text.** Assert visibility or state, not `textContent` — hidden notices
   are always in the DOM.
 - **"No request happened"** needs a bounded `cy.wait(…)` before asserting
