@@ -229,3 +229,42 @@ describe('FiltersController: portaled widgets inside the panel', () => {
     cy.get(panel).should('have.class', 'hidden')
   })
 })
+
+// #1333 — the panel hangs from the trigger's left edge and is 42rem wide, so on
+// /admin/movies at 1024 px it ran from 588 to 1260, past the right of the screen with Apply
+// in it. The app page and not a preview: only a real toolbar puts the trigger that far right.
+describe('FiltersController: the panel stays on screen', () => {
+  const appOrigin = new URL(Cypress.config('baseUrl')).origin
+  const trigger = '[data-filters-target="dropdown"] > button'
+  const panel = '[data-filters-target="dropdownContent"] > div'
+
+  // Measured once the opening scale has finished, or the box is a frame of it.
+  const openSettled = () => {
+    cy.get(trigger).click()
+    cy.get(panel).should(($panel) => expect($panel[0].getAnimations()).to.have.length(0))
+  }
+
+  it('slides left when it would spill past the right edge', () => {
+    cy.viewport(1024, 800)
+    cy.visit(`${appOrigin}/admin/movies`)
+    openSettled()
+
+    cy.get(panel).then(($panel) => {
+      const viewport = $panel[0].ownerDocument.documentElement.clientWidth
+      expect($panel[0].getBoundingClientRect().right).to.be.at.most(viewport - 16)
+    })
+  })
+
+  it('stays under its trigger where it fits', () => {
+    cy.viewport(1440, 900)
+    cy.visit(`${appOrigin}/admin/movies`)
+    openSettled()
+
+    cy.get(trigger).then(($trigger) => {
+      cy.get(panel).then(($panel) => {
+        expect($panel[0].getBoundingClientRect().left)
+          .to.be.closeTo($trigger[0].getBoundingClientRect().left, 1)
+      })
+    })
+  })
+})

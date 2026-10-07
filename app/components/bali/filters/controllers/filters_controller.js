@@ -9,6 +9,10 @@ import { Controller } from '@hotwired/stimulus'
 // Drawer had).
 const PORTALED_POPUPS = '.flatpickr-calendar, .ss-content'
 
+// Read by the panel's `sm:left-[…]` in component.html.erb.
+const PANEL_SHIFT_PROPERTY = '--bali-filters-panel-shift'
+const VIEWPORT_GUTTER = 16
+
 /**
  * Main controller for the Filters component.
  * Handles adding/removing groups, form submission, and URL management.
@@ -119,6 +123,7 @@ export class FiltersController extends Controller {
         { duration: 300, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'both' }
       )
     } else {
+      this.keepInViewport(inner)
       inner.style.transformOrigin = 'top left'
       this._currentAnimation = inner.animate(
         [
@@ -134,6 +139,18 @@ export class FiltersController extends Controller {
       this._currentAnimation = null
       inner.style.transformOrigin = ''
     }
+  }
+
+  // The panel hangs from the trigger's left edge and is 42rem wide: on /admin/movies at
+  // 1024 px it ran from 588 to 1260, Apply included (#1333). Slid left by what spills, down
+  // to the 1rem gutter its max-width keeps; measured before the opening scale starts.
+  keepInViewport (inner) {
+    const content = this.dropdownContentTarget
+    content.style.removeProperty(PANEL_SHIFT_PROPERTY)
+
+    const spill = inner.getBoundingClientRect().right -
+      (document.documentElement.clientWidth - VIEWPORT_GUTTER)
+    if (spill > 0) content.style.setProperty(PANEL_SHIFT_PROPERTY, `${-spill}px`)
   }
 
   /**
