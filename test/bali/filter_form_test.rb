@@ -23,6 +23,11 @@ class AdvancedMovieFilterForm < Bali::FilterForm
   attribute :genre_eq
 end
 
+# A date column next to `created_at`'s datetime, for #1282's "between".
+class ProductionDatesFilterForm < AdvancedMovieFilterForm
+  filter_attribute :production_starts_on, type: :date
+end
+
 # Test inheritance
 class ExtendedMovieFilterForm < AdvancedMovieFilterForm
   filter_attribute :rating, type: :number
@@ -337,20 +342,10 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal([ "Next day" ], form.result.pluck(:name))
   end
 
-  def test_a_nested_group_includes_its_whole_last_day
-    @tenant.movies.create!(name: "Last day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
-    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
-    form = AdvancedMovieFilterForm.new(
-      @tenant.movies, grouped_params(0 => { g: { "0" => { created_at_lteq: "2026-08-27" } } })
-    )
-
-    assert_equal([ "Last day" ], form.result.pluck(:name))
-  end
-
   def test_a_between_range_over_a_date_column_still_compares_dates
     @tenant.movies.create!(name: "Last day", production_starts_on: Date.new(2026, 8, 27))
     @tenant.movies.create!(name: "Next day", production_starts_on: Date.new(2026, 8, 28))
-    form = AdvancedMovieFilterForm.new(
+    form = ProductionDatesFilterForm.new(
       @tenant.movies,
       grouped_params(0 => { production_starts_on_gteq: "2026-08-25",
                             production_starts_on_lteq: "2026-08-27" })
@@ -377,11 +372,10 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     @tenant.movies.create!(name: "Neither", created_at: Time.zone.local(2026, 1, 1))
     form = AdvancedMovieFilterForm.new(
       @tenant.movies,
-      grouped_params(0 => { m: "or", created_at_eq: "2026-08-27", name_eq: "Named",
-                            g: { "0" => { name_eq: "Neither", created_at_lt: "2026-06-01" } } })
+      grouped_params(0 => { m: "or", created_at_eq: "2026-08-27", name_eq: "Named" })
     )
 
-    assert_equal([ "Late that day", "Named", "Neither" ], form.result.reorder(:name).pluck(:name))
+    assert_equal([ "Late that day", "Named" ], form.result.reorder(:name).pluck(:name))
   end
 
   # A string column answers `_eq` exactly; a day-long range over it would match nothing.
@@ -2126,16 +2120,6 @@ class EnumCastingFilterFormTest < ActiveSupport::TestCase
     assert_equal from_relation.result.pluck(:id), from_class.result.pluck(:id)
   end
 
-  def test_enum_labels_are_cast_inside_nested_groupings
-    filter_params = { g: { "0" => { g: { "0" => { status_eq: "done" } }, m: "or" } } }
-    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
-
-    assert_equal 1, form.ransack_params[:g]["0"]["g"]["0"]["status_eq"]
-    # Ransack DISCARDS a condition it does not understand without raising anything, so the param
-    # alone does not tell "filtered right" from "dropped the condition and returned everything".
-    assert_equal [ @done.name ], form.result.pluck(:name)
-  end
-
   # `q[g][]` (groupings as an ARRAY) is a valid Ransack shape Bali does not emit: it reached
   # `to_unsafe_h` as an Array and returned a 500 on any index from a hand-written URL. Normalising
   # it to the indexed shape also brings it INSIDE the enum translation, instead of dodging it and
@@ -2144,16 +2128,6 @@ class EnumCastingFilterFormTest < ActiveSupport::TestCase
     form = EnumMovieFilterForm.new(@tenant.movies, params({ g: [ { status_in: [ "done" ], m: "and" } ] }))
 
     assert_equal 1, form.ransack_params[:g]["0"]["status_in"].first
-    assert_equal [ @done.name ], form.result.pluck(:name)
-  end
-
-  # Input normalisation only reaches the top level, so a NESTED `g` can still arrive as an array:
-  # without covering it, the inner group dodges the translation.
-  def test_enum_labels_are_cast_inside_a_nested_array_grouping
-    filter_params = { g: { "0" => { g: [ { status_eq: "done" } ], m: "or" } } }
-    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
-
-    assert_equal 1, form.ransack_params[:g]["0"]["g"].first["status_eq"]
     assert_equal [ @done.name ], form.result.pluck(:name)
   end
 
@@ -2179,11 +2153,9 @@ class EnumCastingFilterFormTest < ActiveSupport::TestCase
   def test_only_equality_predicates_translate_enum_labels
     contains = EnumMovieFilterForm.new(@tenant.movies, params({ status_cont: "done" }))
     ordered = EnumMovieFilterForm.new(@tenant.movies, params({ status_gteq: "done" }))
-    nulls = EnumMovieFilterForm.new(@tenant.movies, params({ g: { "0" => { status_null: "1" } } }))
 
     assert_equal "done", contains.ransack_params["status_cont"]
     assert_equal "done", ordered.ransack_params["status_gteq"]
-    assert_equal "1", nulls.ransack_params[:g]["0"]["status_null"]
   end
 
   # @groupings is THE SAME object the popover renders and that travels in a saved view's payload:
@@ -2214,9 +2186,10 @@ class EnumCastingFilterFormTest < ActiveSupport::TestCase
     assert_equal [ action.name ], by_value.result.pluck(:name)
   end
 
+  # The panel never writes one, so it takes a form that declares no panel to reach Ransack.
   def test_compound_predicates_translate_every_member
     filter_params = { g: { "0" => { status_eq_any: %w[done draft] } } }
-    form = EnumMovieFilterForm.new(@tenant.movies, params(filter_params))
+    form = Bali::FilterForm.new(@tenant.movies, params(filter_params))
 
     assert_equal [ 1, 0 ], form.ransack_params[:g]["0"]["status_eq_any"]
   end

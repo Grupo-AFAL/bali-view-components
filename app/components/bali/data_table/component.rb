@@ -83,7 +83,9 @@ module Bali
       # populated from the form: available_attributes, filter_groups, and search config.
       #
       # @param available_attributes [Array<Hash>] Filterable attributes
-      #   (auto-populated from filter_form if not provided)
+      #   (auto-populated from filter_form if not provided). A filter_form that declares
+      #   attributes lets only its own reach Ransack, so an attribute given here and not there
+      #   filters nothing: offer it from the form's `available_attributes` (#1346)
       # @param filter_groups [Array<Hash>] Initial filter state
       #   (auto-populated from filter_form if not provided)
       # @param search [Hash] Quick search configuration

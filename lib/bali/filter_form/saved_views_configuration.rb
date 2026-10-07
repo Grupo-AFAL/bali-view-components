@@ -119,7 +119,7 @@ module Bali
           # was born without its narrowing: `country_eq=USA` was measured cutting 25 rows down
           # to 5 and the payload came out as `{"attributes"=>{}, "search_value"=>"pic"}`.
           "simple_filters" => active_simple_filters.presence,
-          "groupings" => @groupings,
+          "groupings" => applied_groupings,
           "combinator" => @combinator,
           "search_value" => @search_value,
           # To String, not the Symbol from `resolve_group_by`: this payload is compared against
