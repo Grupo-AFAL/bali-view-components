@@ -1,3 +1,4 @@
+import { paintedPixel } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 
 // Uses the Lookbook preview (no DB dependency): the default preview renders
@@ -252,6 +253,20 @@ describe('DocumentEditor save status', () => {
   })
 })
 
+// A read-only viewer renders neither the title input nor the content input, and Ctrl/Cmd+S
+// reaches every DocumentEditor on the page: its save has nothing to send.
+describe('DocumentEditor save with nothing to send', () => {
+  it('leaves the status at rest', () => {
+    cy.visit('/bali/document_editor/default?editable=false')
+    cy.get('[data-document-editor-target="editorArea"]:visible .bn-editor')
+      .should('contain.text', 'Project Overview')
+
+    cy.get('body').type('{ctrl}s')
+
+    cy.get('[data-document-editor-target="saveStatus"]').should('have.text', '')
+  })
+})
+
 // The "…" menu of a comment in the side panel hangs outside every `.bn-root`, where BlockNote's
 // --bn-border-radius-medium is undefined: its corners were 0 against the 8px of every other menu
 // on the preview's light theme.
@@ -301,9 +316,13 @@ describe('DocumentEditor comment menu', () => {
   })
 })
 
-// Side by side at 390px, the open table of contents left the document a 70px column and broke
-// its title letter by letter.
 describe('DocumentEditor on a phone', () => {
+  const editor = () => cy.get('[data-document-editor-target="editorArea"]:visible .bn-editor')
+  const edit = text => editor().find('.bn-inline-content').last().click().type(text)
+  const rect = $el => $el[0].getBoundingClientRect()
+
+  // Side by side at 390px, the open table of contents left the document a 70px column and broke
+  // its title letter by letter.
   it('stacks the open table of contents above a full-width editor', () => {
     cy.viewport(390, 844)
     cy.visit('/bali/document_editor/default')
@@ -311,6 +330,84 @@ describe('DocumentEditor on a phone', () => {
 
     cy.get('[data-document-editor-target="editorArea"]').should(($area) => {
       expect($area[0].getBoundingClientRect().width, 'editor area width').to.equal(390)
+    })
+  })
+
+  // Beside the editor, a panel's w-80 left it 70px at 390px. Over it, the panel has to paint a
+  // ground of its own, or the document shows through, and cover BlockNote's floating UI: the
+  // block handle still follows the pointer through the panel, and its z-index 20 drew it on top.
+  ;['comments', 'history'].forEach((panel) => {
+    it(`lays the ${panel} panel over the whole editor`, () => {
+      cy.viewport(390, 844)
+      cy.visit('/bali/document_editor/default')
+      editor().should('contain.text', 'Key Objectives')
+      cy.get(`[data-document-editor-target="${panel}Toggle"]`).click()
+
+      cy.get(`[data-document-editor-target="${panel}Panel"]`).should(($panel) => {
+        expect([rect($panel).left, rect($panel).width], 'panel left and width').to.deep.equal([0, 390])
+
+        const background = getComputedStyle($panel[0]).backgroundColor
+        expect(() => paintedPixel($panel[0].ownerDocument, background), 'panel background is opaque')
+          .not.to.throw()
+      })
+
+      editor().find('[data-content-type="paragraph"]').first().then(($block) => {
+        const { top, height } = rect($block)
+        cy.document().trigger('mousemove', { clientX: 20, clientY: top + height / 2 })
+      })
+      cy.get('.bn-side-menu').should(($handle) => {
+        const { left, top, width, height } = rect($handle)
+        const hit = $handle[0].ownerDocument.elementFromPoint(left + width / 2, top + height / 2)
+        expect(hit.closest('[data-document-editor-target$="Panel"]'), 'what the handle point shows')
+          .to.equal($handle[0].ownerDocument.querySelector(`[data-document-editor-target="${panel}Panel"]`))
+      })
+    })
+  })
+
+  // With "Unsaved changes" the bar ran off the screen: at 390px the close button ended at x=407
+  // and the title had 26px.
+  ;[320, 390].forEach((width) => {
+    it(`keeps the close button and the title on screen at ${width}px`, () => {
+      cy.viewport(width, 844)
+      cy.visit('/bali/document_editor/default')
+      editor().should('contain.text', 'Key Objectives')
+      edit(' edited')
+      cy.get('[data-document-editor-target="saveStatus"]').should('have.text', 'Unsaved changes')
+
+      cy.get('[data-action="document-editor#close"]').should(($close) => {
+        expect(rect($close).right, 'close button right edge').to.be.at.most(width)
+      })
+      cy.get('[data-document-editor-target="titleInput"]').should(($title) => {
+        expect(rect($title).width, 'title width').to.be.at.least(80)
+      })
+    })
+  })
+
+  // Below `sm` the status text leaves the bar: the dot on Save is what says something is
+  // unsaved, and only a failure is still spelled out — the one text that can crowd the close
+  // button, so it is measured at 320px in the longest locale that ships, `es`.
+  it('marks unsaved changes with a dot and spells out a failed save', () => {
+    const failed = 'Error al guardar'
+
+    cy.viewport(320, 844)
+    cy.visit('/bali/document_editor/default')
+    editor().should('contain.text', 'Key Objectives')
+    cy.get('[data-controller="document-editor"]').invoke('attr', 'data-document-editor-status-failed-value', failed)
+    cy.get('.document-editor-unsaved-dot').should('not.be.visible')
+
+    edit(' edited')
+    cy.get('.document-editor-unsaved-dot').should('be.visible')
+
+    cy.intercept('PATCH', /\/lookbook$/, { statusCode: 500, body: {} }).as('save')
+    cy.get('[data-document-editor-target="saveButton"]').click()
+    cy.wait('@save')
+
+    cy.get('[data-document-editor-target="saveStatus"]').should(($status) => {
+      expect($status.text()).to.equal(failed)
+      expect(rect($status).width, 'status width').to.be.above(1)
+    })
+    cy.get('[data-action="document-editor#close"]').should(($close) => {
+      expect(rect($close).right, 'close button right edge').to.be.at.most(320)
     })
   })
 })

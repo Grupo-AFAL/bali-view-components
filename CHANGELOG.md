@@ -81,6 +81,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   llegar por ese enlace; también si el botón que lo abrió desapareció con el panel abierto. Sin
   AppLayout, un `<main>` sin `tabindex="-1"` no toma el foco y queda como antes.
 
+- **DocumentEditor en el teléfono: la barra superior cabe y los paneles ya no aplastan el
+  editor** (#1333). Debajo de `sm`, con cambios sin guardar, el botón de cerrar se salía de la
+  pantalla y el título quedaba casi sin ancho. Ahora Guardar queda en su icono, con un punto
+  mientras hay cambios sin guardar, y el estado sólo se ve si el guardado falla. Los paneles de
+  comentarios e historial cubren el editor a todo el ancho. Desde `sm` nada cambia. Nada que hacer
+  en la app.
+- **DocumentEditor: Ctrl/Cmd+S en un visor de sólo lectura ya no deja «Saving...» para
+  siempre.** Sin título ni contenido que enviar, el estado ya no cambia. Nada que hacer en la app.
+- **BlockEditor: el nombre de una referencia larga se trunca con «…» dentro del editor** en vez
+  de salirse por la derecha. Nada que hacer en la app.
+
 ### Documentation
 
 - **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).
