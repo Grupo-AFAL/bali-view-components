@@ -4490,7 +4490,7 @@ The search input includes a clear button (x) that appears when text is entered. 
 |--------|------|---------|-------------|
 | `url` | String | Required | Form action URL |
 | `filter_form` | FilterForm | Required | FilterForm instance |
-| `available_attributes` | Array | Required | Filterable attributes (`filter_form.available_attributes` when driven by a FilterForm: a form that declares attributes lets only its own reach Ransack, #1346) |
+| `available_attributes` | Array | Required | Filterable attributes (`filter_form.available_attributes` when driven by a FilterForm: a form that offers the panel attributes lets only those reach Ransack, #1346) |
 | `popover` | Boolean | `true` | Use popover mode |
 | `storage_id` | String | `nil` | Enable persistence |
 | `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |

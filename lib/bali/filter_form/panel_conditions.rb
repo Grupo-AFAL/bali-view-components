@@ -25,14 +25,13 @@ module Bali
       # Lazy, never in `initialize`: a host's `available_attributes` can read state its own
       # `initialize` sets after `super` (afal-apps' TDFlow::ProjectsFilterForm reads
       # `@population` there, and calls `groupings` before setting it). That is also why
-      # `groupings` stays the state as it arrived.
+      # `groupings` is normalized but not gated.
       def applied_groupings
         return @applied_groupings if defined?(@applied_groupings)
 
         @applied_groupings = normalize_groupings(@groupings)&.filter_map { |index, group|
-          group = group.stringify_keys
-          conditions = group.except("m").select { |key, value| applicable_condition?(key, value) }
-          [ index.to_s, conditions.merge("m" => sanitized_combinator(group["m"])).compact ] if conditions.any?
+          applicable = applicable_group(group.stringify_keys)
+          [ index.to_s, applicable ] if applicable
         }.to_h.presence
       end
 
@@ -48,22 +47,29 @@ module Bali
         groups.transform_values { |group| unwrap_params(group) }.select { |_index, group| group.is_a?(Hash) }.presence
       end
 
+      # The group's conditions that pass, with its combinator; nil when none does.
+      def applicable_group(group)
+        conditions = group.except("m").select { |key, value| applicable_condition?(key, value) }
+        conditions.merge("m" => sanitized_combinator(group["m"])).compact if conditions.any?
+      end
+
       def applicable_condition?(key, value)
         return false if panel_condition_keys && !panel_condition_keys.include?(key)
+        return queryable_value?(value) unless list_predicate?(key)
 
-        values = list_predicate?(key) ? Array.wrap(value) : [ value ]
-        values.all? { |member| queryable_value?(member) } && fits_column?(key, value)
+        Array.wrap(value).all? { |member| queryable_value?(member) } && fits_column?(key, value)
       end
 
       # Every key the panel can write: each attribute of `available_attributes` with each
       # operator its type offers. "Between" travels as its `_gteq`/`_lteq` pair, which a date
       # already offers.
       #
-      # nil when the form declares no attribute, and then any key goes and Ransack decides, as
-      # before: a bare `FilterForm.new(scope, params)` whose panel takes its attributes in
-      # the view (`with_filters_panel(available_attributes:)`, the DataTable previews), or
+      # nil when the form offers the panel no attribute (none declared, or all `advanced:
+      # false`), and then any key goes and Ransack decides, as before: a bare
+      # `FilterForm.new(scope, params)` whose panel takes its attributes in the view
+      # (`with_filters_panel(available_attributes:)`, the DataTable previews), or
       # gobierno-corporativo's BusinessProcessesFilterForm, which reads `active_eq` from
-      # `q[g]` with no panel at all.
+      # `q[g]` with every attribute `advanced: false`.
       def panel_condition_keys
         return @panel_condition_keys if defined?(@panel_condition_keys)
 
@@ -84,15 +90,16 @@ module Bali
       def queryable_value?(value)
         case value
         when String then !value.match?(CONTROL_CHARACTER)
-        when Hash, Array then false
+        when Hash, Array, ActionController::Parameters then false
         else true
         end
       end
 
-      # By the type of the column the condition reaches, so the limit is the database's own:
-      # an `integer` stops at 2**31 in Postgres and at 2**63 in SQLite. `_eq` and `_gt` inline
-      # the number and do not raise, but a value past the column cannot match a row either.
-      # A ransacker has no column to ask.
+      # A list is serialized member by member with the type of the column the condition
+      # reaches, and a member past it raises `ActiveModel::RangeError` while the query is
+      # built: an `integer` stops at 2**31 in Postgres and at 2**63 in SQLite. A single value
+      # is inlined (`_eq`, `_gt`) and answers no rows, which is right, so only lists are
+      # asked. A ransacker has no column to ask.
       def fits_column?(key, value)
         condition = ransack_condition(key, value)
         return true if condition.nil?

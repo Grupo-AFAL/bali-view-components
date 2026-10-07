@@ -29,15 +29,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`FilterForm`: a Ransack solo llega lo que el panel puede escribir** (#1346). Pasa cada
   atributo de `available_attributes` (el de la instancia) con los operadores que su tipo
-  ofrece. Las listas, solo en `_in` y `_not_in`. Los valores, escalares, sin caracteres de
-  control y que quepan en el tipo de su columna. Lo demás no filtra y el panel no lo pinta:
-  antes daba 500 (un NUL, un id más largo que su columna dentro de un `_in`) o filtraba sin
-  pintarse (un `g` anidado, la forma `c`). Vale para la URL, las vistas guardadas y el caché de
-  filtros, y la búsqueda rápida con un carácter de control no busca nada. Un form que no declara
-  atributos deja pasar cualquier condición, menos las que tumban la consulta. **Qué revisar:** un
-  enlace, una prueba o una vista guardada que mande en `q[g]` un atributo que el panel no ofrece
-  deja de filtrar. Si pasas `available_attributes:` a `with_filters_panel`, el form tiene que
-  ofrecer los mismos.
+  ofrece. Las listas, solo en `_in` y `_not_in`, y con miembros que quepan en el tipo de su
+  columna. Los valores, escalares y sin caracteres de control. Lo demás no filtra y el panel no
+  lo pinta: antes daba 500 (un NUL, un id más largo que su columna dentro de un `_in`) o
+  filtraba sin pintarse (un `g` anidado, la forma `c`). Vale para la URL, las vistas guardadas
+  y el caché de filtros. La caja de búsqueda rápida sigue la misma regla de valores; un
+  `attribute` plano con el mismo nombre, no. Un form que no le ofrece atributos al panel
+  (ninguno declarado, o todos `advanced: false`) deja pasar cualquier condición, menos las que
+  tumban la consulta. **Qué revisar:**
+  - Un enlace, una prueba o una vista guardada que mande en `q[g]` un atributo que el panel no
+    ofrece deja de filtrar.
+  - Si pasas `available_attributes:` a `with_filters_panel`, el form tiene que ofrecer los
+    mismos.
+  - Un `available_attributes` propio que consulta la base corre una vez más cuando la URL trae
+    condiciones del panel; memoízalo.
 
 - **`FilterForm`: una vista guardada con datos que no son Hash abre el listado sin ese filtro**
   (#1347), en lugar de dar 500 cada vez que alguien la abre. Aplica al payload entero y a

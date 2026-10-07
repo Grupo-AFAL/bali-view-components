@@ -71,12 +71,20 @@ class BaliFilterFormPanelConditionsTest < ActiveSupport::TestCase
     assert_equal 2, applied.result.count
   end
 
-  test "an id past its column's type is no filter" do
+  test "a list with an id past its column's type is no filter" do
     applied = form({ "0" => { tenant_id_in: [ NUMBER_PAST_ANY_COLUMN ] }, "1" => { studio_id_not_in: [ NUMBER_PAST_ANY_COLUMN ] },
-                     "2" => { tenant_id_eq: NUMBER_PAST_ANY_COLUMN }, "3" => { tenant_id_in: [ @studio.id.to_s ] } })
+                     "2" => { tenant_id_in: [ @studio.id.to_s ] } })
 
     assert_equal [ [ "tenant_id", "in", [ @studio.id.to_s ] ] ], conditions(applied)
     assert_equal 2, applied.result.count
+  end
+
+  # Inlined, it does not raise: it answers no rows, and dropping it would list them all.
+  test "a single id past its column's type still matches nothing" do
+    applied = form({ "0" => { tenant_id_eq: NUMBER_PAST_ANY_COLUMN } })
+
+    assert_equal [ [ "tenant_id", "eq", NUMBER_PAST_ANY_COLUMN ] ], conditions(applied)
+    assert_empty applied.result.to_a
   end
 
   test "a condition that is not a value is no filter" do
@@ -105,8 +113,8 @@ class BaliFilterFormPanelConditionsTest < ActiveSupport::TestCase
     assert_equal [ @ana ], applied.result.to_a
   end
 
-  test "a quick search with a control character or a list searches nothing" do
-    [ "A\u0000na", [ "Ana" ] ].each do |value|
+  test "a quick search with a control character, a list or a hash searches nothing" do
+    [ "A\u0000na", [ "Ana" ], { "x" => "Ana" } ].each do |value|
       searched = PanelFilterForm.new(Movie.all, ActionController::Parameters.new(q: { name_cont: value }))
 
       assert_nil searched.search_value, value.inspect
@@ -114,15 +122,20 @@ class BaliFilterFormPanelConditionsTest < ActiveSupport::TestCase
     end
   end
 
-  # The panel takes its attributes in the view: Ransack decides, as it did, but nothing that
-  # breaks the query gets through.
-  test "a form that declares no attribute lets any condition through but what breaks the query" do
-    bare = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: {
-      "0" => { name_cont: "Ana", genre_cont: "Dra" }, "1" => { name_eq: "A\u0000na" }, "2" => { g: { "0" => { name_eq: "Bob" } } }
-    } }))
+  # The panel takes its attributes in the view, or there is none: Ransack decides, as it did,
+  # but nothing that breaks the query gets through.
+  class SimpleOnlyFilterForm < Bali::FilterForm
+    filter_attribute :genre, type: :select, simple: true, advanced: false, options: [ %w[Drama Drama] ]
+  end
 
-    assert_equal [ [ "name", "cont", "Ana" ], [ "genre", "cont", "Dra" ] ], conditions(bare)
-    assert_equal [ @ana ], bare.result.to_a
+  test "a form that offers the panel no attribute lets any condition through but what breaks the query" do
+    [ Bali::FilterForm, SimpleOnlyFilterForm ].each do |form_class|
+      offered_none = form({ "0" => { name_cont: "Ana", genre_cont: "Dra" }, "1" => { name_eq: "A\u0000na" },
+                            "2" => { g: { "0" => { name_eq: "Bob" } } } }, form_class: form_class)
+
+      assert_equal [ [ "name", "cont", "Ana" ], [ "genre", "cont", "Dra" ] ], conditions(offered_none), form_class.name
+      assert_equal [ @ana ], offered_none.result.to_a
+    end
   end
 end
 

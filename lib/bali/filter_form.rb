@@ -410,7 +410,7 @@ module Bali
         )
       end
 
-      # Postgres refuses a NUL in the search term, and every source above can bring one (#1346).
+      # The same values a panel condition takes, from every source above (#1346).
       @search_value = nil unless queryable_value?(@search_value)
 
       # Last, after persistence — see {GroupByConfiguration#apply_default_group_by} (#1156).
@@ -698,6 +698,7 @@ module Bali
 
     # The panel's groups as the URL brings them (`q[g][0][field_operator]=value`,
     # `q[g][0][m]=or`); what of them gets applied is {PanelConditions#applied_groupings}.
+    # A hook: afal-apps' TDFlow::DeliverablesFilterForm overrides it to drop `q[g]` whole.
     def extract_groupings(q_params)
       normalize_groupings(q_params[:g])
     end

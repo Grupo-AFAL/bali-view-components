@@ -327,15 +327,17 @@ FilterForm is organized into focused concerns for maintainability:
   happens in `ransack_search`.
 - **Only what the panel can write gets through** (#1346): each key of the INSTANCE's
   `available_attributes` with the operators its type offers (`Filters::Operators.for_type`),
-  lists only on `_in`/`_not_in`, scalar values with no control characters that fit their
-  column's type. Anything else, from a URL, a saved view or the filter cache, is no filter,
-  and the panel does not paint it. A form that declares no attribute lets any condition through
-  except the ones that break the query. So an attribute passed to
+  lists only on `_in`/`_not_in` with members that fit their column's type, scalar values with
+  no control characters. Anything else, from a URL, a saved view or the filter cache, is no
+  filter, and the panel does not paint it. A form that offers the panel no attribute (none
+  declared, or all `advanced: false`) lets any condition through except the ones that break
+  the query. So an attribute passed to
   `with_filters_panel(available_attributes:)` and not offered by the form filters nothing:
   offer it from the form.
-- **`groupings` is the state as it arrived; `filter_groups` is what is applied.** The gate runs
-  lazily, after the host's `initialize`, because a host's `available_attributes` may need state
-  set after `super`.
+- **`groupings` is the state as it arrived, normalized but not gated; `filter_groups` is what
+  is applied.** The gate runs lazily, after the host's `initialize`, because a host's
+  `available_attributes` may need state set after `super` — and it runs it once more, so
+  memoize an override that queries.
 - **`ransack_auth_object`** (#1348) is the `auth_object:` every Ransack search of the form gets:
   the listing's, `group_by_attribute`'s validation and the per-condition probes. Return what
   `ransackable_attributes(auth_object)` narrows on, set before `super`:
