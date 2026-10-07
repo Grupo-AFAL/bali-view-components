@@ -85,12 +85,13 @@
 
 /* Inside a modal overlay the calendar joins the top layer as a popover, which is
  * the only way it stays clickable — see assets/javascripts/bali/utils/top-layer.js
- * for the hit-test. That brings the UA's `[popover]` rules with it, and two the
+ * for the hit-test. That brings the UA's `[popover]` rules with it, and those the
  * block above does not already state leak through: `inset: 0` fights the
- * coordinates flatpickr writes, and `margin: auto` then centres what is left.
- * Everything else (position, width, padding, border, background) is declared
- * above and wins on origin alone; the UA's `overflow: auto` finds nothing past
- * the calendar's edge to clip. */
+ * coordinates flatpickr writes, `margin: auto` then centres what is left, and
+ * `color: CanvasText` replaces the inherited colour. Everything else (position,
+ * width, padding, border, background) is declared above and wins on origin
+ * alone; the UA's `overflow: auto` finds nothing past the calendar's edge to
+ * clip. */
 .flatpickr-calendar[popover] {
   inset: auto;
   margin: 0;
