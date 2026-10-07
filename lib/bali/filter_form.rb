@@ -605,7 +605,9 @@ module Bali
     end
 
     def ransack_search
-      @ransack_search ||= scope.ransack(nest_panel_groupings(ransack_params), auth_object: ransack_auth_object)
+      @ransack_search ||= scope.ransack(
+        cast_root_whole_days(nest_panel_groupings(ransack_params)), auth_object: ransack_auth_object
+      )
     end
 
     # The `auth_object:` every Ransack search this form builds is given — the listing's, the
