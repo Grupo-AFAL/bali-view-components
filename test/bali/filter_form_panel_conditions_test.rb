@@ -18,6 +18,15 @@ class BaliFilterFormPanelConditionsTest < ActiveSupport::TestCase
     filter_attribute :budget_band, type: :select
   end
 
+  # identity's AccountsFilterForm: it reads the groups in its `initialize`, to round-trip them
+  # through what "select all N" re-emits, and keeps what comes back.
+  class ReemittingPanelFilterForm < PanelFilterForm
+    def initialize(...)
+      super
+      @groupings = @groupings.transform_values { |group| group.except("name_cont") } if filter_groups.any?
+    end
+  end
+
   # A host that builds the panel per instance (afal-apps, identity) overrides this method.
   class RatedPanelFilterForm < PanelFilterForm
     def available_attributes
@@ -104,6 +113,13 @@ class BaliFilterFormPanelConditionsTest < ActiveSupport::TestCase
   test "a ransacker answers the operators of its type" do
     assert_equal [ [ "budget_band", "eq", "indie" ] ],
                  conditions(form({ "0" => { budget_band_eq: "indie", budget_band_cont: "in" } }))
+  end
+
+  test "groups a host reassigns after reading them are the ones applied" do
+    applied = form({ "0" => { name_cont: "Bob", genre_eq: "Drama" } }, form_class: ReemittingPanelFilterForm)
+
+    assert_equal [ [ "genre", "eq", "Drama" ] ], conditions(applied)
+    assert_equal [ @ana ], applied.result.to_a
   end
 
   test "the attributes are the instance's, which hosts override" do

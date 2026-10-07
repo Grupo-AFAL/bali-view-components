@@ -26,13 +26,19 @@ module Bali
       # `initialize` sets after `super` (afal-apps' TDFlow::ProjectsFilterForm reads
       # `@population` there, and calls `groupings` before setting it). That is also why
       # `groupings` is normalized but not gated.
+      #
+      # Memoized per `@groupings` object: identity's AccountsFilterForm reads `filter_groups`
+      # in its `initialize` and then reassigns `@groupings` with what "select all N" would
+      # re-emit, and a plain memo kept applying the groups it had replaced.
       def applied_groupings
-        return @applied_groupings if defined?(@applied_groupings)
-
-        @applied_groupings = normalize_groupings(@groupings)&.filter_map { |index, group|
-          applicable = applicable_group(group.stringify_keys)
-          [ index.to_s, applicable ] if applicable
-        }.to_h.presence
+        unless defined?(@applied_groupings) && @applied_groupings_source.equal?(@groupings)
+          @applied_groupings_source = @groupings
+          @applied_groupings = normalize_groupings(@groupings)&.filter_map { |index, group|
+            applicable = applicable_group(group.stringify_keys)
+            [ index.to_s, applicable ] if applicable
+          }.to_h.presence
+        end
+        @applied_groupings
       end
 
       # Ransack's two shapes for `g` — an indexed hash, or an array (`q[g][]`, which Bali does
