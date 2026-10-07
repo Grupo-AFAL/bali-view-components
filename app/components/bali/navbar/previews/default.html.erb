@@ -2,8 +2,7 @@
     fullscreen: fullscreen,
     transparency: transparency,
     shadow: local_assigns.fetch(:shadow, true),
-    color: local_assigns[:color] || :base,
-    class: 'sticky top-0 z-50'
+    color: local_assigns[:color] || :base
 ) do |nav| %>
   <% nav.with_brand do %>
     <%= render Bali::Link::Component.new(name: 'LOGO', href: '#', variant: :ghost, class: 'text-xl') %>

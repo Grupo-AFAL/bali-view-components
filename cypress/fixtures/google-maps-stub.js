@@ -1,4 +1,5 @@
-// Stands in for the Google Maps JavaScript API in locations-map.cy.js.
+// Stands in for the Google Maps JavaScript API in locations-map.cy.js and
+// google-maps-color-scheme.cy.js.
 //
 // The real API is a paid, keyed, network-loaded script that paints into a
 // canvas: a test can neither load it (there is no key in CI) nor read anything
@@ -11,7 +12,7 @@
 // nothing here asserts anything, it only makes the controller's side effects
 // observable.
 (function () {
-  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [] }
+  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [], polygons: [] }
 
   class ListenerHost {
     constructor () {
@@ -38,6 +39,10 @@
       this.center = options.center
       this.zoom = options.zoom
       registry.maps.push(this)
+    }
+
+    getCenter () {
+      return this.center
     }
 
     setCenter (center) {
@@ -86,6 +91,16 @@
     return null
   }
 
+  // The window is drawn the way Maps JavaScript API 3.66 draws it, as far as its
+  // colours go: a white bubble whatever the map's colorScheme, and a close icon
+  // that its own sheet paints `light-dark(#000, #fff)`.
+  const bubbleStyle = window.document.createElement('style')
+  bubbleStyle.textContent = `
+    .gm-style-iw-c { background-color: #fff; padding: 12px }
+    .gm-ui-hover-effect > span { display: block; width: 24px; height: 24px; background-color: light-dark(#000, #fff) }
+  `
+  window.document.head.append(bubbleStyle)
+
   class FakeInfoWindow extends ListenerHost {
     constructor (options) {
       super()
@@ -98,6 +113,12 @@
       this.isOpen = true
       this.map = map
       this.marker = marker
+
+      this.bubble?.remove()
+      this.bubble = window.document.createElement('div')
+      this.bubble.className = 'gm-style-iw-c'
+      this.bubble.innerHTML = `<button class="gm-ui-hover-effect"><span></span></button><div class="gm-style-iw-d">${this.content}</div>`
+      map.element.append(this.bubble)
     }
 
     // Deliberately silent: in the real API `closeclick` fires when the user
@@ -105,6 +126,7 @@
     // would hide the difference the controller depends on.
     close () {
       this.isOpen = false
+      this.bubble?.remove()
     }
   }
 
@@ -113,6 +135,38 @@
       super()
       Object.assign(this, options)
       registry.markers.push(this)
+    }
+  }
+
+  // `setMap` is how the geocoder's pin and a drawn polygon are put on a map, and
+  // moved to another.
+  class FakeOverlay extends ListenerHost {
+    constructor (options = {}) {
+      super()
+      this.options = options
+      this.map = options.map
+    }
+
+    setMap (map) {
+      this.map = map
+    }
+  }
+
+  class FakeMarker extends FakeOverlay {
+    constructor (options) {
+      super(options)
+      registry.markers.push(this)
+    }
+  }
+
+  class FakePolygon extends FakeOverlay {
+    constructor (options) {
+      super(options)
+      registry.polygons.push(this)
+    }
+
+    getPaths () {
+      return [this.options.paths]
     }
   }
 
@@ -138,10 +192,22 @@
   window.google = {
     maps: {
       Map: FakeMap,
+      ColorScheme: { DARK: 'DARK', LIGHT: 'LIGHT', FOLLOW_SYSTEM: 'FOLLOW_SYSTEM' },
       InfoWindow: FakeInfoWindow,
       LatLngBounds: FakeLatLngBounds,
       OverlayView,
-      event: { trigger () {} },
+      Marker: FakeMarker,
+      Animation: { DROP: 'DROP' },
+      Polygon: FakePolygon,
+      // No `drawing` library: the API dropped DrawingManager in 3.65, and
+      // drawing-maps fails to build it inside its `try`, as it does against Google.
+      // Nothing here fires: the polygon's edits are not under test.
+      event: {
+        trigger () {},
+        addListener () {
+          return { remove () {} }
+        }
+      },
       importLibrary: () =>
         Promise.resolve({
           AdvancedMarkerElement: FakeAdvancedMarkerElement,
@@ -167,7 +233,10 @@
       })
     },
 
+    // The close button shuts the window and then fires `closeclick`.
     dismissInfoWindow (index) {
+      registry.infoWindows[index].isOpen = false
+      registry.infoWindows[index].bubble.remove()
       registry.infoWindows[index].emit('closeclick')
     }
   }

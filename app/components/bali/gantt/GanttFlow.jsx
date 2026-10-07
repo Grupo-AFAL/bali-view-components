@@ -661,12 +661,13 @@ function GanttCanvas (props) {
   const gridHeight = Math.max(rowsHeight, paneH || 600)
 
   // Splitter: drag the table's right edge to adjust its width. It starts from the painted width:
-  // until the board is measured, `effTableW` is a CSS value, not a number.
+  // until the board is measured, `effTableW` is a CSS value, not a number. Its floor is the
+  // default's: a 260 px one widened a phone's 173 px table to 260 at the first touch.
   const onSplitterDown = useCallback((e) => {
     e.preventDefault()
     const startX = e.clientX
     const startW = e.currentTarget.previousElementSibling.getBoundingClientRect().width
-    const move = (ev) => setTableWidth(Math.max(260, Math.min(900, startW + (ev.clientX - startX))))
+    const move = (ev) => setTableWidth(Math.max(NAME_MIN_W, Math.min(900, startW + (ev.clientX - startX))))
     const up = () => {
       document.removeEventListener('pointermove', move)
       document.removeEventListener('pointerup', up)
@@ -851,10 +852,11 @@ function GanttCanvas (props) {
           width={effTableW}
           cols={cols}
         />
-        {/* Splitter: drag to adjust the table width. */}
+        {/* Splitter: drag to adjust the table width. `touch-none`, or the browser takes a finger's
+            drag for a pan and cancels the pointer a few px in. */}
         <div
           onPointerDown={onSplitterDown}
-          className='w-1 shrink-0 cursor-col-resize border-r border-base-300 bg-base-200 transition-colors hover:bg-primary/40'
+          className='w-1 shrink-0 cursor-col-resize touch-none border-r border-base-300 bg-base-200 transition-colors hover:bg-primary/40'
           title={t('splitter_hint')}
         />
 

@@ -1,6 +1,11 @@
 <%= tag.div(**container_attributes) do %>
   <%# App Bar %>
-  <div class="document-editor-app-bar flex items-center gap-3 px-4 h-14 border-b border-base-300 shrink-0">
+  <%# Below `sm` the bar compacts so the close button stays on screen: at 390px with "Unsaved
+      changes" it ended at x=407 and the title had 26px. The status shows only a failure (the
+      `text-soft-error` that `_updateStatus` in index.js toggles) and the Save button carries the
+      unsaved-changes dot. %>
+  <div class="document-editor-app-bar flex items-center gap-3 px-4 h-14 border-b border-base-300 shrink-0
+              max-sm:gap-1 max-sm:px-2">
     <%# Left: TOC toggle %>
     <%# Icon-only toggles carry an explicit aria-label (title is only a
         last-resort name) and an aria-expanded the controller keeps up to date
@@ -15,7 +20,7 @@
     <div class="flex-1 min-w-0">
       <% if editable? %>
         <%= tag.input type: "text", value: title,
-              class: "input input-ghost text-lg font-semibold w-full max-w-md",
+              class: "input input-ghost text-lg font-semibold w-full max-w-md max-sm:px-1 max-sm:text-ellipsis",
               data: { document_editor_target: "titleInput", action: "change->document-editor#titleChanged" },
               placeholder: t('.title_placeholder') %>
       <% else %>
@@ -32,16 +37,19 @@
 
     <%# Right: Save status + Panel toggles + Close %>
     <div class="flex items-center gap-1">
-      <span class="text-xs shrink-0" data-document-editor-target="saveStatus"></span>
+      <span class="text-xs shrink-0 max-sm:[&:not(.text-soft-error)]:sr-only"
+            data-document-editor-target="saveStatus"></span>
       <% if editable? %>
         <button type="button"
-                class="btn btn-ghost btn-sm gap-1"
+                class="btn btn-ghost btn-sm gap-1 group/save relative max-sm:btn-square"
                 data-action="document-editor#save"
                 data-document-editor-target="saveButton"
                 disabled
                 title="<%= t('.save_changes') %>">
           <%= render Bali::Icon::Component.new('save', size: :small) %>
-          <%= t('.save') %>
+          <span class="max-sm:sr-only"><%= t('.save') %></span>
+          <span class="document-editor-unsaved-dot hidden max-sm:group-enabled/save:block absolute top-1 right-1 size-1.5 rounded-full bg-current"
+                aria-hidden="true"></span>
         </button>
       <% end %>
       <% if comments? %>
@@ -74,7 +82,7 @@
         <% end %>
       <% end %>
 
-      <div class="divider divider-horizontal mx-1 h-6"></div>
+      <div class="divider divider-horizontal mx-1 h-6 max-sm:hidden"></div>
 
       <%= link_to close_url, class: "btn btn-ghost btn-sm btn-square",
             data: { action: "document-editor#close" },
@@ -85,10 +93,10 @@
   </div>
 
   <%# Main Content Area: TOC | Editor | Right Panel %>
-  <div class="flex-1 flex overflow-hidden">
+  <div class="flex-1 flex overflow-hidden max-sm:relative">
     <%# Below `sm` the TOC stacks above the editor, as BlockEditor's own does: side by side at
         390px it left the editor a 70px column. %>
-    <div class="flex-1 min-w-0 flex max-sm:flex-col">
+    <div class="flex-1 min-w-0 flex max-sm:flex-col max-sm:isolate">
       <%# Left: TOC Panel (populated via React portal from BlockNote) %>
       <div class="document-editor-toc w-56 border-r border-base-300 overflow-y-auto shrink-0 p-4 hidden
                   max-sm:w-full max-sm:max-h-72 max-sm:border-r-0 max-sm:border-b"
@@ -128,9 +136,15 @@
       </div>
     </div>
 
+    <%# Below `sm` either panel covers the editor instead of sharing the row: side by side at
+        390px its w-80 left the editor 70px. Covering it relies on the `isolate` of the editor
+        column above: BlockNote gives its floating UI inline z-indexes (the block handle 20, the
+        toolbar 40, Bali's popovers 600), which otherwise outrank the panel and show the handle
+        over it when the pointer crosses the left strip. %>
     <%# Right: Comments Panel %>
     <% if comments? %>
-      <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden"
+      <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden
+                  max-sm:absolute max-sm:inset-0 max-sm:w-full max-sm:border-l-0 max-sm:bg-base-100"
            data-comments-sidebar="<%= comments_sidebar_read_only? ? 'read-only' : 'interactive' %>"
            data-document-editor-target="commentsPanel">
         <div class="p-4">
@@ -143,7 +157,8 @@
 
     <%# Right: History Panel %>
     <% if versions? %>
-      <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden"
+      <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden
+                  max-sm:absolute max-sm:inset-0 max-sm:w-full max-sm:border-l-0 max-sm:bg-base-100"
            data-document-editor-target="historyPanel">
         <div class="p-4">
           <h3 class="text-sm font-semibold text-base-content/70 uppercase tracking-wider mb-3"><%= t('.version_history') %></h3>

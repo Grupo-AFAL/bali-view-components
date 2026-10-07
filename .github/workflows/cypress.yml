@@ -6,8 +6,14 @@ on:
     branches: [main, "3.1"]
 
 jobs:
-  cypress:
+  # The run split in four, side by side: scripts/cypress-part.mjs says which specs each part takes.
+  cypress-part:
+    name: cypress (part ${{ matrix.part }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3, 4]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -62,7 +68,9 @@ jobs:
         run: npx wait-on http://127.0.0.1:3001 --timeout 60000
 
       - name: Run Cypress tests
-        run: yarn cypress run --browser chrome
+        run: |
+          specs=$(node scripts/cypress-part.mjs ${{ matrix.part }} ${{ strategy.job-total }})
+          yarn cypress run --browser chrome --spec "$specs"
 
       # Sin esto, un flake solo deja el mensaje del assert: el screenshot que
       # Cypress ya toma en cada fallo se quedaba en el runner. Con la página
@@ -71,7 +79,17 @@ jobs:
         uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: cypress-screenshots
+          name: cypress-screenshots-part-${{ matrix.part }}
           path: cypress/screenshots
           if-no-files-found: ignore
           retention-days: 14
+
+  # The check the `main` ruleset requires is called `cypress`, and no part of the matrix is: this
+  # job is it, and it fails unless every part passed.
+  cypress:
+    needs: cypress-part
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every part passed
+        run: test "${{ needs.cypress-part.result }}" = success

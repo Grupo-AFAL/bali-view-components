@@ -183,7 +183,7 @@ one and it either loses to daisyUI or becomes impossible for a host to override.
 | `@layer utilities` itself, under `:where()` | The `@layer utilities` block at the end of `bali/utilities.css` only — a colour Bali sets on daisyUI markup that hosts also write by hand (a `.table`'s thead and tfoot, `.fieldset-label`) | A rule directly in `utilities` beats daisyUI's `daisyui.*` sublayers of it at any specificity, which is what lifts their `/60`. It is emitted after Tailwind's utilities, so only zero specificity lets a colour class on the element — a host's, or the FormBuilder's error red — keep winning. |
 
 Unlayered today: `bali/forms.css`, `bali/datepicker.css`, `bali/slim_select.css`,
-`bali/container-overrides.css`, `bali/prose-invert.css`, `breadcrumb/index.css`, `data_table/index.css`,
+`bali/container-overrides.css`, `bali/prose-invert.css`, `breadcrumb/daisyui-overrides.css`, `data_table/index.css`,
 `toast/index.css`, `feedback_widget/index.css`, `side_menu/daisyui-overrides.css`,
 `calendar/daisyui-overrides.css`, `rich_text_editor/daisyui-overrides.css`,
 `gauge/daisyui-overrides.css`, `alert/daisyui-overrides.css`, `tag/daisyui-overrides.css`,

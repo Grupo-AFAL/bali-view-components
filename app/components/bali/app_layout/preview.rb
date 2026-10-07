@@ -199,6 +199,14 @@ module Bali
       def overlay_triggers
         render_with_template(template: "bali/app_layout/previews/overlay_triggers")
       end
+
+      # @label Drawer Opened By The Server
+      # A drawer rendered `active:`, as on a page that opens on a form. No trigger opened
+      # it, so closing gives the focus to `<main>` — the skip link's target — instead of
+      # leaving it on `<body>`. Used by the Cypress suite.
+      def drawer_opened_by_the_server
+        render_with_template(template: "bali/app_layout/previews/drawer_opened_by_the_server")
+      end
     end
   end
 end

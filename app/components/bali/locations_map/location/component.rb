@@ -48,6 +48,10 @@ module Bali
           }.compact
         end
 
+        def light_theme
+          Bali.themes&.dig(:light)
+        end
+
         def info_view_id
           @info_view_id ||= "map-location-info-view-template-#{SecureRandom.uuid}"
         end

@@ -5,20 +5,15 @@
 // frame loads, deliberately NOT in the frame's URL.
 describe('FeedbackWidget handshake', () => {
   const appOrigin = new URL(Cypress.config('baseUrl')).origin
-  const badgeUrl = 'https://opina-demo.example.com/api/v1/projects/demo-project/badge'
+  // The previews point the widget at the dummy app, which stands in for Opina.
+  const badgeUrl = `${appOrigin}/api/v1/projects/demo-project/badge`
   const badge = () => cy.get('[data-feedback-widget-target="badge"]')
 
-  // The badge lives on another origin, so a stubbed response still has to say
-  // it may be read or the fetch rejects before the controller sees it.
   const stubBadge = (body, statusCode = 200) =>
-    cy.intercept('GET', `${badgeUrl}*`, {
-      statusCode,
-      headers: { 'access-control-allow-origin': '*' },
-      body
-    }).as('badge')
+    cy.intercept('GET', `${badgeUrl}*`, { statusCode, body }).as('badge')
 
   const stubEmbed = () =>
-    cy.intercept('GET', 'https://opina-demo.example.com/embed/**', {
+    cy.intercept('GET', `${appOrigin}/embed/**`, {
       statusCode: 200,
       headers: { 'content-type': 'text/html' },
       body: '<html><body>embed</body></html>'
@@ -94,6 +89,52 @@ describe('FeedbackWidget handshake', () => {
       badge().should('have.class', 'hidden')
       cy.get('#feedback-widget').should('have.class', 'drawer-open')
     })
+
+    // The count Opina had before the panel was opened, answered after it: the panel has
+    // just made it zero.
+    it('does not bring back a count asked for before the panel was opened', () => {
+      let asked = false
+      let replied = false
+      let answer
+      const opened = new Promise((resolve) => { answer = resolve })
+      cy.intercept('GET', `${badgeUrl}*`, (req) => {
+        asked = true
+        return opened.then(() => {
+          req.reply({ statusCode: 200, body: { unread_count: 5 } })
+          replied = true
+        })
+      }).as('badge')
+      stubEmbed()
+      cy.visit('/bali/feedback_widget/default')
+      cy.wrap(null).should(() => expect(asked, 'count requested').to.equal(true))
+
+      cy.get('[data-action="feedback-widget#open"]').click()
+      cy.get('#feedback-widget').should('have.class', 'drawer-open')
+      cy.then(() => answer())
+      cy.wrap(null).should(() => expect(replied, 'count answered').to.equal(true))
+      // Time for the answer to land, had it still been awaited.
+      cy.wait(500)
+
+      badge().should('have.class', 'hidden')
+      cy.get('#feedback-widget-unread').should('have.text', '')
+    })
+
+    // The same cap `Bali::Topbar::IconAction` draws: the two badges sit side by side in the
+    // Topbar. The description keeps the real number.
+    it('caps the count at 99+, as the Topbar icon actions do', () => {
+      stubBadge({ unread_count: 128 })
+      cy.visit('/bali/feedback_widget/default')
+
+      badge().should('have.text', '99+')
+      cy.get('#feedback-widget-unread').should('have.text', '128 unread')
+    })
+
+    it('shows a count at the cap as it is', () => {
+      stubBadge({ unread_count: 99 })
+      cy.visit('/bali/feedback_widget/default')
+
+      badge().should('have.text', '99')
+    })
   })
 
   // Opina keeps what has been read, per user: the badge asks with the widget's token and
@@ -101,12 +142,11 @@ describe('FeedbackWidget handshake', () => {
   // came back on the next page load.
   describe('read state', () => {
     const readUrl = `${badgeUrl}/read`
-    const cors = { 'access-control-allow-origin': '*' }
     const token = () => cy.get('[data-feedback-widget-token-value]')
       .invoke('attr', 'data-feedback-widget-token-value')
     const open = () => cy.get('[data-action="feedback-widget#open"]').click()
 
-    const stubRead = (reply = { statusCode: 204, headers: cors }) =>
+    const stubRead = (reply = { statusCode: 204 }) =>
       cy.intercept('POST', readUrl, reply).as('read')
 
     it('asks for the count with the token as a Bearer header, never in the URL', () => {
@@ -144,8 +184,8 @@ describe('FeedbackWidget handshake', () => {
       let expired = false
       cy.intercept('GET', `${badgeUrl}*`, (req) => {
         req.reply(expired
-          ? { statusCode: 401, headers: cors }
-          : { statusCode: 200, headers: cors, body: { unread_count: 3 } })
+          ? { statusCode: 401 }
+          : { statusCode: 200, body: { unread_count: 3 } })
       }).as('badge')
       cy.visit('/bali/feedback_widget/default')
       badge().should('have.text', '3').and('not.have.class', 'hidden')

@@ -17,10 +17,10 @@ const SIZE_CLASSES = {
 const DEFAULT_SIZE = 'md'
 
 // Everything the drawer does beyond naming its own open class, size map and
-// data attributes is inherited: opening, closing, the focus trap, the
-// confirm-on-close guards (flatpickr included) and `submit`. The two overlays
-// used to carry near-identical copies of all of it, which is why the same bug
-// had to be fixed twice.
+// data attributes, and keeping its closed panel inert, is inherited: opening,
+// closing, the focus trap, the confirm-on-close guards (flatpickr included) and
+// `submit`. The two overlays used to carry near-identical copies of all of it,
+// which is why the same bug had to be fixed twice.
 export class DrawerController extends ModalController {
   // Splits `bali:drawer:open` off `bali:modal:open` so a page carrying both
   // overlays does not open them at once. `bali:modal:success` is deliberately
@@ -54,6 +54,19 @@ export class DrawerController extends ModalController {
 
     // Store the default size class from the panel
     this._defaultSizeClass = SIZE_CLASSES[DEFAULT_SIZE]
+  }
+
+  // The modal is `display: none` once closed; the drawer stays rendered so it can slide,
+  // and `inert` (from the server too, see component.rb) is what keeps it out of reach.
+  // Lifted before `showModal()` and `trapFocus`: an inert control cannot take the focus.
+  _showOverlay () {
+    if (this.hasTemplateTarget) this.templateTarget.inert = false
+    super._showOverlay()
+  }
+
+  _hideOverlay () {
+    super._hideOverlay()
+    if (this.hasTemplateTarget) this.templateTarget.inert = true
   }
 
   // Unlike the modal, whose panel has no width of its own, the drawer panel

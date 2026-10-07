@@ -1,0 +1,10 @@
+<%# `request.base_url`: the dummy app stands in for Opina (`pages#feedback_embed`, `#feedback_badge`),
+    so the count and the panel answer instead of failing in the console. A host passes its
+    Opina's URL. %>
+<%= render Bali::FeedbackWidget::Component.new(
+  project_slug: 'demo-project',
+  opina_url: request.base_url,
+  secret: 'preview-secret',
+  user_id: 'preview-user',
+  email: 'preview@example.com'
+) %>

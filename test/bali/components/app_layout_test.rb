@@ -632,7 +632,7 @@ class BaliAppLayoutComponentTest < ComponentTestCase
     assert_selector("main##{Bali::AppLayout::Component::MAIN_ID}")
   end
 
-  def test_main_is_programmatically_focusable_so_the_skip_link_moves_focus
+  def test_main_is_programmatically_focusable_for_the_skip_link_and_a_closing_overlay
     render_inline(Bali::AppLayout::Component.new) do |layout|
       layout.with_body { "Content" }
     end

@@ -7,9 +7,10 @@
   <% end %>
 
   <% topbar.with_action do %>
+    <%# `request.base_url`: the dummy's stand-ins for Opina, as in `default.html.erb`. %>
     <%= render Bali::FeedbackWidget::Component.new(
       project_slug: 'demo-project',
-      opina_url: 'https://opina-demo.example.com',
+      opina_url: request.base_url,
       secret: 'preview-secret',
       user_id: 'preview-user',
       email: 'preview@example.com',
