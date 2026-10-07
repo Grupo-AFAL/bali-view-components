@@ -128,6 +128,17 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     assert_equal "Sin resultados", translations["no_results"]
   end
 
+  # buildSelectInput has no text of its own for the search box: it is always this one.
+  def test_translations_carry_the_search_text_for_the_select_built_in_js
+    I18n.with_locale(:es) do
+      render_inline(Bali::Filters::Condition::Component.new(
+        condition: @empty_condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+      ))
+    end
+    translations = JSON.parse(page.find('[data-controller="condition"]')["data-condition-translations-value"])
+    assert_equal "Buscar...", translations["search"]
+  end
+
   # The row paints no caption for any of its controls. cypress/e2e/filters-condition-names.cy.js
   # reads the same names from the accessibility tree, SlimSelect's combobox included.
   def test_names_the_field_and_the_operator_in_the_page_language

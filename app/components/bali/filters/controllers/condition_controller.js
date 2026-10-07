@@ -673,7 +673,6 @@ export class ConditionController extends Controller {
 
   buildSelectInput (fieldName, options) {
     const placeholder = this.t.placeholders?.select || 'Select...'
-    const searchPlaceholder = this.t.search || 'Buscar...'
     const noResults = this.t.no_results || 'No results'
     const optionsHtml = options
       .map((opt) => {
@@ -685,7 +684,7 @@ export class ConditionController extends Controller {
     return `
       <div class="w-full slim-select-sm" data-controller="slim-select"
            data-slim-select-placeholder-value="${this.escapeHtml(placeholder)}"
-           data-slim-select-search-placeholder-value="${this.escapeHtml(searchPlaceholder)}"
+           data-slim-select-search-placeholder-value="${this.escapeHtml(this.t.search)}"
            data-slim-select-no-results-text-value="${this.escapeHtml(noResults)}">
         <select class="select select-bordered select-sm w-full"
                 name="${fieldName}"
