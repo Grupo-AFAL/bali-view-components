@@ -92,6 +92,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BlockEditor: el nombre de una referencia larga se trunca con «…» dentro del editor** en vez
   de salirse por la derecha. Nada que hacer en la app.
 
+- **`Bali::Gantt`: el splitter baja hasta la columna Nombre** (#1333). No dejaba bajar la tabla
+  de 260 px, más de lo que abre en un teléfono (173 en una ventana de 320), así que tocarlo la
+  ensanchaba de golpe. Ahora, en cualquier tablero, baja hasta el mínimo de la columna Nombre
+  (140): en escritorio se puede dejar sólo esa columna. También se arrastra con el dedo, que el
+  navegador tomaba por un scroll. Y los separadores de la barra de herramientas ya no quedan al
+  principio o al final de un renglón cuando la barra se parte. Sin nada que hacer en el anfitrión.
+- **`Bali::Chart`: `polarArea` y `radar` toman el tema en su escala radial** (#1333): cuadrícula,
+  radios, marcas con su recuadro y etiquetas, también al cambiar de tema en vivo. En `afal-dark`
+  las marcas salían sobre recuadros blancos y la cuadrícula casi no se veía. Como en `x`/`y`, un
+  `options:` que pinte una de esas partes la pierde salvo con `useThemeColors: false` en ella.
+  Ninguna app de la flota usa estos tipos.
+
 ### Documentation
 
 - **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).

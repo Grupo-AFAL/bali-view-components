@@ -1,4 +1,5 @@
 import { cdp, frameAt } from '../support/accessibility_tree'
+import { drag } from '../support/tap'
 
 // Gantt island (#705): mounts GanttFlow through the COMPLETE circuit of a host —
 // startIslandLoader('gantt') in the main bundle reads the metas from
@@ -242,6 +243,48 @@ describe('Gantt island', () => {
     })
   })
 
+  // A phone's table opens at 60% of the board, under the 260 px the splitter held as its floor:
+  // the first move widened a 215 px table to 260, and it could not be dragged back.
+  it('drags a phone board\'s table narrower than it opened', () => {
+    cy.viewport(390, 844)
+    cy.visit('/bali/gantt/default')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+    cy.get('div[title="Drag to resize the table"]').then(([splitter]) => {
+      const table = splitter.previousElementSibling
+      const start = table.getBoundingClientRect().width
+      const { left, top } = splitter.getBoundingClientRect()
+      const at = (x) => ({ clientX: x, clientY: top + 10, button: 0, eventConstructor: 'PointerEvent' })
+
+      cy.wrap(splitter).trigger('pointerdown', at(left))
+      cy.document().trigger('pointermove', at(left + 10))
+      cy.document().should(() => {
+        expect(table.getBoundingClientRect().width, 'table width after a 10 px drag').to.be.closeTo(start + 10, 1)
+      })
+      cy.document().trigger('pointermove', at(left - 60))
+      cy.document().trigger('pointerup', at(left - 60))
+      cy.document().should(() => {
+        expect(table.getBoundingClientRect().width, 'table width after a 60 px drag back').to.be.closeTo(start - 60, 1)
+      })
+    })
+  })
+
+  it('follows a finger dragging the splitter', () => {
+    cy.viewport(390, 844)
+    cy.visit('/bali/gantt/default')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+    cy.get('div[title="Drag to resize the table"]').then(($splitter) => {
+      const table = $splitter[0].previousElementSibling
+      const start = table.getBoundingClientRect().width
+
+      cy.then(() => drag($splitter, 0, { dx: -60, steps: 12 }))
+      cy.document().should(() => {
+        expect(table.getBoundingClientRect().width, 'table width after a 60 px drag').to.be.closeTo(start - 60, 1)
+      })
+    })
+  })
+
   // The minimap is 204 px wide and sits 14 px from the timeline's right edge. In a narrower
   // timeline it spilled over the table, 218 px of it at 320 px, so there it is not drawn.
   ;[[320, 700, false], [390, 844, false], [768, 1024, true], [1280, 800, true]].forEach(([width, height, drawn]) => {
@@ -296,6 +339,54 @@ describe('Gantt island', () => {
         return (top + bottom) / 2
       }
       expect(middle(label), 'label on the line of its control').to.be.closeTo(middle(control), 1)
+    })
+  })
+
+  // Where the toolbar wraps, a separator at the start or the end of a line divides nothing: at
+  // 414 px both ended one, and at 320 the second started one. Hidden but still laid out, the one
+  // starting a line pushed its first control 9 px in.
+  ;[
+    ['', ''],
+    [' with the creation buttons', 'data-gantt-manageable-value="true" data-gantt-new-group-url-value="/groups/new" data-gantt-new-item-url-value="/items/new"']
+  ].forEach(([variant, values]) => {
+    it(`divides only controls on the same line as the window narrows and widens${variant}`, () => {
+      cy.intercept({ method: 'GET', url: /\/lookbook\/preview\/bali\/gantt\/default/ }, (req) => {
+        req.on('response', (res) => {
+          res.body = String(res.body).replace('data-controller="gantt"', `data-controller="gantt" ${values}`)
+        })
+      })
+      cy.viewport(1280, 800)
+      cy.visit('/bali/gantt/default')
+      cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+      cy.get('[data-separator]').should('have.length', values ? 3 : 2)
+
+      ;[1280, 414, 390, 320, 1280].forEach((width) => {
+        cy.viewport(width, 800)
+        cy.get('[data-separator]').should(($separators) => {
+          const box = (el) => el.getBoundingClientRect()
+          const sameLine = (a, b) => box(a).top < box(b).bottom && box(a).bottom > box(b).top
+          const items = [...$separators[0].parentElement.children]
+            .filter((el) => !el.matches('[data-separator]') && el.childNodes.length > 0)
+          const style = (el) => el.ownerDocument.defaultView.getComputedStyle(el)
+
+          $separators.each((index, separator) => {
+            const name = `${width} px: separator ${index + 1}`
+            if (style(separator).display === 'none') {
+              const { previousElementSibling: before, nextElementSibling: after } = separator
+              expect(sameLine(before, after), `${name}, left out, between controls on one line`).to.equal(false)
+              return
+            }
+            const x = box(separator).left
+            const line = items.filter((item) => sameLine(item, separator))
+            const between = line.some((item) => box(item).right <= x) && line.some((item) => box(item).left >= x)
+            expect(style(separator).visibility === 'visible', `${name} shown, between controls on its line`).to.equal(between)
+          })
+
+          const starts = items.filter((item, index) => !items.slice(0, index).some((earlier) => sameLine(earlier, item)))
+            .map((item) => Math.round(box(item).left))
+          expect([...new Set(starts)], `${width} px: x where each line starts`).to.have.length(1)
+        })
+      })
     })
   })
 
