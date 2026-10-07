@@ -164,6 +164,81 @@ describe('ModalController', () => {
     })
   })
 
+  // With no trigger to go back to, closing left the focus on <body>: in AppLayout, whose
+  // panels sit at the end of <main>, the next Tab went to the skip link at the top of the page.
+  context('focus after closing a panel no click opened', () => {
+    it('goes to <main> when the panel was rendered open', () => {
+      cy.visit('/bali/app_layout/drawer_opened_by_the_server')
+      cy.focused().should('have.id', 'project_name')
+
+      cy.focused().type('{esc}')
+      cy.get('#new-project-drawer').should('not.have.class', 'drawer-open')
+      cy.focused().should('match', 'main#main-content')
+    })
+
+    // In a browser the field's `autofocus` takes the focus on page load, before the
+    // controller connects, and leaves nothing outside the panel to remember. Cypress's frame
+    // does not run `autofocus`, so the field takes it by hand as the replaced panel connects.
+    it('goes to <main> when the focus was in the panel before its controller connected', () => {
+      cy.visit('/bali/app_layout/drawer_opened_by_the_server')
+      cy.focused().should('have.id', 'project_name')
+
+      cy.get('#new-project-drawer').then(([dialog]) => {
+        const replaced = dialog.cloneNode(true)
+        replaced.removeAttribute('open')
+        replaced.setAttribute('data-replaced', '')
+        dialog.replaceWith(replaced)
+        replaced.querySelector('#project_name').focus()
+      })
+      cy.get('#new-project-drawer[data-replaced]').should('have.attr', 'open')
+      cy.focused().should('have.id', 'project_name')
+
+      cy.focused().type('{esc}')
+      cy.get('#new-project-drawer').should('not.have.class', 'drawer-open')
+      cy.focused().should('match', 'main#main-content')
+    })
+
+    it('goes to <main> when an open event opened it', () => {
+      cy.visit('/bali/app_layout/default')
+      cy.document().then(doc => {
+        doc.dispatchEvent(new CustomEvent('bali:drawer:open', {
+          detail: { id: 'main-drawer', content: null, options: {} }
+        }))
+      })
+      cy.focused().should($el => expect($el.closest('#main-drawer')).to.have.length(1))
+
+      cy.focused().type('{esc}')
+      cy.get('#main-drawer').should('not.have.class', 'drawer-open')
+      cy.focused().should('match', 'main#main-content')
+    })
+
+    // A Turbo Stream that replaces the panel with an open one: what held the focus then is
+    // still where the reader was. No `id` on it: Turbo hands the focus back to an element
+    // with one once a stream has rendered, and here that is a control the panel blocks.
+    it('goes back to what held it when a stream put the panel there open', () => {
+      cy.visit('/bali/app_layout/default')
+      cy.get('main').then(([main]) => {
+        main.insertAdjacentHTML('afterbegin', '<button data-testid="opener-probe">Save</button>')
+        main.querySelector('[data-testid="opener-probe"]').focus()
+      })
+
+      cy.window().then(win => {
+        const opened = win.document.getElementById('main-drawer').cloneNode(true)
+        opened.classList.add('drawer-open')
+        opened.removeAttribute('inert')
+        opened.setAttribute('data-streamed', '')
+        win.Turbo.renderStreamMessage(
+          `<turbo-stream action="replace" target="main-drawer"><template>${opened.outerHTML}</template></turbo-stream>`
+        )
+      })
+      cy.get('#main-drawer[data-streamed]').should('have.attr', 'open')
+
+      cy.focused().type('{esc}')
+      cy.get('#main-drawer').should('not.have.class', 'drawer-open')
+      cy.focused().should('have.attr', 'data-testid', 'opener-probe')
+    })
+  })
+
   // The trigger-driven path, which the previews cannot exercise because they
   // render a modal that is already open. This page lives in the dummy app rather
   // than under the Lookbook preview path `baseUrl` points at, so the origin is

@@ -22,6 +22,18 @@ class BaliDrawerComponentTest < ComponentTestCase
     assert_selector("dialog.drawer-component.drawer-open")
   end
 
+  def test_basic_rendering_renders_a_closed_drawer_inert
+    render_inline(component)
+    assert_selector("dialog.drawer-component[inert]")
+  end
+
+  def test_basic_rendering_renders_an_active_drawer_without_inert
+    @options.merge!(active: true)
+    render_inline(component)
+    assert_selector("dialog.drawer-component.drawer-open")
+    assert_no_selector("dialog[inert]")
+  end
+
   def test_basic_rendering_renders_with_custom_content
     render_inline(component) do
       "<p>Hello World!</p>".html_safe

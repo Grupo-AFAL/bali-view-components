@@ -1,7 +1,7 @@
 // A closed drawer stays rendered just past the edge of the viewport, so that it can slide
 // (drawer/index.css). Rendered is not the same as gone: its controls stayed in the tab order,
 // a closed drawer inside an open one slid on screen with it, and on a phone the panel widened
-// to the full screen as it began to slide out.
+// to the full screen as it began to slide out, and its overlay vanished before it had.
 describe('Drawer: the closed panel', () => {
   const panelOf = (dialog) => dialog.querySelector('.drawer-panel')
   const viewportWidth = (dialog) => dialog.ownerDocument.defaultView.innerWidth
@@ -21,18 +21,32 @@ describe('Drawer: the closed panel', () => {
       })
     })
 
-    it('takes it on opening, and stays painted through the slide-out', () => {
+    // `visibility: hidden` on the closed drawer was undone by any descendant that sets
+    // `visibility: visible` — a `.visible`, or daisyUI's open collapse where the browser has no
+    // `content-visibility`. Tab went from the trigger to a control at x=1304 of a 1280px window.
+    it('keeps a descendant that sets `visibility: visible` out of the tab order', () => {
+      cy.get('#details-drawer .drawer-inner').then(([content]) => {
+        content.insertAdjacentHTML('beforeend', '<div class="visible"><button id="visible-probe">Probe</button></div>')
+      })
+      cy.get('#visible-probe').should(([probe]) => {
+        expect(getComputedStyle(probe).visibility, 'the probe').to.equal('visible')
+      })
+
+      cy.contains('button', 'Show details').focus()
+      cy.press(Cypress.Keyboard.Keys.TAB)
+      cy.document().should(doc => {
+        expect(doc.activeElement.closest('#details-drawer'), 'the focus after Tab').to.equal(null)
+      })
+    })
+
+    it('takes it on opening, and gives it back once closed', () => {
       cy.contains('button', 'Show details').click()
       cy.focused().should('match', '#details-drawer .drawer-header button')
 
-      cy.get('#details-drawer').then(([dialog]) => {
-        dialog.querySelector('.drawer-overlay').click()
-
-        expect(getComputedStyle(dialog).visibility, 'visibility as the slide-out starts').to.equal('visible')
-      })
+      cy.get('#details-drawer').then(([dialog]) => dialog.querySelector('.drawer-overlay').click())
 
       cy.get('#details-drawer').should(([dialog]) => {
-        expect(getComputedStyle(dialog).visibility, 'visibility once closed').to.equal('hidden')
+        expect(dialog.inert, 'inert once closed').to.equal(true)
       })
       cy.focused().should('contain', 'Show details')
     })
@@ -87,6 +101,26 @@ describe('Drawer: the closed panel', () => {
     })
   })
 
+  context('below 768px', () => {
+    // The panel takes 85% of the screen, but never more than its size allows: a second
+    // `max-w-` used to replace that cap, and a `sm` drawer measured 544px at 640.
+    [
+      { size: 'sm', width: 384 },
+      { size: 'md', width: 512 },
+      { size: 'full', width: 544 }
+    ].forEach(({ size, width }) => {
+      it(`keeps the cap of its size, under 85% of the screen: ${size}`, () => {
+        cy.viewport(640, 844)
+        cy.visit(`/bali/drawer/sizes?size=${size}`)
+
+        cy.get('dialog.drawer-component').should(([dialog]) => {
+          expect(panelOf(dialog).getAnimations(), 'transitions settled').to.have.length(0)
+          expect(panelOf(dialog).getBoundingClientRect().width, 'width of the open panel at 640px').to.be.closeTo(width, 1)
+        })
+      })
+    })
+  })
+
   context('on a phone', () => {
     beforeEach(() => {
       cy.viewport(390, 844)
@@ -106,6 +140,36 @@ describe('Drawer: the closed panel', () => {
         dialog.querySelector('.drawer-overlay').click()
 
         expect(panelOf(dialog).getBoundingClientRect().width, 'width as the slide-out starts').to.equal(opened)
+      })
+    })
+
+    // Paused halfway through the slide-out: an overlay that vanished on close reads `none`
+    // there, while the panel is still half on screen.
+    it('fades its overlay out with the slide-out', () => {
+      cy.get('dialog.drawer-component').should(([dialog]) => {
+        expect(dialog.getAnimations({ subtree: true }), 'transitions settled').to.have.length(0)
+      })
+
+      cy.get('dialog.drawer-component').then(([dialog]) => {
+        const overlay = dialog.querySelector('.drawer-overlay')
+        overlay.click()
+
+        const slide = panelOf(dialog).getAnimations()
+        expect(slide, 'the slide-out is running').to.have.length.greaterThan(0)
+        const transitions = dialog.getAnimations({ subtree: true })
+        transitions.forEach((a) => {
+          a.pause()
+          a.currentTime = slide[0].effect.getComputedTiming().duration / 2
+        })
+        const halfway = getComputedStyle(overlay)
+        expect(halfway.display, 'overlay halfway through the slide-out').to.equal('block')
+        expect(Number(halfway.opacity), 'its opacity').to.be.above(0).and.below(1)
+        transitions.forEach((a) => a.play())
+      })
+
+      cy.get('dialog.drawer-component').should(([dialog]) => {
+        expect(dialog.getAnimations({ subtree: true }), 'transitions settled').to.have.length(0)
+        expect(getComputedStyle(dialog.querySelector('.drawer-overlay')).display, 'overlay once closed').to.equal('none')
       })
     })
   })

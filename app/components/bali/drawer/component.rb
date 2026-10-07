@@ -75,7 +75,7 @@ module Bali
           position_config[:side],
           SIZES.fetch(@size, SIZES[:md]),
           "bg-base-100 [.drawer-open>&]:shadow-2xl",
-          # `duration-300` is also the delay that keeps a closing drawer visible in index.css.
+          # `duration-300` is also the overlay's fade-out in index.css.
           "transform transition-[transform,translate,box-shadow] duration-300 ease-in-out",
           "[.drawer-open>&]:transition-transform",
           position_config[:transform],
@@ -139,6 +139,10 @@ module Bali
         {
           id: drawer_id,
           class: drawer_classes,
+          # Closed, the drawer stays rendered so it can slide (index.css). `visibility: hidden`
+          # kept its controls out of the tab order only until a descendant set `visibility:
+          # visible` (`.visible`); nothing inside can undo `inert`.
+          inert: !@active,
           'aria-labelledby': title? ? title_id : nil,
           data: default_data_attributes.merge(options.fetch(:data, {}))
         }.compact
