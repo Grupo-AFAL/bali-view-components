@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { hostColorScheme } from '../../../assets/javascripts/bali/utils/color-scheme.js'
 
 // The Opina embed reads its credential from a message, not from its URL.
 const TOKEN_MESSAGE_TYPE = 'bali:feedback:token'
@@ -337,13 +338,4 @@ function captureFailure (error) {
   if (error?.message === 'unsupported' || error?.name === 'NotSupportedError') return 'unsupported'
 
   return 'failed'
-}
-
-// The scheme the host page declares on `<html>`, as Bali's themes do. `only dark` is
-// still dark; `light dark` leaves it to the operating system, which is not a choice
-// the person made in this app.
-function hostColorScheme () {
-  const scheme = getComputedStyle(document.documentElement).colorScheme
-
-  return scheme.replace('only', '').trim() === 'dark' ? 'dark' : 'light'
 }

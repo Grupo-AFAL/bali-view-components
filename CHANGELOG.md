@@ -116,6 +116,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `feedback-widget`. Quien pasa `class:` no ve nada distinto. Sin nada que hacer en el
   anfitrión.
 
+- **Los mapas de Google siguen el modo claro u oscuro de la app** (#1344). `Bali::LocationsMap`,
+  `drawing-maps` (`coordinates_polygon_group`) y `geocoder-maps` creaban el mapa siempre claro;
+  ahora lo crean oscuro cuando el `<html>` declara `color-scheme: dark`, como `afal-dark` y
+  `costa-norte-dark`. Si el tema cambia sin recargar al otro esquema (el switch de
+  `Bali::Topbar::UserMenu`), rehacen el mapa con el mismo centro y zoom, sus marcadores, la
+  ventana de información abierta, el pin y los polígonos. Sin nada que hacer en el anfitrión.
+
+- **`Bali::LocationsMap`: la ventana de información se lee en modo oscuro** (#1344). Google la
+  pinta blanca también sobre el mapa oscuro, y en `afal-dark` su texto y su X de cerrar salían
+  blancos. Ahora el contenido de `with_info_view` va en el tema claro de la app
+  (`Bali.themes[:light]`). En modo claro no cambia nada.
+
+- **`Bali::LocationsMap`: el mapa sale en el idioma de la página** (#1344). El componente
+  escribía `center_locale` y el controlador leía `locale`, así que Google siempre lo pintaba en
+  inglés; el controlador ahora recibe el `I18n.locale`.
+
 ### Documentation
 
 - **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).
@@ -142,6 +158,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   también el claro por omisión de daisyUI. `custom-themes.md` gana el paso que le faltaba a la
   receta de modo oscuro de v3.7.0, y esa entrada, su corrección. Ninguna app la tiene hoy
   (`git grep -n 'color-scheme' origin/main -- '*.css'`): nada que hacer.
+
+### Added
+
+- **`hostColorScheme()` y `observeHostColorScheme(callback)`** se exportan desde
+  `bali-view-components` (#1344): el primero devuelve `'dark'` o `'light'` según el
+  `color-scheme` del `<html>`; el segundo avisa cuando un cambio de `data-theme` pasa al otro
+  esquema. Para una app que crea su propio `google.maps.Map`, que sólo toma `colorScheme` al
+  crearse (hoy, `coordinates_picker_controller.js` de centinela-web):
+  `colorScheme: hostColorScheme() === 'dark' ? ColorScheme.DARK : ColorScheme.LIGHT`.
 
 ## [v3.9.1] - 2026-10-07
 
