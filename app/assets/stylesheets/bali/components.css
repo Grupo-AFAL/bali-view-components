@@ -61,10 +61,8 @@
 /* Deferred loading */
 @import "../../../components/bali/frame/index.css" layer(components);
 
-/* Unlayered on purpose. Order of the first three is the pre-v3 order of those
-   sheets, so their mutual cascade is unchanged. The two `daisyui-overrides` below
-   them, the toast sheet and the feedback widget's share no selector with anything
-   here. */
+/* Unlayered on purpose: each sheet below beats a rule daisyUI emits inside
+   @layer utilities, and names that rule in its own header. */
 @import "../../../components/bali/breadcrumb/daisyui-overrides.css";
 @import "../../../components/bali/side_menu/daisyui-overrides.css";
 @import "../../../components/bali/data_table/index.css";
