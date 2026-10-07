@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`hostColorScheme()` y `observeHostColorScheme(callback)`** se exportan desde
+  `bali-view-components` (#1344): el primero devuelve `'dark'` o `'light'` según el
+  `color-scheme` del `<html>`; el segundo avisa cuando un cambio de `data-theme` pasa al otro
+  esquema. Sirven a la app que crea su propio `google.maps.Map`, que sólo toma `colorScheme` al
+  crearse: `colorScheme: hostColorScheme() === 'dark' ? ColorScheme.DARK : ColorScheme.LIGHT`.
+  Hoy, centinela-web (`git grep -n "new .*\.Map(" origin/main -- 'app/javascript/**/*.js'` da
+  `coordinates_picker_controller.js`).
+
+### Fixed
+
+- **Los mapas de Google siguen el modo claro u oscuro de la app** (#1344). `Bali::LocationsMap`,
+  `drawing-maps` (`coordinates_polygon_group`) y `geocoder-maps` creaban el mapa siempre claro;
+  ahora lo crean oscuro cuando el `<html>` declara `color-scheme: dark`, como `afal-dark` y
+  `costa-norte-dark`. Si el tema cambia sin recargar al otro esquema (el switch de
+  `Bali::Topbar::UserMenu`), rehacen el mapa con el mismo centro y zoom, sus marcadores, la
+  ventana de información abierta, el pin y los polígonos. Sin nada que hacer en el anfitrión.
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added

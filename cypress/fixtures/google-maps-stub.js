@@ -1,4 +1,5 @@
-// Stands in for the Google Maps JavaScript API in locations-map.cy.js.
+// Stands in for the Google Maps JavaScript API in locations-map.cy.js and
+// google-maps-color-scheme.cy.js.
 //
 // The real API is a paid, keyed, network-loaded script that paints into a
 // canvas: a test can neither load it (there is no key in CI) nor read anything
@@ -11,7 +12,7 @@
 // nothing here asserts anything, it only makes the controller's side effects
 // observable.
 (function () {
-  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [] }
+  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [], polygons: [], drawingManagers: [] }
 
   class ListenerHost {
     constructor () {
@@ -38,6 +39,10 @@
       this.center = options.center
       this.zoom = options.zoom
       registry.maps.push(this)
+    }
+
+    getCenter () {
+      return this.center
     }
 
     setCenter (center) {
@@ -116,6 +121,45 @@
     }
   }
 
+  // `setMap` is how the geocoder's pin, a drawn polygon and the drawing toolbar
+  // are put on a map, and moved to another.
+  class FakeOverlay extends ListenerHost {
+    constructor (options = {}) {
+      super()
+      this.options = options
+      this.map = options.map
+    }
+
+    setMap (map) {
+      this.map = map
+    }
+  }
+
+  class FakeMarker extends FakeOverlay {
+    constructor (options) {
+      super(options)
+      registry.markers.push(this)
+    }
+  }
+
+  class FakePolygon extends FakeOverlay {
+    constructor (options) {
+      super(options)
+      registry.polygons.push(this)
+    }
+
+    getPaths () {
+      return [this.options.paths]
+    }
+  }
+
+  class FakeDrawingManager extends FakeOverlay {
+    constructor (options) {
+      super(options)
+      registry.drawingManagers.push(this)
+    }
+  }
+
   class FakeLatLngBounds {
     constructor () {
       this.points = []
@@ -138,10 +182,26 @@
   window.google = {
     maps: {
       Map: FakeMap,
+      ColorScheme: { DARK: 'DARK', LIGHT: 'LIGHT', FOLLOW_SYSTEM: 'FOLLOW_SYSTEM' },
       InfoWindow: FakeInfoWindow,
       LatLngBounds: FakeLatLngBounds,
       OverlayView,
-      event: { trigger () {} },
+      Marker: FakeMarker,
+      Animation: { DROP: 'DROP' },
+      Polygon: FakePolygon,
+      ControlPosition: { TOP_CENTER: 'TOP_CENTER' },
+      drawing: {
+        DrawingManager: FakeDrawingManager,
+        OverlayType: { POLYGON: 'polygon' }
+      },
+      // Nothing here fires: the polygon's edits and the drawing toolbar are not
+      // under test.
+      event: {
+        trigger () {},
+        addListener () {
+          return { remove () {} }
+        }
+      },
       importLibrary: () =>
         Promise.resolve({
           AdvancedMarkerElement: FakeAdvancedMarkerElement,
@@ -167,7 +227,9 @@
       })
     },
 
+    // The close button shuts the window and then fires `closeclick`.
     dismissInfoWindow (index) {
+      registry.infoWindows[index].isOpen = false
       registry.infoWindows[index].emit('closeclick')
     }
   }

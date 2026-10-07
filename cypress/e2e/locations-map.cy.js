@@ -1,3 +1,5 @@
+import { stubGoogleMaps } from '../support/google_maps'
+
 // #1041 — LocationsMap had no E2E spec, and it is the component furthest from
 // being testable head-on: the map is a keyed, paid, canvas-painting script that
 // CI cannot load and a test cannot read back. What the controller does AROUND
@@ -10,18 +12,6 @@
 // click. Nothing about Google's own behaviour is under test here; everything
 // about Bali's use of it is.
 describe('LocationsMap', () => {
-  const stubGoogleMaps = () => {
-    // `readFile`, not `fixture`: Cypress EVALUATES a .js fixture as a module and
-    // this one is meant to run in the page, not in the test.
-    cy.readFile('cypress/fixtures/google-maps-stub.js').then((script) => {
-      cy.intercept('GET', 'https://maps.googleapis.com/maps/api/js*', {
-        statusCode: 200,
-        headers: { 'content-type': 'application/javascript' },
-        body: script
-      }).as('mapsApi')
-    })
-  }
-
   // The controller only wires cards to markers above `minWindowWidth` (768).
   const viewport = () => cy.viewport(1280, 900)
 

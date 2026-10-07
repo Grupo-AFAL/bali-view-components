@@ -32,6 +32,10 @@ export * from '../../../assets/javascripts/bali/utils/top-layer'
 // carries a `.catch()`.
 export * from '../../../assets/javascripts/bali/utils/optional-peer'
 
+// The page's light or dark scheme. Published for a host that builds its own
+// google.maps.Map, which takes `colorScheme` only when it is built.
+export * from '../../../assets/javascripts/bali/utils/color-scheme'
+
 // Stimulus mixins
 export { default as useClickOutside } from '../../../assets/javascripts/bali/utils/use-click-outside'
 

@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
+import { hostColorScheme, observeHostColorScheme } from '../../../assets/javascripts/bali/utils/color-scheme.js'
 
 const TIJUANA_LAT = 32.5036383
 const TIJUANA_LNG = -117.0308968
@@ -18,6 +19,8 @@ export class LocationsMapController extends Controller {
   }
 
   async connect () {
+    this.themeObserver = observeHostColorScheme(this.rebuildMap)
+
     const { default: GoogleMapsLoader } = await import('../../../assets/javascripts/bali/utils/google-maps-loader.js')
     const clusterer = await import('@googlemaps/markerclusterer')
       .catch(optionalPeer('@googlemaps/markerclusterer'))
@@ -43,6 +46,10 @@ export class LocationsMapController extends Controller {
     }
   }
 
+  disconnect () {
+    this.themeObserver.disconnect()
+  }
+
   // Frames every location instead of trusting center/zoom. fitBounds picks
   // whatever zoom contains the bounds — for a single location (or a very tight
   // cluster) that is street level, so zoomValue acts as the ceiling the map
@@ -61,21 +68,46 @@ export class LocationsMapController extends Controller {
     this.map.fitBounds(bounds)
   }
 
-  initializeMap = () => {
+  initializeMap = (
+    center = { lat: this.centerLatitudeValue, lng: this.centerLongitudeValue },
+    zoom = this.zoomValue
+  ) => {
+    const { DARK, LIGHT } = this.googleMaps.ColorScheme
+
     this.map = new this.googleMaps.Map(this.mapTarget, {
-      center: { lat: this.centerLatitudeValue, lng: this.centerLongitudeValue },
-      zoom: this.zoomValue,
-      mapId: Date.now().toString()
+      center,
+      zoom,
+      mapId: Date.now().toString(),
+      colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT
     })
   }
 
+  // Google reads `colorScheme` only while it builds a map, so a theme switch builds another
+  // in the same element and moves onto it what the person had on this one.
+  rebuildMap = () => {
+    if (!this.map) return
+
+    this.initializeMap(this.map.getCenter(), this.map.getZoom())
+
+    if (this.markerCluster) {
+      // Moved with setMap, a clusterer paints nothing on the new map: its algorithm sees the
+      // zoom and markers it already clustered and reports no change (markerclusterer 2.6.2).
+      this.markerCluster.setMap(null)
+      this.markerCluster = new this.MarkerClusterer({ map: this.map, markers: this.markers })
+    } else {
+      this.markers.forEach(marker => { marker.map = this.map })
+    }
+
+    if (this.openInfoWindow?.isOpen) this.openInfoWindow.open(this.map, this.openInfoWindowAnchor)
+  }
+
   addMarkers = () => {
-    const markers = this.locations.map(location =>
+    this.markers = this.locations.map(location =>
       this.generateMarker(location)
     )
 
     if (this.enableClusteringValue) {
-      this.markerCluster = new this.MarkerClusterer({ map: this.map, markers })
+      this.markerCluster = new this.MarkerClusterer({ map: this.map, markers: this.markers })
     }
   }
 
@@ -117,6 +149,7 @@ export class LocationsMapController extends Controller {
 
         infowindow.open(this.map, marker)
         this.openInfoWindow = infowindow
+        this.openInfoWindowAnchor = marker
       })
     }
 
