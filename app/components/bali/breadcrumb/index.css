@@ -1,4 +1,4 @@
-/* A linked crumb in the theme's primary; the current page, a span, keeps base-content.
+/* `a` is enough: the current page is a span, so it keeps the inherited base-content.
  *
  * daisyUI's `dark` paints its primary at 3.40:1 on base-100 (AA: 4.5). A floor of 0.7 on its
  * lightness reads 5.07 there and leaves the other five themes' primary as it is: the lowest of
@@ -7,19 +7,20 @@
 .breadcrumbs a {
   color: var(--color-primary);
 
-  @supports (color: light-dark(oklch(from red l c h), red)) {
+  @supports (color: light-dark(oklch(from red max(l, 0.7) c h), red)) {
     color: light-dark(var(--color-primary), oklch(from var(--color-primary) max(l, 0.7) c h));
   }
 }
 
 /* A trail wider than its box scrolls from its end, so the current page is the part in view: a
  * reversed axis puts the scroll origin at the end, and the auto margin keeps a trail that fits
- * at the start. At 320px the current page used to show 26 of its 113px. */
+ * at the start. At 320px the current page used to show 26 of its 113px. `ol` and `menu` too:
+ * daisyUI styles all three, and a host may write the markup by hand. */
 .breadcrumbs {
   display: flex;
   flex-direction: row-reverse;
 
-  & > ul {
+  & > :is(ul, ol, menu) {
     margin-inline-end: auto;
   }
 }

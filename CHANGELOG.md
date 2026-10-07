@@ -10,10 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **`Bali::Breadcrumb`: las migas enlazadas se ven como enlaces** (#1343). Toman el primary del
-  tema; la página actual sigue en color de texto. En el `dark` de daisyUI, donde el primary
-  leía 3.40:1, se aclara hasta 5.07; los demás temas lo pintan tal cual. Cuando las migas no
-  caben (un teléfono), el desplazamiento arranca en la última, así que la página actual se ve
-  completa; las que caben siguen alineadas a la izquierda. Sin nada que hacer en las apps.
+  tema; la página actual sigue en color de texto. En el `dark` de daisyUI, donde el primary no
+  llega a AA como texto, se aclara; los demás temas lo pintan tal cual. Cuando las migas no
+  caben (un teléfono), el desplazamiento arranca en la última, así que la página actual queda a
+  la vista; las que caben siguen alineadas a la izquierda. Sin nada que hacer en las apps.
 
 ## [v3.9.0] - 2026-10-04
 

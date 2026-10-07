@@ -250,7 +250,7 @@ beat a rule daisyUI emits inside `@layer utilities` (daisyUI 5 does not use
 `container-overrides.css`, `prose-invert.css`, `data_table/index.css`,
 `toast/index.css`, `feedback_widget/index.css`, and the `daisyui-overrides.css`
 of `breadcrumb`, `side_menu`, `calendar`, `rich_text_editor`, `gauge`, `alert`, `tag`,
-`button` and `drawer`. Each file's header names the rule it is fighting. To override one of those from your app, use a `!` utility variant or
+`button`, `drawer`, `dropdown` and `navbar`. Each file's header names the rule it is fighting. To override one of those from your app, use a `!` utility variant or
 plain unlayered CSS imported after Bali.
 
 ### DaisyUI Themes
