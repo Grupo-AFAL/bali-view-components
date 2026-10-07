@@ -104,6 +104,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `options:` que pinte una de esas partes la pierde salvo con `useThemeColors: false` en ella.
   Ninguna app de la flota usa estos tipos.
 
+- **`Bali::FeedbackWidget`: el contador se topa en «99+»** (#1333), el mismo tope que
+  `Bali::Topbar::IconAction`, con el que comparte la barra; lo lee de
+  `IconAction::Component::MAX_COUNT`. Un lector de pantalla sigue oyendo el número real.
+
+- **`Bali::FeedbackWidget`: abrir el panel cancela el conteo que iba en camino** (#1333). Si la
+  respuesta llegaba después de abrir, volvía a pintar el número de antes sobre el cero.
+
+- **`Bali::FeedbackWidget` pasa sus atributos HTML al `div` que lo envuelve** (#1333): `id:`,
+  `data:`, `aria:`… Antes descartaba todo menos `class:`. Un `data: { controller: }` se suma a
+  `feedback-widget`. Quien pasa `class:` no ve nada distinto. Sin nada que hacer en el
+  anfitrión.
+
 ### Documentation
 
 - **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).

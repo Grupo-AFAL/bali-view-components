@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-# The two Topbar previews render the widget from a template, which the component tests never
+# The three previews render the widget from a template, which the component tests never
 # load: requesting them over HTTP is the only path where a broken one shows.
 class FeedbackWidgetPreviewsTest < ActionDispatch::IntegrationTest
   PREVIEWS = {

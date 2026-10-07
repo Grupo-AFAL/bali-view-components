@@ -232,6 +232,25 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     assert_selector("[data-feedback-widget-read-url-value='https://opina.example.com/api/v1/projects/my-project/badge/read']")
   end
 
+  # `showUnread` caps the badge at this, the cap `Bali::Topbar::IconAction` draws beside it.
+  def test_hands_the_controller_the_topbar_badge_cap
+    render_inline(widget)
+
+    assert_selector("[data-feedback-widget-max-count-value='#{Bali::Topbar::IconAction::Component::MAX_COUNT}']")
+  end
+
+  def test_html_attributes_reach_the_wrapper
+    render_inline(widget(id: "opina", data: { turbo_permanent: true }, aria: { live: "polite" }))
+
+    assert_selector("div.feedback-widget#opina[data-turbo-permanent][aria-live='polite']")
+  end
+
+  def test_a_controller_passed_in_joins_the_widgets_own
+    render_inline(widget(data: { controller: "tooltip" }))
+
+    assert_selector("div.feedback-widget[data-controller='feedback-widget tooltip']")
+  end
+
   def test_threads_user_name_into_generated_token
     render_inline(Bali::FeedbackWidget::Component.new(
       project_slug: "test-project",

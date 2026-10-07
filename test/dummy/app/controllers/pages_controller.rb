@@ -3,6 +3,9 @@
 class PagesController < ApplicationController
   layout :choose_layout
 
+  # The widget authenticates with a Bearer token, as it does against Opina, and has no CSRF one.
+  skip_forgery_protection only: :feedback_badge_read
+
   # Simple struct for calendar event demo data
   CalendarEvent = Struct.new(:start_time, :end_time, :title, keyword_init: true)
 
@@ -56,6 +59,11 @@ class PagesController < ApplicationController
   # Stands in for Opina's unread count, which the widget asks for as it connects.
   def feedback_badge
     render json: { unread_count: 0 }
+  end
+
+  # ...and for marking it read, which the widget does as its panel opens.
+  def feedback_badge_read
+    head :no_content
   end
 
   def workspace
