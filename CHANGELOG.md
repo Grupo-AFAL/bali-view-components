@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   también se lee así un `AAAA-MM-DD HH:MM:00`. Hoy ninguna app declara un atributo
   `type: :datetime` ni arma un valor así para `q`.
 
+- **`Filters`: el panel cabe en la pantalla** (#1333). Con el botón a media pantalla se salía
+  por la derecha y escondía «Apply»; ahora, al abrirse, se corre a la izquierda lo que sobra.
+  Donde ya cabía no se mueve. Sin nada que hacer en el anfitrión.
+
 ## [v3.9.1] - 2026-10-07
 
 ### Added
