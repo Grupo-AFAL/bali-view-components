@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.9.1] - 2026-10-07
+
+### Added
+
+- **`FilterForm#ransack_auth_object`** (#1348): el `auth_object:` que reciben todas las búsquedas
+  de Ransack que arma el form (la del listado, la validación de `group_by_attribute` y las
+  pruebas internas por condición). `nil` por omisión. Un form que sobreescribe `ransack_search`
+  solo para pasar `auth_object:` lo cambia por `def ransack_auth_object = …`, con lo que lea
+  asignado antes de `super`. Si sigue sobreescribiendo `ransack_search`, se salta el anidamiento
+  de #1345.
+
+### Fixed
+
+- **`FilterForm`: el «O» entre los grupos del panel ya no ensancha la búsqueda rápida** (#1345).
+  Los grupos entran a Ransack como un solo grupo anidado, unido con AND a la búsqueda, a los
+  atributos planos y a los filtros simples. «ana» con Drama O Action ya no trae todo Action. Lo
+  que se pinta y lo que viaja no cambia (`filter_groups`, píldoras, `q[m]`, «seleccionar los N»,
+  vistas guardadas). La forma de `ransack_params` tampoco: el anidamiento ocurre en
+  `ransack_search`, después de lo que un anfitrión reescriba en `ransack_params[:g]`.
+
+- **`FilterForm`: a Ransack solo llega lo que el panel puede escribir** (#1346). Pasa cada
+  atributo de `available_attributes` (el de la instancia) con los operadores que su tipo
+  ofrece. Las listas, solo en `_in` y `_not_in`, y con miembros que quepan en el tipo de su
+  columna. Los valores, escalares y sin caracteres de control. Lo demás no filtra y el panel no
+  lo pinta: antes daba 500 (un NUL, un id más largo que su columna dentro de un `_in`) o
+  filtraba sin pintarse (un `g` anidado, la forma `c`). Vale para la URL, las vistas guardadas
+  y el caché de filtros. La caja de búsqueda rápida sigue la misma regla de valores; un
+  `attribute` plano con el mismo nombre, no. Un form que no le ofrece atributos al panel
+  (ninguno declarado, o todos `advanced: false`) deja pasar cualquier condición, menos las que
+  tumban la consulta. **Qué revisar:**
+  - Un enlace, una prueba o una vista guardada que mande en `q[g]` un atributo que el panel no
+    ofrece deja de filtrar.
+  - Si pasas `available_attributes:` a `with_filters_panel`, el form tiene que ofrecer los
+    mismos.
+  - Un `available_attributes` propio que consulta la base corre una vez más cuando la URL trae
+    condiciones del panel; memoízalo.
+
+- **`FilterForm`: una vista guardada con datos que no son Hash abre el listado sin ese filtro**
+  (#1347), en lugar de dar 500 cada vez que alguien la abre. Aplica al payload entero y a
+  `attributes`, `simple_filters` y `groupings`. Unos `groupings` en forma de lista de grupos se
+  leen como los de la URL (`q[g][]`).
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added

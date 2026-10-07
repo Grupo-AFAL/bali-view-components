@@ -9,6 +9,7 @@ require_relative "filter_form/saved_views_configuration"
 require_relative "filter_form/enum_casting"
 require_relative "filter_form/whole_day_casting"
 require_relative "filter_form/default_filters"
+require_relative "filter_form/panel_conditions"
 
 module Bali
   # FilterForm provides a unified interface for Ransack-based filtering with support
@@ -56,6 +57,7 @@ module Bali
     include EnumCasting
     include WholeDayCasting
     include DefaultFilters
+    include PanelConditions
 
     attr_reader :scope, :storage_id, :context, :clear_filters, :groupings, :view_param, :display_mode
 
@@ -408,6 +410,9 @@ module Bali
         )
       end
 
+      # The same values a panel condition takes, from every source above (#1346).
+      @search_value = nil unless queryable_value?(@search_value)
+
       # Last, after persistence — see {GroupByConfiguration#apply_default_group_by} (#1156).
       apply_default_group_by
 
@@ -600,7 +605,21 @@ module Bali
     end
 
     def ransack_search
-      @ransack_search ||= scope.ransack(ransack_params)
+      @ransack_search ||= scope.ransack(nest_panel_groupings(ransack_params), auth_object: ransack_auth_object)
+    end
+
+    # The `auth_object:` every Ransack search this form builds is given — the listing's, the
+    # validation of `group_by_attribute`, the whole-day and column probes —, so a model's
+    # `ransackable_attributes(auth_object)` can narrow what this listing searches (#1348).
+    #
+    # @example One app's listing searches that app's roles
+    #   def ransack_auth_object = connected_application
+    #
+    # It is asked while the form is built, so whatever it reads has to be set before `super`.
+    #
+    # @return [Object, nil] nil by default, Ransack's own default
+    def ransack_auth_object
+      nil
     end
 
     # Build params hash for Ransack including groupings and search
@@ -608,7 +627,7 @@ module Bali
       params = query_params.dup
 
       # Add groupings for Filters complex conditions
-      params[:g] = @groupings if @groupings.present?
+      params[:g] = applied_groupings if applied_groupings
       params[:m] = @combinator if @combinator.present?
 
       # Add quick search parameter
@@ -659,22 +678,6 @@ module Bali
       end.to_h
     end
 
-    # Extract Ransack groupings from params.
-    # Groupings format: q[g][0][field_operator]=value, q[g][0][m]=or/and
-    #
-    # Safety: to_unsafe_h is required because Ransack expects a plain nested hash
-    # for its grouping structure. Ransack performs its own attribute authorization
-    # via `ransackable_attributes` / `ransackable_associations` on the model,
-    # so arbitrary keys are rejected at the Ransack layer, not here.
-    #
-    # Every group has to be a hash and `g` can arrive in any shape: `q[g][]` (the ARRAY shape,
-    # which Ransack accepts and Bali does not emit) blew up with a NoMethodError on
-    # `to_unsafe_h`, and a scalar group (`q[g][0]=x`) travelled whole down to Ransack to blow up
-    # there — a 500 on any index from a hand-written URL. It is normalized to the indexed shape
-    # the rest of Bali speaks (filter_groups, a saved view's payload, EnumCasting), so the array
-    # shape also GOES THROUGH the enum translation instead of silently dodging it and returning
-    # the opposite records.
-    #
     # `?q=anything` and `?q[]=anything` arrive as a String and as an Array, and neither of them
     # responds to `permit`: they are typed into the address bar with no session and knowing
     # nothing about the app, so the bare `permit` that used to be here was a 500 any visitor
@@ -693,20 +696,41 @@ module Bali
       ActionController::Parameters.new(q.is_a?(Hash) ? q.to_h : {})
     end
 
+    # The panel's groups as the URL brings them (`q[g][0][field_operator]=value`,
+    # `q[g][0][m]=or`); what of them gets applied is {PanelConditions#applied_groupings}.
+    # A hook: afal-apps' TDFlow::DeliverablesFilterForm overrides it to drop `q[g]` whole.
     def extract_groupings(q_params)
-      groupings = q_params[:g]
-      return nil if groupings.blank?
-
-      groups = unwrap_params(groupings)
-      groups = groups.each_with_index.to_h { |group, index| [ index.to_s, group ] } if groups.is_a?(Array)
-      return nil unless groups.is_a?(Hash)
-
-      groups.transform_values { |group| unwrap_params(group) }
-            .select { |_index, group| group.is_a?(Hash) }.presence
+      normalize_groupings(q_params[:g])
     end
 
     def unwrap_params(value)
       value.respond_to?(:to_unsafe_h) ? value.to_unsafe_h : value
+    end
+
+    # The panel's groups enter Ransack as ONE grouping with their own combinator, which the
+    # root ANDs with everything else under `q`. At the root they shared it with the quick
+    # search, the flat attributes and the simple filters, so an OR between two groups OR-ed
+    # those too: "ana" OR genre Action listed every Action movie (#1345). A combinator left
+    # with no group to combine goes with them.
+    #
+    # Here and not in `ransack_params`: hosts rewrite `ransack_params[:g]` group by group
+    # after `super` (gobierno-corporativo's `rama`, its DomainTreeFiltering), and a nested
+    # shape would leave their keys out of reach.
+    def nest_panel_groupings(params)
+      groupings = params[:g] || params["g"]
+      combinator = params[:m] || params["m"]
+      params = params.except(:g, "g", :m, "m")
+      return params if groupings.blank?
+
+      params.merge(g: { "0" => { g: groupings, m: combinator }.compact })
+    end
+
+    # The condition Ransack builds out of one key and its value, with this form's
+    # authorization; nil when Ransack would ignore it.
+    def ransack_condition(key, value)
+      return unless scope.respond_to?(:ransack)
+
+      scope.ransack({ key => value }, auth_object: ransack_auth_object).base.conditions.first
     end
 
     # Persist or restore complete filter state including groupings, combinator, and search.

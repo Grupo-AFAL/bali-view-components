@@ -30,30 +30,19 @@ module Bali
         groups = params[:g]
         return params if groups.nil?
 
-        params.merge(g: cast_whole_day_groupings(groups))
-      end
-
-      # Same walk as EnumCasting#cast_enum_groupings: a nested `g` can arrive as a hash or an array.
-      def cast_whole_day_groupings(groupings)
-        return groupings.map { |group| cast_whole_day_group(group) } if groupings.is_a?(Array)
-        return groupings unless groupings.is_a?(Hash)
-
-        groupings.transform_values { |group| cast_whole_day_group(group) }
+        params.merge(g: groups.transform_values { |group| cast_whole_day_group(group) })
       end
 
       def cast_whole_day_group(group)
-        return group unless group.is_a?(Hash)
-
         whole_days = {}
         casted = group.each_with_object({}) do |(key, value), result|
           name = key.to_s
-          if EnumCasting::GROUPING_KEYS.include?(name) then result[key] = cast_whole_day_groupings(value)
-          elsif (grouping = whole_day_grouping(name, value)) then whole_days[name] = grouping
+          if (grouping = whole_day_grouping(name, value)) then whole_days[name] = grouping
           elsif name.end_with?(*END_OF_DAY_PREDICATES) then result[key] = end_of_day(value)
           else result[key] = value
           end
         end
-        whole_days.empty? ? casted : with_nested_groupings(casted, whole_days)
+        whole_days.empty? ? casted : casted.merge("g" => whole_days)
       end
 
       # A date column gets the same day back: Ransack casts the time with `to_date`, in the zone.
@@ -83,17 +72,8 @@ module Bali
       # search. One attribute only: `a_or_b_eq` split into two ranges would no longer ask
       # whether EITHER falls on that day.
       def timestamp_condition?(key, value)
-        condition = scope.ransack(key => value).base.conditions.first
+        condition = ransack_condition(key, value)
         condition&.attributes&.one? && TIMESTAMP_TYPES.include?(condition.default_type)
-      end
-
-      # Keyed by the condition each one replaces, a key no sibling group's index can take; and a
-      # hash, the indexed shape FilterForm#extract_groupings gives the top-level `g`.
-      def with_nested_groupings(group, groupings)
-        key = group.key?(:g) ? :g : "g"
-        nested = group[key]
-        nested = nested.each_with_index.to_h { |inner, index| [ index.to_s, inner ] } if nested.is_a?(Array)
-        group.merge(key => (nested.is_a?(Hash) ? nested : {}).merge(groupings))
       end
     end
   end
