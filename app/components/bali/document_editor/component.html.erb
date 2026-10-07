@@ -96,7 +96,7 @@
   <div class="flex-1 flex overflow-hidden max-sm:relative">
     <%# Below `sm` the TOC stacks above the editor, as BlockEditor's own does: side by side at
         390px it left the editor a 70px column. %>
-    <div class="flex-1 min-w-0 flex max-sm:flex-col">
+    <div class="flex-1 min-w-0 flex max-sm:flex-col max-sm:isolate">
       <%# Left: TOC Panel (populated via React portal from BlockNote) %>
       <div class="document-editor-toc w-56 border-r border-base-300 overflow-y-auto shrink-0 p-4 hidden
                   max-sm:w-full max-sm:max-h-72 max-sm:border-r-0 max-sm:border-b"
@@ -137,7 +137,10 @@
     </div>
 
     <%# Below `sm` either panel covers the editor instead of sharing the row: side by side at
-        390px its w-80 left the editor 70px. %>
+        390px its w-80 left the editor 70px. Covering it relies on the `isolate` of the editor
+        column above: BlockNote gives its floating UI inline z-indexes (the block handle 20, the
+        toolbar 40, Bali's popovers 600), which otherwise outrank the panel and show the handle
+        over it when the pointer crosses the left strip. %>
     <%# Right: Comments Panel %>
     <% if comments? %>
       <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden

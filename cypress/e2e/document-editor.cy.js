@@ -334,11 +334,13 @@ describe('DocumentEditor on a phone', () => {
   })
 
   // Beside the editor, a panel's w-80 left it 70px at 390px. Over it, the panel has to paint a
-  // ground of its own, or the document shows through.
+  // ground of its own, or the document shows through, and cover BlockNote's floating UI: the
+  // block handle still follows the pointer through the panel, and its z-index 20 drew it on top.
   ;['comments', 'history'].forEach((panel) => {
     it(`lays the ${panel} panel over the whole editor`, () => {
       cy.viewport(390, 844)
       cy.visit('/bali/document_editor/default')
+      editor().should('contain.text', 'Key Objectives')
       cy.get(`[data-document-editor-target="${panel}Toggle"]`).click()
 
       cy.get(`[data-document-editor-target="${panel}Panel"]`).should(($panel) => {
@@ -347,6 +349,17 @@ describe('DocumentEditor on a phone', () => {
         const background = getComputedStyle($panel[0]).backgroundColor
         expect(() => paintedPixel($panel[0].ownerDocument, background), 'panel background is opaque')
           .not.to.throw()
+      })
+
+      editor().find('[data-content-type="paragraph"]').first().then(($block) => {
+        const { top, height } = rect($block)
+        cy.document().trigger('mousemove', { clientX: 20, clientY: top + height / 2 })
+      })
+      cy.get('.bn-side-menu').should(($handle) => {
+        const { left, top, width, height } = rect($handle)
+        const hit = $handle[0].ownerDocument.elementFromPoint(left + width / 2, top + height / 2)
+        expect(hit.closest('[data-document-editor-target$="Panel"]'), 'what the handle point shows')
+          .to.equal($handle[0].ownerDocument.querySelector(`[data-document-editor-target="${panel}Panel"]`))
       })
     })
   })
