@@ -26,9 +26,8 @@ module Bali
       # The full flow — frame swaps, infinite scroll against a real paginated
       # index, deep links, back and forward — is at **`/split-view`** in the dummy
       # app. A preview cannot page against itself.
-      # @param status [String] select ["", "draft", "done"]
-      def default(status: "")
-        render_structured(status: status)
+      def default
+        render_structured
       end
 
       # `filter_mode: :multi`: each pill toggles independently over a multi-valued
@@ -69,7 +68,7 @@ module Bali
       # one seam, which is what the controller merges. Ordered by name instead,
       # `done` would come back on every page and the heading with it.
       def grouped_list
-        render_structured(group_by: :status, next_url: "/split-view?grouped=status&page=2")
+        render_structured(group_by: :status)
       end
 
       # `advance: false` for a split view that is not a location of its own — the
@@ -110,21 +109,15 @@ module Bali
 
       private
 
-      def render_structured(scope: Movie.all, status: "", selected: nil, filter_mode: :single,
-                            filters: nil, advance: true, group_by: nil, next_url: nil)
-        scope = scope.where(status: status) if status.present?
-
+      def render_structured(selected: nil, filter_mode: :single, filters: nil, advance: true, group_by: nil)
         render_with_template(
           template: Bali::SplitView::Preview::STRUCTURED,
           locals: {
-            scope: scope,
-            status: status,
             selected: selected,
             filter_mode: filter_mode,
             filters: filters || status_filters,
             advance: advance,
-            group_by: group_by,
-            next_url: next_url
+            group_by: group_by
           }
         )
       end

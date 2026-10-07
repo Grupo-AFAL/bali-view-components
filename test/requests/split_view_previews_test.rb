@@ -11,7 +11,7 @@ class SplitViewPreviewsTest < ActionDispatch::IntegrationTest
 
   SCENARIOS = %w[
     default multi_filters with_selection deep_link_beyond_the_first_page
-    without_advance frame_options custom_master full_height/default
+    grouped_list without_advance frame_options custom_master full_height/default
   ].freeze
 
   def setup
@@ -22,7 +22,7 @@ class SplitViewPreviewsTest < ActionDispatch::IntegrationTest
   def test_every_scenario_renders
     SCENARIOS.each do |scenario|
       get "#{BASE}/#{scenario}"
-      assert_response :ok, "#{scenario} no renderizó"
+      assert_response :ok, "#{scenario} did not render"
     end
   end
 
@@ -32,7 +32,7 @@ class SplitViewPreviewsTest < ActionDispatch::IntegrationTest
     get "#{BASE}/default"
 
     assert_select "a.split-view-item[data-split-view-target='row']", { minimum: 1 },
-      "el default tiene que enseñar with_list/with_item, no un master a mano"
+      "default has to teach with_list/with_item, not a hand-written master"
     assert_select "a.split-view-item[data-turbo-frame='split-view-detail']", minimum: 1
   end
 
@@ -42,18 +42,35 @@ class SplitViewPreviewsTest < ActionDispatch::IntegrationTest
 
     assert_select ".split-view-master .split-view-row", minimum: 1
     assert_select "a.split-view-item", false,
-      "custom_master es el escape: sus filas se escriben a mano"
+      "custom_master is the escape hatch: its rows are written by hand"
   end
 
   # The pills build their own URLs from the request, so a preview is a real
   # filter: the param narrows the listing and marks the pill.
   def test_the_filter_pills_are_live_in_single_mode
     get "#{BASE}/default"
-    assert_select ".split-view-filter[data-active='true']", false, "sin filtro no hay pill activa"
+    assert_select ".split-view-filter[data-active='true']", false, "no filter, no active pill"
 
     get "#{BASE}/default", params: { status: "done" }
     assert_select ".split-view-filter[data-active='true']", 1
     assert_select ".split-view-filter[aria-current='true']", 1
+  end
+
+  # Lookbook passes a preview method only the params it declares, so the status a
+  # pill writes has to reach the listing some other way, in every scenario that
+  # shows the pills — page one and the page the sentinel asks for next.
+  def test_every_status_pill_filters_the_listing_it_lights
+    studio = Tenant.find_by!(name: "Preview Studio")
+    6.times { |i| studio.movies.create!(name: "Z Done Movie #{i}", genre: "Drama", status: :done) }
+
+    %w[default with_selection deep_link_beyond_the_first_page grouped_list without_advance].each do |scenario|
+      get "#{BASE}/#{scenario}", params: { status: "done" }
+
+      assert_select ".split-view-filter[data-active='true']", { count: 1, text: /Done/ }, scenario
+      assert_select ".split-view-item", { count: 5 }, scenario
+      assert_select ".split-view-item", { count: 0, text: /Preview Movie/ }, "#{scenario} listed a draft"
+      assert_select "[data-split-view-list-next-url-value*='status=done']", { count: 1 }, scenario
+    end
   end
 
   # `q` arrives raw from the URL (#1210): typed as a scalar or a list it is not a hash, and
@@ -96,7 +113,7 @@ class SplitViewPreviewsTest < ActionDispatch::IntegrationTest
     get "#{BASE}/full_height/default"
 
     assert_select "body.app-layout--viewport-locked", 1,
-      "sin la clase de lock, `height: :full` no tiene contra qué llenar"
+      "without the lock class, `height: :full` has nothing to fill"
     assert_select ".split-view-component--full", 1
   end
 end

@@ -132,6 +132,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   escribía `center_locale` y el controlador leía `locale`, así que Google siempre lo pintaba en
   inglés; el controlador ahora recibe el `I18n.locale`.
 
+- **`Bali::SplitView`: un «atrás» justo después de abrir una fila vuelve a lo que pide su URL**
+  (#1340). Si llegaba entre que el panel pintaba el detalle y la visita con la que Turbo promueve
+  el clic (`advance`), esa visita cancelaba la restauración: la URL volvía y el panel seguía en
+  la fila. Ahora el panel se rehace desde la URL, y lo hace sin empujar otra entrada al
+  historial, así que «adelante» sigue llevando a la fila. Sin nada que hacer en el anfitrión.
+
 ### Documentation
 
 - **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).
