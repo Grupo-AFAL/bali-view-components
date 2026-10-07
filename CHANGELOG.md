@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sin color. Ninguna app v3 usa `Hero` ni `Footer`; si una pone un botón de color sobre un
   relleno, `focus-visible:outline-<relleno>-content` en el botón le gana a esta regla.
 
+### Fixed
+
+- **`BlockEditor` y `DocumentEditor`: en el teléfono la barra de formato pasa a dos filas**
+  (#1355). Era una sola fila que se desplazaba de lado: a 390 px el selector de tipo de bloque
+  quedaba en 19 px de sus 129 y el botón de comentar fuera de la pantalla. La barra se mide
+  contra la pantalla, no contra el editor: se parte cuando no cabe en ella (dos filas de 320 a
+  390 px) y en escritorio sigue en una fila, también en un editor más angosto que ella.
+  Alcanza a afal-apps y gobierno-corporativo; no hay nada que hacer.
+
 ## [v3.10.0] - 2026-10-07
 
 ### Added
