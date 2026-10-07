@@ -64,6 +64,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `auto` del navegador, y los ítems de sus paneles, sólo el tinte de daisyUI. Ahora todos llevan
   un contorno de 2 px en `base-content`, hacia dentro.
 
+- **Drawer cerrado: `inert` en vez de `visibility: hidden`** (#1333). Un descendiente con
+  `visibility: visible` (la clase `.visible`, o el `collapse` abierto de daisyUI en un navegador
+  sin `content-visibility`) seguía alcanzable con Tab. El `<dialog>` cerrado sale del servidor
+  con `inert` y el controlador lo quita al abrir. Un drawer que alguien abra poniéndole
+  `drawer-open` a mano se vería pero no respondería; ninguna app lo hace.
+- **Drawer por debajo de 768 px: el tope de `size:` sigue valiendo.** El 85 % de la pantalla era
+  un segundo `max-width` que reemplazaba al del tamaño: un `sm` (384 px) medía 544 px a 640 y 652
+  a 767. Ahora mide el menor de los dos. Nada que hacer.
+- **Drawer: el fondo oscuro se desvanece con el panel al cerrar**, en sus 300 ms, en vez de
+  desaparecer en el primer cuadro. Al abrir sigue apareciendo de golpe.
+- **Modal y Drawer abiertos sin un clic devuelven el foco a `<main>` al cerrar.** Un panel
+  renderizado `active: true` o abierto por `bali:modal:open` / `bali:drawer:open` sin un clic
+  dejaba el foco en `<body>`, y en `Bali::AppLayout` el siguiente Tab saltaba al enlace del
+  principio de la página. Ahora va al `<main>` de AppLayout, que muestra el mismo anillo que al
+  llegar por ese enlace; también si el botón que lo abrió desapareció con el panel abierto. Sin
+  AppLayout, un `<main>` sin `tabindex="-1"` no toma el foco y queda como antes.
+
 ### Documentation
 
 - **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).

@@ -190,7 +190,8 @@ slots are independent so non-shell layouts work too.
 - `modal` / `drawer` - Render the shared `#main-modal` / `#main-drawer` and put their Stimulus controllers on `<body>`, so a `modal: true` / `drawer: true` trigger opens them from anywhere on the page — a chrome slot or a `popover: true` menu included (default: true)
 - `mobile_bottom_padding` - Room under the content on a phone, for the browser's floating bar plus the device safe area (default: false) — see below
 
-The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it.
+The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it,
+and so does a Modal or Drawer that closes with no trigger to give the focus back to.
 
 **Decoupled scroll model**:
 | `fixed_sidebar` | `viewport_locked` | Behavior |
@@ -505,7 +506,9 @@ that is not `class:` is passed through to the tag.
 
 Dialog overlay for focused interactions. Renders a native `<dialog>` and opens it with
 `showModal()`, so the panel is painted in the top layer, the page behind it is inert, and
-Escape and focus restoration come from the element. See
+Escape comes from the element. Closing gives the focus back to what opened it; when nothing
+did — a modal rendered `active:` — it goes to the page's `<main>`, which outside
+`Bali::AppLayout` needs `tabindex="-1"` to take it. See
 [Overlays and the top layer](overlays-and-the-top-layer.md) for what that means for
 anything you render over it.
 
