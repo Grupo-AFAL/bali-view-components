@@ -3,6 +3,6 @@
 <% if info_view? %>
   <template id="<%= info_view_id %>">
     <%# Google paints the info window white on a dark map as well, so its content is in the light theme. %>
-    <%= tag.div(info_view, data: { theme: Bali.themes&.dig(:light) }) %>
+    <%= tag.div(info_view, data: { theme: light_theme }) %>
   </template>
 <% end %>

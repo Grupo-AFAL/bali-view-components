@@ -12,7 +12,7 @@
 // nothing here asserts anything, it only makes the controller's side effects
 // observable.
 (function () {
-  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [], polygons: [], drawingManagers: [] }
+  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [], polygons: [] }
 
   class ListenerHost {
     constructor () {
@@ -138,8 +138,8 @@
     }
   }
 
-  // `setMap` is how the geocoder's pin, a drawn polygon and the drawing toolbar
-  // are put on a map, and moved to another.
+  // `setMap` is how the geocoder's pin and a drawn polygon are put on a map, and
+  // moved to another.
   class FakeOverlay extends ListenerHost {
     constructor (options = {}) {
       super()
@@ -167,13 +167,6 @@
 
     getPaths () {
       return [this.options.paths]
-    }
-  }
-
-  class FakeDrawingManager extends FakeOverlay {
-    constructor (options) {
-      super(options)
-      registry.drawingManagers.push(this)
     }
   }
 
@@ -206,13 +199,9 @@
       Marker: FakeMarker,
       Animation: { DROP: 'DROP' },
       Polygon: FakePolygon,
-      ControlPosition: { TOP_CENTER: 'TOP_CENTER' },
-      drawing: {
-        DrawingManager: FakeDrawingManager,
-        OverlayType: { POLYGON: 'polygon' }
-      },
-      // Nothing here fires: the polygon's edits and the drawing toolbar are not
-      // under test.
+      // No `drawing` library: the API dropped DrawingManager in 3.65, and
+      // drawing-maps fails to build it inside its `try`, as it does against Google.
+      // Nothing here fires: the polygon's edits are not under test.
       event: {
         trigger () {},
         addListener () {

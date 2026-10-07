@@ -14,10 +14,11 @@ export function observeHostColorScheme (callback) {
   let scheme = hostColorScheme()
 
   const observer = new MutationObserver(() => {
-    if (hostColorScheme() === scheme) return
+    const next = hostColorScheme()
+    if (next === scheme) return
 
-    scheme = hostColorScheme()
-    callback(scheme)
+    scheme = next
+    callback(next)
   })
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 

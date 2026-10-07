@@ -72,7 +72,6 @@ export class DrawingMapsController extends Controller {
 
     this.initializeMaps(this.map.getCenter(), this.map.getZoom())
     this.drawnPolygons.forEach(polygon => polygon.setMap(this.map))
-    this.drawingManager?.setMap(this.map)
   }
 
   initializeDrawing (polygonOptions) {

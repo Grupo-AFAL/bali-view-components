@@ -12,10 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`hostColorScheme()` y `observeHostColorScheme(callback)`** se exportan desde
   `bali-view-components` (#1344): el primero devuelve `'dark'` o `'light'` según el
   `color-scheme` del `<html>`; el segundo avisa cuando un cambio de `data-theme` pasa al otro
-  esquema. Sirven a la app que crea su propio `google.maps.Map`, que sólo toma `colorScheme` al
-  crearse: `colorScheme: hostColorScheme() === 'dark' ? ColorScheme.DARK : ColorScheme.LIGHT`.
-  Hoy, centinela-web (`git grep -n "new .*\.Map(" origin/main -- 'app/javascript/**/*.js'` da
-  `coordinates_picker_controller.js`).
+  esquema. Para una app que crea su propio `google.maps.Map`, que sólo toma `colorScheme` al
+  crearse (hoy, `coordinates_picker_controller.js` de centinela-web):
+  `colorScheme: hostColorScheme() === 'dark' ? ColorScheme.DARK : ColorScheme.LIGHT`.
 
 ### Fixed
 
@@ -27,14 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ventana de información abierta, el pin y los polígonos. Sin nada que hacer en el anfitrión.
 
 - **`Bali::LocationsMap`: la ventana de información se lee en modo oscuro** (#1344). Google la
-  pinta blanca también sobre el mapa oscuro, y en `afal-dark` su contenido heredaba la tinta
-  clara de la página (1.24:1) y la X de cerrar salía blanca. Ahora el contenido de
-  `with_info_view` va en el tema claro de la app (`Bali.themes[:light]`) y la burbuja en
-  `color-scheme: light`. Quien ya veía bien su ventana en modo claro no ve nada distinto.
+  pinta blanca también sobre el mapa oscuro, y en `afal-dark` su texto y su X de cerrar salían
+  blancos. Ahora el contenido de `with_info_view` va en el tema claro de la app
+  (`Bali.themes[:light]`). En modo claro no cambia nada.
 
 - **`Bali::LocationsMap`: el mapa sale en el idioma de la página** (#1344). El componente
   escribía `center_locale` y el controlador leía `locale`, así que Google siempre lo pintaba en
-  inglés; ahora usa `I18n.locale`.
+  inglés; el controlador ahora recibe el `I18n.locale`.
 
 ## [v3.9.0] - 2026-10-04
 

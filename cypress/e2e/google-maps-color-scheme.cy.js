@@ -169,7 +169,7 @@ describe('Google maps follow the color scheme of the page', () => {
     })
   })
 
-  // Neither controller has a component, so the spec mounts the markup the controllers
+  // Neither controller has a preview, so the spec mounts the markup the controllers
   // guide shows on a page with no map of its own, in the theme the test is about.
   const mount = (theme, markup) => {
     cy.visit('/bali/empty_state/default')
@@ -203,17 +203,16 @@ describe('Google maps follow the color scheme of the page', () => {
       })
     })
 
-    it('builds it again dark when the page turns dark, with the polygon and the drawing tools', () => {
+    it('builds it again dark when the page turns dark, with the polygon', () => {
       mount('afal', drawingMaps)
       registry(({ polygons }) => expect(polygons).to.have.length(1))
       moveFirstMap()
 
       switchTheme('afal-dark')
 
-      registry(({ maps, polygons, drawingManagers }) => {
+      registry(({ maps, polygons }) => {
         expectRebuiltWhereLeft(maps)
         expect(polygons[0].map, 'polygon on the new map').to.eq(maps[1])
-        expect(drawingManagers[0].map, 'drawing tools on the new map').to.eq(maps[1])
       })
     })
   })

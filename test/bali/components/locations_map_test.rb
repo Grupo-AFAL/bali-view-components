@@ -117,15 +117,20 @@ class BaliLocationsMapComponentTest < ComponentTestCase
   # Google paints the info window white on a dark map too. A <template>'s content is not
   # in the document Capybara queries, so these read the HTML.
   def test_info_view_content_is_in_the_light_theme
+    previous = Bali.themes
+    Bali.themes = { light: "afal", dark: "afal-dark" }
     render_info_view
-    assert_match(%r{<template [^>]*>\s*<div data-theme="light">Info content</div>}, rendered_content)
+    assert_match(%r{<template [^>]*>\s*<div data-theme="afal">Info content</div>}, rendered_content)
+  ensure
+    Bali.themes = previous
   end
 
   def test_info_view_content_carries_no_theme_when_the_app_declares_none
     previous = Bali.themes
     Bali.themes = nil
     render_info_view
-    assert_match(%r{<template [^>]*>\s*<div>Info content</div>}, rendered_content)
+    assert_match(%r{<template [^>]*>.*Info content}m, rendered_content)
+    refute_match(/data-theme/, rendered_content)
   ensure
     Bali.themes = previous
   end
