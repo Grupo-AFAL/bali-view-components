@@ -123,6 +123,12 @@ class BaliColorTest < ComponentTestCase
                  color_of[".block-editor-component .bn-entity-reference"])
   end
 
+  def test_tinted_buttons_write_out_the_text_soft_utility
+    css = Bali::Engine.root.join("app/components/bali/button/daisyui-overrides.css").read
+
+    assert_equal(text_soft_mix("var(--btn-color)"), css[/--btn-rest-fg: (color-mix[^;]+);/, 1])
+  end
+
   def test_gantt_status_pills_write_out_the_text_soft_utility
     assert_equal(text_soft_mix("${ink}"), gantt_var_color[/text: [^\n]*`([^`\n]+)`/, 1])
   end

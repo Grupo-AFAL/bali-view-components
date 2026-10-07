@@ -39,3 +39,8 @@
 .badge-dash {
   border-color: var(--badge-color, currentColor);
 }
+
+/* Error takes text-soft-error's own ink, as ../alert/daisyui-overrides.css does. */
+.badge-error:is(.badge-soft, .badge-outline, .badge-dash) {
+  @apply text-soft-error;
+}
