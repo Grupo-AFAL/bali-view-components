@@ -600,7 +600,7 @@ module Bali
     end
 
     def ransack_search
-      @ransack_search ||= scope.ransack(ransack_params, auth_object: ransack_auth_object)
+      @ransack_search ||= scope.ransack(nest_panel_groupings(ransack_params), auth_object: ransack_auth_object)
     end
 
     # The `auth_object:` every Ransack search this form builds is given — the listing's, the
@@ -721,6 +721,24 @@ module Bali
 
     def unwrap_params(value)
       value.respond_to?(:to_unsafe_h) ? value.to_unsafe_h : value
+    end
+
+    # The panel's groups enter Ransack as ONE grouping with their own combinator, which the
+    # root ANDs with everything else under `q`. At the root they shared it with the quick
+    # search, the flat attributes and the simple filters, so an OR between two groups OR-ed
+    # those too: "ana" OR genre Action listed every Action movie (#1345). A combinator left
+    # with no group to combine goes with them.
+    #
+    # Here and not in `ransack_params`: hosts rewrite `ransack_params[:g]` group by group
+    # after `super` (gobierno-corporativo's `rama`, its DomainTreeFiltering), and a nested
+    # shape would leave their keys out of reach.
+    def nest_panel_groupings(params)
+      groupings = params[:g] || params["g"]
+      combinator = params[:m] || params["m"]
+      params = params.except(:g, "g", :m, "m")
+      return params if groupings.blank?
+
+      params.merge(g: { "0" => { g: groupings, m: combinator }.compact })
     end
 
     # The condition Ransack builds out of one key and its value, with this form's
