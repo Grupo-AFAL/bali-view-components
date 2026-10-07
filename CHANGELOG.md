@@ -20,8 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Filters`: «en» sobre un atributo `type: :datetime` trae las filas de ese minuto** (#1333).
   Comparaba contra el instante exacto que manda el selector (`21:22:00`) y dejaba fuera una fila
   de las 21:22:37; «en o antes» y «después» cortan ahora al final del minuto, como con una fecha
-  cortan al final del día. Unos segundos escritos a mano se comparan tal cual. Hoy ninguna app
-  declara un atributo `type: :datetime`.
+  cortan al final del día. Unos segundos escritos a mano se comparan tal cual. En la raíz de `q`
+  también se lee así un `AAAA-MM-DD HH:MM:00`. Hoy ninguna app declara un atributo
+  `type: :datetime` ni arma un valor así para `q`.
 
 ## [v3.9.1] - 2026-10-07
 

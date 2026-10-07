@@ -18,11 +18,11 @@ module Bali
 
       # The timed format of datepicker-controller.js#dateFormat. Its seconds are always 00: the
       # panel's picker has no control for them, so seconds written by hand compare as written.
-      BARE_MINUTE = /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:00)?\z/
+      BARE_MINUTE = /\A\d{4}-\d{2}-\d{2} \d{2}:\d{2}:00\z/
 
       # Both read the value as the END of its day or minute, so "on or before the 27th" and
       # "after the 27th" stay complementary over a datetime column.
-      END_OF_SPAN_PREDICATES = %w[_lteq _gt].freeze
+      END_OF_DAY_PREDICATES = %w[_lteq _gt].freeze
 
       # The only column types `_eq` is widened on: Ransack casts a bare date to midnight on
       # these (Ransack::Nodes::Value#cast, which also lists `:time`, a time of day with no day
@@ -50,25 +50,26 @@ module Bali
       end
 
       def cast_whole_day_group(group)
-        whole_spans = {}
+        whole_days = {}
         casted = group.each_with_object({}) do |(key, value), result|
           name = key.to_s
-          if (grouping = whole_span_grouping(name, value)) then whole_spans[name] = grouping
-          elsif name.end_with?(*END_OF_SPAN_PREDICATES) then result[key] = end_of_span(value)
+          if (grouping = whole_day_grouping(name, value)) then whole_days[name] = grouping
+          elsif name.end_with?(*END_OF_DAY_PREDICATES) then result[key] = end_of_day(value)
           else result[key] = value
           end
         end
-        whole_spans.empty? ? casted : casted.merge("g" => whole_spans)
+        whole_days.empty? ? casted : casted.merge("g" => whole_days)
       end
 
-      # A date column gets the same day back: Ransack casts the time with `to_date`, in the zone.
-      def end_of_span(value)
+      # Of the minute too, for a bare minute. A date column gets the same day back: Ransack casts
+      # the time with `to_date`, in the zone.
+      def end_of_day(value)
         picked_span(value)&.end || value
       end
 
       # "On the 27th" as a group of its own rather than as `_gteq`/`_lteq` pairs beside the
       # others: the group it sits in may be an OR, and its siblings may already use those keys.
-      def whole_span_grouping(key, value)
+      def whole_day_grouping(key, value)
         return unless (span = picked_span(value))
         return unless Ransack::Predicate.detect_from_string(key) == "eq"
         return unless timestamp_condition?(key, value)

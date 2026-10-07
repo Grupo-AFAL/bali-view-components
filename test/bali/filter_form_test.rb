@@ -440,6 +440,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
   def test_on_or_before_a_date_outside_the_panel_includes_that_whole_day
     @tenant.movies.create!(name: "Late that day", created_at: Time.zone.local(2026, 8, 27, 21, 22))
+    @tenant.movies.create!(name: "Next day", created_at: Time.zone.local(2026, 8, 28))
     form = FlatDateMovieFilterForm.new(
       @tenant.movies, ActionController::Parameters.new(q: { created_at_lteq: "2026-08-27" })
     )
@@ -476,12 +477,13 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
   # Seconds the picker cannot write are compared as written.
   def test_on_a_time_with_seconds_compares_exactly
+    @tenant.movies.create!(name: "That second", created_at: Time.zone.local(2026, 8, 27, 21, 22, 37))
     @tenant.movies.create!(name: "Later that minute", created_at: Time.zone.local(2026, 8, 27, 21, 22, 50))
     form = AdvancedMovieFilterForm.new(
       @tenant.movies, grouped_params(0 => { created_at_eq: "2026-08-27 21:22:37" })
     )
 
-    assert_empty(form.result.pluck(:name))
+    assert_equal([ "That second" ], form.result.pluck(:name))
   end
 
   # What is COUNTED and what TRAVELS have to be the same question: if they diverge, a bulk action
