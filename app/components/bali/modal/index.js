@@ -397,7 +397,7 @@ export class ModalController extends Controller {
   // the `input[type=hidden]` of a `form_with` or `button_to`.
   get focusableElements () {
     return [...this.wrapperTarget.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, iframe:not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
     )].filter(element => !element.closest('[inert]') && element.checkVisibility({ visibilityProperty: true }))
   }
 
