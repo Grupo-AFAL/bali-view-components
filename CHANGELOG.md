@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Filters`: el panel cabe en la pantalla** (#1333). Cuelga del borde izquierdo del botón y
+  mide 42rem, así que con el botón a media pantalla se salía por la derecha y escondía «Apply»:
+  en el listado de películas de la dummy, de 640 a 1200 px (a 1024, de 588 a 1260). Ahora se
+  corre a la izquierda lo que sobra, hasta 1rem del borde; donde ya cabía no se mueve. Sin nada
+  que hacer en el anfitrión.
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added
