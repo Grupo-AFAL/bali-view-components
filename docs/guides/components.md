@@ -368,6 +368,12 @@ The AppLayout previews model both: "Topbar + Sidebar + Content" and
 
 The root element is a `<header>` (the page's banner landmark) and the hamburger is a `Bali::SideMenu::Trigger::Component`.
 
+The search zone takes whatever width the actions leave, and it is a size container: below
+7rem the Command's default trigger folds to a 32px square with the magnifier (see Command's
+triggers). With the six actions of the `topbar/six_actions` preview, at 320px the zone gets
+2px and not even the icon fits: hide an action below `sm`, as in
+`IconAction::Component.new(..., class: "max-sm:hidden")`.
+
 ##### Topbar::UserMenu
 
 The prefabricated user dropdown for the `with_user_menu` slot — a preset of
@@ -960,12 +966,13 @@ Picking between the last three is about what should happen to the group *as the 
 - `shortcut_label` - Display label for the shortcut hint on the default trigger. `:auto` (default) renders `⌘K` and lets the Stimulus controller rewrite it to `Ctrl K` on a machine that is not a Mac — the server cannot know which keyboard is in front of the user, and a cached page would hand one machine's answer to every other one. A String is rendered literally and never rewritten; `nil` hides the hint. The binding itself accepts both chords on both platforms; only the label picks a side
 
 **Triggers:**
-- Default — a search-well button the component renders on its own (icon + `trigger_label` + `kbd` hint). Deliberately not a `.btn`: a bordered button under the focus-visible ring reads as a double border when Escape returns focus to it
+- Default — a search-well button the component renders on its own (icon + `trigger_label` + `kbd` hint). Deliberately not a `.btn`: a bordered button under the focus-visible ring reads as a double border when Escape returns focus to it. Inside any size container narrower than 7rem (Topbar's search zone is one) it folds to a 32px square with the magnifier; the label stays the button's accessible name and its `title`. 7rem fits "Search…" whole below `sm`, where the `kbd` hint is hidden; from `sm` up the hint takes its own width, so in a container just above 7rem the label can still truncate
 - `with_trigger` slot — REPLACES the default for shapes it cannot be (icon-only toolbar button, etc.). The slot content is the whole trigger: bring your own accessible name. A hand-rolled trigger that wants the same platform-aware hint puts `data-command-target="shortcut"` on its own `kbd` — the controller fills it in
 - Global keyboard: ⌘K (Mac) / Ctrl+K (Windows/Linux)
 - Window events: `bali:command:open` / `bali:command:close` / `bali:command:toggle`
 
-**Keyboard:** ↑/↓ to navigate, ⏎ to activate, Esc to close.
+**Keyboard:** ↑/↓ to navigate, ⏎ to activate, Esc to close. As you type, the first row that
+matches the query is the highlighted one, even with an `:action` row listed above it.
 
 **Emits:** `bali:command:select` (bubbles, `detail: { row, value }`) when an item without an
 `href` is activated.

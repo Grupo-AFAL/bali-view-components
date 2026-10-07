@@ -52,6 +52,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   es el mismo color; en el `light` de daisyUI, un gris apenas más claro. Sin nada que hacer en el
   anfitrión en ninguno de los tres.
 
+- **`Bali::Topbar`: la búsqueda se pliega a su ícono cuando las acciones no le dejan sitio**
+  (#1336). Con menos de 7rem en la zona de búsqueda, el disparador por defecto de
+  `Bali::Command` queda en un cuadro de 32 px con la lupa; el texto sigue siendo su nombre
+  accesible y su `title`. En escritorio se ve igual. Si ni el ícono cabe (seis acciones a
+  320 px), la app oculta una acción debajo de `sm`, como ya hace gobierno-corporativo.
+- **`Bali::Command`: Enter abre la primera fila que coincide con lo escrito** (#1333), y es la
+  que queda resaltada, aunque una fila `mode: :action` vaya antes en la lista.
+- **`Bali::SideMenu`: anillo de foco del tema** (#1333). Con el teclado, los ítems, los
+  disparadores de grupo, los botones de la cabecera y el selector de módulo llevaban el anillo
+  `auto` del navegador, y los ítems de sus paneles, sólo el tinte de daisyUI. Ahora todos llevan
+  un contorno de 2 px en `base-content`, hacia dentro.
+
 ### Documentation
 
 - **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).

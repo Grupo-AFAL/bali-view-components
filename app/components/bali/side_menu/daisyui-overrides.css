@@ -115,6 +115,17 @@
   @apply bg-primary/10 text-soft-primary;
 }
 
+/* ── The keyboard ring inside a `.menu` panel ────────────────────────────
+   daisyUI takes the ring off a `.menu` item under `:focus-visible`
+   (`outline: 2px solid #0000`) and leaves only a 10% base-content tint, which
+   Dropdown measured at 1.21–1.34:1 on its base-100 panel. The bottom group,
+   the module switcher, the flyouts and the dropdown groups are such panels;
+   this is the ring ./index.css gives every other item. */
+.side-menu-component .menu :is(a, button, summary, [role="button"]):focus-visible {
+  outline: 2px solid var(--color-base-content);
+  outline-offset: -2px;
+}
+
 /* ── .tooltip ────────────────────────────────────────────────────────────
    The menu-switcher tooltip is only useful when the sidebar is collapsed —
    expanded, the title is right there in the trigger button. daisyUI sets
