@@ -143,13 +143,16 @@ export class FiltersController extends Controller {
 
   // The panel hangs from the trigger's left edge and is 42rem wide: on /admin/movies at
   // 1024 px it ran from 588 to 1260, Apply included (#1333). Slid left by what spills, down
-  // to the 1rem gutter its max-width keeps; measured before the opening scale starts.
+  // to the 1rem gutter its max-width keeps; centred instead where both gutters do not fit,
+  // because that max-width counts a classic scrollbar clientWidth leaves out. Measured on
+  // opening, before the scale starts.
   keepInViewport (inner) {
     const content = this.dropdownContentTarget
     content.style.removeProperty(PANEL_SHIFT_PROPERTY)
 
-    const spill = inner.getBoundingClientRect().right -
-      (document.documentElement.clientWidth - VIEWPORT_GUTTER)
+    const { left, right } = inner.getBoundingClientRect()
+    const viewport = document.documentElement.clientWidth
+    const spill = Math.min(right - (viewport - VIEWPORT_GUTTER), (left + right - viewport) / 2)
     if (spill > 0) content.style.setProperty(PANEL_SHIFT_PROPERTY, `${-spill}px`)
   }
 

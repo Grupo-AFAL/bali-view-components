@@ -231,8 +231,8 @@ describe('FiltersController: portaled widgets inside the panel', () => {
 })
 
 // #1333 — the panel hangs from the trigger's left edge and is 42rem wide, so on
-// /admin/movies at 1024 px it ran from 588 to 1260, past the right of the screen with Apply
-// in it. The app page and not a preview: only a real toolbar puts the trigger that far right.
+// /admin/movies at 1024 px it ran past the right of the screen with Apply in it. The app page
+// and not a preview: only a real toolbar puts the trigger that far right.
 describe('FiltersController: the panel stays on screen', () => {
   const appOrigin = new URL(Cypress.config('baseUrl')).origin
   const trigger = '[data-filters-target="dropdown"] > button'
