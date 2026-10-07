@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::Topbar`: la búsqueda se pliega a su ícono cuando las acciones no le dejan sitio**
+  (#1336). Con menos de 6rem en la zona de búsqueda, el disparador por defecto de
+  `Bali::Command` queda en un cuadro de 32 px con la lupa, y el texto sigue siendo su nombre
+  accesible. Con seis acciones la zona medía 42 px a 360 y 72 a 390, donde se leía «Se…». En
+  escritorio no cambia nada. A 320 px con seis acciones a la zona le quedan 2 px y tampoco cabe
+  el ícono: la app oculta una acción debajo de `sm`, como ya hace gobierno-corporativo.
+- **`Bali::Command`: Enter abre la primera fila que coincide con lo escrito** (#1333), y es la
+  que queda resaltada. Una fila `mode: :action`, visible con cualquier búsqueda, le ganaba si
+  iba antes en la lista: con «upload» se abría «New document request».
+- **`Bali::SideMenu`: anillo de foco del tema** (#1333). Los ítems, los disparadores de grupo,
+  los botones de la cabecera y el selector de módulo llevaban con el teclado el anillo `auto`
+  del navegador; ahora es un contorno de 2 px en `base-content`, hacia dentro, que mide
+  11.78:1 o más en los seis temas. Una utilidad `focus-visible:` del anfitrión le sigue ganando.
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added
