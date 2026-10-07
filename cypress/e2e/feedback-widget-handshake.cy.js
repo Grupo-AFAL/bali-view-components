@@ -94,17 +94,21 @@ describe('FeedbackWidget handshake', () => {
     // just made it zero.
     it('does not bring back a count asked for before the panel was opened', () => {
       let asked = false
+      let answer
+      const opened = new Promise((resolve) => { answer = resolve })
       cy.intercept('GET', `${badgeUrl}*`, (req) => {
         asked = true
-        req.reply({ statusCode: 200, body: { unread_count: 5 }, delay: 1000 })
+        return opened.then(() => req.reply({ statusCode: 200, body: { unread_count: 5 } }))
       }).as('badge')
       stubEmbed()
       cy.visit('/bali/feedback_widget/default')
       cy.wrap(null).should(() => expect(asked, 'count requested').to.equal(true))
 
       cy.get('[data-action="feedback-widget#open"]').click()
-      // Past the moment the answer would land.
-      cy.wait(1500)
+      cy.get('#feedback-widget').should('have.class', 'drawer-open')
+      cy.then(() => answer())
+      // Time for the answer to land, had it still been awaited.
+      cy.wait(500)
 
       badge().should('have.class', 'hidden')
       cy.get('#feedback-widget-unread').should('have.text', '')

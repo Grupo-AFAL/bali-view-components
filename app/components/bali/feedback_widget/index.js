@@ -49,7 +49,8 @@ export class FeedbackWidgetController extends Controller {
     badgeUrl: String,
     readUrl: String,
     unreadLabel: String,
-    maxCount: Number,
+    // Without the attribute (a gem older than this file) there is no cap, rather than "0+".
+    maxCount: { type: Number, default: Infinity },
     interval: { type: Number, default: 300000 }
   }
 
@@ -60,6 +61,7 @@ export class FeedbackWidgetController extends Controller {
   }
 
   disconnect () {
+    this.badgeRequest?.abort()
     this.stopPolling()
     window.removeEventListener('message', this.handleMessage)
   }
@@ -281,6 +283,7 @@ export class FeedbackWidgetController extends Controller {
   // from that user's last `markRead`. `since` is for an Opina that does not: it ignores
   // the header and counts from there, which only lasts as long as this page does.
   async checkBadge () {
+    this.badgeRequest?.abort()
     this.badgeRequest = new AbortController()
 
     try {

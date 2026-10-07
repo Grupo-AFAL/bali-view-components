@@ -25,7 +25,8 @@ module Bali
 
         COUNT_CLASSES = "bali-topbar-badge absolute -top-1 -right-1"
 
-        # Also the cap of `Bali::FeedbackWidget`'s count, which sits beside these in the Topbar.
+        # Also the cap `showUnread` in feedback_widget/index.js draws on
+        # `Bali::FeedbackWidget`'s count, which sits beside these in the Topbar.
         MAX_COUNT = 99
 
         # @param icon [String, Symbol] icon name (Bali::Icon pipeline).
@@ -122,7 +123,6 @@ module Bali
 
         # The cap only reads an Integer badge: a String is a count the host
         # already formatted, and capping it would double-apply the decision.
-        # `showUnread` in feedback_widget/index.js draws the same "99+".
         def badge_text
           return "#{@max_count}+" if @badge.is_a?(Integer) && @badge > @max_count
 

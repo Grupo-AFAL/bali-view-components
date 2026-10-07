@@ -18,8 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Bali::FeedbackWidget` pasa sus atributos HTML al `div` que lo envuelve** (#1333): `id:`,
   `data:`, `aria:`… Antes descartaba todo menos `class:`. Un `data: { controller: }` se suma a
-  `feedback-widget`. De las siete apps sólo gobierno-corporativo pasa algo, `class:`, que sigue
-  igual (`git grep -n "FeedbackWidget::Component.new" -- '*.erb'`). Sin nada que hacer en el
+  `feedback-widget`. Quien pasa `class:` no ve nada distinto. Sin nada que hacer en el
   anfitrión.
 
 ## [v3.9.0] - 2026-10-04
