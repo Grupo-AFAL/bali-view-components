@@ -28,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   por la derecha y escondía «Apply»; ahora, al abrirse, se corre a la izquierda lo que sobra.
   Donde ya cabía no se mueve. Sin nada que hacer en el anfitrión.
 
+- **`Bali::Breadcrumb`: las migas enlazadas se ven como enlaces** (#1343). Toman el primary del
+  tema; la página actual sigue en color de texto. En el `dark` de daisyUI, donde el primary no
+  llega a AA como texto, se aclara; los demás temas lo pintan tal cual. Cuando las migas no
+  caben (un teléfono), el desplazamiento arranca en la última, así que la página actual queda a
+  la vista; las que caben siguen alineadas a la izquierda. Sin nada que hacer en las apps.
+
 ### Documentation
 
 - **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).
