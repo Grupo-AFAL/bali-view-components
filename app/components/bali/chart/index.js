@@ -229,7 +229,7 @@ export class ChartController extends Controller {
       delete options.plugins.legend.labels.useThemeColors
     }
 
-    // Ensure ticks have proper font
+    // Ensure ticks and point labels have proper font
     if (options.scales) {
       for (const scale in options.scales) {
         const scaleConfig = options.scales[scale]
@@ -238,6 +238,12 @@ export class ChartController extends Controller {
             family: ChartController.FONT_FAMILY,
             size: 12,
             ...(scaleConfig.ticks.font || {})
+          }
+        }
+        if (scaleConfig.pointLabels) {
+          scaleConfig.pointLabels.font = {
+            family: ChartController.FONT_FAMILY,
+            ...(scaleConfig.pointLabels.font || {})
           }
         }
       }

@@ -148,6 +148,16 @@ class BaliChartComponentTest < ComponentTestCase
     end
   end
 
+  def test_scales_leaves_a_radial_part_to_a_caller_who_turns_its_theme_colors_off
+    render_inline(Bali::Chart::Component.new(
+      data: { chocolate: 3 }, type: :radar,
+      options: { scales: { r: { grid: { useThemeColors: false, color: "#ccc" } } } }
+    ))
+    grid = JSON.parse(page.find("canvas.chart")["data-chart-options-value"]).dig("scales", "r", "grid")
+
+    assert_equal({ "useThemeColors" => false, "color" => "#ccc" }, grid)
+  end
+
   def test_scales_merges_a_callers_radial_scale_into_the_theme_one
     render_inline(Bali::Chart::Component.new(
       data: { chocolate: 3 }, type: "polarArea", options: { scales: { r: { beginAtZero: true } } }

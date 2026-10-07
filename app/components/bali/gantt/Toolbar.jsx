@@ -42,7 +42,9 @@ function IconPlus () {
 
 // Between two groups of controls. Where the bar wraps, flex-wrap can leave one at the start or end
 // of a line, dividing nothing, and CSS cannot tell which line an item landed on: the bar hides
-// those after layout. `visibility`, so hiding one never moves an item to another line.
+// those after layout. One that starts a line leaves the layout, or its box and gap push the line
+// 9 px in; one that ends a line only turns invisible, since taking it out could pull the next
+// control up beside it.
 function Separator () {
   return <div data-separator className='h-4 w-px shrink-0 bg-base-content/15' />
 }
@@ -50,9 +52,10 @@ function Separator () {
 function hideLineEdgeSeparators (bar) {
   const middle = (el) => el.offsetTop + el.offsetHeight / 2
   bar.querySelectorAll('[data-separator]').forEach((separator) => {
-    const between = [separator.previousElementSibling, separator.nextElementSibling]
-      .every((neighbour) => neighbour && Math.abs(middle(neighbour) - middle(separator)) < 1)
-    separator.style.visibility = between ? '' : 'hidden'
+    const sameLine = (neighbour) => neighbour && Math.abs(middle(neighbour) - middle(separator)) < 1
+    separator.style.display = separator.style.visibility = ''
+    if (!sameLine(separator.previousElementSibling)) separator.style.display = 'none'
+    else if (!sameLine(separator.nextElementSibling)) separator.style.visibility = 'hidden'
   })
 }
 

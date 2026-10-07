@@ -343,28 +343,48 @@ describe('Gantt island', () => {
   })
 
   // Where the toolbar wraps, a separator at the start or the end of a line divides nothing: at
-  // 414 px both ended one, and at 320 the second started one.
-  it('leaves no toolbar separator at the start or end of a line as the window narrows', () => {
-    cy.viewport(1280, 800)
-    cy.visit('/bali/gantt/default')
-    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+  // 414 px both ended one, and at 320 the second started one. Hidden but still laid out, the one
+  // starting a line pushed its first control 9 px in.
+  ;[
+    ['', ''],
+    [' with the creation buttons', 'data-gantt-manageable-value="true" data-gantt-new-group-url-value="/groups/new" data-gantt-new-item-url-value="/items/new"']
+  ].forEach(([variant, values]) => {
+    it(`divides only controls on the same line as the window narrows and widens${variant}`, () => {
+      cy.intercept({ method: 'GET', url: /\/lookbook\/preview\/bali\/gantt\/default/ }, (req) => {
+        req.on('response', (res) => {
+          res.body = String(res.body).replace('data-controller="gantt"', `data-controller="gantt" ${values}`)
+        })
+      })
+      cy.viewport(1280, 800)
+      cy.visit('/bali/gantt/default')
+      cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+      cy.get('[data-separator]').should('have.length', values ? 3 : 2)
 
-    ;[1280, 414, 390, 320].forEach((width) => {
-      cy.viewport(width, 800)
-      cy.get('[data-separator]').should(($separators) => {
-        const box = (el) => el.getBoundingClientRect()
-        const items = [...$separators[0].parentElement.children]
-          .filter((el) => !el.matches('[data-separator]') && el.childNodes.length > 0)
-        const lineOf = (el) => items.filter((item) => box(item).top < box(el).bottom && box(item).bottom > box(el).top)
-        const hidden = (el) => el.ownerDocument.defaultView.getComputedStyle(el).visibility === 'hidden'
+      ;[1280, 414, 390, 320, 1280].forEach((width) => {
+        cy.viewport(width, 800)
+        cy.get('[data-separator]').should(($separators) => {
+          const box = (el) => el.getBoundingClientRect()
+          const sameLine = (a, b) => box(a).top < box(b).bottom && box(a).bottom > box(b).top
+          const items = [...$separators[0].parentElement.children]
+            .filter((el) => !el.matches('[data-separator]') && el.childNodes.length > 0)
+          const style = (el) => el.ownerDocument.defaultView.getComputedStyle(el)
 
-        if (width === 1280) expect([...$separators].filter(hidden), 'hidden on a toolbar of one line').to.have.length(0)
-        ;[...$separators].forEach((separator, index) => {
-          if (hidden(separator)) return
-          const line = lineOf(separator)
-          const x = box(separator).left
-          expect(line.some((item) => box(item).right <= x), `${width} px: separator ${index + 1} has a control before it`).to.equal(true)
-          expect(line.some((item) => box(item).left >= x), `${width} px: separator ${index + 1} has a control after it`).to.equal(true)
+          $separators.each((index, separator) => {
+            const name = `${width} px: separator ${index + 1}`
+            if (style(separator).display === 'none') {
+              const { previousElementSibling: before, nextElementSibling: after } = separator
+              expect(sameLine(before, after), `${name}, left out, between controls on one line`).to.equal(false)
+              return
+            }
+            const x = box(separator).left
+            const line = items.filter((item) => sameLine(item, separator))
+            const between = line.some((item) => box(item).right <= x) && line.some((item) => box(item).left >= x)
+            expect(style(separator).visibility === 'visible', `${name} shown, between controls on its line`).to.equal(between)
+          })
+
+          const starts = items.filter((item, index) => !items.slice(0, index).some((earlier) => sameLine(earlier, item)))
+            .map((item) => Math.round(box(item).left))
+          expect([...new Set(starts)], `${width} px: x where each line starts`).to.have.length(1)
         })
       })
     })

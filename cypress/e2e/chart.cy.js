@@ -140,6 +140,7 @@ describe('Chart', () => {
             expect(grid.color, `${name} grid`).to.include(ink)
             expect(angleLines.color, `${name} angle lines`).to.include(ink)
             expect(pointLabels.color, `${name} point labels`).to.include(ink)
+            expect(pointLabels.font.family, `${name} point label font`).to.eq(ticks.font.family)
           })
         })
       })
