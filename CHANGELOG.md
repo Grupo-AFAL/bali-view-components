@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.10.0] - 2026-10-07
+
+### Added
+
+- **`hostColorScheme()` y `observeHostColorScheme(callback)`** se exportan desde
+  `bali-view-components` (#1344): el primero devuelve `'dark'` o `'light'` según el
+  `color-scheme` del `<html>`; el segundo avisa cuando un cambio de `data-theme` pasa al otro
+  esquema. Para una app que crea su propio `google.maps.Map`, que sólo toma `colorScheme` al
+  crearse (hoy, `coordinates_picker_controller.js` de centinela-web):
+  `colorScheme: hostColorScheme() === 'dark' ? ColorScheme.DARK : ColorScheme.LIGHT`.
+
+### Removed
+
+- **`.box-row` y `.box-action`, con su hoja `bali/box.css`** (#1333). Ninguna app en v3 las
+  usa; `.box` sigue, en `general.css`. **Anfitrión:** si al subir a v3
+  `git grep -n -E "box-row|box-action|bali/box|css/box" origin/main -- app config` encuentra algo, cambia
+  `.box-action` por `float-right` y `.box-row` por `py-4 first:pt-0`, y borra el `@import` de
+  `bali/box`.
+
 ### Fixed
 
 - **`FilterForm`: una fecha sola fuera del panel también es el día entero** (#1333). Lo que
@@ -34,19 +53,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caben (un teléfono), el desplazamiento arranca en la última, así que la página actual queda a
   la vista; las que caben siguen alineadas a la izquierda. Sin nada que hacer en las apps.
 
-- **Botones con contorno y suaves: el texto en reposo pasa AA** (#1336). daisyUI pinta el
-  texto con el color mismo, que en los temas claros es un relleno: `warning`, `success`, `info`,
-  `accent` y `error` medían 1.63–2.75:1 en `afal`, y `secondary` 1.89 en `costa-norte`. Ahora
-  toman la mezcla de `text-soft-*`, y el error la tinta roja de `text-soft-error`
-  (`btn-error btn-outline`: 2.75 → 7.12 en `afal`). Cambia igual con `Bali::Button`/`Link`/
-  `DeleteLink` (`style: :outline`/`:soft`) que con `btn btn-error btn-outline` a mano, como el
-  «Archivar» de centinela-web. Borde, hover y foco no cambian; `primary` tampoco, ni un botón con
+- **Botones con contorno y suaves: el texto en reposo pasa AA** (#1336). daisyUI pinta el texto con
+  el color mismo, que en los temas claros es un relleno: `warning`, `success`, `info`, `accent` y
+  `error` medían 1.63–2.75:1 en `afal`, y `secondary` 1.89 en `costa-norte`. Ahora toman la mezcla
+  de `text-soft-*`, y el error la tinta roja de `text-soft-error` (`btn-error btn-outline`: 2.75 →
+  7.12 en `afal`). Cambia igual con `Bali::Button`/`Link`/`DeleteLink` (`style: :outline`/`:soft`)
+  que con `btn btn-error btn-outline` a mano, como el «Archivar» de centinela-web. El borde, el
+  hover y el anillo de foco de estos colores no cambian; `primary` tampoco, ni un botón con
   contorno en una Navbar con un `color:` de preset, que conserva el de daisyUI. Una Navbar con
   `color: nil` y un `bg-*` propio sí toma la mezcla, que sobre un fondo oscuro no contrasta;
   ninguna app de la flota la usa así.
+
 - **Alertas y badges de error `soft`, `outline` y `dash` con la tinta de `text-soft-error`**
   (#1333): en los temas claros dejan el café (rgb(114, 72, 80) en `afal`) y leen el mismo rojo
   que el error del FormBuilder. En los oscuros no cambia nada.
+
 - **El anillo de foco de un `btn-neutral` va en `base-content`** (#1333): fuera de una Navbar
   medía 1.26–1.72:1 sobre la página en los temas oscuros; ahora 13.7 o más. En los claros de Bali
   es el mismo color; en el `light` de daisyUI, un gris apenas más claro. Sin nada que hacer en el
@@ -57,8 +78,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Bali::Command` queda en un cuadro de 32 px con la lupa; el texto sigue siendo su nombre
   accesible y su `title`. En escritorio se ve igual. Si ni el ícono cabe (seis acciones a
   320 px), la app oculta una acción debajo de `sm`, como ya hace gobierno-corporativo.
+
 - **`Bali::Command`: Enter abre la primera fila que coincide con lo escrito** (#1333), y es la
   que queda resaltada, aunque una fila `mode: :action` vaya antes en la lista.
+
 - **`Bali::SideMenu`: anillo de foco del tema** (#1333). Con el teclado, los ítems, los
   disparadores de grupo, los botones de la cabecera y el selector de módulo llevaban el anillo
   `auto` del navegador, y los ítems de sus paneles, sólo el tinte de daisyUI. Ahora todos llevan
@@ -69,12 +92,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sin `content-visibility`) seguía alcanzable con Tab. El `<dialog>` cerrado sale del servidor
   con `inert` y el controlador lo quita al abrir. Un drawer que alguien abra poniéndole
   `drawer-open` a mano se vería pero no respondería; ninguna app lo hace.
-- **Drawer por debajo de 768 px: el tope de `size:` sigue valiendo.** El 85 % de la pantalla era
+
+- **Drawer por debajo de 768 px: el tope de `size:` sigue valiendo** (#1333). El 85 % de la pantalla era
   un segundo `max-width` que reemplazaba al del tamaño: un `sm` (384 px) medía 544 px a 640 y 652
   a 767. Ahora mide el menor de los dos. Nada que hacer.
-- **Drawer: el fondo oscuro se desvanece con el panel al cerrar**, en sus 300 ms, en vez de
+
+- **Drawer: el fondo oscuro se desvanece con el panel al cerrar** (#1333), en sus 300 ms, en vez de
   desaparecer en el primer cuadro. Al abrir sigue apareciendo de golpe.
-- **Modal y Drawer abiertos sin un clic devuelven el foco a `<main>` al cerrar.** Un panel
+
+- **Modal y Drawer abiertos sin un clic devuelven el foco a `<main>` al cerrar** (#1333). Un panel
   renderizado `active: true` o abierto por `bali:modal:open` / `bali:drawer:open` sin un clic
   dejaba el foco en `<body>`, y en `Bali::AppLayout` el siguiente Tab saltaba al enlace del
   principio de la página. Ahora va al `<main>` de AppLayout, que muestra el mismo anillo que al
@@ -87,9 +113,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mientras hay cambios sin guardar, y el estado sólo se ve si el guardado falla. Los paneles de
   comentarios e historial cubren el editor a todo el ancho. Desde `sm` nada cambia. Nada que hacer
   en la app.
+
 - **DocumentEditor: Ctrl/Cmd+S en un visor de sólo lectura ya no deja «Saving...» para
-  siempre.** Sin título ni contenido que enviar, el estado ya no cambia. Nada que hacer en la app.
-- **BlockEditor: el nombre de una referencia larga se trunca con «…» dentro del editor** en vez
+  siempre** (#1333). Sin título ni contenido que enviar, el estado ya no cambia. Nada que hacer en la app.
+
+- **BlockEditor: el nombre de una referencia larga se trunca con «…» dentro del editor** (#1333) en vez
   de salirse por la derecha. Nada que hacer en la app.
 
 - **`Bali::Gantt`: el splitter baja hasta la columna Nombre** (#1333). No dejaba bajar la tabla
@@ -98,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (140): en escritorio se puede dejar sólo esa columna. También se arrastra con el dedo, que el
   navegador tomaba por un scroll. Y los separadores de la barra de herramientas ya no quedan al
   principio o al final de un renglón cuando la barra se parte. Sin nada que hacer en el anfitrión.
+
 - **`Bali::Chart`: `polarArea` y `radar` toman el tema en su escala radial** (#1333): cuadrícula,
   radios, marcas con su recuadro y etiquetas, también al cambiar de tema en vivo. En `afal-dark`
   las marcas salían sobre recuadros blancos y la cuadrícula casi no se veía. Como en `x`/`y`, un
@@ -138,6 +167,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   la fila. Ahora el panel se rehace desde la URL, y lo hace sin empujar otra entrada al
   historial, así que «adelante» sigue llevando a la fila. Sin nada que hacer en el anfitrión.
 
+- **Modal y Drawer: el ciclo de Tab alcanza todo lo enfocable del panel.** Sumaba sólo enlaces,
+  botones y campos: un `<iframe>`, un `<summary>`, una región editable o un reproductor de audio
+  o video en el borde del panel se saltaban, y un botón deshabilitado al final dejaba salir el
+  foco. En el panel del `Bali::FeedbackWidget` el foco volvía siempre al ✕ y el formulario de
+  Opina no se alcanzaba con el teclado. Sin nada que hacer en el anfitrión.
+
+- **BlockEditor: claro u oscuro sale de `hostColorScheme()`**, como en los mapas y el
+  FeedbackWidget, y se lee del `<html>`, no del contenedor. Una página cuyo `<html>` declara
+  `color-scheme: light dark` ve el editor claro; antes lo veía oscuro. Ninguna página que monte
+  el editor lo declara (sólo el layout de correo de afal-apps).
+
 ### Documentation
 
 - **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).
@@ -164,26 +204,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   también el claro por omisión de daisyUI. `custom-themes.md` gana el paso que le faltaba a la
   receta de modo oscuro de v3.7.0, y esa entrada, su corrección. Ninguna app la tiene hoy
   (`git grep -n 'color-scheme' origin/main -- '*.css'`): nada que hacer.
-
-### Added
-
-- **`hostColorScheme()` y `observeHostColorScheme(callback)`** se exportan desde
-  `bali-view-components` (#1344): el primero devuelve `'dark'` o `'light'` según el
-  `color-scheme` del `<html>`; el segundo avisa cuando un cambio de `data-theme` pasa al otro
-  esquema. Para una app que crea su propio `google.maps.Map`, que sólo toma `colorScheme` al
-  crearse (hoy, `coordinates_picker_controller.js` de centinela-web):
-  `colorScheme: hostColorScheme() === 'dark' ? ColorScheme.DARK : ColorScheme.LIGHT`.
-
-### Removed
-
-- **`.box-row` y `.box-action`, con su hoja `bali/box.css`** (#1333). Ninguna app en v3 las
-  usa; `.box` sigue, en `general.css`. **Anfitrión:** si al subir a v3
-  `git grep -n -E "box-row|box-action|bali/box|css/box" -- app config` encuentra algo, cambia
-  `.box-action` por `float-right` y `.box-row` por `py-4 first:pt-0`, y borra el `@import` de
-  `bali/box`.
-- **Datepicker: el bloque «DaisyUI Theme Overrides» y la flecha que escondía** (#1333). Sin
-  cambio visible y sin nada que hacer en el anfitrión: lo que el bloque ganaba pasó a la regla
-  de arriba.
 
 ## [v3.9.1] - 2026-10-07
 
