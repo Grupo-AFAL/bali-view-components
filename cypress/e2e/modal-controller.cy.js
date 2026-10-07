@@ -198,15 +198,35 @@ describe('ModalController', () => {
       cy.focused().should('match', 'main#main-content')
     })
 
-    it('goes to <main> when an open event opened it', () => {
-      cy.visit('/bali/app_layout/default')
-      cy.document().then(doc => {
-        doc.dispatchEvent(new CustomEvent('bali:drawer:open', {
-          detail: { id: 'main-drawer', content: null, options: {} }
-        }))
-      })
-      cy.focused().should($el => expect($el.closest('#main-drawer')).to.have.length(1))
+    const openEvents = [
+      { event: 'bali:drawer:open', panel: 'main-drawer', openClass: 'drawer-open' },
+      { event: 'bali:modal:open', panel: 'main-modal', openClass: 'modal-open' }
+    ]
+    openEvents.forEach(({ event, panel, openClass }) => {
+      it(`goes to <main> when an open event opened it: ${event}`, () => {
+        cy.visit('/bali/app_layout/default')
+        cy.document().then(doc => {
+          doc.dispatchEvent(new CustomEvent(event, { detail: { id: panel, content: null, options: {} } }))
+        })
+        cy.focused().should($el => expect($el.closest(`#${panel}`)).to.have.length(1))
 
+        cy.focused().type('{esc}')
+        cy.get(`#${panel}`).should('not.have.class', openClass)
+        cy.focused().should('match', 'main#main-content')
+      })
+    })
+
+    // Removed while its panel was open — not by the stream of a submit, which lands the frame
+    // after the close and finds the focus already back on it.
+    it('goes to <main> when the trigger that opened it is gone', () => {
+      cy.visit('/bali/app_layout/overlay_triggers')
+      cy.get('[data-testid="topbar-drawer-trigger"]').click()
+      cy.get('#main-drawer').should($dialog => {
+        expect($dialog[0].matches(':modal'), 'open').to.equal(true)
+        expect($dialog.text(), 'the fetched content').to.include('John Doe')
+      })
+
+      cy.get('[data-testid="topbar-drawer-trigger"]').then(([trigger]) => trigger.remove())
       cy.focused().type('{esc}')
       cy.get('#main-drawer').should('not.have.class', 'drawer-open')
       cy.focused().should('match', 'main#main-content')

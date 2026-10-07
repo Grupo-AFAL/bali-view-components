@@ -12,30 +12,23 @@ describe('Drawer: the closed panel', () => {
       cy.get('#details-drawer').should('not.have.class', 'drawer-open')
     })
 
-    it('cannot take the focus while closed', () => {
-      cy.get('#details-drawer').should(([dialog]) => {
-        const close = dialog.querySelector('.drawer-header button')
-        close.focus()
-
-        expect(dialog.ownerDocument.activeElement, 'the focused element').not.to.equal(close)
-      })
-    })
-
-    // `visibility: hidden` on the closed drawer was undone by any descendant that sets
-    // `visibility: visible` — a `.visible`, or daisyUI's open collapse where the browser has no
-    // `content-visibility`. Tab went from the trigger to a control at x=1304 of a 1280px window.
-    it('keeps a descendant that sets `visibility: visible` out of the tab order', () => {
+    // `visibility: hidden` on the closed drawer was undone by a descendant that sets
+    // `visibility: visible` (a `.visible`, or daisyUI's open collapse where the browser has no
+    // `content-visibility`); nothing inside undoes `inert`. Each control is tried with
+    // `focus()`, not Tab: the ✕ comes first in the tab order, and would fail the test before
+    // the probe was ever reached.
+    it('cannot take the focus while closed, not even a descendant that sets visibility: visible', () => {
       cy.get('#details-drawer .drawer-inner').then(([content]) => {
         content.insertAdjacentHTML('beforeend', '<div class="visible"><button id="visible-probe">Probe</button></div>')
       })
-      cy.get('#visible-probe').should(([probe]) => {
-        expect(getComputedStyle(probe).visibility, 'the probe').to.equal('visible')
-      })
 
-      cy.contains('button', 'Show details').focus()
-      cy.press(Cypress.Keyboard.Keys.TAB)
-      cy.document().should(doc => {
-        expect(doc.activeElement.closest('#details-drawer'), 'the focus after Tab').to.equal(null)
+      cy.get('#details-drawer').should(([dialog]) => {
+        ['#visible-probe', '.drawer-header button'].forEach((selector) => {
+          const control = dialog.querySelector(selector)
+          control.focus()
+
+          expect(dialog.ownerDocument.activeElement, `the focused element after focusing ${selector}`).not.to.equal(control)
+        })
       })
     })
 

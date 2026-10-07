@@ -499,7 +499,9 @@ that is not `class:` is passed through to the tag.
 
 Dialog overlay for focused interactions. Renders a native `<dialog>` and opens it with
 `showModal()`, so the panel is painted in the top layer, the page behind it is inert, and
-Escape and focus restoration come from the element. See
+Escape comes from the element. Closing gives the focus back to what opened it; when nothing
+did — a modal rendered `active:` — it goes to the page's `<main>`, which outside
+`Bali::AppLayout` needs `tabindex="-1"` to take it. See
 [Overlays and the top layer](overlays-and-the-top-layer.md) for what that means for
 anything you render over it.
 

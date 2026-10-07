@@ -141,7 +141,8 @@ module Bali
           class: drawer_classes,
           # Closed, the drawer stays rendered so it can slide (index.css). `visibility: hidden`
           # kept its controls out of the tab order only until a descendant set `visibility:
-          # visible` (`.visible`); nothing inside can undo `inert`.
+          # visible` (`.visible`); nothing inside can undo `inert`. Once connected,
+          # `DrawerController#_showOverlay` lifts it and `#_hideOverlay` puts it back.
           inert: !@active,
           'aria-labelledby': title? ? title_id : nil,
           data: default_data_attributes.merge(options.fetch(:data, {}))

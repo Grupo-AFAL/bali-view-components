@@ -571,8 +571,9 @@ export class ModalController extends Controller {
   }
 
   // A panel the server opened — rendered `active:`, or by an open event no click sent —
-  // had only `<body>` to remember, and a click's trigger can be gone by the time the panel
-  // closes. From `<body>` the next Tab carries on from where the panel sits, the end of
+  // had only `<body>` to remember, and a trigger can be removed while its panel is open
+  // (not by the stream of a submit: that one lands the frame after the close). From
+  // `<body>` the next Tab carries on from where the panel sits, the end of
   // AppLayout's `<main>`, and wraps to the top of the page; `<main>`, focusable for the
   // skip link, starts it at the content.
   _focusAfterClose (element) {
