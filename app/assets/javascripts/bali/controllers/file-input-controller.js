@@ -10,15 +10,15 @@ import { Controller } from '@hotwired/stimulus'
  * (`.file`, `.file-label`, `.file-cta`, `.file-icon`) the field stopped
  * emitting, and the stylesheet no longer has rules for any of those names.
  *
-    <div class="flex items-center gap-3" data-controller="file-input"
+    <div class="flex flex-wrap items-center gap-3" data-controller="file-input"
          data-file-input-non-selected-text-value="No file selected"
          data-file-input-multiple-value="false">
-      <label class="cursor-pointer inline-flex">
+      <label class="cursor-pointer inline-flex shrink-0">
         <input type="file" class="hidden"
                data-action="file-input#onChange" data-file-input-target="input">
         <span class="btn btn-soft btn-primary btn-sm gap-2">Choose file</span>
       </label>
-      <span class="text-sm text-base-content/70 truncate"
+      <span class="text-sm text-base-content/70 truncate min-w-32"
             data-file-input-target="value">No file selected</span>
     </div>
  */

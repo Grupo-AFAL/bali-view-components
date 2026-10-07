@@ -19,11 +19,31 @@ module Bali
     module FileFields
       # hidden class hides the native file input (consistent with ImageField)
       INPUT_CLASS = "hidden"
-      WRAPPER_CLASS = "flex items-center gap-3"
+      # `shrink-0`, `flex-wrap` and `min-w-32` are one fix split across three constants, and
+      # none of them does anything to a row that still fits (#1370).
+      #
+      # Both children are flex items that shrink by default, so in a narrow column -- a
+      # sidebar, a drawer -- the label was squeezed below its own content and the `.btn`'s
+      # `white-space: nowrap` spilled the CTA text ON TOP of the file name. Measured in Chrome
+      # 150 inside a 240px column: the name's left edge at 160px against a CTA ending at 195px,
+      # 35px inside the button, on the same row.
+      #
+      # `shrink-0` is what stops that: the CTA is the control, and half a button is not a
+      # smaller button. On its own it leaves the name squeezed to 36px -- `N...`, which is
+      # feedback about nothing -- so `min-w-32` gives the name a floor and `flex-wrap` gives it
+      # somewhere to go when that floor will not fit beside the button. Measured down the same
+      # column with the default placeholder: wrapped and fully readable at 240px and 320px, on
+      # one row and identical to before at 400px and up.
+      #
+      # No `min-w-0`: `truncate` is `overflow: hidden`, which already resolves `min-width: auto`
+      # to zero. Measured with and without it -- the same numbers, so it is not written.
+      #
+      # A host cannot reach any of the three: `file_class:` only lands on the wrapper.
+      WRAPPER_CLASS = "flex flex-wrap items-center gap-3"
       # `/70`, not `/60`: at 14px `/60` measured 4.04:1 on `afal`, under AA's 4.5:1.
-      FILENAME_CLASS = "text-sm text-base-content/70 truncate"
+      FILENAME_CLASS = "text-sm text-base-content/70 truncate min-w-32"
       CTA_CLASS = "btn btn-soft btn-primary gap-2"
-      LABEL_CLASS = "cursor-pointer inline-flex"
+      LABEL_CLASS = "cursor-pointer inline-flex shrink-0"
       DEFAULT_ICON = "upload"
 
       # `size:` lands on the button, not on `file-input-*`: this family hides the
