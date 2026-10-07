@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.10.1] - 2026-10-07
+
 ### Changed
 
 - **El anillo de foco de todos los botones va en el color del texto** (`base-content`), como el
