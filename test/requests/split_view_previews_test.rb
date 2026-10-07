@@ -56,6 +56,23 @@ class SplitViewPreviewsTest < ActionDispatch::IntegrationTest
     assert_select ".split-view-filter[aria-current='true']", 1
   end
 
+  # Lookbook passes a preview method only the params it declares, so the status a
+  # pill writes has to reach the listing some other way, in every scenario that
+  # shows the pills — page one and the page the sentinel asks for next.
+  def test_every_status_pill_filters_the_listing_it_lights
+    studio = Tenant.find_by!(name: "Preview Studio")
+    6.times { |i| studio.movies.create!(name: "Z Done Movie #{i}", genre: "Drama", status: :done) }
+
+    %w[default with_selection deep_link_beyond_the_first_page grouped_list without_advance].each do |scenario|
+      get "#{BASE}/#{scenario}", params: { status: "done" }
+
+      assert_select ".split-view-filter[data-active='true']", { count: 1, text: /Done/ }, scenario
+      assert_select ".split-view-item", { count: 5 }, scenario
+      assert_select ".split-view-item", { count: 0, text: /Preview Movie/ }, "#{scenario} listed a draft"
+      assert_select "[data-split-view-list-next-url-value*='status=done']", { count: 1 }, scenario
+    end
+  end
+
   # `q` arrives raw from the URL (#1210): typed as a scalar or a list it is not a hash, and
   # both the template and the pills read it as one.
   def test_every_scenario_survives_a_q_that_is_not_a_hash
