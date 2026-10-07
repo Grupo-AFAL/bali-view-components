@@ -600,7 +600,21 @@ module Bali
     end
 
     def ransack_search
-      @ransack_search ||= scope.ransack(ransack_params)
+      @ransack_search ||= scope.ransack(ransack_params, auth_object: ransack_auth_object)
+    end
+
+    # The `auth_object:` every Ransack search this form builds is given — the listing's, the
+    # validation of `group_by_attribute`, the whole-day probe —, so a model's
+    # `ransackable_attributes(auth_object)` can narrow what this listing searches (#1348).
+    #
+    # @example One app's listing searches that app's roles
+    #   def ransack_auth_object = connected_application
+    #
+    # It is asked while the form is built, so whatever it reads has to be set before `super`.
+    #
+    # @return [Object, nil] nil by default, Ransack's own default
+    def ransack_auth_object
+      nil
     end
 
     # Build params hash for Ransack including groupings and search
@@ -707,6 +721,14 @@ module Bali
 
     def unwrap_params(value)
       value.respond_to?(:to_unsafe_h) ? value.to_unsafe_h : value
+    end
+
+    # The condition Ransack builds out of one key and its value, with this form's
+    # authorization; nil when Ransack would ignore it.
+    def ransack_condition(key, value)
+      return unless scope.respond_to?(:ransack)
+
+      scope.ransack({ key => value }, auth_object: ransack_auth_object).base.conditions.first
     end
 
     # Persist or restore complete filter state including groupings, combinator, and search.

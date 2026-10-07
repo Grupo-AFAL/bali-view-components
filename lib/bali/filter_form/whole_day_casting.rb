@@ -83,7 +83,7 @@ module Bali
       # search. One attribute only: `a_or_b_eq` split into two ranges would no longer ask
       # whether EITHER falls on that day.
       def timestamp_condition?(key, value)
-        condition = scope.ransack(key => value).base.conditions.first
+        condition = ransack_condition(key, value)
         condition&.attributes&.one? && TIMESTAMP_TYPES.include?(condition.default_type)
       end
 
