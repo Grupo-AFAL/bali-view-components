@@ -10,15 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **DocumentEditor en el teléfono: la barra superior cabe y los paneles ya no aplastan el
-  editor** (#1333). Debajo de `sm`, con «Unsaved changes», el botón de cerrar terminaba en
-  x=407 de 390 y el título tenía 26 px. Ahora Guardar queda en su icono, con un punto mientras hay
-  cambios sin guardar; el estado sólo se lee si el guardado falla, y el título tiene 158 px (88 a
-  320). Los paneles de comentarios e historial cubren el editor a todo el ancho en vez de dejarle
-  70 px. Desde `sm` nada cambia. Nada que hacer en la app.
+  editor** (#1333). Debajo de `sm`, con cambios sin guardar, el botón de cerrar se salía de la
+  pantalla y el título quedaba casi sin ancho. Ahora Guardar queda en su icono, con un punto
+  mientras hay cambios sin guardar, y el estado sólo se ve si el guardado falla. Los paneles de
+  comentarios e historial cubren el editor a todo el ancho. Desde `sm` nada cambia. Nada que hacer
+  en la app.
 - **DocumentEditor: Ctrl/Cmd+S en un visor de sólo lectura ya no deja «Saving...» para
   siempre.** Sin título ni contenido que enviar, el estado ya no cambia. Nada que hacer en la app.
-- **BlockEditor: el nombre de una referencia larga se trunca con «…» dentro del editor.** A
-  320 px en `/showcase` el chip terminaba en x=369, con el editor en 266. Nada que hacer en la app.
+- **BlockEditor: el nombre de una referencia larga se trunca con «…» dentro del editor** en vez
+  de salirse por la derecha. Nada que hacer en la app.
 
 ## [v3.9.0] - 2026-10-04
 

@@ -1,8 +1,9 @@
 <%= tag.div(**container_attributes) do %>
   <%# App Bar %>
   <%# Below `sm` the bar compacts so the close button stays on screen: at 390px with "Unsaved
-      changes" it ended at x=407 and the title had 26px. The status shows only a failure and the
-      Save button carries the unsaved-changes dot. %>
+      changes" it ended at x=407 and the title had 26px. The status shows only a failure (the
+      `text-soft-error` that `_updateStatus` in index.js toggles) and the Save button carries the
+      unsaved-changes dot. %>
   <div class="document-editor-app-bar flex items-center gap-3 px-4 h-14 border-b border-base-300 shrink-0
               max-sm:gap-1 max-sm:px-2">
     <%# Left: TOC toggle %>
@@ -140,7 +141,7 @@
     <%# Right: Comments Panel %>
     <% if comments? %>
       <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden
-                  max-sm:absolute max-sm:inset-0 max-sm:z-10 max-sm:w-full max-sm:border-l-0 max-sm:bg-base-100"
+                  max-sm:absolute max-sm:inset-0 max-sm:w-full max-sm:border-l-0 max-sm:bg-base-100"
            data-comments-sidebar="<%= comments_sidebar_read_only? ? 'read-only' : 'interactive' %>"
            data-document-editor-target="commentsPanel">
         <div class="p-4">
@@ -154,7 +155,7 @@
     <%# Right: History Panel %>
     <% if versions? %>
       <div class="document-editor-panel w-80 border-l border-base-300 overflow-y-auto shrink-0 hidden
-                  max-sm:absolute max-sm:inset-0 max-sm:z-10 max-sm:w-full max-sm:border-l-0 max-sm:bg-base-100"
+                  max-sm:absolute max-sm:inset-0 max-sm:w-full max-sm:border-l-0 max-sm:bg-base-100"
            data-document-editor-target="historyPanel">
         <div class="p-4">
           <h3 class="text-sm font-semibold text-base-content/70 uppercase tracking-wider mb-3"><%= t('.version_history') %></h3>

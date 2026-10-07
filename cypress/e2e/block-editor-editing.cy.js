@@ -134,10 +134,10 @@ describe('BlockEditor on a phone', () => {
     cy.visit(`${new URL(Cypress.config('baseUrl')).origin}/showcase`)
     cy.get('.bn-entity-reference').should('have.length.at.least', 3)
 
-    cy.get('.bn-entity-reference').should(($chips) => {
-      $chips.each((_, chip) => {
-        const editorRight = chip.closest('.bn-editor').getBoundingClientRect().right
-        expect(chip.getBoundingClientRect().right, chip.textContent).to.be.at.most(editorRight)
+    cy.get('.bn-entity-reference-name').should(($names) => {
+      $names.each((_, name) => {
+        const editorRight = name.closest('.bn-editor').getBoundingClientRect().right
+        expect(name.getBoundingClientRect().right, name.textContent).to.be.at.most(editorRight)
       })
     })
   })

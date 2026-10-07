@@ -1,3 +1,4 @@
+import { paintedPixel } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 
 // Uses the Lookbook preview (no DB dependency): the default preview renders
@@ -332,7 +333,8 @@ describe('DocumentEditor on a phone', () => {
     })
   })
 
-  // Beside the editor, a panel's w-80 left it 70px at 390px.
+  // Beside the editor, a panel's w-80 left it 70px at 390px. Over it, the panel has to paint a
+  // ground of its own, or the document shows through.
   ;['comments', 'history'].forEach((panel) => {
     it(`lays the ${panel} panel over the whole editor`, () => {
       cy.viewport(390, 844)
@@ -341,6 +343,10 @@ describe('DocumentEditor on a phone', () => {
 
       cy.get(`[data-document-editor-target="${panel}Panel"]`).should(($panel) => {
         expect([rect($panel).left, rect($panel).width], 'panel left and width').to.deep.equal([0, 390])
+
+        const background = getComputedStyle($panel[0]).backgroundColor
+        expect(() => paintedPixel($panel[0].ownerDocument, background), 'panel background is opaque')
+          .not.to.throw()
       })
     })
   })
@@ -365,11 +371,15 @@ describe('DocumentEditor on a phone', () => {
   })
 
   // Below `sm` the status text leaves the bar: the dot on Save is what says something is
-  // unsaved, and only a failure is still spelled out.
+  // unsaved, and only a failure is still spelled out — the one text that can crowd the close
+  // button, so it is measured at 320px in the longest locale that ships, `es`.
   it('marks unsaved changes with a dot and spells out a failed save', () => {
-    cy.viewport(390, 844)
+    const failed = 'Error al guardar'
+
+    cy.viewport(320, 844)
     cy.visit('/bali/document_editor/default')
     editor().should('contain.text', 'Key Objectives')
+    cy.get('[data-controller="document-editor"]').invoke('attr', 'data-document-editor-status-failed-value', failed)
     cy.get('.document-editor-unsaved-dot').should('not.be.visible')
 
     edit(' edited')
@@ -380,8 +390,11 @@ describe('DocumentEditor on a phone', () => {
     cy.wait('@save')
 
     cy.get('[data-document-editor-target="saveStatus"]').should(($status) => {
-      expect($status.text()).to.equal('Save failed')
+      expect($status.text()).to.equal(failed)
       expect(rect($status).width, 'status width').to.be.above(1)
+    })
+    cy.get('[data-action="document-editor#close"]').should(($close) => {
+      expect(rect($close).right, 'close button right edge').to.be.at.most(320)
     })
   })
 })

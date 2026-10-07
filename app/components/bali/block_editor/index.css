@@ -399,12 +399,10 @@
  * `afal` and 2.88 under the pointer (3:1 for the icon, AA 4.5 for the label). */
 .block-editor-component .bn-entity-reference-icon {
   font-size: 0.85em;
-  flex-shrink: 0;
 }
 
 .block-editor-component .bn-entity-reference-label {
   font-size: 0.9em;
-  flex-shrink: 0;
 }
 
 .block-editor-component .bn-entity-reference-name {
