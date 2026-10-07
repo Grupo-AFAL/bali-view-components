@@ -1,15 +1,25 @@
-/* Breadcrumb Component
- * DaisyUI sets `.breadcrumbs { padding-block: .5rem }` inside its utilities
- * layer. In some host apps (Tailwind v4 + daisyUI plugin) that layer ends
- * up ordered AFTER our @layer utilities, so a `pt-0` utility from the Ruby
- * class list loses the cascade and breadcrumbs render with unwanted top
- * padding. This unlayered rule beats both layered sources regardless of
- * ordering. (#530)
+/* A linked crumb in the theme's primary; the current page, a span, keeps base-content.
  *
- * This is why the file stayed out of @layer components in #693: cascade layers
- * beat specificity, so from that layer daisyUI's `padding-block: .5rem` wins
- * and #530 comes straight back. Do not move it.
- */
+ * daisyUI's `dark` paints its primary at 3.40:1 on base-100 (AA: 4.5). A floor of 0.7 on its
+ * lightness reads 5.07 there and leaves the other five themes' primary as it is: the lowest of
+ * them, `afal` on base-200, reads 4.77. The `@supports` is not optional: the `var()` lets an
+ * unsupported `light-dark()` past the parser, and the link would then inherit base-content. */
+.breadcrumbs a {
+  color: var(--color-primary);
+
+  @supports (color: light-dark(oklch(from red l c h), red)) {
+    color: light-dark(var(--color-primary), oklch(from var(--color-primary) max(l, 0.7) c h));
+  }
+}
+
+/* A trail wider than its box scrolls from its end, so the current page is the part in view: a
+ * reversed axis puts the scroll origin at the end, and the auto margin keeps a trail that fits
+ * at the start. At 320px the current page used to show 26 of its 113px. */
 .breadcrumbs {
-  padding-block: 0;
+  display: flex;
+  flex-direction: row-reverse;
+
+  & > ul {
+    margin-inline-end: auto;
+  }
 }
