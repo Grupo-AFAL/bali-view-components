@@ -54,7 +54,6 @@ describe('Kanban lanes and cards', () => {
     return contrastRatio(paintedLuminance(doc, ...lane, backgroundColor, borderTopColor), paintedLuminance(doc, ...lane))
   }
 
-  // The board loads once and the theme switches in place.
   it('steps the card off its lane on every theme', () => {
     board('scrollable_board')
     eachTheme((theme) => {

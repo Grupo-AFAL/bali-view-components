@@ -5,9 +5,7 @@ export const THEMES = ['light', 'dark', ...BALI_THEMES]
 
 export const useTheme = (theme) => cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
-// Every theme in turn on a page loaded once: switched in place, the contrast guards read the same
-// 4922 numbers they read with a visit per theme (#1339). The first theme that fails ends the test.
-export const eachTheme = (check, themes = THEMES) => themes.forEach((theme) => {
+export const eachTheme = (check) => THEMES.forEach((theme) => {
   useTheme(theme)
   check(theme)
 })

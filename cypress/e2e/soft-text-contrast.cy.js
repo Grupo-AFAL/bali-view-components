@@ -23,10 +23,7 @@ import { THEMES } from '../support/themes'
 // test/bali/theme_contrast_test.rb computes it for every colour and theme. The pair says nothing
 // of which element wears it, so a row left this spec only where a component's own Minitest pins
 // the `text-soft-*` class: DeleteLink, Loader, Widget's trend, SplitView's overdue date and
-// BooleanIcon.
-// The pairs still measured here at rest — Widget's load error, the FormBuilder's required
-// asterisk, Filters' "Clear all", DashboardPage's change line, the guide's StatCard trend — are
-// the only check on their class.
+// BooleanIcon. Every row still measured at rest is the only check on its class.
 describe('a colour over a tint of itself, and its soft colour on the page', () => {
   const AA = 4.5
   // WCAG 1.4.11: an icon is a graphical object, not text.

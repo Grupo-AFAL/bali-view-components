@@ -29,7 +29,6 @@ describe('Navbar: the focus ring', () => {
       .to.be.at.least(NON_TEXT)
   }
 
-  // The bar loads once and the theme switches in place.
   BARS.forEach(([bar, color, query]) => {
     it(`rings at 3:1 on the ${bar} bar, every theme`, () => {
       cy.viewport(1280, 800)

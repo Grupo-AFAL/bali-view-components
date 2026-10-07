@@ -53,7 +53,6 @@ describe('tinted variant text contrast', () => {
     expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
   }
 
-  // Each preview loads once and the theme switches in place.
   it('every tinted alert reads at AA on every theme', () => {
     cy.visit('/bali/alert/all_combinations')
     THEMES.forEach((theme) => {

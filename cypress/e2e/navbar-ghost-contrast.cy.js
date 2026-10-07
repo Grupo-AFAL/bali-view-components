@@ -18,7 +18,6 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
     cy.get('nav.navbar').should('have.class', `navbar-${color}`)
   }
 
-  // The bar loads once per colour and the theme switches in place.
   COLORS.forEach((color) => {
     it(`the burger reads at 3:1 and the ghost brand paints the text colour of the ${color} navbar, every theme`, () => {
       open(color)
