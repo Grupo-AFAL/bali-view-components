@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { hostColorScheme, observeHostColorScheme } from '../utils/color-scheme.js'
 
 /**
  * @deprecated Removed in 4.0 with `coordinates_polygon_group`: it draws through
@@ -18,6 +19,8 @@ export class DrawingMapsController extends Controller {
   }
 
   async connect () {
+    this.themeObserver = observeHostColorScheme(this.rebuildMap)
+
     const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
 
     this.drawnPolygons = []
@@ -48,14 +51,27 @@ export class DrawingMapsController extends Controller {
     }
   }
 
-  initializeMaps () {
+  disconnect () {
+    this.themeObserver.disconnect()
+  }
+
+  initializeMaps (center = { lat: this.latitudeValue, lng: this.longitudeValue }, zoom = this.zoomValue) {
+    const { DARK, LIGHT } = this.googleMaps.ColorScheme
+
     this.map = new this.googleMaps.Map(this.mapTarget, {
-      center: {
-        lat: this.latitudeValue,
-        lng: this.longitudeValue
-      },
-      zoom: this.zoomValue
+      center,
+      zoom,
+      colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT
     })
+  }
+
+  // Google reads `colorScheme` only while it builds a map, so a theme switch builds another
+  // in the same element and moves onto it what the person had drawn on this one.
+  rebuildMap = () => {
+    if (!this.map) return
+
+    this.initializeMaps(this.map.getCenter(), this.map.getZoom())
+    this.drawnPolygons.forEach(polygon => polygon.setMap(this.map))
   }
 
   initializeDrawing (polygonOptions) {

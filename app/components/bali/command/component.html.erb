@@ -12,13 +12,23 @@
         class comment), so it declares its own focus-visible ring: dropping
         `.btn` also dropped daisyUI's, and the browser's default ring does not
         follow the theme. The label is /75: at /60 it read 3.89:1 on afal, and
-        /70 read 4.51 under the pointer on the preview's base-200 page. %>
+        /70 read 4.51 under the pointer on the preview's base-200 page.
+        In a size container narrower than 7rem — the Topbar's search slot, once its
+        actions take the room — the well folds to a square around the icon: below that,
+        and below `sm`, where the hint is hidden, the label gets under 68px, and
+        "Search…" takes 55 and "Buscar…" 54 in Noto Sans. From `sm` up the hint and its
+        gap take more, so the label can still truncate a little above 7rem. The label
+        stays in the accessibility tree as `sr-only`, so it is still the button's name,
+        and `title` gives the square the tooltip its IconAction neighbours have. The
+        square is capped at the slot and clipped: with six actions at 320px the slot
+        is 2px, and 32px would run under the next action. %>
     <button type="button"
             data-action="click->command#open"
             aria-haspopup="dialog"
-            class="bali-command-trigger flex items-center gap-2 w-full bg-base-content/8 hover:bg-base-content/16 rounded-md px-2.5 py-1.5 text-sm text-base-content/75 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content">
+            title="<%= trigger_label %>"
+            class="bali-command-trigger flex items-center gap-2 w-full bg-base-content/8 hover:bg-base-content/16 rounded-md px-2.5 py-1.5 text-sm text-base-content/75 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content @max-[7rem]:size-8 @max-[7rem]:max-w-full @max-[7rem]:justify-center @max-[7rem]:px-0 @max-[7rem]:overflow-hidden">
       <%= render Bali::Icon::Component.new('search', class: 'size-4 shrink-0') %>
-      <span class="flex-1 min-w-0 truncate text-left"><%= trigger_label %></span>
+      <span class="flex-1 min-w-0 truncate text-left @max-[7rem]:sr-only"><%= trigger_label %></span>
       <% if shortcut_label.present? %>
         <%# aria-hidden: the hint is decoration — without it the accessible
             name changes with the viewport ("Search…" vs "Search… ⌘K").
@@ -27,7 +37,7 @@
             passed carries no target and is left alone. A hand-rolled trigger
             can opt in by putting the target on its own kbd. %>
         <%= tag.kbd shortcut_label,
-                    class: "kbd kbd-xs hidden sm:inline-flex",
+                    class: "kbd kbd-xs hidden sm:inline-flex @max-[7rem]:hidden",
                     aria: { hidden: true },
                     data: (auto_shortcut? ? { command_target: "shortcut" } : {}) %>
       <% end %>

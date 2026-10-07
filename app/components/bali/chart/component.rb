@@ -21,6 +21,8 @@ module Bali
       # Chart.js builds a scale for every key under `scales`, whatever the chart type, so an `x`
       # and a `y` draw axes and a grid behind a chart that has none.
       RADIAL_TYPES = %i[pie doughnut polarArea radar].freeze
+      # The two of them that Chart.js draws on a radial scale, `r`.
+      RADIAL_SCALE_TYPES = %i[polarArea radar].freeze
       BAR_TYPES = %i[bar].freeze
 
       # System font stack matching DaisyUI/Tailwind
@@ -214,12 +216,33 @@ module Bali
       end
 
       def configure_theme_styling(opts)
-        configure_scales_styling(opts) unless radial?
+        if radial_scale?
+          configure_radial_scale_styling(opts)
+        elsif !radial?
+          configure_scales_styling(opts)
+        end
         configure_plugins_styling(opts)
       end
 
       def radial?
         RADIAL_TYPES.include?(chart_type&.to_sym)
+      end
+
+      def radial_scale?
+        RADIAL_SCALE_TYPES.include?(chart_type&.to_sym)
+      end
+
+      # Left to Chart.js, the scale keeps its light-theme defaults on any theme: tick labels on
+      # white boxes and a grid of 10% black. Each flag is read by the chart controller (index.js).
+      def configure_radial_scale_styling(opts)
+        opts[:scales] = {
+          r: {
+            grid: { useThemeColors: true },
+            angleLines: { useThemeColors: true },
+            ticks: { useThemeColors: true },
+            pointLabels: { useThemeColors: true }
+          }
+        }
       end
 
       def configure_scales_styling(opts)

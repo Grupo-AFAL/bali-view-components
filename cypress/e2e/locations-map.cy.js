@@ -1,3 +1,5 @@
+import { stubGoogleMaps } from '../support/google_maps'
+
 // #1041 — LocationsMap had no E2E spec, and it is the component furthest from
 // being testable head-on: the map is a keyed, paid, canvas-painting script that
 // CI cannot load and a test cannot read back. What the controller does AROUND
@@ -10,18 +12,6 @@
 // click. Nothing about Google's own behaviour is under test here; everything
 // about Bali's use of it is.
 describe('LocationsMap', () => {
-  const stubGoogleMaps = () => {
-    // `readFile`, not `fixture`: Cypress EVALUATES a .js fixture as a module and
-    // this one is meant to run in the page, not in the test.
-    cy.readFile('cypress/fixtures/google-maps-stub.js').then((script) => {
-      cy.intercept('GET', 'https://maps.googleapis.com/maps/api/js*', {
-        statusCode: 200,
-        headers: { 'content-type': 'application/javascript' },
-        body: script
-      }).as('mapsApi')
-    })
-  }
-
   // The controller only wires cards to markers above `minWindowWidth` (768).
   const viewport = () => cy.viewport(1280, 900)
 
@@ -171,6 +161,18 @@ describe('LocationsMap', () => {
         // The stub zooms a degenerate bounds to street level (21), as the real
         // API would; the controller clamps back to the ceiling it was given.
         expect(maps[0].zoom).to.eq(12)
+      })
+    })
+  })
+
+  describe('locale', () => {
+    it('loads the map in the locale Ruby rendered the page in', () => {
+      viewport()
+      stubGoogleMaps()
+      cy.visit('/bali/locations_map/default?locale=es')
+
+      cy.wait('@mapsApi').its('request.url').should((url) => {
+        expect(new URL(url).searchParams.get('language')).to.eq('es')
       })
     })
   })

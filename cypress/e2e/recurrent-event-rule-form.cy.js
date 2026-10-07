@@ -213,9 +213,9 @@ describe('RecurrentEventRuleForm', () => {
     })
   })
 
-  // A checked day is the theme's primary pair, which theme-primary-contrast.cy.js holds at AA on
-  // Bali's themes; daisyUI's `dark` paints it at 4.13:1, so the bar under the cursor is the day at
-  // rest, not 4.5.
+  // A checked day is the theme's primary pair, which test/bali/theme_contrast_test.rb holds at AA
+  // on Bali's themes; daisyUI's `dark` paints it at 4.13:1, so the bar under the cursor is the day
+  // at rest, not 4.5.
   describe('the weekdays as painted', () => {
     // An outline is drawn outside the box, over whatever the element sits on: measured as text
     // of its colour placed beside it.

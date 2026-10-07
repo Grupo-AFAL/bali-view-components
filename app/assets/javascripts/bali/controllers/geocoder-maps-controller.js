@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import * as formatters from '../utils/formatters.js'
+import { hostColorScheme, observeHostColorScheme } from '../utils/color-scheme.js'
 
 const TIJUANA_LAT = 32.5036383
 const TIJUANA_LNG = -117.0308968
@@ -22,6 +23,8 @@ export class GeocoderMapsController extends Controller {
   ]
 
   async connect () {
+    this.themeObserver = observeHostColorScheme(this.rebuildMap)
+
     const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
 
     const testMode = this.data.get('testMode') === 'true'
@@ -41,14 +44,27 @@ export class GeocoderMapsController extends Controller {
     }
   }
 
-  initializeMap () {
+  disconnect () {
+    this.themeObserver.disconnect()
+  }
+
+  initializeMap (center = { lat: TIJUANA_LAT, lng: TIJUANA_LNG }, zoom = DEFAULT_ZOOM) {
+    const { DARK, LIGHT } = this.googleMaps.ColorScheme
+
     this.map = new this.googleMaps.Map(this.mapTarget, {
-      center: {
-        lat: TIJUANA_LAT,
-        lng: TIJUANA_LNG
-      },
-      zoom: DEFAULT_ZOOM
+      center,
+      zoom,
+      colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT
     })
+  }
+
+  // Google reads `colorScheme` only while it builds a map, so a theme switch builds another
+  // in the same element and moves the pin onto it.
+  rebuildMap = () => {
+    if (!this.map) return
+
+    this.initializeMap(this.map.getCenter(), this.map.getZoom())
+    this.marker?.setMap(this.map)
   }
 
   initializeAddressListeners () {

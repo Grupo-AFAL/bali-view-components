@@ -1,5 +1,5 @@
 import { contrastRatio, paintedContrast, paintedLuminance } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { THEMES, eachTheme, useTheme } from '../support/themes'
 import { hover, unhover } from '../support/tap'
 
 // Pieces that used to paint fixed colours instead of the theme's: SlimSelect's and the
@@ -13,10 +13,6 @@ describe('colours that follow the theme', () => {
 
   const AA = 4.5
   const HIGHLIGHTS = ['gray', 'brown', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink']
-
-  const useTheme = (theme) => {
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-  }
 
   const expectSettled = (el) => {
     expect(el.ownerDocument.getAnimations(), 'transitions settled').to.have.length(0)
@@ -79,25 +75,25 @@ describe('colours that follow the theme', () => {
     })
   }
 
-  THEMES.forEach((theme) => {
-    it(`reads SlimSelect's value and its open list at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/form/slim_select/default')
-      useTheme(theme)
-      everyReadsAtAA('.ss-main .ss-single', theme)
+  // Each state is reached once and the theme switched in place. Where a test compares a state with
+  // the element at rest, every theme is read at rest first and then in that state.
+  it("reads SlimSelect's value and its open list at AA on every theme", () => {
+    cy.visit('/bali/form/slim_select/default')
+    eachTheme(theme => everyReadsAtAA('.ss-main .ss-single', theme))
 
-      cy.get('.ss-main').first().click()
-      everyReadsAtAA('.ss-content.ss-open .ss-option:not(.ss-disabled)', theme, 2)
-      cy.get('.ss-content.ss-open .ss-option.ss-selected').should('have.length', 1)
-    })
+    cy.get('.ss-main').first().click()
+    eachTheme(theme => everyReadsAtAA('.ss-content.ss-open .ss-option:not(.ss-disabled)', theme, 2))
+    cy.get('.ss-content.ss-open .ss-option.ss-selected').should('have.length', 1)
+  })
 
-    // The selected option was `primary` as text: daisyUI's own `dark` painted it at 3.40:1, and
-    // 2.69 under the pointer. Its check is an icon, so 3:1.
-    it(`reads SlimSelect's selected option and its check under the pointer on the ${theme} theme`, () => {
-      cy.visit('/bali/form/slim_select/default')
-      useTheme(theme)
-      cy.get('.ss-main').first().click()
-      cy.get('.ss-content.ss-open .ss-option.ss-selected').then(hover)
+  // The selected option was `primary` as text: daisyUI's own `dark` painted it at 3.40:1, and
+  // 2.69 under the pointer. Its check is an icon, so 3:1.
+  it("reads SlimSelect's selected option and its check under the pointer on every theme", () => {
+    cy.visit('/bali/form/slim_select/default')
+    cy.get('.ss-main').first().click()
+    cy.get('.ss-content.ss-open .ss-option.ss-selected').then(hover)
 
+    eachTheme((theme) => {
       cy.get('.ss-content.ss-open .ss-option.ss-selected').should(($option) => {
         const option = $option[0]
         expectSettled(option)
@@ -107,33 +103,35 @@ describe('colours that follow the theme', () => {
           .to.be.at.least(3)
       })
     })
+  })
 
-    // `primary` as text too, and dimmed to 70% under the pointer, which put it under AA on all six
-    // themes: 2.33–4.48:1.
-    it(`reads SlimSelect's "Select all" at rest and under the pointer on the ${theme} theme`, () => {
-      cy.visit('/bali/form/slim_select/select_all')
-      useTheme(theme)
-      everyReadsAtAA('.ss-toggle-btn:not(.hidden)', theme)
-      cy.get('.ss-toggle-btn:not(.hidden)').then(hover)
+  // `primary` as text too, and dimmed to 70% under the pointer, which put it under AA on all six
+  // themes: 2.33–4.48:1.
+  it('reads SlimSelect\'s "Select all" at rest and under the pointer on every theme', () => {
+    cy.visit('/bali/form/slim_select/select_all')
+    eachTheme(theme => everyReadsAtAA('.ss-toggle-btn:not(.hidden)', theme))
+    cy.get('.ss-toggle-btn:not(.hidden)').then(hover)
 
+    eachTheme((theme) => {
       cy.get('.ss-toggle-btn:not(.hidden)').should(($toggle) => {
         expectSettled($toggle[0])
         expect($toggle[0].matches(':hover'), 'under the pointer').to.equal(true)
         expect(paintedContrast($toggle[0]), `${theme}: "Select all" under the pointer`).to.be.at.least(AA)
       })
     })
+  })
 
-    // A day's focus fill was the same light-theme literal as its hover: on the dark themes the
-    // focused day turned a near-white square with its number at 1.00–1.08:1. The hour's and
-    // AM/PM's was base-200, 1.05–1.10:1 off the calendar, and a day of another month had none:
-    // 1.00. `ringless` as in base-surface-steps.
-    FOCUSED.forEach(([what, field, selector, { ringless = false } = {}]) => {
-      it(`reads ${what} under keyboard focus on the ${theme} theme`, () => {
-        cy.visit(`/bali/form/${field}/default`)
-        useTheme(theme)
-        cy.get('form input.input:not([type="hidden"])').click()
-        cy.get(`.flatpickr-calendar.open ${selector}`).first().focus()
+  // A day's focus fill was the same light-theme literal as its hover: on the dark themes the
+  // focused day turned a near-white square with its number at 1.00–1.08:1. The hour's and
+  // AM/PM's was base-200, 1.05–1.10:1 off the calendar, and a day of another month had none:
+  // 1.00. `ringless` as in base-surface-steps.
+  FOCUSED.forEach(([what, field, selector, { ringless = false } = {}]) => {
+    it(`reads ${what} under keyboard focus on every theme`, () => {
+      cy.visit(`/bali/form/${field}/default`)
+      cy.get('form input.input:not([type="hidden"])').click()
+      cy.get(`.flatpickr-calendar.open ${selector}`).first().focus()
 
+      eachTheme((theme) => {
         cy.get(`.flatpickr-calendar.open ${selector}`).first().should(($el) => {
           const el = $el[0]
           expectSettled(el)
@@ -148,18 +146,21 @@ describe('colours that follow the theme', () => {
         })
       })
     })
+  })
 
-    // A custom property resolves its var() where it is declared: declared on :root alone, the
-    // tokens kept the page's ink inside a subtree with a theme of its own, and a day of another
-    // month read 1.00–1.09:1 there.
-    it(`re-themes the Datepicker inside a subtree on the ${theme} theme`, () => {
+  // A custom property resolves its var() where it is declared: declared on :root alone, the
+  // tokens kept the page's ink inside a subtree with a theme of its own, and a day of another
+  // month read 1.00–1.09:1 there.
+  it('re-themes the Datepicker inside a subtree on every theme', () => {
+    cy.visit('/bali/form/date/default')
+    cy.get('form input.input:not([type="hidden"])').click()
+    cy.get('.flatpickr-calendar.open').should(($calendar) => {
+      expect($calendar[0].parentElement, 'appended to the body').to.equal($calendar[0].ownerDocument.body)
+    })
+
+    THEMES.forEach((theme) => {
       const page = theme.endsWith('dark') ? 'light' : 'dark'
-      cy.visit('/bali/form/date/default')
       useTheme(page)
-      cy.get('form input.input:not([type="hidden"])').click()
-      cy.get('.flatpickr-calendar.open').should(($calendar) => {
-        expect($calendar[0].parentElement, 'appended to the body').to.equal($calendar[0].ownerDocument.body)
-      })
       cy.document().then(doc => doc.body.setAttribute('data-theme', theme))
 
       cy.get('.flatpickr-calendar.open .flatpickr-day.nextMonthDay').first().should(($day) => {
@@ -167,14 +168,15 @@ describe('colours that follow the theme', () => {
         expect(paintedContrast($day[0]), `${theme} under a ${page} page: a day of another month`).to.be.at.least(AA)
       })
     })
+  })
 
-    // Drawn in the same light-theme ink: at rest, at 70% and their faintest, 1.05–1.14:1 on the
-    // dark themes.
-    it(`draws the time picker's stepper arrows at 3:1 on the ${theme} theme`, () => {
-      cy.visit('/bali/form/time/default')
-      useTheme(theme)
-      cy.get('form input.input:not([type="hidden"])').click()
+  // Drawn in the same light-theme ink: at rest, at 70% and their faintest, 1.05–1.14:1 on the
+  // dark themes.
+  it("draws the time picker's stepper arrows at 3:1 on every theme", () => {
+    cy.visit('/bali/form/time/default')
+    cy.get('form input.input:not([type="hidden"])').click()
 
+    eachTheme((theme) => {
       cy.get('.flatpickr-calendar.open .flatpickr-time .numInputWrapper').should(($wrappers) => {
         expectSettled($wrappers[0])
         expect($wrappers, 'hour and minute').to.have.length(2)
@@ -187,13 +189,14 @@ describe('colours that follow the theme', () => {
         })
       })
     })
+  })
 
-    // Dimmed to 70% like the time picker's, over the header's primary: 2.80:1 on `dark`.
-    it(`draws the year's stepper arrows at 3:1 on the ${theme} theme`, () => {
-      cy.visit('/bali/form/date/default')
-      useTheme(theme)
-      cy.get('form input.input:not([type="hidden"])').click()
+  // Dimmed to 70% like the time picker's, over the header's primary: 2.80:1 on `dark`.
+  it("draws the year's stepper arrows at 3:1 on every theme", () => {
+    cy.visit('/bali/form/date/default')
+    cy.get('form input.input:not([type="hidden"])').click()
 
+    eachTheme((theme) => {
       cy.get('.flatpickr-calendar.open .flatpickr-current-month .numInputWrapper').should(($wrapper) => {
         const wrapper = $wrapper[0]
         expectSettled(wrapper)
@@ -204,71 +207,78 @@ describe('colours that follow the theme', () => {
           `${theme}: down arrow`).to.be.at.least(3)
       })
     })
+  })
 
-    // A white tint over the primary header took the month and the year under the pointer to
-    // 2.96:1 on `dark`, 3.75 on `afal` and 4.33 on `light`, and the year's arrow to 2.48 on `dark`.
-    // Each is held to its contrast where it reaches it at rest and to its rest where it does not:
-    // `dark`'s month reads 4.13 at rest. The ring sits at the element's edge, clear of the text
-    // and the arrow.
-    HEADER.forEach(([what, selector, painted, floor]) => {
-      it(`marks ${what} of the Datepicker header under the pointer and keeps it legible on the ${theme} theme`, () => {
-        const target = `.flatpickr-calendar.open .flatpickr-current-month ${selector}`
-        let atRest
-        cy.visit('/bali/form/date/default')
-        useTheme(theme)
-        cy.get('form input.input:not([type="hidden"])').click()
+  // A white tint over the primary header took the month and the year under the pointer to
+  // 2.96:1 on `dark`, 3.75 on `afal` and 4.33 on `light`, and the year's arrow to 2.48 on `dark`.
+  // Each is held to its contrast where it reaches it at rest and to its rest where it does not:
+  // `dark`'s month reads 4.13 at rest. The ring sits at the element's edge, clear of the text
+  // and the arrow.
+  HEADER.forEach(([what, selector, painted, floor]) => {
+    it(`marks ${what} of the Datepicker header under the pointer and keeps it legible on every theme`, () => {
+      const target = `.flatpickr-calendar.open .flatpickr-current-month ${selector}`
+      const atRest = {}
+      cy.visit('/bali/form/date/default')
+      cy.get('form input.input:not([type="hidden"])').click()
 
+      eachTheme((theme) => {
         cy.get(target).should(($el) => {
           expectSettled($el[0])
           expect($el[0].matches(':hover'), 'at rest').to.equal(false)
           expect(ringOf($el[0]), `${theme}: a ring around ${what} at rest`).to.equal(1)
-          atRest = painted($el[0])
+          atRest[theme] = painted($el[0])
         })
-        cy.get(target).then(hover)
+      })
+      cy.get(target).then(hover)
 
+      eachTheme((theme) => {
         cy.get(target).should(($el) => {
           expectSettled($el[0])
           expect($el[0].matches(':hover'), 'under the pointer').to.equal(true)
-          expect(painted($el[0]), `${theme}: ${what} under the pointer`).to.be.at.least(Math.min(floor, atRest))
+          expect(painted($el[0]), `${theme}: ${what} under the pointer`).to.be.at.least(Math.min(floor, atRest[theme]))
           expect(ringOf($el[0]), `${theme}: the ring around ${what} under the pointer`).to.be.at.least(3)
         })
       })
     })
+  })
 
-    // Under focus the year kept the white tint its hover lost, 2.96:1 on `dark`, and the month,
-    // `outline: none`, showed nothing at all.
-    HEADER_FOCUSED.forEach(([what, selector, state]) => {
-      it(`marks ${what} of the Datepicker header under focus and keeps it legible on the ${theme} theme`, () => {
-        const target = `.flatpickr-calendar.open .flatpickr-current-month ${selector}`
-        let atRest
-        cy.visit('/bali/form/date/default')
-        useTheme(theme)
-        cy.get('form input.input:not([type="hidden"])').click()
+  // Under focus the year kept the white tint its hover lost, 2.96:1 on `dark`, and the month,
+  // `outline: none`, showed nothing at all.
+  HEADER_FOCUSED.forEach(([what, selector, state]) => {
+    it(`marks ${what} of the Datepicker header under focus and keeps it legible on every theme`, () => {
+      const target = `.flatpickr-calendar.open .flatpickr-current-month ${selector}`
+      const atRest = {}
+      cy.visit('/bali/form/date/default')
+      cy.get('form input.input:not([type="hidden"])').click()
 
+      eachTheme((theme) => {
         cy.get(target).should(($el) => {
           expectSettled($el[0])
           expect($el[0].matches(':focus'), 'at rest').to.equal(false)
-          atRest = paintedContrast($el[0])
+          atRest[theme] = paintedContrast($el[0])
         })
-        cy.get(target).focus()
+      })
+      cy.get(target).focus()
 
+      eachTheme((theme) => {
         cy.get(target).should(($el) => {
           expectSettled($el[0])
           expect($el[0].matches(state), `under ${state}`).to.equal(true)
           expect($el[0].matches(':hover'), 'away from the pointer').to.equal(false)
-          expect(paintedContrast($el[0]), `${theme}: ${what} under focus`).to.be.at.least(Math.min(AA, atRest))
+          expect(paintedContrast($el[0]), `${theme}: ${what} under focus`).to.be.at.least(Math.min(AA, atRest[theme]))
           expect(ringOf($el[0]), `${theme}: the ring around ${what} under focus`).to.be.at.least(3)
         })
       })
     })
+  })
 
-    // base-200 stepped down on the dark themes: a hovered option read 1.05:1 against the list.
-    it(`shows SlimSelect's hovered option on the ${theme} theme`, () => {
-      cy.visit('/bali/form/slim_select/default')
-      useTheme(theme)
-      cy.get('.ss-main').first().click()
-      cy.get('.ss-content.ss-open .ss-option:not(.ss-disabled):not(.ss-selected)').eq(1).then(hover)
+  // base-200 stepped down on the dark themes: a hovered option read 1.05:1 against the list.
+  it("shows SlimSelect's hovered option on every theme", () => {
+    cy.visit('/bali/form/slim_select/default')
+    cy.get('.ss-main').first().click()
+    cy.get('.ss-content.ss-open .ss-option:not(.ss-disabled):not(.ss-selected)').eq(1).then(hover)
 
+    eachTheme((theme) => {
       cy.get('.ss-content.ss-open').should(($list) => {
         const doc = $list[0].ownerDocument
         const style = (el) => doc.defaultView.getComputedStyle(el)
@@ -282,31 +292,30 @@ describe('colours that follow the theme', () => {
         expect((hi + 0.05) / (lo + 0.05), `${theme}: hovered option against the list`).to.be.at.least(1.15)
       })
     })
+  })
 
-    it(`reads SlimSelect's count of a long selection at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/form/slim_select/many_selected')
-      useTheme(theme)
-      everyReadsAtAA('.ss-main .ss-max', theme)
-    })
+  it("reads SlimSelect's count of a long selection at AA on every theme", () => {
+    cy.visit('/bali/form/slim_select/many_selected')
+    eachTheme(theme => everyReadsAtAA('.ss-main .ss-max', theme))
+  })
 
-    it(`reads a portaled comments sidebar at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/block_editor/with_portaled_read_only_comments_sidebar')
-      useTheme(theme)
-      everyReadsAtAA('.bn-threads-sidebar .bn-inline-content', theme, 2)
-    })
+  it('reads a portaled comments sidebar at AA on every theme', () => {
+    cy.visit('/bali/block_editor/with_portaled_read_only_comments_sidebar')
+    eachTheme(theme => everyReadsAtAA('.bn-threads-sidebar .bn-inline-content', theme, 2))
+  })
 
-    // AA alone also passes with BlockNote's own palette once BlockNote is told the scheme
-    // (#cfcfcf on the dark themes), so the menu is held to the editor's ink as well.
-    it(`reads the BlockEditor's "/" menu at AA, in the editor's ink, on the ${theme} theme`, () => {
-      const menuText = [
-        '.bn-suggestion-menu-label',
-        '.bn-mt-suggestion-menu-item-title',
-        '.bn-mt-suggestion-menu-item-subtitle'
-      ].map(part => `.bn-suggestion-menu ${part}`).join(', ')
+  // AA alone also passes with BlockNote's own palette once BlockNote is told the scheme
+  // (#cfcfcf on the dark themes), so the menu is held to the editor's ink as well.
+  it('reads the BlockEditor\'s "/" menu at AA, in the editor\'s ink, on every theme', () => {
+    const menuText = [
+      '.bn-suggestion-menu-label',
+      '.bn-mt-suggestion-menu-item-title',
+      '.bn-mt-suggestion-menu-item-subtitle'
+    ].map(part => `.bn-suggestion-menu ${part}`).join(', ')
 
-      cy.visit('/bali/block_editor/default')
-      useTheme(theme)
-      cy.get('.bn-editor').click().type('/')
+    cy.visit('/bali/block_editor/default')
+    cy.get('.bn-editor').click().type('/')
+    eachTheme((theme) => {
       everyReadsAtAA(menuText, theme, 10)
       cy.get(menuText).should(($els) => {
         const style = el => el.ownerDocument.defaultView.getComputedStyle(el)
@@ -316,43 +325,42 @@ describe('colours that follow the theme', () => {
         })
       })
     })
+  })
 
-    // BlockNote's own palette read 2.11:1 for yellow text on the light themes and 2.27 for the
-    // text over the gray highlight on afal-dark.
-    it(`reads every text colour and highlight of the BlockEditor at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/block_editor/default')
-      const blockNote = ($el) => $el[0].ownerDocument.defaultView.Stimulus
-        .getControllerForElementAndIdentifier($el[0], 'block-editor').blockNoteEditor
-      cy.get('[data-controller~="block-editor"]').should(($el) => {
-        expect(blockNote($el), 'BlockNote editor').to.be.an('object')
-      }).then(($el) => {
-        const editor = blockNote($el)
-        editor.replaceBlocks(editor.document, HIGHLIGHTS.map(colour => ({
-          type: 'paragraph',
-          content: [
-            { type: 'text', text: `${colour} text`, styles: { textColor: colour } },
-            { type: 'text', text: ' ', styles: {} },
-            { type: 'text', text: `${colour} highlight`, styles: { backgroundColor: colour } }
-          ]
-        })))
-      })
-      useTheme(theme)
-      everyReadsAtAA('.bn-editor [data-style-type="textColor"], .bn-editor [data-style-type="backgroundColor"]',
-        theme, HIGHLIGHTS.length * 2)
+  // BlockNote's own palette read 2.11:1 for yellow text on the light themes and 2.27 for the
+  // text over the gray highlight on afal-dark.
+  it('reads every text colour and highlight of the BlockEditor at AA on every theme', () => {
+    cy.visit('/bali/block_editor/default')
+    const blockNote = ($el) => $el[0].ownerDocument.defaultView.Stimulus
+      .getControllerForElementAndIdentifier($el[0], 'block-editor').blockNoteEditor
+    cy.get('[data-controller~="block-editor"]').should(($el) => {
+      expect(blockNote($el), 'BlockNote editor').to.be.an('object')
+    }).then(($el) => {
+      const editor = blockNote($el)
+      editor.replaceBlocks(editor.document, HIGHLIGHTS.map(colour => ({
+        type: 'paragraph',
+        content: [
+          { type: 'text', text: `${colour} text`, styles: { textColor: colour } },
+          { type: 'text', text: ' ', styles: {} },
+          { type: 'text', text: `${colour} highlight`, styles: { backgroundColor: colour } }
+        ]
+      })))
     })
+    eachTheme(theme => everyReadsAtAA('.bn-editor [data-style-type="textColor"], .bn-editor [data-style-type="backgroundColor"]',
+      theme, HIGHLIGHTS.length * 2))
+  })
 
-    // BlockNote's fixed quote grey: 4.30:1 on the light themes, 3.69 on dark and costa-norte-dark.
-    it(`reads the BlockEditor's quote at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/block_editor/with_initial_content')
-      useTheme(theme)
-      everyReadsAtAA('.bn-editor [data-content-type="quote"] blockquote', theme)
-    })
+  // BlockNote's fixed quote grey: 4.30:1 on the light themes, 3.69 on dark and costa-norte-dark.
+  it("reads the BlockEditor's quote at AA on every theme", () => {
+    cy.visit('/bali/block_editor/with_initial_content')
+    eachTheme(theme => everyReadsAtAA('.bn-editor [data-content-type="quote"] blockquote', theme))
+  })
 
-    // Icons, so 3:1 (WCAG 1.4.11). BlockNote's #cfcfcf painted 1.56:1 on the light themes.
-    it(`shows the BlockEditor's side menu on the ${theme} theme`, () => {
-      cy.visit('/bali/block_editor/with_initial_content')
-      useTheme(theme)
-      cy.get('.bn-editor [data-content-type="paragraph"]').first().then(hover)
+  // Icons, so 3:1 (WCAG 1.4.11). BlockNote's #cfcfcf painted 1.56:1 on the light themes.
+  it("shows the BlockEditor's side menu on every theme", () => {
+    cy.visit('/bali/block_editor/with_initial_content')
+    cy.get('.bn-editor [data-content-type="paragraph"]').first().then(hover)
+    eachTheme((theme) => {
       cy.get('.bn-side-menu svg').should(($icons) => {
         expectSettled($icons[0])
         expect($icons, 'the add and drag icons').to.have.length(2)
@@ -361,54 +369,46 @@ describe('colours that follow the theme', () => {
         })
       })
     })
+  })
 
-    // Mantine writes `color: var(--mantine-color-dimmed)` on the date, its gray-6 in a light
-    // scheme: 3.32:1 on the light themes.
-    it(`reads a comment's date in the BlockEditor's sidebar at AA on the ${theme} theme`, () => {
-      cy.viewport(1280, 900)
-      cy.visit('/bali/block_editor/with_comments')
-      useTheme(theme)
-      everyReadsAtAA('.bn-threads-sidebar .bn-thread-comment .mantine-Text-root > .mantine-Text-root', theme, 2)
+  // Mantine writes `color: var(--mantine-color-dimmed)` on the date, its gray-6 in a light
+  // scheme: 3.32:1 on the light themes.
+  it("reads a comment's date in the BlockEditor's sidebar at AA on every theme", () => {
+    cy.viewport(1280, 900)
+    cy.visit('/bali/block_editor/with_comments')
+    eachTheme(theme => everyReadsAtAA('.bn-threads-sidebar .bn-thread-comment .mantine-Text-root > .mantine-Text-root', theme, 2))
+  })
+
+  // Mantine's placeholder grey: gray-5 in a light scheme, 2.07:1, and dark-3 in a dark one,
+  // 2.88–3.23.
+  it("reads the BlockEditor's link field placeholder at AA on every theme", () => {
+    cy.visit('/bali/block_editor/default')
+    cy.get('.bn-editor').should(($editor) => expectSettled($editor[0]))
+    // Once a test in the run has failed and taken its screenshot, Electron leaves Mantine's
+    // fade-in of this popover at `opacity: 0` (Chrome ends it), so every theme after the first
+    // failure would time out on the fade instead of reading the colours measured here.
+    cy.document().then((doc) => {
+      doc.head.insertAdjacentHTML('beforeend', '<style>.bn-form-popover { transition: none !important }</style>')
     })
-
-    // Mantine's placeholder grey: gray-5 in a light scheme, 2.07:1, and dark-3 in a dark one,
-    // 2.88–3.23.
-    it(`reads the BlockEditor's link field placeholder at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/block_editor/default')
-      useTheme(theme)
-      cy.get('.bn-editor').should(($editor) => expectSettled($editor[0]))
-      // Once a test in the run has failed and taken its screenshot, Electron leaves Mantine's
-      // fade-in of this popover at `opacity: 0` (Chrome ends it), so every theme after the first
-      // failure would time out on the fade instead of reading the colours measured here.
-      cy.document().then((doc) => {
-        doc.head.insertAdjacentHTML('beforeend', '<style>.bn-form-popover { transition: none !important }</style>')
-      })
-      cy.get('.bn-editor').click().type('Bali{selectall}')
-      cy.get('.bn-formatting-toolbar [data-test="createLink"]').click()
-      cy.get('.bn-form-popover').should('have.css', 'opacity', '1')
+    cy.get('.bn-editor').click().type('Bali{selectall}')
+    cy.get('.bn-formatting-toolbar [data-test="createLink"]').click()
+    cy.get('.bn-form-popover').should('have.css', 'opacity', '1')
+    eachTheme((theme) => {
       cy.get('.bn-form-popover input').should(($input) => {
+        expectSettled($input[0])
         expect(paintedContrast($input[0], { pseudo: '::placeholder' }), `${theme}: ${$input.attr('placeholder')}`)
           .to.be.at.least(AA)
       })
     })
-
-    it(`paints the code block's tokens at AA on the ${theme} theme`, () => {
-      cy.visit('/bali/block_editor/readonly')
-      cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
-      useTheme(theme)
-      codeTokensReadAtAA(theme)
-    })
   })
 
-  // The tests above switch once, away from the light the page loads in. Coming back is what
-  // fails when the editor stops following after its first switch, and only here.
-  it('follows a data-theme switched in place, to dark and back', () => {
+  // Every switch after the first is one away from a theme the editor already followed: `afal`,
+  // the third, brings a light scheme back after `dark`, which is what fails when the editor stops
+  // following after its first switch.
+  it("paints the code block's tokens at AA on every theme", () => {
     cy.visit('/bali/block_editor/readonly')
     cy.get('[data-content-type="codeBlock"] pre .shiki[style*="--shiki-dark"]').should('exist')
-    useTheme('dark')
-    codeTokensReadAtAA('dark')
-    useTheme('light')
-    codeTokensReadAtAA('light')
+    eachTheme(theme => codeTokensReadAtAA(theme))
   })
 
   // With the `bali_theme` cookie the page arrives dark from the server instead.
@@ -422,21 +422,19 @@ describe('colours that follow the theme', () => {
   // `color: :neutral` on these, and the neutral outline button, paint ink, not a fill. A dark
   // theme's neutral is a dark fill, so as ink over the page it measured 1.72:1 on afal-dark,
   // 1.54 on costa-norte-dark and 1.26 on daisyUI's dark; base-content is the same colour as
-  // neutral on Bali's light themes.
+  // neutral on Bali's light themes. A StatCard's neutral icon and a Timeline's neutral marker are
+  // measured with their other colours, in soft-text-contrast.cy.js.
   const NEUTRAL_INK = [
     ['gauge', '/bali/gauge/default?color=neutral', '.bali-gauge', AA],
     ['loader text', '/bali/loader/default?color=neutral', 'p.text-xl', AA],
-    ['stat card icon', '/bali/stat_card/default?color=neutral', '.card-body .rounded-full svg', 3],
-    ['timeline marker', '/bali/timeline/with_colors', 'li:contains("Archived") .timeline-middle', 3],
     ['outline button', '/bali/button/default?variant=neutral&style=outline', '.btn-outline', AA],
     ['progress bar', '/bali/progress/default?color=neutral', 'progress', 3]
   ]
 
-  THEMES.forEach((theme) => {
-    NEUTRAL_INK.forEach(([what, url, selector, floor]) => {
-      it(`reads a neutral ${what} on the ${theme} theme`, () => {
-        cy.visit(url)
-        useTheme(theme)
+  NEUTRAL_INK.forEach(([what, url, selector, floor]) => {
+    it(`reads a neutral ${what} on every theme`, () => {
+      cy.visit(url)
+      eachTheme((theme) => {
         cy.get(selector).should(($els) => {
           expectSettled($els[0])
           expect(paintedContrast($els[0]), `${theme}: neutral ${what}`).to.be.at.least(floor)

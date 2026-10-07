@@ -83,24 +83,26 @@ const config = {
     // for '.woff2' files" errors (18 in the app this was measured on) coming
     // from the fonts BlockNote and Mantine ship with their CSS.
     //
-    // Use `dataurl`, NOT `file`: with Propshaft, esbuild's content hash in the
-    // emitted filename is mistaken for Propshaft's own digest, stripped, and
-    // the font 404s.
-    '.woff': 'dataurl',
-    '.woff2': 'dataurl',
-    '.ttf': 'dataurl',
-    '.eot': 'dataurl'
+    // `file` and not `dataurl`: inlined, BlockNote's Inter (nine weights, each
+    // as woff2 and woff) puts BlockNote's and Mantine's CSS at 395 KB gzipped;
+    // with `file` it is 35 KB, and the browser fetches only the weights it paints.
+    '.woff': 'file',
+    '.woff2': 'file',
+    '.ttf': 'file',
+    '.eot': 'file'
   }
 }
 ```
+
+> **No `publicPath: '/assets'` next to `file`, or the fonts 404.** esbuild writes each font's URL relative to the CSS it emits -- `url("./inter-v12-latin-500-W67HLOMG.woff2")` -- and Propshaft rewrites it to the digested path it serves, `/assets/inter-v12-latin-500-W67HLOMG-356485f0.woff2`. With `publicPath: '/assets'` the URL comes out as `/assets/inter-v12-latin-500-W67HLOMG.woff2`. Propshaft resolves a URL by its logical path, and `/assets` is where it is mounted, not part of that path: it looks for `assets/inter-…`, finds nothing, logs `Unable to resolve '/assets/inter-v12-latin-500-W67HLOMG.woff2' for missing asset 'assets/inter-v12-latin-500-W67HLOMG.woff2'` and leaves the URL as written, which 404s. `dataurl` works with or without `publicPath`, at the size above.
 
 The same thing on the CLI:
 
 ```bash
 esbuild app/javascript/application.js --bundle --format=esm --jsx=automatic \
   --conditions=style \
-  --loader:.woff=dataurl --loader:.woff2=dataurl \
-  --loader:.ttf=dataurl --loader:.eot=dataurl \
+  --loader:.woff=file --loader:.woff2=file \
+  --loader:.ttf=file --loader:.eot=file \
   --outdir=app/assets/builds
 ```
 
@@ -1396,8 +1398,8 @@ The FormBuilder helpers live outside this directory, in `lib/bali/form_builder/r
 |---------|-------|-----|
 | The page renders but there is no editor at all, and no error | `block_editor_enabled` is `false`, so the component renders an empty string. `assert_response :success` still passes | Set `config.block_editor_enabled = true`. In `development` you get a red dashed notice instead of silence; a `Rails.logger.warn` is emitted in every environment |
 | The editor renders but looks unstyled / broken | The CSS esbuild emitted next to the JS bundle is not linked | Add `stylesheet_link_tag "application"` alongside `javascript_include_tag "application"` -- see [Step 2](#step-2----esbuild-flags) |
-| Build fails with `No loader is configured for ".woff2" files` | Missing font loaders | Add the four `dataurl` loaders -- see [Step 2](#step-2----esbuild-flags) |
-| Fonts 404 at runtime with a mangled digest in the path | Font loader set to `file` instead of `dataurl` under Propshaft | Use `dataurl` |
+| Build fails with `No loader is configured for ".woff2" files` | Missing font loaders | Add the four `file` loaders -- see [Step 2](#step-2----esbuild-flags) |
+| The log says `Unable to resolve '/assets/inter-…woff2' for missing asset 'assets/inter-…woff2'`, and the fonts 404 | `publicPath: '/assets'` makes esbuild write the font URLs with Propshaft's mount in them, which Propshaft cannot resolve | Remove `publicPath` -- see [Step 2](#step-2----esbuild-flags) |
 | A `*/style.css` subpath fails to resolve at build time | The `style` export condition is not enabled | Add `conditions: ['style']` |
 | Console: `Failed to load editor. Ensure @blocknote/react, @blocknote/mantine, react, and react-dom are installed.` | A core package is missing | Run the [Step 1](#step-1----npm-packages) install, including the three `@mantine/*` |
 | Console: `` syntax highlighting is on but `shiki` could not be loaded `` | `shiki` not installed while `syntax_highlighting` is `true` | `yarn add shiki`, or pass `syntax_highlighting: false` |

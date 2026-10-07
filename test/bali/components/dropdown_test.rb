@@ -240,6 +240,7 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_no_selector("[method='delete']")
     assert_selector("form[method='post'] input[name='_method'][value='delete']", visible: :all)
     assert_selector("button[role='menuitem']", text: "Delete")
+    assert_selector("button.text-soft-error[role='menuitem']", text: "Delete")
   end
 
   # daisyUI paints the item on `.menu li > *`, so the <form> `button_to` wraps the button in
