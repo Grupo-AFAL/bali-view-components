@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`BlockEditor` y `DocumentEditor`: en el teléfono la barra de formato pasa a dos filas**
+  (#1355). Era una sola fila que se desplazaba de lado: a 390 px el selector de tipo de bloque
+  quedaba en 19 px de sus 129 y el botón de comentar fuera de la pantalla. La fila se parte
+  sólo cuando la barra no cabe a lo ancho del editor, así que en escritorio sigue en una; en
+  el `DocumentEditor` a 320 px son tres. Alcanza a afal-apps y gobierno-corporativo; no hay
+  nada que hacer.
+
 ## [v3.10.0] - 2026-10-07
 
 ### Added

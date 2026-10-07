@@ -262,6 +262,14 @@
   background-color: transparent;
 }
 
+/* BlockNote keeps the formatting toolbar on one row that scrolls (`nowrap`, `overflow-x: auto`):
+ * 519px with comments on, so at 390px the block type select shrank from 129px to 19px and the
+ * comment button scrolled out of view. A wrap only breaks the row where the bar does not fit,
+ * so no breakpoint: a desktop editor keeps its single row. */
+.block-editor-component .bn-formatting-toolbar {
+  flex-wrap: wrap;
+}
+
 /* Compact suggestion menu items */
 .block-editor-component .bn-suggestion-menu-item {
   padding: 0.15rem 0.5rem !important;
