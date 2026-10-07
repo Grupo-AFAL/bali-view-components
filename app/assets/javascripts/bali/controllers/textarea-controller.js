@@ -104,15 +104,23 @@ export class TextareaController extends Controller {
   // under it until a reload (#1371).
   //
   // The `reset` event fires BEFORE the controls are cleared — cancelling it cancels the reset —
-  // so the measurement cannot run inside the handler. A microtask and not
-  // `requestAnimationFrame`: the whole reset finishes in the task that dispatched the event, so
-  // there is nothing to wait a frame for, and a frame never comes in a background tab (measured:
-  // `visibilityState: 'hidden'`, no callback in 300ms, field left grown until the tab was shown).
+  // so the measurement cannot run inside the handler. It has to wait for a TASK, and the two
+  // shorter waits are both wrong here:
+  //
+  // A microtask runs too early. On a REAL click the checkpoint happens between the event
+  // dispatch and the button's activation behaviour (the form reset), so the field is still
+  // full when it measures and it writes the grown height right back. It looks correct under
+  // `el.click()` and under Cypress, where the dispatch is nested in a JS stack and the
+  // checkpoint is pushed past the reset — measured: cleared field, `height: 128px` after a
+  // real click, 80px under both synthetic ones.
+  //
+  // `requestAnimationFrame` never fires in a background tab — measured: `visibilityState:
+  // 'hidden'`, no callback in 300ms, field left grown until the tab came forward.
   listenForReset () {
     this.form = this.inputTarget.form
     if (!this.form) return
 
-    this.onReset = () => window.queueMicrotask(() => this.adjustHeight())
+    this.onReset = () => window.setTimeout(() => this.adjustHeight(), 0)
     this.form.addEventListener('reset', this.onReset)
   }
 

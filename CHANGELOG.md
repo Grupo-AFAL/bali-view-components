@@ -29,8 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `form.reset()` borra el valor **sin** disparar `input`, el único evento que el controlador
   escuchaba, así que el alto en línea del último tecleo se quedaba: un mensaje largo enviado por
   un form de Turbo dejaba el campo crecido y **vacío**, tapando lo que había debajo hasta
-  recargar. Ahora el controlador escucha el `reset` del formulario (en el cuadro siguiente: el
-  evento se dispara **antes** de que se limpien los controles).
+  recargar. Ahora el controlador escucha el `reset` del formulario y mide en la tarea siguiente:
+  el evento se dispara **antes** de que se limpien los controles, y en un clic real del usuario
+  hay un punto de microtareas entre el evento y el reset mismo, así que una microtarea mediría
+  el campo todavía lleno.
 
   Y el `overflow: hidden` que escribía una sola vez al conectarse le ganaba a la hoja de
   estilos, así que un `max-h-*` del anfitrión recortaba la caja sin dejar forma de alcanzar lo

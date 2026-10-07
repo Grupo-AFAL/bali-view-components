@@ -68,6 +68,30 @@ describe('Textarea auto-grow bounds', () => {
       })
     })
 
+    // The one a `.click()` cannot cover. A REAL user click runs a microtask checkpoint between
+    // the `reset` event and the button's activation behaviour (the form reset itself), so a
+    // handler that measures in a microtask reads a field that is still FULL and writes the
+    // grown height straight back — measured in Chrome 150: cleared field left at `height:
+    // 128px`. Cypress's synthetic click nests the dispatch inside a JS stack, which pushes the
+    // checkpoint past the reset and hides it, so the order is reproduced by hand here.
+    it('measures after the reset has happened, not after the event that announces it', () => {
+      capped().type('a line\n'.repeat(6), { delay: 0 })
+
+      cy.window().then(win => {
+        const field = win.document.querySelector('#auto_grow_capped')
+
+        field.form.dispatchEvent(new win.Event('reset', { bubbles: true, cancelable: true }))
+
+        // The checkpoint a real click runs here, with the field still full…
+        return new Cypress.Promise(resolve => win.queueMicrotask(resolve)).then(() => {
+          // …and only then the reset itself.
+          field.value = field.defaultValue
+        })
+      })
+
+      capped().should($field => expect(heightOf($field)).to.equal(80))
+    })
+
     // A field RENDERED with content measured its floor off that content, so it could never
     // shrink back to its `rows` — and a reset on such a form left it grown exactly like the
     // bug above.
