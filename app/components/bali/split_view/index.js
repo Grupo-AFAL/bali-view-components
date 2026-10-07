@@ -217,7 +217,7 @@ export class SplitViewController extends Controller {
   // and the visit Turbo promotes that click to has its restore cancelled by that
   // visit, which renders nothing (`willRender: false`): the URL goes back, the
   // pane stays on the row it left (#1340). Measured, the gap is ~3 ms in desktop
-  // Chrome and ~40 ms under 6x CPU throttling — room for `cy.go('back')` in CI.
+  // Chrome and ~40 ms under 6x CPU throttling: a back on a slow phone.
   syncIfRestoreCancelled () {
     if (!this.awaitingRestore) return
 
@@ -276,7 +276,10 @@ export class SplitViewController extends Controller {
     if (src && new URL(src, window.location.href).href === current.href) return
 
     frame.removeAttribute('data-split-view-src')
-    frame.setAttribute('src', current.getAttribute('href'))
+    // As a `replace`, not by writing `src`: a frame whose body survived the
+    // traversal keeps the `advance` of the last row click, and loading with it
+    // pushed this URL again and dropped the forward entry (#1340).
+    window.Turbo.visit(current.getAttribute('href'), { frame: this.frameValue, action: 'replace' })
   }
 
   // Whether this row's href names the location we are on. Not `row.href ===

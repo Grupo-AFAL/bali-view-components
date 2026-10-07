@@ -247,12 +247,17 @@ describe('SplitView: what gets cached after the frame is navigated (#1012)', () 
   // row no longer refetches: the #1029 stash recognises the pane as already
   // right — see the describe below.)
   it('points the frame at the row a traversal selects when the pane shows another', () => {
-    cy.get('.split-view-row').eq(1).invoke('attr', 'href').then((otherHref) => {
+    cy.get('.split-view-row').eq(1).then(($row) => {
+      const otherHref = $row.attr('href')
+      const name = $row.find('[data-testid="row-title"]').text().trim()
       cy.document().then(doc => doc.dispatchEvent(new Event('turbo:before-cache')))
       cy.get('.split-view-detail').should('not.have.attr', 'src')
 
       cy.window().then((win) => {
         win.history.pushState({}, '', otherHref)
+        // The frame still carries the click's `advance`; loading the row with
+        // it would push this URL a second time (#1340).
+        cy.spy(win.history, 'pushState').as('pushState')
         win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
       })
 
@@ -260,7 +265,8 @@ describe('SplitView: what gets cached after the frame is navigated (#1012)', () 
       // And wait for the detail: if the test ends with the frame's fetch in
       // flight, the next test's `cy.visit` tears the page down, the fetch is
       // aborted and Cypress attributes the AbortError to the wrong test.
-      cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('have.text', name)
+      cy.get('@pushState').should('not.have.been.called')
     })
   })
 
@@ -525,30 +531,64 @@ describe('SplitView: a traversal restores the pane its URL was painted with (#13
     title().should('not.exist')
   })
 
-  // #1340 — a back that lands between the detail painting and the visit Turbo
-  // promotes the row click to is cancelled by that visit, and the body is never
-  // replaced. A busy main thread opens that gap on a CI runner; holding it after
-  // `history.back()` queues the popstate ahead of the promoted visit every time.
-  it('comes back to the empty list when the back beats the visit a row click promotes', () => {
-    cy.visit('/bali/split_view/default')
-    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+  // #1340 — a back that lands between a row's detail painting and the visit
+  // Turbo promotes that click to has its restore cancelled by that visit, and
+  // the body is never replaced. A busy main thread opens that gap; holding it
+  // after `history.back()` queues the popstate ahead of the promoted visit, and
+  // `kept` (on <html>, which no snapshot carries) shows the body survived.
+  const backBeforeThePromotedVisit = () => {
     cy.document().then((doc) => {
       const win = doc.defaultView
+      const body = doc.body
       doc.addEventListener('turbo:frame-load', () => {
         win.addEventListener('popstate', () => {
-          doc.addEventListener('turbo:load', () => doc.documentElement.setAttribute('data-traversal-loaded', ''), { once: true })
+          doc.addEventListener('turbo:load', () => {
+            doc.documentElement.dataset.traversalLoaded = doc.body === body ? 'kept' : 'replaced'
+          }, { once: true })
         }, { once: true })
         win.history.back()
         const until = win.performance.now() + 100
         while (win.performance.now() < until) { /* hold the main thread */ }
       }, { once: true })
     })
+  }
+
+  it('comes back to the empty list when the back beats the visit a row click promotes', () => {
+    cy.visit('/bali/split_view/default')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    backBeforeThePromotedVisit()
     cy.get('.split-view-row').eq(2).click()
 
-    cy.get('html[data-traversal-loaded]', AFTER_TRAVERSAL)
+    cy.get('html[data-traversal-loaded="kept"]', AFTER_TRAVERSAL)
     cy.location('pathname').should('include', '/split_view/default')
     cy.get('.split-view-detail .empty-state-component').should('be.visible')
     title().should('not.exist')
+    cy.get('.split-view-row[aria-current]').should('not.exist')
+  })
+
+  // The same gap, back to the row clicked before: that row's detail has to load
+  // again, and loaded through the frame's `advance` it pushed its URL a second
+  // time over the forward entry.
+  it('comes back to the row before, and keeps the forward, when the back beats the promoted visit', () => {
+    cy.visit('/bali/split_view/default')
+    cy.get('.split-view-row').then(($rows) => {
+      const [first, second] = [$rows[1], $rows[3]]
+      const name = first.querySelector('div.font-medium').textContent.trim()
+      cy.wrap(first).click()
+      // Settled: the click's promoted visit has run and rewound the frame.
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', first.href)
+
+      backBeforeThePromotedVisit()
+      cy.wrap(second).click()
+
+      cy.get('html[data-traversal-loaded="kept"]', AFTER_TRAVERSAL)
+      cy.location('href').should('eq', first.href)
+      title().should('have.text', name)
+      cy.get('.split-view-row[aria-current]').should('have.length', 1).and('have.attr', 'href', first.getAttribute('href'))
+
+      cy.go('forward')
+      cy.location('href').should('eq', second.href)
+    })
   })
 
   it('keeps the detail of an appended row when going back to it', () => {
