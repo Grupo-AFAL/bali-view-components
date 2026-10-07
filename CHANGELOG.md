@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **`.box-row` y `.box-action`, con su hoja `bali/box.css`** (#1333). Ninguna app en v3 las
+  usa: ga-apps escribe `.box-action` en `memos/show`, pero sigue en Bali 1.2.4, que trae la suya
+  en `box.scss`, y esa vista es Bulma (`button is-primary`, `level`) que v3 no tiene. `.box`
+  sigue, en `general.css`. **Anfitrión:** `git grep -n -E "box-row|box-action|bali/box|css/box"
+  -- app` tiene que dar cero al subir a v3; un `@import 'bali/box'` que quede ya no encuentra
+  la hoja.
+- **Datepicker: el bloque «DaisyUI Theme Overrides» y la flecha que escondía** (#1333). Sin
+  cambio visible: lo que ese bloque ganaba (la sombra, el tamaño de los días de la semana, el
+  hover de las flechas de mes, el orden que le da el anillo de hoy y el relleno del seleccionado
+  sobre un día deshabilitado) pasó a la regla de arriba. Una app que volviera a mostrar la
+  flecha con su propio `display: block` ya no la ve; ninguna lo hace.
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added

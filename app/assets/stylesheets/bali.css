@@ -61,7 +61,6 @@
 /* Typography & layout */
 @import "./bali/typography.css" layer(components);
 @import "./bali/container.css" layer(components);
-@import "./bali/box.css" layer(components);
 @import "./bali/panel.css" layer(components);
 
 /* Code & rich text */
@@ -70,8 +69,9 @@
 
 /* ==============================================
    Unlayered on purpose — each file's header says which rule it has to beat.
-   Keep the relative order of the first three: they only fight daisyUI, but
-   they are ordinary same-layer neighbours to each other.
+   Keep the relative order of the first three: they fight daisyUI and, in
+   datepicker.css, Tailwind's `.static` utility, but they are ordinary
+   same-layer neighbours to each other.
    `container-overrides.css` fights Tailwind's own `.container` utility; it
    shares no selector with the others, so its position is free.
    ============================================== */
