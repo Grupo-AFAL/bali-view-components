@@ -13,18 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Bali pasó su propio texto de error a `text-soft-error` en v3.7.0 (#1281), pero el que escribe
   una app sigue en `text-error`, que sobre `base-100` mide 2.75:1 en `afal` y 2.86 en `light` y
   `costa-norte` (AA pide 4.5, y un ícono 3). **Anfitrión:** pásalo a `text-soft-error`, 7.12:1 en
-  `afal`; en los temas oscuros los dos pasan (6.45 y 10.64 en `afal-dark`). Los sitios:
-  `git grep -n -E 'text-error([^-]|$)' origin/main -- app`, y en `test` las pruebas que los
-  buscan por esa clase. Uno con opacidad (`text-error/80`) va caso por caso: `text-soft-error/80`
-  no existe, Tailwind no la genera y el elemento hereda el color de su padre sin avisar.
+  `afal`. En los tres temas oscuros pasan los dos: `text-error` mide 5.53:1 o más, y
+  `text-soft-error` 9.83. Los sitios: `git grep -n -E 'text-error([^-]|$)' origin/main -- app`,
+  y en `test` las pruebas que los buscan por esa clase. Uno con opacidad (`text-error/80`) va
+  caso por caso: `text-soft-error/80` no existe, Tailwind no la genera y el elemento hereda el
+  color de su padre sin avisar.
 
 - **BlockEditor: las fuentes van con `loader: file` y sin `publicPath`** (#1336).
   `docs/api/block-editor.md` pedía `dataurl` y culpaba a `file` de un 404 que en realidad causa
   `publicPath: '/assets'`. Con `file`, el CSS de BlockNote y Mantine pesa 35 KB con gzip en vez
-  de 395. La dummy pasa a esa misma configuración. **Anfitrión:** `dataurl` sigue funcionando.
-  afal-apps y gobierno-corporativo, los dos que montan el editor, ya usan `file` sin
-  `publicPath`. centinela-web, identity y opina tienen `publicPath: '/assets'` y ningún
-  `loader`: si un día lo montan, lo quitan
+  de 395. **Anfitrión:** `dataurl` sigue funcionando. afal-apps y gobierno-corporativo, los dos
+  que montan el editor, ya usan `file` sin `publicPath`. centinela-web, identity y opina tienen
+  `publicPath: '/assets'` y ningún `loader`: si un día lo montan, lo quitan
   (`git grep -n -E 'publicPath|loader' origin/main -- esbuild.config.mjs`).
 
 - **El README e `installation.md` dejan de enseñar `:root { color-scheme: light; }`** (#1336),
@@ -759,8 +759,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   controlador. Los disparadores llevan texto —el de Vistas, el nombre de la vista aplicada o
   «Vistas»; el de Columnas, «Columnas»— y una prueba que los buscaba por ese texto también deja
   de encontrarlos: en afal-apps, `assert_select "button", text: "Nada que ver"`. De lo que da
-  `git grep -n -E '"button", text:|click_button' origin/main -- test spec`, las que buscan el
-  nombre de una vista guardada o el rótulo de uno de los dos.
+  `git grep -n -E '"button", text:|click_(button|on|link_or_button)|(assert|refute|has)_(no_)?button' origin/main -- test spec`,
+  las que buscan el nombre de una vista guardada o el rótulo de uno de los dos.
 
 - **El texto pintado sobre un tinte de su mismo color llega a AA** (#1245, #1247): el resaltado
   de `Bali::Command`, el ítem activo y los badges de `SideMenu`, el ítem activo de `TreeView`, el
