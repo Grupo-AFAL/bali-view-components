@@ -50,6 +50,8 @@ export class FeedbackWidgetController extends Controller {
     badgeUrl: String,
     readUrl: String,
     unreadLabel: String,
+    // Without the attribute (a gem older than this file) there is no cap, rather than "0+".
+    maxCount: { type: Number, default: Infinity },
     interval: { type: Number, default: 300000 }
   }
 
@@ -60,6 +62,7 @@ export class FeedbackWidgetController extends Controller {
   }
 
   disconnect () {
+    this.badgeRequest?.abort()
     this.stopPolling()
     window.removeEventListener('message', this.handleMessage)
   }
@@ -86,6 +89,9 @@ export class FeedbackWidgetController extends Controller {
       detail: { id: this.drawerIdValue, content: null, options: {} }
     })
 
+    // A count asked for before this moment is what was unread before the panel opened,
+    // and answering after it would paint that back over the zero below.
+    this.badgeRequest?.abort()
     this.showUnread(0)
     this.lastChecked = new Date().toISOString()
     this.markRead()
@@ -278,9 +284,15 @@ export class FeedbackWidgetController extends Controller {
   // from that user's last `markRead`. `since` is for an Opina that does not: it ignores
   // the header and counts from there, which only lasts as long as this page does.
   async checkBadge () {
+    this.badgeRequest?.abort()
+    this.badgeRequest = new AbortController()
+
     try {
       const since = this.lastChecked || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      const response = await fetch(`${this.badgeUrlValue}?since=${since}`, { headers: this.authorization })
+      const response = await fetch(`${this.badgeUrlValue}?since=${since}`, {
+        headers: this.authorization,
+        signal: this.badgeRequest.signal
+      })
       // The token has expired (it lasts `token_expires_in`) or is no longer valid, and it is the
       // same one for as long as this controller lives: asking again only gets another 401, and
       // asking without it would count again what this user has already read.
@@ -309,9 +321,11 @@ export class FeedbackWidgetController extends Controller {
   }
 
   // `unreadLabel` is `bali_view.feedback_widget.unread`, passed with its `%{count}` intact.
+  // `maxCount` is `Bali::Topbar::IconAction`'s, and the badge caps the way its `badge_text`
+  // does; the description keeps the real number.
   showUnread (count) {
     const unread = count > 0
-    if (unread) this.badgeTarget.textContent = count
+    if (unread) this.badgeTarget.textContent = count > this.maxCountValue ? `${this.maxCountValue}+` : count
     this.badgeTarget.classList.toggle('hidden', !unread)
     this.unreadTarget.textContent = unread ? this.unreadLabelValue.replace('%{count}', count) : ''
   }

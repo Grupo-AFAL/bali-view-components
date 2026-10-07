@@ -1,0 +1,55 @@
+<%# `-m-4` cancels the preview body's `p-4`: the bar spans the viewport, as it does in
+    an app, so a 320px window measures what a 320px phone does. %>
+<div class="-m-4">
+  <%= render Bali::Topbar::Component.new do |topbar| %>
+    <% topbar.with_search do %>
+      <%= render Bali::Command::Component.new(placeholder: 'Search pages and actions…') do |c| %>
+        <% c.with_group(name: 'Pages', mode: :navigation) do |g| %>
+          <% g.with_item(title: 'Inbox', icon: 'inbox', href: '/lookbook') %>
+          <% g.with_item(title: 'Notifications', icon: 'bell', href: '/lookbook') %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <% topbar.with_action do %>
+      <%= render Bali::FeedbackWidget::Component.new(
+        project_slug: 'demo-project',
+        opina_url: 'https://opina-demo.example.com',
+        secret: 'preview-secret',
+        user_id: 'preview-user',
+        email: 'preview@example.com',
+        trigger: :labeled
+      ) %>
+    <% end %>
+
+    <% topbar.with_action do %>
+      <%= render Bali::Topbar::IconAction::Component.new(
+        icon: 'inbox', aria_label: 'Inbox, 3 pending', href: '/lookbook', badge: 3
+      ) %>
+    <% end %>
+
+    <% topbar.with_action do %>
+      <%= render Bali::Topbar::IconAction::Component.new(icon: 'circle-help', aria_label: 'Help') %>
+    <% end %>
+
+    <% topbar.with_action do %>
+      <%= render Bali::Topbar::ToolsMenu::Component.new(tools: [
+        Bali::Topbar::ToolsMenu::Tool.new(
+          key: :flightdeck, icon: 'server-cog', route_helper: :rails_health_check_path
+        )
+      ]) %>
+    <% end %>
+
+    <% topbar.with_action do %>
+      <%= render Bali::Topbar::IconAction::Component.new(icon: 'bell', aria_label: 'Notifications', badge: true) %>
+    <% end %>
+
+    <% topbar.with_user_menu do %>
+      <%= render Bali::Topbar::UserMenu::Component.new(
+        name: 'Ana García', email: 'ana@example.com', sign_out: { href: '#' }
+      ) do |menu| %>
+        <% menu.with_item(name: 'Profile', href: '#', icon: 'user') %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

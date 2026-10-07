@@ -36,6 +36,8 @@ module Bali
       #   round button to the bottom-right corner of the viewport. `:icon` and `:labeled` render
       #   where the component is rendered, sized for `Bali::Topbar`'s `with_action`: a round
       #   icon button, or the icon with "Opina" beside it, which drops to the icon below `sm`.
+      # @param options [Hash] HTML attributes for the wrapper `<div>`. `class:` and `data:` are
+      #   added to the component's own; `data: { controller: }` joins `feedback-widget`.
       def initialize(project_slug:, opina_url:, token: nil, secret: nil, user_id: nil, email: nil,
                      user_name: nil, title: nil, token_expires_in: 3600, badge_interval: 300_000,
                      trigger: :floating, **options)
@@ -139,10 +141,11 @@ module Bali
       end
 
       def html_attributes
-        {
+        attrs = prepend_controller(detach_data(options), "feedback-widget")
+
+        attrs.merge(
           class: class_names("feedback-widget", options[:class]),
-          data: {
-            controller: "feedback-widget",
+          data: attrs[:data].merge(
             feedback_widget_drawer_id_value: drawer_id,
             feedback_widget_embed_url_value: embed_url,
             feedback_widget_embed_origin_value: embed_origin,
@@ -151,9 +154,10 @@ module Bali
             feedback_widget_read_url_value: badge_read_url,
             # `%{count}` is left for the controller's `showUnread` to fill in.
             feedback_widget_unread_label_value: I18n.t("bali_view.feedback_widget.unread"),
+            feedback_widget_max_count_value: Bali::Topbar::IconAction::Component::MAX_COUNT,
             feedback_widget_interval_value: badge_interval
-          }
-        }
+          )
+        )
       end
     end
   end

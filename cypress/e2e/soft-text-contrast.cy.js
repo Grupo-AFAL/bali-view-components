@@ -1,4 +1,4 @@
-import { oklch, paintedContrast, paintedPixel } from '../support/painted_contrast'
+import { paintedContrast } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
 import { THEMES } from '../support/themes'
 
@@ -18,6 +18,12 @@ import { THEMES } from '../support/themes'
 // trend footer read 1.96:1 on `light`; as `text-error` the FormBuilder's error message read 2.75
 // on `afal`; and as `text-secondary` a Loader's label read 1.99 on `costa-norte` (#1281). A
 // Gauge's ring and a Loader's spinner keep the colour itself and are not measured here.
+//
+// A soft colour straight on base-100, with nothing between, is the theme's pair, and
+// test/bali/theme_contrast_test.rb computes it for every colour and theme. The pair says nothing
+// of which element wears it, so a row left this spec only where a component's own Minitest pins
+// the `text-soft-*` class: DeleteLink, Loader, Widget's trend, SplitView's overdue date and
+// BooleanIcon. Every row still measured at rest is the only check on its class.
 describe('a colour over a tint of itself, and its soft colour on the page', () => {
   const AA = 4.5
   // WCAG 1.4.11: an icon is a graphical object, not text.
@@ -29,7 +35,6 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
   }
   const openFilters = () => cy.get('[data-filters-target="dropdown"] > button').click()
   const CLEAR_ALL = 'button[data-action="filters#clearAll"]'
-  const TREND = '.bali-widget-body .sr-only + [aria-hidden="true"]'
   const DELETE_ITEM = '[data-dropdown-target="menu"] form.bali-delete-link-form button'
   const openActions = () => {
     cy.get('[data-dropdown-target="trigger"]').first().click()
@@ -192,19 +197,8 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
     }, [
       ['hovered "Clear all"', CLEAR_ALL, 1]
     ], true],
-    // Five rows that rise: bad news, as the preview's widget counts low stock. The arrow inherits
-    // the delta's colour on the same surface, so the delta's 4.5 already holds it to its 3.
-    ['widget/default?pattern=trend', null, [
-      ['bad trend', TREND, 1]
-    ]],
-    ['widget/default?pattern=trend&count=0', null, [
-      ['good trend', TREND, 1]
-    ]],
     ['gauge/all_colors', null, [
       ['figure and label', '.bali-gauge > span > span', 16]
-    ]],
-    ['loader/all_colors', null, [
-      ['label', '.loader-component > p', 8]
     ]],
     ['timeline/with_colors', null, [
       ['marker', '.timeline-middle svg', 9, GRAPHIC]
@@ -212,27 +206,12 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
     ['timeline/states', null, [
       ['marker', '.timeline-middle svg', 5, GRAPHIC]
     ]],
-    // Sci-Fi brings an overdue date into the first page: the seeds end Inception's production
-    // before the day they run. Infinite scroll keeps appending pages while the guard waits. An
-    // overdue date is the one in `font-medium`, a weight the colour change leaves alone.
-    ['split_view/default?q%5Bgenre_in%5D%5B%5D=Sci-Fi', null, [
-      ['overdue date', '.split-view-item:nth-child(-n+5) .min-w-0 + span.font-medium', 1]
-    ]],
-    ['boolean_icon/all_states', null, [
-      ['yes and no icon', '.boolean-icon-component:not([class*="text-base-content/"]) svg', 2, GRAPHIC]
-    ]],
-    ['delete_link/default', null, [
-      ['"Delete"', 'form.bali-delete-link-form button', 1]
-    ]],
     ['delete_link/default', () => {
       cy.get('form.bali-delete-link-form button').then(hover)
     }, [
       ['hovered "Delete"', 'form.bali-delete-link-form button', 1]
     ], true],
     // A Dropdown's `method: :delete` item is a DeleteLink with `plain: true`.
-    ['actions_dropdown/default', openActions, [
-      ['"Delete" item', DELETE_ITEM, 1]
-    ]],
     ['actions_dropdown/default', () => {
       openActions()
       cy.get(DELETE_ITEM).then(hover)
@@ -304,11 +283,14 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
   beforeEach(() => cy.viewport(1280, 800))
   afterEach(() => cy.then(unhover))
 
+  // The preview loads once and the theme switches in place; a pointer resting on the target stays
+  // there through every switch.
   PREVIEWS.forEach(([preview, reach, targets, hovered = false]) => {
-    THEMES.forEach((theme) => {
-      it(`reads ${targets.map(([what]) => what).join(', ')} of ${preview} on the ${theme} theme`, () => {
-        cy.visit(`/bali/${preview}`)
-        if (reach) reach()
+    it(`reads ${targets.map(([what]) => what).join(', ')} of ${preview} on every theme`, () => {
+      cy.visit(`/bali/${preview}`)
+      if (reach) reach()
+
+      THEMES.forEach((theme) => {
         cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
         // Under Electron on xvfb, on a loaded machine, a theme switch took ~3 s to settle and a
@@ -333,24 +315,26 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
 
   // The chip's name, its type label and its icon, at rest over a 15% tint and under the pointer
   // over a 25% one, in every colour a host can name — the default `secondary` among them.
-  THEMES.forEach((theme) => {
-    it(`reads every entity reference at rest and under the pointer on the ${theme} theme`, () => {
-      const expectReads = (chip) => {
-        const what = `${theme}: ${chip.style.getPropertyValue('--entity-ref-color')}`
-        expect(paintedContrast(chip), `${what} name`).to.be.at.least(AA)
-        expect(paintedContrast(chip.querySelector('.bn-entity-reference-label')), `${what} type label`).to.be.at.least(AA)
-        expect(paintedContrast(chip.querySelector('.bn-entity-reference-icon')), `${what} icon`).to.be.at.least(GRAPHIC)
-      }
+  it('reads every entity reference at rest and under the pointer on every theme', () => {
+    const expectReads = (chip, theme) => {
+      const what = `${theme}: ${chip.style.getPropertyValue('--entity-ref-color')}`
+      expect(paintedContrast(chip), `${what} name`).to.be.at.least(AA)
+      expect(paintedContrast(chip.querySelector('.bn-entity-reference-label')), `${what} type label`).to.be.at.least(AA)
+      expect(paintedContrast(chip.querySelector('.bn-entity-reference-icon')), `${what} icon`).to.be.at.least(GRAPHIC)
+    }
 
-      cy.visit('/bali/block_editor/entity_reference_colors')
-      cy.get('.bn-entity-reference-link > .bn-entity-reference').should('have.length', 9)
+    cy.visit('/bali/block_editor/entity_reference_colors')
+    cy.get('.bn-entity-reference-link > .bn-entity-reference').should('have.length', 9)
+
+    THEMES.forEach((theme) => {
+      cy.then(unhover)
       cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.document({ timeout: 10000 }).should((doc) => {
         expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
         doc.querySelectorAll('.bn-entity-reference').forEach((chip) => {
           expect(chip.matches(':hover'), 'at rest').to.equal(false)
-          expectReads(chip)
+          expectReads(chip, theme)
         })
       })
 
@@ -359,27 +343,8 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
         cy.document({ timeout: 10000 }).should((doc) => {
           expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
           expect($chip[0].matches(':hover'), 'under the pointer').to.equal(true)
-          expectReads($chip[0])
+          expectReads($chip[0], theme)
         })
-      })
-    })
-  })
-
-  // The 40% mix with base-content read brown for error on a light theme: rgb(114, 72, 80) on
-  // `afal`, chroma 0.05. A dark theme keeps that mix, a pale red.
-  const LIGHT_THEMES = ['light', 'afal', 'costa-norte']
-  LIGHT_THEMES.forEach((theme) => {
-    it(`paints text-soft-error red on the ${theme} theme`, () => {
-      cy.visit('/bali/delete_link/default')
-      cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
-
-      cy.document({ timeout: 10000 }).should((doc) => {
-        expect(doc.getAnimations(), 'transitions settled').to.have.length(0)
-        const link = doc.querySelector('form.bali-delete-link-form button')
-        const [, chroma, hue] = oklch(paintedPixel(doc, doc.defaultView.getComputedStyle(link).color))
-        expect(chroma, `${theme}: chroma`).to.be.at.least(0.12)
-        expect(hue < 40 || hue > 340, `${theme}: hue ${hue.toFixed(0)} is red`).to.equal(true)
-        expect(paintedContrast(link), `${theme}: on the page`).to.be.at.least(AA)
       })
     })
   })

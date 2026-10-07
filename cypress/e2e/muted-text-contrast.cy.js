@@ -12,27 +12,31 @@ const appOrigin = new URL(Cypress.config('baseUrl')).origin
 const transitions = doc => doc.getAnimations()
   .filter(animation => animation.playState === 'running' && animation.effect.getComputedTiming().iterations !== Infinity)
 
-// Every target of a page, on one theme: [what, selector, how many the page renders, and the
-// pseudo-element that paints it when the element itself does not — a `::placeholder`, or the
-// `::after` BlockNote writes its placeholder on]. A page is a Lookbook preview, or the dummy
-// app's own when it starts with `/`; `stub` is what has to be answered before the page loads,
-// and `open` what has to happen before the text shows.
-const guard = ({ page, stub, open, targets, theme, floor }) => {
+// Every target of a page, on every theme in turn: [what, selector, how many the page renders, and
+// the pseudo-element that paints it when the element itself does not — a `::placeholder`, or the
+// `::after` BlockNote writes its placeholder on]. A page is a Lookbook preview, or the dummy app's
+// own when it starts with `/`; `stub` is what has to be answered before the page loads, and `open`
+// what has to happen before the text shows. The page loads once and the theme switches in place,
+// the way the user menu's switch does it.
+const guard = ({ page, stub, open, targets, themes = THEMES, floor }) => {
   if (stub) stub()
   cy.visit(page.startsWith('/') ? `${appOrigin}${page}` : `/bali/${page}`)
   if (open) open()
-  cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
-  cy.get('body').should(($body) => {
-    expect(transitions($body[0].ownerDocument), 'transitions settled').to.have.length(0)
+  themes.forEach((theme) => {
+    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
-    targets.forEach(([what, selector, count, pseudo]) => {
-      const elements = [...$body[0].querySelectorAll(selector)]
-      expect(elements, `${page}: every ${what}`).to.have.length(count)
-      elements.forEach((el) => {
-        const generated = () => el.ownerDocument.defaultView.getComputedStyle(el, pseudo).content.replace(/^"|"$/g, '')
-        const text = pseudo ? el.getAttribute('placeholder') ?? generated() : el.textContent.trim()
-        expect(paintedContrast(el, { pseudo }), `${theme}: ${what} ${text ? `"${text}"` : '(no text)'}`).to.be.at.least(floor)
+    cy.get('body').should(($body) => {
+      expect(transitions($body[0].ownerDocument), 'transitions settled').to.have.length(0)
+
+      targets.forEach(([what, selector, count, pseudo]) => {
+        const elements = [...$body[0].querySelectorAll(selector)]
+        expect(elements, `${page}: every ${what}`).to.have.length(count)
+        elements.forEach((el) => {
+          const generated = () => el.ownerDocument.defaultView.getComputedStyle(el, pseudo).content.replace(/^"|"$/g, '')
+          const text = pseudo ? el.getAttribute('placeholder') ?? generated() : el.textContent.trim()
+          expect(paintedContrast(el, { pseudo }), `${theme}: ${what} ${text ? `"${text}"` : '(no text)'}`).to.be.at.least(floor)
+        })
       })
     })
   })
@@ -426,31 +430,25 @@ describe('muted text contrast', () => {
   ]
 
   Object.entries(PREVIEWS).forEach(([page, targets]) => {
-    THEMES.forEach((theme) => {
-      it(`reads the muted text of ${page} at AA on the ${theme} theme`, () => {
-        guard({ page, targets, theme, floor: AA })
-      })
+    it(`reads the muted text of ${page} at AA on every theme`, () => {
+      guard({ page, targets, floor: AA })
     })
   })
 
   OPENED.forEach(({ page, opened, stub, open, targets }) => {
-    THEMES.forEach((theme) => {
-      it(`reads the muted text of ${page} at AA with ${opened} on the ${theme} theme`, () => {
-        guard({ page, stub, open, targets, theme, floor: AA })
-      })
+    it(`reads the muted text of ${page} at AA with ${opened} on every theme`, () => {
+      guard({ page, stub, open, targets, floor: AA })
     })
   })
 
   // On a primary bubble the label stands on the theme's own pair, 5.25:1 on `afal`, where 70%
-  // measured 3.33. daisyUI's `dark` paints that pair at 4.13 (theme-primary-contrast.cy.js).
-  BALI_THEMES.forEach((theme) => {
-    it(`reads the typing label on a primary bubble at AA on the ${theme} theme`, () => {
-      guard({
-        page: 'chat/typing_indicator?show_label=true',
-        targets: [['typing label on a primary bubble', '#typing-end .chat-bubble-primary span.text-xs', 1]],
-        theme,
-        floor: AA
-      })
+  // measured 3.33. daisyUI's `dark` paints that pair at 4.13 (test/bali/theme_contrast_test.rb).
+  it('reads the typing label on a primary bubble at AA on every Bali theme', () => {
+    guard({
+      page: 'chat/typing_indicator?show_label=true',
+      targets: [['typing label on a primary bubble', '#typing-end .chat-bubble-primary span.text-xs', 1]],
+      themes: BALI_THEMES,
+      floor: AA
     })
   })
 
@@ -459,10 +457,8 @@ describe('muted text contrast', () => {
   // `.6`, the section title read 2.83:1 on `afal` over `primary` (#1281).
   const THEME_PAIRS = ['primary', 'secondary']
   THEME_PAIRS.forEach((color) => {
-    BALI_THEMES.forEach((theme) => {
-      it(`reads the text of a ${color} footer at AA on the ${theme} theme`, () => {
-        guard({ page: `footer/default?color=${color}`, targets: FOOTER, theme, floor: AA })
-      })
+    it(`reads the text of a ${color} footer at AA on every Bali theme`, () => {
+      guard({ page: `footer/default?color=${color}`, targets: FOOTER, themes: BALI_THEMES, floor: AA })
     })
   })
 
@@ -545,18 +541,14 @@ describe('muted icon contrast', () => {
   ]
 
   Object.entries(PAGES).forEach(([page, targets]) => {
-    THEMES.forEach((theme) => {
-      it(`draws the muted icons of ${page} at 3:1 on the ${theme} theme`, () => {
-        guard({ page, targets, theme, floor: NON_TEXT })
-      })
+    it(`draws the muted icons of ${page} at 3:1 on every theme`, () => {
+      guard({ page, targets, floor: NON_TEXT })
     })
   })
 
   OPENED.forEach(({ page, opened, stub, open, targets }) => {
-    THEMES.forEach((theme) => {
-      it(`draws the muted icons of ${page} at 3:1 with ${opened} on the ${theme} theme`, () => {
-        guard({ page, stub, open, targets, theme, floor: NON_TEXT })
-      })
+    it(`draws the muted icons of ${page} at 3:1 with ${opened} on every theme`, () => {
+      guard({ page, stub, open, targets, floor: NON_TEXT })
     })
   })
 })
@@ -654,9 +646,10 @@ describe('muted outline and line contrast in WorkflowSteps :progress', () => {
       el => ({ property: 'backgroundColor', over: el.parentElement })]
   ]
 
-  THEMES.forEach((theme) => {
-    it(`draws the grey outline and line at 3:1 on the ${theme} theme`, () => {
-      cy.visit('/bali/workflow_steps/progress')
+  it('draws the grey outline and line at 3:1 on every theme', () => {
+    cy.visit('/bali/workflow_steps/progress')
+
+    THEMES.forEach((theme) => {
       cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
 
       cy.get('.workflow-steps-progress-rail').should(($shapes) => {

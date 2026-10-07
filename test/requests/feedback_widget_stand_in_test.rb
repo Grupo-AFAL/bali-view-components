@@ -16,4 +16,20 @@ class FeedbackWidgetStandInTest < ActionDispatch::IntegrationTest
     assert_response :ok
     assert_equal({ "unread_count" => 0 }, response.parsed_body)
   end
+
+  # Opening the panel marks the count read, with a Bearer token and no CSRF one. The test
+  # environment turns forgery protection off; the development server the previews run on
+  # does not (#1333).
+  def test_marking_the_badge_read_is_answered
+    get "/admin/studios"
+    read_url = css_select("[data-feedback-widget-read-url-value]").sole["data-feedback-widget-read-url-value"]
+
+    protection = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+    post read_url, headers: { "Authorization" => "Bearer token" }
+
+    assert_response :no_content
+  ensure
+    ActionController::Base.allow_forgery_protection = protection
+  end
 end

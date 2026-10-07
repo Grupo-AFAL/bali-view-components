@@ -1,0 +1,12 @@
+<%= render Bali::AppLayout::Component.new(flash: {}, modal: false, drawer: false) do |layout|
+  layout.with_body do %>
+    <%= render Bali::PageHeader::Component.new(title: 'Projects', subtitle: 'The page opened on the new project form.') %>
+
+    <%= render Bali::Drawer::Component.new(active: true, drawer_id: 'new-project-drawer', shared: false,
+                                           dismissable_without_confirm: true, title: 'New project') do %>
+      <%= form_with(url: '/fake/submit', scope: :project, builder: Bali::FormBuilder) do |f| %>
+        <%= f.text_group :name, autofocus: true %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

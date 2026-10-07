@@ -54,7 +54,6 @@ const config = {
   sourcemap: true,
   format: 'esm',
   outdir: path.join(__dirname, 'app/assets/builds'),
-  publicPath: '/assets',
   target: ['es2022', 'chrome100', 'firefox100', 'safari15'],
   jsx: 'automatic',
   // Enable "style" condition for packages that export CSS via conditions
@@ -81,13 +80,12 @@ const config = {
     rrule: path.join(__dirname, 'node_modules/rrule/dist/es5/rrule.js')
   },
   loader: {
-    // Inline fonts as data URIs — Propshaft's digest-based path resolution
-    // misinterprets esbuild's content hash as its own digest, stripping it and
-    // returning 404 for the mangled path. Data URIs bypass this entirely.
-    '.woff': 'dataurl',
-    '.woff2': 'dataurl',
-    '.ttf': 'dataurl',
-    '.eot': 'dataurl'
+    // As in docs/api/block-editor.md, Step 2. A `publicPath: '/assets'` above
+    // would write these URLs as `/assets/…`, which Propshaft cannot resolve: 404.
+    '.woff': 'file',
+    '.woff2': 'file',
+    '.ttf': 'file',
+    '.eot': 'file'
   }
 }
 

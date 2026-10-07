@@ -1,0 +1,16 @@
+/* Breadcrumb — the rule that has to outrank daisyUI. Bali's own look is in ./index.css.
+ *
+ * DaisyUI sets `.breadcrumbs { padding-block: .5rem }` inside its utilities
+ * layer. In some host apps (Tailwind v4 + daisyUI plugin) that layer ends
+ * up ordered AFTER our @layer utilities, so a `pt-0` utility on the nav
+ * loses the cascade and breadcrumbs render with unwanted top
+ * padding. This unlayered rule beats both layered sources regardless of
+ * ordering. (#530)
+ *
+ * This is why the rule stayed out of @layer components in #693: cascade layers
+ * beat specificity, so from that layer daisyUI's `padding-block: .5rem` wins
+ * and #530 comes straight back. Do not move it.
+ */
+.breadcrumbs {
+  padding-block: 0;
+}
