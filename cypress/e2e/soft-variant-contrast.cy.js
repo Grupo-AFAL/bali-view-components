@@ -1,4 +1,4 @@
-import { paintedContrast } from '../support/painted_contrast'
+import { errorInk, paintedContrast } from '../support/painted_contrast'
 import { THEMES, useTheme } from '../support/themes'
 
 // The text colour of the soft, outline and dash variants, which only exists in
@@ -43,16 +43,6 @@ describe('tinted variant text contrast', () => {
     ctx.fillStyle = css
     ctx.fillRect(0, 0, 1, 1)
     return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
-  }
-
-  // What `text-soft-error` paints in the current theme.
-  const errorInk = (doc) => {
-    const probe = doc.createElement('span')
-    probe.className = 'text-soft-error'
-    doc.body.append(probe)
-    const ink = rgb(doc, getComputedStyle(probe).color)
-    probe.remove()
-    return ink
   }
 
   const expectErrorInk = (els, count, theme) => {

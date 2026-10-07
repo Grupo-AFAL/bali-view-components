@@ -1,5 +1,5 @@
-import { paintedContrast, paintedPixel } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { errorInk, paintedContrast, paintedPixel } from '../support/painted_contrast'
+import { THEMES, useTheme } from '../support/themes'
 
 // The measurements are in the header of button/index.css. Link's reference page renders every
 // colour in each fill with the classes Button does (Bali::ButtonTaxonomy). One visit: the theme
@@ -12,7 +12,7 @@ describe('Tinted buttons', () => {
   const TINTED = ':is(.btn-secondary, .btn-accent, .btn-info, .btn-success, .btn-warning, .btn-error, .btn-neutral):is(.btn-outline, .btn-soft)'
 
   const inTheme = (theme, check) => {
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+    useTheme(theme)
     cy.document().should((doc) => {
       expect(doc.getAnimations(), `${theme}: transitions settled`).to.have.length(0)
       check(doc)
@@ -20,16 +20,6 @@ describe('Tinted buttons', () => {
   }
 
   const pixel = (el, property = 'color') => paintedPixel(el.ownerDocument, getComputedStyle(el)[property])
-
-  // What `text-soft-error` paints in the current theme.
-  const errorInk = (doc) => {
-    const probe = doc.createElement('span')
-    probe.className = 'text-soft-error'
-    doc.body.append(probe)
-    const ink = pixel(probe)
-    probe.remove()
-    return ink
-  }
 
   it('reads coloured outline and soft buttons at AA at rest and rings a neutral one at 3:1, every theme', () => {
     cy.visit('/bali/link/reference')
