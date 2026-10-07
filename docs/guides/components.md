@@ -4442,7 +4442,8 @@ makes it a first-class popover attribute with no new API.
 - Multiple filter groups with AND/OR combinators. Conditions inside a group narrow
   (AND) unless the user switches a row to OR — the seed used to be OR, so a second
   condition widened the listing instead of narrowing it (#1121); a group that arrives in
-  the URL with `m=or` keeps it. Groups combine with AND.
+  the URL with `m=or` keeps it. Groups combine with AND. Whatever the groups' combinator,
+  the panel is ANDed with the quick search and the rest of `q` (#1345).
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
 - Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted
@@ -4496,7 +4497,7 @@ The search input includes a clear button (x) that appears when text is entered. 
 |--------|------|---------|-------------|
 | `url` | String | Required | Form action URL |
 | `filter_form` | FilterForm | Required | FilterForm instance |
-| `available_attributes` | Array | Required | Filterable attributes (`filter_form.available_attributes` when driven by a FilterForm) |
+| `available_attributes` | Array | Required | Filterable attributes (`filter_form.available_attributes` when driven by a FilterForm: a form that offers the panel attributes lets only those reach Ransack, #1346) |
 | `popover` | Boolean | `true` | Use popover mode |
 | `storage_id` | String | `nil` | Enable persistence |
 | `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |

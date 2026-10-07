@@ -12,6 +12,7 @@
  */
 
 /* Navigation Components */
+@import "../../../components/bali/breadcrumb/index.css" layer(components);
 @import "../../../components/bali/navbar/index.css" layer(components);
 @import "../../../components/bali/side_menu/index.css" layer(components);
 @import "../../../components/bali/command/index.css" layer(components);
@@ -37,6 +38,7 @@
 @import "../../../components/bali/reveal/index.css" layer(components);
 
 /* Form Components */
+@import "../../../components/bali/button/index.css" layer(components);
 @import "../../../components/bali/delete_link/index.css" layer(components);
 @import "../../../components/bali/filters/index.css" layer(components);
 @import "../../../components/bali/rich_text_editor/index.css" layer(components);
@@ -62,7 +64,7 @@
    sheets, so their mutual cascade is unchanged. The two `daisyui-overrides` below
    them, the toast sheet and the feedback widget's share no selector with anything
    here. */
-@import "../../../components/bali/breadcrumb/index.css";
+@import "../../../components/bali/breadcrumb/daisyui-overrides.css";
 @import "../../../components/bali/side_menu/daisyui-overrides.css";
 @import "../../../components/bali/data_table/index.css";
 @import "../../../components/bali/calendar/daisyui-overrides.css";
