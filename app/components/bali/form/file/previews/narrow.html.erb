@@ -2,7 +2,7 @@
   <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
     <%= form.file_group :files,
           accept: '.jpg, .jpeg, .png, .gif, .pdf',
-          choose_file_text: 'Seleccionar archivo',
-          non_selected_text: 'Ningun archivo seleccionado' %>
+          choose_file_text: 'Choose a file',
+          non_selected_text: 'No file selected yet' %>
   <% end %>
 </div>

@@ -27,6 +27,7 @@ export class TextareaController extends Controller {
   connect () {
     this.updateCounter()
     this.setupAutoGrow()
+    this.listenForReset()
   }
 
   disconnect () {
@@ -68,40 +69,51 @@ export class TextareaController extends Controller {
   setupAutoGrow () {
     if (!this.autoGrowValue || !this.hasInputTarget) return
 
-    this.measureMinHeight()
-
     // Only the horizontal handle and axis are fixed here. Vertical overflow is
     // adjustHeight's, because it depends on whether the cap is biting.
     this.inputTarget.style.resize = 'none'
     this.inputTarget.style.overflowX = 'hidden'
 
-    this.listenForReset()
-
-    // Initial adjustment
+    this.measureMinHeight()
     this.adjustHeight()
   }
 
-  // The floor is the height of the field EMPTY, not the height it happens to have on
-  // connect. Measuring the rendered content made a pre-filled field unable to ever shrink
-  // below what it was first rendered with, which is `rows` read off whatever the server
-  // sent rather than off the markup (#1371). Clearing and restoring `value` runs inside one
-  // task: nothing paints in between and no `input` event is fired.
+  // The floor is the height of the field EMPTY, not the height it happens to have on connect.
+  // Measuring the rendered content made a pre-filled field unable to ever shrink below what
+  // the server sent it (#1371).
+  //
+  // An empty field is already at its floor, which is the usual case and costs no mutation at
+  // all. A field rendered with content has to be emptied to be measured, and assigning `value`
+  // moves the caret and drops the browser's undo stack, so the selection is put back; the undo
+  // stack is not recoverable, and this runs once, at connect, on a field nobody has typed in
+  // yet.
   measureMinHeight () {
     if (this.minHeightValue !== 0) return
 
     const textarea = this.inputTarget
-    const value = textarea.value
+
+    textarea.style.overflowY = 'hidden'
+    textarea.style.height = 'auto'
+
+    if (textarea.value === '') {
+      this.minHeightValue = textarea.scrollHeight + this.borderHeight()
+      return
+    }
+
+    const { value, selectionStart, selectionEnd } = textarea
 
     textarea.value = ''
-    textarea.style.height = 'auto'
-    this.minHeightValue = textarea.scrollHeight
+    this.minHeightValue = textarea.scrollHeight + this.borderHeight()
     textarea.value = value
+    textarea.setSelectionRange(selectionStart, selectionEnd)
   }
 
-  // `form.reset()` clears the value WITHOUT firing `input`, so nothing ever told the
-  // controller to shrink and the inline height from the last keystroke stayed behind: a long
-  // message sent through a Turbo form left the field grown and EMPTY, covering the content
-  // under it until a reload (#1371).
+  // `form.reset()` clears the value WITHOUT firing `input`, the only event this controller
+  // listened to, so neither the height nor the counter were told: a long message sent through
+  // a Turbo form left the field grown and EMPTY over the content under it, and a counter left
+  // reading `523 / 500` in red on an empty field (#1371). It goes through `onInput`, which is
+  // what both of those already answer to, and it is registered whether or not the field grows
+  // — the counter has the same problem on a fixed-height textarea.
   //
   // The `reset` event fires BEFORE the controls are cleared — cancelling it cancels the reset —
   // so the measurement cannot run inside the handler. It has to wait for a TASK, and the two
@@ -117,22 +129,36 @@ export class TextareaController extends Controller {
   // `requestAnimationFrame` never fires in a background tab — measured: `visibilityState:
   // 'hidden'`, no callback in 300ms, field left grown until the tab came forward.
   listenForReset () {
+    if (!this.hasInputTarget) return
+
     this.form = this.inputTarget.form
     if (!this.form) return
 
-    this.onReset = () => window.setTimeout(() => this.adjustHeight(), 0)
+    this.onReset = () => window.setTimeout(() => this.onInput(), 0)
     this.form.addEventListener('reset', this.onReset)
   }
 
   adjustHeight () {
     const textarea = this.inputTarget
 
-    // Reset height to auto to get accurate scrollHeight
+    // Measured with no scrollbar and no previous height: a visible bar narrows the content box
+    // and inflates `scrollHeight`, so a field that had reached the cap kept its bar after the
+    // text that needed it was deleted.
+    textarea.style.overflowY = 'hidden'
     textarea.style.height = 'auto'
 
-    // Set new height, respecting minimum and the host's cap
-    const wanted = Math.max(textarea.scrollHeight, this.minHeightValue)
+    // A field that is not being rendered — `display: none`, a closed `<details>`, an inactive
+    // tab — measures 0. Writing that back collapses it until someone types; leave the height
+    // alone and let the stylesheet hold it until it is on screen.
+    if (textarea.scrollHeight === 0) return
+
+    // `scrollHeight` is the content box and `height` is the border box (`box-sizing:
+    // border-box`), so the borders have to be added back or the field lands short of its own
+    // text — measured: 2px on daisyUI's `.textarea`, enough to clip a line with no way to
+    // scroll to it.
+    const wanted = Math.max(textarea.scrollHeight + this.borderHeight(), this.minHeightValue)
     const height = Math.min(wanted, this.maxAllowedHeight())
+
     textarea.style.height = `${height}px`
 
     // Decided here, and no longer a fixed `hidden` written once at setup. A host that capped
@@ -143,12 +169,21 @@ export class TextareaController extends Controller {
     textarea.style.overflowY = wanted > height ? 'auto' : 'hidden'
   }
 
-  // The ceiling is whatever the cascade resolved for `max-height` — a host writes `max-h-48`
-  // or `max-height: 12rem` and it is honoured. No new option to pass and nothing to keep in
-  // sync: `none` parses to NaN, which is no ceiling.
-  maxAllowedHeight () {
-    const max = parseFloat(window.getComputedStyle(this.inputTarget).maxHeight)
+  // Top plus bottom border: what `scrollHeight` leaves out and `height` counts in. Read with
+  // the vertical scrollbar already off, so it is the borders and nothing else.
+  borderHeight () {
+    return this.inputTarget.offsetHeight - this.inputTarget.clientHeight
+  }
 
-    return Number.isNaN(max) ? Infinity : max
+  // The ceiling is the `max-height` the cascade resolved, as long as it is ABSOLUTE. A
+  // percentage is not resolved against the container in the computed value — `max-height` is
+  // not one of the properties whose resolved value is the used value — so `max-h-full`
+  // computes to the string `100%` (measured), and reading a number out of it would cap the
+  // field at 100px. A percentage is therefore no ceiling at all, like `none`; `calc()` does
+  // compute to px and is honoured.
+  maxAllowedHeight () {
+    const { maxHeight } = window.getComputedStyle(this.inputTarget)
+
+    return maxHeight.endsWith('px') ? parseFloat(maxHeight) : Infinity
   }
 }

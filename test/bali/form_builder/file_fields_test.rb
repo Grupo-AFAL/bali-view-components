@@ -53,7 +53,7 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
 
   def test_file_group_gives_the_filename_display_a_floor_to_wrap_against
     result = builder.file_group(:cover_photo)
-    assert_html(result, "span.truncate.min-w-32")
+    assert_html(result, %(span.truncate[class~="min-w-[min(8rem,100%)]"]))
   end
 
   def test_file_group_wraps_the_row_when_the_two_no_longer_fit
@@ -190,7 +190,8 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
   end
 
   def test_constants_has_filename_class_constant
-    assert_equal "text-sm text-base-content/70 truncate min-w-32", Bali::FormBuilder::FileFields::FILENAME_CLASS
+    assert_equal "text-sm text-base-content/70 truncate min-w-[min(8rem,100%)]",
+                 Bali::FormBuilder::FileFields::FILENAME_CLASS
   end
 
   # The density left the constant when `size:` started choosing it (#723); it is

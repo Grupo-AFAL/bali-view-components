@@ -18,5 +18,14 @@
       value: "First line\nsecond\nthird\nfourth\nfifth\nsixth",
       help: 'Rendered pre-filled. Select all and delete: it goes back to two rows.' %>
 
+  <%# No `auto_grow` on purpose: `reset` not firing `input` is not an auto-grow problem. The
+      counter had it too, and a fixed-height textarea is where that shows on its own. %>
+  <%= form.text_area_group :text,
+      rows: 2,
+      char_counter: { max: 10 },
+      input_id: 'counter_no_auto_grow',
+      value: 'well past the ten characters this one allows',
+      help: 'Fixed height, counter only. Reset puts the count back too.' %>
+
   <button type="reset" class="btn btn-sm btn-ghost">Reset</button>
 <% end %>

@@ -630,16 +630,19 @@ With `max-length` the counter reads `12 / 500` and turns red over the limit
 it is a plain character count. `min-height` floors the auto-grow; left alone, the
 floor is the height of the field **empty**, so `rows` is what it returns to.
 
-Cap the growth in CSS, not with an option — any `max-height` the cascade resolves
-is honoured, and the field scrolls once it is reached:
+Cap the growth in CSS, not with an option — any **absolute** `max-height` the
+cascade resolves is honoured, and the field scrolls once it is reached. A
+percentage is not: `max-height` keeps it as a percentage in the computed value,
+so `max-h-full` is read as no cap at all rather than as 100px.
 
 ```erb
 <%= f.text_area_group :body, rows: 2, auto_grow: true, input_class: "max-h-48" %>
 ```
 
-A `form.reset()` shrinks the field back to its floor along with clearing it, so a
-Turbo form that resets after a successful submit does not leave a grown empty box
-behind.
+A `form.reset()` puts the field back where it started — the height AND the
+character count, which `reset` does not fire `input` for either — so a Turbo form
+that resets after a successful submit leaves neither a grown empty box nor a count
+in red over nothing.
 
 ## `time-period-field`
 

@@ -327,8 +327,9 @@ Slider input with optional tick marks.
 **Options:**
 - `char_counter` - A live character count — see below
 - `auto_grow` - Grow the box to fit its content, between the height of the field
-  empty and any `max-height` the CSS gives it (`input_class: "max-h-48"`), past
-  which it scrolls. Textarea only: an `<input>` has no height to grow into
+  empty and any absolute `max-height` the CSS gives it (`input_class: "max-h-48"`;
+  a percentage is not a cap), past which it scrolls. Textarea only: an `<input>`
+  has no height to grow into
 
 ### char_counter
 

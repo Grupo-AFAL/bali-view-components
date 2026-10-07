@@ -30,6 +30,27 @@ describe('Textarea auto-grow bounds', () => {
   // The upper bound. Before the fix the controller wrote `overflow: hidden` once at setup, so
   // a `max-height` from the host clipped the text with no way to reach it: no scrollbar, no
   // scrolling, and therefore no way to cap an auto-grow field at all.
+  // #1376 review. The cap is read off the cascade, and only an absolute one is a cap: a
+  // percentage stays a percentage in the computed value, so reading a number out of it pinned
+  // `max-h-full` at 100px.
+  it('does not read a percentage max-height as pixels', () => {
+    capped().then($field => { $field[0].style.maxHeight = '100%' })
+    capped().type('a line\n'.repeat(20), { delay: 0 })
+
+    capped().should($field => expect(heightOf($field)).to.be.greaterThan(200))
+  })
+
+  // #1376 review. `scrollHeight` is the content box and `height` is the border box, so writing
+  // one into the other left the field two pixels short of its own text — clipped, and with no
+  // scrollbar to reach it because below the cap the overflow is hidden.
+  it('leaves nothing out of reach below the cap', () => {
+    capped().type('a line\n'.repeat(3), { delay: 0 })
+
+    capped().should($field => {
+      expect($field[0].scrollHeight).to.be.at.most($field[0].clientHeight)
+    })
+  })
+
   context('at the cap', () => {
     beforeEach(() => {
       capped().type('a line\n'.repeat(40), { delay: 0 })
@@ -75,6 +96,8 @@ describe('Textarea auto-grow bounds', () => {
     // 128px`. Cypress's synthetic click nests the dispatch inside a JS stack, which pushes the
     // checkpoint past the reset and hides it, so the order is reproduced by hand here.
     it('measures after the reset has happened, not after the event that announces it', () => {
+      let empty
+      capped().then($field => { empty = heightOf($field) })
       capped().type('a line\n'.repeat(6), { delay: 0 })
 
       cy.window().then(win => {
@@ -89,7 +112,26 @@ describe('Textarea auto-grow bounds', () => {
         })
       })
 
-      capped().should($field => expect(heightOf($field)).to.equal(80))
+      capped().should($field => expect(heightOf($field)).to.equal(empty))
+    })
+
+    // #1376 review. The counter has the same root cause as the height — `reset` does not fire
+    // `input` — and it is not an auto-grow concern: this field does not grow, and its count was
+    // left reading the old length, in red, over an empty field.
+    it('puts the character counter back as well, on a field that does not grow', () => {
+      const field = () => cy.get('#counter_no_auto_grow')
+      const counter = () =>
+        field().closest('[data-controller~="textarea"]').find('[data-textarea-target="counter"]')
+      let asRendered
+
+      counter().then($c => { asRendered = $c.text() })
+      field().type('and then some more', { delay: 0 })
+      counter().should($c => expect($c.text()).not.to.equal(asRendered))
+
+      cy.get('button[type="reset"]').click()
+
+      field().should('have.value', 'well past the ten characters this one allows')
+      counter().should($c => expect($c.text()).to.equal(asRendered))
     })
 
     // A field RENDERED with content measured its floor off that content, so it could never

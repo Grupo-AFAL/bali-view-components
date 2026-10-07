@@ -19,8 +19,8 @@ module Bali
     module FileFields
       # hidden class hides the native file input (consistent with ImageField)
       INPUT_CLASS = "hidden"
-      # `shrink-0`, `flex-wrap` and `min-w-32` are one fix split across three constants, and
-      # none of them does anything to a row that still fits (#1370).
+      # `shrink-0`, `flex-wrap` and the floor on the file name are one fix split across three
+      # constants, and none of them does anything to a row that still fits (#1370).
       #
       # Both children are flex items that shrink by default, so in a narrow column -- a
       # sidebar, a drawer -- the label was squeezed below its own content and the `.btn`'s
@@ -30,18 +30,18 @@ module Bali
       #
       # `shrink-0` is what stops that: the CTA is the control, and half a button is not a
       # smaller button. On its own it leaves the name squeezed to 36px -- `N...`, which is
-      # feedback about nothing -- so `min-w-32` gives the name a floor and `flex-wrap` gives it
-      # somewhere to go when that floor will not fit beside the button. Measured down the same
-      # column with the default placeholder: wrapped and fully readable at 240px and 320px, on
-      # one row and identical to before at 400px and up.
+      # feedback about nothing -- so the name gets a floor and `flex-wrap` gives it somewhere
+      # to go when that floor will not fit beside the button. Measured down the same column
+      # with the default placeholder: wrapped and fully readable at 240px and 320px, on one row
+      # and identical to before at 400px and up.
       #
-      # No `min-w-0`: `truncate` is `overflow: hidden`, which already resolves `min-width: auto`
-      # to zero. Measured with and without it -- the same numbers, so it is not written.
-      #
-      # A host cannot reach any of the three: `file_class:` only lands on the wrapper.
+      # The floor is `min(8rem, 100%)` and not a flat `8rem` so it can never be wider than the
+      # column it sits in: at 110px the flat value held the name at 128px and pushed it out of
+      # the container, where the capped one gives it the 84px there are. The button still
+      # overflows a column narrower than itself, and that is `shrink-0` doing its job.
       WRAPPER_CLASS = "flex flex-wrap items-center gap-3"
       # `/70`, not `/60`: at 14px `/60` measured 4.04:1 on `afal`, under AA's 4.5:1.
-      FILENAME_CLASS = "text-sm text-base-content/70 truncate min-w-32"
+      FILENAME_CLASS = "text-sm text-base-content/70 truncate min-w-[min(8rem,100%)]"
       CTA_CLASS = "btn btn-soft btn-primary gap-2"
       LABEL_CLASS = "cursor-pointer inline-flex shrink-0"
       DEFAULT_ICON = "upload"

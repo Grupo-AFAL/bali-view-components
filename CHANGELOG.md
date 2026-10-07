@@ -16,8 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   del archivo. Medido en Chrome 150 dentro de una columna de 240 px: el nombre arrancaba en
   160 px contra un CTA que terminaba en 195 px — 35 px adentro del botón, en el mismo renglón.
   `LABEL_CLASS` lleva ahora `shrink-0`, que es lo que quita el encimado; con eso solo, el nombre
-  quedaba aplastado a 36 px, así que `FILENAME_CLASS` lleva `min-w-32` y `WRAPPER_CLASS`
-  `flex-wrap`, y el nombre baja a su propio renglón cuando ese piso no cabe junto al botón.
+  quedaba aplastado a 36 px, así que `FILENAME_CLASS` lleva `min-w-[min(8rem,100%)]` y
+  `WRAPPER_CLASS` `flex-wrap`, y el nombre baja a su propio renglón cuando ese piso no cabe
+  junto al botón. El piso va acotado al contenedor para que una columna de menos de 8 rem no
+  termine con scroll horizontal.
   **Anfitrión:** nada que hacer, y nada se mueve donde ya cabía — medido con el texto por
   omisión en la misma columna, envuelto y legible a 240 px y 320 px, en un renglón e idéntico a
   antes de 400 px en adelante. Si copiaste el marcado a mano de la guía de controladores,
@@ -39,14 +41,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que no cabía — no había barra ni scroll, es decir, no había manera de acotar el crecimiento.
   El overflow vertical se decide ahora en cada medición: `hidden` mientras el contenido cabe
   (sin parpadeo de barra al crecer) y `auto` en cuanto el tope muerde. El tope es el
-  `max-height` que resuelva la cascada — `input_class: "max-h-48"` y ya; no hay opción nueva.
+  `max-height` **absoluto** que resuelva la cascada — `input_class: "max-h-48"` y ya; no hay
+  opción nueva. Un porcentaje no cuenta como tope: `max-height` lo deja en porcentaje en el
+  valor computado, así que `max-h-full` se ignora en vez de leerse como 100 px.
 
   De paso, el piso del crecimiento es el alto del campo **vacío** y no el que tuviera al
   conectarse: un campo renderizado con contenido no podía encoger por debajo de lo que el
   servidor le mandó, ni con el `reset` ni borrándolo a mano.
 
-  **Anfitrión:** nada que hacer. El único cambio visible fuera de los dos defectos es ese piso,
-  en un campo `auto_grow` renderizado con contenido, que ahora sí puede volver a sus `rows`.
+  Y el `reset` devuelve también el **contador de caracteres**, que tenía la misma causa raíz y
+  se quedaba leyendo el largo anterior —en rojo, sobre un campo vacío— tras un envío de Turbo.
+  El contador no es asunto del crecimiento, así que el `reset` se escucha con o sin
+  `auto_grow`.
+
+  Dos medidas que estaban mal y ya no: `scrollHeight` es la caja de contenido y `height` la de
+  borde (`box-sizing: border-box`), así que el campo quedaba 2 px corto de su propio texto, sin
+  barra con la cual alcanzarlo; y la medición se hacía con la barra puesta, que angosta el
+  contenido. Un campo que no se está pintando (`display: none`, un `<details>` cerrado) mide 0
+  y ya no se le escribe ese 0 como alto.
+
+  **Anfitrión:** nada que hacer. El único cambio visible fuera de los defectos es el piso, en un
+  campo `auto_grow` renderizado con contenido, que ahora sí puede volver a sus `rows`.
 
 ## [v3.10.1] - 2026-10-07
 
