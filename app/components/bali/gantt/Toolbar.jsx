@@ -50,10 +50,14 @@ function Separator () {
 }
 
 function hideLineEdgeSeparators (bar) {
-  const middle = (el) => el.offsetTop + el.offsetHeight / 2
   bar.querySelectorAll('[data-separator]').forEach((separator) => {
-    const sameLine = (neighbour) => neighbour && Math.abs(middle(neighbour) - middle(separator)) < 1
     separator.style.display = separator.style.visibility = ''
+    const own = separator.getBoundingClientRect()
+    const sameLine = (neighbour) => {
+      if (!neighbour) return false
+      const { top, bottom } = neighbour.getBoundingClientRect()
+      return top < own.bottom && bottom > own.top
+    }
     if (!sameLine(separator.previousElementSibling)) separator.style.display = 'none'
     else if (!sameLine(separator.nextElementSibling)) separator.style.visibility = 'hidden'
   })
@@ -119,11 +123,21 @@ export default memo(function Toolbar ({
 
   // A label that changes width (the filter's) can move a line break without resizing the bar.
   useLayoutEffect(() => hideLineEdgeSeparators(rootRef.current))
+  // A frame later, not in the callback: taking a separator out of the layout can change the bar's
+  // own height, which the observer would then owe in the same frame, and the browser reports that
+  // as a "ResizeObserver loop" error.
   useLayoutEffect(() => {
     const bar = rootRef.current
-    const observer = new ResizeObserver(() => hideLineEdgeSeparators(bar))
+    let frame
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => hideLineEdgeSeparators(bar))
+    })
     observer.observe(bar)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
   }, [])
 
   const statuses = catalogs.statuses
