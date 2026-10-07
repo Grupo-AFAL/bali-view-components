@@ -10,15 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **El anillo de foco de todos los botones va en el color del texto** (`base-content`), como el
-  de `btn-neutral` desde #1361. daisyUI anilla cada `.btn` en su propio color, que en los temas
-  claros medía 1.69–2.86:1 sobre la página para `accent`, `info`, `success`, `warning` y `error`,
-  y 1.99 para `secondary` en `costa-norte`; ahora 11.8:1 o más sobre `base-100`, `base-200` y
-  `base-300` en los seis temas. El del `primary` deja de ser del color del botón: en `afal`, del
-  azul `#155DFC` al `#1F2937` del texto. Afecta a todas las apps, también a los `btn` escritos a
-  mano, sin nada que hacer: un `outline-*` o `focus-visible:outline-*` de la app sobre el botón
-  sigue ganando, y en una Navbar el anillo sigue en el color del texto de la barra. Sobre un
-  `Hero` o un `Footer` con `color:` de relleno el anillo no llega a 3:1 en todos los temas, ni
-  antes ni ahora; ninguna app los usa así.
+  de `btn-neutral` desde #1361: el de `accent`, `info`, `success`, `warning` y `error` no llegaba
+  a 3:1 sobre la página en los temas claros. El del `primary` deja de ser de su color: en `afal`,
+  `#155DFC` → `#1F2937`. Afecta a todas las apps, también a los `btn` escritos a mano; no hay
+  nada que hacer. Salvedad: sobre el relleno de un `Footer` (`neutral` por omisión) o de un `Hero`
+  con `color:`, un botón de color empeora en los temas claros (sobre `neutral`, de 2.39–11.29 a
+  1.12 en `light` y de 2.58–8.67 a 1.00 en `afal`), lo mismo que ya medían ahí `ghost` y el botón
+  sin color. Ninguna app v3 usa `Hero` ni `Footer`; si una pone un botón de color sobre un
+  relleno, `focus-visible:outline-<relleno>-content` en el botón le gana a esta regla.
 
 ## [v3.10.0] - 2026-10-07
 

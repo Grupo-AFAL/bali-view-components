@@ -56,8 +56,10 @@
 
   /* daisyUI rings a `.btn` in its own colour, which measured against the page 1.69–2.86:1 for
    * accent, info, success, warning and error on the light themes, 1.99 for secondary on
-   * `costa-norte` and 1.26–1.72 for neutral on the dark themes (WCAG 1.4.11 asks 3:1). In a
-   * Navbar, navbar/daisyui-overrides.css rings it in the bar's text colour instead. */
+   * `costa-norte` and 1.26–1.72 for neutral on the dark themes (WCAG 1.4.11 asks 3:1).
+   * `base-content` assumes a `base-*` ground: over the fill of a Footer or a coloured Hero it
+   * measures 1.00 (`neutral`, `afal`). In a Navbar, navbar/daisyui-overrides.css rings it in the
+   * bar's text colour instead. */
   :where(.btn) {
     outline-color: var(--color-base-content);
   }

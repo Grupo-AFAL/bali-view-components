@@ -55,6 +55,7 @@ describe('Tinted buttons', () => {
       cy.document().then((doc) => {
         RINGED.forEach((selector) => {
           const button = doc.querySelector(`${selector}:not(.btn-disabled)`)
+          expect(button, selector).to.not.equal(null)
           button.focus()
           expect(button.matches(':focus-visible'), `${selector}: keyboard focus`).to.equal(true)
           expect(getComputedStyle(button).outlineStyle, `${selector}: ring drawn`).to.equal('solid')
