@@ -425,7 +425,7 @@ export class ModalController extends Controller {
   }
 
   handleTabKey = (event) => {
-    if (event.key !== 'Tab') return
+    if (event.key !== 'Tab' || event.defaultPrevented) return
 
     const focusable = this.focusableElements
     const first = focusable[0]

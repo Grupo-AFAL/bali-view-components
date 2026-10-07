@@ -165,6 +165,19 @@ describe('ModalController', () => {
         cy.focused().should('have.id', 'last')
       })
     })
+
+    // An editor that takes Tab for itself — BlockNote nests a block, ProseMirror calls
+    // `preventDefault` and lets the key bubble — keeps the focus even as the trap's last stop.
+    it('leaves a Tab the last control already handled to that control', () => {
+      openWith('<input id="first-field"><div id="last" contenteditable="true">Notes</div>')
+      cy.get('#last').then(($editor) => {
+        $editor[0].addEventListener('keydown', event => event.preventDefault())
+        $editor[0].focus()
+      })
+
+      cy.focused().trigger('keydown', { key: 'Tab' })
+      cy.focused().should('have.id', 'last')
+    })
   })
 
   // A panel rendered `active:` is opened by its controller's `connect`, with no trigger.
