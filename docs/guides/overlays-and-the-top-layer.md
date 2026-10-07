@@ -69,9 +69,8 @@ These controllers use it, and each takes only what it needs:
 | `image_grid` | The lightbox is built inside the dialog and shown as a popover. It is `position: fixed; inset: 0`, so there are no offsets to keep correct. |
 
 Two small CSS blocks — in `bali/datepicker.css` and `bali/slim_select.css` — undo the
-`[popover]` rules from the UA stylesheet that those sheets do not already override:
-`inset: 0`, `margin: auto`, and for the calendar `overflow: auto`, which would turn it into a
-scroll container that clips its own arrow.
+`[popover]` rules from the UA stylesheet that get in their way and that those sheets do not
+already override: `inset: 0`, `margin: auto` and `color: CanvasText`.
 
 **Outside a modal dialog nothing happens at all.** `topLayerHost` returns `null`, every
 widget behaves exactly as it did, and the stacking scale keeps meaning what it says.

@@ -168,6 +168,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   crearse (hoy, `coordinates_picker_controller.js` de centinela-web):
   `colorScheme: hostColorScheme() === 'dark' ? ColorScheme.DARK : ColorScheme.LIGHT`.
 
+### Removed
+
+- **`.box-row` y `.box-action`, con su hoja `bali/box.css`** (#1333). Ninguna app en v3 las
+  usa; `.box` sigue, en `general.css`. **Anfitrión:** si al subir a v3
+  `git grep -n -E "box-row|box-action|bali/box|css/box" -- app config` encuentra algo, cambia
+  `.box-action` por `float-right` y `.box-row` por `py-4 first:pt-0`, y borra el `@import` de
+  `bali/box`.
+- **Datepicker: el bloque «DaisyUI Theme Overrides» y la flecha que escondía** (#1333). Sin
+  cambio visible y sin nada que hacer en el anfitrión: lo que el bloque ganaba pasó a la regla
+  de arriba.
+
 ## [v3.9.1] - 2026-10-07
 
 ### Added
