@@ -137,7 +137,8 @@ describe('Drawer: the closed panel', () => {
     })
 
     // Paused halfway through the slide-out: an overlay that vanished on close reads `none`
-    // there, while the panel is still half on screen.
+    // there, while the panel is still half on screen. Still painted, it must not take a click:
+    // in Chromium `inert` and the `display` transition each keep it out of hit testing alone.
     it('fades its overlay out with the slide-out', () => {
       cy.get('dialog.drawer-component').should(([dialog]) => {
         expect(dialog.getAnimations({ subtree: true }), 'transitions settled').to.have.length(0)
@@ -157,6 +158,7 @@ describe('Drawer: the closed panel', () => {
         const halfway = getComputedStyle(overlay)
         expect(halfway.display, 'overlay halfway through the slide-out').to.equal('block')
         expect(Number(halfway.opacity), 'its opacity').to.be.above(0).and.below(1)
+        expect(dialog.ownerDocument.elementFromPoint(5, 5), 'what a click on the fading overlay hits').not.to.equal(overlay)
         transitions.forEach((a) => a.play())
       })
 

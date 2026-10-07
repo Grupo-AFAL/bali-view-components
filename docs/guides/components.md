@@ -190,7 +190,8 @@ slots are independent so non-shell layouts work too.
 - `modal` / `drawer` - Render the shared `#main-modal` / `#main-drawer` and put their Stimulus controllers on `<body>`, so a `modal: true` / `drawer: true` trigger opens them from anywhere on the page — a chrome slot or a `popover: true` menu included (default: true)
 - `mobile_bottom_padding` - Room under the content on a phone, for the browser's floating bar plus the device safe area (default: false) — see below
 
-The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it.
+The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it,
+and so does a Modal or Drawer that closes with no trigger to give the focus back to.
 
 **Decoupled scroll model**:
 | `fixed_sidebar` | `viewport_locked` | Behavior |

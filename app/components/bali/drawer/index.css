@@ -39,8 +39,8 @@ dialog.drawer-component::backdrop {
 
 /* `>`, not a descendant selector: inside an open drawer's content, a closed drawer's
    overlay would show.
-   Closing, it fades with the panel's `duration-300 ease-in-out` slide-out instead of
-   vanishing on the first frame; `allow-discrete` holds `display` until the fade ends.
+   Closing, it fades with the panel's `duration-300 ease-in-out` slide-out;
+   `allow-discrete` holds `display` until the fade ends.
    Opening from `display: none` it appears at once: without `@starting-style` there is
    nothing to fade from. */
 .drawer-component > .drawer-overlay {
