@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::Gantt` en un teléfono** (#1333). Tocar el splitter ya no ensancha la tabla de golpe:
+  no la dejaba bajar de 260 px, más de lo que abre en un teléfono (173 en una ventana de 320), y
+  ahora baja hasta el mínimo de la columna Nombre, 140. También se arrastra con el dedo, que el
+  navegador tomaba por un scroll. Los separadores de la barra de herramientas ya no quedan al
+  principio o al final de un renglón cuando la barra se parte. Sin nada que hacer en el anfitrión.
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added

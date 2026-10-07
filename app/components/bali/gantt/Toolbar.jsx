@@ -5,7 +5,7 @@
 // (they never touch the server's schedule). Icons are inline SVG (no icon-set
 // dependency inside the React island). All texts come from the `t` translator
 // (decision D12) and the status vocabulary from `catalogs` (decision D11).
-import { memo, useEffect, useRef } from 'react'
+import { memo, useEffect, useLayoutEffect, useRef } from 'react'
 import ZoomControls from './ZoomControls'
 import { statusColor } from './ganttColors'
 
@@ -38,6 +38,22 @@ function IconPlus () {
       <path d='M7 7V2h2v5h5v2H9v5H7V9H2V7h5z' />
     </svg>
   )
+}
+
+// Between two groups of controls. Where the bar wraps, flex-wrap can leave one at the start or end
+// of a line, dividing nothing, and CSS cannot tell which line an item landed on: the bar hides
+// those after layout. `visibility`, so hiding one never moves an item to another line.
+function Separator () {
+  return <div data-separator className='h-4 w-px shrink-0 bg-base-content/15' />
+}
+
+function hideLineEdgeSeparators (bar) {
+  const middle = (el) => el.offsetTop + el.offsetHeight / 2
+  bar.querySelectorAll('[data-separator]').forEach((separator) => {
+    const between = [separator.previousElementSibling, separator.nextElementSibling]
+      .every((neighbour) => neighbour && Math.abs(middle(neighbour) - middle(separator)) < 1)
+    separator.style.visibility = between ? '' : 'hidden'
+  })
 }
 
 function Segmented ({ options, value, onChange, ariaLabel }) {
@@ -98,6 +114,15 @@ export default memo(function Toolbar ({
     return () => document.removeEventListener('pointerdown', onDocDown)
   }, [])
 
+  // A label that changes width (the filter's) can move a line break without resizing the bar.
+  useLayoutEffect(() => hideLineEdgeSeparators(rootRef.current))
+  useLayoutEffect(() => {
+    const bar = rootRef.current
+    const observer = new ResizeObserver(() => hideLineEdgeSeparators(bar))
+    observer.observe(bar)
+    return () => observer.disconnect()
+  }, [])
+
   const statuses = catalogs.statuses
   const statusLabelOf = (value) => statuses.find((s) => s.value === value)?.label || value
   const filterActive = filterStatus && filterStatus !== 'all'
@@ -131,7 +156,7 @@ export default memo(function Toolbar ({
               {t('add_item')}
             </button>
           )}
-          <div className='h-4 w-px shrink-0 bg-base-content/15' />
+          <Separator />
         </>
       )}
 
@@ -222,7 +247,7 @@ export default memo(function Toolbar ({
         </ul>
       </details>
 
-      <div className='h-4 w-px shrink-0 bg-base-content/15' />
+      <Separator />
 
       {/* View toggles. */}
       <button
@@ -258,7 +283,7 @@ export default memo(function Toolbar ({
         />
       </div>
 
-      <div className='h-4 w-px shrink-0 bg-base-content/15' />
+      <Separator />
 
       {/* Zoom + Today. */}
       <div className='shrink-0'>
