@@ -525,6 +525,32 @@ describe('SplitView: a traversal restores the pane its URL was painted with (#13
     title().should('not.exist')
   })
 
+  // #1340 — a back that lands between the detail painting and the visit Turbo
+  // promotes the row click to is cancelled by that visit, and the body is never
+  // replaced. A busy main thread opens that gap on a CI runner; holding it after
+  // `history.back()` queues the popstate ahead of the promoted visit every time.
+  it('comes back to the empty list when the back beats the visit a row click promotes', () => {
+    cy.visit('/bali/split_view/default')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    cy.document().then((doc) => {
+      const win = doc.defaultView
+      doc.addEventListener('turbo:frame-load', () => {
+        win.addEventListener('popstate', () => {
+          doc.addEventListener('turbo:load', () => doc.documentElement.setAttribute('data-traversal-loaded', ''), { once: true })
+        }, { once: true })
+        win.history.back()
+        const until = win.performance.now() + 100
+        while (win.performance.now() < until) { /* hold the main thread */ }
+      }, { once: true })
+    })
+    cy.get('.split-view-row').eq(2).click()
+
+    cy.get('html[data-traversal-loaded]', AFTER_TRAVERSAL)
+    cy.location('pathname').should('include', '/split_view/default')
+    cy.get('.split-view-detail .empty-state-component').should('be.visible')
+    title().should('not.exist')
+  })
+
   it('keeps the detail of an appended row when going back to it', () => {
     cy.visit(app('/split-view'))
     appendUntilInception()

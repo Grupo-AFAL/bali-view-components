@@ -58,9 +58,11 @@ export class SplitViewController extends Controller {
     this.syncFromLocation = this.syncFromLocation.bind(this)
     this.rewindFrameBeforeCache = this.rewindFrameBeforeCache.bind(this)
     this.capturePristineDetail = this.capturePristineDetail.bind(this)
+    this.syncIfRestoreCancelled = this.syncIfRestoreCancelled.bind(this)
     window.addEventListener('popstate', this.syncFromLocation)
     document.addEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
     document.addEventListener('turbo:load', this.capturePristineDetail)
+    document.addEventListener('turbo:load', this.syncIfRestoreCancelled)
     this.capturePristineDetail()
     // A restore that DID replace the body lands here, on the new instance.
     if (restoringHistory) this.syncFromLocation()
@@ -173,6 +175,7 @@ export class SplitViewController extends Controller {
     window.removeEventListener('popstate', this.syncFromLocation)
     document.removeEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
     document.removeEventListener('turbo:load', this.capturePristineDetail)
+    document.removeEventListener('turbo:load', this.syncIfRestoreCancelled)
   }
 
   // Back and forward, and only those. Measured: a row click promotes the frame
@@ -195,14 +198,31 @@ export class SplitViewController extends Controller {
   // body, and Turbo caches the page being left AFTER this listener — so all a
   // change here reaches is that snapshot, filed under whatever URL Turbo last
   // rendered. Resetting it to the list there is how a row's URL came back with
-  // an empty pane. The restored page re-derives from `connect()`.
+  // an empty pane. The restored page re-derives from `connect()`, and a restore
+  // that never replaced this body from `syncIfRestoreCancelled`.
   syncFromLocation (event) {
-    if (event?.state?.turbo) return this.cancelLoadingDetail()
+    if (event?.state?.turbo) {
+      this.awaitingRestore = true
+      return this.cancelLoadingDetail()
+    }
 
     const current = this.rowTargets.find(row => this.selectsCurrentLocation(row)) ?? null
     this.selectedHref = current?.href ?? null
     this.rowTargets.forEach(row => this.applySelection(row, row === current))
     this.syncFrameFromLocation(current)
+  }
+
+  // An instance still connected when the traversal loads is one whose body the
+  // restore never replaced. A back that lands between a row's detail painting
+  // and the visit Turbo promotes that click to has its restore cancelled by that
+  // visit, which renders nothing (`willRender: false`): the URL goes back, the
+  // pane stays on the row it left (#1340). Measured, the gap is ~3 ms in desktop
+  // Chrome and ~40 ms under 6x CPU throttling — room for `cy.go('back')` in CI.
+  syncIfRestoreCancelled () {
+    if (!this.awaitingRestore) return
+
+    this.awaitingRestore = false
+    this.syncFromLocation()
   }
 
   // A detail still loading on the page being left lands, if it beats the

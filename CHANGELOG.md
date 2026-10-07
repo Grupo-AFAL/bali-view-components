@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::SplitView`: un «atrás» justo después de abrir una fila vuelve a la lista** (#1340).
+  Si llegaba entre que el panel pintaba el detalle y la visita con la que Turbo registra el clic
+  (`advance`), esa visita cancelaba la restauración: la URL volvía y el panel seguía en la fila.
+  Ahora el panel se rehace desde la URL. Sin nada que hacer en el anfitrión.
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added
