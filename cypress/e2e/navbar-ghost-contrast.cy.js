@@ -1,5 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
-import { THEMES } from '../support/themes'
+import { THEMES, useTheme } from '../support/themes'
 
 // The burger and a `variant: :ghost` brand are daisyUI ghost buttons, and daisyUI paints one at
 // rest with base-content whatever bar it sits on: the burger on a `neutral` navbar measured
@@ -12,32 +12,25 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
   // The burger only shows below `lg`.
   beforeEach(() => cy.viewport(400, 800))
 
-  const open = (color, theme, query = '', preview = 'default') => {
+  const open = (color, query = '', preview = 'default') => {
     cy.visit(`/bali/navbar/${preview}?color=${color}${query}`)
     // Proves the preview honoured `?color=`: one it ignored renders `navbar-base`.
     cy.get('nav.navbar').should('have.class', `navbar-${color}`)
-    cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
   }
 
-  THEMES.forEach((theme) => {
-    COLORS.forEach((color) => {
-      it(`the burger reads at 3:1 on the ${color} navbar, ${theme} theme`, () => {
-        open(color, theme)
+  COLORS.forEach((color) => {
+    it(`the burger reads at 3:1 and the ghost brand paints the text colour of the ${color} navbar, every theme`, () => {
+      open(color)
 
+      THEMES.forEach((theme) => {
+        useTheme(theme)
         cy.get('nav.navbar').should(($nav) => {
           expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
           const burger = $nav[0].querySelector('[data-navbar-target="burger"]')
           expect(burger.offsetWidth, 'the burger shows at this width').to.be.greaterThan(0)
           expect(burger.matches(':hover'), 'measured at rest').to.equal(false)
           expect(paintedContrast(burger.querySelector('svg')), `${theme}: ${color} navbar`).to.be.at.least(NON_TEXT)
-        })
-      })
 
-      it(`the ghost brand paints the text colour of the ${color} navbar, ${theme} theme`, () => {
-        open(color, theme)
-
-        cy.get('nav.navbar').should(($nav) => {
-          expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
           const brand = $nav[0].querySelector('.navbar-brand .btn-ghost')
           expect(brand.matches(':hover'), 'measured at rest').to.equal(false)
           const { color: ink } = window.getComputedStyle(brand)
@@ -45,17 +38,20 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
         })
       })
     })
+  })
 
-    // `color: nil` leaves the bar's colours to the caller's `class:`, which is why the rule is
-    // scoped to every `.navbar` and not to the four presets.
-    it(`the burger reads at 3:1 on a navbar coloured through class:, ${theme} theme`, () => {
-      open('base', theme)
-      // The classes `color: nil, class: 'bg-neutral text-neutral-content'` renders.
-      cy.get('nav.navbar').then(($nav) => {
-        $nav[0].classList.remove('navbar-base')
-        $nav[0].classList.add('bg-neutral', 'text-neutral-content')
-      })
+  // `color: nil` leaves the bar's colours to the caller's `class:`, which is why the rule is
+  // scoped to every `.navbar` and not to the four presets.
+  it('the burger reads at 3:1 on a navbar coloured through class:, every theme', () => {
+    open('base')
+    // The classes `color: nil, class: 'bg-neutral text-neutral-content'` renders.
+    cy.get('nav.navbar').then(($nav) => {
+      $nav[0].classList.remove('navbar-base')
+      $nav[0].classList.add('bg-neutral', 'text-neutral-content')
+    })
 
+    THEMES.forEach((theme) => {
+      useTheme(theme)
       cy.get('nav.navbar').should(($nav) => {
         expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
         expect($nav.css('background-color'), 'the bar paints bg-neutral').not.to.equal('rgba(0, 0, 0, 0)')
@@ -71,7 +67,7 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
   // the `-content` alternative, which a `base` bar cannot tell apart, so it is left out.
   COLORS.filter(color => color !== 'base').forEach((color) => {
     it(`a ghost button in the open menu of the ${color} navbar paints the menu's text colour`, () => {
-      open(color, 'light')
+      open(color)
       cy.get('[data-navbar-target="burger"]').click()
 
       cy.get('[data-navbar-target="menu"]').should(($menu) => {
@@ -88,7 +84,7 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
   COLORS.filter(color => color !== 'base').forEach((color) => {
     it(`the ghost "Log in" of the desktop menu paints the text colour of the ${color} navbar`, () => {
       cy.viewport(1280, 800)
-      open(color, 'light')
+      open(color)
 
       cy.get('nav.navbar').should(($nav) => {
         expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
@@ -100,7 +96,7 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
     })
 
     it(`the :alt burger paints the text colour of the ${color} navbar`, () => {
-      open(color, 'light', '', 'with_multiple_menus')
+      open(color, '', 'with_multiple_menus')
 
       cy.get('nav.navbar').should(($nav) => {
         expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
@@ -112,7 +108,7 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
     })
 
     it(`the :sidebar burger paints the text colour of the ${color} navbar`, () => {
-      open(color, 'light', '&transparency=false', 'with_sidebar_burger')
+      open(color, '&transparency=false', 'with_sidebar_burger')
 
       cy.get('nav.navbar').should(($nav) => {
         expect($nav[0].getAnimations({ subtree: true }), 'colour transitions settled').to.have.length(0)
@@ -127,7 +123,7 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
   // The value keeps daisyUI's chain and only drops its base-content step. Green without the rule
   // too: what it catches is a bare `currentColor`.
   it('a ghost button with a colour of its own keeps it inside the bar', () => {
-    open('neutral', 'light')
+    open('neutral')
     cy.get('nav.navbar').then(($nav) => {
       const markup = '<button type="button" class="btn btn-ghost btn-error">Sign out</button>'
       $nav[0].querySelector('.navbar-brand').insertAdjacentHTML('beforeend', markup)
@@ -147,7 +143,7 @@ describe('Navbar: ghost buttons on a coloured bar', () => {
   // inside a container with a colour of its own because on the bare page it would inherit
   // base-content, which daisyUI paints a ghost button with anyway.
   it('the burger of a transparent coloured navbar paints the text colour of the bar', () => {
-    open('primary', 'light', '&transparency=true')
+    open('primary', '&transparency=true')
     cy.get('nav.navbar').then(($nav) => {
       const container = $nav[0].ownerDocument.createElement('div')
       container.className = 'bg-neutral text-neutral-content'

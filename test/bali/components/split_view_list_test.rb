@@ -94,7 +94,7 @@ class BaliSplitViewListComponentTest < ComponentTestCase
     assert_selector(".split-view-item", text: "12 Aug")
   end
 
-  # `:error` is the overdue case; soft-text-contrast.cy.js measures it on a row.
+  # `:error` is the overdue case; test/bali/theme_contrast_test.rb measures its soft mix.
   Bali::SplitView::List::Item::Component::META_COLORS.each_key do |color|
     define_method("test_meta_color_#{color}_paints_the_meta_in_its_soft_mix") do
       render_list({}, items: [ { id: 1, title: "T", href: "/x", meta: "1 Jan", meta_color: color } ])
