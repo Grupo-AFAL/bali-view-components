@@ -11,7 +11,8 @@ import { THEMES, useTheme } from '../support/themes'
 // theme before the override, soft warning 1.63:1, success 1.83, info 1.99, error
 // 2.55, and outline/dash 1.69 · 1.92 · 2.10 · 2.75, against the AA floor of 4.5.
 // Bali's override mixes the accent 40% into base-content instead, which
-// contrasts with base-100 on every theme by construction (#1126).
+// contrasts with base-100 on every theme by construction (#1126). Error takes
+// text-soft-error's own ink, the red of the FormBuilder's errors (#1333).
 //
 // The override is unlayered on purpose: daisyUI emits its components inside
 // `@layer utilities`, and layers beat specificity, so the same rule in
@@ -44,6 +45,25 @@ describe('tinted variant text contrast', () => {
     return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
   }
 
+  // What `text-soft-error` paints in the current theme.
+  const errorInk = (doc) => {
+    const probe = doc.createElement('span')
+    probe.className = 'text-soft-error'
+    doc.body.append(probe)
+    const ink = rgb(doc, getComputedStyle(probe).color)
+    probe.remove()
+    return ink
+  }
+
+  const expectErrorInk = (els, count, theme) => {
+    const errors = els.filter(el => el.matches('.alert-error, .badge-error'))
+    expect(errors, 'error variants').to.have.length(count)
+    errors.forEach((el) => {
+      const doc = el.ownerDocument
+      expect(rgb(doc, getComputedStyle(el).color), `${theme}: ${el.className} in text-soft-error's ink`).to.deep.equal(errorInk(doc))
+    })
+  }
+
   // Nothing is measured while a transition runs anywhere in the document: its
   // first frame still paints the previous theme — on the text, or on the
   // ancestor an outline variant takes its ground from — and that frame can pass
@@ -66,6 +86,7 @@ describe('tinted variant text contrast', () => {
         alerts.forEach((alert) => {
           expect(paintedContrast(alert.querySelector(ALERT_BODY)), `${theme}: ${alert.className}`).to.be.at.least(AA)
         })
+        expectErrorInk(alerts, 3, theme)
       })
     })
   })
@@ -83,6 +104,7 @@ describe('tinted variant text contrast', () => {
         tags.forEach((tag) => {
           expect(paintedContrast(tag), `${theme}: ${tag.className}`).to.be.at.least(AA)
         })
+        expectErrorInk(tags, 6, theme)
       })
     })
   })
