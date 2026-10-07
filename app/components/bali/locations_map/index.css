@@ -1,0 +1,4 @@
+/* `.gm-style-iw-c` is Google's info window, white on a DARK map too; its close button is light-dark(#000, #fff). */
+.locations-map-component .gm-style-iw-c {
+  color-scheme: light;
+}

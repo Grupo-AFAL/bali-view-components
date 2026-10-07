@@ -91,6 +91,16 @@
     return null
   }
 
+  // The window is drawn the way Maps JavaScript API 3.66 draws it, as far as its
+  // colours go: a white bubble whatever the map's colorScheme, and a close icon
+  // that its own sheet paints `light-dark(#000, #fff)`.
+  const bubbleStyle = window.document.createElement('style')
+  bubbleStyle.textContent = `
+    .gm-style-iw-c { background-color: #fff; padding: 12px }
+    .gm-ui-hover-effect > span { display: block; width: 24px; height: 24px; background-color: light-dark(#000, #fff) }
+  `
+  window.document.head.append(bubbleStyle)
+
   class FakeInfoWindow extends ListenerHost {
     constructor (options) {
       super()
@@ -103,6 +113,12 @@
       this.isOpen = true
       this.map = map
       this.marker = marker
+
+      this.bubble?.remove()
+      this.bubble = window.document.createElement('div')
+      this.bubble.className = 'gm-style-iw-c'
+      this.bubble.innerHTML = `<button class="gm-ui-hover-effect"><span></span></button><div class="gm-style-iw-d">${this.content}</div>`
+      map.element.append(this.bubble)
     }
 
     // Deliberately silent: in the real API `closeclick` fires when the user
@@ -110,6 +126,7 @@
     // would hide the difference the controller depends on.
     close () {
       this.isOpen = false
+      this.bubble?.remove()
     }
   }
 
@@ -230,6 +247,7 @@
     // The close button shuts the window and then fires `closeclick`.
     dismissInfoWindow (index) {
       registry.infoWindows[index].isOpen = false
+      registry.infoWindows[index].bubble.remove()
       registry.infoWindows[index].emit('closeclick')
     }
   }

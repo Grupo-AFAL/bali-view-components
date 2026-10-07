@@ -46,6 +46,7 @@ module Bali
         prepend_values(opts, "locations-map", controller_values)
       end
 
+      # Read as the `static values` of index.js.
       def controller_values
         {
           api_key: Bali.google_maps_key,
@@ -54,7 +55,7 @@ module Bali
           zoom: zoom,
           center_latitude: center_latitude,
           center_longitude: center_longitude,
-          center_locale: I18n.locale
+          locale: I18n.locale
         }
       end
 

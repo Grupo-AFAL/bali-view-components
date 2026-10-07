@@ -26,6 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Bali::Topbar::UserMenu`), rehacen el mapa con el mismo centro y zoom, sus marcadores, la
   ventana de información abierta, el pin y los polígonos. Sin nada que hacer en el anfitrión.
 
+- **`Bali::LocationsMap`: la ventana de información se lee en modo oscuro** (#1344). Google la
+  pinta blanca también sobre el mapa oscuro, y en `afal-dark` su contenido heredaba la tinta
+  clara de la página (1.24:1) y la X de cerrar salía blanca. Ahora el contenido de
+  `with_info_view` va en el tema claro de la app (`Bali.themes[:light]`) y la burbuja en
+  `color-scheme: light`. Quien ya veía bien su ventana en modo claro no ve nada distinto.
+
+- **`Bali::LocationsMap`: el mapa sale en el idioma de la página** (#1344). El componente
+  escribía `center_locale` y el controlador leía `locale`, así que Google siempre lo pintaba en
+  inglés; ahora usa `I18n.locale`.
+
 ## [v3.9.0] - 2026-10-04
 
 ### Added

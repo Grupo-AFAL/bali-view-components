@@ -7,6 +7,7 @@ const TIJUANA_LNG = -117.0308968
 
 export class LocationsMapController extends Controller {
   static targets = ['map', 'location', 'card']
+  // Written by component.rb#controller_values.
   static values = {
     enableClustering: Boolean,
     fitToLocations: Boolean,

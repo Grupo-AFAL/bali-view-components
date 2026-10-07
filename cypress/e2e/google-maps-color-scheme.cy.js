@@ -1,4 +1,5 @@
 import { stubGoogleMaps } from '../support/google_maps'
+import { paintedContrast } from '../support/painted_contrast'
 
 // #1344 — Google paints a map light unless it is built with `colorScheme`, and reads that
 // option only while it builds the map. Each controller that builds a google.maps.Map passes
@@ -102,6 +103,23 @@ describe('Google maps follow the color scheme of the page', () => {
         expect(maps).to.have.length(2)
         expect(infoWindows[0].isOpen).to.eq(false)
         expect(infoWindows[0].map, 'not opened on the new map').to.eq(maps[0])
+      })
+    })
+
+    // Google leaves the bubble white on a DARK map, and the content would take the dark
+    // page's light ink: the content is in the app's light theme, and the bubble in its
+    // light scheme, which is what the close icon's light-dark() reads.
+    it('keeps the info window legible on a dark page', () => {
+      visitIn('afal-dark', '/bali/locations_map/default')
+      registry((_registry, win) => win.__fakeMaps.clickMarker(5))
+
+      cy.get('.gm-style-iw-c').should(($bubble) => {
+        const text = $bubble[0].querySelector('.gm-style-iw-d p')
+        const close = $bubble[0].querySelector('.gm-ui-hover-effect > span')
+
+        expect(paintedContrast(text), 'text on the bubble').to.be.at.least(4.5)
+        expect(paintedContrast(close, { over: $bubble[0], property: 'backgroundColor' }), 'close icon on the bubble')
+          .to.be.at.least(3)
       })
     })
 

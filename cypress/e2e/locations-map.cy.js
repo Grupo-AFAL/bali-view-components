@@ -165,6 +165,18 @@ describe('LocationsMap', () => {
     })
   })
 
+  describe('locale', () => {
+    it('loads the map in the locale Ruby rendered the page in', () => {
+      viewport()
+      stubGoogleMaps()
+      cy.visit('/bali/locations_map/default?locale=es')
+
+      cy.wait('@mapsApi').its('request.url').should((url) => {
+        expect(new URL(url).searchParams.get('language')).to.eq('es')
+      })
+    })
+  })
+
   describe('clustering', () => {
     it('hands every marker to the clusterer when it is asked for', () => {
       viewport()

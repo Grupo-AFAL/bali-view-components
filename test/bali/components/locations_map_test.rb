@@ -58,6 +58,11 @@ class BaliLocationsMapComponentTest < ComponentTestCase
     assert_selector('[data-locations-map-enable-clustering-value="true"]')
   end
 
+  def test_passes_the_request_locale_to_controller
+    I18n.with_locale(:es) { render_inline(@component) }
+    assert_selector("[data-locations-map-locale-value='es']")
+  end
+
   def test_fit_to_locations_defaults_to_false
     render_inline(@component)
     assert_selector('[data-locations-map-fit-to-locations-value="false"]')
@@ -109,6 +114,22 @@ class BaliLocationsMapComponentTest < ComponentTestCase
     assert_selector("template", visible: false)
   end
 
+  # Google paints the info window white on a dark map too. A <template>'s content is not
+  # in the document Capybara queries, so these read the HTML.
+  def test_info_view_content_is_in_the_light_theme
+    render_info_view
+    assert_match(%r{<template [^>]*>\s*<div data-theme="light">Info content</div>}, rendered_content)
+  end
+
+  def test_info_view_content_carries_no_theme_when_the_app_declares_none
+    previous = Bali.themes
+    Bali.themes = nil
+    render_info_view
+    assert_match(%r{<template [^>]*>\s*<div>Info content</div>}, rendered_content)
+  ensure
+    Bali.themes = previous
+  end
+
   def test_with_cards_renders_cards_and_locations_layout
     render_inline(@component) do |c|
       c.with_card(latitude: 10, longitude: 10) { "Card content" }
@@ -147,5 +168,15 @@ class BaliLocationsMapComponentTest < ComponentTestCase
   def test_options_passthrough_accepts_data_attributes
     render_inline(Bali::LocationsMap::Component.new(data: { testid: "map-component" }))
     assert_selector('[data-testid="map-component"]')
+  end
+
+  private
+
+  def render_info_view
+    render_inline(@component) do |c|
+      c.with_location(latitude: 10, longitude: 10) do |location|
+        location.with_info_view { "Info content" }
+      end
+    end
   end
 end
