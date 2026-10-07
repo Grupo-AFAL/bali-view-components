@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`file_group` / `file_field`: el botón ya no se encima con el nombre del archivo en una
+  columna angosta** (#1370). Los dos hijos del contenedor son ítems flex que encogen por
+  omisión, así que en una barra lateral o un cajón la etiqueta quedaba más angosta que su propio
+  contenido y el `white-space: nowrap` del `.btn` escupía el texto del CTA **encima** del nombre
+  del archivo. Medido en Chrome 150 dentro de una columna de 240 px: el nombre arrancaba en
+  160 px contra un CTA que terminaba en 195 px — 35 px adentro del botón, en el mismo renglón.
+  `LABEL_CLASS` lleva ahora `shrink-0`, que es lo que quita el encimado; con eso solo, el nombre
+  quedaba aplastado a 36 px, así que `FILENAME_CLASS` lleva `min-w-32` y `WRAPPER_CLASS`
+  `flex-wrap`, y el nombre baja a su propio renglón cuando ese piso no cabe junto al botón.
+  **Anfitrión:** nada que hacer, y nada se mueve donde ya cabía — medido con el texto por
+  omisión en la misma columna, envuelto y legible a 240 px y 320 px, en un renglón e idéntico a
+  antes de 400 px en adelante. Si copiaste el marcado a mano de la guía de controladores,
+  actualízalo: las tres utilidades están ahí.
+
+- **`textarea` con `auto_grow`: un `form.reset()` devuelve el campo a su alto, y un `max-height`
+  del anfitrión por fin sirve** (#1371). Dos defectos del mismo controlador:
+
+  `form.reset()` borra el valor **sin** disparar `input`, el único evento que el controlador
+  escuchaba, así que el alto en línea del último tecleo se quedaba: un mensaje largo enviado por
+  un form de Turbo dejaba el campo crecido y **vacío**, tapando lo que había debajo hasta
+  recargar. Ahora el controlador escucha el `reset` del formulario (en el cuadro siguiente: el
+  evento se dispara **antes** de que se limpien los controles).
+
+  Y el `overflow: hidden` que escribía una sola vez al conectarse le ganaba a la hoja de
+  estilos, así que un `max-h-*` del anfitrión recortaba la caja sin dejar forma de alcanzar lo
+  que no cabía — no había barra ni scroll, es decir, no había manera de acotar el crecimiento.
+  El overflow vertical se decide ahora en cada medición: `hidden` mientras el contenido cabe
+  (sin parpadeo de barra al crecer) y `auto` en cuanto el tope muerde. El tope es el
+  `max-height` que resuelva la cascada — `input_class: "max-h-48"` y ya; no hay opción nueva.
+
+  De paso, el piso del crecimiento es el alto del campo **vacío** y no el que tuviera al
+  conectarse: un campo renderizado con contenido no podía encoger por debajo de lo que el
+  servidor le mandó, ni con el `reset` ni borrándolo a mano.
+
+  **Anfitrión:** nada que hacer. El único cambio visible fuera de los dos defectos es ese piso,
+  en un campo `auto_grow` renderizado con contenido, que ahora sí puede volver a sus `rows`.
+
 ## [v3.10.1] - 2026-10-07
 
 ### Changed
