@@ -54,7 +54,6 @@ const config = {
   sourcemap: true,
   format: 'esm',
   outdir: path.join(__dirname, 'app/assets/builds'),
-  publicPath: '/assets',
   target: ['es2022', 'chrome100', 'firefox100', 'safari15'],
   jsx: 'automatic',
   // Enable "style" condition for packages that export CSS via conditions
@@ -81,14 +80,12 @@ const config = {
     rrule: path.join(__dirname, 'node_modules/rrule/dist/es5/rrule.js')
   },
   loader: {
-    // Data URIs because of `publicPath` above: with `file` the font URL comes
-    // out absolute, Propshaft does not rewrite it, and its server reads
-    // esbuild's content hash as a digest and 404s. A host drops `publicPath`
-    // and uses `file` (docs/api/block-editor.md, Step 2).
-    '.woff': 'dataurl',
-    '.woff2': 'dataurl',
-    '.ttf': 'dataurl',
-    '.eot': 'dataurl'
+    // As in docs/api/block-editor.md, Step 2. A `publicPath: '/assets'` above
+    // would write these URLs as `/assets/…`, which Propshaft cannot resolve: 404.
+    '.woff': 'file',
+    '.woff2': 'file',
+    '.ttf': 'file',
+    '.eot': 'file'
   }
 }
 
