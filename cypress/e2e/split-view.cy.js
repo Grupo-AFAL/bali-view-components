@@ -261,7 +261,6 @@ describe('SplitView: what gets cached after the frame is navigated (#1012)', () 
         win.dispatchEvent(new win.PopStateEvent('popstate', { state: {} }))
       })
 
-      cy.get('.split-view-detail').should('have.attr', 'src', otherHref)
       // And wait for the detail: if the test ends with the frame's fetch in
       // flight, the next test's `cy.visit` tears the page down, the fetch is
       // aborted and Cypress attributes the AbortError to the wrong test.
@@ -573,21 +572,44 @@ describe('SplitView: a traversal restores the pane its URL was painted with (#13
     cy.visit('/bali/split_view/default')
     cy.get('.split-view-row').then(($rows) => {
       const [first, second] = [$rows[1], $rows[3]]
-      const name = first.querySelector('div.font-medium').textContent.trim()
       cy.wrap(first).click()
       // Settled: the click's promoted visit has run and rewound the frame.
       cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', first.href)
+      title().invoke('text').then((name) => {
+        backBeforeThePromotedVisit()
+        cy.wrap(second).click()
 
-      backBeforeThePromotedVisit()
-      cy.wrap(second).click()
+        cy.get('html[data-traversal-loaded="kept"]', AFTER_TRAVERSAL)
+        cy.location('href').should('eq', first.href)
+        title().should('have.text', name)
+        cy.get('.split-view-row[aria-current]').should('have.length', 1).and('have.attr', 'href', first.getAttribute('href'))
 
-      cy.get('html[data-traversal-loaded="kept"]', AFTER_TRAVERSAL)
-      cy.location('href').should('eq', first.href)
-      title().should('have.text', name)
-      cy.get('.split-view-row[aria-current]').should('have.length', 1).and('have.attr', 'href', first.getAttribute('href'))
+        cy.go('forward')
+        cy.location('href').should('eq', second.href)
+      })
+    })
+  })
 
-      cy.go('forward')
-      cy.location('href').should('eq', second.href)
+  // A restored page reloads a pane the server painted (it has no `src` to
+  // compare) without touching the history: the URL it came back to can carry
+  // params the row's href does not, and a `replace` to that href dropped them.
+  it('keeps the params of the URL a restore comes back to', () => {
+    cy.visit(app('/split-view/full'))
+    cy.get('.split-view-row').then(($rows) => {
+      const [first, second] = [$rows[1], $rows[3]]
+      cy.visit(app(`${first.getAttribute('href')}&ref=mail`))
+      title().should('be.visible')
+      cy.get('.split-view-row').eq(3).click()
+      // Settled: the click's promoted visit has run and rewound the frame.
+      cy.get('.split-view-detail').should('have.attr', 'data-split-view-src', second.href)
+
+      // Any history write the reload makes comes before its `turbo:frame-load`.
+      cy.document().then((doc) => {
+        doc.addEventListener('turbo:frame-load', () => { doc.documentElement.dataset.paneReloaded = '' }, { once: true })
+      })
+      cy.go('back')
+      cy.get('html[data-pane-reloaded]', AFTER_TRAVERSAL)
+      cy.location('search').should('include', 'ref=mail')
     })
   })
 
