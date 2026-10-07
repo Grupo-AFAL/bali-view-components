@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   70 px. Desde `sm` nada cambia. Nada que hacer en la app.
 - **DocumentEditor: Ctrl/Cmd+S en un visor de sólo lectura ya no deja «Saving...» para
   siempre.** Sin título ni contenido que enviar, el estado ya no cambia. Nada que hacer en la app.
+- **BlockEditor: el nombre de una referencia larga se trunca con «…» dentro del editor.** A
+  320 px en `/showcase` el chip terminaba en x=369, con el editor en 266. Nada que hacer en la app.
 
 ## [v3.9.0] - 2026-10-04
 

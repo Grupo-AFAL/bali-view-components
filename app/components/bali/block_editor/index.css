@@ -390,16 +390,26 @@
   display: inline-flex;
   align-items: center;
   gap: 0.2em;
+  /* With `nowrap` alone a long name ran out of the editor: at 320px on /showcase the chip
+   * ended at x=369, past the editor's 266. The name truncates instead. */
+  max-width: 100%;
 }
 
 /* No `opacity` on the icon or the type label: at 0.7 both read 2.97:1 over a warning chip on
  * `afal` and 2.88 under the pointer (3:1 for the icon, AA 4.5 for the label). */
 .block-editor-component .bn-entity-reference-icon {
   font-size: 0.85em;
+  flex-shrink: 0;
 }
 
 .block-editor-component .bn-entity-reference-label {
   font-size: 0.9em;
+  flex-shrink: 0;
+}
+
+.block-editor-component .bn-entity-reference-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .block-editor-component .bn-entity-reference-label::after {
