@@ -39,13 +39,17 @@ export const tap = ($el) => {
   return touch('touchStart', [inRunner(x, y)]).then(() => touch('touchEnd', []))
 }
 
-// Starts on the element and moves `dy` pixels: the browser reads it as a scroll and
-// fires no click.
-export const drag = ($el, dy) => {
+// Starts on the element and moves `dy` pixels down and `dx` across: unless the element
+// says otherwise (`touch-action`), the browser reads it as a scroll and fires no click.
+// The first move reaches the page before the browser decides it is a scroll, so a
+// single one passes for a drag either way; in `steps`, the page loses the rest (measured
+// on the Gantt splitter: 20 to 25 of 60 px in 12 steps, all 60 in one).
+export const drag = ($el, dy, { dx = 0, steps = 1 } = {}) => {
   const [x, y] = centreOf($el)
+  const moves = Array.from({ length: steps }, (_, i) => inRunner(x + (dx * (i + 1)) / steps, y + (dy * (i + 1)) / steps))
 
-  return touch('touchStart', [inRunner(x, y)])
-    .then(() => touch('touchMove', [inRunner(x, y + dy)]))
+  return moves
+    .reduce((sent, point) => sent.then(() => touch('touchMove', [point])), touch('touchStart', [inRunner(x, y)]))
     .then(() => touch('touchEnd', []))
 }
 

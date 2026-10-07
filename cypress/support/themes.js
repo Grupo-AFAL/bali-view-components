@@ -3,6 +3,13 @@
 export const BALI_THEMES = ['afal', 'afal-dark', 'costa-norte', 'costa-norte-dark']
 export const THEMES = ['light', 'dark', ...BALI_THEMES]
 
+export const useTheme = (theme) => cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+
+export const eachTheme = (check) => THEMES.forEach((theme) => {
+  useTheme(theme)
+  check(theme)
+})
+
 // The colour a theme token computes to inside `el`, in the form `getComputedStyle().color` reports
 // it, so the two compare as strings.
 export const token = (el, name) => {

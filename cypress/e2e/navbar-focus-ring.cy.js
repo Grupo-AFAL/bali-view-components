@@ -29,12 +29,13 @@ describe('Navbar: the focus ring', () => {
       .to.be.at.least(NON_TEXT)
   }
 
-  THEMES.forEach((theme) => {
-    BARS.forEach(([bar, color, query]) => {
-      it(`rings at 3:1 on the ${bar} bar, ${theme} theme`, () => {
-        cy.viewport(1280, 800)
-        open(color, query, theme)
+  BARS.forEach(([bar, color, query]) => {
+    it(`rings at 3:1 on the ${bar} bar, every theme`, () => {
+      cy.viewport(1280, 800)
+      open(color, query, 'light')
 
+      THEMES.forEach((theme) => {
+        cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
         ;['LOGO', 'Home', 'More', 'Sign up', 'Log in'].forEach((text) => {
           cy.get('nav.navbar').then($nav => stop($nav[0], text).focus())
           cy.document().should((doc) => {

@@ -190,7 +190,8 @@ slots are independent so non-shell layouts work too.
 - `modal` / `drawer` - Render the shared `#main-modal` / `#main-drawer` and put their Stimulus controllers on `<body>`, so a `modal: true` / `drawer: true` trigger opens them from anywhere on the page — a chrome slot or a `popover: true` menu included (default: true)
 - `mobile_bottom_padding` - Room under the content on a phone, for the browser's floating bar plus the device safe area (default: false) — see below
 
-The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it.
+The layout renders `<main id="main-content" tabindex="-1">` so the skip link lands focus on it,
+and so does a Modal or Drawer that closes with no trigger to give the focus back to.
 
 **Decoupled scroll model**:
 | `fixed_sidebar` | `viewport_locked` | Behavior |
@@ -368,6 +369,12 @@ The AppLayout previews model both: "Topbar + Sidebar + Content" and
 
 The root element is a `<header>` (the page's banner landmark) and the hamburger is a `Bali::SideMenu::Trigger::Component`.
 
+The search zone takes whatever width the actions leave, and it is a size container: below
+7rem the Command's default trigger folds to a 32px square with the magnifier (see Command's
+triggers). With the six actions of the `topbar/six_actions` preview, at 320px the zone gets
+2px and not even the icon fits: hide an action below `sm`, as in
+`IconAction::Component.new(..., class: "max-sm:hidden")`.
+
 ##### Topbar::UserMenu
 
 The prefabricated user dropdown for the `with_user_menu` slot — a preset of
@@ -499,7 +506,9 @@ that is not `class:` is passed through to the tag.
 
 Dialog overlay for focused interactions. Renders a native `<dialog>` and opens it with
 `showModal()`, so the panel is painted in the top layer, the page behind it is inert, and
-Escape and focus restoration come from the element. See
+Escape comes from the element. Closing gives the focus back to what opened it; when nothing
+did — a modal rendered `active:` — it goes to the page's `<main>`, which outside
+`Bali::AppLayout` needs `tabindex="-1"` to take it. See
 [Overlays and the top layer](overlays-and-the-top-layer.md) for what that means for
 anything you render over it.
 
@@ -960,12 +969,13 @@ Picking between the last three is about what should happen to the group *as the 
 - `shortcut_label` - Display label for the shortcut hint on the default trigger. `:auto` (default) renders `⌘K` and lets the Stimulus controller rewrite it to `Ctrl K` on a machine that is not a Mac — the server cannot know which keyboard is in front of the user, and a cached page would hand one machine's answer to every other one. A String is rendered literally and never rewritten; `nil` hides the hint. The binding itself accepts both chords on both platforms; only the label picks a side
 
 **Triggers:**
-- Default — a search-well button the component renders on its own (icon + `trigger_label` + `kbd` hint). Deliberately not a `.btn`: a bordered button under the focus-visible ring reads as a double border when Escape returns focus to it
+- Default — a search-well button the component renders on its own (icon + `trigger_label` + `kbd` hint). Deliberately not a `.btn`: a bordered button under the focus-visible ring reads as a double border when Escape returns focus to it. Inside any size container narrower than 7rem (Topbar's search zone is one) it folds to a 32px square with the magnifier; the label stays the button's accessible name and its `title`. 7rem fits "Search…" whole below `sm`, where the `kbd` hint is hidden; from `sm` up the hint takes its own width, so in a container just above 7rem the label can still truncate
 - `with_trigger` slot — REPLACES the default for shapes it cannot be (icon-only toolbar button, etc.). The slot content is the whole trigger: bring your own accessible name. A hand-rolled trigger that wants the same platform-aware hint puts `data-command-target="shortcut"` on its own `kbd` — the controller fills it in
 - Global keyboard: ⌘K (Mac) / Ctrl+K (Windows/Linux)
 - Window events: `bali:command:open` / `bali:command:close` / `bali:command:toggle`
 
-**Keyboard:** ↑/↓ to navigate, ⏎ to activate, Esc to close.
+**Keyboard:** ↑/↓ to navigate, ⏎ to activate, Esc to close. As you type, the first row that
+matches the query is the highlighted one, even with an `:action` row listed above it.
 
 **Emits:** `bali:command:select` (bubbles, `detail: { row, value }`) when an item without an
 `href` is activated.
@@ -4435,7 +4445,8 @@ makes it a first-class popover attribute with no new API.
 - Multiple filter groups with AND/OR combinators. Conditions inside a group narrow
   (AND) unless the user switches a row to OR — the seed used to be OR, so a second
   condition widened the listing instead of narrowing it (#1121); a group that arrives in
-  the URL with `m=or` keeps it. Groups combine with AND.
+  the URL with `m=or` keeps it. Groups combine with AND. Whatever the groups' combinator,
+  the panel is ANDed with the quick search and the rest of `q` (#1345).
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
 - Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted
@@ -4489,7 +4500,7 @@ The search input includes a clear button (x) that appears when text is entered. 
 |--------|------|---------|-------------|
 | `url` | String | Required | Form action URL |
 | `filter_form` | FilterForm | Required | FilterForm instance |
-| `available_attributes` | Array | Required | Filterable attributes (`filter_form.available_attributes` when driven by a FilterForm) |
+| `available_attributes` | Array | Required | Filterable attributes (`filter_form.available_attributes` when driven by a FilterForm: a form that offers the panel attributes lets only those reach Ransack, #1346) |
 | `popover` | Boolean | `true` | Use popover mode |
 | `storage_id` | String | `nil` | Enable persistence |
 | `persistence_toggle` | Boolean | `true` | Render the bookmark inside the panel (DataTable turns it off) |

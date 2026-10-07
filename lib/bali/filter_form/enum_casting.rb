@@ -28,13 +28,8 @@ module Bali
       # raw codes, a meaning Rails does not promise and Bali cannot invent.
       EQUALITY_PREDICATES = %w[eq not_eq in not_in].freeze
 
-      # Ransack keys that are NOT conditions: the combinator, the sorts and the `c` form
-      # (conditions as an array), which Bali does not emit and which has an entirely different
-      # structure.
-      RESERVED_KEYS = %w[m s c].freeze
-
-      # Groupings nest: a group can carry another `g` inside it.
-      GROUPING_KEYS = %w[g groupings].freeze
+      # Ransack keys that are NOT conditions: the combinator and the sorts.
+      RESERVED_KEYS = %w[m s].freeze
 
       # Suffix of the compound predicates (`status_eq_any`), which ask the same thing as their
       # base predicate over several values.
@@ -42,32 +37,20 @@ module Bali
 
       private
 
+      # The panel's groups arrive as {PanelConditions#applied_groupings} leaves them: an indexed
+      # hash of groups that hold conditions and their `m`, and nothing nested.
       def cast_enum_labels(params)
         params.each_with_object({}) do |(key, value), casted|
           name = key.to_s
           casted[key] =
-            if GROUPING_KEYS.include?(name)
-              cast_enum_groupings(value)
+            if name == "g"
+              value.transform_values { |group| cast_enum_labels(group) }
             elsif RESERVED_KEYS.include?(name)
               value
             else
               cast_enum_condition(name, value)
             end
         end
-      end
-
-      # A NESTED `g` can arrive as an array (Ransack accepts both forms and the normalization
-      # in FilterForm#extract_groupings only reaches the top level): without this branch the
-      # inner group dodged the translation and returned the opposite records.
-      def cast_enum_groupings(groupings)
-        return groupings.map { |group| cast_enum_group(group) } if groupings.is_a?(Array)
-        return groupings unless groupings.is_a?(Hash)
-
-        groupings.transform_values { |group| cast_enum_group(group) }
-      end
-
-      def cast_enum_group(group)
-        group.is_a?(Hash) ? cast_enum_labels(group) : group
       end
 
       def cast_enum_condition(key, value)

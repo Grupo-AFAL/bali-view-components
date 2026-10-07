@@ -11,23 +11,26 @@
  * Gantt's warning pill on a selected row, on `afal`. Written out by hand where no utility can
  * name the colour: ../../../components/bali/block_editor/index.css, which esbuild bundles as
  * plain CSS; `Bali::Color.soft` (../../../components/bali/color.rb), for a hex such as StatCard's
- * `custom_color:`; and the Gantt's status pill (../../../components/bali/gantt/ganttColors.js),
- * for whichever `--color-*` a host's catalog names. test/bali/components/color_test.rb holds the
- * three to the declaration below.
+ * `custom_color:`; the Gantt's status pill (../../../components/bali/gantt/ganttColors.js), for
+ * whichever `--color-*` a host's catalog names; and a coloured outline or soft button
+ * (../../../components/bali/button/index.css), for daisyUI's `--btn-color`.
+ * test/bali/components/color_test.rb holds the four to the declaration below.
  *
  * A utility and not a custom property on `:root`: a property declared there resolves its
  * `var()`s there, and a SideMenu with its own `theme:` inherits the page's mix — 1.05:1 on
  * `side_menu/dark_chrome`, against 7.97 for the utility.
  *
  * Error has an ink of its own on a light scheme, `--soft-ink-error` below, which the Gantt's
- * status pill copies (../../../components/bali/gantt/ganttColors.js). On `afal`, whose
- * base-content is navy, 40% of its salmon error read brown, rgb(114, 72, 80), chroma 0.05. At
- * lightness 0.48 the worst case reads 4.97:1, a Dropdown's delete item under the pointer on
- * `light`; 0.52 read 4.22 there. `light-dark()` follows `color-scheme`, so a dark theme block
+ * status pill copies (../../../components/bali/gantt/ganttColors.js) and a coloured outline or
+ * soft button reads with `--theme()` (../../../components/bali/button/index.css): that inlines the
+ * value only because the key is `inline`, and `reference` emits no variable to fall back on. On
+ * `afal`, whose base-content is navy, 40% of its salmon error read brown, rgb(114, 72, 80), chroma
+ * 0.05. At lightness 0.48 the worst case reads 4.97:1, a Dropdown's delete item under the pointer
+ * on `light`; 0.52 read 4.22 there. `light-dark()` follows `color-scheme`, so a dark theme block
  * has to declare `color-scheme: dark`, as daisyUI's and Bali's do. The `@supports` is not
  * optional: the `var()` lets an unsupported `light-dark()` past the parser, and the colour would
- * then be inherited rather than fall back to the mix. `inline reference` for the reason above.
- * A separate `@utility text-soft-error` lost to this functional rule, which is emitted after it. */
+ * then be inherited rather than fall back to the mix. `inline reference` for the reason above. A
+ * separate `@utility text-soft-error` lost to this functional rule, which is emitted after it. */
 @theme inline reference {
   --soft-ink-error: light-dark(oklch(from var(--color-error) 0.48 c h), color-mix(in oklab, var(--color-error) 40%, var(--color-base-content)));
 }
@@ -49,5 +52,12 @@
   :where(.table) :where(thead, tfoot),
   :where(.fieldset-label) {
     @apply text-base-content/70;
+  }
+
+  /* daisyUI rings a `.btn` in its own colour, and `neutral` is a fill: on the dark themes the
+   * ring of a `btn-neutral` measured 1.26–1.72:1 against the page (WCAG 1.4.11 asks 3:1). In a
+   * Navbar, navbar/daisyui-overrides.css rings it in the bar's text colour instead. */
+  :where(.btn-neutral) {
+    outline-color: var(--color-base-content);
   }
 }
