@@ -146,8 +146,10 @@ export class ChartController extends Controller {
     const tooltipBg = this.getThemeColor('--color-base-200', 0.95)
     const tooltipText = this.getThemeColor('--color-base-content')
     const tooltipBorder = this.getThemeColor('--color-base-content', 0.2)
+    // Chart.js's own is white at 0.75, which only a radial scale paints (`showLabelBackdrop`).
+    const tickBackdrop = this.getThemeColor('--color-base-100', 0.75)
 
-    // Configure scales
+    // Every `useThemeColors` flag below is set by Bali::Chart::Component (configure_*_styling).
     if (options.scales) {
       for (const scale in options.scales) {
         const scaleConfig = options.scales[scale]
@@ -159,10 +161,21 @@ export class ChartController extends Controller {
           delete scaleConfig.grid.useThemeColors
         }
 
+        if (scaleConfig.angleLines?.useThemeColors) {
+          scaleConfig.angleLines.color = gridColor
+          delete scaleConfig.angleLines.useThemeColors
+        }
+
         // Apply tick styling
         if (scaleConfig.ticks?.useThemeColors) {
           scaleConfig.ticks.color = tickColor
+          scaleConfig.ticks.backdropColor = tickBackdrop
           delete scaleConfig.ticks.useThemeColors
+        }
+
+        if (scaleConfig.pointLabels?.useThemeColors) {
+          scaleConfig.pointLabels.color = tickColor
+          delete scaleConfig.pointLabels.useThemeColors
         }
 
         // Apply title styling

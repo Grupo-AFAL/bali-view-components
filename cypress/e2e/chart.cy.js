@@ -112,6 +112,40 @@ describe('Chart', () => {
     })
   })
 
+  // polarArea and radar chart on one radial scale, `r`, which kept Chart.js's light-theme
+  // defaults on every theme: tick labels on white boxes, a grid of 10% black, #666 labels.
+  describe('radial scale', () => {
+    const RADIAL = 'canvas.chart[data-chart-type-value="polarArea"], canvas.chart[data-chart-type-value="radar"]'
+
+    it('paints its ticks, grid and labels in the theme the page switches to', () => {
+      cy.visit('/bali/chart/chart_js_other_charts_samples')
+
+      ;['afal-dark', 'afal'].forEach((theme) => {
+        cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', theme))
+
+        cy.get(RADIAL).should(($canvases) => {
+          const win = $canvases[0].ownerDocument.defaultView
+          const ground = cssVariable(win, '--color-base-100').replace(/^oklch\(|\)$/g, '')
+          const ink = cssVariable(win, '--color-base-content').replace(/^oklch\(|\)$/g, '')
+
+          expect($canvases, 'polarArea and radar charts').to.have.length(3)
+          $canvases.each((_, canvas) => {
+            const chart = win.Stimulus.getControllerForElementAndIdentifier(canvas, 'chart')?.chart
+            expect(chart, 'chart.js instance').to.not.eq(undefined)
+
+            const { ticks, grid, angleLines, pointLabels } = chart.scales.r.options
+            const name = `${theme} ${chart.config.type}`
+            expect(ticks.backdropColor, `${name} tick backdrop`).to.include(ground)
+            expect(ticks.color, `${name} ticks`).to.include(ink)
+            expect(grid.color, `${name} grid`).to.include(ink)
+            expect(angleLines.color, `${name} angle lines`).to.include(ink)
+            expect(pointLabels.color, `${name} point labels`).to.include(ink)
+          })
+        })
+      })
+    })
+  })
+
   // A bar's legend hides a dataset and a doughnut's a data index, both on the Chart.js instance,
   // which a theme switch has to repaint rather than replace.
   describe('legend', () => {

@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ahora baja hasta el mínimo de la columna Nombre, 140. También se arrastra con el dedo, que el
   navegador tomaba por un scroll. Los separadores de la barra de herramientas ya no quedan al
   principio o al final de un renglón cuando la barra se parte. Sin nada que hacer en el anfitrión.
+- **`Bali::Chart`: `polarArea` y `radar` toman el tema en su escala radial** (#1333): cuadrícula,
+  radios, marcas con su recuadro y etiquetas, también al cambiar de tema en vivo. En `afal-dark`
+  las marcas salían sobre recuadros blancos y la cuadrícula casi no se veía. Como en `x`/`y`, un
+  `options:` que pinte una de esas partes la pierde salvo con `useThemeColors: false` en ella;
+  ninguna app de la flota usa estos tipos (`git grep -nw 'polarArea\|radar' origin/main`).
 
 ## [v3.9.0] - 2026-10-04
 

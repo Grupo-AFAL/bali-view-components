@@ -125,8 +125,8 @@ class BaliChartComponentTest < ComponentTestCase
     assert_equal(true, x_axis["ticks"]["useThemeColors"])
   end
 
-  def test_scales_gives_a_radial_chart_no_x_or_y_axis
-    %i[pie doughnut polarArea radar].each do |type|
+  def test_scales_gives_a_pie_or_doughnut_no_scale_at_all
+    %i[pie doughnut].each do |type|
       render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, type: type))
       options = JSON.parse(page.find("canvas.chart")["data-chart-options-value"])
 
@@ -134,13 +134,28 @@ class BaliChartComponentTest < ComponentTestCase
     end
   end
 
-  def test_scales_still_passes_a_callers_scales_through_on_a_radial_chart
+  # Left to Chart.js, `r` kept its light-theme defaults on every theme: tick labels on white
+  # boxes and a grid of 10% black, which afal-dark all but hid (#1333).
+  def test_scales_styles_only_the_radial_scale_of_a_polar_area_or_radar_chart
+    %i[polarArea radar].each do |type|
+      render_inline(Bali::Chart::Component.new(data: { chocolate: 3 }, type: type))
+      scales = JSON.parse(page.find("canvas.chart")["data-chart-options-value"])["scales"]
+
+      assert_equal(%w[r], scales&.keys, "#{type} scales")
+      %w[grid angleLines ticks pointLabels].each do |part|
+        assert_equal(true, scales&.dig("r", part, "useThemeColors"), "#{type} #{part}")
+      end
+    end
+  end
+
+  def test_scales_merges_a_callers_radial_scale_into_the_theme_one
     render_inline(Bali::Chart::Component.new(
       data: { chocolate: 3 }, type: "polarArea", options: { scales: { r: { beginAtZero: true } } }
     ))
-    options = JSON.parse(page.find("canvas.chart")["data-chart-options-value"])
+    radial = JSON.parse(page.find("canvas.chart")["data-chart-options-value"])["scales"]["r"]
 
-    assert_equal({ "r" => { "beginAtZero" => true } }, options["scales"])
+    assert_equal(true, radial["beginAtZero"])
+    assert_equal(true, radial.dig("ticks", "useThemeColors"))
   end
 
   def test_scales_styles_both_axes_of_a_chart_without_a_type
