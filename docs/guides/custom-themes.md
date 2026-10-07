@@ -132,9 +132,11 @@ git grep -n -E 'text-neutral([^-]|$)' -- app
 
 ### 6. No `color-scheme` of your own
 
-Every theme declares its own `color-scheme`. The browser paints scrollbars and native controls
-by it, and `text-soft-error`, the Gantt's error pill, the BlockEditor and the FeedbackWidget's
-panel read it to choose their light or dark face. An app rule that sets it on the root
+Every theme declares its own `color-scheme`. The browser paints scrollbars and native controls by
+it, and these read it to choose their light or dark face: `text-soft-error` and the text of an
+outline, dash or soft error button, the Gantt's error pill, Breadcrumb's links, the BlockEditor,
+the FeedbackWidget's panel and the Google maps of `LocationsMap`, `coordinates_polygon_group` and
+the `geocoder-maps` controller. An app rule that sets it on the root
 
 ```css
 :root { color-scheme: light; }
@@ -142,9 +144,12 @@ panel read it to choose their light or dark face. An app rule that sets it on th
 
 has the specificity of `[data-theme="afal-dark"]`, so unlayered and after the theme's `@import`
 it wins; daisyUI's own `dark` sits in a layer and loses to it wherever it is written. Under
-`afal-dark` the page stays `light`, and `text-soft-error` paints its light-theme ink, 2.49:1 on
-the dark `base-100` instead of 10.64. Delete it, and a `[data-theme="dark"] { color-scheme: dark; }`
-with it, which daisyUI's `dark` already declares:
+`afal-dark` the page stays `light`: `text-soft-error` and an outline error button paint their
+light-theme ink, 2.49:1 on the dark `base-100` instead of 10.64, the Gantt's pill takes that same
+ink, and the BlockEditor, the FeedbackWidget's panel and the maps come out light. Under `dark`
+Breadcrumb's links lose the lift daisyUI's primary needs there and read 3.40:1 instead of 5.07
+(AA asks 4.5). Delete it, and a `[data-theme="dark"] { color-scheme: dark; }` with it, which
+daisyUI's `dark` already declares:
 
 ```sh
 git grep -n 'color-scheme' -- '*.css'

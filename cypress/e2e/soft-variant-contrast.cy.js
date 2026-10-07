@@ -1,4 +1,4 @@
-import { paintedContrast } from '../support/painted_contrast'
+import { errorInk, paintedContrast, paintedPixel } from '../support/painted_contrast'
 import { THEMES, useTheme } from '../support/themes'
 
 // The text colour of the soft, outline and dash variants, which only exists in
@@ -32,35 +32,12 @@ describe('tinted variant text contrast', () => {
   // column when there is a title, straight under the alert when there is not.
   const ALERT_BODY = ':scope > .flex-col > div:last-child, :scope > div:not(.flex-col)'
 
-  // Any CSS colour string → [r, g, b], through a 1px canvas. Chrome serialises
-  // `color-mix()` results as `oklab(…)` and the theme tokens as `oklch(…)`;
-  // parsing those by hand is where a spec like this goes wrong, and the canvas
-  // resolves whatever the browser itself can paint.
-  const rgb = (doc, css) => {
-    const canvas = doc.createElement('canvas')
-    canvas.width = canvas.height = 1
-    const ctx = canvas.getContext('2d')
-    ctx.fillStyle = css
-    ctx.fillRect(0, 0, 1, 1)
-    return [...ctx.getImageData(0, 0, 1, 1).data].slice(0, 3)
-  }
-
-  // What `text-soft-error` paints in the current theme.
-  const errorInk = (doc) => {
-    const probe = doc.createElement('span')
-    probe.className = 'text-soft-error'
-    doc.body.append(probe)
-    const ink = rgb(doc, getComputedStyle(probe).color)
-    probe.remove()
-    return ink
-  }
-
   const expectErrorInk = (els, count, theme) => {
     const errors = els.filter(el => el.matches('.alert-error, .badge-error'))
     expect(errors, 'error variants').to.have.length(count)
     errors.forEach((el) => {
       const doc = el.ownerDocument
-      expect(rgb(doc, getComputedStyle(el).color), `${theme}: ${el.className} in text-soft-error's ink`).to.deep.equal(errorInk(doc))
+      expect(paintedPixel(doc, getComputedStyle(el).color), `${theme}: ${el.className} in text-soft-error's ink`).to.deep.equal(errorInk(doc))
     })
   }
 
@@ -123,8 +100,8 @@ describe('tinted variant text contrast', () => {
         const body = alert.querySelector(ALERT_BODY)
         const accent = getComputedStyle(alert).getPropertyValue('--alert-color')
 
-        expect(rgb(doc, getComputedStyle(icon).color), 'icon is the accent').to.deep.equal(rgb(doc, accent))
-        expect(rgb(doc, getComputedStyle(body).color), 'text is not').to.not.deep.equal(rgb(doc, accent))
+        expect(paintedPixel(doc, getComputedStyle(icon).color), 'icon is the accent').to.deep.equal(paintedPixel(doc, accent))
+        expect(paintedPixel(doc, getComputedStyle(body).color), 'text is not').to.not.deep.equal(paintedPixel(doc, accent))
       })
     })
   })
@@ -141,8 +118,8 @@ describe('tinted variant text contrast', () => {
       const doc = tag.ownerDocument
       const accent = getComputedStyle(tag).getPropertyValue('--badge-color')
 
-      expect(rgb(doc, getComputedStyle(tag).borderTopColor), 'border is the accent').to.deep.equal(rgb(doc, accent))
-      expect(rgb(doc, getComputedStyle(tag).color), 'text is not').to.not.deep.equal(rgb(doc, accent))
+      expect(paintedPixel(doc, getComputedStyle(tag).borderTopColor), 'border is the accent').to.deep.equal(paintedPixel(doc, accent))
+      expect(paintedPixel(doc, getComputedStyle(tag).color), 'text is not').to.not.deep.equal(paintedPixel(doc, accent))
     })
   })
 })

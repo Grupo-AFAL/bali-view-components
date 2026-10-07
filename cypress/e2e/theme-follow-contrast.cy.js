@@ -419,6 +419,22 @@ describe('colours that follow the theme', () => {
     codeTokensReadAtAA('dark')
   })
 
+  // BlockNote, Mantine and the emoji picker take their palette from the scheme the page declares,
+  // read as the maps and the FeedbackWidget read it. `light dark` leaves the choice to the
+  // operating system, which is not one the person made in this app.
+  it('gives the BlockEditor the page\'s scheme, and reads `light dark` as light whatever the theme', () => {
+    const scheme = () => cy.get('.block-editor-component .bn-root').invoke('attr', 'data-color-scheme')
+    cy.visit('/bali/block_editor/default')
+    useTheme('afal-dark')
+    scheme().should('equal', 'dark')
+
+    cy.document().then((doc) => {
+      doc.documentElement.style.colorScheme = 'light dark'
+      doc.documentElement.setAttribute('data-theme', 'dark')
+    })
+    scheme().should('equal', 'light')
+  })
+
   // `color: :neutral` on these, and the neutral outline button, paint ink, not a fill. A dark
   // theme's neutral is a dark fill, so as ink over the page it measured 1.72:1 on afal-dark,
   // 1.54 on costa-norte-dark and 1.26 on daisyUI's dark; base-content is the same colour as

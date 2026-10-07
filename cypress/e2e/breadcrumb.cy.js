@@ -1,5 +1,5 @@
 import { paintedContrast } from '../support/painted_contrast'
-import { THEMES, token } from '../support/themes'
+import { THEMES, token, useTheme } from '../support/themes'
 
 // The crumb colours and the scroll start live only in breadcrumb/index.css, which a component
 // test cannot see. Before #1343 a linked crumb and the current page computed the same
@@ -8,22 +8,23 @@ describe('breadcrumb', () => {
   const AA = 4.5
 
   // The trail on its own over base-100, and inside an AppLayout over base-200, where `afal`'s
-  // primary is lowest.
+  // primary is lowest. One visit each: the theme switches in place.
   const PREVIEWS = ['/bali/breadcrumb/three_levels', '/bali/app_layout/with_topbar']
 
-  THEMES.forEach((theme) => {
-    PREVIEWS.forEach((path) => {
-      it(`paints a linked crumb apart from the current page, at AA, on ${theme} (${path})`, () => {
-        cy.visit(path)
-        cy.document().then(doc => doc.documentElement.setAttribute('data-theme', theme))
+  PREVIEWS.forEach((path) => {
+    it(`paints a linked crumb apart from the current page, at AA, on every theme (${path})`, () => {
+      cy.visit(path)
+
+      THEMES.forEach((theme) => {
+        useTheme(theme)
 
         cy.get('.breadcrumbs').should(($nav) => {
-          expect($nav[0].ownerDocument.getAnimations(), 'colour transitions settled').to.have.length(0)
+          expect($nav[0].ownerDocument.getAnimations(), `${theme}: colour transitions settled`).to.have.length(0)
           const link = $nav[0].querySelector('li a')
           const current = $nav[0].querySelector('[aria-current="page"]')
           const style = el => getComputedStyle(el).color
-          expect(style(current), 'the current page in base-content').to.equal(token($nav[0], 'base-content'))
-          expect(style(link), 'a linked crumb is not coloured like the current page').to.not.equal(style(current))
+          expect(style(current), `${theme}: the current page in base-content`).to.equal(token($nav[0], 'base-content'))
+          expect(style(link), `${theme}: a linked crumb is not coloured like the current page`).to.not.equal(style(current))
           expect(paintedContrast(link), `${theme}: linked crumb`).to.be.at.least(AA)
         })
       })

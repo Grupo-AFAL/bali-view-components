@@ -6,6 +6,13 @@ import { confirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_
 // different identifier. DrawerController overrides it with 'bali:drawer'.
 export const MODAL_EVENT_PREFIX = 'bali:modal'
 
+// Only the first `summary` of a `details` takes the focus.
+const FOCUSABLE = [
+  'button', '[href]', 'input', 'select', 'textarea', 'details > summary:first-of-type',
+  '[contenteditable]:not([contenteditable="false"])', 'audio[controls]', 'video[controls]',
+  'iframe:not([tabindex="-1"])', '[tabindex]:not([tabindex="-1"])'
+].join(', ')
+
 // Size classes matching Modal::Component::SIZES
 const SIZE_CLASSES = {
   sm: 'max-w-sm',
@@ -393,12 +400,14 @@ export class ModalController extends Controller {
   // them stayed the trap's edge and Tab from the trigger stopped wrapping (#1269).
   //
   // Only what Tab can land on: a closed drawer inside this panel is `inert`, and as
-  // the trap's last edge its ✕ let Tab out of the overlay. `checkVisibility` drops
-  // the `input[type=hidden]` of a `form_with` or `button_to`.
+  // the trap's last edge its ✕ let Tab out of the overlay; a disabled Save at the end
+  // of a form did the same. `checkVisibility` drops the `input[type=hidden]` of a
+  // `form_with` or `button_to`.
   get focusableElements () {
-    return [...this.wrapperTarget.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )].filter(element => !element.closest('[inert]') && element.checkVisibility({ visibilityProperty: true }))
+    return [...this.wrapperTarget.querySelectorAll(FOCUSABLE)].filter(element =>
+      !element.closest('[inert]') && !element.matches(':disabled') &&
+      element.checkVisibility({ visibilityProperty: true })
+    )
   }
 
   // The host's `autofocus` wins. It used to lose: this ran after
@@ -416,7 +425,7 @@ export class ModalController extends Controller {
   }
 
   handleTabKey = (event) => {
-    if (event.key !== 'Tab') return
+    if (event.key !== 'Tab' || event.defaultPrevented) return
 
     const focusable = this.focusableElements
     const first = focusable[0]
