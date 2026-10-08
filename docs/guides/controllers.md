@@ -233,15 +233,15 @@ renders a removable list and keeps the input's `FileList` in sync.
 `f.file_group` / `f.file_field` build it; by hand:
 
 ```html
-<div class="flex items-center gap-3" data-controller="file-input"
+<div class="flex flex-wrap items-center gap-3" data-controller="file-input"
      data-file-input-non-selected-text-value="No file selected"
      data-file-input-multiple-value="false">
-  <label class="cursor-pointer inline-flex">
+  <label class="cursor-pointer inline-flex shrink-0">
     <input type="file" class="hidden"
            data-action="file-input#onChange" data-file-input-target="input">
     <span class="btn btn-soft btn-primary btn-sm gap-2">Choose file</span>
   </label>
-  <span class="text-sm text-base-content/70 truncate"
+  <span class="text-sm text-base-content/70 truncate min-w-[min(8rem,100%)]"
         data-file-input-target="value">No file selected</span>
 </div>
 ```
@@ -627,7 +627,22 @@ Optional character counter and auto-grow for a textarea.
 
 With `max-length` the counter reads `12 / 500` and turns red over the limit
 (display only — pair it with a real `maxlength` attribute to enforce). Without it,
-it is a plain character count. `min-height` floors the auto-grow.
+it is a plain character count. `min-height` floors the auto-grow; left alone, the
+floor is the height of the field **empty**, so `rows` is what it returns to.
+
+Cap the growth in CSS, not with an option — whatever `max-height` CSS applies is
+honoured, and the field scrolls once it is reached. The cap is measured off the
+box and never read from the stylesheet, so a percentage, a `calc()` or a
+`clamp()` works the same as `max-h-48`:
+
+```erb
+<%= f.text_area_group :body, rows: 2, auto_grow: true, input_class: "max-h-48" %>
+```
+
+A `form.reset()` puts the field back where it started — the height AND the
+character count, which `reset` does not fire `input` for either — so a Turbo form
+that resets after a successful submit leaves neither a grown empty box nor a count
+in red over nothing.
 
 ## `time-period-field`
 

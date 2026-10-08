@@ -70,6 +70,17 @@ module Bali
             locals: { model: form_record }
           )
         end
+
+        # @label Auto Grow Bounds
+        # The two ends of the growth: the field returns to its EMPTY height when the form is
+        # reset or emptied, and scrolls instead of growing past the `max-height` the CSS gives
+        # it (#1371).
+        def auto_grow_bounds
+          render_with_template(
+            template: 'bali/form/text_area/previews/auto_grow_bounds',
+            locals: { model: form_record }
+          )
+        end
       end
     end
   end
