@@ -100,8 +100,9 @@ export class SlimSelectController extends Controller {
           removeText: this.removeTextValue,
           resultsText: this.resultsCountTextValue,
           // 4.x opens the list as a modal below 768px by default, and slim_select.css has no
-          // rules for `.ss-modal-*`: measured at 375px, the list opened as a bare box with
-          // its options hidden and no backdrop.
+          // rules for `.ss-modal-*`: measured at 375px, the overlay stayed `position: static`
+          // and 0px tall, the list 264px wide under a 343px trigger, and its options unpainted
+          // beneath the search row.
           modal: 'off'
         },
         events: {}
@@ -156,17 +157,12 @@ export class SlimSelectController extends Controller {
       // Remove DaisyUI select classes from the dropdown content to prevent centering
       // SlimSelect copies classes from the original select element, including DaisyUI's
       // 'select' and 'select-bordered' classes which cause centering issues.
-      // Use DOM query since SlimSelect's internal API varies between versions.
-      const contentEl =
-        this.element.querySelector('.ss-content') ||
-        document.querySelector('.ss-content')
-      if (contentEl) {
-        contentEl.classList.remove('select', 'select-bordered')
+      const contentEl = this.select.render.content.main
+      contentEl.classList.remove('select', 'select-bordered')
 
-        // Propagate size variant class to dropdown content (it may render outside the wrapper)
-        if (this.element.classList.contains('slim-select-sm')) {
-          contentEl.classList.add('slim-select-sm-content')
-        }
+      // Propagate size variant class to dropdown content (it renders outside the wrapper)
+      if (this.element.classList.contains('slim-select-sm')) {
+        contentEl.classList.add('slim-select-sm-content')
       }
 
       this.joinTopLayer()
@@ -217,17 +213,13 @@ export class SlimSelectController extends Controller {
   // SlimSelect portals `.ss-content` to <body>, which a modal overlay both covers
   // and renders inert — see utils/top-layer.js for the hit-test that measured it.
   //
-  // Done once, at connect, rather than on each open: SlimSelect debounces all
-  // four of its open/close callbacks by 100ms, so a hook that reparents there
-  // fires long after the list is already on screen and clickable. The list is
-  // parked at `top: -9999px` while closed, so leaving it in the top layer for the
-  // widget's lifetime shows nothing; when the overlay closes it takes its
-  // contents with it, and `teardown()` removes the node either way.
-  //
-  // Reads the list off the instance rather than off the DOM: the class-fixing
-  // lookup above falls back to the first `.ss-content` in the document, which on
-  // a page with several selects is somebody else's, and relocating that one would
-  // be a good deal worse than mislabelling it.
+  // Done once, at connect, rather than on each open: SlimSelect debounces its open
+  // callbacks and `afterClose` by 100ms (3.x debounces `beforeClose` too; from 4.0.4
+  // it is a synchronous veto), so a hook that reparents there fires long after the
+  // list is already on screen and clickable. The list is parked at `top: -9999px`
+  // while closed, so leaving it in the top layer for the widget's lifetime shows
+  // nothing; when the overlay closes it takes its contents with it, and `teardown()`
+  // removes the node either way.
   joinTopLayer () {
     const contentEl = this.select?.render?.content?.main
     const host = contentEl && topLayerHost(this.element)

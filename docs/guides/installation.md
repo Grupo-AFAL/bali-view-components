@@ -179,13 +179,19 @@ peer is required. Measured with Yarn 1.22.22, Yarn 4.9.2 and npm 12.0.2:
 |---|---|---|
 | Yarn 1 | `has incorrect peer dependency` warning; the install succeeds | nothing at all |
 | Yarn 4 | `YN0060` warning; the install succeeds | `YN0060` when the app depends on it directly |
-| npm 7+ | `ERESOLVE`; the install fails | `ERESOLVE` when the app depends on it directly |
+| npm 12 | `ERESOLVE`; the install fails | `ERESOLVE` when the app depends on it directly |
+
+`bin/rails g bali:install` copies these ranges into a new application's own `dependencies`
+— the required peers, plus the BlockEditor set with `--block-editor` — and there Yarn keeps
+to the ceiling like any range the application declares.
 
 Dependabot decides whether an update breaks a peer from those same Yarn warnings — its copy
 of Yarn's linker skips optional peers the same way — so in a Yarn 1 application it sees the
-ceiling of a required peer and never the ceiling of an optional one. To keep it from proposing
-a BlockNote, Mantine or SlimSelect major Bali has not run, add an `ignore` for that package to
-the application's `.github/dependabot.yml`.
+ceiling of a required peer and never the ceiling of an optional one. Keeping it from proposing
+a BlockNote, Mantine or SlimSelect major Bali has not run takes an `ignore` for those packages
+in the application's `.github/dependabot.yml`. In the AFAL applications bali-runtime writes
+that file (`do not edit by hand`), so the rule arrives with a bali-runtime update; an `ignore`
+added by hand is gone at the next one.
 
 ---
 

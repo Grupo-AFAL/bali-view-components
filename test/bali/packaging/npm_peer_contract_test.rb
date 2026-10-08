@@ -133,13 +133,19 @@ class BaliNpmPeerContractTest < ActiveSupport::TestCase
                  "measured to work, the ceiling the first one nobody has run"
   end
 
-  # The other half of a ceiling: it moves when the dummy moves. A Dependabot bump of
-  # test/dummy past one turns this red, and the range is then moved on purpose — or the
-  # bump is not merged. Only what the dummy declares itself counts; it also carries peers
-  # transitively (BlockNote brings @tiptap/core 3), and those it does not run Bali against.
+  # The other half of a ceiling: it moves when the dummy moves. A bump of test/dummy past
+  # one turns this red, and the range is then moved on purpose — or the bump is not merged.
+  # Only what the dummy declares itself counts; it also carries peers transitively
+  # (BlockNote brings @tiptap/core 3), and those it does not run Bali against.
   def test_the_dummy_runs_every_peer_it_installs_inside_the_declared_range
-    outside = dummy_peer_versions.reject { |name, version| satisfies?(peer_dependencies.fetch(name), version) }
+    versions = dummy_peer_versions
+    assert_includes versions.keys, "slim-select", "the peers read from test/dummy/package.json lost slim-select, " \
+                                                  "so this may be checking nothing"
 
+    unlocked = versions.select { |_, version| version.nil? }.keys
+    assert_empty unlocked, "no yarn.lock entry for the range test/dummy/package.json declares"
+
+    outside = versions.reject { |name, version| satisfies?(peer_dependencies.fetch(name), version) }
     assert_empty outside.to_h { |name, version| [ name, "#{version} vs #{peer_dependencies.fetch(name)}" ] },
                  "test/dummy runs these outside the range package.json promises hosts"
   end
@@ -161,7 +167,7 @@ class BaliNpmPeerContractTest < ActiveSupport::TestCase
   end
 
   def satisfies?(range, version)
-    version && Gem::Requirement.new(*range.split).satisfied_by?(Gem::Version.new(version))
+    Gem::Requirement.new(*range.split).satisfied_by?(Gem::Version.new(version))
   end
 
   def package_json
