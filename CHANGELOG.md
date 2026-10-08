@@ -18,6 +18,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `type: :toggle_group`) y un predicado que no toma listas, como el `:eq` por omisión, ahora
   falla al cargar la clase: su lista nunca filtró bien. Declara `predicate: :in`. Ninguna app de
   la flota tiene uno así; no hay nada que hacer en el anfitrión.
+- **`file_group` / `file_field`: el botón ya no se encima con el nombre del archivo en una
+  columna angosta** (#1370). Los dos hijos del contenedor son ítems flex que encogen por
+  omisión, así que en una barra lateral o un cajón la etiqueta quedaba más angosta que su propio
+  contenido y el `white-space: nowrap` del `.btn` escupía el texto del CTA **encima** del nombre
+  del archivo. Medido en Chrome 150 dentro de una columna de 240 px: el nombre arrancaba en
+  160 px contra un CTA que terminaba en 195 px — 35 px adentro del botón, en el mismo renglón.
+  `LABEL_CLASS` lleva ahora `shrink-0`, que es lo que quita el encimado; con eso solo, el nombre
+  quedaba aplastado a 36 px, así que `FILENAME_CLASS` lleva `min-w-[min(8rem,100%)]` y
+  `WRAPPER_CLASS` `flex-wrap`, y el nombre baja a su propio renglón cuando ese piso no cabe
+  junto al botón. El piso va acotado al contenedor para que una columna de menos de 8 rem no
+  termine con scroll horizontal.
+  **Anfitrión:** nada que hacer, y nada se mueve donde ya cabía — medido con el texto por
+  omisión en la misma columna, envuelto y legible a 240 px y 320 px, en un renglón e idéntico a
+  antes de 400 px en adelante. Si copiaste el marcado a mano de la guía de controladores,
+  actualízalo: las tres utilidades están ahí.
+
+- **`textarea` con `auto_grow`: un `form.reset()` devuelve el campo a su alto, y un `max-height`
+  del anfitrión por fin sirve** (#1371).
+
+  `form.reset()` borra el valor **sin** disparar `input`, el único evento que el controlador
+  escuchaba: un mensaje largo enviado por un form de Turbo dejaba el campo crecido y **vacío**,
+  tapando lo que había debajo hasta recargar. Ahora el `reset` lo devuelve a su alto — y también
+  el **contador de caracteres**, que tenía la misma causa y se quedaba en rojo con el largo
+  anterior sobre el valor restaurado. El contador no es asunto del crecimiento, así que esto
+  vale con o sin `auto_grow`.
+
+  Y el `overflow: hidden` que el controlador escribía una sola vez al conectarse le ganaba a la
+  hoja de estilos, así que un `max-h-*` del anfitrión recortaba la caja sin dejar forma de
+  alcanzar lo que no cabía. **Ya se puede acotar el crecimiento desde el CSS**: cualquier
+  `max-height` que el navegador aplique —píxeles, porcentaje, `calc()`— topa el campo y de ahí
+  en adelante hace scroll. `input_class: "max-h-48"` y ya; no hay opción nueva.
+
+  **Anfitrión:** nada que hacer. El único cambio visible fuera de los defectos es el piso del
+  crecimiento, que pasa a ser el alto del campo **vacío**: un `auto_grow` renderizado con
+  contenido no podía encoger por debajo de lo que el servidor le mandó, y ahora vuelve a sus
+  `rows`.
 
 ## [v3.10.1] - 2026-10-07
 
