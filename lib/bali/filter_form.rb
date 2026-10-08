@@ -176,7 +176,7 @@ module Bali
       #
       # @example Simple UI only, custom widget
       #   filter_attribute :priority, type: :select, simple: true, advanced: false,
-      #     options: [['High', 'high'], ['Low', 'low']], input: :toggle_group
+      #     options: [['High', 'high'], ['Low', 'low']], input: :toggle_group, predicate: :in
       #
       # @example Pills that filter on click
       #   filter_attribute :status, type: :select, simple: true, advanced: false,
@@ -410,8 +410,9 @@ module Bali
         )
       end
 
-      # The same values a panel condition takes, from every source above (#1346).
+      # The same values a panel condition takes, from every source above (#1346, #1351).
       @search_value = nil unless queryable_value?(@search_value)
+      attributes = attributes.select { |key, value| queryable_condition?(key.to_s, value) }
 
       # Last, after persistence — see {GroupByConfiguration#apply_default_group_by} (#1156).
       apply_default_group_by
