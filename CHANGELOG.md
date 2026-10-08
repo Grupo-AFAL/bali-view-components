@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.10.2] - 2026-10-08
+
 ### Changed
 
 - **Los PRs de Dependabot llevan la etiqueta `no-changelog`.** Dependabot no escribe en
