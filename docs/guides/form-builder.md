@@ -496,8 +496,9 @@ Past 20 selected values a multi-select shows `max_values_message` instead of one
 value, with the count in `{number}`. `addable_text` shows under `add_items: true` while the
 search matches nothing, with the typed text in `{value}`. The last three are only read out:
 the clear button's label, each tag's remove button (followed by the option's text) and the
-number of results SlimSelect announces after a search, in `{count}`. The markers are
-SlimSelect's and are written without Rails' `%`:
+number of results SlimSelect announces after a search, in `{count}`. SlimSelect reads the
+first two from 3.5 and the count from 3.6, so on an older SlimSelect the three options do
+nothing. The markers are SlimSelect's and are written without Rails' `%`:
 
 ```erb
 <%= f.slim_select_group :room_ids, rooms, multiple: true, max_values_message: "{number} rooms" %>

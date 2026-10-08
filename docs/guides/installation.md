@@ -173,7 +173,7 @@ is a Bali release — the dummy app goes to the new major, the suites run, the r
 not something an application does on its own.
 
 What an application outside a range gets depends on its package manager and on whether the
-peer is required. Measured with Yarn 1.22.22, Yarn 4.9.2 and npm 12.0.2:
+peer is required. Measured with Yarn 1.22.22, Yarn 4.18.1 and npm 12.0.2:
 
 | | Required peer | Optional peer |
 |---|---|---|

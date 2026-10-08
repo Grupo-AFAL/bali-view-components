@@ -5,7 +5,7 @@
  * Import separately and only if you need rich text editing functionality.
  *
  * Required dependencies (install in your app):
- *   yarn add @tiptap/core@^2 @tiptap/starter-kit@^2 @tiptap/extension-link@^2 ...
+ *   yarn add @tiptap/core@^2 @tiptap/extension-link@^2 ...
  *
  * Usage:
  *   import { RichTextEditorController, registerRichTextEditor } from 'bali-view-components/rich-text-editor'

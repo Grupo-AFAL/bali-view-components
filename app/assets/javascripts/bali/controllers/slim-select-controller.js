@@ -214,9 +214,8 @@ export class SlimSelectController extends Controller {
   // and renders inert — see utils/top-layer.js for the hit-test that measured it.
   //
   // Done once, at connect, rather than on each open: SlimSelect debounces its open
-  // callbacks and `afterClose` by 100ms (3.x debounces `beforeClose` too; from 4.0.4
-  // it is a synchronous veto), so a hook that reparents there fires long after the
-  // list is already on screen and clickable. The list is parked at `top: -9999px`
+  // callbacks and `afterClose` by 100ms, so a hook that reparents there fires long
+  // after the list is already on screen and clickable. The list is parked at `top: -9999px`
   // while closed, so leaving it in the top layer for the widget's lifetime shows
   // nothing; when the overlay closes it takes its contents with it, and `teardown()`
   // removes the node either way.

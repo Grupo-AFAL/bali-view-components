@@ -236,8 +236,8 @@ es:
         searching: "Buscando..."
         results: "Resultados"
         ajax_placeholder: "Escribe al menos 2 caracteres para buscar..."
-        # SlimSelect rellena `{number}`, `{value}` y `{count}` por su cuenta. Escrito
-        # como el `%{number}` de Rails, la cuenta sale «%27 seleccionados».
+        # SlimSelect fills in `{number}`, `{value}` and `{count}` itself. Written as
+        # Rails' `%{number}`, the count comes out as "%27 seleccionados".
         max_values_message: "{number} seleccionados"
         addable: 'Presiona "Enter" para agregar {value}'
         deselect: "Borrar selección"
