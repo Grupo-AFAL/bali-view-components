@@ -197,6 +197,7 @@ module Bali
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
         validate_auto_submit(key, resolved_input, auto_submit)
         validate_default(key, default, simple, advanced)
+        validate_list_input(key, resolved_input, predicate)
 
         filter_attributes << {
           key: key.to_sym,
@@ -272,6 +273,16 @@ module Bali
               "filter_attribute #{key}: auto_submit: true only applies to single-choice " \
               "widgets (#{AUTO_SUBMIT_INPUTS.join(', ')}) declared with simple: true; " \
               "this one is #{widget ? ":#{widget}" : 'not a simple filter'}"
+      end
+
+      # A `toggle_group` sends a list, which only a list predicate takes: on `_eq` the form
+      # drops it as no filter (#1351), so the row would render pills that never filter.
+      def validate_list_input(key, widget, predicate)
+        return unless widget == :toggle_group
+        return if Ransack::Predicate.named(predicate.to_s)&.wants_array
+
+        raise ArgumentError, "filter_attribute #{key}: input: :toggle_group sends a list, which " \
+                             "predicate: :#{predicate || :eq} does not take; declare predicate: :in"
       end
     end
 

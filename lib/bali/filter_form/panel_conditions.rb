@@ -114,6 +114,8 @@ module Bali
       # is inlined (`_eq`, `_gt`) and answers no rows, which is right, so only lists are
       # asked. A ransacker has no column to ask.
       def fits_column?(key, value)
+        return true if value.blank?
+
         condition = ransack_condition(key, value)
         return true if condition.nil?
 

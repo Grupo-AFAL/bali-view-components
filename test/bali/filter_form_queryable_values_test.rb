@@ -13,7 +13,7 @@ class BaliFilterFormQueryableValuesTest < ActiveSupport::TestCase
     attribute :id_in, default: []
 
     filter_attribute :genre, type: :select, simple: true, advanced: false, default: "Drama",
-                             options: [ %w[Drama Drama], %w[Action Action] ]
+                             blank: "All genres", options: [ %w[Drama Drama], %w[Action Action] ]
     filter_attribute :tenant_id, type: :select, simple: true, advanced: false,
                                  input: :toggle_group, predicate: :in
     filter_attribute :rating, type: :number, simple: true, advanced: false
@@ -68,8 +68,10 @@ class BaliFilterFormQueryableValuesTest < ActiveSupport::TestCase
   end
 
   test "a simple list with an id past its column is no filter, and a list that fits still is" do
+    Movie.create!(name: "Cleo", genre: "Drama", studio: Tenant.create!(name: "Other"))
+
     assert_empty build({ q: { tenant_id_in: [ NUMBER_PAST_ANY_COLUMN ] } }).active_filters
-    assert_equal 2, build({ q: { tenant_id_in: [ @studio.id.to_s ] } }).result.count
+    assert_equal [ @ana, @bob ], build({ q: { tenant_id_in: [ @studio.id.to_s ] } }).result.order(:name).to_a
   end
 
   test "each end of a number range answers for itself" do
@@ -91,6 +93,22 @@ class BaliFilterFormQueryableValuesTest < ActiveSupport::TestCase
     end
   end
 
+  # Pills whose list the form drops would render and never filter, so it fails when the class
+  # is defined, like an `auto_submit:` nobody reads. The deprecated DSL defaults to `:eq` too.
+  test "a toggle group on a predicate that takes no list raises when the class is defined" do
+    error = assert_raises(ArgumentError) do
+      Class.new(Bali::FilterForm) { filter_attribute :genre, type: :select, simple: true, input: :toggle_group }
+    end
+    assert_match(/predicate: :eq does not take/, error.message)
+
+    assert_raises(ArgumentError) do
+      Bali.deprecator.silence { Class.new(Bali::FilterForm) { simple_filter :genre, type: :toggle_group } }
+    end
+    Class.new(Bali::FilterForm) do
+      filter_attribute :genre, type: :select, simple: true, input: :toggle_group, predicate: :not_in
+    end
+  end
+
   test "neither is one the filter cache restores" do
     build({ q: { name_cont: "A\u0000na", genre_eq: "Dra\u0000ma" } }, storage_id: "movies")
     restored = build(storage_id: "movies", persist_enabled: true)
@@ -102,13 +120,13 @@ end
 
 class BaliFilterFormQueryableValuesRenderTest < ComponentTestCase
   # Painted as absent, the select would show its `default:` over a listing it does not filter.
-  test "a simple filter's value the query cannot take is painted empty, not as its default" do
+  test "a simple filter's value the query cannot take is painted as its blank, not as its default" do
     form = BaliFilterFormQueryableValuesTest::ValuesFilterForm.new(
       Movie.all, ActionController::Parameters.new(q: { genre_eq: "Dra\u0000ma" })
     )
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/movies", filters: form.simple_filters_config))
 
-    assert_selector "select[name='q[genre_eq]']"
+    assert_selector "select[name='q[genre_eq]'] option:first-child[value='']", text: "All genres"
     assert_no_selector "select[name='q[genre_eq]'] option[selected]"
   end
 end

@@ -11,11 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`FilterForm`: los atributos planos y los filtros simples siguen la regla de valores del
   panel** (#1351). Un valor con caracteres de control, una lista donde va un escalar o un id que
-  no cabe en su columna dentro de un `_in` ya no llega a Ransack: no filtra y no se pinta (el
-  control simple queda vacío, no en su `default:`). Un NUL (`?q[name_cont]=a%00b`) daba 500, y
-  con la persistencia de filtros o una vista guardada, en cada visita. Un `toggle_group` necesita
-  `predicate: :in`: con el `_eq` por omisión su lista no filtra (tampoco filtraba bien antes).
-  Ninguna app de la flota declara uno sin él; no hay nada que hacer en el anfitrión.
+  no cabe en su columna dentro de un `_in` ya no llega a Ransack: el atributo plano vuelve a su
+  `default`, y el control del filtro simple queda vacío, no en su `default:`, que no se aplicaría.
+  Un NUL (`?q[name_cont]=a%00b`) daba 500, y con la persistencia de filtros o una vista guardada,
+  en cada visita. Un `filter_attribute` con `input: :toggle_group` (o un `simple_filter` con
+  `type: :toggle_group`) y un predicado que no toma listas, como el `:eq` por omisión, ahora
+  falla al cargar la clase: su lista nunca filtró bien. Declara `predicate: :in`. Ninguna app de
+  la flota tiene uno así; no hay nada que hacer en el anfitrión.
 
 ## [v3.10.1] - 2026-10-07
 
