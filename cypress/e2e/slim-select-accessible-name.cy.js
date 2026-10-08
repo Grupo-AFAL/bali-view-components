@@ -59,30 +59,6 @@ describe('SlimSelect accessible name', () => {
       names('listbox').should('deep.equal', ['Owner'])
     })
 
-    // The peer range admits SlimSelect 2.x, which puts the listbox role on `.ss-content`
-    // itself and leaves it unnamed. The dummy runs 3.x, so this moves the role to where 2.x
-    // draws it.
-    it('is named where SlimSelect 2.x puts the role, on the content box', () => {
-      cy.visit('/bali/form/slim_select/many_selected?locale=es')
-      cy.get('.ss-main').should('exist')
-
-      cy.window().then((win) => {
-        const controller = win.Stimulus.getControllerForElementAndIdentifier(
-          win.document.querySelector('[data-controller~="slim-select"]'),
-          'slim-select'
-        )
-        const { main: content, list } = controller.select.render.content
-
-        for (const attribute of ['role', 'aria-label', 'aria-labelledby']) {
-          list.removeAttribute(attribute)
-        }
-        content.setAttribute('role', 'listbox')
-        controller.forwardAccessibility()
-      })
-
-      names('listbox').should('deep.equal', ['Rooms'])
-    })
-
     // A select with neither attribute leaves SlimSelect's `ariaLabel` default on the combobox.
     // Picking a name from the <select>'s own attributes, the list would keep "Combobox listbox".
     it('takes the default name of the combobox when the select has none', () => {

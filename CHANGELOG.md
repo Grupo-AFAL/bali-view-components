@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **SlimSelect 4.5, y todo peer de JS tiene tope.** La dummy prueba `slim-select` 4.5.0 (antes
+  3.4.3) y el rango pasa de `>=2.0.0` a `>=3.4.0 <5`: 3.4 es la primera con `contentWidth`, que
+  `content_width:` reenvía, y con 2.x Bali 3 ya no funcionaba (su CSS espera las clases de 3.x;
+  el mismo resultado en `main`). Con 4.x el controlador apaga el modal que SlimSelect abre bajo
+  768 px —`slim_select.css` no lo pinta, y en un teléfono la lista abría sin opciones— y una
+  búsqueda remota que se vacía vuelve a mostrar las opciones en vez de `ajax_placeholder`.
+  `slim_select.css` oculta la región viva `.ss-status` que SlimSelect agrega desde 3.6: hoy
+  garita e identity (3.6.1) y costa-norte (3.6.0) muestran «N results available» encima de las
+  opciones al buscar.
+  Cada rango de `peerDependencies` es ahora `>=piso <siguiente mayor sin probar`; en un paquete
+  `0.x` la mayor es el segundo número (`@blocknote/* >=0.53.0 <0.54.0`). `lowlight` sube su piso
+  a 3.0.0, la primera que exporta el `createLowlight` que importa RichTextEditor. Yarn 1 —el de
+  toda la flota— no revisa la versión de un peer opcional, así que el tope de BlockNote, Mantine
+  o SlimSelect no detiene a Dependabot; para eso, un `ignore` en el `dependabot.yml` de la app
+  (`docs/guides/installation.md`).
+  **Anfitrión:** medido en `origin/main` de las siete, sólo centinela-web usa un peer fuera de
+  su rango, `slim-select` 2.13.1, y debe subir: `yarn add slim-select@^4.5.0`. Las
+  demás pueden quedarse en su 3.x (afal-apps, gobierno-corporativo y opina en 3.4.3) o subir con
+  el mismo comando. El `@tiptap/*` 3.x que BlockNote trae a afal-apps y gobierno-corporativo
+  queda fuera del tope de RichTextEditor (`<3`) sin consecuencia: es un peer opcional, y ni Yarn 1
+  ni npm lo revisan cuando llega como dependencia de otro paquete.
+
 - **Los PRs de Dependabot llevan la etiqueta `no-changelog`.** Dependabot no escribe en
   `CHANGELOG.md`, y el Changelog Checker, que es requerido, dejaba bloqueados todos sus PRs
   (#1366, #1316, #1228). Conservan `dependencies` y la etiqueta de su ecosistema, que son las que

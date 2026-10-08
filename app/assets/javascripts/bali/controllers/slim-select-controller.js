@@ -60,11 +60,11 @@ export class SlimSelectController extends Controller {
     // items on every overflow recalculation. A `teardown()` inside that window destroys
     // `this.select`, which is still null, so it destroys nothing; the in-flight `connect()`
     // then finishes and builds an instance nobody owns. SlimSelect ships a guard for exactly
-    // this — `this.selectEl.dataset.ssid && this.destroy()` — but it is dead code in 3.4.3:
-    // `ssid` appears once in the whole bundle, at that read, and is never written. So the two
-    // instances coexist, each with its own MutationObserver on the same <select>, and the
-    // orphan reverts what the live one writes: the user picks an option, the widget shows it,
-    // and the <select> that FormData serializes stays empty.
+    // this — `this.selectEl.dataset.ssid && this.destroy()` — but it is dead code in 3.4.3
+    // and still in 4.5.0: `ssid` appears once in the whole bundle, at that read, and is never
+    // written. So the two instances coexist, each with its own MutationObserver on the same
+    // <select>, and the orphan reverts what the live one writes: the user picks an option,
+    // the widget shows it, and the <select> that FormData serializes stays empty.
     const generation = (this.generation = (this.generation || 0) + 1)
 
     try {
@@ -90,7 +90,11 @@ export class SlimSelectController extends Controller {
           searchText: this.noResultsTextValue,
           searchingText: this.searchingTextValue,
           maxValuesMessage: this.maxValuesMessageValue,
-          addableText: this.addableTextValue
+          addableText: this.addableTextValue,
+          // 4.x opens the list as a modal below 768px by default, and slim_select.css has no
+          // rules for `.ss-modal-*`: measured at 375px, the list opened as a bare box with
+          // its options hidden and no backdrop.
+          modal: 'off'
         },
         events: {}
       }
@@ -182,16 +186,14 @@ export class SlimSelectController extends Controller {
   // (html_utils.rb#aria_attributes) sit on a node nobody reads. Copying them at connect is
   // enough: a form with errors comes back as a new render, with its own controller.
   //
-  // Its listbox is labelled `ariaLabel + " listbox"` ("Combobox listbox" on every field), or
-  // not at all in 2.x, so it gets the attributes that name the combobox. They are read off the
-  // combobox, not the <select>: SlimSelect has already chosen among aria-label,
-  // aria-labelledby and, from 3.5, the select's <label for>. 2.x puts the listbox role on the
-  // content box; 3.x and 4.x on the list inside it.
+  // Its listbox is labelled `ariaLabel + " listbox"` ("Combobox listbox" on every field), so
+  // it gets the attributes that name the combobox. They are read off the combobox, not the
+  // <select>: SlimSelect has already chosen among aria-label, aria-labelledby and, from 3.5,
+  // the select's <label for>.
   forwardAccessibility () {
     const select = this.selectTarget
     const combobox = this.select.render.main.main
-    const { main: content, list } = this.select.render.content
-    const listbox = [list, content].find((element) => element.getAttribute('role') === 'listbox')
+    const listbox = this.select.render.content.list
 
     for (const attribute of ['aria-describedby', 'aria-invalid']) {
       const value = select.getAttribute(attribute)
@@ -200,7 +202,7 @@ export class SlimSelectController extends Controller {
 
     for (const attribute of ['aria-label', 'aria-labelledby']) {
       const value = combobox.getAttribute(attribute)
-      if (value) listbox?.setAttribute(attribute, value)
+      if (value) listbox.setAttribute(attribute, value)
     }
   }
 
@@ -284,7 +286,12 @@ export class SlimSelectController extends Controller {
     }
   }
 
-  search = (search, currentData) => {
+  search = (search, currentData, catalog) => {
+    // From 4.4 emptying the search box reaches this callback as well, and rejecting it shows
+    // `ajaxPlaceholder` where the options were. The catalog is what 4.0–4.3 restored on their
+    // own; 3.x never asks.
+    if (search === '') return Promise.resolve(catalog)
+
     return new Promise((resolve, reject) => {
       if (search.length < 2) {
         return reject(this.ajaxPlaceholderValue)

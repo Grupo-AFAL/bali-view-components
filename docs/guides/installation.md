@@ -164,6 +164,28 @@ install only what you actually render, and if you skip one the build still succe
 External Dependencies* below lists them, and the grouped comment in the package's own
 `package.json` maps every optional peer to the entry point that reaches for it.
 
+### Every peer range has a ceiling
+
+Each range in Bali's `peerDependencies` stops before the next major this release has not been
+run against: `@hotwired/stimulus` is `>=3.2.0 <4`, `slim-select` is `>=3.4.0 <5`. In a `0.x`
+package the second number is the major, so BlockNote is `>=0.53.0 <0.54.0`. Moving a ceiling
+is a Bali release — the dummy app goes to the new major, the suites run, the range moves —
+not something an application does on its own.
+
+What an application outside a range gets depends on its package manager and on whether the
+peer is required. Measured with Yarn 1.22.22 and npm 12.0.2:
+
+| | Required peer | Optional peer |
+|---|---|---|
+| Yarn 1 | `has incorrect peer dependency` warning; the install succeeds | nothing at all |
+| npm 7+ | `ERESOLVE`; the install fails | `ERESOLVE` when the app depends on it directly |
+
+Dependabot decides whether an update breaks a peer from those same Yarn warnings — its copy
+of Yarn's linker skips optional peers the same way — so in a Yarn 1 application it sees the
+ceiling of a required peer and never the ceiling of an optional one. To keep it from proposing
+a BlockNote, Mantine or SlimSelect major Bali has not run, add an `ignore` for that package to
+the application's `.github/dependabot.yml`.
+
 ---
 
 ## Step 3: Configure Tailwind CSS v4 + DaisyUI
@@ -395,7 +417,7 @@ Components behind their own entry point carry their own dependency sets, which a
 | Entry point | Dependency set |
 |-------------|----------------|
 | `bali-view-components/charts` | `chart.js` |
-| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (>= 0.53.0, and all three pinned to the *same* version), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` (>= 1.17.4) only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
+| `bali-view-components/block-editor` | `@blocknote/core` `/react` `/mantine` (`>=0.53.0 <0.54.0`, and all three pinned to the *same* version), `@mantine/core`, `@mantine/hooks`, `react`, `react-dom`; `shiki` (`>=1.17.4 <4`) only for syntax-highlighted code blocks. See [the BlockEditor API guide](../api/block-editor.md). |
 | `bali-view-components/rich-text-editor` | The `@tiptap/*` set plus `lowlight`, `highlight.js` and `tippy.js`. **Deprecated in v3, removed in v4** — migrate to the block editor. |
 
 ### Flatpickr Setup

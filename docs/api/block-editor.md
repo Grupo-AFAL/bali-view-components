@@ -26,7 +26,7 @@ yarn add shiki
 
 You can skip `shiki` if you render the component with `syntax_highlighting: false` (see [Syntax highlighting](#syntax-highlighting)). Leaving highlighting on *without* `shiki` installed still builds, but code blocks fail at runtime and the console shows `` BlockEditor: syntax highlighting is on but `shiki` could not be loaded ``.
 
-All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.53.0`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`, `shiki` `>= 1.17.4`.
+All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. The ranges come from `package.json`, and each stops before the next major nobody has run here: `@blocknote/*` `>=0.53.0 <0.54.0`, `@mantine/*` `>=8.3.0 <9`, `react` / `react-dom` `>=18.0.0 <20`, `shiki` `>=1.17.4 <4`.
 
 **Keep every `@blocknote/*` package on the same version.** Mixing, say, `@blocknote/core` 0.52.1 with `@blocknote/react` 0.51.0 is not a build error -- the packages share types and internal ProseMirror plugin keys across the boundary, so a mismatch surfaces as a menu that never opens or content that silently fails to serialise. Upgrade them as a set.
 
@@ -1336,7 +1336,7 @@ The `submit` event is what triggers the flush, so a form sent through the legacy
 
 ### Version compatibility
 
-The peer range is `@blocknote/* >= 0.53.0`. **That bound is the version this component was actually exercised on, not the oldest one that might work.** `test/dummy` pins 0.53.0 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
+The peer range is `@blocknote/* >=0.53.0 <0.54.0`. **The floor is the version this component was actually exercised on, not the oldest one that might work**, and the ceiling is the next release nobody has run it on — in `0.x` every minor may break, so 0.54 is a new major. `test/dummy` pins 0.53.0 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
 
 The lower bound is not cosmetic:
 
@@ -1345,7 +1345,7 @@ The lower bound is not cosmetic:
 - **0.51** made the parsers and serialisers **synchronous**. They returned promises before. Code that did `tryParseHTMLToBlocks(...).then(...)` throws on 0.51+ because `.then` is not a function on a plain array; this component no longer chains them. The same applies to `tryParseMarkdownToBlocks`, `blocksToMarkdownLossy` and `blocksToHTMLLossy` -- BlockNote's own documentation still describes some of these as async, and is wrong for current versions. The submit flush depends on this directly: it has to write the hidden input *during* the `submit` event, and it cannot await anything there.
 - **0.47** has two table-corruption bugs, fixed in **0.52**: a `|` typed inside a table cell drops a column, and a table without a header row promotes its first data row to the header. On 0.52.1 a cell containing `A|B` survives a Markdown round-trip -- `blocksToMarkdownLossy` emits `A\|B` and the table keeps its three columns.
 
-**Applications still on an older BlockNote.** Nothing in the component reaches for a 0.53-only API, so an app on 0.52.x will most likely keep working -- but it carries the render-loop bug the floor exists to exclude, sits outside the declared range and outside what is tested, and `yarn`/`npm` will emit an unmet-peer warning. Apps below 0.51 are a genuine break, not a warning: the synchronous-serialiser assumption behind the submit flush does not hold there. Upgrade the app before adopting v3, and upgrade all `@blocknote/*` packages together.
+**Applications still on an older BlockNote.** Nothing in the component reaches for a 0.53-only API, so an app on 0.52.x will most likely keep working -- but it carries the render-loop bug the floor exists to exclude, and sits outside the declared range and outside what is tested. Yarn 1 says nothing about it (it never checks the version of an optional peer); npm 7+ refuses the install with `ERESOLVE`. Apps below 0.51 are a genuine break, not a warning: the synchronous-serialiser assumption behind the submit flush does not hold there. Upgrade the app before adopting v3, and upgrade all `@blocknote/*` packages together.
 
 ### File Structure
 

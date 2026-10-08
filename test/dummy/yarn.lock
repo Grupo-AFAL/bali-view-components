@@ -1844,10 +1844,10 @@ simple-swizzle@^0.2.2:
   dependencies:
     is-arrayish "^0.3.1"
 
-slim-select@^3.3.0:
-  version "3.4.3"
-  resolved "https://registry.yarnpkg.com/slim-select/-/slim-select-3.4.3.tgz#d775ecf8997c4e5d21d9c13ce31472aa13a3c718"
-  integrity sha512-6jeOO7nVXNAdsAMAUIw2igcPG379yzGoa2mPBJ4tuoidenPz4AvFTnEewhVR4AnKBOSDf6L7trRJHuumJwJqOg==
+slim-select@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/slim-select/-/slim-select-4.5.0.tgz#5cc13f48a79b69a1fa2485044d69985155c97fb8"
+  integrity sha512-kVwrQDC0OfDmjtJrfas/8xzh6VfUvNVLad17gbx9X7cnvL/UVDqDxKqB17jwIeMPS1aDWVgQHaM09ajyBfVBPg==
 
 sortablejs@^1.15.6:
   version "1.15.7"

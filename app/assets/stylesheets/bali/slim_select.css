@@ -83,6 +83,13 @@
   display: none !important;
 }
 
+/* The live region SlimSelect announces search results in, from 3.6 on. Its own stylesheet,
+   which Bali does not load, is what hides it: without this "5 results available" sits
+   visibly above the options. */
+.ss-status {
+  @apply sr-only;
+}
+
 /* =============================================================================
    Wrapper Container (.slim-select)
    ============================================================================= */

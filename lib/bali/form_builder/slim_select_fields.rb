@@ -91,10 +91,10 @@ module Bali
 
       # SlimSelect names the `div[role="combobox"]` it draws from the `<select>`'s
       # `aria-label` or `aria-labelledby`, read once when it mounts. It reads the caption's
-      # `<label for>` only from 3.5, and Bali's peer range (`slim-select >=2.0.0`,
-      # package.json) still admits 2.x and 3.4, where a captioned group without this
-      # announces itself as "Combobox", SlimSelect's default (#1253; SimpleFilters hit the
-      # same in #1155).
+      # `<label for>` only from 3.5, and Bali's peer range (`slim-select >=3.4.0 <5`,
+      # package.json) still admits 3.4, where a captioned group without this announces
+      # itself as "Combobox", SlimSelect's default (#1253; SimpleFilters hit the same in
+      # #1155).
       def labelled_by_caption(html, method, group)
         return html if aria_named?(html)
 
