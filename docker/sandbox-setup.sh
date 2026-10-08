@@ -45,10 +45,10 @@ bundle install
 # 4. Install JS dependencies
 echo ""
 echo "=== Installing JS dependencies ==="
-# The image's `npm install -g yarn` put Yarn 1 in /usr/local/bin, ahead of /usr/bin on PATH, and
-# Yarn 1 refuses this repository. Corepack's shim takes its place there.
-command -v corepack >/dev/null || sudo npm install -g corepack
-sudo corepack enable --install-directory /usr/local/bin
+# The image's global Yarn 1 refuses this repository. Corepack's shim goes in ~/.local/bin, first
+# on the sandbox's PATH, so it answers to `yarn` before that one.
+command -v corepack >/dev/null || npm install -g --prefix "$HOME/.local" corepack
+corepack enable --install-directory "$HOME/.local/bin"
 git config core.hooksPath .githooks
 yarn install
 (cd test/dummy && yarn install)
