@@ -45,6 +45,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     RichTextEditor (`<3`) sin consecuencia: es un peer opcional, y ni Yarn 1 ni npm lo revisan
     cuando llega como dependencia de otro paquete.
 
+- **Bali se desarrolla con Yarn 4.18.1 (vía Corepack) en lugar de Yarn 1.** Lo que cambia para
+  una app depende de su Yarn:
+  - **Yarn 1** (las siete hoy): nada. Instala Bali desde su etiqueta igual que antes, con o sin
+    Corepack.
+  - **Yarn 4, migrada desde Yarn 1**: nada. La migración ya escribe
+    `approvedGitRepositories: ["**"]`; una app nueva en Yarn 4 aprueba el repositorio como dice
+    `docs/guides/release-channels.md`.
+  - **Lo que trae esta versión a una app en Yarn 4**: ya no instala las devDependencies de Bali
+    para empaquetarlo. Con Bali en Yarn 1, un `yarn install` en frío bajaba también el binario de
+    Cypress (802 MB).
+
+  Quien desarrolla Bali corre `corepack enable` una vez por instalación de Node, y
+  `git config core.hooksPath .githooks` una vez por clon (README § Setup): Yarn 4 no corre el
+  script `prepare` que conectaba los hooks.
+
 ### Fixed
 
 - **SlimSelect: la clase compacta caía en la lista de otro select.** El controlador buscaba la

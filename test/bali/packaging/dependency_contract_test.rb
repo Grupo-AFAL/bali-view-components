@@ -166,15 +166,18 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
   # `v3.1.0.beta.13` for four releases, which hands a reader a different library
   # from the one they are reading about.
   #
-  # TWO SPELLINGS, AND EACH ONE HAS TO BE FOUND — a pattern that matches nothing
+  # THREE SPELLINGS, AND EACH ONE HAS TO BE FOUND — a pattern that matches nothing
   # rejects nothing, which is why the assertion below fails on an empty scan as
   # well as on a wrong version. The second spelling is the console transcript
-  # under § Verification, out of reach of the first pattern.
+  # under § Verification, out of reach of the first pattern; the third is the npm
+  # package's `github:` pin, which has its own tag.
   VERSION_SPELLINGS = [
     { what: "the tag to install", docs: INSTALL_DOCS, prefix: "v",
       pattern: /bali-view-components["#,\s]+tag:\s*"([^"]+)"/ },
     { what: "the version the console prints back", docs: %w[docs/guides/installation.md],
-      prefix: "", pattern: /^=> "(\d[^"]*)"/ }
+      prefix: "", pattern: /^=> "(\d[^"]*)"/ },
+    { what: "the tag the npm package pins", docs: %w[docs/guides/installation.md], prefix: "v",
+      pattern: %r{github:Grupo-AFAL/bali-view-components#(v[\w.-]+)} }
   ].freeze
 
   def test_the_install_instructions_pin_this_version

@@ -161,8 +161,8 @@ class BaliNpmPeerContractTest < ActiveSupport::TestCase
     entries = dummy.join("yarn.lock").read.split(/\n{2,}/)
 
     declared.to_h do |name, range|
-      entry = entries.find { |block| block.lines.first.delete('":').split(", ").map(&:strip).include?("#{name}@#{range}") }
-      [ name, entry && entry[/^\s+version "([^"]+)"/, 1] ]
+      entry = entries.find { |block| block.lines.first.chomp.delete_suffix(":").delete('"').split(", ").include?("#{name}@npm:#{range}") }
+      [ name, entry && entry[/^  version: (\S+)$/, 1] ]
     end
   end
 

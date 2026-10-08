@@ -7,7 +7,6 @@
   "repository": "git@github.com:Grupo-AFAL/bali.git",
   "author": "Federico Gonzalez <fedegl@hey.com>",
   "license": "MIT",
-  "private": false,
   "exports": {
     ".": "./app/frontend/bali/index.js",
     "./charts": "./app/frontend/bali/charts.js",
@@ -30,13 +29,12 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-        "standard": "standard",
-"build": "yarn --cwd test/dummy build",
+    "standard": "standard",
+    "build": "yarn --cwd test/dummy build",
     "check:manifest": "node scripts/check-controller-manifest.mjs",
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome",
-    "cy:run:electron": "cypress run",
-    "prepare": "[ -d .git ] && git config core.hooksPath .githooks || true"
+    "cy:run:electron": "cypress run"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
@@ -129,14 +127,13 @@
     "  features on still builds and runs without them."
   ],
   "peerDependencies": {
-    "@hotwired/stimulus": ">=3.2.0 <4",
-    "@hotwired/turbo-rails": ">=8.0.0 <9",
-    "daisyui": ">=5.7.0 <6",
     "@blocknote/core": ">=0.53.0 <0.54.0",
     "@blocknote/mantine": ">=0.53.0 <0.54.0",
     "@blocknote/react": ">=0.53.0 <0.54.0",
     "@glidejs/glide": ">=3.6.0 <4",
     "@googlemaps/markerclusterer": ">=2.0.0 <3",
+    "@hotwired/stimulus": ">=3.2.0 <4",
+    "@hotwired/turbo-rails": ">=8.0.0 <9",
     "@mantine/core": ">=8.3.0 <9",
     "@mantine/hooks": ">=8.3.0 <9",
     "@rails/activestorage": ">=7.0.0 <9",
@@ -182,6 +179,7 @@
     "@tiptap/suggestion": ">=2.0.0 <3",
     "@xyflow/react": ">=12.0.0 <13",
     "chart.js": ">=4.0.0 <5",
+    "daisyui": ">=5.7.0 <6",
     "date-fns": ">=3.0.0 <5",
     "flatpickr": ">=4.6.0 <5",
     "highlight.js": ">=11.0.0 <12",
@@ -373,13 +371,17 @@
       "optional": true
     }
   },
+  "dependenciesMeta": {
+    "cypress": {
+      "built": true
+    }
+  },
   "resolutions": {
     "qs": "^6.15.2",
     "js-yaml": ">=5.4.1",
     "minimatch": ">=3.1.5",
     "flatted": ">=3.4.2",
     "lodash": ">=4.18.1",
-    "uuid": "^11.1.1",
     "brace-expansion": ">=5.0.7"
   },
   "files": [
@@ -387,5 +389,6 @@
     "lib/bali/**/*.rb",
     "MIT-LICENSE",
     "README.md"
-  ]
+  ],
+  "packageManager": "yarn@4.18.1+sha512.b2e1e7524f654f2749d32b4ebcb4622473cb5bcbc485df2007e12a154e50162a4d795526768bc5f5b8f81717bfd79deb2472813d86fb5ae2eb551fa9c872b08f"
 }

@@ -1,6 +1,6 @@
 {
   "name": "app",
-  "private": "true",
+  "private": true,
   "scripts": {
     "build": "node esbuild.config.mjs",
     "build:watch": "node esbuild.config.mjs --watch"
@@ -47,8 +47,12 @@
     "tippy.js": "^6.3.7",
     "zod": "^4.6.5"
   },
+  "dependenciesMeta": {
+    "esbuild": {
+      "built": true
+    }
+  },
   "resolutions": {
-    "uuid": "^11.1.1",
     "prosemirror-model": "^1.25.11",
     "prosemirror-transform": "^1.12.0",
     "prosemirror-view": "^1.42.6"

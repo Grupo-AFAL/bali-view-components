@@ -119,12 +119,18 @@ paginate.
 
 ## Step 2: Install JavaScript Package
 
-Install the npm package, which contains the Stimulus controllers and the CSS:
+Install the npm package, which contains the Stimulus controllers and the CSS. It is not on the
+npm registry, and a bare `bali-view-components` asks the registry for it — a 404 today, and
+whatever anyone publishes under that name tomorrow — so pin the same tag as the gem. On Yarn
+4.18 or later, approve the repository in `.yarnrc.yml` first:
+[One tag, two packages](release-channels.md#one-tag-two-packages) has the two lines.
 
 ```bash
-npm install bali-view-components @hotwired/stimulus @hotwired/turbo-rails daisyui
-# or
-yarn add bali-view-components @hotwired/stimulus @hotwired/turbo-rails daisyui
+yarn add bali-view-components@github:Grupo-AFAL/bali-view-components#v3.10.2 \
+  @hotwired/stimulus @hotwired/turbo-rails daisyui
+# or, on npm 12, which refuses a git dependency without `allow-git=root` in .npmrc
+npm install github:Grupo-AFAL/bali-view-components#v3.10.2 \
+  @hotwired/stimulus @hotwired/turbo-rails daisyui
 ```
 
 Those three are **required peer dependencies**, so your package manager will not install

@@ -130,6 +130,7 @@ configure_sandbox_proxy() {
     --allow-host codeload.github.com \
     --allow-host api.github.com \
     --allow-host registry.yarnpkg.com \
+    --allow-host repo.yarnpkg.com \
     --allow-host registry.npmjs.org \
     --allow-host daisyui.com \
     --allow-host license.api.daisyui.com >/dev/null 2>&1 || true

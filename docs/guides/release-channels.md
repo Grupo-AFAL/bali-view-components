@@ -45,8 +45,24 @@ This is not a convention anyone can opt out of, because the two halves of a comp
 the Ruby that emits `data-controller="toolbar-overflow"` and the JavaScript that registers
 that identifier. A Gemfile on `v3.0.0` next to a `package.json` on `v2.18.0` renders markup
 no controller answers: no exception, no console error, a toolbar that simply stops
-collapsing. So `bundle update bali_view_components` without the matching `yarn upgrade` is
-not a smaller upgrade, it is half of one — and the half that fails silently.
+collapsing. So `bundle update bali_view_components` without the matching `yarn upgrade`
+(`yarn up` on Yarn 4) is not a smaller upgrade, it is half of one — and the half that fails
+silently.
+
+**An app on Yarn 4.18 or later also approves the repository**, or `yarn install` stops at the
+pin before fetching anything (`YN0080 … doesn't match any of the patterns in
+'approvedGitRepositories'`). In the app's `.yarnrc.yml`:
+
+```yaml
+approvedGitRepositories:
+  - "https://github.com/Grupo-AFAL/**"
+  - "ssh://git@github.com/Grupo-AFAL/**"
+```
+
+The second line is the same repository over SSH, the form a pin takes once the repository is
+private (`git+ssh://git@github.com/Grupo-AFAL/…`). Yarn checks its own URL before git's
+`insteadOf` rewrites it, so with the first line alone that pin stops at the same `YN0080`. An
+app migrated from Yarn 1 already has `["**"]` there: the migration writes it.
 
 `test/dummy` is the exception that proves the rule. It consumes the package as
 `"bali-view-components": "link:../.."`, so its two halves *are* the working tree and can
@@ -112,14 +128,14 @@ For a release PR:
    | `package.json` | `"version"` — same number, npm spelling (`3.1.0-beta.1` for `3.1.0.beta.1`) |
    | `Gemfile.lock` | regenerated with `bundle install`, never by hand |
    | `README.md` | the `tag:` of the install snippet |
-   | `docs/guides/installation.md` | the `tag:` and the console transcript `=> "X.Y.Z"` |
+   | `docs/guides/installation.md` | the `tag:`, the npm package's `github:…#vX.Y.Z` and the console transcript `=> "X.Y.Z"` |
    | `CHANGELOG.md` | `## [Unreleased]` becomes `## [vX.Y.Z] - YYYY-MM-DD`, repeated `###` headings merged |
 
    `README.md` and `installation.md` are not optional:
    `BaliDependencyContractTest#test_the_install_instructions_pin_this_version` compares their
-   three install pins — two `tag:` and the console transcript — against `Bali::VERSION`, and
-   fails the suite when they disagree. The README sat on `v3.1.0.beta.13` for four releases
-   before it existed.
+   four install pins — two `tag:`, the npm package's `#vX.Y.Z` and the console transcript —
+   against `Bali::VERSION`, and fails the suite when they disagree. The README sat on
+   `v3.1.0.beta.13` for four releases before it existed.
 
    The lock goes in the same commit because it records the PATH gem's version and CI bundles
    with a frozen lock: a bump without it fails every Ruby workflow with exit 16 at
