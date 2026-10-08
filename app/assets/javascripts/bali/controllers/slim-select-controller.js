@@ -18,10 +18,15 @@ export class SlimSelectController extends Controller {
     noResultsText: { type: String, default: 'No results' },
     searchingText: { type: String, default: 'Searching...' },
     resultsText: { type: String, default: 'Results' },
-    // Templates with SlimSelect's own `{number}` / `{value}` markers, filled in by SlimSelect.
-    // `slim_select_fields.rb` emits them translated; left empty, SlimSelect's English applies.
+    // Templates with SlimSelect's own `{number}` / `{value}` / `{count}` markers, and the labels
+    // it reads out from 3.5. `slim_select_fields.rb` emits them translated; left empty,
+    // SlimSelect's English applies. `resultsCountText` is SlimSelect's `resultsText`: the name
+    // `resultsText` here already belongs to the label of the remote results' group.
     maxValuesMessage: String,
     addableText: String,
+    deselectText: String,
+    removeText: String,
+    resultsCountText: String,
     ajaxParamName: String,
     ajaxValueName: String,
     ajaxTextName: String,
@@ -91,6 +96,9 @@ export class SlimSelectController extends Controller {
           searchingText: this.searchingTextValue,
           maxValuesMessage: this.maxValuesMessageValue,
           addableText: this.addableTextValue,
+          deselectText: this.deselectTextValue,
+          removeText: this.removeTextValue,
+          resultsText: this.resultsCountTextValue,
           // 4.x opens the list as a modal below 768px by default, and slim_select.css has no
           // rules for `.ss-modal-*`: measured at 375px, the list opened as a bare box with
           // its options hidden and no backdrop.

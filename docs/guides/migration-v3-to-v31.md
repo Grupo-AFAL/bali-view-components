@@ -320,7 +320,9 @@ yarn add @blocknote/core@^0.53.0 @blocknote/react@^0.53.0 @blocknote/mantine@^0.
 
 Apps that build their own editor bundle (afal-apps' `editor.js`) rebuild it after the
 upgrade. Staying on 0.52.1 keeps working — nothing in the component calls a 0.53-only
-API — but it keeps the loop and an unmet-peer warning.
+API — but it keeps the loop, and whether anything says so depends on the package manager:
+the peer is optional, so Yarn 1 says nothing, Yarn 4 warns with `YN0060`, and npm 7+
+refuses the install with `ERESOLVE`.
 
 ## BlockEditor uploads deny by default (#1029)
 

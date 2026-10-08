@@ -39,7 +39,10 @@ module Bali
         results_text: :results,
         ajax_placeholder: :ajax_placeholder,
         max_values_message: :max_values_message,
-        addable_text: :addable
+        addable_text: :addable,
+        deselect_text: :deselect,
+        remove_text: :remove,
+        results_count_text: :results_count
       }.freeze
 
       # Same split as SelectFields: `**options` are the field's own — SlimSelect's
@@ -257,9 +260,12 @@ module Bali
           slim_select_no_results_text_value: options[:no_results_text],
           slim_select_searching_text_value: options[:searching_text],
           slim_select_results_text_value: options[:results_text],
-          # slim-select-controller.js hands both to SlimSelect untouched.
+          # slim-select-controller.js hands these to SlimSelect untouched.
           slim_select_max_values_message_value: options[:max_values_message],
           slim_select_addable_text_value: options[:addable_text],
+          slim_select_deselect_text_value: options[:deselect_text],
+          slim_select_remove_text_value: options[:remove_text],
+          slim_select_results_count_text_value: options[:results_count_text],
           slim_select_ajax_param_name_value: options[:ajax_param_name],
           slim_select_ajax_value_name_value: options[:ajax_value_name],
           slim_select_ajax_text_name_value: options[:ajax_text_name],

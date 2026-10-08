@@ -376,6 +376,17 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'div[data-slim-select-addable-text-value="Create {value}"]')
   end
 
+  # What SlimSelect reads out from 3.5 on — the clear button and each tag's remove button —
+  # and, from 3.6, the count of results in its live region. Until now always in English.
+  def test_slim_select_field_announcements_are_translated
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a)
+      assert_html(result, 'div[data-slim-select-deselect-text-value="Borrar selección"]')
+      assert_html(result, 'div[data-slim-select-remove-text-value="Quitar"]')
+      assert_html(result, 'div[data-slim-select-results-count-text-value="{count} resultados disponibles"]')
+    end
+  end
+
   def test_slim_select_field_ajax_placeholder_default_is_translated
     I18n.with_locale(:es) do
       result = builder.slim_select_field(:status, Movie.statuses.to_a, ajax_url: "/api/search")

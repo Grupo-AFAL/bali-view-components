@@ -17,7 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   búsqueda remota que se vacía vuelve a mostrar las opciones en vez de `ajax_placeholder`.
   `slim_select.css` oculta la región viva `.ss-status` que SlimSelect agrega desde 3.6: hoy
   garita e identity (3.6.1) y costa-norte (3.6.0) muestran «N results available» encima de las
-  opciones al buscar.
+  opciones al buscar. Lo que SlimSelect lee en voz alta —el botón de borrar y el de quitar cada
+  etiqueta desde 3.5, la cuenta de resultados desde 3.6— sale ahora en el idioma de la página,
+  también en Filters (`deselect`, `remove` y `results_count` en
+  `bali_view.form_builder.slim_select`); hasta ahora iba en inglés. Con 4.x, por debajo de
+  768 px la búsqueda ya no toma el foco al abrir la lista, para no sacar el teclado del teléfono.
   Cada rango de `peerDependencies` es ahora `>=piso <siguiente mayor sin probar`; en un paquete
   `0.x` la mayor es el segundo número (`@blocknote/* >=0.53.0 <0.54.0`). `lowlight` sube su piso
   a 3.0.0, la primera que exporta el `createLowlight` que importa RichTextEditor. Yarn 1 —el de

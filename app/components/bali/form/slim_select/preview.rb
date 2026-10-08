@@ -62,11 +62,13 @@ module Bali
         end
 
         # @label Multiple
-        # Multi-select with tags for selected values
-        def multiple
+        # Multi-select with tags for selected values. What SlimSelect reads out — the tags'
+        # remove buttons, the clear button, the count of results — follows `locale`.
+        # @param locale select { choices: [en, es] }
+        def multiple(locale: 'en')
           render_with_template(
             template: 'bali/form/slim_select/previews/multiple',
-            locals: { model: form_record, options: OPTIONS }
+            locals: { model: form_record, options: OPTIONS, locale: locale }
           )
         end
 

@@ -488,11 +488,16 @@ for one field.
 | `deselect_all_text` | `deselect_all` | Deselect all |
 | `max_values_message` | `max_values_message` | {number} selected |
 | `addable_text` | `addable` | Press "Enter" to add {value} |
+| `deselect_text` | `deselect` | Clear |
+| `remove_text` | `remove` | Remove |
+| `results_count_text` | `results_count` | {count} results available |
 
 Past 20 selected values a multi-select shows `max_values_message` instead of one chip per
 value, with the count in `{number}`. `addable_text` shows under `add_items: true` while the
-search matches nothing, with the typed text in `{value}`. Both markers are SlimSelect's and
-are written without Rails' `%`:
+search matches nothing, with the typed text in `{value}`. The last three are only read out:
+the clear button's label, each tag's remove button (followed by the option's text) and the
+number of results SlimSelect announces after a search, in `{count}`. The markers are
+SlimSelect's and are written without Rails' `%`:
 
 ```erb
 <%= f.slim_select_group :room_ids, rooms, multiple: true, max_values_message: "{number} rooms" %>

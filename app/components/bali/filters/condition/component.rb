@@ -109,6 +109,7 @@ module Bali
             selected_count: selected_count_translation,
             search: t("bali_view.filters.search"),
             no_results: t("bali_view.form_builder.slim_select.no_results"),
+            slim_select: t("bali_view.form_builder.slim_select").slice(:deselect, :remove, :results_count),
             value_aria_label: value_aria_label
           }.to_json
         end
