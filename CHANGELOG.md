@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.11.0] - 2026-10-08
+
 ### Changed
 
 - **SlimSelect 4.5, y todo peer de JS tiene tope.**

@@ -23,7 +23,7 @@ Bali is not published to RubyGems — it is consumed straight from this reposito
 gem "lucide-rails"
 gem "view_component-contrib"
 
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.10.2"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.11.0"
 ```
 
 Then run:
