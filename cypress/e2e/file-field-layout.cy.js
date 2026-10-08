@@ -56,8 +56,9 @@ describe('FileField layout', () => {
       })
     })
 
-    // `min-w-32` + `flex-wrap`. With only `shrink-0` the overlap is gone but the name is left
-    // with 36px — `N…`, which says nothing about whether a file was picked.
+    // The floor on the name plus `flex-wrap`. With only `shrink-0` the overlap is gone but the
+    // name is left with 36px — `N…`, which says nothing about whether a file was picked. The
+    // floor is `min(8rem, 100%)` so it can never be wider than the column it sits in.
     it('drops the file name to its own row instead of a sliver', () => {
       fileName().then($name => {
         label().then($label => {

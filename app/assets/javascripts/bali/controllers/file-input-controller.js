@@ -18,7 +18,7 @@ import { Controller } from '@hotwired/stimulus'
                data-action="file-input#onChange" data-file-input-target="input">
         <span class="btn btn-soft btn-primary btn-sm gap-2">Choose file</span>
       </label>
-      <span class="text-sm text-base-content/70 truncate min-w-32"
+      <span class="text-sm text-base-content/70 truncate min-w-[min(8rem,100%)]"
             data-file-input-target="value">No file selected</span>
     </div>
  */
