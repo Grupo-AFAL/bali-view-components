@@ -675,6 +675,8 @@ export class ConditionController extends Controller {
     const placeholder = this.t.placeholders?.select || 'Select...'
     const searchPlaceholder = this.t.search || 'Search...'
     const noResults = this.t.no_results || 'No results'
+    // Left empty, SlimSelect reads them out in its own English.
+    const { deselect = '', remove = '', results_count: resultsCount = '' } = this.t.slim_select || {}
     const optionsHtml = options
       .map((opt) => {
         const [label, value] = Array.isArray(opt) ? opt : [opt, opt]
@@ -686,7 +688,10 @@ export class ConditionController extends Controller {
       <div class="w-full slim-select-sm" data-controller="slim-select"
            data-slim-select-placeholder-value="${this.escapeHtml(placeholder)}"
            data-slim-select-search-placeholder-value="${this.escapeHtml(searchPlaceholder)}"
-           data-slim-select-no-results-text-value="${this.escapeHtml(noResults)}">
+           data-slim-select-no-results-text-value="${this.escapeHtml(noResults)}"
+           data-slim-select-deselect-text-value="${this.escapeHtml(deselect)}"
+           data-slim-select-remove-text-value="${this.escapeHtml(remove)}"
+           data-slim-select-results-count-text-value="${this.escapeHtml(resultsCount)}">
         <select class="select select-bordered select-sm w-full"
                 name="${fieldName}"
                 aria-label="${this.escapeHtml(this.valueAriaLabel)}"

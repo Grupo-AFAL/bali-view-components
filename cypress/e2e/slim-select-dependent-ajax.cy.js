@@ -57,6 +57,24 @@ describe('SlimSelect ajax dependent on another field', () => {
     cy.wait('@remoteSearch').its('request.query.family').should('equal', 'Doe')
   })
 
+  // From SlimSelect 4.4 an emptied search box reaches the controller's search callback too,
+  // which answered it like a one-letter term: `ajaxPlaceholder` where the options had been.
+  it('shows the options again when the search box is emptied', () => {
+    search('jo')
+    cy.wait('@remoteSearch')
+    cy.get('.ss-content .ss-list .ss-optgroup .ss-option').should('have.length.greaterThan', 0)
+
+    cy.get('.ss-content .ss-search input').clear()
+
+    // The whole list, and not "Option 1 is there": the selected option stays at the top of
+    // the search results as well, so that alone passes before the emptied search has run.
+    cy.get('.ss-content .ss-list').should($list => {
+      expect($list.find('.ss-error'), 'error row').to.have.length(0)
+      expect($list.find('.ss-option').toArray().map(option => option.textContent.trim()))
+        .to.deep.equal(['Option 1', 'Option 2', 'Option 3', 'Option 4', 'Option 5'])
+    })
+  })
+
   it('goes back to omitting the param when the field is cleared', () => {
     cy.get('#user-family').select('Smith')
     search('jo')

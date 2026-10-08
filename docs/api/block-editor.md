@@ -11,9 +11,9 @@ Everything in this section is **free software** (MPL-2.0 or MIT) and needs no co
 ### Step 1 -- npm packages
 
 ```bash
-yarn add @blocknote/core @blocknote/react @blocknote/mantine \
-         @mantine/core @mantine/hooks \
-         react react-dom
+yarn add @blocknote/core@^0.53.0 @blocknote/react@^0.53.0 @blocknote/mantine@^0.53.0 \
+         @mantine/core@^8.3.0 @mantine/hooks@^8.3.0 \
+         react@^19 react-dom@^19
 ```
 
 The three `@mantine/*` entries are easy to miss: `@blocknote/mantine` needs `@mantine/core` and `@mantine/hooks` and does not bring them along.
@@ -21,12 +21,12 @@ The three `@mantine/*` entries are easy to miss: `@blocknote/mantine` needs `@ma
 Code blocks are syntax-highlighted by default, which needs one more package:
 
 ```bash
-yarn add shiki
+yarn add shiki@^3
 ```
 
 You can skip `shiki` if you render the component with `syntax_highlighting: false` (see [Syntax highlighting](#syntax-highlighting)). Leaving highlighting on *without* `shiki` installed still builds, but code blocks fail at runtime and the console shows `` BlockEditor: syntax highlighting is on but `shiki` could not be loaded ``.
 
-All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. Minimum versions come from `package.json`: `@blocknote/*` `>= 0.53.0`, `@mantine/*` `>= 8.3.0`, `react` / `react-dom` `>= 18.0.0`, `shiki` `>= 1.17.4`.
+All of these are declared as **optional** peer dependencies of `bali-view-components`, so your package manager will neither install them for you nor warn when they are missing. The ranges come from `package.json`, and each stops before the next major nobody has run here: `@blocknote/*` `>=0.53.0 <0.54.0`, `@mantine/*` `>=8.3.0 <9`, `react` / `react-dom` `>=18.0.0 <20`, `shiki` `>=1.17.4 <4`.
 
 **Keep every `@blocknote/*` package on the same version.** Mixing, say, `@blocknote/core` 0.52.1 with `@blocknote/react` 0.51.0 is not a build error -- the packages share types and internal ProseMirror plugin keys across the boundary, so a mismatch surfaces as a menu that never opens or content that silently fails to serialise. Upgrade them as a set.
 
@@ -233,16 +233,16 @@ the terms of such a licence are. That determination belongs to legal and must be
 
 ```bash
 # Multi-column layouts
-yarn add @blocknote/xl-multi-column
+yarn add @blocknote/xl-multi-column@^0.53.0
 
 # PDF export
-yarn add @blocknote/xl-pdf-exporter @react-pdf/renderer
+yarn add @blocknote/xl-pdf-exporter@^0.53.0 @react-pdf/renderer@^4
 
 # DOCX export
-yarn add @blocknote/xl-docx-exporter docx
+yarn add @blocknote/xl-docx-exporter@^0.53.0 docx@^9
 
 # AI assistance
-yarn add @blocknote/xl-ai ai
+yarn add @blocknote/xl-ai@^0.53.0 ai@^6
 ```
 
 **What BlockNote publishes about these terms** (unverified restatement -- read the source before relying on any of it, and see the review notice at the top of this section):
@@ -1179,10 +1179,10 @@ Exports include support for:
 
 ```bash
 # PDF export
-yarn add @blocknote/xl-pdf-exporter @react-pdf/renderer
+yarn add @blocknote/xl-pdf-exporter@^0.53.0 @react-pdf/renderer@^4
 
 # DOCX export
-yarn add @blocknote/xl-docx-exporter docx
+yarn add @blocknote/xl-docx-exporter@^0.53.0 docx@^9
 ```
 
 They are imported dynamically, inside a `try`, when the user clicks an export button -- not at page load, and never when `export: false` (the default). If they are not installed at all, the build still succeeds and clicking export logs `BlockEditor: PDF export failed` to the console.
@@ -1204,7 +1204,7 @@ AI features add an AI button to the formatting toolbar and an `/ai` slash comman
 ### npm Dependencies for AI
 
 ```bash
-yarn add @blocknote/xl-ai ai
+yarn add @blocknote/xl-ai@^0.53.0 ai@^6
 ```
 
 They are imported dynamically, inside a `try`, only when `ai_url` is configured, so they land in a chunk that editors without AI never fetch. If they are not installed at all, the build still succeeds and setting `ai_url` logs `BlockEditor: Failed to load AI modules` to the console while the editor renders without AI.
@@ -1336,7 +1336,7 @@ The `submit` event is what triggers the flush, so a form sent through the legacy
 
 ### Version compatibility
 
-The peer range is `@blocknote/* >= 0.53.0`. **That bound is the version this component was actually exercised on, not the oldest one that might work.** `test/dummy` pins 0.53.0 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
+The peer range is `@blocknote/* >=0.53.0 <0.54.0`. **The floor is the version this component was actually exercised on, not the oldest one that might work**, and the ceiling is the next release nobody has run it on — in `0.x` every minor may break, so 0.54 is a new major. `test/dummy` pins 0.53.0 and the editor is verified against it by hand -- typing, formatting, lists, tables, file upload, undo and the submit flush -- before the bound is allowed to move. A range wider than what anyone has run is a promise the library cannot keep, which is exactly the state this bound was in before: it claimed `>= 0.51.0` while the dummy app ran 0.46.2, so no version in the declared range was under test.
 
 The lower bound is not cosmetic:
 
@@ -1345,7 +1345,7 @@ The lower bound is not cosmetic:
 - **0.51** made the parsers and serialisers **synchronous**. They returned promises before. Code that did `tryParseHTMLToBlocks(...).then(...)` throws on 0.51+ because `.then` is not a function on a plain array; this component no longer chains them. The same applies to `tryParseMarkdownToBlocks`, `blocksToMarkdownLossy` and `blocksToHTMLLossy` -- BlockNote's own documentation still describes some of these as async, and is wrong for current versions. The submit flush depends on this directly: it has to write the hidden input *during* the `submit` event, and it cannot await anything there.
 - **0.47** has two table-corruption bugs, fixed in **0.52**: a `|` typed inside a table cell drops a column, and a table without a header row promotes its first data row to the header. On 0.52.1 a cell containing `A|B` survives a Markdown round-trip -- `blocksToMarkdownLossy` emits `A\|B` and the table keeps its three columns.
 
-**Applications still on an older BlockNote.** Nothing in the component reaches for a 0.53-only API, so an app on 0.52.x will most likely keep working -- but it carries the render-loop bug the floor exists to exclude, sits outside the declared range and outside what is tested, and `yarn`/`npm` will emit an unmet-peer warning. Apps below 0.51 are a genuine break, not a warning: the synchronous-serialiser assumption behind the submit flush does not hold there. Upgrade the app before adopting v3, and upgrade all `@blocknote/*` packages together.
+**Applications still on an older BlockNote.** Nothing in the component reaches for a 0.53-only API, so an app on 0.52.x will most likely keep working -- but it carries the render-loop bug the floor exists to exclude, and sits outside the declared range and outside what is tested. Yarn 1 says nothing about it (it never checks the version of an optional peer), Yarn 4 (measured on 4.18.1) warns with `YN0060`, and npm (measured on 12.0.2) refuses the install with `ERESOLVE`. Apps below 0.51 are a genuine break, not a warning: the synchronous-serialiser assumption behind the submit flush does not hold there. Upgrade the app before adopting v3, and upgrade all `@blocknote/*` packages together.
 
 ### File Structure
 
@@ -1402,7 +1402,7 @@ The FormBuilder helpers live outside this directory, in `lib/bali/form_builder/r
 | The log says `Unable to resolve '/assets/inter-…woff2' for missing asset 'assets/inter-…woff2'`, and the fonts 404 | `publicPath: '/assets'` makes esbuild write the font URLs with Propshaft's mount in them, which Propshaft cannot resolve | Remove `publicPath` -- see [Step 2](#step-2----esbuild-flags) |
 | A `*/style.css` subpath fails to resolve at build time | The `style` export condition is not enabled | Add `conditions: ['style']` |
 | Console: `Failed to load editor. Ensure @blocknote/react, @blocknote/mantine, react, and react-dom are installed.` | A core package is missing | Run the [Step 1](#step-1----npm-packages) install, including the three `@mantine/*` |
-| Console: `` syntax highlighting is on but `shiki` could not be loaded `` | `shiki` not installed while `syntax_highlighting` is `true` | `yarn add shiki`, or pass `syntax_highlighting: false` |
+| Console: `` syntax highlighting is on but `shiki` could not be loaded `` | `shiki` not installed while `syntax_highlighting` is `true` | `yarn add shiki@^3`, or pass `syntax_highlighting: false` |
 | Console: `Failed to load AI modules` / `PDF export failed` | The XL packages for that feature are not installed | Install them deliberately -- read [BlockNote XL packages](#blocknote-xl-packages-paid-opt-in) first |
 | Content saved is one edit behind | The form was submitted through `form.submit()`, which fires no `submit` event, so the flush never ran | Use `form.requestSubmit()` or a normal Turbo/Rails submit |
 | Comments never appear | `comments:` was given something other than a non-empty Hash | See [Comments](#comments) |

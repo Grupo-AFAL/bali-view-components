@@ -7,7 +7,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.20",
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.2"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.44",
@@ -22,30 +22,30 @@
     "@googlemaps/markerclusterer": "^2.6.2",
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo-rails": "^8.0.21",
-    "@mantine/core": "^8.3.11",
-    "@mantine/hooks": "^8.3.11",
-    "@rails/activestorage": "^8.1.200",
+    "@mantine/core": "^8.3.18",
+    "@mantine/hooks": "^8.3.18",
+    "@rails/activestorage": "^8.1.400",
     "@rails/request.js": "^0.0.13",
-    "@react-pdf/renderer": "^4.3.0",
-    "@xyflow/react": "^12.11.2",
+    "@react-pdf/renderer": "^4.9.0",
+    "@xyflow/react": "^12.12.0",
     "ai": "^6.0.5",
     "bali-view-components": "link:../..",
     "chart.js": "^4.5.1",
     "daisyui": "5.7.47",
-    "date-fns": "^4.1.0",
-    "docx": "^9.4.0",
+    "date-fns": "^4.4.0",
+    "docx": "^9.9.0",
     "flatpickr": "^4.6.13",
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
     "qr-scanner": "^1.4.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "rrule": "^2.8.1",
     "shiki": "^3.22.0",
-    "slim-select": "^3.3.0",
+    "slim-select": "^4.5.0",
     "sortablejs": "^1.15.6",
     "tippy.js": "^6.3.7",
-    "zod": "^4.3.6"
+    "zod": "^4.6.5"
   },
   "dependenciesMeta": {
     "esbuild": {
@@ -55,6 +55,6 @@
   "resolutions": {
     "prosemirror-model": "^1.25.11",
     "prosemirror-transform": "^1.12.0",
-    "prosemirror-view": "^1.42.2"
+    "prosemirror-view": "^1.42.6"
   }
 }

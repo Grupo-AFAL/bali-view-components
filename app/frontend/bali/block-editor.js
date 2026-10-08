@@ -6,7 +6,8 @@
  *
  * Required dependencies — free packages only; the paid @blocknote/xl-*
  * packages are opt-in and documented in docs/api/block-editor.md:
- *   yarn add @blocknote/core @blocknote/react @blocknote/mantine @mantine/core @mantine/hooks react react-dom
+ *   yarn add @blocknote/core@^0.53.0 @blocknote/react@^0.53.0 @blocknote/mantine@^0.53.0 \
+ *            @mantine/core@^8.3.0 @mantine/hooks@^8.3.0 react@^19 react-dom@^19
  *
  * Usage:
  *   import { BlockEditorController, registerBlockEditor } from 'bali-view-components/block-editor'

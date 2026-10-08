@@ -236,10 +236,13 @@ es:
         searching: "Buscando..."
         results: "Resultados"
         ajax_placeholder: "Escribe al menos 2 caracteres para buscar..."
-        # SlimSelect rellena `{number}` y `{value}` por su cuenta. Escrito como el
-        # `%{number}` de Rails, la cuenta sale «%27 seleccionados».
+        # SlimSelect fills in `{number}`, `{value}` and `{count}` itself. Written as
+        # Rails' `%{number}`, the count comes out as "%27 seleccionados".
         max_values_message: "{number} seleccionados"
         addable: 'Presiona "Enter" para agregar {value}'
+        deselect: "Borrar selección"
+        remove: "Quitar"
+        results_count: "{count} resultados disponibles"
 
     # Saved views (B2) — notices de Bali::SavedViewsController
     saved_views:

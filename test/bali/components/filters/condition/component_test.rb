@@ -128,6 +128,24 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     assert_equal "Sin resultados", translations["no_results"]
   end
 
+  # What SlimSelect reads out from 3.5/3.6 on, on both value widgets: the one painted here and
+  # the one condition_controller.js#buildSelectInput builds from the translations.
+  def test_slim_select_announcements_follow_the_page_language
+    condition = { attribute: "status", operator: "eq", value: "active" }
+    I18n.with_locale(:es) do
+      render_inline(Bali::Filters::Condition::Component.new(
+        condition: condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+      ))
+    end
+    assert_selector('[data-controller="slim-select"][data-slim-select-deselect-text-value="Borrar selección"]')
+    assert_selector('[data-controller="slim-select"][data-slim-select-remove-text-value="Quitar"]')
+    assert_selector('[data-controller="slim-select"][data-slim-select-results-count-text-value="{count} resultados disponibles"]')
+
+    translations = JSON.parse(page.find('[data-controller="condition"]')["data-condition-translations-value"])
+    assert_equal({ "deselect" => "Borrar selección", "remove" => "Quitar", "results_count" => "{count} resultados disponibles" },
+                 translations["slim_select"])
+  end
+
   # The row paints no caption for any of its controls. cypress/e2e/filters-condition-names.cy.js
   # reads the same names from the accessibility tree, SlimSelect's combobox included.
   def test_names_the_field_and_the_operator_in_the_page_language
