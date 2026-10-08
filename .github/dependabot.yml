@@ -1,14 +1,29 @@
+# `no-changelog` lets the required Changelog Checker pass: Dependabot never
+# writes CHANGELOG.md. `dependencies` and the ecosystem label are the ones
+# Dependabot adds by default; listing labels replaces them, so they stay here.
 version: 2
 updates:
   - package-ecosystem: "bundler"
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ruby"
+      - "no-changelog"
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "no-changelog"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github_actions"
+      - "no-changelog"
