@@ -13,8 +13,9 @@ import { Controller } from '@hotwired/stimulus'
  *
  * Auto-grow runs between two bounds the markup already carries: the height of the
  * textarea EMPTY (its `rows`, unless `min-height-value` says otherwise) and any
- * `max-height` resolved for it in CSS, past which the field scrolls instead of
- * growing. It follows `form.reset()` as well as typing.
+ * `max-height` CSS applies to it — px, percentage, `calc()`, `clamp()` alike —
+ * past which the field scrolls instead of growing. It follows `form.reset()` as
+ * well as typing.
  */
 export class TextareaController extends Controller {
   static targets = ['input', 'counter']
@@ -92,7 +93,6 @@ export class TextareaController extends Controller {
 
     const textarea = this.inputTarget
 
-    textarea.style.overflowY = 'hidden'
     textarea.style.height = 'auto'
 
     if (textarea.value === '') {
@@ -100,12 +100,14 @@ export class TextareaController extends Controller {
       return
     }
 
-    const { value, selectionStart, selectionEnd } = textarea
+    // `selectionDirection` travels with the rest: `setSelectionRange` defaults its third
+    // argument to 'none', so a backwards selection would come back forwards (measured).
+    const { value, selectionStart, selectionEnd, selectionDirection } = textarea
 
     textarea.value = ''
     this.minHeightValue = textarea.scrollHeight + this.borderHeight()
     textarea.value = value
-    textarea.setSelectionRange(selectionStart, selectionEnd)
+    textarea.setSelectionRange(selectionStart, selectionEnd, selectionDirection)
   }
 
   // `form.reset()` clears the value WITHOUT firing `input`, the only event this controller
@@ -148,42 +150,40 @@ export class TextareaController extends Controller {
     textarea.style.height = 'auto'
 
     // A field that is not being rendered — `display: none`, a closed `<details>`, an inactive
-    // tab — measures 0. Writing that back collapses it until someone types; leave the height
-    // alone and let the stylesheet hold it until it is on screen.
-    if (textarea.scrollHeight === 0) return
+    // tab — measures 0, and anything written from that measurement is wrong. Nothing is left
+    // inline either: an `overflow-y: hidden` of ours beats the stylesheet and would show the
+    // field, once it finally has a box, clipped at its `rows` with no way to scroll. It still
+    // will not GROW until the first keystroke, because nothing re-measures when it appears:
+    // #1377.
+    if (textarea.scrollHeight === 0) {
+      textarea.style.height = ''
+      textarea.style.overflowY = ''
+      return
+    }
 
     // `scrollHeight` is the content box and `height` is the border box (`box-sizing:
     // border-box`), so the borders have to be added back or the field lands short of its own
-    // text — measured: 2px on daisyUI's `.textarea`, enough to clip a line with no way to
-    // scroll to it.
+    // text — measured: 2px on daisyUI's `.textarea`, enough to clip a line. They come off the
+    // computed style and the total is rounded UP, because `offsetHeight - clientHeight` is a
+    // difference of two separately rounded integers and loses a fractional border (a 1px CSS
+    // border is ~0.67 device px at 150% zoom).
     const wanted = Math.max(textarea.scrollHeight + this.borderHeight(), this.minHeightValue)
-    const height = Math.min(wanted, this.maxAllowedHeight())
+    textarea.style.height = `${Math.ceil(wanted)}px`
 
-    textarea.style.height = `${height}px`
-
-    // Decided here, and no longer a fixed `hidden` written once at setup. A host that capped
-    // the growth with `max-h-*` got a box that clipped the text with no way to reach it: the
-    // inline `hidden` beat the stylesheet, so there was no scrollbar and no scrolling, which
-    // ruled out capping an auto-grow field at all (#1371). Hidden while the content still
-    // fits, so no scrollbar flashes as it grows; `auto` the moment the cap bites.
-    textarea.style.overflowY = wanted > height ? 'auto' : 'hidden'
+    // The ceiling is NOT predicted from the computed `max-height`, it is measured after the
+    // fact: whatever CSS applied — px, a percentage that resolved against a sized parent,
+    // `calc()`, `clamp()` — is already in `clientHeight` by now. Reading the cap instead of
+    // measuring it meant guessing, and a percentage cannot be resolved from the computed value
+    // (`max-h-full` computes to the string `100%`): treating it as pixels capped the field at
+    // 100px, and treating it as no cap let CSS clip 414px of text with `overflow-y: hidden`
+    // written over it — both measured, both the #1371 defect over again.
+    textarea.style.overflowY = textarea.scrollHeight > textarea.clientHeight ? 'auto' : 'hidden'
   }
 
-  // Top plus bottom border: what `scrollHeight` leaves out and `height` counts in. Read with
-  // the vertical scrollbar already off, so it is the borders and nothing else.
+  // Top plus bottom border: what `scrollHeight` leaves out and `height` counts in.
   borderHeight () {
-    return this.inputTarget.offsetHeight - this.inputTarget.clientHeight
-  }
+    const { borderTopWidth, borderBottomWidth } = window.getComputedStyle(this.inputTarget)
 
-  // The ceiling is the `max-height` the cascade resolved, as long as it is ABSOLUTE. A
-  // percentage is not resolved against the container in the computed value — `max-height` is
-  // not one of the properties whose resolved value is the used value — so `max-h-full`
-  // computes to the string `100%` (measured), and reading a number out of it would cap the
-  // field at 100px. A percentage is therefore no ceiling at all, like `none`; `calc()` does
-  // compute to px and is honoured.
-  maxAllowedHeight () {
-    const { maxHeight } = window.getComputedStyle(this.inputTarget)
-
-    return maxHeight.endsWith('px') ? parseFloat(maxHeight) : Infinity
+    return parseFloat(borderTopWidth) + parseFloat(borderBottomWidth)
   }
 }

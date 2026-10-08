@@ -630,10 +630,10 @@ With `max-length` the counter reads `12 / 500` and turns red over the limit
 it is a plain character count. `min-height` floors the auto-grow; left alone, the
 floor is the height of the field **empty**, so `rows` is what it returns to.
 
-Cap the growth in CSS, not with an option — any **absolute** `max-height` the
-cascade resolves is honoured, and the field scrolls once it is reached. A
-percentage is not: `max-height` keeps it as a percentage in the computed value,
-so `max-h-full` is read as no cap at all rather than as 100px.
+Cap the growth in CSS, not with an option — whatever `max-height` CSS applies is
+honoured, and the field scrolls once it is reached. The cap is measured off the
+box and never read from the stylesheet, so a percentage, a `calc()` or a
+`clamp()` works the same as `max-h-48`:
 
 ```erb
 <%= f.text_area_group :body, rows: 2, auto_grow: true, input_class: "max-h-48" %>

@@ -25,32 +25,22 @@ describe('Textarea auto-grow bounds', () => {
         expect(getComputedStyle($field[0]).overflowY).to.equal('hidden')
       })
     })
+
+    // #1376 review. `scrollHeight` is the content box and `height` is the border box, so
+    // writing one into the other left the field two pixels short of its own text — clipped,
+    // and with no scrollbar to reach it, because below the cap the overflow is hidden.
+    it('leaves nothing out of reach below the cap', () => {
+      capped().type('a line\n'.repeat(3), { delay: 0 })
+
+      capped().should($field => {
+        expect($field[0].scrollHeight).to.be.at.most($field[0].clientHeight)
+      })
+    })
   })
 
   // The upper bound. Before the fix the controller wrote `overflow: hidden` once at setup, so
   // a `max-height` from the host clipped the text with no way to reach it: no scrollbar, no
   // scrolling, and therefore no way to cap an auto-grow field at all.
-  // #1376 review. The cap is read off the cascade, and only an absolute one is a cap: a
-  // percentage stays a percentage in the computed value, so reading a number out of it pinned
-  // `max-h-full` at 100px.
-  it('does not read a percentage max-height as pixels', () => {
-    capped().then($field => { $field[0].style.maxHeight = '100%' })
-    capped().type('a line\n'.repeat(20), { delay: 0 })
-
-    capped().should($field => expect(heightOf($field)).to.be.greaterThan(200))
-  })
-
-  // #1376 review. `scrollHeight` is the content box and `height` is the border box, so writing
-  // one into the other left the field two pixels short of its own text — clipped, and with no
-  // scrollbar to reach it because below the cap the overflow is hidden.
-  it('leaves nothing out of reach below the cap', () => {
-    capped().type('a line\n'.repeat(3), { delay: 0 })
-
-    capped().should($field => {
-      expect($field[0].scrollHeight).to.be.at.most($field[0].clientHeight)
-    })
-  })
-
   context('at the cap', () => {
     beforeEach(() => {
       capped().type('a line\n'.repeat(40), { delay: 0 })
@@ -66,6 +56,33 @@ describe('Textarea auto-grow bounds', () => {
 
     it('scrolls the overflow instead of hiding it', () => {
       capped().should($field => {
+        expect(getComputedStyle($field[0]).overflowY).to.equal('auto')
+        expect($field[0].scrollHeight).to.be.greaterThan($field[0].clientHeight)
+      })
+    })
+  })
+
+  // #1376 review, both of them. The cap is MEASURED after the height is written and not read
+  // off the computed `max-height`, because a percentage cannot be read: it stays a percentage
+  // in the computed value. Guessing it both ways was wrong — as pixels it pinned `max-h-full`
+  // at 100px, as no cap at all it let CSS clip the text under an `overflow-y: hidden` of ours.
+  context('with a cap that is not plain pixels', () => {
+    it('grows past a percentage that does not resolve', () => {
+      capped().then($field => { $field[0].style.maxHeight = '100%' })
+      capped().type('a line\n'.repeat(20), { delay: 0 })
+
+      capped().should($field => expect(heightOf($field)).to.be.greaterThan(200))
+    })
+
+    it('scrolls a percentage that CSS did resolve against a sized parent', () => {
+      capped().then($field => {
+        $field[0].closest('.control').style.height = '150px'
+        $field[0].style.maxHeight = '100%'
+      })
+      capped().type('a line\n'.repeat(20), { delay: 0 })
+
+      capped().should($field => {
+        expect(heightOf($field)).to.be.closeTo(150, 1)
         expect(getComputedStyle($field[0]).overflowY).to.equal('auto')
         expect($field[0].scrollHeight).to.be.greaterThan($field[0].clientHeight)
       })

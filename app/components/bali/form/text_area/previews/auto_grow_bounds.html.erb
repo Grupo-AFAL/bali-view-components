@@ -1,6 +1,6 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%# The cap is CSS, not an option: whatever `max-height` the cascade resolves is the
-      ceiling, and the field scrolls once it is reached. %>
+  <%# The cap is CSS, not an option, and it is measured off the box rather than read from the
+      stylesheet -- so a percentage or a `calc()` caps it just as well as these pixels. %>
   <%= form.text_area_group :text,
       rows: 2,
       auto_grow: true,

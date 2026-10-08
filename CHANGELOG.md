@@ -26,42 +26,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   actualízalo: las tres utilidades están ahí.
 
 - **`textarea` con `auto_grow`: un `form.reset()` devuelve el campo a su alto, y un `max-height`
-  del anfitrión por fin sirve** (#1371). Dos defectos del mismo controlador:
+  del anfitrión por fin sirve** (#1371).
 
   `form.reset()` borra el valor **sin** disparar `input`, el único evento que el controlador
-  escuchaba, así que el alto en línea del último tecleo se quedaba: un mensaje largo enviado por
-  un form de Turbo dejaba el campo crecido y **vacío**, tapando lo que había debajo hasta
-  recargar. Ahora el controlador escucha el `reset` del formulario y mide en la tarea siguiente:
-  el evento se dispara **antes** de que se limpien los controles, y en un clic real del usuario
-  hay un punto de microtareas entre el evento y el reset mismo, así que una microtarea mediría
-  el campo todavía lleno.
+  escuchaba: un mensaje largo enviado por un form de Turbo dejaba el campo crecido y **vacío**,
+  tapando lo que había debajo hasta recargar. Ahora el `reset` lo devuelve a su alto — y también
+  el **contador de caracteres**, que tenía la misma causa y se quedaba en rojo con el largo
+  anterior sobre el valor restaurado. El contador no es asunto del crecimiento, así que esto
+  vale con o sin `auto_grow`.
 
-  Y el `overflow: hidden` que escribía una sola vez al conectarse le ganaba a la hoja de
-  estilos, así que un `max-h-*` del anfitrión recortaba la caja sin dejar forma de alcanzar lo
-  que no cabía — no había barra ni scroll, es decir, no había manera de acotar el crecimiento.
-  El overflow vertical se decide ahora en cada medición: `hidden` mientras el contenido cabe
-  (sin parpadeo de barra al crecer) y `auto` en cuanto el tope muerde. El tope es el
-  `max-height` **absoluto** que resuelva la cascada — `input_class: "max-h-48"` y ya; no hay
-  opción nueva. Un porcentaje no cuenta como tope: `max-height` lo deja en porcentaje en el
-  valor computado, así que `max-h-full` se ignora en vez de leerse como 100 px.
+  Y el `overflow: hidden` que el controlador escribía una sola vez al conectarse le ganaba a la
+  hoja de estilos, así que un `max-h-*` del anfitrión recortaba la caja sin dejar forma de
+  alcanzar lo que no cabía. **Ya se puede acotar el crecimiento desde el CSS**: cualquier
+  `max-height` que el navegador aplique —píxeles, porcentaje, `calc()`— topa el campo y de ahí
+  en adelante hace scroll. `input_class: "max-h-48"` y ya; no hay opción nueva.
 
-  De paso, el piso del crecimiento es el alto del campo **vacío** y no el que tuviera al
-  conectarse: un campo renderizado con contenido no podía encoger por debajo de lo que el
-  servidor le mandó, ni con el `reset` ni borrándolo a mano.
-
-  Y el `reset` devuelve también el **contador de caracteres**, que tenía la misma causa raíz y
-  se quedaba leyendo el largo anterior —en rojo, sobre un campo vacío— tras un envío de Turbo.
-  El contador no es asunto del crecimiento, así que el `reset` se escucha con o sin
-  `auto_grow`.
-
-  Dos medidas que estaban mal y ya no: `scrollHeight` es la caja de contenido y `height` la de
-  borde (`box-sizing: border-box`), así que el campo quedaba 2 px corto de su propio texto, sin
-  barra con la cual alcanzarlo; y la medición se hacía con la barra puesta, que angosta el
-  contenido. Un campo que no se está pintando (`display: none`, un `<details>` cerrado) mide 0
-  y ya no se le escribe ese 0 como alto.
-
-  **Anfitrión:** nada que hacer. El único cambio visible fuera de los defectos es el piso, en un
-  campo `auto_grow` renderizado con contenido, que ahora sí puede volver a sus `rows`.
+  **Anfitrión:** nada que hacer. El único cambio visible fuera de los defectos es el piso del
+  crecimiento, que pasa a ser el alto del campo **vacío**: un `auto_grow` renderizado con
+  contenido no podía encoger por debajo de lo que el servidor le mandó, y ahora vuelve a sus
+  `rows`.
 
 ## [v3.10.1] - 2026-10-07
 
