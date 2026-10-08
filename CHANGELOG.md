@@ -55,8 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 
-- **La dummy prueba las menores y parches nuevos, sin cambiar de mayor.** Ningún piso cambia y
-  ninguna app tiene que hacer nada; quien quiera alinearse, `yarn upgrade <paquete>@^<versión>`.
+- **La dummy prueba las menores y parches nuevos, sin cambiar de mayor.** Ningún piso cambia, y
+  salvo `prosemirror-view` en afal-apps ninguna app tiene que hacer nada; quien quiera
+  alinearse, `yarn upgrade <paquete>@^<versión>`.
   - `react` y `react-dom` 19.2.4 → 19.3.0.
   - `@xyflow/react` 12.11.2 → 12.12.0 (Gantt).
   - `date-fns` 4.1.0 → 4.4.0.
@@ -64,8 +65,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `@mantine/core` y `@mantine/hooks` 8.3.16 → 8.3.18; Mantine 9 sigue fuera del rango.
   - `@react-pdf/renderer` 4.3.2 → 4.9.0 y `docx` 9.7.1 → 9.9.0, con los que BlockEditor exporta
     a PDF y Word (gobierno-corporativo los instala).
-  - Sólo de este repo: `cypress` 16.1.0 → 16.1.1 (reemplaza al PR de Dependabot #1316),
-    `esbuild` 0.28.2, `zod` 4.6.5 y los `@tiptap/*` 3.31.4 que trae BlockNote.
+  - `prosemirror-view` 1.42.2 → 1.42.6, que BlockEditor recibe de BlockNote: cierra
+    GHSA-c8x8-7fp4-3x9w (alta, XSS al pegar, corregido en 1.42.3). afal-apps está en 1.42.2:
+    borrar su bloque del `yarn.lock` y `yarn install` lo re-resuelve dentro del rango.
+    gobierno-corporativo ya está en 1.42.6.
+  - Sólo de este repo: `cypress` 16.1.0 → 16.1.1, `esbuild` 0.28.2, `zod` 4.6.5, los
+    `@tiptap/*` 3.31.4 que trae BlockNote y `brace-expansion` 5.0.9 → 5.0.12 en la raíz
+    (GHSA-q2hr-2g5m-vwhr, media). Reemplaza a los PRs de Dependabot #1316, #1366 y #1228.
 
 ## [v3.10.2] - 2026-10-08
 
