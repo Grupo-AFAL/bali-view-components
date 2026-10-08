@@ -102,9 +102,10 @@ skipped quietly.
 
 ## Pre-Commit Checklist
 
-Rubocop and Minitest run automatically via `.githooks` (pre-commit and pre-push), in a clone
-where `git config core.hooksPath .githooks` was run — README § Setup. Cypress does not — run
-`yarn run cy:run` yourself when you touch JS, and confirm the Lookbook preview renders.
+`.githooks` runs RuboCop and StandardJS on the staged files before a commit and Minitest before
+a push, in a clone where `git config core.hooksPath .githooks` was run — README § Setup.
+Cypress does not run — run `yarn run cy:run` yourself when you touch JS, and confirm the
+Lookbook preview renders.
 
 **The PR body opens with `Closes #NNN` — in English.** GitHub only closes the issue on merge with
 `Closes` / `Fixes` / `Resolves`. «Cierra #NNN» reads fine and closes nothing. The rest of the body

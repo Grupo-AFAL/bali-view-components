@@ -52,7 +52,7 @@ git checkout -b release/vX.Y.Z
 | `package.json` | `"version": "X.Y.Z"` (npm spelling for pre-releases: `X.Y.0-beta.N`) |
 | `Gemfile.lock` | `bundle install` — never by hand |
 | `README.md` | install snippet `tag: "vX.Y.Z"` |
-| `docs/guides/installation.md` | `tag: "vX.Y.Z"` and the transcript `=> "X.Y.Z"` |
+| `docs/guides/installation.md` | `tag: "vX.Y.Z"`, the npm pin `#vX.Y.Z` and the transcript `=> "X.Y.Z"` |
 | `CHANGELOG.md` | `## [Unreleased]` → `## [vX.Y.Z] - YYYY-MM-DD`; merge repeated `###` headings; leave an empty `## [Unreleased]` on top |
 
 Before touching the CHANGELOG, check that every entry since the last tag landed under

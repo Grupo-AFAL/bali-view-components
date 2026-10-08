@@ -1804,6 +1804,9 @@ __metadata:
     slim-select: ">=2.0.0"
     sortablejs: ">=1.15.0"
     tippy.js: ">=6.0.0"
+  dependenciesMeta:
+    cypress:
+      built: true
   peerDependenciesMeta:
     "@blocknote/core":
       optional: true

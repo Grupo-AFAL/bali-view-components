@@ -177,18 +177,23 @@ still resolve for one more cycle, warning through `Bali.deprecator`
 
 ### Setup
 
-The repository uses Yarn 4 through Corepack, which ships with Node; the `packageManager`
-field in `package.json` pins the version. A global Yarn 1 refuses to run here.
+The repository uses Yarn 4 through Corepack, and the `packageManager` field in `package.json`
+pins the version. Corepack ships with Node 22 and 24; from Node 25 it is a separate
+`npm install -g corepack`. A global Yarn 1 refuses to run here.
 
 ```bash
-corepack enable
-git config core.hooksPath .githooks   # RuboCop and StandardJS on commit, Minitest on push
+corepack enable                       # once per Node installation
+yarn --version                        # 4.18.1
+git config core.hooksPath .githooks   # once per clone: RuboCop and StandardJS on commit, Minitest on push
+bundle install
 yarn install && (cd test/dummy && yarn install)
+(cd test/dummy && bin/rails db:schema:load db:seed)   # Lookbook and Cypress read the seeds
+RAILS_ENV=test bin/rails db:schema:load               # Minitest
 ```
 
-`yarn.lock` records the whole of `package.json`, peer ranges included, so an edit to
-`package.json` is committed with the lockfile `yarn install` rewrites: CI installs with the
-lockfile frozen and stops at `YN0028`.
+`yarn.lock` records the dependency ranges of `package.json`, peers included, so an edit to
+them is committed with the lockfile `yarn install` rewrites: CI installs with the lockfile
+frozen and stops at `YN0028`.
 
 ### Running the Preview Server
 

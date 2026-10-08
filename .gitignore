@@ -7,7 +7,8 @@
 /tmp/
 
 /node_modules
-.yarn/
+**/.yarn/*
+!**/.yarn/patches
 .env
 
 /coverage
