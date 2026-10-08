@@ -31,6 +31,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   queda fuera del tope de RichTextEditor (`<3`) sin consecuencia: es un peer opcional, y ni Yarn 1
   ni npm lo revisan cuando llega como dependencia de otro paquete.
 
+### Dependencies
+
+- **La dummy prueba las menores y parches nuevos, sin cambiar de mayor.** Ningún piso cambia y
+  ninguna app tiene que hacer nada; quien quiera alinearse, `yarn upgrade <paquete>@^<versión>`.
+  - `react` y `react-dom` 19.2.4 → 19.3.0.
+  - `@xyflow/react` 12.11.2 → 12.12.0 (Gantt).
+  - `date-fns` 4.1.0 → 4.4.0.
+  - `@rails/activestorage` 8.1.200 → 8.1.400.
+  - `@mantine/core` y `@mantine/hooks` 8.3.16 → 8.3.18; Mantine 9 sigue fuera del rango.
+  - `@react-pdf/renderer` 4.3.2 → 4.9.0 y `docx` 9.7.1 → 9.9.0, con los que BlockEditor exporta
+    a PDF y Word (gobierno-corporativo los instala).
+  - Sólo de este repo: `cypress` 16.1.0 → 16.1.1 (reemplaza al PR de Dependabot #1316),
+    `esbuild` 0.28.2, `zod` 4.6.5 y los `@tiptap/*` 3.31.4 que trae BlockNote.
+
 ## [v3.10.2] - 2026-10-08
 
 ### Changed
