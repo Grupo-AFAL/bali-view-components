@@ -334,6 +334,12 @@ FilterForm is organized into focused concerns for maintainability:
   the query. So an attribute passed to
   `with_filters_panel(available_attributes:)` and not offered by the form filters nothing:
   offer it from the form.
+- **The flat attributes and the simple filters take the same values** (#1351): a list only
+  where the predicate takes one, with members that fit their column; a scalar with no control
+  characters everywhere else. Anything else never reaches Ransack: a flat attribute falls back
+  to its `default`, and a simple filter's control paints empty rather than its `default:`. A
+  `toggle_group` declared in the DSL needs a list predicate (`predicate: :in`) or the class
+  raises; an instance-level `simple_filters:` hash without one filters nothing.
 - **`groupings` is the state as it arrived, normalized but not gated; `filter_groups` is what
   is applied.** The gate runs lazily, after the host's `initialize`, because a host's
   `available_attributes` may need state set after `super` — and it runs it once more, so

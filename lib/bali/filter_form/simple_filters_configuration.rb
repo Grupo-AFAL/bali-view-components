@@ -281,9 +281,11 @@ module Bali
         predicate.present? ? "#{attribute}_#{predicate}" : attribute.to_s
       end
 
-      # Get current value for a simple filter from params
+      # Get current value for a simple filter from params. One the query cannot take is
+      # read as emptied, not as absent: absent, the row paints the filter's `default:`,
+      # which this request does not apply (#1351).
       def current_simple_filter_value(attribute, predicate = :eq)
-        key = predicate.present? ? "#{attribute}_#{predicate}" : attribute.to_s
+        key = simple_filter_key(attribute, predicate)
 
         # 1. Try raw params first (for non-persisted immediate feedback)
         value = nil
@@ -291,12 +293,9 @@ module Bali
 
         # 2. Try instance attribute (for persisted/restored values)
         value ||= send(key) if attributes_initialized? && respond_to?(key)
+        value = value.compact_blank if value.is_a?(Array)
 
-        if value.is_a?(Array)
-          return value.compact_blank
-        end
-
-        value
+        queryable_condition?(key, value) ? value : ""
       end
 
       # Whether this form has run ActiveModel's own initializer yet.

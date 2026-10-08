@@ -176,7 +176,7 @@ module Bali
       #
       # @example Simple UI only, custom widget
       #   filter_attribute :priority, type: :select, simple: true, advanced: false,
-      #     options: [['High', 'high'], ['Low', 'low']], input: :toggle_group
+      #     options: [['High', 'high'], ['Low', 'low']], input: :toggle_group, predicate: :in
       #
       # @example Pills that filter on click
       #   filter_attribute :status, type: :select, simple: true, advanced: false,
@@ -197,6 +197,7 @@ module Bali
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
         validate_auto_submit(key, resolved_input, auto_submit)
         validate_default(key, default, simple, advanced)
+        validate_list_input(key, resolved_input, predicate)
 
         filter_attributes << {
           key: key.to_sym,
@@ -272,6 +273,16 @@ module Bali
               "filter_attribute #{key}: auto_submit: true only applies to single-choice " \
               "widgets (#{AUTO_SUBMIT_INPUTS.join(', ')}) declared with simple: true; " \
               "this one is #{widget ? ":#{widget}" : 'not a simple filter'}"
+      end
+
+      # A `toggle_group` sends a list, which only a list predicate takes: on `_eq` the form
+      # drops it as no filter (#1351), so the row would render pills that never filter.
+      def validate_list_input(key, widget, predicate)
+        return unless widget == :toggle_group
+        return if Ransack::Predicate.named(predicate.to_s)&.wants_array
+
+        raise ArgumentError, "filter_attribute #{key}: input: :toggle_group sends a list, which " \
+                             "predicate: :#{predicate || :eq} does not take; declare predicate: :in"
       end
     end
 
@@ -410,8 +421,9 @@ module Bali
         )
       end
 
-      # The same values a panel condition takes, from every source above (#1346).
+      # The same values a panel condition takes, from every source above (#1346, #1351).
       @search_value = nil unless queryable_value?(@search_value)
+      attributes = attributes.select { |key, value| queryable_condition?(key.to_s, value) }
 
       # Last, after persistence — see {GroupByConfiguration#apply_default_group_by} (#1156).
       apply_default_group_by

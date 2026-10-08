@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`FilterForm`: los atributos planos y los filtros simples siguen la regla de valores del
+  panel** (#1351). Un valor con caracteres de control, una lista donde va un escalar o un id que
+  no cabe en su columna dentro de un `_in` ya no llega a Ransack: el atributo plano vuelve a su
+  `default`, y el control del filtro simple queda vacío, no en su `default:`, que no se aplicaría.
+  Un NUL (`?q[name_cont]=a%00b`) daba 500, y con la persistencia de filtros o una vista guardada,
+  en cada visita. Un `filter_attribute` con `input: :toggle_group` (o un `simple_filter` con
+  `type: :toggle_group`) y un predicado que no toma listas, como el `:eq` por omisión, ahora
+  falla al cargar la clase: su lista nunca filtró bien. Declara `predicate: :in`. Ninguna app de
+  la flota tiene uno así; no hay nada que hacer en el anfitrión.
 - **`file_group` / `file_field`: el botón ya no se encima con el nombre del archivo en una
   columna angosta** (#1370). Los dos hijos del contenedor son ítems flex que encogen por
   omisión, así que en una barra lateral o un cajón la etiqueta quedaba más angosta que su propio
