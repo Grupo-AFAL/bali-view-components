@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Bali se desarrolla con Yarn 4.18.1 (vía Corepack) en lugar de Yarn 1.** Una app en Yarn 1 no
+  tiene nada que hacer: instala Bali desde su etiqueta igual que antes, con o sin Corepack. Una
+  app que pase a Yarn 4.18 tiene que aprobar el repositorio en su `.yarnrc.yml`
+  (`approvedGitRepositories`, en `docs/guides/release-channels.md`), y a cambio deja de instalar
+  las devDependencies de Bali para empaquetarlo: con Bali en Yarn 1, un `yarn install` en frío
+  bajaba el binario de Cypress (802 MB). Quien desarrolla Bali corre una vez por clon
+  `corepack enable` y `git config core.hooksPath .githooks` (README § Setup): Yarn 4 no corre el
+  script `prepare` que conectaba los hooks.
+
 ## [v3.10.2] - 2026-10-08
 
 ### Changed

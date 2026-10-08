@@ -48,6 +48,17 @@ no controller answers: no exception, no console error, a toolbar that simply sto
 collapsing. So `bundle update bali_view_components` without the matching `yarn upgrade` is
 not a smaller upgrade, it is half of one — and the half that fails silently.
 
+**An app on Yarn 4.18 or later also approves the repository**, or `yarn install` stops at the
+pin before fetching anything (`YN0080 … doesn't match any of the patterns in
+'approvedGitRepositories'`). In the app's `.yarnrc.yml`:
+
+```yaml
+approvedGitRepositories:
+  - "https://github.com/Grupo-AFAL/**"
+```
+
+An app migrated from Yarn 1 already has `["**"]` there: the migration writes it.
+
 `test/dummy` is the exception that proves the rule. It consumes the package as
 `"bali-view-components": "link:../.."`, so its two halves *are* the working tree and can
 never disagree, which is also why a version skew can never be caught by this repo's own

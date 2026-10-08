@@ -28,6 +28,11 @@ jobs:
         with:
           bundler-cache: true
 
+      # Before setup-node, whose yarn cache asks `yarn` for its cache folder: the
+      # runner's global yarn 1 refuses a project whose packageManager is yarn 4.
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:

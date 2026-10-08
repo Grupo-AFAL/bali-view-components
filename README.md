@@ -175,6 +175,21 @@ still resolve for one more cycle, warning through `Bali.deprecator`
 
 ## Development
 
+### Setup
+
+The repository uses Yarn 4 through Corepack, which ships with Node; the `packageManager`
+field in `package.json` pins the version. A global Yarn 1 refuses to run here.
+
+```bash
+corepack enable
+git config core.hooksPath .githooks   # RuboCop and StandardJS on commit, Minitest on push
+yarn install && (cd test/dummy && yarn install)
+```
+
+`yarn.lock` records the whole of `package.json`, peer ranges included, so an edit to
+`package.json` is committed with the lockfile `yarn install` rewrites: CI installs with the
+lockfile frozen and stops at `YN0028`.
+
 ### Running the Preview Server
 
 ```bash

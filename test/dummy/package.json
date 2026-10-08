@@ -1,6 +1,6 @@
 {
   "name": "app",
-  "private": "true",
+  "private": true,
   "scripts": {
     "build": "node esbuild.config.mjs",
     "build:watch": "node esbuild.config.mjs --watch"
