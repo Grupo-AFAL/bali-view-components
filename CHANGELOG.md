@@ -31,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   queda fuera del tope de RichTextEditor (`<3`) sin consecuencia: es un peer opcional, y ni Yarn 1
   ni npm lo revisan cuando llega como dependencia de otro paquete.
 
+## [v3.10.2] - 2026-10-08
+
+### Changed
+
 - **Los PRs de Dependabot llevan la etiqueta `no-changelog`.** Dependabot no escribe en
   `CHANGELOG.md`, y el Changelog Checker, que es requerido, dejaba bloqueados todos sus PRs
   (#1366, #1316, #1228). Conservan `dependencies` y la etiqueta de su ecosistema, que son las que
