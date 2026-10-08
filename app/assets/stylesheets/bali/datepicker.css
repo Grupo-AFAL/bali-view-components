@@ -10,8 +10,11 @@
  * Cascade layers beat specificity, so from @layer components
  * `.flatpickr-calendar.static` (reachable through the controller's `static:`
  * value) would lose its `position` and the calendar would render in the wrong
- * place. Nothing here is markup a host can put utilities on either — flatpickr
- * builds this DOM itself — so the layer would buy nothing.
+ * place. daisyUI is the other adversary: with `alt_input: false` the field
+ * itself carries `.input`, whose `cursor: text` would beat
+ * `.flatpickr-input[readonly]` from there. Apart from that field, nothing here
+ * is markup a host can put utilities on — flatpickr builds this DOM itself —
+ * so the layer would buy nothing.
  */
 
 /* =============================================================================
@@ -64,7 +67,7 @@
   background: var(--fp-bg-color);
   border: 1px solid var(--fp-border-color);
   border-radius: var(--fp-border-radius);
-  box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
+  @apply shadow-lg;
   z-index: var(--bali-z-popover);
   animation: none;
 }
@@ -82,16 +85,16 @@
 
 /* Inside a modal overlay the calendar joins the top layer as a popover, which is
  * the only way it stays clickable — see assets/javascripts/bali/utils/top-layer.js
- * for the hit-test. That brings the UA's `[popover]` rules with it, and the three
- * declarations the block above does not already state leak through: `inset: 0`
- * fights the coordinates flatpickr writes, `margin: auto` then centres what is
- * left, and `overflow: auto` turns the calendar into a scroll container that
- * clips its own arrow. Everything else (position, width, padding, border,
- * background) is declared above and wins on origin alone. */
+ * for the hit-test. That brings the UA's `[popover]` rules with it, and those the
+ * block above does not already state leak through: `inset: 0` fights the
+ * coordinates flatpickr writes, `margin: auto` then centres what is left, and
+ * `color: CanvasText` replaces the inherited colour. Everything else (position,
+ * width, padding, border, background) is declared above and wins on origin
+ * alone; the UA's `overflow: auto` finds nothing past the calendar's edge to
+ * clip. */
 .flatpickr-calendar[popover] {
   inset: auto;
   margin: 0;
-  overflow: visible;
   color: inherit;
 }
 
@@ -107,69 +110,6 @@
 
 .flatpickr-calendar:focus {
   outline: 0;
-}
-
-/* Arrow pointing to input */
-.flatpickr-calendar:before,
-.flatpickr-calendar:after {
-  position: absolute;
-  display: block;
-  pointer-events: none;
-  border: solid transparent;
-  content: '';
-  height: 0;
-  width: 0;
-  left: 22px;
-}
-
-.flatpickr-calendar:before {
-  border-width: 6px;
-  margin: 0 -6px;
-}
-
-.flatpickr-calendar:after {
-  border-width: 5px;
-  margin: 0 -5px;
-}
-
-.flatpickr-calendar.arrowTop:before,
-.flatpickr-calendar.arrowTop:after {
-  bottom: 100%;
-}
-
-.flatpickr-calendar.arrowTop:before {
-  border-bottom-color: var(--fp-border-color);
-}
-
-.flatpickr-calendar.arrowTop:after {
-  border-bottom-color: var(--fp-primary-color);
-}
-
-.flatpickr-calendar.arrowBottom:before,
-.flatpickr-calendar.arrowBottom:after {
-  top: 100%;
-}
-
-.flatpickr-calendar.arrowBottom:before {
-  border-top-color: var(--fp-border-color);
-}
-
-.flatpickr-calendar.arrowBottom:after {
-  border-top-color: var(--fp-bg-color);
-}
-
-.flatpickr-calendar.rightMost:before,
-.flatpickr-calendar.arrowRight:before,
-.flatpickr-calendar.rightMost:after,
-.flatpickr-calendar.arrowRight:after {
-  left: auto;
-  right: 22px;
-}
-
-.flatpickr-calendar.arrowCenter:before,
-.flatpickr-calendar.arrowCenter:after {
-  left: 50%;
-  right: 50%;
 }
 
 /* =============================================================================
@@ -229,15 +169,14 @@
   opacity: 0.7;
 }
 
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg {
+  fill: color-mix(in oklab, var(--fp-primary-content) 80%, transparent);
+}
+
 .flatpickr-months .flatpickr-prev-month.flatpickr-disabled,
 .flatpickr-months .flatpickr-next-month.flatpickr-disabled {
   display: none;
-}
-
-/* Arrows are now flex items, no absolute positioning needed */
-.flatpickr-months .flatpickr-prev-month.flatpickr-prev-month,
-.flatpickr-months .flatpickr-next-month.flatpickr-next-month {
-  /* No positioning needed - flexbox handles order */
 }
 
 .flatpickr-months .flatpickr-prev-month svg,
@@ -422,11 +361,11 @@ span.flatpickr-weekday {
   flex: 1;
   display: block;
   margin: 0;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--fp-muted-color);
   text-align: center;
-  line-height: 1;
+  line-height: 1.25rem;
   cursor: default;
 }
 
@@ -498,44 +437,6 @@ span.flatpickr-weekday {
   background: var(--fp-hover-bg);
 }
 
-/* Today indicator */
-.flatpickr-day.today {
-  border-color: var(--fp-today-border);
-}
-
-.flatpickr-day.today:hover,
-.flatpickr-day.today:focus {
-  background: var(--fp-range-bg);
-  border-color: var(--fp-today-border);
-  color: var(--fp-font-color);
-}
-
-/* Selected day */
-.flatpickr-day.selected,
-.flatpickr-day.startRange,
-.flatpickr-day.endRange,
-.flatpickr-day.selected.inRange,
-.flatpickr-day.startRange.inRange,
-.flatpickr-day.endRange.inRange,
-.flatpickr-day.selected:focus,
-.flatpickr-day.startRange:focus,
-.flatpickr-day.endRange:focus,
-.flatpickr-day.selected:hover,
-.flatpickr-day.startRange:hover,
-.flatpickr-day.endRange:hover,
-.flatpickr-day.selected.prevMonthDay,
-.flatpickr-day.startRange.prevMonthDay,
-.flatpickr-day.endRange.prevMonthDay,
-.flatpickr-day.selected.nextMonthDay,
-.flatpickr-day.startRange.nextMonthDay,
-.flatpickr-day.endRange.nextMonthDay {
-  background: var(--fp-primary-color);
-  color: var(--fp-primary-content);
-  border-color: var(--fp-primary-color);
-  font-weight: 600;
-  box-shadow: none;
-}
-
 /* Range selection. The fill runs under the transparent border, as on hover. No band either:
    flatpickr bridges the 5px between its days with a ±5px box-shadow, and here they are 1.7px
    apart, so a translucent band paints twice over each neighbour. */
@@ -580,6 +481,46 @@ span.flatpickr-weekday {
   background: transparent;
   border-color: transparent;
   cursor: not-allowed;
+}
+
+/* Today comes after the adjacent-month and disabled days on purpose: at the same specificity,
+   the later rule is what keeps the ring on a today that is disabled (a weekend, with
+   `disable_weekends`) or shown among another month's days. */
+.flatpickr-day.today {
+  border-color: var(--fp-today-border);
+}
+
+.flatpickr-day.today:hover,
+.flatpickr-day.today:focus {
+  background: var(--fp-range-bg);
+  border-color: var(--fp-today-border);
+  color: var(--fp-font-color);
+}
+
+/* Selected day */
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected.inRange,
+.flatpickr-day.startRange.inRange,
+.flatpickr-day.endRange.inRange,
+.flatpickr-day.selected:focus,
+.flatpickr-day.startRange:focus,
+.flatpickr-day.endRange:focus,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover,
+.flatpickr-day.selected.prevMonthDay,
+.flatpickr-day.startRange.prevMonthDay,
+.flatpickr-day.endRange.prevMonthDay,
+.flatpickr-day.selected.nextMonthDay,
+.flatpickr-day.startRange.nextMonthDay,
+.flatpickr-day.endRange.nextMonthDay {
+  background: var(--fp-primary-color);
+  color: var(--fp-primary-content);
+  border-color: var(--fp-primary-color);
+  font-weight: 600;
+  box-shadow: none;
 }
 
 /* Hidden day */
@@ -793,105 +734,5 @@ span.flatpickr-weekday {
 .flatpickr.is-horizontal {
   @media (max-width: 768px) {
     display: flex;
-  }
-}
-
-/* =============================================================================
-   DaisyUI Theme Overrides
-   These use @apply for Tailwind utilities where appropriate
-   ============================================================================= */
-
-/* Calendar container - enhanced with DaisyUI tokens */
-.flatpickr-calendar {
-  @apply bg-base-100 shadow-lg rounded-lg;
-  font-family: inherit;
-}
-
-/* Month header - primary background */
-.flatpickr-months {
-  @apply bg-primary rounded-t-lg;
-
-  .flatpickr-month {
-    @apply text-primary-content;
-  }
-
-  .flatpickr-next-month,
-  .flatpickr-prev-month {
-    @apply fill-primary-content;
-
-    &:hover svg {
-      @apply fill-primary-content/80;
-    }
-  }
-}
-
-/* Current month text */
-.flatpickr-current-month {
-  .flatpickr-monthDropdown-months,
-  input.cur-year {
-    @apply text-primary-content font-semibold;
-  }
-}
-
-/* Hide the arrow pointing to input - cleaner look matching other dropdowns.
-   No !important: the only rule that sets `display` on these pseudo-elements is
-   the `.flatpickr-calendar:before/:after` block earlier in this file, same
-   specificity (0,1,1), and this one comes later. */
-.flatpickr-calendar:before,
-.flatpickr-calendar:after {
-  display: none;
-}
-
-/* Weekday labels */
-span.flatpickr-weekday {
-  @apply text-base-content/70 font-semibold text-sm;
-}
-
-/* Day cells */
-.flatpickr-day {
-  @apply text-base-content rounded-lg;
-}
-
-/* Today indicator */
-.flatpickr-day.today {
-  @apply border-primary;
-
-  &:hover,
-  &:focus {
-    @apply bg-primary/20 border-primary text-base-content;
-  }
-}
-
-/* Selected day */
-.flatpickr-day.selected,
-.flatpickr-day.startRange,
-.flatpickr-day.endRange,
-.flatpickr-day.selected.inRange,
-.flatpickr-day.startRange.inRange,
-.flatpickr-day.endRange.inRange,
-.flatpickr-day.selected:focus,
-.flatpickr-day.startRange:focus,
-.flatpickr-day.endRange:focus,
-.flatpickr-day.selected:hover,
-.flatpickr-day.startRange:hover,
-.flatpickr-day.endRange:hover,
-.flatpickr-day.selected.prevMonthDay,
-.flatpickr-day.startRange.prevMonthDay,
-.flatpickr-day.endRange.prevMonthDay,
-.flatpickr-day.selected.nextMonthDay,
-.flatpickr-day.startRange.nextMonthDay,
-.flatpickr-day.endRange.nextMonthDay {
-  @apply bg-primary text-primary-content border-primary font-semibold;
-}
-
-/* Time picker */
-.flatpickr-time {
-  input {
-    @apply text-base-content;
-  }
-
-  .flatpickr-time-separator,
-  .flatpickr-am-pm {
-    @apply text-base-content;
   }
 }

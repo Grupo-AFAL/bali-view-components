@@ -36,6 +36,8 @@
         </header>
       <% end %>
 
+      <%# `tabindex="-1"` has two readers: the skip link, and `ModalController#_focusAfterClose`,
+          which sends the focus here when a closing Modal or Drawer has no trigger to return to. %>
       <main id="<%= main_id %>" tabindex="-1" class="flex-1">
         <div class="<%= body_container_classes %>">
           <%= body? ? body : content %>

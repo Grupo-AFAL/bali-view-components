@@ -146,6 +146,38 @@ describe('ModalController', () => {
         expect($el.closest('[data-modal-target="wrapper"]')).to.have.length(1)
       })
     })
+
+    // The panel's last stop, as the trap has to see it. Left out of the trap, a summary, an
+    // editable region or a player was skipped: Tab from the field before it wrapped to the ✕.
+    // Counted in, a disabled Save let Tab out of the overlay from the Cancel before it.
+    ;[
+      ['the summary of a details', '<details><summary id="last">More</summary><p>Detail</p></details>'],
+      ['an editable region', '<div id="last" contenteditable="true">Notes</div>'],
+      ['an audio player', '<audio id="last" controls></audio>'],
+      ['a video player', '<video id="last" controls></video>'],
+      ['the Cancel before a disabled Save', '<button id="last" type="button">Cancel</button><button type="submit" disabled>Save</button>']
+    ].forEach(([what, html]) => {
+      it(`wraps Shift+Tab from the ✕ to ${what} at the end of the panel`, () => {
+        openWith(`<input id="first-field">${html}`)
+        cy.focused().should('have.attr', 'aria-label')
+
+        cy.focused().trigger('keydown', { key: 'Tab', shiftKey: true })
+        cy.focused().should('have.id', 'last')
+      })
+    })
+
+    // An editor that takes Tab for itself — BlockNote nests a block, ProseMirror calls
+    // `preventDefault` and lets the key bubble — keeps the focus even as the trap's last stop.
+    it('leaves a Tab the last control already handled to that control', () => {
+      openWith('<input id="first-field"><div id="last" contenteditable="true">Notes</div>')
+      cy.get('#last').then(($editor) => {
+        $editor[0].addEventListener('keydown', event => event.preventDefault())
+        $editor[0].focus()
+      })
+
+      cy.focused().trigger('keydown', { key: 'Tab' })
+      cy.focused().should('have.id', 'last')
+    })
   })
 
   // A panel rendered `active:` is opened by its controller's `connect`, with no trigger.
@@ -161,6 +193,101 @@ describe('ModalController', () => {
 
         cy.focused().should('match', firstControl)
       })
+    })
+  })
+
+  // With no trigger to go back to, closing left the focus on <body>: in AppLayout, whose
+  // panels sit at the end of <main>, the next Tab went to the skip link at the top of the page.
+  context('focus after closing a panel no click opened', () => {
+    it('goes to <main> when the panel was rendered open', () => {
+      cy.visit('/bali/app_layout/drawer_opened_by_the_server')
+      cy.focused().should('have.id', 'project_name')
+
+      cy.focused().type('{esc}')
+      cy.get('#new-project-drawer').should('not.have.class', 'drawer-open')
+      cy.focused().should('match', 'main#main-content')
+    })
+
+    // In a browser the field's `autofocus` takes the focus on page load, before the
+    // controller connects, and leaves nothing outside the panel to remember. Cypress's frame
+    // does not run `autofocus`, so the field takes it by hand as the replaced panel connects.
+    it('goes to <main> when the focus was in the panel before its controller connected', () => {
+      cy.visit('/bali/app_layout/drawer_opened_by_the_server')
+      cy.focused().should('have.id', 'project_name')
+
+      cy.get('#new-project-drawer').then(([dialog]) => {
+        const replaced = dialog.cloneNode(true)
+        replaced.removeAttribute('open')
+        replaced.setAttribute('data-replaced', '')
+        dialog.replaceWith(replaced)
+        replaced.querySelector('#project_name').focus()
+      })
+      cy.get('#new-project-drawer[data-replaced]').should('have.attr', 'open')
+      cy.focused().should('have.id', 'project_name')
+
+      cy.focused().type('{esc}')
+      cy.get('#new-project-drawer').should('not.have.class', 'drawer-open')
+      cy.focused().should('match', 'main#main-content')
+    })
+
+    const openEvents = [
+      { event: 'bali:drawer:open', panel: 'main-drawer', openClass: 'drawer-open' },
+      { event: 'bali:modal:open', panel: 'main-modal', openClass: 'modal-open' }
+    ]
+    openEvents.forEach(({ event, panel, openClass }) => {
+      it(`goes to <main> when an open event opened it: ${event}`, () => {
+        cy.visit('/bali/app_layout/default')
+        cy.document().then(doc => {
+          doc.dispatchEvent(new CustomEvent(event, { detail: { id: panel, content: null, options: {} } }))
+        })
+        cy.focused().should($el => expect($el.closest(`#${panel}`)).to.have.length(1))
+
+        cy.focused().type('{esc}')
+        cy.get(`#${panel}`).should('not.have.class', openClass)
+        cy.focused().should('match', 'main#main-content')
+      })
+    })
+
+    // Removed while its panel was open — not by the stream of a submit, which lands the frame
+    // after the close and finds the focus already back on it.
+    it('goes to <main> when the trigger that opened it is gone', () => {
+      cy.visit('/bali/app_layout/overlay_triggers')
+      cy.get('[data-testid="topbar-drawer-trigger"]').click()
+      cy.get('#main-drawer').should($dialog => {
+        expect($dialog[0].matches(':modal'), 'open').to.equal(true)
+        expect($dialog.text(), 'the fetched content').to.include('John Doe')
+      })
+
+      cy.get('[data-testid="topbar-drawer-trigger"]').then(([trigger]) => trigger.remove())
+      cy.focused().type('{esc}')
+      cy.get('#main-drawer').should('not.have.class', 'drawer-open')
+      cy.focused().should('match', 'main#main-content')
+    })
+
+    // A Turbo Stream that replaces the panel with an open one: what held the focus then is
+    // still where the reader was. No `id` on it: Turbo hands the focus back to an element
+    // with one once a stream has rendered, and here that is a control the panel blocks.
+    it('goes back to what held it when a stream put the panel there open', () => {
+      cy.visit('/bali/app_layout/default')
+      cy.get('main').then(([main]) => {
+        main.insertAdjacentHTML('afterbegin', '<button data-testid="opener-probe">Save</button>')
+        main.querySelector('[data-testid="opener-probe"]').focus()
+      })
+
+      cy.window().then(win => {
+        const opened = win.document.getElementById('main-drawer').cloneNode(true)
+        opened.classList.add('drawer-open')
+        opened.removeAttribute('inert')
+        opened.setAttribute('data-streamed', '')
+        win.Turbo.renderStreamMessage(
+          `<turbo-stream action="replace" target="main-drawer"><template>${opened.outerHTML}</template></turbo-stream>`
+        )
+      })
+      cy.get('#main-drawer[data-streamed]').should('have.attr', 'open')
+
+      cy.focused().type('{esc}')
+      cy.get('#main-drawer').should('not.have.class', 'drawer-open')
+      cy.focused().should('have.attr', 'data-testid', 'opener-probe')
     })
   })
 

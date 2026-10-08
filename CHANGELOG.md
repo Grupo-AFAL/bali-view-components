@@ -7,6 +7,285 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.10.2] - 2026-10-08
+
+### Changed
+
+- **Los PRs de Dependabot llevan la etiqueta `no-changelog`.** Dependabot no escribe en
+  `CHANGELOG.md`, y el Changelog Checker, que es requerido, dejaba bloqueados todos sus PRs
+  (#1366, #1316, #1228). Conservan `dependencies` y la etiqueta de su ecosistema, que son las que
+  pone Dependabot por omisión. El checker también corre al poner o quitar una etiqueta: lee las
+  etiquetas del evento, y Dependabot las agrega después de abrir el PR.
+
+### Fixed
+
+- **`FilterForm`: los atributos planos y los filtros simples siguen la regla de valores del
+  panel** (#1351). Un valor con caracteres de control, una lista donde va un escalar o un id que
+  no cabe en su columna dentro de un `_in` ya no llega a Ransack: el atributo plano vuelve a su
+  `default`, y el control del filtro simple queda vacío, no en su `default:`, que no se aplicaría.
+  Un NUL (`?q[name_cont]=a%00b`) daba 500, y con la persistencia de filtros o una vista guardada,
+  en cada visita. Un `filter_attribute` con `input: :toggle_group` (o un `simple_filter` con
+  `type: :toggle_group`) y un predicado que no toma listas, como el `:eq` por omisión, ahora
+  falla al cargar la clase: su lista nunca filtró bien. Declara `predicate: :in`. Ninguna app de
+  la flota tiene uno así; no hay nada que hacer en el anfitrión.
+- **`file_group` / `file_field`: el botón ya no se encima con el nombre del archivo en una
+  columna angosta** (#1370). Los dos hijos del contenedor son ítems flex que encogen por
+  omisión, así que en una barra lateral o un cajón la etiqueta quedaba más angosta que su propio
+  contenido y el `white-space: nowrap` del `.btn` escupía el texto del CTA **encima** del nombre
+  del archivo. Medido en Chrome 150 dentro de una columna de 240 px: el nombre arrancaba en
+  160 px contra un CTA que terminaba en 195 px — 35 px adentro del botón, en el mismo renglón.
+  `LABEL_CLASS` lleva ahora `shrink-0`, que es lo que quita el encimado; con eso solo, el nombre
+  quedaba aplastado a 36 px, así que `FILENAME_CLASS` lleva `min-w-[min(8rem,100%)]` y
+  `WRAPPER_CLASS` `flex-wrap`, y el nombre baja a su propio renglón cuando ese piso no cabe
+  junto al botón. El piso va acotado al contenedor para que una columna de menos de 8 rem no
+  termine con scroll horizontal.
+  **Anfitrión:** nada que hacer, y nada se mueve donde ya cabía — medido con el texto por
+  omisión en la misma columna, envuelto y legible a 240 px y 320 px, en un renglón e idéntico a
+  antes de 400 px en adelante. Si copiaste el marcado a mano de la guía de controladores,
+  actualízalo: las tres utilidades están ahí.
+
+- **`textarea` con `auto_grow`: un `form.reset()` devuelve el campo a su alto, y un `max-height`
+  del anfitrión por fin sirve** (#1371).
+
+  `form.reset()` borra el valor **sin** disparar `input`, el único evento que el controlador
+  escuchaba: un mensaje largo enviado por un form de Turbo dejaba el campo crecido y **vacío**,
+  tapando lo que había debajo hasta recargar. Ahora el `reset` lo devuelve a su alto — y también
+  el **contador de caracteres**, que tenía la misma causa y se quedaba en rojo con el largo
+  anterior sobre el valor restaurado. El contador no es asunto del crecimiento, así que esto
+  vale con o sin `auto_grow`.
+
+  Y el `overflow: hidden` que el controlador escribía una sola vez al conectarse le ganaba a la
+  hoja de estilos, así que un `max-h-*` del anfitrión recortaba la caja sin dejar forma de
+  alcanzar lo que no cabía. **Ya se puede acotar el crecimiento desde el CSS**: cualquier
+  `max-height` que el navegador aplique —píxeles, porcentaje, `calc()`— topa el campo y de ahí
+  en adelante hace scroll. `input_class: "max-h-48"` y ya; no hay opción nueva.
+
+  **Anfitrión:** nada que hacer. El único cambio visible fuera de los defectos es el piso del
+  crecimiento, que pasa a ser el alto del campo **vacío**: un `auto_grow` renderizado con
+  contenido no podía encoger por debajo de lo que el servidor le mandó, y ahora vuelve a sus
+  `rows`.
+
+## [v3.10.1] - 2026-10-07
+
+### Changed
+
+- **El anillo de foco de todos los botones va en el color del texto** (`base-content`), como el
+  de `btn-neutral` desde #1361: el de `accent`, `info`, `success`, `warning` y `error` no llegaba
+  a 3:1 sobre la página en los temas claros. El del `primary` deja de ser de su color: en `afal`,
+  `#155DFC` → `#1F2937`. Afecta a todas las apps, también a los `btn` escritos a mano; no hay
+  nada que hacer. Salvedad: sobre el relleno de un `Footer` (`neutral` por omisión) o de un `Hero`
+  con `color:`, un botón de color empeora en los temas claros (sobre `neutral`, de 2.39–11.29 a
+  1.12 en `light` y de 2.58–8.67 a 1.00 en `afal`), lo mismo que ya medían ahí `ghost` y el botón
+  sin color. Ninguna app v3 usa `Hero` ni `Footer`; si una pone un botón de color sobre un
+  relleno, `focus-visible:outline-<relleno>-content` en el botón le gana a esta regla.
+
+### Fixed
+
+- **`BlockEditor` y `DocumentEditor`: en el teléfono la barra de formato pasa a dos filas**
+  (#1355). Era una sola fila que se desplazaba de lado: a 390 px el selector de tipo de bloque
+  quedaba en 19 px de sus 129 y el botón de comentar fuera de la pantalla. La barra se mide
+  contra la pantalla, no contra el editor: se parte cuando no cabe en ella (dos filas de 320 a
+  390 px) y en escritorio sigue en una fila, también en un editor más angosto que ella.
+  Alcanza a afal-apps y gobierno-corporativo; no hay nada que hacer.
+
+## [v3.10.0] - 2026-10-07
+
+### Added
+
+- **`hostColorScheme()` y `observeHostColorScheme(callback)`** se exportan desde
+  `bali-view-components` (#1344): el primero devuelve `'dark'` o `'light'` según el
+  `color-scheme` del `<html>`; el segundo avisa cuando un cambio de `data-theme` pasa al otro
+  esquema. Para una app que crea su propio `google.maps.Map`, que sólo toma `colorScheme` al
+  crearse (hoy, `coordinates_picker_controller.js` de centinela-web):
+  `colorScheme: hostColorScheme() === 'dark' ? ColorScheme.DARK : ColorScheme.LIGHT`.
+
+### Removed
+
+- **`.box-row` y `.box-action`, con su hoja `bali/box.css`** (#1333). Ninguna app en v3 las
+  usa; `.box` sigue, en `general.css`. **Anfitrión:** si al subir a v3
+  `git grep -n -E "box-row|box-action|bali/box|css/box" origin/main -- app config` encuentra algo, cambia
+  `.box-action` por `float-right` y `.box-row` por `py-4 first:pt-0`, y borra el `@import` de
+  `bali/box`.
+
+### Fixed
+
+- **`FilterForm`: una fecha sola fuera del panel también es el día entero** (#1333). Lo que
+  #1321 hizo dentro de `q[g]` vale ahora en la raíz de `q`, sobre una columna de fecha y hora: el
+  `_eq` del widget `:date` de SimpleFilters trae ese día, y un `_lteq` o `_gt` corta al final del
+  día. El día se suma con «y» a todo lo demás, también cuando el panel une sus grupos con «o».
+  Alcanza lo que un form añade en su `ransack_params` (los `_eq` planos de gobierno-corporativo);
+  como el anidamiento de #1345, se lo salta un form que sobreescribe `ransack_search`. Hoy
+  ninguna app filtra así una columna de fecha y hora.
+
+- **`Filters`: «en» sobre un atributo `type: :datetime` trae las filas de ese minuto** (#1333).
+  Comparaba contra el instante exacto que manda el selector (`21:22:00`) y dejaba fuera una fila
+  de las 21:22:37; «en o antes» y «después» cortan ahora al final del minuto, como con una fecha
+  cortan al final del día. Unos segundos escritos a mano se comparan tal cual. En la raíz de `q`
+  también se lee así un `AAAA-MM-DD HH:MM:00`. Hoy ninguna app declara un atributo
+  `type: :datetime` ni arma un valor así para `q`.
+
+- **`Filters`: el panel cabe en la pantalla** (#1333). Con el botón a media pantalla se salía
+  por la derecha y escondía «Apply»; ahora, al abrirse, se corre a la izquierda lo que sobra.
+  Donde ya cabía no se mueve. Sin nada que hacer en el anfitrión.
+
+- **`Bali::Breadcrumb`: las migas enlazadas se ven como enlaces** (#1343). Toman el primary del
+  tema; la página actual sigue en color de texto. En el `dark` de daisyUI, donde el primary no
+  llega a AA como texto, se aclara; los demás temas lo pintan tal cual. Cuando las migas no
+  caben (un teléfono), el desplazamiento arranca en la última, así que la página actual queda a
+  la vista; las que caben siguen alineadas a la izquierda. Sin nada que hacer en las apps.
+
+- **Botones con contorno y suaves: el texto en reposo pasa AA** (#1336). daisyUI pinta el texto con
+  el color mismo, que en los temas claros es un relleno: `warning`, `success`, `info`, `accent` y
+  `error` medían 1.63–2.75:1 en `afal`, y `secondary` 1.89 en `costa-norte`. Ahora toman la mezcla
+  de `text-soft-*`, y el error la tinta roja de `text-soft-error` (`btn-error btn-outline`: 2.75 →
+  7.12 en `afal`). Cambia igual con `Bali::Button`/`Link`/`DeleteLink` (`style: :outline`/`:soft`)
+  que con `btn btn-error btn-outline` a mano, como el «Archivar» de centinela-web. El borde, el
+  hover y el anillo de foco de estos colores no cambian; `primary` tampoco, ni un botón con
+  contorno en una Navbar con un `color:` de preset, que conserva el de daisyUI. Una Navbar con
+  `color: nil` y un `bg-*` propio sí toma la mezcla, que sobre un fondo oscuro no contrasta;
+  ninguna app de la flota la usa así.
+
+- **Alertas y badges de error `soft`, `outline` y `dash` con la tinta de `text-soft-error`**
+  (#1333): en los temas claros dejan el café (rgb(114, 72, 80) en `afal`) y leen el mismo rojo
+  que el error del FormBuilder. En los oscuros no cambia nada.
+
+- **El anillo de foco de un `btn-neutral` va en `base-content`** (#1333): fuera de una Navbar
+  medía 1.26–1.72:1 sobre la página en los temas oscuros; ahora 13.7 o más. En los claros de Bali
+  es el mismo color; en el `light` de daisyUI, un gris apenas más claro. Sin nada que hacer en el
+  anfitrión en ninguno de los tres.
+
+- **`Bali::Topbar`: la búsqueda se pliega a su ícono cuando las acciones no le dejan sitio**
+  (#1336). Con menos de 7rem en la zona de búsqueda, el disparador por defecto de
+  `Bali::Command` queda en un cuadro de 32 px con la lupa; el texto sigue siendo su nombre
+  accesible y su `title`. En escritorio se ve igual. Si ni el ícono cabe (seis acciones a
+  320 px), la app oculta una acción debajo de `sm`, como ya hace gobierno-corporativo.
+
+- **`Bali::Command`: Enter abre la primera fila que coincide con lo escrito** (#1333), y es la
+  que queda resaltada, aunque una fila `mode: :action` vaya antes en la lista.
+
+- **`Bali::SideMenu`: anillo de foco del tema** (#1333). Con el teclado, los ítems, los
+  disparadores de grupo, los botones de la cabecera y el selector de módulo llevaban el anillo
+  `auto` del navegador, y los ítems de sus paneles, sólo el tinte de daisyUI. Ahora todos llevan
+  un contorno de 2 px en `base-content`, hacia dentro.
+
+- **Drawer cerrado: `inert` en vez de `visibility: hidden`** (#1333). Un descendiente con
+  `visibility: visible` (la clase `.visible`, o el `collapse` abierto de daisyUI en un navegador
+  sin `content-visibility`) seguía alcanzable con Tab. El `<dialog>` cerrado sale del servidor
+  con `inert` y el controlador lo quita al abrir. Un drawer que alguien abra poniéndole
+  `drawer-open` a mano se vería pero no respondería; ninguna app lo hace.
+
+- **Drawer por debajo de 768 px: el tope de `size:` sigue valiendo** (#1333). El 85 % de la pantalla era
+  un segundo `max-width` que reemplazaba al del tamaño: un `sm` (384 px) medía 544 px a 640 y 652
+  a 767. Ahora mide el menor de los dos. Nada que hacer.
+
+- **Drawer: el fondo oscuro se desvanece con el panel al cerrar** (#1333), en sus 300 ms, en vez de
+  desaparecer en el primer cuadro. Al abrir sigue apareciendo de golpe.
+
+- **Modal y Drawer abiertos sin un clic devuelven el foco a `<main>` al cerrar** (#1333). Un panel
+  renderizado `active: true` o abierto por `bali:modal:open` / `bali:drawer:open` sin un clic
+  dejaba el foco en `<body>`, y en `Bali::AppLayout` el siguiente Tab saltaba al enlace del
+  principio de la página. Ahora va al `<main>` de AppLayout, que muestra el mismo anillo que al
+  llegar por ese enlace; también si el botón que lo abrió desapareció con el panel abierto. Sin
+  AppLayout, un `<main>` sin `tabindex="-1"` no toma el foco y queda como antes.
+
+- **DocumentEditor en el teléfono: la barra superior cabe y los paneles ya no aplastan el
+  editor** (#1333). Debajo de `sm`, con cambios sin guardar, el botón de cerrar se salía de la
+  pantalla y el título quedaba casi sin ancho. Ahora Guardar queda en su icono, con un punto
+  mientras hay cambios sin guardar, y el estado sólo se ve si el guardado falla. Los paneles de
+  comentarios e historial cubren el editor a todo el ancho. Desde `sm` nada cambia. Nada que hacer
+  en la app.
+
+- **DocumentEditor: Ctrl/Cmd+S en un visor de sólo lectura ya no deja «Saving...» para
+  siempre** (#1333). Sin título ni contenido que enviar, el estado ya no cambia. Nada que hacer en la app.
+
+- **BlockEditor: el nombre de una referencia larga se trunca con «…» dentro del editor** (#1333) en vez
+  de salirse por la derecha. Nada que hacer en la app.
+
+- **`Bali::Gantt`: el splitter baja hasta la columna Nombre** (#1333). No dejaba bajar la tabla
+  de 260 px, más de lo que abre en un teléfono (173 en una ventana de 320), así que tocarlo la
+  ensanchaba de golpe. Ahora, en cualquier tablero, baja hasta el mínimo de la columna Nombre
+  (140): en escritorio se puede dejar sólo esa columna. También se arrastra con el dedo, que el
+  navegador tomaba por un scroll. Y los separadores de la barra de herramientas ya no quedan al
+  principio o al final de un renglón cuando la barra se parte. Sin nada que hacer en el anfitrión.
+
+- **`Bali::Chart`: `polarArea` y `radar` toman el tema en su escala radial** (#1333): cuadrícula,
+  radios, marcas con su recuadro y etiquetas, también al cambiar de tema en vivo. En `afal-dark`
+  las marcas salían sobre recuadros blancos y la cuadrícula casi no se veía. Como en `x`/`y`, un
+  `options:` que pinte una de esas partes la pierde salvo con `useThemeColors: false` en ella.
+  Ninguna app de la flota usa estos tipos.
+
+- **`Bali::FeedbackWidget`: el contador se topa en «99+»** (#1333), el mismo tope que
+  `Bali::Topbar::IconAction`, con el que comparte la barra; lo lee de
+  `IconAction::Component::MAX_COUNT`. Un lector de pantalla sigue oyendo el número real.
+
+- **`Bali::FeedbackWidget`: abrir el panel cancela el conteo que iba en camino** (#1333). Si la
+  respuesta llegaba después de abrir, volvía a pintar el número de antes sobre el cero.
+
+- **`Bali::FeedbackWidget` pasa sus atributos HTML al `div` que lo envuelve** (#1333): `id:`,
+  `data:`, `aria:`… Antes descartaba todo menos `class:`. Un `data: { controller: }` se suma a
+  `feedback-widget`. Quien pasa `class:` no ve nada distinto. Sin nada que hacer en el
+  anfitrión.
+
+- **Los mapas de Google siguen el modo claro u oscuro de la app** (#1344). `Bali::LocationsMap`,
+  `drawing-maps` (`coordinates_polygon_group`) y `geocoder-maps` creaban el mapa siempre claro;
+  ahora lo crean oscuro cuando el `<html>` declara `color-scheme: dark`, como `afal-dark` y
+  `costa-norte-dark`. Si el tema cambia sin recargar al otro esquema (el switch de
+  `Bali::Topbar::UserMenu`), rehacen el mapa con el mismo centro y zoom, sus marcadores, la
+  ventana de información abierta, el pin y los polígonos. Sin nada que hacer en el anfitrión.
+
+- **`Bali::LocationsMap`: la ventana de información se lee en modo oscuro** (#1344). Google la
+  pinta blanca también sobre el mapa oscuro, y en `afal-dark` su texto y su X de cerrar salían
+  blancos. Ahora el contenido de `with_info_view` va en el tema claro de la app
+  (`Bali.themes[:light]`). En modo claro no cambia nada.
+
+- **`Bali::LocationsMap`: el mapa sale en el idioma de la página** (#1344). El componente
+  escribía `center_locale` y el controlador leía `locale`, así que Google siempre lo pintaba en
+  inglés; el controlador ahora recibe el `I18n.locale`.
+
+- **`Bali::SplitView`: un «atrás» justo después de abrir una fila vuelve a lo que pide su URL**
+  (#1340). Si llegaba entre que el panel pintaba el detalle y la visita con la que Turbo promueve
+  el clic (`advance`), esa visita cancelaba la restauración: la URL volvía y el panel seguía en
+  la fila. Ahora el panel se rehace desde la URL, y lo hace sin empujar otra entrada al
+  historial, así que «adelante» sigue llevando a la fila. Sin nada que hacer en el anfitrión.
+
+- **Modal y Drawer: el ciclo de Tab alcanza todo lo enfocable del panel.** Sumaba sólo enlaces,
+  botones y campos: un `<iframe>`, un `<summary>`, una región editable o un reproductor de audio
+  o video en el borde del panel se saltaban, y un botón deshabilitado al final dejaba salir el
+  foco. En el panel del `Bali::FeedbackWidget` el foco volvía siempre al ✕ y el formulario de
+  Opina no se alcanzaba con el teclado. Sin nada que hacer en el anfitrión.
+
+- **BlockEditor: claro u oscuro sale de `hostColorScheme()`**, como en los mapas y el
+  FeedbackWidget, y se lee del `<html>`, no del contenedor. Una página cuyo `<html>` declara
+  `color-scheme: light dark` ve el editor claro; antes lo veía oscuro. Ninguna página que monte
+  el editor lo declara (sólo el layout de correo de afal-apps).
+
+### Documentation
+
+- **Un paso de subida que v3.7.0 no dio: el `text-error` de las vistas del anfitrión** (#1336).
+  Bali pasó su propio texto de error a `text-soft-error` en v3.7.0 (#1281), pero el que escribe
+  una app sigue en `text-error`, que sobre `base-100` mide 2.75:1 en `afal` y 2.86 en `light` y
+  `costa-norte` (AA pide 4.5, y un ícono 3). **Anfitrión:** pásalo a `text-soft-error`, 7.12:1 en
+  `afal`. En los tres temas oscuros pasan los dos: `text-error` mide 5.53:1 o más, y
+  `text-soft-error` 9.83. Los sitios: `git grep -n -E 'text-error([^-]|$)' origin/main -- app`,
+  y en `test` las pruebas que los buscan por esa clase. Uno con opacidad (`text-error/80`) va
+  caso por caso: `text-soft-error/80` no existe, Tailwind no la genera y el elemento hereda el
+  color de su padre sin avisar.
+
+- **BlockEditor: las fuentes van con `loader: file` y sin `publicPath`** (#1336).
+  `docs/api/block-editor.md` pedía `dataurl` y culpaba a `file` de un 404 que en realidad causa
+  `publicPath: '/assets'`. Con `file`, el CSS de BlockNote y Mantine pesa 35 KB con gzip en vez
+  de 395. **Anfitrión:** `dataurl` sigue funcionando. afal-apps y gobierno-corporativo, los dos
+  que montan el editor, ya usan `file` sin `publicPath`. centinela-web, identity y opina tienen
+  `publicPath: '/assets'` y ningún `loader`: si un día lo montan, lo quitan
+  (`git grep -n -E 'publicPath|loader' origin/main -- esbuild.config.mjs`).
+
+- **El README e `installation.md` dejan de enseñar `:root { color-scheme: light; }`** (#1336),
+  la regla que tapa el `color-scheme` del tema oscuro y que cinco apps borraron al subir a
+  v3.8.0. Sale con su `[data-theme="dark"] { color-scheme: dark; }`: cada tema declara el suyo,
+  también el claro por omisión de daisyUI. `custom-themes.md` gana el paso que le faltaba a la
+  receta de modo oscuro de v3.7.0, y esa entrada, su corrección. Ninguna app la tiene hoy
+  (`git grep -n 'color-scheme' origin/main -- '*.css'`): nada que hacer.
+
 ## [v3.9.1] - 2026-10-07
 
 ### Added
@@ -352,6 +631,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sobra su `.menu-switcher .dropdown-content`: el SideMenu ya pinta igual el panel de un riel con
   tema. Cambian el texto sobre info y error, que ahora pasa AA, el secundario y `neutral`.
 
+  _Corrección del 2026-10-07 (#1336):_ falta un paso. Un `:root { color-scheme: light; }` del
+  anfitrión, sin capa y escrito después del `@import` del tema oscuro, le gana a su
+  `color-scheme: dark`: misma especificidad, y va después. En `afal-dark` la página queda en
+  `light`, así que `text-soft-error` pinta su tinta del tema claro (2.49:1 sobre `base-100`, en
+  vez de 10.64), y el BlockEditor y, desde v3.8.1, el panel de Opina se dibujan claros. Al
+  `dark` de daisyUI, que va en una capa, le gana en cualquier orden. Bórralo, y con él un
+  `[data-theme="dark"] { color-scheme: dark; }`: cada tema declara el suyo
+  (`git grep -n 'color-scheme' origin/main -- '*.css'`).
+
 - **`text-soft-<color>`, el color del texto sobre un tinte de ese mismo color** (#1245, #1247):
   cualquier color del tema mezclado al 40% con `base-content`, que llega a AA donde `text-<color>`
   no. Úsala en vez de `text-primary` sobre `bg-primary/10`:
@@ -637,6 +925,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de la píldora de estatus, así que hay que corregir los dos comentarios que lo afirman, el de
   `shipment_status_hex` y el de `dashboard/show.html.erb`.
 
+  _Corrección del 2026-10-07 (#1336):_ sí cambian las pruebas que buscan el ícono de `StatCard` o
+  la línea `change:` por su clase: `.text-<color>` pasa a `.text-soft-<color>`, y una con
+  `count: 0` y la clase vieja deja de fallar sin avisar. En afal-apps fueron dos pruebas del
+  tablero de conciliación, con cuatro aserciones. De lo que da
+  `git grep -n -E '\.text-(primary|secondary|accent|info|success|warning|error)([^-a-z]|$)' origin/main -- test spec`,
+  las que miran dentro de una StatCard o de un `with_stat`.
+
 - **Un SideMenu con `theme:` levanta sus bordes y el panel del switcher** sobre el riel. Con el
   `dark` de daisyUI y con los temas oscuros de Bali, `base-200/300` bajan desde `base-100`, y
   dentro del riel el panel quedaba más oscuro que él (1.05–1.07:1) y el borde más oscuro
@@ -753,6 +1048,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   encuentra el disparador. `[data-controller='column-selector']` y
   `[data-controller='saved-views']` siguen valiendo tal cual, con sus `li label` e
   `input[data-column-index]`.
+
+  _Corrección del 2026-10-07 (#1336):_ ese `git grep` sólo ve las pruebas que nombran el
+  controlador. Los disparadores llevan texto —el de Vistas, el nombre de la vista aplicada o
+  «Vistas»; el de Columnas, «Columnas»— y una prueba que los buscaba por ese texto también deja
+  de encontrarlos: en afal-apps, `assert_select "button", text: "Nada que ver"`. De lo que da
+  `git grep -n -E '"button", text:|click_(button|on|link_or_button)|(assert|refute|has)_(no_)?button' origin/main -- test spec`,
+  las que buscan el nombre de una vista guardada o el rótulo de uno de los dos.
 
 - **El texto pintado sobre un tinte de su mismo color llega a AA** (#1245, #1247): el resaltado
   de `Bali::Command`, el ítem activo y los badges de `SideMenu`, el ítem activo de `TreeView`, el

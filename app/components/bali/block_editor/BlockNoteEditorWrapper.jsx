@@ -27,6 +27,7 @@ import {
 import { createPortal } from 'react-dom'
 import { useEffect, useRef, useMemo, useState, useCallback, useSyncExternalStore } from 'react'
 
+import { hostColorScheme, observeHostColorScheme } from '../../../assets/javascripts/bali/utils/color-scheme.js'
 import { SUPPORTED_LANGUAGES, PRELOADED_LANGS } from './constants'
 import { Mention, EntityReference } from './inlineContent'
 import { useFileUpload } from './useFileUpload'
@@ -91,16 +92,8 @@ function withBothThemes (highlighter) {
 // the effect was lost for good, and the editor stayed light on a dark page (3 of 30 switches
 // under Cypress). useSyncExternalStore reads the scheme again once it has subscribed.
 function subscribeToTheme (onChange) {
-  const observer = new MutationObserver(onChange)
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  const observer = observeHostColorScheme(onChange)
   return () => observer.disconnect()
-}
-
-function usePageColorScheme (element) {
-  return useSyncExternalStore(
-    subscribeToTheme,
-    () => getComputedStyle(element).colorScheme.includes('dark') ? 'dark' : 'light'
-  )
 }
 
 export default function BlockNoteEditorWrapper ({
@@ -152,7 +145,7 @@ export default function BlockNoteEditorWrapper ({
   const aiEnabled = !!(aiUrl && ai)
   const mentionsEnabled = !!(mentionsUrl || (staticMentions && staticMentions.length > 0))
   const referencesEnabled = !!referencesUrl
-  const colorScheme = usePageColorScheme(containerElement)
+  const colorScheme = useSyncExternalStore(subscribeToTheme, hostColorScheme)
 
   const uploadFile = useFileUpload(uploadUrl, containerElement, translations)
 

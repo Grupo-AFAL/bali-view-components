@@ -29,18 +29,16 @@ module Bali
       # console, not by a server-side error.
       # See [External Services Guide](/docs/guides/external-services.md) for setup instructions.
       #
+      # The map's labels are in the request's locale: switch `locale` to see them in Spanish.
+      #
       # @param zoom number
       # @param clustered toggle
-      def default(zoom: 12, clustered: false)
-        render Bali::LocationsMap::Component.new(zoom: zoom, clustered: clustered) do |c|
-          LOCATIONS.each do |location_attrs|
-            c.with_location(**location_attrs)
-          end
-
-          c.with_location(latitude: 32.516284591574724, longitude: -117.0129754500983) do |location|
-            location.with_info_view { tag.p('This is an info view') }
-          end
-        end
+      # @param locale select { choices: [en, es] }
+      def default(zoom: 12, clustered: false, locale: 'en')
+        render_with_template(
+          template: 'bali/locations_map/previews/default',
+          locals: { zoom: zoom, clustered: clustered, locale: locale, locations: Bali::LocationsMap::Preview::LOCATIONS }
+        )
       end
 
       # @label Fitted to locations

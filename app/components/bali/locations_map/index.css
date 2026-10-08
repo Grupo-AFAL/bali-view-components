@@ -1,0 +1,5 @@
+/* `.gm-style-iw-c` is Google's info window, white on a DARK map too, with a light-dark(#000, #fff) close button.
+   Not on the map container: Google's keyboard-shortcuts dialog is dark on that map and its text would turn black. */
+.locations-map-component .gm-style-iw-c {
+  color-scheme: light;
+}

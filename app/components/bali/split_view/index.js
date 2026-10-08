@@ -58,12 +58,14 @@ export class SplitViewController extends Controller {
     this.syncFromLocation = this.syncFromLocation.bind(this)
     this.rewindFrameBeforeCache = this.rewindFrameBeforeCache.bind(this)
     this.capturePristineDetail = this.capturePristineDetail.bind(this)
+    this.syncIfRestoreCancelled = this.syncIfRestoreCancelled.bind(this)
     window.addEventListener('popstate', this.syncFromLocation)
     document.addEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
     document.addEventListener('turbo:load', this.capturePristineDetail)
+    document.addEventListener('turbo:load', this.syncIfRestoreCancelled)
     this.capturePristineDetail()
     // A restore that DID replace the body lands here, on the new instance.
-    if (restoringHistory) this.syncFromLocation()
+    if (restoringHistory) this.syncToLocation({ survived: false })
     // Whatever is marked right now is the selection, however it got marked.
     // Set after the restore above so it records the corrected state.
     this.selectedHref = this.rowTargets.find(row => row.hasAttribute('aria-current'))?.href ?? null
@@ -173,6 +175,7 @@ export class SplitViewController extends Controller {
     window.removeEventListener('popstate', this.syncFromLocation)
     document.removeEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
     document.removeEventListener('turbo:load', this.capturePristineDetail)
+    document.removeEventListener('turbo:load', this.syncIfRestoreCancelled)
   }
 
   // Back and forward, and only those. Measured: a row click promotes the frame
@@ -195,14 +198,37 @@ export class SplitViewController extends Controller {
   // body, and Turbo caches the page being left AFTER this listener — so all a
   // change here reaches is that snapshot, filed under whatever URL Turbo last
   // rendered. Resetting it to the list there is how a row's URL came back with
-  // an empty pane. The restored page re-derives from `connect()`.
+  // an empty pane. The restored page re-derives from `connect()`, and a restore
+  // that never replaced this body from `syncIfRestoreCancelled`.
   syncFromLocation (event) {
-    if (event?.state?.turbo) return this.cancelLoadingDetail()
+    if (event?.state?.turbo) {
+      this.awaitingRestore = true
+      return this.cancelLoadingDetail()
+    }
 
+    this.syncToLocation({ survived: true })
+  }
+
+  // An instance still connected when the traversal loads is one whose body the
+  // restore never replaced. A back that lands between a row's detail painting
+  // and the visit Turbo promotes that click to has its restore cancelled by that
+  // visit, which renders nothing (`willRender: false`): the URL goes back, the
+  // pane stays on the row it left (#1340). Measured, the gap is ~3 ms in desktop
+  // Chrome and ~40 ms under 6x CPU throttling: a back on a slow phone.
+  syncIfRestoreCancelled () {
+    if (!this.awaitingRestore) return
+
+    this.awaitingRestore = false
+    this.syncToLocation({ survived: true })
+  }
+
+  // `survived`: whether this body lived through the traversal, rather than
+  // being the one a restore just rendered. See `syncFrameFromLocation`.
+  syncToLocation ({ survived }) {
     const current = this.rowTargets.find(row => this.selectsCurrentLocation(row)) ?? null
     this.selectedHref = current?.href ?? null
     this.rowTargets.forEach(row => this.applySelection(row, row === current))
-    this.syncFrameFromLocation(current)
+    this.syncFrameFromLocation(current, { survived })
   }
 
   // A detail still loading on the page being left lands, if it beats the
@@ -231,7 +257,7 @@ export class SplitViewController extends Controller {
   //     pane keeps that row's `src` (the rewind leaves a loading frame alone)
   //     and Turbo reloads it on restore, even when the pane still looks
   //     pristine. Dropping the `src` cancels that reload.
-  syncFrameFromLocation (current) {
+  syncFrameFromLocation (current, { survived }) {
     const frame = this.detailFrame
     if (!frame) return
 
@@ -248,15 +274,24 @@ export class SplitViewController extends Controller {
     // Two traps hid here (#1029). Turbo rewrites a navigated frame's `src` to
     // an ABSOLUTE URL while the row's href stays as written (usually
     // relative), so a raw string compare never matched. And by the time this
-    // runs — from connect() on the restored page, or on a popstate Turbo does
-    // not restore — the `src` is usually GONE: the page was cached after the
-    // rewind stripped it, so the pane's pointer lives in the stash. Either way:
-    // resolve, compare, and only refetch a pane that shows something else.
+    // runs — from connect() on the restored page, on a popstate Turbo does not
+    // restore, or after a restore that was cancelled — the `src` is usually
+    // GONE: the page was cached after the rewind stripped it, so the pane's
+    // pointer lives in the stash. Either way: resolve, compare, and only
+    // refetch a pane that shows something else.
     const src = frame.getAttribute('src') ?? frame.getAttribute('data-split-view-src')
     if (src && new URL(src, window.location.href).href === current.href) return
 
     frame.removeAttribute('data-split-view-src')
-    frame.setAttribute('src', current.getAttribute('href'))
+    const href = current.getAttribute('href')
+    if (!survived) return frame.setAttribute('src', href)
+
+    // A frame that lived through the traversal keeps the `advance` of the last
+    // row click, and loading with it pushed this URL again and dropped the
+    // forward entry (#1340). Not for a restored frame, which has no action of
+    // its own: a `replace` there rewrote a URL carrying params the row's href
+    // does not.
+    window.Turbo.visit(href, { frame: this.frameValue, action: frame.dataset.turboAction && 'replace' })
   }
 
   // Whether this row's href names the location we are on. Not `row.href ===

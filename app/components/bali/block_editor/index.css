@@ -262,6 +262,19 @@
   background-color: transparent;
 }
 
+/* BlockNote's `.bn-mantine .bn-toolbar`, (0,2,0) like this, keeps the bar on one row that
+ * scrolls, capped only by `max-width: 100vw`: at 390px its 519px shrank the block type select
+ * from 129px to 19px and scrolled the comment button out of view. The wrap alone is not enough:
+ * it lets `fit-content` size the bar to the editor instead of the screen, three rows in a
+ * DocumentEditor at 320px and two in a 320px-wide editor on a desktop, where it has to stay on
+ * one row. The 1rem off `100vw` leaves a margin to the screen's edge and absorbs a classic
+ * scrollbar, which `100vw` counts. */
+.block-editor-component .bn-formatting-toolbar {
+  flex-wrap: wrap;
+  width: max-content;
+  max-width: calc(100vw - 1rem);
+}
+
 /* Compact suggestion menu items */
 .block-editor-component .bn-suggestion-menu-item {
   padding: 0.15rem 0.5rem !important;
@@ -344,7 +357,7 @@
 
 /* Each token carries both themes' colours (withBothThemes in BlockNoteEditorWrapper.jsx);
    light-dark() reads the color-scheme Mantine sets on the editor, which is the page's
-   (usePageColorScheme there). */
+   (hostColorScheme there). */
 .block-editor-component .bn-block-content[data-content-type="codeBlock"] pre .shiki {
   color: light-dark(var(--shiki-light), var(--shiki-dark));
 }
@@ -390,6 +403,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.2em;
+  /* With `nowrap` alone a long name ran out of the editor: at 320px on /showcase the chip
+   * ended at x=369, past the editor's 266. The name truncates instead. */
+  max-width: 100%;
 }
 
 /* No `opacity` on the icon or the type label: at 0.7 both read 2.97:1 over a warning chip on
@@ -400,6 +416,11 @@
 
 .block-editor-component .bn-entity-reference-label {
   font-size: 0.9em;
+}
+
+.block-editor-component .bn-entity-reference-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .block-editor-component .bn-entity-reference-label::after {

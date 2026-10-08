@@ -148,6 +148,7 @@ export class CommandController extends Controller {
     const isEmpty = query.length === 0
     let visibleCount = 0
     let matchCount = 0
+    let firstMatch = null
 
     this.rowTargets.forEach(row => {
       const mode = row.dataset.mode || 'searchable'
@@ -179,6 +180,7 @@ export class CommandController extends Controller {
       // "3 results" under it, for a query that nothing actually matched.
       if (matches && visible) {
         matchCount++
+        firstMatch ??= row
         this._highlight(row, query)
       } else {
         this._unhighlight(row)
@@ -207,7 +209,10 @@ export class CommandController extends Controller {
       this.countTarget.textContent = form.replace('%{count}', count)
     }
 
-    this._activeIndex = 0
+    // Not simply the first row listed: an `action` row is listed for every
+    // query, above or below the rows that answered it, and the active row is
+    // the one Enter opens.
+    this._activeIndex = firstMatch ? this._visibleRows().indexOf(firstMatch) : 0
     this._updateActive()
   }
 

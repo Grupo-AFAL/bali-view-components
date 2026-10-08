@@ -666,7 +666,7 @@ utilities win**. If your app carries `!` variants that exist only to beat a Bali
 can drop the `!`.
 
 The exceptions are deliberate and documented in each file's header: `forms.css`,
-`datepicker.css`, `slim_select.css`, `breadcrumb/index.css`, `data_table/index.css` and
+`datepicker.css`, `slim_select.css`, `breadcrumb/daisyui-overrides.css`, `data_table/index.css` and
 `side_menu/daisyui-overrides.css` stay unlayered, because their job is to outrank **daisyUI**,
 which emits its own components inside `@layer utilities` — a layer beats specificity, so a
 rule in `components` cannot win against them at any specificity.

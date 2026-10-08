@@ -42,6 +42,25 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
     assert_html(result, "span.truncate")
   end
 
+  # The three utilities of #1370, pinned on the ELEMENTS and not only on the constants: this is
+  # what a host renders, and a constant can be right while the render reaches the wrong node.
+  # What they DO is measured in cypress/e2e/file-field-layout.cy.js — the bug was geometry, and
+  # every assertion in this file passed the whole time it was happening.
+  def test_file_group_keeps_the_label_from_shrinking_below_its_button
+    result = builder.file_group(:cover_photo)
+    assert_html(result, "label.shrink-0")
+  end
+
+  def test_file_group_gives_the_filename_display_a_floor_to_wrap_against
+    result = builder.file_group(:cover_photo)
+    assert_html(result, %(span.truncate[class~="min-w-[min(8rem,100%)]"]))
+  end
+
+  def test_file_group_wraps_the_row_when_the_two_no_longer_fit
+    result = builder.file_group(:cover_photo)
+    assert_html(result, "div.flex.flex-wrap")
+  end
+
   def test_file_group_renders_filename_display_outside_the_label
     result = builder.file_group(:cover_photo)
     assert_html(result, "div > label + span.truncate")
@@ -167,11 +186,12 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
   end
 
   def test_constants_has_wrapper_class_constant
-    assert_equal "flex items-center gap-3", Bali::FormBuilder::FileFields::WRAPPER_CLASS
+    assert_equal "flex flex-wrap items-center gap-3", Bali::FormBuilder::FileFields::WRAPPER_CLASS
   end
 
   def test_constants_has_filename_class_constant
-    assert_equal "text-sm text-base-content/70 truncate", Bali::FormBuilder::FileFields::FILENAME_CLASS
+    assert_equal "text-sm text-base-content/70 truncate min-w-[min(8rem,100%)]",
+                 Bali::FormBuilder::FileFields::FILENAME_CLASS
   end
 
   # The density left the constant when `size:` started choosing it (#723); it is
@@ -183,7 +203,7 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
   end
 
   def test_constants_has_label_class_constant
-    assert_equal "cursor-pointer inline-flex", Bali::FormBuilder::FileFields::LABEL_CLASS
+    assert_equal "cursor-pointer inline-flex shrink-0", Bali::FormBuilder::FileFields::LABEL_CLASS
   end
 
   def test_constants_has_default_icon_constant

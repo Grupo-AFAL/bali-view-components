@@ -5,7 +5,9 @@
        data-drawer-target="background"
        data-action="click->drawer#close"
     aria-hidden="true"></div>
-  <div class="<%= panel_classes %> <%= panel_open_class %> max-md:max-w-[85%]"
+  <%# `w-`, not `max-w-`: a second max-width replaced the size's cap below 768px, and a `sm`
+      drawer measured 544px wide at 640. %>
+  <div class="<%= panel_classes %> <%= panel_open_class %> max-md:w-[85%]"
        data-drawer-target="wrapper"
        role="document"
        tabindex="-1">

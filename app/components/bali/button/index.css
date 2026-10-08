@@ -1,0 +1,23 @@
+/* Button — the text of a coloured outline, dash or soft button at rest.
+ *
+ * daisyUI paints it in the colour itself, a fill on a light theme: 1.63–2.75:1 on `afal` for
+ * warning, success, info, accent and error, and 1.89 for secondary on `costa-norte` (AA: 4.5).
+ * They take text-soft-*'s mix (bali/utilities.css), and error its own ink. Primary keeps
+ * daisyUI's colour: 4.70:1 at worst on the four themes the gem ships (soft, `afal`), 3.16 on
+ * daisyUI's `dark`.
+ *
+ * In @layer components: daisyUI declares `--btn-rest-fg` only on `.btn-neutral`, so there is
+ * nothing to outrank here, and a coloured Navbar takes it back (navbar/index.css).
+ */
+
+:is(.btn-secondary, .btn-accent, .btn-info, .btn-success, .btn-warning, .btn-error):is(.btn-outline, .btn-dash, .btn-soft) {
+  --btn-rest-fg: color-mix(in oklab, var(--btn-color) 40%, var(--color-base-content));
+}
+
+/* The `@supports` around `--soft-ink-error` in bali/utilities.css, which `--theme()` copies here
+ * when Tailwind builds; test/bali/components/color_test.rb holds the two together. */
+@supports (color: light-dark(oklch(from red l c h), red)) {
+  .btn-error:is(.btn-outline, .btn-dash, .btn-soft) {
+    --btn-rest-fg: --theme(--soft-ink-error);
+  }
+}

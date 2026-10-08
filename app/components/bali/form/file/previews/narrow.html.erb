@@ -1,0 +1,8 @@
+<div class="w-60 border border-base-300 rounded-box p-3">
+  <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+    <%= form.file_group :files,
+          accept: '.jpg, .jpeg, .png, .gif, .pdf',
+          choose_file_text: 'Choose a file',
+          non_selected_text: 'No file selected yet' %>
+  <% end %>
+</div>

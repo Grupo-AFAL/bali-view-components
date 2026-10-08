@@ -99,3 +99,14 @@ export const paintedPixel = (doc, ...colours) => {
 }
 
 export const paintedLuminance = (doc, ...colours) => luminance(paintedPixel(doc, ...colours))
+
+// The pixel `text-soft-error` paints in the current theme: the ink the error variants of Alert,
+// Tag and Button take.
+export const errorInk = (doc) => {
+  const probe = doc.createElement('span')
+  probe.className = 'text-soft-error'
+  doc.body.append(probe)
+  const ink = paintedPixel(doc, doc.defaultView.getComputedStyle(probe).color)
+  probe.remove()
+  return ink
+}

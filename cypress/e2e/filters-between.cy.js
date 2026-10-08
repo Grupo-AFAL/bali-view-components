@@ -131,6 +131,29 @@ describe('An on-or-before condition', () => {
   })
 })
 
+// #1333 — the picker of a `type: :datetime` attribute has no control for seconds, so a day
+// picked on it travels with them at 00: the minute Bali::FilterForm::WholeDayCasting::BARE_MINUTE
+// reads as a whole one.
+describe('An on condition over a datetime attribute', () => {
+  it('sends the minute it shows, seconds at 00', () => {
+    cy.visit('/bali/filters/all_field_types?popover=false')
+    cy.get('[data-condition-target="attribute"]').first().select('last_login')
+
+    // flatpickr asks `instanceof Date`, which a date built in the spec's window fails.
+    cy.get(`${container} [data-controller="datepicker"]`)
+      .should(($input) => expect($input[0]._flatpickr, 'flatpickr mounted').to.exist)
+      .then(($input) => {
+        const page = $input[0].ownerDocument.defaultView
+        $input[0]._flatpickr.open()
+        $input[0]._flatpickr.jumpToDate(new page.Date(2026, 7, 27))
+      })
+    cy.get('.flatpickr-calendar.open .flatpickr-day[aria-label="August 27, 2026"]').click()
+
+    cy.get(`${container} [data-controller="datepicker"]`)
+      .invoke('val').should('match', /^2026-08-27 \d{2}:\d{2}:00$/)
+  })
+})
+
 // #1303 — the widest text a range shows, measured over every pair of months, in the popover
 // the dummy's listing opens at 1280px.
 describe('A range in the filters popover', () => {

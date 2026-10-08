@@ -41,6 +41,16 @@ module Bali
             locals: { model: form_record }
           )
         end
+
+        # @label Narrow column
+        # The field in a 240px column -- a sidebar, a drawer -- where the CTA and the file
+        # name no longer fit on one row (#1370).
+        def narrow
+          render_with_template(
+            template: 'bali/form/file/previews/narrow',
+            locals: { model: form_record }
+          )
+        end
       end
     end
   end

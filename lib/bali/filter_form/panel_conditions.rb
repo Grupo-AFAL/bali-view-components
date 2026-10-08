@@ -61,6 +61,13 @@ module Bali
 
       def applicable_condition?(key, value)
         return false if panel_condition_keys && !panel_condition_keys.include?(key)
+
+        queryable_condition?(key, value)
+      end
+
+      # The value the query can take under `key`, whoever wrote it: the panel, a flat
+      # `attribute` or a simple filter (#1351).
+      def queryable_condition?(key, value)
         return queryable_value?(value) unless list_predicate?(key)
 
         Array.wrap(value).all? { |member| queryable_value?(member) } && fits_column?(key, value)
@@ -107,6 +114,8 @@ module Bali
       # is inlined (`_eq`, `_gt`) and answers no rows, which is right, so only lists are
       # asked. A ransacker has no column to ask.
       def fits_column?(key, value)
+        return true if value.blank?
+
         condition = ransack_condition(key, value)
         return true if condition.nil?
 

@@ -23,7 +23,7 @@ Bali is not published to RubyGems — it is consumed straight from this reposito
 gem "lucide-rails"
 gem "view_component-contrib"
 
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.9.1"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.10.2"
 ```
 
 Then run:
@@ -90,14 +90,6 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 
 /* Dark mode support */
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
-:root {
-  color-scheme: light;
-}
-
-[data-theme="dark"] {
-  color-scheme: dark;
-}
 ```
 
 > **Important**: Bali defines Tailwind classes in Ruby, ERB and JS files under `app/`, and the FormBuilder defines its own — `input-error`, `select-error`, `fieldset-label`, the whole `range-*` family — under `lib/bali/`. The gem's `app/assets/tailwind/bali/engine.css` carries the `@source` globs for both, and the import above is all a host writes. Never point a `@source` at the gem directory yourself: the path differs per machine, and a glob that matches nothing fails silently. Without tailwindcss-rails, import the same file from the npm package — `@import "bali-view-components/tailwind/engine.css";`. Details in [Installation § Step 3](docs/guides/installation.md#step-3-configure-tailwind-css-v4--daisyui).

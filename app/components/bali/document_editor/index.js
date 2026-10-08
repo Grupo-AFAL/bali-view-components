@@ -167,11 +167,7 @@ export class DocumentEditorController extends Controller {
     // save, which this one already carries.
     this._blockEditorController()?.flush()
     clearTimeout(this.saveTimeout)
-    this._saving = true
-    this._editedWhileSaving = false
-    this._updateStatus(this.statusSavingValue)
 
-    const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
     const attributes = {}
 
     if (this.hasTitleInputTarget) {
@@ -184,11 +180,13 @@ export class DocumentEditorController extends Controller {
     }
 
     // Nothing to save (e.g. read-only viewer overlay with no inputs)
-    if (Object.keys(attributes).length === 0) {
-      this._saving = false
-      return
-    }
+    if (Object.keys(attributes).length === 0) return
 
+    this._saving = true
+    this._editedWhileSaving = false
+    this._updateStatus(this.statusSavingValue)
+
+    const csrfToken = document.querySelector("meta[name='csrf-token']")?.content
     const body = { [this.paramKeyValue]: attributes }
 
     try {
@@ -399,6 +397,7 @@ export class DocumentEditorController extends Controller {
   _updateStatus (text, error = false) {
     if (this.hasSaveStatusTarget) {
       this.saveStatusTarget.textContent = text
+      // Below `sm` the template shows the status only while it carries `text-soft-error`.
       this.saveStatusTarget.classList.toggle('text-soft-error', error)
       this.saveStatusTarget.classList.toggle('text-base-content/70', !error)
     }

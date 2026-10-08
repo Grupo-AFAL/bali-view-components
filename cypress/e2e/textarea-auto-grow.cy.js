@@ -1,0 +1,172 @@
+// #1371. The growth itself has worked since #723; what these cover is where it STOPS, in both
+// directions — the two ends that were missing. Heights are read off the rendered box, because
+// the controller writes them as an inline style and that is exactly what was going stale.
+describe('Textarea auto-grow bounds', () => {
+  const capped = () => cy.get('#auto_grow_capped')
+  const prefilled = () => cy.get('#auto_grow_prefilled')
+  const heightOf = $el => $el[0].getBoundingClientRect().height
+
+  beforeEach(() => {
+    cy.visit('/bali/form/text_area/auto_grow_bounds')
+  })
+
+  context('growing', () => {
+    it('grows with the content', () => {
+      capped().then($field => {
+        const before = heightOf($field)
+        capped().type('a line\n'.repeat(3), { delay: 0 })
+        capped().should($grown => expect(heightOf($grown)).to.be.greaterThan(before))
+      })
+    })
+
+    it('keeps the scrollbar away while the content fits', () => {
+      capped().type('one line', { delay: 0 })
+      capped().should($field => {
+        expect(getComputedStyle($field[0]).overflowY).to.equal('hidden')
+      })
+    })
+
+    // #1376 review. `scrollHeight` is the content box and `height` is the border box, so
+    // writing one into the other left the field two pixels short of its own text — clipped,
+    // and with no scrollbar to reach it, because below the cap the overflow is hidden.
+    it('leaves nothing out of reach below the cap', () => {
+      capped().type('a line\n'.repeat(3), { delay: 0 })
+
+      capped().should($field => {
+        expect($field[0].scrollHeight).to.be.at.most($field[0].clientHeight)
+      })
+    })
+  })
+
+  // The upper bound. Before the fix the controller wrote `overflow: hidden` once at setup, so
+  // a `max-height` from the host clipped the text with no way to reach it: no scrollbar, no
+  // scrolling, and therefore no way to cap an auto-grow field at all.
+  context('at the cap', () => {
+    beforeEach(() => {
+      capped().type('a line\n'.repeat(40), { delay: 0 })
+    })
+
+    it('stops at the max-height the CSS gives it', () => {
+      capped().should($field => {
+        const max = parseFloat(getComputedStyle($field[0]).maxHeight)
+        expect(max).to.be.greaterThan(0)
+        expect(heightOf($field)).to.be.closeTo(max, 1)
+      })
+    })
+
+    it('scrolls the overflow instead of hiding it', () => {
+      capped().should($field => {
+        expect(getComputedStyle($field[0]).overflowY).to.equal('auto')
+        expect($field[0].scrollHeight).to.be.greaterThan($field[0].clientHeight)
+      })
+    })
+  })
+
+  // #1376 review, both of them. The cap is MEASURED after the height is written and not read
+  // off the computed `max-height`, because a percentage cannot be read: it stays a percentage
+  // in the computed value. Guessing it both ways was wrong — as pixels it pinned `max-h-full`
+  // at 100px, as no cap at all it let CSS clip the text under an `overflow-y: hidden` of ours.
+  context('with a cap that is not plain pixels', () => {
+    it('grows past a percentage that does not resolve', () => {
+      capped().then($field => { $field[0].style.maxHeight = '100%' })
+      capped().type('a line\n'.repeat(20), { delay: 0 })
+
+      capped().should($field => expect(heightOf($field)).to.be.greaterThan(200))
+    })
+
+    it('scrolls a percentage that CSS did resolve against a sized parent', () => {
+      capped().then($field => {
+        $field[0].closest('.control').style.height = '150px'
+        $field[0].style.maxHeight = '100%'
+      })
+      capped().type('a line\n'.repeat(20), { delay: 0 })
+
+      capped().should($field => {
+        expect(heightOf($field)).to.be.closeTo(150, 1)
+        expect(getComputedStyle($field[0]).overflowY).to.equal('auto')
+        expect($field[0].scrollHeight).to.be.greaterThan($field[0].clientHeight)
+      })
+    })
+  })
+
+  // The lower bound. `form.reset()` clears the value WITHOUT firing `input`, so the inline
+  // height from the last keystroke survived the reset: the field stayed grown and empty.
+  context('on reset', () => {
+    it('returns to the height it had empty', () => {
+      capped().then($field => {
+        const empty = heightOf($field)
+
+        capped().type('a line\n'.repeat(6), { delay: 0 })
+        capped().should($grown => expect(heightOf($grown)).to.be.greaterThan(empty))
+
+        cy.get('button[type="reset"]').click()
+
+        capped().should('have.value', '')
+        capped().should($reset => expect(heightOf($reset)).to.equal(empty))
+      })
+    })
+
+    // The one a `.click()` cannot cover. A REAL user click runs a microtask checkpoint between
+    // the `reset` event and the button's activation behaviour (the form reset itself), so a
+    // handler that measures in a microtask reads a field that is still FULL and writes the
+    // grown height straight back — measured in Chrome 150: cleared field left at `height:
+    // 128px`. Cypress's synthetic click nests the dispatch inside a JS stack, which pushes the
+    // checkpoint past the reset and hides it, so the order is reproduced by hand here.
+    it('measures after the reset has happened, not after the event that announces it', () => {
+      let empty
+      capped().then($field => { empty = heightOf($field) })
+      capped().type('a line\n'.repeat(6), { delay: 0 })
+
+      cy.window().then(win => {
+        const field = win.document.querySelector('#auto_grow_capped')
+
+        field.form.dispatchEvent(new win.Event('reset', { bubbles: true, cancelable: true }))
+
+        // The checkpoint a real click runs here, with the field still full…
+        return new Cypress.Promise(resolve => win.queueMicrotask(resolve)).then(() => {
+          // …and only then the reset itself.
+          field.value = field.defaultValue
+        })
+      })
+
+      capped().should($field => expect(heightOf($field)).to.equal(empty))
+    })
+
+    // #1376 review. The counter has the same root cause as the height — `reset` does not fire
+    // `input` — and it is not an auto-grow concern: this field does not grow, and its count was
+    // left reading the old length, in red, over an empty field.
+    it('puts the character counter back as well, on a field that does not grow', () => {
+      const field = () => cy.get('#counter_no_auto_grow')
+      const counter = () =>
+        field().closest('[data-controller~="textarea"]').find('[data-textarea-target="counter"]')
+      let asRendered
+
+      counter().then($c => { asRendered = $c.text() })
+      field().type('and then some more', { delay: 0 })
+      counter().should($c => expect($c.text()).not.to.equal(asRendered))
+
+      cy.get('button[type="reset"]').click()
+
+      field().should('have.value', 'well past the ten characters this one allows')
+      counter().should($c => expect($c.text()).to.equal(asRendered))
+    })
+
+    // A field RENDERED with content measured its floor off that content, so it could never
+    // shrink back to its `rows` — and a reset on such a form left it grown exactly like the
+    // bug above.
+    it('returns a pre-filled field to its rows, not to what it was rendered with', () => {
+      prefilled().then($field => {
+        const asRendered = heightOf($field)
+
+        cy.get('button[type="reset"]').click()
+
+        // Reset restores the rendered value, so this one does NOT shrink on reset…
+        prefilled().should($after => expect(heightOf($after)).to.equal(asRendered))
+
+        // …but emptying it by hand goes below what it was rendered with, down to two rows.
+        prefilled().clear()
+        prefilled().should($empty => expect(heightOf($empty)).to.be.lessThan(asRendered))
+      })
+    })
+  })
+})
