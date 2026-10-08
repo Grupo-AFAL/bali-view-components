@@ -219,7 +219,7 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
     assert_file "package.json" do |json|
       package = JSON.parse(json)
 
-      assert_equal ">=5.7.0", package.dig("devDependencies", "daisyui")
+      assert_equal ">=5.7.0 <6", package.dig("devDependencies", "daisyui")
       assert_nil package.dig("dependencies", "daisyui")
     end
   end

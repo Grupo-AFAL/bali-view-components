@@ -122,7 +122,53 @@ class BaliNpmPeerContractTest < ActiveSupport::TestCase
                  "a `Could not resolve` count that is neither of the two measured ones"
   end
 
+  # An open range promises every future major, including the ones nobody has run Bali on —
+  # Dependabot offered afal-apps BlockNote 0.55 and Mantine 9. For a 0.x package the
+  # ceiling is a minor, which is why this asks for a `<` and not for a particular number.
+  BOUNDED_RANGE = /\A>=\d+(\.\d+)* <\d+(\.\d+)*\z/
+
+  def test_every_peer_range_has_a_ceiling
+    assert_empty peer_dependencies.reject { |_, range| range.match?(BOUNDED_RANGE) },
+                 "write these as `>=floor <next-untested-major`: the floor is the oldest version " \
+                 "measured to work, the ceiling the first one nobody has run"
+  end
+
+  # The other half of a ceiling: it moves when the dummy moves. A bump of test/dummy past
+  # one turns this red, and the range is then moved on purpose — or the bump is not merged.
+  # Only what the dummy declares itself counts; it also carries peers transitively
+  # (BlockNote brings @tiptap/core 3), and those it does not run Bali against.
+  def test_the_dummy_runs_every_peer_it_installs_inside_the_declared_range
+    versions = dummy_peer_versions
+    assert_includes versions.keys, "slim-select", "the peers read from test/dummy/package.json lost slim-select, " \
+                                                  "so this may be checking nothing"
+
+    unlocked = versions.select { |_, version| version.nil? }.keys
+    assert_empty unlocked, "no yarn.lock entry for the range test/dummy/package.json declares"
+
+    outside = versions.reject { |name, version| satisfies?(peer_dependencies.fetch(name), version) }
+    assert_empty outside.to_h { |name, version| [ name, "#{version} vs #{peer_dependencies.fetch(name)}" ] },
+                 "test/dummy runs these outside the range package.json promises hosts"
+  end
+
   private
+
+  # { "slim-select" => "4.5.0", ... } for every peer test/dummy/package.json declares,
+  # read off the yarn.lock entry for exactly that declaration.
+  def dummy_peer_versions
+    dummy = ROOT.join("test/dummy")
+    declared = JSON.parse(dummy.join("package.json").read).values_at("dependencies", "devDependencies")
+                   .compact.reduce(:merge).slice(*peer_dependencies.keys)
+    entries = dummy.join("yarn.lock").read.split(/\n{2,}/)
+
+    declared.to_h do |name, range|
+      entry = entries.find { |block| block.lines.first.delete('":').split(", ").map(&:strip).include?("#{name}@#{range}") }
+      [ name, entry && entry[/^\s+version "([^"]+)"/, 1] ]
+    end
+  end
+
+  def satisfies?(range, version)
+    Gem::Requirement.new(*range.split).satisfied_by?(Gem::Version.new(version))
+  end
 
   def package_json
     @package_json ||= JSON.parse(ROOT.join("package.json").read)

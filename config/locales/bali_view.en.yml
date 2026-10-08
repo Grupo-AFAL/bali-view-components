@@ -242,10 +242,13 @@ en:
         searching: "Searching..."
         results: "Results"
         ajax_placeholder: "Type 2 chars to search..."
-        # SlimSelect fills in `{number}` and `{value}` itself. Written as Rails'
-        # `%{number}`, the count comes out as "%27 selected".
+        # SlimSelect fills in `{number}`, `{value}` and `{count}` itself. Written as
+        # Rails' `%{number}`, the count comes out as "%27 selected".
         max_values_message: "{number} selected"
         addable: 'Press "Enter" to add {value}'
+        deselect: "Clear"
+        remove: "Remove"
+        results_count: "{count} results available"
 
     # Saved views (B2) — Bali::SavedViewsController notices
     saved_views:

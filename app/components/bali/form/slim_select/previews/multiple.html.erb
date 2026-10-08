@@ -1,3 +1,5 @@
-<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.slim_select_field :name, options, html: { multiple: true } %>
+<% I18n.with_locale(locale) do %>
+  <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+    <%= form.slim_select_field :name, options, html: { multiple: true } %>
+  <% end %>
 <% end %>

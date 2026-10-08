@@ -7,6 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **SlimSelect 4.5, y todo peer de JS tiene tope.**
+  - **SlimSelect 4.** La dummy prueba `slim-select` 4.5.0 (antes 3.4.3) y el rango pasa de
+    `>=2.0.0` a `>=3.4.0 <5`: 3.4 es la primera con `contentWidth`, que `content_width:` reenvía,
+    y con 2.x Bali 3 ya no funcionaba (su CSS espera las clases de 3.x; el mismo resultado en
+    `main`). El controlador apaga el modal que 4.x abre bajo 768 px —`slim_select.css` no lo
+    pinta: a 375 px, sin fondo, más angosta que el disparador y con las opciones sin pintar bajo
+    la búsqueda—, y una búsqueda remota que se vacía vuelve a mostrar las opciones en vez de
+    `ajax_placeholder`. Con 4.x, por debajo de 768 px la búsqueda ya no toma el foco al abrir la
+    lista, para no sacar el teclado del teléfono.
+  - **Textos.** `slim_select.css` oculta la región viva `.ss-status` que SlimSelect agrega desde
+    3.6: hoy garita e identity (3.6.1) y costa-norte (3.6.0) muestran «N results available» encima
+    de las opciones al buscar. Lo que SlimSelect lee en voz alta —el botón de borrar y el de
+    quitar cada etiqueta desde 3.5, la cuenta de resultados desde 3.6— sale ahora en el idioma de
+    la página, también en Filters (`deselect`, `remove` y `results_count` en
+    `bali_view.form_builder.slim_select`); hasta ahora iba en inglés.
+  - **Topes.** Cada rango de `peerDependencies` es ahora `>=piso <siguiente mayor sin probar`; en
+    un paquete `0.x` la mayor es el segundo número (`@blocknote/* >=0.53.0 <0.54.0`). `lowlight`
+    sube su piso a 3.0.0, la primera que exporta el `createLowlight` que importa RichTextEditor.
+    Yarn 1 no revisa la versión de un peer opcional, así que en una app con Yarn 1 el tope de
+    BlockNote, Mantine o SlimSelect no detiene a Dependabot. Eso lo hace un `ignore` en el
+    `dependabot.yml` de cada app, que en la flota escribe bali-runtime: llega con la versión que
+    traiga Grupo-AFAL/bali-runtime#131, no a mano.
+  - **Anfitrión.** Medido en `origin/main` de las siete, sólo centinela-web usa un peer fuera de
+    su rango, `slim-select` 2.13.1, y debe subir: `yarn add slim-select@^4.5.0`. Las demás pueden
+    quedarse en su 3.x (afal-apps, gobierno-corporativo y opina en 3.4.3) o subir con el mismo
+    comando. Si gobierno-corporativo sube a 4.x, cambia además sus dos `new SlimSelect`
+    (`LaneModal.jsx` y `NewSubordinateModal.jsx`, en `app/javascript/components/bpmn/modals/`):
+    `modal: 'off'` y los tres textos (`deselectText`, `removeText`, `resultsText`) en sus
+    `settings`, o abren el modal sin estilos y anuncian en inglés. Y desde 4.4 borrar la búsqueda
+    llama a su `events.search` con `''`, que en 3.4 nunca llegaba: pide la primera página sin `q`
+    —o rechaza con «Sin coincidencias» si viene vacía— en vez de volver a la lista con la que
+    abrió. Devolver con `''` el catálogo, el tercer argumento, como hace Bali, lo evita. El
+    `@tiptap/*` 3.x que BlockNote trae a afal-apps y gobierno-corporativo queda fuera del tope de
+    RichTextEditor (`<3`) sin consecuencia: es un peer opcional, y ni Yarn 1 ni npm lo revisan
+    cuando llega como dependencia de otro paquete.
+
+### Fixed
+
+- **SlimSelect: la clase compacta caía en la lista de otro select.** El controlador buscaba la
+  lista con `document.querySelector('.ss-content')`, que da la primera del documento, y le ponía
+  `slim-select-sm-content`: en una página con un select compacto (Filters, SimpleFilters) y otro
+  normal, la lista del normal abría compacta y la del compacto a tamaño normal (medido en
+  `form/sizes/comparison`). Ahora la toma de su propia instancia. Nada que hacer en la app.
+
+### Dependencies
+
+- **La dummy prueba las menores y parches nuevos, sin cambiar de mayor.** Ningún piso cambia, y
+  salvo `prosemirror-view` en afal-apps ninguna app tiene que hacer nada; quien quiera
+  alinearse, `yarn upgrade <paquete>@^<versión>`.
+  - `react` y `react-dom` 19.2.4 → 19.3.0.
+  - `@xyflow/react` 12.11.2 → 12.12.0 (Gantt).
+  - `date-fns` 4.1.0 → 4.4.0.
+  - `@rails/activestorage` 8.1.200 → 8.1.400.
+  - `@mantine/core` y `@mantine/hooks` 8.3.16 → 8.3.18; Mantine 9 sigue fuera del rango.
+  - `@react-pdf/renderer` 4.3.2 → 4.9.0 y `docx` 9.7.1 → 9.9.0, con los que BlockEditor exporta
+    a PDF y Word (gobierno-corporativo los instala).
+  - `prosemirror-view` 1.42.2 → 1.42.6, que BlockEditor recibe de BlockNote: cierra
+    GHSA-c8x8-7fp4-3x9w (alta, XSS al pegar, corregido en 1.42.3). afal-apps está en 1.42.2:
+    borrar su bloque del `yarn.lock` y `yarn install` lo re-resuelve dentro del rango.
+    gobierno-corporativo ya está en 1.42.6.
+  - Sólo de este repo: `cypress` 16.1.0 → 16.1.1, `esbuild` 0.28.2, `zod` 4.6.5, los
+    `@tiptap/*` 3.31.4 que trae BlockNote y `brace-expansion` 5.0.9 → 5.0.12 en la raíz
+    (GHSA-q2hr-2g5m-vwhr, media). Reemplaza a los PRs de Dependabot #1316, #1366 y #1228.
+
 ## [v3.10.2] - 2026-10-08
 
 ### Changed
