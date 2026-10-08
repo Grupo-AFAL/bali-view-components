@@ -177,7 +177,7 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
     { what: "the version the console prints back", docs: %w[docs/guides/installation.md],
       prefix: "", pattern: /^=> "(\d[^"]*)"/ },
     { what: "the tag the npm package pins", docs: %w[docs/guides/installation.md], prefix: "v",
-      pattern: %r{github:Grupo-AFAL/bali-view-components#(v[^\s"]+)} }
+      pattern: %r{github:Grupo-AFAL/bali-view-components#(v[\w.-]+)} }
   ].freeze
 
   def test_the_install_instructions_pin_this_version

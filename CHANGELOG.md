@@ -14,10 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Yarn 1** (las siete hoy): nada. Instala Bali desde su etiqueta igual que antes, con o sin
     Corepack.
   - **Yarn 4, migrada desde Yarn 1**: nada. La migración ya escribe
-    `approvedGitRepositories: ["**"]`.
-  - **Yarn 4, proyecto nuevo**: aprobar el repositorio en su `.yarnrc.yml` con los dos patrones de
-    `docs/guides/release-channels.md`, o `yarn install` se detiene en `YN0080`. No depende de esta
-    versión: pasa con cualquier etiqueta de Bali.
+    `approvedGitRepositories: ["**"]`; una app nueva en Yarn 4 aprueba el repositorio como dice
+    `docs/guides/release-channels.md`.
   - **Lo que trae esta versión a una app en Yarn 4**: ya no instala las devDependencies de Bali
     para empaquetarlo. Con Bali en Yarn 1, un `yarn install` en frío bajaba también el binario de
     Cypress (802 MB).

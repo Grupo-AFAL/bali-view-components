@@ -128,14 +128,14 @@ For a release PR:
    | `package.json` | `"version"` — same number, npm spelling (`3.1.0-beta.1` for `3.1.0.beta.1`) |
    | `Gemfile.lock` | regenerated with `bundle install`, never by hand |
    | `README.md` | the `tag:` of the install snippet |
-   | `docs/guides/installation.md` | the `tag:` and the console transcript `=> "X.Y.Z"` |
+   | `docs/guides/installation.md` | the `tag:`, the npm package's `github:…#vX.Y.Z` and the console transcript `=> "X.Y.Z"` |
    | `CHANGELOG.md` | `## [Unreleased]` becomes `## [vX.Y.Z] - YYYY-MM-DD`, repeated `###` headings merged |
 
    `README.md` and `installation.md` are not optional:
    `BaliDependencyContractTest#test_the_install_instructions_pin_this_version` compares their
-   three install pins — two `tag:` and the console transcript — against `Bali::VERSION`, and
-   fails the suite when they disagree. The README sat on `v3.1.0.beta.13` for four releases
-   before it existed.
+   four install pins — two `tag:`, the npm package's `#vX.Y.Z` and the console transcript —
+   against `Bali::VERSION`, and fails the suite when they disagree. The README sat on
+   `v3.1.0.beta.13` for four releases before it existed.
 
    The lock goes in the same commit because it records the PATH gem's version and CI bundles
    with a frozen lock: a bump without it fails every Ruby workflow with exit 16 at
