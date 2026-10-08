@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Los PRs de Dependabot llevan la etiqueta `no-changelog`.** Dependabot no escribe en
+  `CHANGELOG.md`, y el Changelog Checker, que es requerido, dejaba bloqueados todos sus PRs
+  (#1366, #1316, #1228). Conservan `dependencies` y la etiqueta de su ecosistema, que son las que
+  pone Dependabot por omisión. El checker también corre al poner o quitar una etiqueta: lee las
+  etiquetas del evento, y Dependabot las agrega después de abrir el PR.
+
 ### Fixed
 
 - **`file_group` / `file_field`: el botón ya no se encima con el nombre del archivo en una

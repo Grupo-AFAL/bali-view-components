@@ -1,7 +1,9 @@
 name: Changelog Checker
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    # labeled/unlabeled: the action reads the labels from the event payload, and
+    # Dependabot adds `no-changelog` after it opens the PR.
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
     branches:
       - main
       - "3.1"
