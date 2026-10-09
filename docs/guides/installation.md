@@ -95,7 +95,7 @@ Bali is not published to RubyGems. Add to your `Gemfile`, pinning a tag:
 gem "lucide-rails"
 gem "view_component-contrib"
 
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.10.2"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.11.0"
 ```
 
 Run bundler:
@@ -126,10 +126,10 @@ whatever anyone publishes under that name tomorrow — so pin the same tag as th
 [One tag, two packages](release-channels.md#one-tag-two-packages) has the two lines.
 
 ```bash
-yarn add bali-view-components@github:Grupo-AFAL/bali-view-components#v3.10.2 \
+yarn add bali-view-components@github:Grupo-AFAL/bali-view-components#v3.11.0 \
   @hotwired/stimulus @hotwired/turbo-rails daisyui
 # or, on npm 12, which refuses a git dependency without `allow-git=root` in .npmrc
-npm install github:Grupo-AFAL/bali-view-components#v3.10.2 \
+npm install github:Grupo-AFAL/bali-view-components#v3.11.0 \
   @hotwired/stimulus @hotwired/turbo-rails daisyui
 ```
 
@@ -469,7 +469,7 @@ See [External Services](external-services.md) for the full setup.
 ```bash
 bundle exec rails console
 > Bali::VERSION
-=> "3.10.2"  # the tag you pinned in Step 1, without the leading v
+=> "3.11.0"  # the tag you pinned in Step 1, without the leading v
 ```
 
 ### 2. Check Component Rendering
