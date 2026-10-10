@@ -37,7 +37,7 @@
     "cy:run:electron": "cypress run"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^8.0.7",
     "@babel/eslint-parser": "^7.29.9",
     "@babel/preset-env": "7.29.7",
     "cypress": "16.1.1",
