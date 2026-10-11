@@ -3,29 +3,25 @@ const CALLBACK_NAME = '__googleMapsApiOnLoadCallback'
 const optionsKeys = ['channel', 'client', 'key', 'language', 'region', 'v']
 
 const defaultTimeout = 10000
-let promise = null
+let script = null
 
 export default function (options = {}) {
-  promise =
-    promise ||
+  script =
+    script ||
     new Promise((resolve, reject) => {
-      // Reject the promise after a timeout
-      const timeoutId = setTimeout(function () {
-        window[CALLBACK_NAME] = function () {} // Set the on load callback to a no-op
-        reject(new Error('Could not load the Google Maps API'))
-      }, options.timeout || defaultTimeout)
-
       // Hook up the on load callback
       window[CALLBACK_NAME] = function () {
-        if (timeoutId !== null) {
-          clearTimeout(timeoutId)
-        }
         resolve(window.google.maps)
       }
 
       // Prepare the `script` tag to be inserted into the page
       const scriptElement = document.createElement('script')
       scriptElement.async = true // Load asynchronously to not block rendering
+      scriptElement.onerror = function () {
+        scriptElement.remove()
+        script = null
+        reject(new Error('Could not load the Google Maps API'))
+      }
       const params = [
         `callback=${CALLBACK_NAME}`,
         'loading=async' // Google Maps recommended async loading parameter
@@ -44,5 +40,14 @@ export default function (options = {}) {
       document.body.appendChild(scriptElement)
     })
 
-  return promise
+  // The timeout is the caller's, not the script's: a script still loading when its caller gives
+  // up runs once it arrives, removed from the page or not (Chromium and Firefox, measured), so the
+  // next call waits for it rather than load a second copy of the API over it.
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(function () {
+      reject(new Error('Could not load the Google Maps API'))
+    }, options.timeout || defaultTimeout)
+
+    script.then(resolve, reject).finally(() => clearTimeout(timeoutId))
+  })
 }

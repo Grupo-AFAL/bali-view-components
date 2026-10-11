@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Google Maps: tras un fallo, la siguiente llamada vuelve a cargar la API** (#1387).
+  `loadGoogleMapsApi` guardaba su primera respuesta toda la vida de la página, con el rechazo por
+  tiempo incluido, así que después de un fallo ningún mapa (`LocationsMap`, `drawing-maps`,
+  `geocoder-maps`, `autocomplete-address` ni el de una app) volvía sin recargar. Un script que no
+  carga (`onerror`, que no existía) se quita y se olvida, y la siguiente llamada lo pide de nuevo.
+  El tiempo de espera es ahora de cada llamada, no del script: uno lento que llega después de
+  vencido se conserva y la siguiente llamada lo usa, en vez de cargar encima una segunda copia de
+  la API (un script quitado de la página igual se ejecuta al llegar). Nada que hacer en la app.
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
