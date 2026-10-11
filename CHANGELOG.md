@@ -17,7 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   afal-apps puede borrar su regla de `app/assets/tailwind/application.css`
   (`git grep -n "bali-view-components#1390"`) y la prueba que la sostenía en
   `test/controllers/td_flow/vendors_controller_test.rb` («the listing action sits in the last
-  toolbar group»).
+  toolbar group»). En gobierno-corporativo el «Limpiar filtros» de
+  `app/views/data_access_logs/index.html.erb`, un `toolbar_button` sin view switch, pasa
+  también al borde.
 - **`Filters::PersistenceToggle`: su tooltip ya no desborda la página** (#1392). Era el de
   daisyUI, un `::before` que ocupa lugar aunque no se vea, y con el marcador al borde de la barra
   del `DataTable` le daba scroll horizontal al contenedor (a 812 px la página medía 901 de
@@ -28,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Tooltip`: un nodo que se mueve mientras conecta abre un solo globo.** Los dos `connect()`
   de un tooltip movido antes de que cargue tippy armaban un tippy cada uno, y el hover mostraba
   dos globos encimados; dentro de la barra del `DataTable`, que reacomoda sus controles al
-  conectar, pasaba al cargar la página. Nada que hacer en la app.
+  conectar, pasaba al cargar la página. Ninguna de las siete apps tiene un `Bali::Tooltip` en esa
+  barra (`git grep` en `origin/main`), así que nadie lo vio; nada que hacer en la app.
 
 ## [v3.11.0] - 2026-10-08
 

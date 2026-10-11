@@ -69,19 +69,16 @@ export class FilterPersistenceController extends Controller {
       }
     }
 
-    // NOTE: `this.data.get(...)` reads the CONTROLLER element, so the tooltips must be
-    // Stimulus values on it — attributes on the button child are invisible here (that
-    // placement silently fell back to the hardcoded English strings).
-    if (this.hasTooltipTarget) {
-      this.updateTooltip(this.enabledValue ? this.enabledTooltipValue : this.disabledTooltipValue)
-    }
-
     if (this.hasButtonTarget) {
       // The state is exposed here and not only in the served HTML: connect() can flip it
       // from localStorage without the server repainting, and the `aria-pressed` would be
       // lying. It is the only signal a screen reader has — the icons are `aria-hidden` and
       // the balloon describes the wrapper tippy is anchored to, not the button.
       this.buttonTarget.setAttribute('aria-pressed', this.enabledValue.toString())
+    }
+
+    if (this.hasTooltipTarget) {
+      this.updateTooltip(this.enabledValue ? this.enabledTooltipValue : this.disabledTooltipValue)
     }
   }
 

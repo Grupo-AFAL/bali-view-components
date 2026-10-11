@@ -40,6 +40,8 @@ export class TooltipController extends Controller {
     if (!tippyModule || this.tippy) return
     const { default: tippy } = tippyModule
 
+    // Read from outside: filter-persistence-controller.js (updateTooltip) rewrites the `content`
+    // template and calls `setContent` on `triggerTarget._tippy`.
     this.tippy = tippy(this.triggerTarget, {
       allowHTML: true,
       appendTo: this.appendToOption,

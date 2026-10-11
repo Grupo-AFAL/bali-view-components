@@ -68,10 +68,8 @@ class BaliFiltersPersistenceToggleTest < ComponentTestCase
     assert_selector('button[data-action="filter-persistence#toggle"][aria-pressed="true"]')
   end
 
-  # daisyUI's `tooltip` class laid its hidden balloon out under the button, and at the toolbar's
-  # edge that box overflowed the scroll container (#1392). A Bali::Tooltip is portaled while open
-  # and absent while shut. CONTRACT with filter-persistence-controller.js, which reaches the
-  # balloon through the `tooltip` target to keep its text in step with the state.
+  # CONTRACT with filter-persistence-controller.js, which reaches the balloon through the
+  # `tooltip` target to keep its text in step with the state.
   def test_the_tooltip_is_a_bali_tooltip_the_controller_can_reach
     render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
 
