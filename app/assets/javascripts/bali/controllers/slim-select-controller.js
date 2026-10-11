@@ -263,8 +263,9 @@ export class SlimSelectController extends Controller {
 
   // SlimSelect counts the placeholder among the results it reads out, though it draws it
   // hidden, and a remote search keeps it in the list because it is the selected option.
-  // Measured on 4.5.0, and 4.6.0's source counts the same way: a remote search with no
-  // matches left the list blank and read out "1 results available", and four matches read "5".
+  // Measured on 4.5.0 and 4.6.0: a remote search with no matches left the list blank and read
+  // out "1 results available", and four matches read "5". Reported upstream as
+  // https://github.com/brianvoe/slim-select/issues/719 — this method goes once that is fixed.
   // A list holding nothing but the placeholder takes SlimSelect's own empty branch — "No
   // results", or the addable hint — as a select without one does. SlimSelect has already
   // rendered once while mounting, so a list that counted one is rendered again.
