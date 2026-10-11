@@ -634,9 +634,30 @@ export class FiltersController extends Controller {
       this.pushHistory(url)
 
       // Submit the form (Turbo will handle the response with morphing)
-      form.requestSubmit()
+      this._requestSubmitAs(form, url)
     } finally {
       restore()
+    }
+  }
+
+  /**
+   * Private: submit `form` carrying exactly the query of `url`, the one pushed to history.
+   * Neither form holds the whole state — the panel has the groups, the quick search the
+   * search — so `requestSubmit()` alone asked for half of it (#1352). `formdata` fires on the
+   * entry list both Turbo (`new FormData(form)`) and a native submit build, synchronously
+   * inside `requestSubmit()`.
+   */
+  _requestSubmitAs (form, url) {
+    const carryUrl = ({ formData }) => {
+      for (const key of [...formData.keys()]) formData.delete(key)
+      for (const [key, value] of url.searchParams) formData.append(key, value)
+    }
+
+    form.addEventListener('formdata', carryUrl)
+    try {
+      form.requestSubmit()
+    } finally {
+      form.removeEventListener('formdata', carryUrl)
     }
   }
 

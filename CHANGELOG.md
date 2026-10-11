@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Filters: «Aplicar» en el popover pedía al servidor los grupos sin la búsqueda (#1352).** La
+  tabla mostraba un resultado que la URL de la barra no describía, y al recargar cambiaba. Ahora
+  la petición de «Aplicar» y la de la búsqueda llevan exactamente la query de esa URL: la
+  búsqueda, los grupos y lo que se preserva (`group_by`, `view`, `view_origin`). Por eso una
+  búsqueda aplica también los cambios del panel que aún no se habían aplicado, como ya hacía esa
+  URL al recargar. Nada que hacer en la app.
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
