@@ -499,7 +499,14 @@ export class ModalController extends Controller {
     this._mousedownOnOverlay = false
   }
 
-  _markDirty = () => {
+  // SlimSelect's list holds nothing the form sends: a pick reaches here as the `change` of
+  // its hidden <select>, and typing a search asked to confirm a close that lost nothing.
+  // Ignoring every target with no `name` instead would also ignore flatpickr's altInput,
+  // whose date reaches the named field only after the close is decided — measured on
+  // `drawer/dirty_form`, ✕ then closed a drawer with a typed date without asking.
+  _markDirty = ({ target }) => {
+    if (target.closest('.ss-content')) return
+
     this._dirty = true
   }
 

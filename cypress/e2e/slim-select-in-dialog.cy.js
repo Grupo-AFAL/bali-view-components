@@ -80,4 +80,36 @@ describe('SlimSelect inside a Modal or Drawer rendered closed', () => {
       })
     })
   })
+
+  // A Drawer asks before discarding unsaved changes. A search typed in the list is not one;
+  // a picked option is.
+  context('Drawer with unsaved changes', () => {
+    const { trigger, dialog } = PANELS.Drawer
+    const combobox = `${dialog} .slim-select:has(#drawer_form_record_select) .ss-main`
+    const closeButton = `${dialog} button[aria-label][data-action$="#close"]`
+
+    beforeEach(() => {
+      cy.visit('/bali/form/slim_select/in_dialog')
+      cy.get(`${dialog} .ss-main`).should('have.length', 2)
+      cy.get(trigger).click()
+      cy.get(dialog).should($dialog => expect($dialog[0].matches(':modal'), ':modal').to.equal(true))
+      cy.get(combobox).click()
+    })
+
+    it('closes without asking after a search typed in the list', () => {
+      cy.focused().type('Option')
+      cy.get(combobox).click()
+      cy.get(closeButton).click()
+
+      cy.get(dialog).should($dialog => expect($dialog[0].open, 'closed without asking').to.equal(false))
+    })
+
+    it('asks before closing once an option is picked', () => {
+      cy.get('.ss-content.ss-open .ss-option').contains('Option 4').click()
+      cy.get(closeButton).click()
+
+      cy.get('#bali-confirm-accept-btn').should('be.visible')
+      cy.get(dialog).should($dialog => expect($dialog[0].open, 'open').to.equal(true))
+    })
+  })
 })
