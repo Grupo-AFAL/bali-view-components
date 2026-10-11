@@ -34,6 +34,29 @@ describe('CommentThread', () => {
     })
   })
 
+  // Both used to be fixed by hand in a host (afal-apps, TDF-017): daisyUI's `.avatar`
+  // centres itself in the row, and a long URL with no break pushed the comment out of
+  // its card. #comment_2 carries such a URL, and at phone width it wraps over many lines.
+  context('at phone width', () => {
+    beforeEach(() => {
+      cy.viewport(375, 800)
+      cy.visit('/bali/comment_thread/default')
+    })
+
+    it('keeps the avatar at the top of a long comment', () => {
+      cy.get('#comment_2').then(($li) => {
+        const avatar = $li[0].querySelector('.avatar').getBoundingClientRect()
+        expect(avatar.top).to.equal($li[0].getBoundingClientRect().top)
+      })
+    })
+
+    it('wraps a long URL inside the comment', () => {
+      cy.get('#comment_2').should(($li) => {
+        expect($li[0].scrollWidth).to.be.at.most($li[0].clientWidth)
+      })
+    })
+  })
+
   context('with comments', () => {
     beforeEach(() => cy.visit('/bali/comment_thread/default'))
 
