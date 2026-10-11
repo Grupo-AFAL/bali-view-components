@@ -71,6 +71,13 @@ describe('SlimSelect list', () => {
       cy.visit('/bali/form/slim_select/remote_with_prompt')
     })
 
+    // Before any search: SlimSelect's own render, while mounting, counted the prompt too.
+    it('says there are no results before a search, with nothing but the prompt', () => {
+      cy.get('.ss-main').click()
+
+      cy.get('.ss-content.ss-open .ss-list .ss-search').should('have.text', 'No results')
+    })
+
     it('says there are no results when the search finds none', () => {
       search('zz')
 

@@ -52,12 +52,12 @@ export class SlimSelectController extends Controller {
     noResultsText: String,
     searchingText: String,
     resultsText: String,
-    // `resultsCountText` is SlimSelect's `resultsText`: the name `resultsText` here already
-    // belongs to the label of the remote results' group.
     maxValuesMessage: String,
     addableText: String,
     deselectText: String,
     removeText: String,
+    // SlimSelect's `resultsText`: the name `resultsText` here already belongs to the label of
+    // the remote results' group.
     resultsCountText: String,
     ajaxParamName: String,
     ajaxValueName: String,
@@ -203,9 +203,14 @@ export class SlimSelectController extends Controller {
     }
   }
 
-  // Each text value as written on the element — an empty one included — or else the page
-  // language's, read off the nearest `lang` as the browser does. A page without one, or in a
-  // language with no entry, reads English.
+  // Each text value as written on the element, or else the page language's, read off the
+  // nearest `lang` as the browser does. A page without one, or in a language with no entry,
+  // reads English.
+  //
+  // Present, not truthy: an empty value is kept. SlimSelect takes '' as "no placeholder" —
+  // `placeholderText` is the one setting it checks against `undefined` (3.4.3 to 4.6.0) — and
+  // `slim_select_field placeholder: ""` writes exactly that. The other texts fall back to
+  // SlimSelect's own through `||`.
   get texts () {
     const lang = this.element.closest('[lang]')?.lang.toLowerCase().split(/[-_]/)[0]
     const defaults = TEXTS[lang] || TEXTS.en
@@ -263,26 +268,28 @@ export class SlimSelectController extends Controller {
   // A list holding nothing but the placeholder takes SlimSelect's own empty branch — "No
   // results", or the addable hint — as a select without one does. SlimSelect has already
   // rendered once while mounting, so a list that counted one is rendered again.
+  //
+  // `announce` is the one private member this touches: the count comes from the data handed
+  // in, so a renamed internal cannot throw in here, ahead of `afterChange`.
   leavePlaceholderOutOfResults () {
     const render = this.select.render
     const renderOptions = render.renderOptions.bind(render)
+    const optionsIn = data => data.flatMap(item => item.options || [item])
 
     render.renderOptions = data => {
-      const results = data
-        .flatMap(item => item.options || [item])
-        .filter(option => !option.placeholder)
+      const options = optionsIn(data)
+      const results = options.filter(option => !option.placeholder)
       if (results.length === 0) return renderOptions([])
 
       renderOptions(data)
       // `announce` arrived with the count, in 3.6.
-      if (render.announce && results.length < render.lastRenderedOptions.length) {
+      if (render.announce && results.length < options.length) {
         render.announce(this.select.settings.resultsText.replace('{count}', results.length))
       }
     }
 
-    if (render.lastRenderedOptions.some(option => option.placeholder)) {
-      render.renderOptions(this.select.store.getData(false))
-    }
+    const data = this.select.store.getData(false)
+    if (optionsIn(data).some(option => option.placeholder)) render.renderOptions(data)
   }
 
   // SlimSelect portals `.ss-content` to <body>, which a modal overlay both covers

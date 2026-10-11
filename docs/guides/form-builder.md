@@ -476,13 +476,6 @@ caption to point at, so pass `html: { "aria-label": "…" }`. Beside a `<label>`
 `bali_view.form_builder.slim_select`, shipped in `en` and `es`, and the option replaces it
 for one field.
 
-A SlimSelect written by hand — a `div[data-controller="slim-select"]` in the view, outside
-the builder — gets none of these written on it, and the controller falls back to the same
-`en` and `es` strings, picked by the page's `lang` (`<html lang="es">`). A page without
-`lang`, or in another language, reads English; a host override of these keys reaches only
-the builder. A `data-slim-select-*-value` written on the element still wins, the attribute
-named after the option: `data-slim-select-no-results-text-value`.
-
 | Option | Key | `en` |
 |---|---|---|
 | `placeholder` | `placeholder` | Select value |
@@ -510,6 +503,15 @@ nothing. The markers are SlimSelect's and are written without Rails' `%`:
 ```erb
 <%= f.slim_select_group :room_ids, rooms, multiple: true, max_values_message: "{number} rooms" %>
 ```
+
+A SlimSelect written by hand — a `div[data-controller="slim-select"]` in the view, outside
+the builder — gets none of these written on it, and the controller falls back to the same
+`en` and `es` strings, picked by the page's `lang` (`<html lang="es">`). A page without
+`lang`, or in another language, reads English; a host override of these keys reaches only
+the builder. A `data-slim-select-*-value` written on the element still wins, named after the
+option — `no_results_text` is `data-slim-select-no-results-text-value` — for every option
+in the table but `select_all_text` and `deselect_all_text`: those two label buttons the
+builder renders itself, and the controller has no value for them.
 
 **AJAX Options:**
 - `ajax_url` - URL to fetch options
@@ -1209,9 +1211,11 @@ the form submits, so that is what gets renamed. An explicit `name:` / `id:` stil
 over either.
 
 **Without `scope:` there is nothing to escape.** `form_with url:` alone names each control
-after its method, and a string method is the name as written — so a filter form keeps
-`slim_select_field`, and with it Bali's translated texts, instead of a hand-written
-SlimSelect:
+after its method, and a string method is the name as written — so a filter form needs no
+hand-written SlimSelect. The builder's texts follow `I18n.locale` and any override of
+`bali_view.form_builder.slim_select`, where a hand-written one only knows the page's `lang`,
+and on a flat list `include_blank:` / `prompt:` become SlimSelect's placeholder instead of
+an option:
 
 ```erb
 <%= form_with url: stores_path, method: :get do |f| %>
@@ -1228,18 +1232,16 @@ action's own form — gets one from `fields`, which emits no second `<form>`. It
 ```erb
 <% action.with_control do %>
   <%= fields namespace: "bulk_store" do |f| %>
-    <%= f.slim_select_field :value, stores, html: { select_class: "w-56", "aria-label": "Store" } %>
+    <%= f.slim_select_field :value, stores, control_class: "w-56", html: { "aria-label": "Store" } %>
   <% end %>
 <% end %>
-<%# => <select id="bulk_store_value" name="value"> inside <div id="bulk_store_value_select_div"> %>
+<%# => <div class="control w-56"> … <select id="bulk_store_value" name="value"> %>
 ```
 
-The width goes in `html: { select_class: }`, which lands on the `div.slim-select` the
-widget fills. `html: { class: }` lands on the `<select>`, which SlimSelect clips to 1×1, so
-a width there changes nothing: measured, `w-64` in `select_class:` gives a 256px widget and
-in `class:` leaves it at the full 1248px. In a flex row like that slot it has to be a
-`w-*`: the widget sizes to its content there (108px for two short names), and a `max-w-*`
-only caps that.
+The width goes on the box, through `control_class:`, as on every family. In a flex row like that slot the widget
+sizes to its content — 108px for two short names — so it takes a `w-*`, which gives 224px
+there, where a `max-w-*` only caps those 108px. `html: { class: }` lands on the `<select>`,
+which SlimSelect clips to 1×1, so a width there changes nothing.
 
 **A form that does have a model can still render a value that is not one of its
 attributes** — a jsonb leaf, a threshold in a nested config, anything travelling

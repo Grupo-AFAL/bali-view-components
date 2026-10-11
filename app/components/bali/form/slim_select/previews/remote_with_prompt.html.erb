@@ -1,5 +1,6 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.slim_select_field :name, [],
+  <%= form.slim_select_group :name, [],
+        label: 'User',
         prompt: 'Pick a user',
         ajax_param_name: 'q',
         ajax_value_name: 'id',

@@ -24,12 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     oculto. Una búsqueda remota sin coincidencias dejaba la lista en blanco y anunciaba «1
     results available», y cuatro coincidencias anunciaban «5». Ahora la cuenta lo deja fuera,
     y una lista que sólo lo tiene a él muestra y anuncia «Sin resultados» (`no_results`), igual
-    que un select sin placeholder. 4.6.0 cuenta igual que 4.5.0.
+    que un select sin placeholder.
   - **Anfitrión:** nada que hacer. Los cinco selects escritos a mano de gobierno-corporativo,
-    en cuatro vistas (`git grep -n 'data-controller="slim-select"' -- app/views`), pasan al
-    español en lo que no fijan ellos mismos. El `prompt:` de sus dos selects remotos sale de
-    `f.select` sin `data-placeholder`, así que para SlimSelect es una opción visible y se sigue
-    contando; `slim_select_field` sí lo vuelve placeholder (#1397).
+    en cuatro vistas, pasan al español en lo que no fijan ellos mismos. El `prompt:` de sus dos
+    selects remotos sale de `f.select` sin `data-placeholder`, así que para SlimSelect es una
+    opción visible y se sigue contando; `slim_select_field` sí lo vuelve placeholder (#1397).
 
 ## [v3.11.0] - 2026-10-08
 
