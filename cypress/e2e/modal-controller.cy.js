@@ -364,7 +364,7 @@ describe('ModalController', () => {
 
     // daisyUI's `.modal` is a grid, and Bali's own Modal overrides it with `flex`; a dialog a
     // host writes by hand does not. In the flow the guard took a row of its own there and
-    // moved the box's centre from y=364 to y=182 in an 800px window.
+    // moved the box's centre up from 364px to 182px in an 800px window.
     it('stays out of the layout of a hand-written daisyUI .modal', () => {
       cy.visit('/bali/button/default')
       cy.document().then((doc) => {

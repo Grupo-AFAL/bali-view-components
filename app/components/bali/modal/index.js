@@ -401,7 +401,7 @@ export class ModalController extends Controller {
   // round to its first control.
   //
   // `fixed`, out of the flow: in a daisyUI `.modal`, which is a grid, it took a row of its own
-  // and moved the box's centre from y=364 to y=182 in an 800px window. And a Turbo snapshot
+  // and moved the box's centre up from 364px to 182px in an 800px window. And a Turbo snapshot
   // of a page left with the panel open carries the guard after the wrapper, so the restored
   // page's controller adopts that one rather than add a second, dead one beside it. Not
   // `data-turbo-temporary`: Turbo strips those from the live page on every
