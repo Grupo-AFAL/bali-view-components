@@ -401,15 +401,16 @@ export class ModalController extends Controller {
   // round to its first control.
   //
   // `fixed`, out of the flow: in a daisyUI `.modal`, which is a grid, it took a row of its own
-  // and moved the box 182px up at 800px tall. And a Turbo snapshot of a page left with the panel
-  // open carries the guard, so the restored page's controller adopts that one rather than add a
-  // second, dead one beside it. Not `data-turbo-temporary`: Turbo strips those from the live
-  // page on every `turbo:before-cache`, and a refresh morph of a page it has cached fires one
-  // with the panel still open.
+  // and moved the box's centre from y=364 to y=182 in an 800px window. And a Turbo snapshot
+  // of a page left with the panel open carries the guard after the wrapper, so the restored
+  // page's controller adopts that one rather than add a second, dead one beside it. Not
+  // `data-turbo-temporary`: Turbo strips those from the live page on every
+  // `turbo:before-cache`, and a refresh morph of a page it has cached fires one with the
+  // panel still open.
   get focusGuard () {
     if (!this._focusGuard) {
-      this._focusGuard = this.templateTarget.querySelector(':scope > [data-bali-focus-guard]') ||
-        document.createElement('span')
+      const adopted = this.wrapperTarget.nextElementSibling
+      this._focusGuard = adopted?.matches('[data-bali-focus-guard]') ? adopted : document.createElement('span')
       this._focusGuard.dataset.baliFocusGuard = ''
       this._focusGuard.className = 'fixed'
       this._focusGuard.tabIndex = 0
