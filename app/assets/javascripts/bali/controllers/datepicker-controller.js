@@ -231,8 +231,8 @@ export class DatepickerController extends Controller {
   //
   // A step onto a disabled date (a weekend under `disable_weekends`, past `min_date`/`max_date`)
   // is refused before it reaches `setDate`, which would drop it, empty the field and announce
-  // that: the form submitted `date=`. The step is taken on a copy for the same reason, since
-  // `selectedDates[0]` is flatpickr's own Date and moving it in place moves the selection.
+  // that: the form submitted `date=`. The step is taken on a copy so a refused one leaves the
+  // selection where it was: `selectedDates[0]` is flatpickr's own Date.
   stepDate (by) {
     const selected = this.flatpickr.selectedDates[0]
     if (!selected) return
