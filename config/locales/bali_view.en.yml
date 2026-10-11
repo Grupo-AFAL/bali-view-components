@@ -361,6 +361,8 @@ en:
     chart:
       loading: Loading...
       default_label: Chart
+    legend:
+      label: Legend
     clipboard:
       copied: Copied!
       copy_label: Copy to clipboard

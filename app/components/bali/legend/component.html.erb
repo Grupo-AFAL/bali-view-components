@@ -1,0 +1,10 @@
+<%= tag.div(**options) do %>
+  <% if title.present? %>
+    <%= tag.span(title, id: title_id, class: "legend-component__title") %>
+  <% end %>
+  <%= tag.ul(**list_attributes) do %>
+    <% items.each do |item| %>
+      <%= item %>
+    <% end %>
+  <% end %>
+<% end %>

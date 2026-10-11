@@ -1,0 +1,10 @@
+<%= tag.li(**options) do %>
+  <%= tag.span(class: marker_classes, style: marker_style, "aria-hidden": true) %>
+  <% if icon.present? %>
+    <%= render Bali::Icon::Component.new(icon, size: :small, **icon_options) %>
+  <% end %>
+  <span><%= label %></span>
+  <% if description.present? %>
+    <%= render Bali::HelpTip::Component.new(description) %>
+  <% end %>
+<% end %>
