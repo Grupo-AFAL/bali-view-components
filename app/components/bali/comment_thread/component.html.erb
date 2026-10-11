@@ -1,0 +1,13 @@
+<%= tag.div(**options) do %>
+  <%= form if form_at?(:top) %>
+  <%= tag.ul(id: id, class: "comment-thread-list flex flex-col gap-4") do %>
+    <li class="comment-thread-empty hidden only:block">
+      <%= render Bali::EmptyState::Component.new(title: empty_text, size: :sm) %>
+    </li>
+    <% comments.each do |comment| %>
+      <%= comment %>
+    <% end %>
+    <%= content %>
+  <% end %>
+  <%= form if form_at?(:bottom) %>
+<% end %>

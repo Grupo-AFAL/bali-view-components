@@ -1,0 +1,13 @@
+/* CommentThread Component
+ * Layout defaults the host's `class:` on the thread or on a comment has to be
+ * able to beat. Written as utilities on the template, they would share
+ * @layer utilities with the host's and win or lose by emission order (`gap-2`
+ * is emitted before `gap-4`, `gap-6` after); here in @layer components every
+ * host utility wins. */
+.comment-thread-component {
+  @apply flex flex-col gap-4;
+}
+
+.comment-thread-comment {
+  @apply flex gap-3;
+}

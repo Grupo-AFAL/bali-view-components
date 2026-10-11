@@ -1,0 +1,6 @@
+<div class="p-6 bg-base-200">
+  <%= render Bali::Card::Component.new(style: :bordered, shadow: false, class: 'max-w-2xl mx-auto') do |card| %>
+    <% card.with_title('Comments') %>
+    <%= render Bali::CommentThread::Component.new(id: 'comments', empty_text: empty_text) %>
+  <% end %>
+</div>
