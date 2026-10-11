@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`git grep -n "bali-view-components#1390"`) y la prueba que la sostenía en
   `test/controllers/td_flow/vendors_controller_test.rb` («the listing action sits in the last
   toolbar group»).
+- **`Filters::PersistenceToggle`: su tooltip ya no desborda la página** (#1392). Era el de
+  daisyUI, un `::before` que ocupa lugar aunque no se vea, y con el marcador al borde de la barra
+  del `DataTable` le daba scroll horizontal al contenedor (a 812 px la página medía 901 de
+  ancho). Ahora es un `Bali::Tooltip`, que sólo existe mientras está abierto y se abre también
+  con el foco del teclado, sin la regla `.tooltip:focus-visible` de afal-apps. El botón pierde
+  las clases `tooltip tooltip-bottom` y el `data-tip`; ninguna app los lee. afal-apps puede
+  devolver el filtro de contribuyente a `app/forms/finance/fiscal/cancellations_filter_form.rb`.
+- **`Tooltip`: un nodo que se mueve mientras conecta abre un solo globo.** Los dos `connect()`
+  de un tooltip movido antes de que cargue tippy armaban un tippy cada uno, y el hover mostraba
+  dos globos encimados; dentro de la barra del `DataTable`, que reacomoda sus controles al
+  conectar, pasaba al cargar la página. Nada que hacer en la app.
 
 ## [v3.11.0] - 2026-10-08
 

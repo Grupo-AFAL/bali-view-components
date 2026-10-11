@@ -18,7 +18,7 @@ import { Controller } from '@hotwired/stimulus'
  * </div>
  */
 export class FilterPersistenceController extends Controller {
-  static targets = ['button', 'iconEnabled', 'iconDisabled']
+  static targets = ['button', 'iconEnabled', 'iconDisabled', 'tooltip']
   static values = {
     storageId: String,
     enabled: Boolean,
@@ -69,18 +69,32 @@ export class FilterPersistenceController extends Controller {
       }
     }
 
-    // Update tooltip text. NOTE: `this.data.get(...)` reads the CONTROLLER element, so the
-    // tooltips must be Stimulus values on it — attributes on the button child are invisible
-    // here (that placement silently fell back to the hardcoded English strings).
+    // NOTE: `this.data.get(...)` reads the CONTROLLER element, so the tooltips must be
+    // Stimulus values on it — attributes on the button child are invisible here (that
+    // placement silently fell back to the hardcoded English strings).
+    if (this.hasTooltipTarget) {
+      this.updateTooltip(this.enabledValue ? this.enabledTooltipValue : this.disabledTooltipValue)
+    }
+
     if (this.hasButtonTarget) {
-      const tooltip = this.enabledValue ? this.enabledTooltipValue : this.disabledTooltipValue
-      this.buttonTarget.setAttribute('data-tip', tooltip)
       // The state is exposed here and not only in the served HTML: connect() can flip it
       // from localStorage without the server repainting, and the `aria-pressed` would be
       // lying. It is the only signal a screen reader has — the icons are `aria-hidden` and
-      // the tooltip is CSS-generated content.
+      // the balloon describes the wrapper tippy is anchored to, not the button.
       this.buttonTarget.setAttribute('aria-pressed', this.enabledValue.toString())
     }
+  }
+
+  // The balloon is a Bali::Tooltip (persistence_toggle/component.html.erb). Its controller
+  // builds it from a copy of its `<template>`, after an `await import('tippy.js')` that this
+  // connect() never waits for, so the text goes into the template for a balloon not built
+  // yet, and through `_tippy` — tippy's handle on its reference — into one already built.
+  updateTooltip (text) {
+    const template = this.tooltipTarget.querySelector('[data-tooltip-target~="content"]')
+    template.content.textContent = text
+
+    const reference = this.tooltipTarget.querySelector('[data-tooltip-target~="trigger"]')
+    reference._tippy?.setContent(template.content.cloneNode(true))
   }
 
   syncCookie () {

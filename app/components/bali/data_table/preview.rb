@@ -447,6 +447,36 @@ module Bali
         )
       end
 
+      # @label With Filter Persistence
+      # `storage_id:` on the FilterForm brings the bookmark that remembers the filters between
+      # visits. The toolbar paints it in a group of its own, after the filters, so with nothing
+      # else declared it is the last control of the row.
+      #
+      # @param persist_enabled toggle
+      def with_filter_persistence(persist_enabled: false, q: {}, page: 1)
+        filter_form = Bali::FilterForm.new(
+          Studio.all,
+          ActionController::Parameters.new(q: ActionController::Parameters.new(q.to_h), page: page),
+          simple_filters: [
+            { attribute: :country, collection: Studio::COUNTRIES.map { |c| [ c, c ] },
+              blank: "All countries", label: "Country" },
+            { attribute: :size, collection: Studio::SIZES.map { |s| [ s.humanize, s ] },
+              blank: "All sizes", label: "Size" }
+          ],
+          search_fields: %i[name],
+          search_aria_label: "Search studios by name",
+          search_icon: "search",
+          storage_id: "lookbook_data_table_persistence",
+          persist_enabled: persist_enabled
+        )
+        pagy, studios = pagy(filter_form.result.order(:name), limit: 10, page: page)
+
+        render_with_template(
+          template: "bali/data_table/previews/with_simple_filters",
+          locals: { filter_form: filter_form, pagy: pagy, studios: studios }
+        )
+      end
+
       # @label With Grouping (Live DB)
       # Query-aware row grouping. Pick a field in the "Agrupar por" control (or the
       # `group_by` param below): the query is ordered by that field FIRST — so
