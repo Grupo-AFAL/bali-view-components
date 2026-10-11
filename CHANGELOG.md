@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de esperar al 422; un formulario compartido entre alta y edición no debe pasar
   `required: true` en la edición, porque ningún navegador vuelve a llenar un input de archivo.
   Quien escribe el marcado a mano pone el input dentro del `span.btn` (ejemplo en
-  `docs/guides/controllers.md`). Con `choose_file_text: false` el texto del botón sigue ahí para
+  `docs/guides/controllers.md`). Con `choose_file_text: false` el texto por omisión del botón sigue ahí para
   el lector de pantalla.
 
 - **FileInput escribe como texto el nombre de un archivo suelto y el texto por omisión** (#1375).
