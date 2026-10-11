@@ -111,8 +111,7 @@ Value names are camelCase; the DOM attribute is the dasherized form
 ## Optional heavy dependencies load dynamically
 
 A controller that needs an optional peer imports it inside `connect`, so the peer is
-only in the bundle (and only fetched) when the component is actually on the page —
-`app/components/bali/sortable_list/index.js`:
+only in the bundle (and only fetched) when the component is actually on the page. The shape:
 
 ```javascript
 async connect () {
