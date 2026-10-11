@@ -1,6 +1,6 @@
-/* Layered (components): the gaps, the type size and the marker sizes are defaults a host
+/* Layered (components): the gaps, the type size and the dot's size are defaults a host
  * utility on the root or an item has to be able to beat without `!`. The colours are not
- * here: they come from Bali::Color, inline on each marker. */
+ * here: they come from Bali::Color, inline on each dot. */
 
 /* `items-start`, not `items-center`: centred, a title beside five wrapped rows at 375px sat
  * level with the third. Title and rows are both 16px tall, so it lines up with the first. */
@@ -25,15 +25,7 @@
 }
 
 .legend-item__marker {
-  @apply shrink-0;
-}
-
-.legend-item__marker--dot {
-  @apply size-2.5 rounded-full;
-}
-
-.legend-item__marker--swatch {
-  @apply size-3 rounded-sm border;
+  @apply size-2.5 shrink-0 rounded-full;
 }
 
 /* HelpTip's trigger is an inline span, and its line box adds the space under the baseline:

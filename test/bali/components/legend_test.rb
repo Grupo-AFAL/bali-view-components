@@ -55,7 +55,7 @@ class BaliLegendComponentTest < ComponentTestCase
       legend.with_item(label: "Current", color: :success)
     end
 
-    assert_selector(".legend-item__marker--dot[style='background-color: var(--color-success)']")
+    assert_selector(".legend-item__marker[style='background-color: var(--color-success)']")
   end
 
   def test_a_neutral_dot_paints_the_page_ink
@@ -63,7 +63,7 @@ class BaliLegendComponentTest < ComponentTestCase
       legend.with_item(label: "Obsolete", color: :neutral)
     end
 
-    assert_selector(".legend-item__marker--dot[style='background-color: var(--color-base-content)']")
+    assert_selector(".legend-item__marker[style='background-color: var(--color-base-content)']")
   end
 
   def test_custom_color_paints_the_hex_and_wins_over_color
@@ -71,18 +71,17 @@ class BaliLegendComponentTest < ComponentTestCase
       legend.with_item(label: "Commercial", color: :success, custom_color: "#2563EB")
     end
 
-    assert_selector(".legend-item__marker--dot[style='background-color: #2563EB']")
+    assert_selector(".legend-item__marker[style='background-color: #2563EB']")
   end
 
-  def test_a_swatch_paints_a_tint_with_a_stronger_border
+  def test_ghost_paints_a_muted_dot_and_icon
     render_inline(Bali::Legend::Component.new) do |legend|
-      legend.with_item(label: "President", color: :primary, marker: :swatch)
+      legend.with_item(label: "Draft", color: :ghost, icon: "file-pen")
     end
 
-    style = "background-color: #{Bali::Color.with_alpha(:primary, 20)}; " \
-            "border-color: #{Bali::Color.with_alpha(:primary, 40)}"
-    assert_selector(".legend-item__marker--swatch[style='#{style}']")
-    assert_no_selector(".legend-item__marker--dot")
+    style = "background-color: #{Bali::Color.with_alpha(:ghost, 55)}"
+    assert_selector(".legend-item__marker[style='#{style}']")
+    assert_selector("li span.icon-component.text-base-content\\/60")
   end
 
   def test_a_named_icon_takes_the_soft_ink
@@ -125,16 +124,6 @@ class BaliLegendComponentTest < ComponentTestCase
     end
 
     assert_match(/Bali::Legend::Item::Component.*color:.*custom_color:/, error.message)
-  end
-
-  def test_an_unknown_marker_raises_naming_the_valid_ones
-    error = assert_raises(ArgumentError) do
-      render_inline(Bali::Legend::Component.new) do |legend|
-        legend.with_item(label: "Current", color: :success, marker: :square)
-      end
-    end
-
-    assert_match(/marker :square.*:dot, :swatch/, error.message)
   end
 
   def test_options_pass_through_to_the_root

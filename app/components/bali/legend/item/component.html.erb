@@ -1,5 +1,5 @@
 <%= tag.li(**options) do %>
-  <%= tag.span(class: marker_classes, style: marker_style, "aria-hidden": true) %>
+  <%= tag.span(class: "legend-item__marker", style: "background-color: #{marker_color}", "aria-hidden": true) %>
   <% if icon.present? %>
     <%= render Bali::Icon::Component.new(icon, size: :small, **icon_options) %>
   <% end %>

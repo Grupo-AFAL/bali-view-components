@@ -3,19 +3,19 @@
 module Bali
   module Legend
     class Preview < ApplicationViewComponentPreview
-      # The key to a colour code: a marker, an optional icon and a label per
+      # The key to a colour code: a dot, an optional icon and a label per
       # colour, wrapping in a row. The list is named by the title, or by
-      # `aria_label:` when there is none; markers and icons are hidden from
-      # assistive tech, so each entry reads as its label.
+      # `aria_label:` when there is none; dots and icons are hidden from
+      # assistive tech, so each entry reads as its label. `:ghost` (Draft)
+      # paints muted, the one name that differs from `:neutral` (Obsolete).
       #
       # @param title text
-      # @param marker select { choices: [dot, swatch] }
       # @param icons toggle
       # @param descriptions toggle
-      def default(title: "States", marker: :dot, icons: true, descriptions: true)
+      def default(title: "States", icons: true, descriptions: true)
         render Bali::Legend::Component.new(title: title.presence, aria_label: "States") do |legend|
           Bali::Legend::Preview::STATES.each do |state|
-            legend.with_item(label: state[:label], color: state[:color], marker: marker.to_sym,
+            legend.with_item(label: state[:label], color: state[:color],
                              icon: (state[:icon] if icons),
                              description: (state[:description] if descriptions))
           end
@@ -32,16 +32,6 @@ module Bali
           legend.with_item(label: "Office", custom_color: "#7C3AED", icon: "building")
           legend.with_item(label: "Residential", custom_color: "#059669")
           legend.with_item(label: "Other", custom_color: "#6B7280")
-        end
-      end
-
-      # `marker: :swatch` is a tinted square with a stronger border, for a
-      # colour the page paints as a tint — a table row, a calendar cell.
-      def swatches
-        render Bali::Legend::Component.new(title: "Rows") do |legend|
-          legend.with_item(label: "President", color: :primary, marker: :swatch)
-          legend.with_item(label: "Secretary", color: :secondary, marker: :swatch)
-          legend.with_item(label: "Titular board member", color: :warning, marker: :swatch)
         end
       end
 

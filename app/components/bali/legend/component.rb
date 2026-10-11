@@ -2,9 +2,9 @@
 
 module Bali
   module Legend
-    # The key to a colour code: one entry per colour a listing, a map or a
-    # matrix paints with, each a marker, an optional icon and a label, wrapping
-    # in a row. The card around it, if any, belongs to the host.
+    # The key to a colour code: one entry per colour a listing or a map paints
+    # with, each a dot, an optional icon and a label, wrapping in a row. The card
+    # around it, if any, belongs to the host.
     #
     # @example States of a catalog
     #   render Bali::Legend::Component.new(title: t('.states')) do |legend|
@@ -41,10 +41,10 @@ module Bali
         "#{@id}-title"
       end
 
-      def list_attributes
-        name = title.present? ? { "aria-labelledby": title_id } : { "aria-label": @aria_label.presence || t(".label") }
+      def list_name
+        return { "aria-labelledby": title_id } if title.present?
 
-        { class: "legend-component__items", role: "list", **name }
+        { "aria-label": @aria_label.presence || t(".label") }
       end
     end
   end

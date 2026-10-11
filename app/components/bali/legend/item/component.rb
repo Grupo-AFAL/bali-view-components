@@ -6,11 +6,9 @@ module Bali
       class Component < ApplicationViewComponent
         BASE_CLASSES = "legend-item"
 
-        MARKERS = %i[dot swatch].freeze
-
         # The icon is ink on the page, where the colour itself fails the 3:1 of a graphic:
-        # `text-warning` read 1.69:1 on `afal`. The marker keeps the colour itself, because it
-        # has to match the marks it explains, which the host paints with that same value.
+        # `text-warning` read 1.69:1 on `afal`. The dot keeps the colour itself, because it has
+        # to match the marks it explains, which the host paints with that same value.
         # `neutral` is base-content: a dark theme's neutral is a fill, not ink.
         ICON_COLORS = {
           neutral: "text-base-content",
@@ -21,29 +19,26 @@ module Bali
           success: "text-soft-success",
           warning: "text-soft-warning",
           error: "text-soft-error",
-          ghost: "text-base-content"
+          ghost: "text-base-content/60"
         }.freeze
 
-        SWATCH_FILL = 20
-        SWATCH_BORDER = 40
+        # `:ghost`, no colour of its own, is the one name that paints apart from `:neutral`: muted,
+        # like the rows of a state that has none (a draft). The dot at 55% read 3.49:1 on `afal`
+        # and 5.06 on `afal-dark`; the icon at /60, 4.04 and 5.82 (WCAG 1.4.11: 3).
+        GHOST_DOT_ALPHA = 55
 
         # @param label [String] What the colour means
-        # @param color [Symbol, nil] Semantic colour (Bali::Color::NAMES)
+        # @param color [Symbol, nil] Semantic colour (Bali::Color::NAMES). `:ghost` paints muted:
+        #   the dot at 55% of base-content and the icon at /60, where `:neutral` is base-content.
         # @param custom_color [String, nil] Hex colour; wins over `color:`
-        # @param icon [String, nil] Icon name (Bali::Icon pipeline), drawn after the marker
-        # @param marker [:dot, :swatch] A solid dot, or a tinted square for a colour the host
-        #   paints as a tint (a row, a cell)
+        # @param icon [String, nil] Icon name (Bali::Icon pipeline), drawn after the dot
         # @param description [String, nil] Longer explanation, behind a Bali::HelpTip
         # @param options [Hash] HTML attributes for the `<li>`
-        # rubocop:disable Metrics/ParameterLists
-        def initialize(label:, color: nil, custom_color: nil, icon: nil, marker: :dot,
-                       description: nil, **options)
-          # rubocop:enable Metrics/ParameterLists
+        def initialize(label:, color: nil, custom_color: nil, icon: nil, description: nil, **options)
           @label = label
           @custom_color = Bali::Color.hex!(self.class, custom_color)
           @color = @custom_color ? nil : Bali::Color.name!(self.class, color)
           @icon = icon
-          @marker = validated_marker(marker)
           @description = description
           @options = prepend_class_name(options, BASE_CLASSES)
 
@@ -56,24 +51,10 @@ module Bali
 
         attr_reader :label, :icon, :description, :options
 
-        def validated_marker(value)
-          key = value.to_sym
-          return key if MARKERS.include?(key)
+        def marker_color
+          return Bali::Color.with_alpha(@color, GHOST_DOT_ALPHA) if @color == Bali::Color::GHOST
 
-          raise ArgumentError,
-                "#{self.class}: unknown marker #{key.inspect}. Valid: #{MARKERS.map(&:inspect).join(', ')}."
-        end
-
-        def marker_classes
-          "legend-item__marker legend-item__marker--#{@marker}"
-        end
-
-        def marker_style
-          value = @custom_color || @color
-          return "background-color: #{Bali::Color.css(value)}" if @marker == :dot
-
-          "background-color: #{Bali::Color.with_alpha(value, SWATCH_FILL)}; " \
-            "border-color: #{Bali::Color.with_alpha(value, SWATCH_BORDER)}"
+          Bali::Color.css(@custom_color || @color)
         end
 
         def icon_options

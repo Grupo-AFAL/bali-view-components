@@ -3018,9 +3018,8 @@ accessibility tree.
 
 #### Legend
 
-The key to a colour code — the states of a listing, the pins of a map, the tinted rows of a
-table: a marker, an optional icon and a label per colour, wrapping in a row. The card around
-it, if there is one, is the host's.
+The key to a colour code — the states of a listing, the pins of a map: a dot, an optional icon
+and a label per colour, wrapping in a row. The card around it, if there is one, is the host's.
 
 ```erb
 <%= render Bali::Legend::Component.new(title: t('.states')) do |legend| %>
@@ -3033,11 +3032,6 @@ it, if there is one, is the host's.
 <%= render Bali::Legend::Component.new(aria_label: t('.location_types')) do |legend| %>
   <% legend.with_item(label: t('.office'), custom_color: '#7C3AED') %>
 <% end %>
-
-<%# A tinted square for a colour painted as a tint (a row, a cell) %>
-<%= render Bali::Legend::Component.new(title: t('.rows')) do |legend| %>
-  <% legend.with_item(label: t('.president'), color: :primary, marker: :swatch) %>
-<% end %>
 ```
 
 **Options:**
@@ -3049,17 +3043,18 @@ it, if there is one, is the host's.
 - `label` - what the colour means (required)
 - `color` / `custom_color` - a semantic name or a hex, as in [Colors](#colors); one of the two is
   required, and `custom_color:` wins
-- `icon` - an icon after the marker, in the colour's ink: `text-soft-<color>`, or for a hex the
-  mix described under [Colors](#colors)
-- `marker` - `:dot` (default), the colour itself, or `:swatch`, a square tinted at 20% with a 40%
-  border
+- `icon` - an icon after the dot, in the colour's ink: `text-soft-<color>`, or for a hex the mix
+  described under [Colors](#colors)
 - `description` - a longer explanation behind a `Bali::HelpTip` after the label, reachable with
   the keyboard; blank renders none
 - `**options` - HTML attributes for the `<li>`
 
-The marker paints the same value `Bali::Color.css` returns, so a host that paints its own marks
-through `Bali::Color` gets the identical colour in the legend. The entries are a `<ul role="list">`;
-markers and icons are hidden from assistive tech, so each entry reads as its label.
+The dot paints the same value `Bali::Color.css` returns, so a host that paints its own marks
+through `Bali::Color` gets the identical colour in the legend. `:ghost` is the one exception, and
+the one place a Legend tells it apart from `:neutral`: it paints muted, the dot at 55% of
+`base-content` and the icon at `/60`, like the rows of a state with no colour of its own (a draft).
+The entries are a `<ul role="list">`; dots and icons are hidden from assistive tech, so each entry
+reads as its label.
 
 #### List
 

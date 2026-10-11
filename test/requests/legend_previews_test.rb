@@ -5,7 +5,7 @@ require "test_helper"
 # The component tests render the class, not the previews; requesting each one over HTTP is
 # the only path where a broken preview shows.
 class LegendPreviewsTest < ActionDispatch::IntegrationTest
-  PREVIEWS = %w[default custom_colors swatches].freeze
+  PREVIEWS = %w[default custom_colors].freeze
 
   def test_every_legend_preview_renders_a_legend
     PREVIEWS.each do |name|
