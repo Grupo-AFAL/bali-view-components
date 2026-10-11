@@ -64,9 +64,12 @@ module Bali
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
 
       # @param icon [String, Symbol] Icon name, drawn before the text.
+      # @param text_color [String, nil] Hex colour for the text, over the black or white
+      #   `custom_color:` picks for contrast. That pick is inline, so a class such as
+      #   `text-white` cannot beat it.
       # rubocop:disable Metrics/ParameterLists
-      def initialize(text: nil, href: nil, color: nil, custom_color: nil, size: nil,
-                     style: nil, rounded: false, icon: nil, **options)
+      def initialize(text: nil, href: nil, color: nil, custom_color: nil, text_color: nil,
+                     size: nil, style: nil, rounded: false, icon: nil, **options)
         # rubocop:enable Metrics/ParameterLists
         reject_light!(options)
 
@@ -77,6 +80,7 @@ module Bali
         @color_class = COLORS[Bali::Color.name!(self.class, color)]
         @size_class = variant_class(:size, size, SIZES, LEGACY_SIZES)
         @custom_color = Bali::Color.hex!(self.class, custom_color)
+        @text_color = Bali::Color.hex!(self.class, text_color, param: :text_color)
         @style = style&.to_sym
         @rounded = rounded
         @options = options
@@ -139,19 +143,15 @@ module Bali
       end
 
       def custom_styles
+        text_color = @text_color || contrasting_text_color(@custom_color)
         styles = []
-
-        if @custom_color.present?
-          styles << "background-color: #{@custom_color}"
-          styles << "color: #{contrasting_text_color(@custom_color)}"
-        end
-
-        styles << @options[:style] if @options[:style].present?
+        styles << "background-color: #{@custom_color}" if @custom_color
+        styles << "color: #{text_color}" if text_color
         styles.join("; ").presence
       end
 
       def html_attributes
-        attrs = @options.except(:class, :style)
+        attrs = @options.except(:class)
         attrs[:href] = href if href.present?
         attrs[:style] = custom_styles if custom_styles.present?
         attrs

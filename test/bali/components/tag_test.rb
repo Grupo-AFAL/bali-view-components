@@ -125,6 +125,24 @@ class BaliTagComponentTest < ComponentTestCase
     assert_selector('div.badge[style*="color:"]')
   end
 
+  # #1373: summing R+G+B put black on this blue, 4.06:1 where white gives 5.17.
+  def test_custom_color_picks_the_text_colour_with_the_higher_contrast_ratio
+    render_inline(Bali::Tag::Component.new(text: "Tag", custom_color: "#535BEB"))
+    assert_selector('div.badge[style="background-color: #535BEB; color: #fff"]')
+  end
+
+  def test_text_color_wins_over_the_one_custom_color_picks
+    render_inline(Bali::Tag::Component.new(text: "Tag", custom_color: "#3b82f6", text_color: "#fff"))
+    assert_selector('div.badge[style="background-color: #3b82f6; color: #fff"]')
+  end
+
+  def test_text_color_must_be_a_hex
+    error = assert_raises(ArgumentError) do
+      Bali::Tag::Component.new(text: "Tag", custom_color: "#3b82f6", text_color: "white")
+    end
+    assert_includes error.message, "text_color"
+  end
+
   def test_rounded_applies_rounded_full_class_when_rounded_is_true
     render_inline(Bali::Tag::Component.new(text: "Tag", rounded: true))
     assert_selector("div.badge.rounded-full")

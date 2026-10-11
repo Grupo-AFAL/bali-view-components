@@ -166,6 +166,27 @@ class BaliCardComponentTest < ComponentTestCase
     assert_no_selector(".justify-between")
   end
 
+  # #1372: `justify-between` spread three children and left the title halfway
+  # between its icon and the badge.
+  def test_header_slot_keeps_the_icon_beside_the_titles_when_a_badge_spreads_the_row
+    render_inline(Bali::Card::Component.new) do |c|
+      c.with_header(title: "Dashboard", icon: "home") do |header|
+        header.with_badge { '<span class="badge">Beta</span>'.html_safe }
+      end
+    end
+    row = page.find(".card-body > .justify-between")
+    assert_equal(2, row.all(:xpath, "./*").size)
+    assert_selector(".justify-between > .flex.items-center.gap-3.min-w-0 > span.icon-component + div > h2.card-title", text: "Dashboard")
+    assert_selector(".justify-between > .badge:last-child", text: "Beta")
+  end
+
+  def test_header_slot_row_wraps_so_the_badge_drops_below_a_long_title
+    render_inline(Bali::Card::Component.new) do |c|
+      c.with_header(title: "Dashboard") { |header| header.with_badge { "Beta" } }
+    end
+    assert_selector(".card-body > .flex.flex-wrap.justify-between")
+  end
+
   def test_header_slot_renders_header_with_icon_subtitle_and_badge
     render_inline(Bali::Card::Component.new) do |c|
     c.with_header(title: "Dashboard", subtitle: "Overview of your data", icon: "home") do |header|

@@ -30,12 +30,15 @@ module Bali
         )
       end
 
-      # Tags support custom hex colors with automatic contrast calculation.
+      # A hex background takes black or white text, whichever contrasts more.
+      # `text_color:` overrides that pick.
       # @param custom_color text
-      def custom_color(custom_color: '#3b82f6')
+      # @param text_color text
+      def custom_color(custom_color: '#3b82f6', text_color: '')
         render Tag::Component.new(
           text: 'Custom Color',
-          custom_color: custom_color
+          custom_color: custom_color,
+          text_color: text_color.presence
         )
       end
 
