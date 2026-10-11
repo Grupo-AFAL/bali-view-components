@@ -11,7 +11,7 @@
       </legend>
 
       <div class="flex flex-wrap items-center gap-3">
-        <%# Frequency selector %>
+        <%# The div holds the select at its content width, 89px; as a flex item daisyUI's `.select` grows to 20rem (320px). %>
         <div>
           <%= select_tag :freq, options_for_select(frequency_options, default_frequency),
               id: control_id('freq'),
@@ -245,6 +245,7 @@
       </legend>
 
       <div class="flex flex-wrap items-center gap-3">
+        <%# Same as the frequency select: 88px wrapped, 320px without the div. %>
         <div>
           <%= select_tag :end, options_for_select(ending_options),
               id: control_id('end'),

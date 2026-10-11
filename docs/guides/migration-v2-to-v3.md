@@ -3212,7 +3212,7 @@ grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test
    no longer match anything the FormBuilder renders. Rewrite them against the class that is
    still there (`input.input`, `textarea.textarea`) or against the new one below. After
    v3.11.0 the rest of Bali dropped them too (#903): the DataTable's column selector
-   (`span.label-text` — its label is now the text of the `<label>`), Filters, SimpleFilters,
+   (`span.label-text` → `span`, or read the `<label>`'s text), Filters, SimpleFilters,
    SavedViews and RecurrentEventRuleForm (`input-bordered`, and `.form-control` in the last).
 2. **Your own templates.** Bali does not touch them; they keep working exactly as they do
    today, which is to say the classes keep doing nothing. Sweep them at your own pace.

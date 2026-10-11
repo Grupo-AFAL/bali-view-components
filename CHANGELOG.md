@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   RecurrentEventRuleForm, y `.form-control` en RecurrentEventRuleForm. daisyUI 5 no define
   ninguna, así que no cambia un píxel; sólo deja sin nada que encontrar a un selector que las
   use. En las siete apps había tres, todas pruebas de afal-apps sobre el `span.label-text` del
-  selector de columnas, y ya leen el texto del `<label>` (PR de afal-apps).
+  selector de columnas, y ya leen el texto del `<label>` (Grupo-AFAL/afal-apps#901).
 
 ## [v3.11.0] - 2026-10-08
 
