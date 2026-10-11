@@ -98,7 +98,12 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
   def test_customization_options_hides_label_when_choose_file_text_is_false
     result = builder.file_field(:cover_photo, choose_file_text: false)
     assert_html(result, "span.btn.btn-soft span.icon-component")
-    refute_html(result, "span.btn.btn-soft > span:not(.icon-component)")
+    refute_html(result, "span.btn.btn-soft > span:not(.icon-component):not(.sr-only)")
+  end
+
+  def test_customization_options_keeps_the_controls_name_when_choose_file_text_is_false
+    result = builder.file_field(:cover_photo, choose_file_text: false)
+    assert_html(result, "label span.btn > span.sr-only", text: "Choose file")
   end
 
   def test_customization_options_accepts_custom_icon

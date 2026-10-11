@@ -100,7 +100,7 @@ module Bali
       end
 
       def build_file_input_options(options)
-        # Override class completely - file input must be hidden (not styled as DaisyUI input)
+        # `class:` is replaced, not merged: the input stays invisible inside the button.
         opts = dup_options(options).merge(class: INPUT_CLASS)
         opts = prepend_action(opts, "file-input#onChange")
         prepend_data_attribute(opts, :file_input_target, :input)
@@ -129,8 +129,17 @@ module Bali
       def file_cta(input, icon_name, label_text, cta_size)
         @template.content_tag(:span, class: "#{CTA_CLASS} #{cta_size}") do
           icon = @template.render(Bali::Icon::Component.new(icon_name))
-          label = label_text && @template.content_tag(:span, label_text)
-          input + icon + (label || "".html_safe)
+          input + icon + cta_text(label_text)
+        end
+      end
+
+      # `choose_file_text: false` hides the words, not the name: without a caption the input
+      # would reach Tab with an empty accessible name.
+      def cta_text(label_text)
+        if label_text
+          @template.content_tag(:span, label_text)
+        else
+          @template.content_tag(:span, default_choose_text, class: "sr-only")
         end
       end
 
