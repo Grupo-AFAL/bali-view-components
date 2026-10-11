@@ -476,6 +476,13 @@ caption to point at, so pass `html: { "aria-label": "…" }`. Beside a `<label>`
 `bali_view.form_builder.slim_select`, shipped in `en` and `es`, and the option replaces it
 for one field.
 
+A SlimSelect written by hand — a `div[data-controller="slim-select"]` in the view, outside
+the builder — gets none of these written on it, and the controller falls back to the same
+`en` and `es` strings, picked by the page's `lang` (`<html lang="es">`). A page without
+`lang`, or in another language, reads English; a host override of these keys reaches only
+the builder. A `data-slim-select-*-value` written on the element still wins, the attribute
+named after the option: `data-slim-select-no-results-text-value`.
+
 | Option | Key | `en` |
 |---|---|---|
 | `placeholder` | `placeholder` | Select value |
@@ -1200,6 +1207,39 @@ Both are honoured by every family whose control is a native named input, and by 
 three families whose control is a widget over a hidden field — the hidden field is what
 the form submits, so that is what gets renamed. An explicit `name:` / `id:` still wins
 over either.
+
+**Without `scope:` there is nothing to escape.** `form_with url:` alone names each control
+after its method, and a string method is the name as written — so a filter form keeps
+`slim_select_field`, and with it Bali's translated texts, instead of a hand-written
+SlimSelect:
+
+```erb
+<%= form_with url: stores_path, method: :get do |f| %>
+  <%= f.slim_select_field :store_id, stores, include_blank: true %>
+  <%= f.slim_select_field "q[region_eq]", regions %>
+<% end %>
+<%# => <select id="store_id" name="store_id"> and <select name="q[region_eq]"> %>
+```
+
+**A slot that hands you no builder** — `BulkActions`' `with_control`, drawn inside the
+action's own form — gets one from `fields`, which emits no second `<form>`. Its
+`namespace:` prefixes the ids, so two actions mounting the same control do not repeat one:
+
+```erb
+<% action.with_control do %>
+  <%= fields namespace: "bulk_store" do |f| %>
+    <%= f.slim_select_field :value, stores, html: { select_class: "w-56", "aria-label": "Store" } %>
+  <% end %>
+<% end %>
+<%# => <select id="bulk_store_value" name="value"> inside <div id="bulk_store_value_select_div"> %>
+```
+
+The width goes in `html: { select_class: }`, which lands on the `div.slim-select` the
+widget fills. `html: { class: }` lands on the `<select>`, which SlimSelect clips to 1×1, so
+a width there changes nothing: measured, `w-64` in `select_class:` gives a 256px widget and
+in `class:` leaves it at the full 1248px. In a flex row like that slot it has to be a
+`w-*`: the widget sizes to its content there (108px for two short names), and a `max-w-*`
+only caps that.
 
 **A form that does have a model can still render a value that is not one of its
 attributes** — a jsonb leaf, a threshold in a nested config, anything travelling
