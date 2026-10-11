@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`file_group` / `file_field` se usan con el teclado, y `required:` vuelve a llegar al input**
+  (#1385). El `<input type="file">` estaba en `display: none`: Tab nunca llegaba y nada abría el
+  selector sin ratón (en opina, el campo de adjuntos que la flota abre en el FeedbackWidget).
+  Ahora el input queda invisible sobre el botón, dentro del `.btn`: Tab lo alcanza, Enter o
+  Espacio abren el selector y el botón muestra el anillo de foco. Con un input que se puede
+  enfocar, `required:` ya no se descarta (#1125): el navegador detiene el envío y su aviso apunta
+  al botón. Las apps que lo pasan lo hacen en formularios de alta o de importación (afal-apps y
+  gobierno-corporativo), que ahora frenan en el navegador en vez de esperar al 422; un formulario
+  compartido entre alta y edición no debe pasar `required: true` en la edición, porque ningún
+  navegador vuelve a llenar un input de archivo. Quien escribe el marcado a mano pone el input
+  dentro del `span.btn` (ejemplo en `docs/guides/controllers.md`). afal-apps puede volver a
+  `f.file_group` en la carga de listas del SAT, que usa un `rails_file_field` visible por esto
+  (`git grep -n "keyboard cannot reach the file picker"`).
+
 - **FileInput escribe como texto el nombre de un archivo suelto y el texto por omisión** (#1375).
   `file-input-controller.js` los escribía con `innerHTML` sin escapar: un archivo llamado
   `<img src=x onerror=…>.pdf`, elegido en un `file_group` sin `multiple: true`, ejecutaba su
