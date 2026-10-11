@@ -10,6 +10,6 @@
     <%= content %>
   <% end %>
   <% if footer? %>
-    <div class="shrink-0 border-t border-base-300 p-4"><%= footer %></div>
+    <div class="shrink-0 border-t border-base-300 p-4" data-action="turbo:submit-end->chat#followSubmit"><%= footer %></div>
   <% end %>
 <% end %>

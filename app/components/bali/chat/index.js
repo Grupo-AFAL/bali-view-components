@@ -13,6 +13,8 @@ import { Controller } from '@hotwired/stimulus'
  *
  * Actions:
  *   - trackPosition  bound to `scroll` on the messages element by the component
+ *   - followSubmit   bound to `turbo:submit-end` on the footer by the component, so
+ *     a send that went through brings the sender down to it, wherever they were reading
  *   - showTyping / hideTyping  for a host that drives the indicator from the page
  *     rather than from a Turbo Stream (e.g. `turbo:submit-end->chat#showTyping`)
  *
@@ -53,6 +55,11 @@ export class ChatController extends Controller {
 
   autoscroll () {
     if (this.atBottom) this.scrollToBottom()
+  }
+
+  // A rejected send (`success: false`, a 422 or a 429) added nothing to follow.
+  followSubmit ({ detail }) {
+    if (detail?.success) this.scrollToBottom()
   }
 
   // Sending a message is an act of participation, not of reading: follow the

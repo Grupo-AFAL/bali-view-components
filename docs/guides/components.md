@@ -4182,7 +4182,10 @@ turbo_stream.append 'messages', partial: 'messages/message', locals: { message: 
 - `with_header` slot - Free-form content above the scroll region — a title, an icon, the
   actions — in the footer's chrome turned over: a bottom border and the same padding. It
   stays put while the messages scroll.
-- `with_footer` slot - The composer, rendered below the scroll region with a top border
+- `with_footer` slot - The composer, rendered below the scroll region with a top border. A
+  form in it that submits successfully (`turbo:submit-end` with `detail.success`) brings the
+  sender to the bottom, wherever they were reading; a rejected one leaves them in place. The
+  host wires nothing.
 
 **The container follows a new message only when the reader was already at the bottom.**
 Scrolled up in the history, their position is left alone; back at the bottom, it follows
@@ -4228,9 +4231,10 @@ with itself:
 
 Removing it instead would destroy the very id the next stream targets, and every later
 replace would silently do nothing. From the page, the container's controller toggles it —
-the indicator registers itself as a `chat` target, so a composer can do
-`data: { action: 'turbo:submit-end->chat#showTyping' }`. `chat#showTyping` also scrolls
-down unconditionally: sending is participating, not reading.
+the indicator registers itself as a `chat` target for `chat#showTyping` and
+`chat#hideTyping`. Wired to `turbo:submit-end`, `showTyping` also spins for a send the server
+rejected; the response to the send, which knows whether the message got in, is the safer
+switch.
 
 #### Clipboard
 

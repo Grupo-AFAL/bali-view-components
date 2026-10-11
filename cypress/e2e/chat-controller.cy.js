@@ -104,6 +104,54 @@ describe('ChatController', () => {
     })
   })
 
+  context('when the reader sends from the footer', () => {
+    // What Turbo dispatches on the form once the server has answered. The message
+    // itself arrives afterwards, through the same append the tests above use.
+    const submitEnd = success => cy.get('.bali-chat > .border-t input').first().then($input => {
+      $input[0].dispatchEvent(new CustomEvent('turbo:submit-end', { bubbles: true, detail: { success } }))
+    })
+
+    beforeEach(() => {
+      messages().scrollTo('top')
+      cy.wait(250)
+    })
+
+    it('brings the sender down to the message once the send went through', () => {
+      submitEnd(true)
+      messages().then($el => append($el[0], 'The message just sent.'))
+
+      messages().should(element => {
+        expect(metrics(element[0]).distanceFromBottom).to.be.lessThan(2)
+      })
+    })
+
+    it('leaves the reader in place, with no typing dots, when the send was rejected', () => {
+      submitEnd(false)
+      cy.wait(250)
+
+      messages().should(element => {
+        expect(metrics(element[0]).scrollTop).to.equal(0)
+      })
+      cy.get('#chat-typing-indicator').should('not.be.visible')
+    })
+
+    it('still follows once a stream has replaced the composer', () => {
+      cy.get('.bali-chat > .border-t > *').first().invoke('attr', 'id', 'composer')
+      cy.window().then(win => win.Turbo.renderStreamMessage(
+        '<turbo-stream action="replace" target="composer"><template>' +
+        '<form id="composer" data-streamed><input name="message"></form>' +
+        '</template></turbo-stream>'
+      ))
+      cy.get('#composer[data-streamed]')
+
+      submitEnd(true)
+
+      messages().should(element => {
+        expect(metrics(element[0]).distanceFromBottom).to.be.lessThan(2)
+      })
+    })
+  })
+
   context('the typing indicator', () => {
     // Visibility, not presence: the node is in the DOM the whole time — that is the
     // point of it — so asserting on its existence would pass in both states.

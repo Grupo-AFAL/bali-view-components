@@ -53,6 +53,15 @@ class BaliChatComponentTest < ComponentTestCase
     refute_selector("[data-chat-target='messages'] form")
   end
 
+  # The other half is `followSubmit` in index.js: a send from the footer that went
+  # through brings the sender down to it.
+  def test_footer_follows_a_successful_submit_down
+    render_inline(Bali::Chat::Component.new) do |chat|
+      chat.with_footer { "<form></form>".html_safe }
+    end
+    assert_selector(".bali-chat > .border-t[data-action='turbo:submit-end->chat#followSubmit'] form")
+  end
+
   def test_no_footer_wrapper_without_the_slot
     render_inline(Bali::Chat::Component.new)
     refute_selector(".border-t")
