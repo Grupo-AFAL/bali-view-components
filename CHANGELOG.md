@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **SimpleFilters: `placeholder:` en `filter_attribute` para los filtros de fecha (#1400).** Un
+  `:date` o `:date_range` repetía su caption como placeholder y no había cómo declarar otro.
+  Ahora `filter_attribute` y los hashes de `simple_filters:` aceptan `placeholder:`, también como
+  proc sin argumentos; llega al campo y al calendario de «Personalizado…» de un rango con
+  `presets:`. Una app que lo inyectaba sobrescribiendo `simple_filters_config` puede borrar ese
+  método y declararlo en el filtro.
+
 ### Fixed
 
 - **Filters: «Aplicar» en el popover pedía al servidor los grupos sin la búsqueda (#1352).** La

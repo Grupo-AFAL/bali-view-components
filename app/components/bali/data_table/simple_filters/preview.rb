@@ -213,15 +213,19 @@ module Bali
         end
 
         # @label Date Range
-        # Single date picker that selects a range of dates.
+        # Single date picker that selects a range of dates. Its placeholder is the caption
+        # unless the filter declares `placeholder:` (`filter_attribute placeholder:` on a
+        # FilterForm).
         #
         # @param created_at text
-        def date_range(created_at: '')
+        # @param placeholder text
+        def date_range(created_at: '', placeholder: 'Select dates')
           filters = [
             {
               attribute: :created_at,
               label: 'Created between',
               type: :date_range,
+              placeholder: placeholder.presence,
               value: created_at.presence
             }
           ]
