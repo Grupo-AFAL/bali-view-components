@@ -1,10 +1,26 @@
 # `no-changelog` lets the required Changelog Checker pass: Dependabot never
 # writes CHANGELOG.md. `dependencies` and the ecosystem label are the ones
 # Dependabot adds by default; listing labels replaces them, so they stay here.
+#
+# Dependabot reads the private Bali gems over git (bali-rubocop here). Organization
+# access is not enough: bali-rubocop is on the list and still answers 404
+# (`git_dependencies_not_reachable`), and ONE unreachable git dependency fails the
+# WHOLE bundler update. This registry hands Dependabot a token of its own: the
+# DEPENDABOT secret BUNDLE_GITHUB_TOKEN (Settings > Secrets and variables >
+# Dependabot), not the Actions secret of the same name. Same registry as
+# bali-runtime's dependabot.yml.tt (bali-runtime#136).
 version: 2
+registries:
+  github-afal:
+    type: git
+    url: https://github.com
+    username: x-access-token
+    password: ${{secrets.BUNDLE_GITHUB_TOKEN}}
 updates:
   - package-ecosystem: "bundler"
     directory: "/"
+    registries:
+      - github-afal
     schedule:
       interval: "weekly"
     labels:

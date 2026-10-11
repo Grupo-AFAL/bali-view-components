@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Dependabot lee las gemas privadas con un registro `git`.** `.github/dependabot.yml` declara
+  `github-afal` (`x-access-token`, `${{secrets.BUNDLE_GITHUB_TOKEN}}`) y el bloque `bundler` lo
+  usa. bali-rubocop está en la lista de acceso de la organización y aun así las actualizaciones de
+  bundler reciben 404, y una sola dependencia git inalcanzable hace fallar toda la actualización.
+  Requiere el secreto **de Dependabot** `BUNDLE_GITHUB_TOKEN` en este repo (otro almacén que el
+  secreto de Actions del mismo nombre). La gema no cambia (Grupo-AFAL/bali-runtime#136).
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
