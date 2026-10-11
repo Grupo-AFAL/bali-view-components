@@ -1,10 +1,27 @@
 # `no-changelog` lets the required Changelog Checker pass: Dependabot never
 # writes CHANGELOG.md. `dependencies` and the ecosystem label are the ones
 # Dependabot adds by default; listing labels replaces them, so they stay here.
+#
+# Private Bali gems go through this registry: the org access list is not enough
+# (bali-rubocop answers 404, and one unreachable git dependency fails the whole
+# bundler update). Needs the DEPENDABOT secret BUNDLE_GITHUB_TOKEN; bali-runtime#136.
 version: 2
+registries:
+  github-afal:
+    type: git
+    url: https://github.com
+    username: x-access-token
+    password: ${{secrets.BUNDLE_GITHUB_TOKEN}}
 updates:
   - package-ecosystem: "bundler"
     directory: "/"
+    registries:
+      - github-afal
+    # A registry turns off code execution in the manifest by default, and with it
+    # off Dependabot aborts on any git gem (unexpected_external_code): every Bali
+    # Gemfile has one. The code ran before the registry too; what `allow` adds is
+    # that a compromised gem could read BUNDLE_GITHUB_TOKEN.
+    insecure-external-code-execution: allow
     schedule:
       interval: "weekly"
     labels:
