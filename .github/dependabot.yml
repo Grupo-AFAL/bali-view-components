@@ -17,6 +17,11 @@ updates:
     directory: "/"
     registries:
       - github-afal
+    # A registry turns off code execution in the manifest by default, and with it
+    # off Dependabot aborts on any git gem (unexpected_external_code): every Bali
+    # Gemfile has one. The code ran before the registry too; what `allow` adds is
+    # that a compromised gem could read BUNDLE_GITHUB_TOKEN.
+    insecure-external-code-execution: allow
     schedule:
       interval: "weekly"
     labels:
