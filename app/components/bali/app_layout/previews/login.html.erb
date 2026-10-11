@@ -15,20 +15,20 @@
           </div>
 
           <form class="space-y-4">
-            <div class="form-control">
-              <label class="label"><span class="label-text">Email</span></label>
-              <label class="input input-bordered flex items-center gap-2 w-full">
+            <div>
+              <label class="label"><span>Email</span></label>
+              <label class="input flex items-center gap-2 w-full">
                 <%= render Bali::Icon::Component.new('mail', size: :small, class: 'text-base-content/40') %>
                 <input type="email" placeholder="you@example.com" class="grow" />
               </label>
             </div>
 
-            <div class="form-control">
+            <div>
               <label class="label">
-                <span class="label-text">Password</span>
-                <%= render Bali::Link::Component.new(name: 'Forgot password?', href: '/lookbook', class: 'label-text-alt link link-hover') %>
+                <span>Password</span>
+                <%= render Bali::Link::Component.new(name: 'Forgot password?', href: '/lookbook', class: 'link link-hover') %>
               </label>
-              <label class="input input-bordered flex items-center gap-2 w-full">
+              <label class="input flex items-center gap-2 w-full">
                 <%= render Bali::Icon::Component.new('lock', size: :small, class: 'text-base-content/40') %>
                 <input type="password" placeholder="••••••••" class="grow" />
               </label>

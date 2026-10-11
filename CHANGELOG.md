@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Las clases de daisyUI 4 que quedaban fuera del FormBuilder desaparecen del marcado** (#903).
+  Dejan de coincidir `span.label-text` en el selector de columnas de DataTable, `.input-bordered`
+  en Filters (también en los campos que arma su JS), SimpleFilters, SavedViews y
+  RecurrentEventRuleForm, y `.form-control` en RecurrentEventRuleForm. daisyUI 5 no define
+  ninguna, así que no cambia un píxel; sólo deja sin nada que encontrar a un selector que las
+  use. En las siete apps había tres, todas pruebas de afal-apps sobre el `span.label-text` del
+  selector de columnas, y ya leen el texto del `<label>` (PR de afal-apps).
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
