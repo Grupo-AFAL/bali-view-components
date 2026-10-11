@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Chat` tiene un slot `header`** (#730), encima de los mensajes, con el mismo borde y
+  padding que el `footer`; lo de adentro lo arma la app. Reemplaza la cabecera hecha a mano que
+  afal-apps pone sobre el chat del portal (`git grep -n "has no header slot" origin/main -- app/views`).
+
 ### Fixed
 
 - **Dependabot lee las gemas privadas con un registro `git`.** `github-afal` (`x-access-token`, el

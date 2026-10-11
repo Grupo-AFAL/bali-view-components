@@ -4137,6 +4137,10 @@ components that compose, so a host that only wants bubbles never mounts the cont
 <%= turbo_stream_from @conversation %>
 
 <%= render Bali::Chat::Component.new(id: 'messages', class: 'h-[60vh]') do |chat| %>
+  <% chat.with_header do %>
+    <%= render 'chat_header', conversation: @conversation %>
+  <% end %>
+
   <% @messages.each do |message| %>
     <%= render Bali::Chat::Message::Component.new(
           id: dom_id(message),
@@ -4175,6 +4179,9 @@ turbo_stream.append 'messages', partial: 'messages/message', locals: { message: 
 - `**options` - HTML attributes for the wrapper. **The height goes here**: the wrapper is a
   flex column with no size of its own, so `class: 'h-[60vh]'` (or a max-height, or a flex
   parent) is what makes the region scroll.
+- `with_header` slot - Free-form content above the scroll region — a title, an icon, the
+  actions — in the footer's chrome turned over: a bottom border and the same padding. It
+  stays put while the messages scroll.
 - `with_footer` slot - The composer, rendered below the scroll region with a top border
 
 **The container follows a new message only when the reader was already at the bottom.**

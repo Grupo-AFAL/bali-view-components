@@ -57,6 +57,21 @@ class BaliChatComponentTest < ComponentTestCase
     render_inline(Bali::Chat::Component.new)
     refute_selector(".border-t")
   end
+
+  def test_header_slot_renders_above_the_scroll_region
+    render_inline(Bali::Chat::Component.new) do |chat|
+      chat.with_header { "<h2>Assistant</h2>".html_safe }
+      "conversation".html_safe
+    end
+    assert_selector(".bali-chat > .shrink-0.border-b:first-child h2", text: "Assistant")
+    refute_selector("[data-chat-target='messages'] h2")
+    assert_selector("[data-chat-target='messages']", text: "conversation")
+  end
+
+  def test_no_header_wrapper_without_the_slot
+    render_inline(Bali::Chat::Component.new)
+    refute_selector(".border-b")
+  end
 end
 
 class BaliChatMessageComponentTest < ComponentTestCase

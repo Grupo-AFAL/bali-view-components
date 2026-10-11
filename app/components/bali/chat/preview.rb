@@ -27,6 +27,15 @@ module Bali
         )
       end
 
+      # @label Header
+      # The `header` slot sits above the conversation, in the same chrome as the
+      # footer turned upside down: a bottom border and the same padding. What goes
+      # inside is the host's — here an icon tile, a title, a subtitle that truncates
+      # rather than wraps, and an action on the right.
+      def header
+        render_with_template(template: "bali/chat/previews/header")
+      end
+
       # @label Bubbles
       # Every shape a bubble takes. `position:` picks the side, `color:` the daisyUI
       # bubble colour, and the `avatar`, `header` and `footer` slots fill daisyUI's
