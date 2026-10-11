@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   El tiempo de espera es ahora de cada llamada, no del script: uno lento que llega después de
   vencido se conserva y la siguiente llamada lo usa, en vez de cargar encima una segunda copia de
   la API (un script quitado de la página igual se ejecuta al llegar). Nada que hacer en la app.
+- **`LocationsMap`: el mapa ya no mide 0 px de alto en el teléfono** (#1388). Por debajo de `md`
+  el componente se apila en columna, y ahí el `flex-1` del mapa pone su base en 0 % sobre el alto,
+  que le ganaba a `h-[450px]` (sin `with_card`; con tarjetas ya medía 450). Ahora es `md:flex-1`:
+  a 375 px de ancho el mapa mide 450 de alto, y a 1280 sigue igual (1248 × 450).
+  **Anfitrión:** centinela-web puede borrar su `.location-map { min-height: 450px }` de
+  `app/assets/tailwind/application.css` (`git grep -n "location-map" -- '*.css'`).
 
 ## [v3.11.0] - 2026-10-08
 
