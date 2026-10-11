@@ -74,11 +74,11 @@ export class FileInputController extends Controller {
 
   filesValueContent () {
     if (this.filesArray.length === 0) {
-      return this.nonSelectedTextValue
+      return this.escapeHtml(this.nonSelectedTextValue)
     }
 
     if (!this.multipleValue) {
-      return this.filesArray.map(f => f.name).join(', ')
+      return this.escapeHtml(this.filesArray.map(f => f.name).join(', '))
     }
 
     return this.filesListUI()

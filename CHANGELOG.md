@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **FileInput escribe como texto el nombre de un archivo suelto y el texto por omisión** (#1375).
+  `file-input-controller.js` los escribía con `innerHTML` sin escapar: un archivo llamado
+  `<img src=x onerror=…>.pdf`, elegido en un `file_group` sin `multiple: true`, ejecutaba su
+  script en el origen de la app. Ahora pasan por el mismo `escapeHtml` que ya usaba la lista de
+  `multiple: true`. Nada que hacer en la app.
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
