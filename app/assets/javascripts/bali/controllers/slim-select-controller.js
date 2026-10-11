@@ -208,7 +208,7 @@ export class SlimSelectController extends Controller {
   // reads English.
   //
   // Present, not truthy: an empty value is kept. SlimSelect takes '' as "no placeholder" —
-  // `placeholderText` is the one setting it checks against `undefined` (3.4.3 to 4.6.0) — and
+  // `placeholderText` is the one text setting it checks against `undefined` (3.4.3 to 4.6.0) — and
   // `slim_select_field placeholder: ""` writes exactly that. The other texts fall back to
   // SlimSelect's own through `||`.
   get texts () {

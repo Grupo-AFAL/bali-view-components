@@ -1238,10 +1238,11 @@ action's own form — gets one from `fields`, which emits no second `<form>`. It
 <%# => <div class="control w-56"> … <select id="bulk_store_value" name="value"> %>
 ```
 
-The width goes on the box, through `control_class:`, as on every family. In a flex row like that slot the widget
-sizes to its content — 108px for two short names — so it takes a `w-*`, which gives 224px
-there, where a `max-w-*` only caps those 108px. `html: { class: }` lands on the `<select>`,
-which SlimSelect clips to 1×1, so a width there changes nothing.
+The width goes on the box, through `control_class:`, as on every family. In a flex row like
+that slot the widget sizes to its content — 108px for two short names — so it takes a `w-*`,
+which gives 224px there, where a `max-w-*` only caps those 108px. A bare `w-*` is safe here
+because SlimSelect's `.control` carries no `w-full` to lose to. `html: { class: }` lands on
+the `<select>`, which SlimSelect clips to 1×1, so a width there changes nothing.
 
 **A form that does have a model can still render a value that is not one of its
 attributes** — a jsonb leaf, a threshold in a nested config, anything travelling
