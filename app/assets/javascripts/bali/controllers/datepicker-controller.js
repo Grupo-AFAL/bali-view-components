@@ -43,8 +43,15 @@ export class DatepickerController extends Controller {
   }
 
   async connect () {
+    const connection = (this.connection = Symbol('connection'))
     const flatpickrModule = await import('flatpickr').catch(optionalPeer('flatpickr'))
-    if (!flatpickrModule) return
+    const locale = await this.setLocale(this.localeValue)
+
+    // Stimulus can disconnect this controller during the awaits above — any move does, and
+    // the DataTable toolbar moves its items on `turbo:before-cache` — and that `disconnect()`
+    // had no instance to destroy. Mounting anyway left an altInput on the page Turbo was
+    // leaving: it went into the snapshot, and Back showed it, dead, beside the new one (#1415).
+    if (!flatpickrModule || this.connection !== connection || !this.element.isConnected) return
     const { default: flatpickr } = flatpickrModule
 
     const input =
@@ -63,7 +70,7 @@ export class DatepickerController extends Controller {
       noCalendar: this.noCalendarValue,
       enableSeconds: this.enableSecondsValue,
       time_24hr: this.time24hrValue,
-      locale: await this.setLocale(this.localeValue),
+      locale,
       defaultDate: this.defaultDates(),
       minDate: this.minDateValue,
       maxDate: this.maxDateValue,
@@ -173,6 +180,7 @@ export class DatepickerController extends Controller {
   }
 
   disconnect () {
+    this.connection = null
     this.flatpickr?._input?.removeEventListener('keydown', this.closeOnEscape)
     this.flatpickr?.destroy()
   }
