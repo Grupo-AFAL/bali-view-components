@@ -175,8 +175,7 @@ export class TextareaController extends Controller {
     // tab, a closed Reveal — measures 0, and anything written from that measurement is wrong.
     // Nothing is left inline either: an `overflow-y: hidden` of ours beats the stylesheet and
     // would show the field, once it finally has a box, clipped at its `rows` with no way to
-    // scroll. A closed `<details>` is not one of them: Chromium and Firefox lay its content out
-    // when it is measured.
+    // scroll.
     if (textarea.scrollHeight === 0) {
       textarea.style.height = ''
       textarea.style.overflowY = ''

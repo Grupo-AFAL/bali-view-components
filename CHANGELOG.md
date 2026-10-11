@@ -11,22 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **DatePicker: las flechas de `manual: true` no disparaban `change`.** ◀ ▶ movían el día (o el
   mes, o el año, según `period:`) sin avisar al input, así que un formulario con
-  `submit-on-change` sólo se enviaba al elegir en el calendario: 0 eventos medidos por clic.
-  Ahora cada clic dispara un `change` y un `input`, como el calendario. afal-apps puede, si
-  quiere, volver a las flechas de Bali en `daycare/shared/_day_nav.html.erb`, que hoy son
-  `Bali::Link` por esto (`git grep -n "bali-view-components#1380"`).
+  `submit-on-change` sólo se enviaba al elegir en el calendario. Ahora cada clic dispara un
+  `change` y un `input`, como el calendario. Una flecha que cae en una fecha deshabilitada (un fin
+  de semana con `disable_weekends`, fuera de `min_date`/`max_date`) ya no vacía el campo: no hace
+  nada. afal-apps puede, si quiere, volver a las flechas de Bali en
+  `daycare/shared/_day_nav.html.erb`, que hoy son `Bali::Link` por esto
+  (`git grep -n "bali-view-components#1380"`).
 - **`datetime_field` y `datetime_group` ignoraban `time_24hr:`.** Sólo `time_field` traducía sus
   opciones de hora a `data-datepicker-*`; en un `datetime_*` se descartaban sin aviso y el campo
-  salía en 12 horas («10:00 PM»), aunque la guía documenta `time_24hr: true`. Ahora toma las de
-  `time_field` del mismo mapa: `time_24hr`, `seconds`, `min_time`, `max_time` y `default_date`.
-  Quien pase `wrapper_options: { "data-datepicker-time24hr-value": true }` a un `datetime_*`
-  puede cambiarlo por `time_24hr: true` (`git grep -n "time24hr-value"`); en `origin/main` de la
-  flota no hay ninguno.
+  salía en 12 horas, aunque la guía documenta `time_24hr: true`. Ahora toma las de `time_field`
+  del mismo mapa: `time_24hr`, `seconds`, `min_time` y `max_time`, y `default_date`, que
+  reemplaza el valor del registro, como en `time_field`. Ninguna llamada a `datetime_*` en
+  `origin/main` de la flota pasa alguna de las cinco. Quien use el rodeo
+  `wrapper_options: { "data-datepicker-time24hr-value": true }` en un `datetime_*` puede
+  cambiarlo por `time_24hr: true` (`git grep -n "time24hr-value"`).
 - **Textarea `auto_grow`: un campo oculto al conectarse no crecía al mostrarse.** Dentro de algo
   con `display: none` —una pestaña inactiva, un Reveal cerrado— mide 0 y nada lo volvía a medir:
-  un campo pre-llenado abría con el alto de sus `rows` (80 px para 142 px de texto) hasta que
-  alguien tecleaba. Ahora se ajusta la primera vez que tiene caja. Un `<details>` cerrado no tiene el
-  problema: Chromium y Firefox miden su contenido aunque esté cerrado. Nada que hacer en la app.
+  un campo pre-llenado abría con el alto de sus `rows`, con el resto del texto fuera, hasta que
+  alguien tecleaba. Ahora se ajusta la primera vez que tiene caja. Nada que hacer en la app.
 
 ## [v3.11.0] - 2026-10-08
 

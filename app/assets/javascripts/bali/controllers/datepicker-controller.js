@@ -218,46 +218,44 @@ export class DatepickerController extends Controller {
     return format
   }
 
-  // The arrows pass `setDate` its `triggerChange`, which flatpickr defaults to false: without it
-  // the input gets no `change`, so a `submit-on-change` form never heard them (#1380).
   nextDate () {
-    const currentDate = this.flatpickr.selectedDates[0]
-
-    switch (this.periodValue) {
-      case 'day':
-        currentDate.setDate(currentDate.getDate() + 1)
-        break
-      case 'month':
-        currentDate.setMonth(currentDate.getMonth() + 1)
-        break
-      case 'year':
-        currentDate.setFullYear(currentDate.getFullYear() + 1)
-        break
-      default:
-        return
-    }
-
-    this.flatpickr.setDate(currentDate, true)
+    this.stepDate(1)
   }
 
   previousDate () {
-    const currentDate = this.flatpickr.selectedDates[0]
+    this.stepDate(-1)
+  }
+
+  // `setDate` gets its `triggerChange`, which flatpickr defaults to false: without it the input
+  // gets no `change`, so a `submit-on-change` form never heard the arrows (#1380).
+  //
+  // A step onto a disabled date (a weekend under `disable_weekends`, past `min_date`/`max_date`)
+  // is refused before it reaches `setDate`, which would drop it, empty the field and announce
+  // that: the form submitted `date=`. The step is taken on a copy for the same reason, since
+  // `selectedDates[0]` is flatpickr's own Date and moving it in place moves the selection.
+  stepDate (by) {
+    const selected = this.flatpickr.selectedDates[0]
+    if (!selected) return
+
+    const date = new Date(selected)
 
     switch (this.periodValue) {
       case 'day':
-        currentDate.setDate(currentDate.getDate() - 1)
+        date.setDate(date.getDate() + by)
         break
       case 'month':
-        currentDate.setMonth(currentDate.getMonth() - 1)
+        date.setMonth(date.getMonth() + by)
         break
       case 'year':
-        currentDate.setFullYear(currentDate.getFullYear() - 1)
+        date.setFullYear(date.getFullYear() + by)
         break
       default:
         return
     }
 
-    this.flatpickr.setDate(currentDate, true)
+    if (!this.flatpickr.isEnabled(date)) return
+
+    this.flatpickr.setDate(date, true)
   }
 
   isWeekend = date => {
