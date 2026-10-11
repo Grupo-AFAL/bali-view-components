@@ -117,6 +117,7 @@ only in the bundle (and only fetched) when the component is actually on the page
 ```javascript
 async connect () {
   const { default: Sortable } = await import('sortablejs')
+  if (!this.element.isConnected) return
 
   this.sortable = new Sortable(this.element, { … })
 }
@@ -126,10 +127,8 @@ Anything that can run before that import resolves (a keyboard path, an early eve
 guards with `this.sortable?.…`. Which peer belongs to which component is mapped in
 `docs/guides/installation.md`.
 
-`disconnect()` can run inside that `await` too — any DOM move disconnects and reconnects, and
-the DataTable toolbar moves its controls — and finds nothing to tear down. Mounting anyway
-leaves an instance nobody destroys, so after the last `await` a controller returns if a
-`disconnect()` ran or its element left the document: `datepicker-controller.js` (#1415).
+The `isConnected` line is there because `disconnect()` can land during the `await` with nothing
+to destroy yet, as in `chart/index.js:69` and `datepicker-controller.js` (#1415).
 
 ## Events
 

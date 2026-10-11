@@ -29,6 +29,13 @@ describe('A date filter and the Back button', () => {
 
     cy.get(picker).find('input:not([type="hidden"])').should('have.length', 1).click()
     cy.get('.flatpickr-calendar.open').should('be.visible')
+
+    // The snapshot keeps whatever a connect wrote on the element, so a write there piles up.
+    cy.request(studios).its('body').then((html) => {
+      const served = new DOMParser().parseFromString(html, 'text/html').querySelector(picker)
+      cy.get(picker).should('have.attr', 'data-datepicker-alt-input-class-value',
+        served.dataset.datepickerAltInputClassValue)
+    })
   })
 
   // Expanding the row for the snapshot brings back what sits in the ⋯ — at 1440px group by,

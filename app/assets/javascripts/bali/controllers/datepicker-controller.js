@@ -43,24 +43,19 @@ export class DatepickerController extends Controller {
   }
 
   async connect () {
-    const connection = (this.connection = Symbol('connection'))
     const flatpickrModule = await import('flatpickr').catch(optionalPeer('flatpickr'))
+    if (!flatpickrModule) return
     const locale = await this.setLocale(this.localeValue)
 
-    // Stimulus can disconnect this controller during the awaits above — any move does, and
-    // the DataTable toolbar moves its items on `turbo:before-cache` — and that `disconnect()`
-    // had no instance to destroy. Mounting anyway left an altInput on the page Turbo was
-    // leaving: it went into the snapshot, and Back showed it, dead, beside the new one (#1415).
-    if (!flatpickrModule || this.connection !== connection || !this.element.isConnected) return
+    // disconnect() can land during these awaits with nothing to destroy, and an instance mounted
+    // on a detached field ends up in Turbo's snapshot, dead beside the next one (#1415).
+    if (!this.element.isConnected) return
     const { default: flatpickr } = flatpickrModule
 
     const input =
       this.element.nodeName === 'INPUT'
         ? this.element
         : this.element.querySelector('input')
-
-    // this is necesary because `altInputClass` option does not inherit the original classes
-    this.altInputClassValue = `input ${this.altInputClassValue}`
 
     const options = {
       altInput: this.altInputValue,
@@ -76,7 +71,8 @@ export class DatepickerController extends Controller {
       maxDate: this.maxDateValue,
       minTime: this.minTimeValue,
       maxTime: this.maxTimeValue,
-      altInputClass: this.altInputClassValue,
+      // this is necessary because `altInputClass` option does not inherit the original classes
+      altInputClass: `input ${this.altInputClassValue}`,
       mode: this.modeValue,
       disable: this.disableWeekendsValue ? [this.isWeekend] : this.disabledDatesValue,
       allowInput: this.allowInputValue,
@@ -180,7 +176,6 @@ export class DatepickerController extends Controller {
   }
 
   disconnect () {
-    this.connection = null
     this.flatpickr?._input?.removeEventListener('keydown', this.closeOnEscape)
     this.flatpickr?.destroy()
   }

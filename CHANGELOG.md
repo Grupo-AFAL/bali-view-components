@@ -20,12 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Un filtro de fecha del `DataTable` ya no se duplica con Atrás** (#1415). Cada Atrás dejaba otro
   campo de fecha junto al filtro, igual al bueno pero sin calendario. El `datepicker` ya no monta
-  flatpickr si se desconectó o salió de la página mientras cargaba flatpickr y su idioma, y la barra
+  flatpickr si el campo salió de la página mientras cargaba flatpickr y su idioma, y la barra
   del `DataTable` sólo mueve los controles fuera de orden: al cachear la página y en cada recálculo
   del ⋯ deja de reconectar los que ya están en su lugar. Se notaba en las apps en `es`, cuyo import
   de idioma hacía terminar la reconexión en la página que se dejaba. afal-apps puede borrar su
   subclase provisional, `app/javascript/controllers/datepicker_controller.js`, y las líneas que la
-  registran en `app/javascript/controllers/index.js` (`git grep -n DatepickerController`).
+  registran en `app/javascript/controllers/index.js` (`git grep -n datepicker_controller` encuentra
+  además el comentario que la nombra en `test/system/marketing/pop_requests_test.rb`).
 
 ## [v3.11.0] - 2026-10-08
 
