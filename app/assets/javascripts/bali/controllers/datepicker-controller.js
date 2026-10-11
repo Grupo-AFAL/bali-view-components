@@ -218,6 +218,8 @@ export class DatepickerController extends Controller {
     return format
   }
 
+  // The arrows pass `setDate` its `triggerChange`, which flatpickr defaults to false: without it
+  // the input gets no `change`, so a `submit-on-change` form never heard them (#1380).
   nextDate () {
     const currentDate = this.flatpickr.selectedDates[0]
 
@@ -235,7 +237,7 @@ export class DatepickerController extends Controller {
         return
     }
 
-    this.flatpickr.setDate(currentDate)
+    this.flatpickr.setDate(currentDate, true)
   }
 
   previousDate () {
@@ -255,7 +257,7 @@ export class DatepickerController extends Controller {
         return
     }
 
-    this.flatpickr.setDate(currentDate)
+    this.flatpickr.setDate(currentDate, true)
   }
 
   isWeekend = date => {

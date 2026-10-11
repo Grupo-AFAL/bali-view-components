@@ -33,6 +33,7 @@ export class TextareaController extends Controller {
 
   disconnect () {
     this.form?.removeEventListener('reset', this.onReset)
+    this.firstBoxObserver?.disconnect()
   }
 
   // Called on input event
@@ -75,8 +76,29 @@ export class TextareaController extends Controller {
     this.inputTarget.style.resize = 'none'
     this.inputTarget.style.overflowX = 'hidden'
 
+    // A field with no box measures 0, so neither bound can be taken until it gets one. Measuring
+    // anyway recorded a floor of its two borders (2px against the 80px of two rows) that nothing
+    // ever measured again, and showed it clipped at its `rows` until the first keystroke (#1377).
+    if (this.inputTarget.scrollHeight === 0) {
+      this.fitOnFirstBox()
+    } else {
+      this.fit()
+    }
+  }
+
+  fit () {
     this.measureMinHeight()
     this.adjustHeight()
+  }
+
+  fitOnFirstBox () {
+    this.firstBoxObserver = new window.ResizeObserver(() => {
+      if (this.inputTarget.scrollHeight === 0) return
+
+      this.firstBoxObserver.disconnect()
+      this.fit()
+    })
+    this.firstBoxObserver.observe(this.inputTarget)
   }
 
   // The floor is the height of the field EMPTY, not the height it happens to have on connect.
@@ -86,8 +108,8 @@ export class TextareaController extends Controller {
   // An empty field is already at its floor, which is the usual case and costs no mutation at
   // all. A field rendered with content has to be emptied to be measured, and assigning `value`
   // moves the caret and drops the browser's undo stack, so the selection is put back; the undo
-  // stack is not recoverable, and this runs once, at connect, on a field nobody has typed in
-  // yet.
+  // stack is not recoverable, and this runs once, on a field nobody has typed in yet: at
+  // connect, or the first time a field that connected hidden is shown.
   measureMinHeight () {
     if (this.minHeightValue !== 0) return
 
@@ -149,12 +171,12 @@ export class TextareaController extends Controller {
     textarea.style.overflowY = 'hidden'
     textarea.style.height = 'auto'
 
-    // A field that is not being rendered — `display: none`, a closed `<details>`, an inactive
-    // tab — measures 0, and anything written from that measurement is wrong. Nothing is left
-    // inline either: an `overflow-y: hidden` of ours beats the stylesheet and would show the
-    // field, once it finally has a box, clipped at its `rows` with no way to scroll. It still
-    // will not GROW until the first keystroke, because nothing re-measures when it appears:
-    // #1377.
+    // A field that is not being rendered — `display: none` on it or an ancestor: an inactive
+    // tab, a closed Reveal — measures 0, and anything written from that measurement is wrong.
+    // Nothing is left inline either: an `overflow-y: hidden` of ours beats the stylesheet and
+    // would show the field, once it finally has a box, clipped at its `rows` with no way to
+    // scroll. A closed `<details>` is not one of them: Chromium and Firefox lay its content out
+    // when it is measured.
     if (textarea.scrollHeight === 0) {
       textarea.style.height = ''
       textarea.style.overflowY = ''
