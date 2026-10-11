@@ -390,8 +390,29 @@ export class ModalController extends Controller {
     // which is what `handleTabKey` compares against (#1269).
     this.templateTarget.removeEventListener('keydown', this.handleTabKey)
     this.templateTarget.addEventListener('keydown', this.handleTabKey)
+    this.wrapperTarget.after(this.focusGuard)
 
     this._setInitialFocus()
+  }
+
+  // A Tab out of the last control of an iframe is a keydown in the frame's document, which
+  // `handleTabKey` never sees: the browser carried the focus past the panel and out of the
+  // dialog, to `<body>` (#1386). The guard is the stop after the panel, and sends the focus
+  // round to its first control.
+  get focusGuard () {
+    if (!this._focusGuard) {
+      this._focusGuard = document.createElement('span')
+      this._focusGuard.tabIndex = 0
+      this._focusGuard.addEventListener('focus', this._onFocusGuard)
+    }
+
+    return this._focusGuard
+  }
+
+  _onFocusGuard = () => {
+    if (this._steppingBack) return
+
+    ;(this.focusableElements[0] || this.wrapperTarget).focus()
   }
 
   // Read on every Tab rather than kept from the open: `openModal` runs right after
@@ -441,8 +462,17 @@ export class ModalController extends Controller {
 
     if (event.shiftKey) {
       if (document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
+        // `.focus()` on an iframe focuses the frame and nothing inside it (#1386). From the guard
+        // just past it, this keydown's own default steps back into the frame, onto its last
+        // control.
+        if (last.localName === 'iframe') {
+          this._steppingBack = true
+          this.focusGuard.focus()
+          this._steppingBack = false
+        } else {
+          event.preventDefault()
+          last.focus()
+        }
       }
     } else {
       if (document.activeElement === last) {
@@ -571,6 +601,7 @@ export class ModalController extends Controller {
     if (this.hasTemplateTarget) {
       this.templateTarget.removeEventListener('keydown', this.handleTabKey)
     }
+    this._focusGuard?.remove()
 
     // Restore focus to the element that triggered the modal
     if (this.previouslyFocusedElement) {

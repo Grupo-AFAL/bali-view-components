@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **FeedbackWidget, y todo Modal o Drawer cuyo último enfocable es un iframe: Tab y Shift+Tab
+  ya no se detienen en el borde del iframe.** Un Tab dentro del iframe no llega a la página:
+  desde el último control de Opina el foco salía del `<dialog>` al `<body>`, y Shift+Tab desde
+  el ✕ enfocaba el iframe sin nada enfocado dentro (Chromium 148, Opina en otro origen). Ahora
+  Tab desde ese control va directo al ✕, y Shift+Tab desde el ✕ directo a él. Nada que hacer en
+  la app.
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
