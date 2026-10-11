@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`DataTable`: sin view switch, los botones del anfitrión van pegados al borde derecho**
+  (#1390). Sólo el grupo del view switch absorbía el hueco de la fila, así que sin él
+  `toolbar_buttons` quedaba a media fila: a 1280 px, 635 px antes del borde en
+  `data_table/with_toolbar_buttons`. Ahora el grupo `host` lleva `ml-auto` cuando no hay view
+  switch; con view switch nada cambia, y dentro del ⋯ el botón conserva el ancho del menú.
+  afal-apps puede borrar su regla de `app/assets/tailwind/application.css`
+  (`git grep -n "bali-view-components#1390"`) y la prueba que la sostenía en
+  `test/controllers/td_flow/vendors_controller_test.rb` («the listing action sits in the last
+  toolbar group»).
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
