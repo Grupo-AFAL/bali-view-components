@@ -165,8 +165,8 @@ export class SlimSelectController extends Controller {
         contentEl.classList.add('slim-select-sm-content')
       }
 
-      this.joinTopLayerOnOpen()
       this.forwardAccessibility()
+      this.joinTopLayerOnOpen()
     } catch (error) {
       console.error('[SlimSelect] Failed to initialize:', error)
     }
@@ -220,8 +220,8 @@ export class SlimSelectController extends Controller {
   // From `render.open()`, not SlimSelect's `beforeOpen`: `beforeOpen`, `afterOpen` and
   // `afterClose` are debounced by 100ms in 3.x and 4.x. Joined from `beforeOpen`, the list sat
   // under the dialog that long and its search box, focused while still inert, took no
-  // keystroke. Click, keys, the <label> and `open()` all go through `render.open()`, which
-  // runs before SlimSelect focuses the search box.
+  // keystroke. `Render#open` is public in SlimSelect's typings; a bump that stops routing
+  // opens through it fails slim-select-in-dialog.cy.js, and nothing at runtime.
   //
   // Closed, the list is transparent and then `scaleY(0)`, so it stays joined until
   // `teardown()` rather than leaving from `afterClose`, which is as late and races a reopen.
@@ -229,9 +229,9 @@ export class SlimSelectController extends Controller {
     const render = this.select.render
     const open = render.open.bind(render)
 
-    render.open = () => {
+    render.open = (...args) => {
       this.joinTopLayer()
-      open()
+      return open(...args)
     }
   }
 

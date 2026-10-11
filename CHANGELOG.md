@@ -22,9 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   abría debajo del panel e inerte: ninguna opción se elegía con el mouse y la búsqueda no recibía
   teclado. Pasaba también al reabrir un Modal, que al cerrarse repone el contenido con que se pintó.
   Ahora la lista entra al top layer cada vez que se abre, así que un host ya no necesita cargar el
-  panel por URL ni esquivar el `<dialog>`. El caso es el modal «Enviar recordatorio» de
-  gobierno-corporativo (0 de 6 opciones alcanzables), que puede pasar a `Bali::Modal` con
-  `active: false, shared: false`: `git grep -n "top layer breaks slim-select" app/views`.
+  panel por URL ni esquivar el `<dialog>`. Con la lista abierta, el primer Escape cierra sólo la
+  lista, como ya pasaba con el calendario; antes cerraba también el panel. El caso es el modal
+  «Enviar recordatorio» de gobierno-corporativo (0 de 6 opciones alcanzables), que puede pasar a
+  `Bali::Modal` con `active: false, shared: false`: `git grep -n "top layer breaks slim-select" app/views`.
 
 ## [v3.11.0] - 2026-10-08
 

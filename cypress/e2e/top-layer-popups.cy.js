@@ -125,8 +125,9 @@ describe('Popups opened from inside a top-layer overlay', () => {
 
     it('leaves the SlimSelect list under body', () => {
       cy.visit('/bali/form/slim_select/default')
+      cy.get('.ss-main').click()
 
-      cy.get('body > .ss-content').should('exist').and('not.have.attr', 'popover')
+      cy.get('body > .ss-content.ss-open').should('exist').and('not.have.attr', 'popover')
     })
   })
 })
