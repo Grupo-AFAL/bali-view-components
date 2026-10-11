@@ -2,13 +2,9 @@
 # writes CHANGELOG.md. `dependencies` and the ecosystem label are the ones
 # Dependabot adds by default; listing labels replaces them, so they stay here.
 #
-# Dependabot reads the private Bali gems over git (bali-rubocop here). Organization
-# access is not enough: bali-rubocop is on the list and still answers 404
-# (`git_dependencies_not_reachable`), and ONE unreachable git dependency fails the
-# WHOLE bundler update. This registry hands Dependabot a token of its own: the
-# DEPENDABOT secret BUNDLE_GITHUB_TOKEN (Settings > Secrets and variables >
-# Dependabot), not the Actions secret of the same name. Same registry as
-# bali-runtime's dependabot.yml.tt (bali-runtime#136).
+# Private Bali gems go through this registry: the org access list is not enough
+# (bali-rubocop answers 404, and one unreachable git dependency fails the whole
+# bundler update). Needs the DEPENDABOT secret BUNDLE_GITHUB_TOKEN; bali-runtime#136.
 version: 2
 registries:
   github-afal:
