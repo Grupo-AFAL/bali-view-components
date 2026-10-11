@@ -165,7 +165,7 @@ export class SlimSelectController extends Controller {
         contentEl.classList.add('slim-select-sm-content')
       }
 
-      this.joinTopLayer()
+      this.joinTopLayerOnOpen()
       this.forwardAccessibility()
     } catch (error) {
       console.error('[SlimSelect] Failed to initialize:', error)
@@ -213,12 +213,28 @@ export class SlimSelectController extends Controller {
   // SlimSelect portals `.ss-content` to <body>, which a modal overlay both covers
   // and renders inert — see utils/top-layer.js for the hit-test that measured it.
   //
-  // Done once, at connect, rather than on each open: SlimSelect debounces its open
-  // callbacks and `afterClose` by 100ms, so a hook that reparents there fires long
-  // after the list is already on screen and clickable. The list is parked at `top: -9999px`
-  // while closed, so leaving it in the top layer for the widget's lifetime shows
-  // nothing; when the overlay closes it takes its contents with it, and `teardown()`
-  // removes the node either way.
+  // On each open, not at connect: a select rendered inside a closed Modal or Drawer connects
+  // before `showModal()`, with no host to join — and so does one a Modal puts back on close,
+  // when it restores the content it was rendered with.
+  //
+  // From `render.open()`, not SlimSelect's `beforeOpen`: `beforeOpen`, `afterOpen` and
+  // `afterClose` are debounced by 100ms in 3.x and 4.x. Joined from `beforeOpen`, the list sat
+  // under the dialog that long and its search box, focused while still inert, took no
+  // keystroke. Click, keys, the <label> and `open()` all go through `render.open()`, which
+  // runs before SlimSelect focuses the search box.
+  //
+  // Closed, the list is transparent and then `scaleY(0)`, so it stays joined until
+  // `teardown()` rather than leaving from `afterClose`, which is as late and races a reopen.
+  joinTopLayerOnOpen () {
+    const render = this.select.render
+    const open = render.open.bind(render)
+
+    render.open = () => {
+      this.joinTopLayer()
+      open()
+    }
+  }
+
   joinTopLayer () {
     const contentEl = this.select?.render?.content?.main
     const host = contentEl && topLayerHost(this.element)

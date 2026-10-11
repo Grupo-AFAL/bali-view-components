@@ -83,11 +83,17 @@ describe('Popups opened from inside a top-layer overlay', () => {
       cy.get('.ss-main').should('exist')
       wrapFormInModalDialog()
       // The controller reconnects inside the open dialog and rebuilds the widget.
-      cy.get(`#${DIALOG_ID} > .ss-content`).should('exist')
+      cy.get(`#${DIALOG_ID} .ss-main`).should('exist')
     })
 
-    it('joins the top layer from inside the dialog', () => {
-      cy.get('.ss-content').should('have.attr', 'popover', 'manual').and(isInTopLayer)
+    it('joins the top layer from inside the dialog when it opens', () => {
+      cy.get('.ss-main').click()
+
+      cy.get('.ss-content.ss-open')
+        .should('have.attr', 'popover', 'manual')
+        .and(isInTopLayer)
+        .parent()
+        .should('have.id', DIALOG_ID)
     })
 
     it('lets an option be picked with a real click', () => {
