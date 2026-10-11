@@ -25,11 +25,8 @@ describe('Google Maps loader', () => {
   }
 
   // The controller logs what the loader rejected with.
-  const gaveUp = () =>
-    cy.get('@consoleError').should(
-      'have.been.calledWithMatch',
-      Cypress.sinon.match.has('message', 'Could not load the Google Maps API')
-    )
+  const gaveUp = (message) =>
+    cy.get('@consoleError').should('have.been.calledWithMatch', Cypress.sinon.match.has('message', message))
 
   const reconnect = () =>
     cy.get('[data-controller="locations-map"]').then(([element]) => {
@@ -47,7 +44,7 @@ describe('Google Maps loader', () => {
   it('loads the script again once it failed to load', () => {
     stubGoogleMaps('error')
     visitAndMountMap()
-    gaveUp()
+    gaveUp('Could not load the Google Maps API')
 
     reconnect()
 
@@ -65,10 +62,12 @@ describe('Google Maps loader', () => {
       visitAndMountMap()
       cy.get(SCRIPT)
       cy.tick(10000)
-      gaveUp()
+      gaveUp('Timed out loading the Google Maps API')
     })
 
     it('waits for it on the next call', () => {
+      cy.window().should((win) => expect(win.__fakeMaps, 'still loading').to.eq(undefined))
+
       reconnect()
 
       mapBuilt()

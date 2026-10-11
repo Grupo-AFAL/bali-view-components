@@ -3,11 +3,11 @@ const CALLBACK_NAME = '__googleMapsApiOnLoadCallback'
 const optionsKeys = ['channel', 'client', 'key', 'language', 'region', 'v']
 
 const defaultTimeout = 10000
-let script = null
+let api = null
 
 export default function (options = {}) {
-  script =
-    script ||
+  api =
+    api ||
     new Promise((resolve, reject) => {
       // Hook up the on load callback
       window[CALLBACK_NAME] = function () {
@@ -19,7 +19,7 @@ export default function (options = {}) {
       scriptElement.async = true // Load asynchronously to not block rendering
       scriptElement.onerror = function () {
         scriptElement.remove()
-        script = null
+        api = null
         reject(new Error('Could not load the Google Maps API'))
       }
       const params = [
@@ -45,9 +45,9 @@ export default function (options = {}) {
   // next call waits for it rather than load a second copy of the API over it.
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(function () {
-      reject(new Error('Could not load the Google Maps API'))
+      reject(new Error('Timed out loading the Google Maps API'))
     }, options.timeout || defaultTimeout)
 
-    script.then(resolve, reject).finally(() => clearTimeout(timeoutId))
+    api.then(resolve, reject).finally(() => clearTimeout(timeoutId))
   })
 }
