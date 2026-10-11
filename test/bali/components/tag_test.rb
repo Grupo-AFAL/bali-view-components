@@ -141,6 +141,7 @@ class BaliTagComponentTest < ComponentTestCase
       Bali::Tag::Component.new(text: "Tag", custom_color: "#3b82f6", text_color: "white")
     end
     assert_includes error.message, "text_color"
+    refute_includes error.message, "`color:`", "`color:` is the badge, not the text"
   end
 
   def test_rounded_applies_rounded_full_class_when_rounded_is_true

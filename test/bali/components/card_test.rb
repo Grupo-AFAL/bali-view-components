@@ -90,7 +90,7 @@ class BaliCardComponentTest < ComponentTestCase
     render_inline(Bali::Card::Component.new) do |c|
       c.with_header(title: "Settings", icon: "cog")
     end
-    assert_selector(".card-body .flex.items-center.gap-3")
+    assert_selector(".card-body > .flex.items-center.gap-3")
     assert_selector("h2.card-title", text: "Settings")
   end
 
@@ -153,7 +153,7 @@ class BaliCardComponentTest < ComponentTestCase
       header.with_badge { "NEW" }
     end
     end
-    assert_selector(".flex.items-center.gap-3.justify-between")
+    assert_selector(".card-body > .flex.items-center.gap-3.justify-between")
     assert_selector("h2.card-title", text: "Notifications")
     assert_text("NEW")
   end
@@ -162,7 +162,7 @@ class BaliCardComponentTest < ComponentTestCase
     render_inline(Bali::Card::Component.new) do |c|
       c.with_header(title: "No Badge")
     end
-    assert_selector(".flex.items-center.gap-3")
+    assert_selector(".card-body > .flex.items-center.gap-3")
     assert_no_selector(".justify-between")
   end
 
@@ -193,7 +193,7 @@ class BaliCardComponentTest < ComponentTestCase
       header.with_badge { "Beta" }
     end
     end
-    assert_selector(".flex.items-center.gap-3")
+    assert_selector(".card-body > .flex.items-center.gap-3")
     assert_selector("h2.card-title", text: "Dashboard")
     assert_selector("p.text-sm", text: "Overview of your data")
     assert_text("Beta")

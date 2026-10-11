@@ -64,9 +64,9 @@ module Bali
       renders_one :icon, ->(name, **options) { Icon::Component.new(name, **options) }
 
       # @param icon [String, Symbol] Icon name, drawn before the text.
-      # @param text_color [String, nil] Hex colour for the text, over the black or white
-      #   `custom_color:` picks for contrast. That pick is inline, so a class such as
-      #   `text-white` cannot beat it.
+      # @param text_color [String, nil] Hex colour for the text, written inline: over the
+      #   black or white `custom_color:` picks for contrast (which a class such as
+      #   `text-white` cannot beat), and over a `color:` variant's own text too.
       # rubocop:disable Metrics/ParameterLists
       def initialize(text: nil, href: nil, color: nil, custom_color: nil, text_color: nil,
                      size: nil, style: nil, rounded: false, icon: nil, **options)

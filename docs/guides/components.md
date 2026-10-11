@@ -2313,7 +2313,7 @@ Labels and status indicators.
 - `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: nil, which renders like `:md`)
 - `style` - `:outline`, `:soft`, `:dash` (default: nil)
 - `custom_color` - Hex string applied as an inline background, with black or white text, whichever has the higher WCAG contrast ratio (default: nil)
-- `text_color` - Hex text color, written inline over the one `custom_color` picks. A class such as `text-white` cannot beat an inline color (default: nil)
+- `text_color` - Hex text color, written inline: over the one `custom_color` picks, which a class such as `text-white` cannot beat, and over a `color` variant's own text too (default: nil)
 - `rounded` - Fully rounded pill (default: false)
 - `icon` - Icon name, drawn before the text at the pill's own font-size so it fits every badge size (default: nil)
 

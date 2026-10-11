@@ -9,29 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`Bali::Tag` acepta `text_color:`**, un hex que gana sobre el negro o blanco que elige
-  `custom_color:`. Ese color va en línea, así que una clase (`text-white`) no le ganaba y sólo
-  quedaba `!important`. afal-apps puede cambiar el `class: "text-white!"` de
-  `ProteinHelper#protein_tag` (`git grep -n 'text-white!' app/helpers`) por `text_color: "#fff"`;
-  con la regla nueva de abajo, la res (`#B46E50`) y el pollo (`#E0640B`) saldrían en negro.
+- **`Bali::Tag` acepta `text_color:`**, un hex para el texto, en línea: gana sobre el negro o
+  blanco que elige `custom_color:`, al que una clase como `text-white` no le ganaba sin `!`, y
+  también sobre el texto de una variante `color:`.
+
+### Removed
+
+- **`Bali::Utils::ColorCalculator#convert_to_brightness_value`**, la suma R+G+B del cálculo
+  anterior. Ninguna app la llama.
 
 ### Fixed
 
-- **El texto sobre un `custom_color:` se elige por contraste WCAG.** Se sumaba R+G+B y ponía
-  negro sobre azules y violetas medios: `#535BEB` daba 4.06:1 en negro, contra 5.17 en blanco.
+- **El texto sobre un `custom_color:` se elige por contraste WCAG.** La suma R+G+B ponía negro
+  sobre azules y violetas medios, aunque el blanco contrastara más (`#535BEB`: negro a 4.06:1).
   Ahora gana el de mayor razón de contraste, y un hex corto (`#fff`) se lee completo; antes daba
   blanco sobre blanco. Cambia en `Tag`, `Status` y `Timeline::Header`, sólo en los hex que la
-  suma resolvía mal. En la flota lo usan las proteínas de afal-apps (ver arriba) y los proyectos
-  de opina, que no tienen nada que hacer. `ColorCalculator#convert_to_brightness_value` se va:
-  ninguna app la llama.
+  suma resolvía mal. En la flota:
+  - **opina:** el texto de `_project_badge` puede pasar de negro a blanco o al revés, siempre
+    hacia el que contrasta más. Nada que hacer.
+  - **costa-norte:** su `custom_color:` va a `StatCard`, que no usa este cálculo. Nada cambia.
+  - **afal-apps:** las proteínas siguen en blanco, porque `ProteinHelper#protein_tag` lo fuerza
+    con `class: "text-white!"`. Cambiarlo por `text_color: "#fff"` sólo quita el `!`: la res
+    (`#B46E50`) y el pollo (`#E0640B`) siguen en blanco, bajo AA en texto chico. Sin forzar el
+    color, esas dos salen en negro, sobre AA. Las otras tres son blancas de cualquier modo.
 - **`Card::Header` con `icon:` y `with_badge` deja el ícono junto al título.** `justify-between`
-  repartía el espacio entre los tres hijos y el título quedaba a la mitad del renglón (en una
-  tarjeta a todo lo ancho a 1440 px, a 537 px de su ícono). Ícono y títulos son ahora un grupo, y
-  el renglón hace `flex-wrap`: en pantalla angosta el badge baja en vez de apretar el título.
-  centinela-web puede quitar el `justify-start!` del header y el `ml-auto` del Tag en
-  `operations_board/show.html.erb`, con su comentario; afal-apps puede volver a `with_header` +
-  `with_badge` en `cafeteria/reports/details/_day.html.erb` si ajusta la prueba que busca
-  `h2.card-title ~`.
+  repartía el espacio entre los tres hijos y, en una tarjeta ancha, el título quedaba a la mitad
+  del renglón. Ícono y títulos son ahora un grupo, y el renglón hace `flex-wrap`: en pantalla
+  angosta el badge baja en vez de apretar el título. centinela-web puede quitar el
+  `justify-start!` del header y el `ml-auto` del Tag en `operations_board/show.html.erb`, con su
+  comentario; afal-apps puede volver a `with_header` + `with_badge` en
+  `cafeteria/reports/details/_day.html.erb` si ajusta la prueba que busca `h2.card-title ~`.
 - **`Avatar` deriva las iniciales sólo de palabras que empiezan con letra.** «Alberto Aprobador
   (demo)» daba «A(»; ahora «AA». Un nombre sin ninguna palabra así no lleva iniciales, como un
   `name:` vacío. `initials:` sigue ganando. Nada que hacer en las apps.
