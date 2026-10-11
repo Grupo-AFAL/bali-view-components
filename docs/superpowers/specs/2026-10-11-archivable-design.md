@@ -142,8 +142,8 @@ submit group. Built with `Bali::FormBuilder`. The engine's `new` renders it; a h
 inside its own container.
 
 **`Bali::ArchivalNotice::Component.new(record:, successor_url: nil, unarchive_url: nil)`** — the
-notice on an archived record: «Dado de baja el {fecha} por {quién}. Motivo: {etiqueta}. Lo sustituye
-{enlace}», composed on `Bali::Notification`. The "Reopen" button appears only when
+notice on an archived record — in the `es` locale, «Dado de baja el {fecha} por {quién}. Motivo:
+{etiqueta}. Lo sustituye {enlace}» — composed on `Bali::Notification`. The "Reopen" button appears only when
 `unarchive_url:` is given; the host passes it when the model is reversible and the person may
 reopen. Renders nothing when the record is not archived.
 
