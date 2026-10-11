@@ -66,7 +66,7 @@ These controllers use it, and each takes only what it needs:
 | `datepicker-controller` (flatpickr) | The calendar joins the top layer on `onOpen` and leaves on `onClose`. Skipped when the calendar is deliberately in flow (`static`) or when the call site named its own container with an `appendTo` target. |
 | `slim-select-controller` | `.ss-content` joins once, at connect. SlimSelect debounces all four of its open/close callbacks by 100 ms, so a hook that reparented there would fire long after the list was already on screen. The list is parked at `top: -9999px` while closed, so staying in the top layer shows nothing. |
 | `tooltip`, `hover_card` and `dropdown` with `popover: true` (tippy) | The popper is appended to the dialog instead of the configured `appendTo` (`<body>`, for the dropdown). No popover: Popper recomputes its offsets against whatever `offsetParent` the popper ends up with, and the dialog root is `position: fixed`, so the arithmetic stays right by itself. |
-| `image_grid` | The lightbox is built inside the dialog and shown as a popover. It is `position: fixed; inset: 0`, so there are no offsets to keep correct. |
+| `image_grid` | The lightbox is built inside the dialog and shown as a popover. It is `position: fixed; inset: 0`, so there are no offsets to keep correct; `width` and `height: auto` in `image_grid/index.css` undo the UA's `fit-content`, which shrank it to the photo. |
 
 Two small CSS blocks — in `bali/datepicker.css` and `bali/slim_select.css` — undo the
 `[popover]` rules from the UA stylesheet that get in their way and that those sheets do not

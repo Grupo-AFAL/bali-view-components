@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   el ✕ enfocaba el iframe sin nada enfocado dentro (Chromium 148, Opina en otro origen). Ahora
   Tab desde ese control va directo al ✕, y Shift+Tab desde el ✕ directo a él. Nada que hacer en
   la app.
+- **ImageGrid e `image-expander` dentro de un Drawer o Modal: el lightbox vuelve a cubrir la
+  ventana.** Dentro de un `<dialog>` el lightbox es un popover, y el `width`/`height:
+  fit-content` que el navegador le pone a todo popover le ganaba a su `inset-0`: medía lo que la
+  foto, en la esquina (544×544 en una ventana de 1280×800). afal-apps borra su bloque
+  `.bali-image-expander-overlay:popover-open` de `app/assets/tailwind/application.css`
+  (`git grep -n "image-expander-overlay:popover-open"`).
 
 ## [v3.11.0] - 2026-10-08
 
