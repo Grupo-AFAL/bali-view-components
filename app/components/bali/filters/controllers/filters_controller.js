@@ -643,7 +643,8 @@ export class FiltersController extends Controller {
   /**
    * Private: submit `form` carrying exactly the query of `url`, the one pushed to history.
    * Neither form holds the whole state — the panel has the groups, the quick search the
-   * search — so `requestSubmit()` alone asked for half of it (#1352). `formdata` fires on the
+   * search and the groups as last applied — so `requestSubmit()` alone asked for part of it
+   * (#1352). `formdata` fires on the
    * entry list both Turbo (`new FormData(form)`) and a native submit build, synchronously
    * inside `requestSubmit()`.
    */
