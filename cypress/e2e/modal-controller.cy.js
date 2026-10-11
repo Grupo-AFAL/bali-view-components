@@ -357,4 +357,52 @@ describe('ModalController', () => {
       cy.get('#addressed').should('exist')
     })
   })
+
+  // The stop after the panel that catches a Tab out of an iframe at its end (#1386).
+  context('focus guard', () => {
+    const guards = '[data-bali-focus-guard]'
+
+    // daisyUI's `.modal` is a grid, and Bali's own Modal overrides it with `flex`; a dialog a
+    // host writes by hand does not. In the flow the guard took a row of its own there and
+    // moved the box up by half the window.
+    it('stays out of the layout of a hand-written daisyUI .modal', () => {
+      cy.visit('/bali/button/default')
+      cy.document().then((doc) => {
+        doc.body.insertAdjacentHTML('beforeend',
+          '<dialog id="by-hand" class="modal modal-open" data-controller="modal" data-modal-target="template">' +
+          '<div class="modal-box" data-modal-target="wrapper" tabindex="-1">' +
+          '<div data-modal-target="content"><button type="button">Only</button></div></div></dialog>')
+      })
+
+      cy.get(`#by-hand > ${guards}`).should('exist')
+      cy.get('#by-hand .modal-box').should(($box) => {
+        const { top, height } = $box[0].getBoundingClientRect()
+        const middle = $box[0].ownerDocument.documentElement.clientHeight / 2
+
+        expect(top + height / 2, 'middle of the box').to.be.closeTo(middle, 1)
+      })
+    })
+
+    // A Turbo snapshot of a page left with the panel open carries the guard; the restored
+    // controller added its own beside it, and the copy was a Tab stop that went nowhere.
+    it('is not doubled when Turbo restores a page left with the panel open', () => {
+      const appOrigin = new URL(Cypress.config('baseUrl')).origin
+
+      cy.visit(`${appOrigin}/admin/studios`)
+      cy.get('[data-action*="drawer#open"]').first().click()
+      cy.get('#main-drawer.drawer-open button[data-action*="drawer#close"]').should('exist')
+      cy.get(`#main-drawer > ${guards}`).should('have.length', 1)
+
+      cy.window().then((win) => win.Turbo.visit('/admin/movies'))
+      cy.location('pathname').should('eq', '/admin/movies')
+      cy.go('back')
+      cy.location('pathname').should('eq', '/admin/studios')
+
+      // The restored controller has placed its guard once it has seated the focus.
+      cy.focused().should(($focused) => {
+        expect($focused[0].closest('#main-drawer'), 'focus in the restored panel').to.not.equal(null)
+      })
+      cy.get(`#main-drawer > ${guards}`).should('have.length', 1)
+    })
+  })
 })

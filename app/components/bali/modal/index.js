@@ -399,9 +399,19 @@ export class ModalController extends Controller {
   // `handleTabKey` never sees: the browser carried the focus past the panel and out of the
   // dialog, to `<body>` (#1386). The guard is the stop after the panel, and sends the focus
   // round to its first control.
+  //
+  // `fixed`, out of the flow: in a daisyUI `.modal`, which is a grid, it took a row of its own
+  // and moved the box 182px up at 800px tall. And a Turbo snapshot of a page left with the panel
+  // open carries the guard, so the restored page's controller adopts that one rather than add a
+  // second, dead one beside it. Not `data-turbo-temporary`: Turbo strips those from the live
+  // page on every `turbo:before-cache`, and a refresh morph of a page it has cached fires one
+  // with the panel still open.
   get focusGuard () {
     if (!this._focusGuard) {
-      this._focusGuard = document.createElement('span')
+      this._focusGuard = this.templateTarget.querySelector(':scope > [data-bali-focus-guard]') ||
+        document.createElement('span')
+      this._focusGuard.dataset.baliFocusGuard = ''
+      this._focusGuard.className = 'fixed'
       this._focusGuard.tabIndex = 0
       this._focusGuard.addEventListener('focus', this._onFocusGuard)
     }
@@ -412,7 +422,8 @@ export class ModalController extends Controller {
   _onFocusGuard = () => {
     if (this._steppingBack) return
 
-    ;(this.focusableElements[0] || this.wrapperTarget).focus()
+    const target = this.focusableElements[0] || this.wrapperTarget
+    target.focus()
   }
 
   // Read on every Tab rather than kept from the open: `openModal` runs right after

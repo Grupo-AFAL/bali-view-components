@@ -89,11 +89,12 @@ describe('ImageGrid lightbox', () => {
   // `[popover] { width/height: fit-content }` beat its `inset-0`: a box the size of
   // the photo in the top-left corner.
   describe('covering the window', () => {
+    // The viewport without its scrollbar, which is what `inset: 0` covers.
     const expectWholeWindow = ($overlay) => {
-      const win = $overlay[0].ownerDocument.defaultView
+      const { clientWidth, clientHeight } = $overlay[0].ownerDocument.documentElement
       const { x, y, width, height } = $overlay[0].getBoundingClientRect()
 
-      expect({ x, y, width, height }).to.deep.equal({ x: 0, y: 0, width: win.innerWidth, height: win.innerHeight })
+      expect({ x, y, width, height }).to.deep.equal({ x: 0, y: 0, width: clientWidth, height: clientHeight })
     }
 
     it('from a page', () => {

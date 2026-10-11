@@ -12,13 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **FeedbackWidget, y todo Modal o Drawer cuyo último enfocable es un iframe: Tab y Shift+Tab
   ya no se detienen en el borde del iframe.** Un Tab dentro del iframe no llega a la página:
   desde el último control de Opina el foco salía del `<dialog>` al `<body>`, y Shift+Tab desde
-  el ✕ enfocaba el iframe sin nada enfocado dentro (Chromium 148, Opina en otro origen). Ahora
-  Tab desde ese control va directo al ✕, y Shift+Tab desde el ✕ directo a él. Nada que hacer en
-  la app.
+  el ✕ enfocaba el iframe sin nada enfocado dentro. Ahora, en Chromium, Tab desde ese control va
+  directo al ✕ y Shift+Tab desde el ✕ directo a él; Firefox conserva su propia parada en el
+  documento del iframe. Nada que hacer en la app.
 - **ImageGrid e `image-expander` dentro de un Drawer o Modal: el lightbox vuelve a cubrir la
   ventana.** Dentro de un `<dialog>` el lightbox es un popover, y el `width`/`height:
   fit-content` que el navegador le pone a todo popover le ganaba a su `inset-0`: medía lo que la
-  foto, en la esquina (544×544 en una ventana de 1280×800). afal-apps borra su bloque
+  foto, en la esquina. afal-apps borra su bloque
   `.bali-image-expander-overlay:popover-open` de `app/assets/tailwind/application.css`
   (`git grep -n "image-expander-overlay:popover-open"`).
 
