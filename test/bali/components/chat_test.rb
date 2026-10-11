@@ -55,7 +55,7 @@ class BaliChatComponentTest < ComponentTestCase
 
   # The other half is `followSubmit` in index.js: a send from the footer that went
   # through brings the sender down to it.
-  def test_footer_follows_a_successful_submit_down
+  def test_footer_wires_submit_end_to_follow_submit
     render_inline(Bali::Chat::Component.new) do |chat|
       chat.with_footer { "<form></form>".html_safe }
     end
@@ -143,8 +143,7 @@ class BaliChatMessageComponentTest < ComponentTestCase
     refute_selector(".chat-header time")
   end
 
-  # Guards the `before_render` that forces the block to run: the avatar is emitted
-  # before the bubble, so a lazily evaluated slot would be silently dropped.
+  # The avatar is emitted before the bubble, and set by the block that fills it.
   def test_avatar_slot_renders_in_the_chat_image_cell
     render_inline(Bali::Chat::Message::Component.new) do |message|
       message.with_avatar { '<span class="avatar">AL</span>'.html_safe }

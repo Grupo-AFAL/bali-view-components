@@ -11,10 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Bali::Chat` tiene un slot `header`** (#730), encima de los mensajes, con el mismo borde y
   padding que el `footer`; lo de adentro lo arma la app. Reemplaza la cabecera hecha a mano que
-  afal-apps pone sobre el chat del portal (`git grep -n "has no header slot" origin/main -- app/views`).
+  afal-apps pone sobre el chat del portal.
 - **`Bali::Chat` lleva al fondo a quien envía** (#730). Un envío que entra desde un formulario del
   `footer` (`turbo:submit-end` con `detail.success`) baja la conversación aunque se estuviera
-  leyendo arriba; uno rechazado no la mueve ni enciende el indicador. La app no conecta nada.
+  leyendo arriba; uno rechazado no la mueve. La app no conecta nada.
 
 ### Fixed
 

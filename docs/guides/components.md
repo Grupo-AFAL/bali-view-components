@@ -4154,7 +4154,7 @@ components that compose, so a host that only wants bubbles never mounts the cont
     <% end %>
   <% end %>
 
-  <%= render Bali::Chat::TypingIndicator::Component.new %>
+  <%= render Bali::Chat::TypingIndicator::Component.new(class: 'order-last') %>
 
   <% chat.with_footer do %>
     <%= render 'form' %>
@@ -4167,6 +4167,9 @@ and the append is an ordinary Turbo Stream against the container's `id`:
 ```ruby
 turbo_stream.append 'messages', partial: 'messages/message', locals: { message: }
 ```
+
+An appended message lands after the indicator in the DOM; `order-last` keeps the indicator
+drawn below it, since the region is a flex column.
 
 **`Bali::Chat::Component`** — the scroll region and the append target.
 

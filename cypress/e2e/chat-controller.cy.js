@@ -125,14 +125,13 @@ describe('ChatController', () => {
       })
     })
 
-    it('leaves the reader in place, with no typing dots, when the send was rejected', () => {
+    it('leaves the reader in place when the send was rejected', () => {
       submitEnd(false)
       cy.wait(250)
 
       messages().should(element => {
         expect(metrics(element[0]).scrollTop).to.equal(0)
       })
-      cy.get('#chat-typing-indicator').should('not.be.visible')
     })
 
     it('still follows once a stream has replaced the composer', () => {

@@ -21,7 +21,7 @@ module Bali
     #     <%= render Bali::Chat::Message::Component.new(position: :end, color: :primary) do %>
     #       Hello
     #     <% end %>
-    #     <%= render Bali::Chat::TypingIndicator::Component.new %>
+    #     <%= render Bali::Chat::TypingIndicator::Component.new(class: 'order-last') %>
     #     <% chat.with_footer do %><%= render 'form' %><% end %>
     #   <% end %>
     #
