@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Dependabot lee las gemas privadas con un registro `git`.** `github-afal` (`x-access-token`, el
+  secreto de Dependabot `BUNDLE_GITHUB_TOKEN`) en `.github/dependabot.yml` corrige el 404 sobre
+  bali-rubocop, que hacía fallar toda la actualización de bundler. Requiere el secreto **de
+  Dependabot** en este repo, no el de Actions (Grupo-AFAL/bali-runtime#136).
+  El bloque `bundler` lleva además `insecure-external-code-execution: allow`: con un registro, Dependabot
+  deja de ejecutar el código del Gemfile y aborta con `unexpected_external_code` ante cualquier gema de
+  git, como pasó en bali-auth el 11/10. Antes del registro el código ya se ejecutaba; lo nuevo es que una
+  gema comprometida podría leer `BUNDLE_GITHUB_TOKEN`.
+
 - **`DataTable`: sin view switch, los botones del anfitrión van pegados al borde derecho**
   (#1390). Sólo el grupo del view switch absorbía el hueco de la fila, así que sin él
   `toolbar_buttons` quedaba a media fila: a 1280 px, 635 px antes del borde en
