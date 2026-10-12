@@ -119,7 +119,7 @@ module Bali
       # ---------------
       # Icon, title and badge in a card as wide as the page: the icon stays beside
       # the title and the badge goes to the far end. On a narrow screen the badge
-      # wraps below the title instead of squeezing it.
+      # wraps below the title instead of squeezing it, and stays at the end.
       def header_full_width
         render_with_template(template: 'bali/card/previews/header_full_width')
       end

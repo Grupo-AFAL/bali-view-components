@@ -102,6 +102,24 @@ class BaliTagComponentTest < ComponentTestCase
     assert_selector("span.badge.badge-dash")
   end
 
+  # `style:` is the variant, so a CSS string used to look the variant up, find
+  # nothing and render a plain pill.
+  def test_styles_rejects_a_css_string_and_lists_the_variants
+    error = assert_raises(ArgumentError) do
+      Bali::Tag::Component.new(text: "Tag", style: "opacity: .5")
+    end
+    assert_includes error.message, 'unknown style :"opacity: .5"'
+    assert_includes error.message, "Valid: :outline, :soft, :dash."
+  end
+
+  def test_styles_accepts_a_string_variant_and_nil
+    render_inline(Bali::Tag::Component.new(text: "Tag", style: "soft"))
+    assert_selector("span.badge.badge-soft")
+
+    render_inline(Bali::Tag::Component.new(text: "Tag", style: nil))
+    assert_selector("span.badge:not(.badge-outline):not(.badge-soft):not(.badge-dash)")
+  end
+
   def test_styles_combines_style_with_color
     render_inline(Bali::Tag::Component.new(text: "Tag", style: :outline, color: :primary))
     assert_selector("span.badge.badge-outline.badge-primary")

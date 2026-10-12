@@ -60,7 +60,8 @@ module Bali
       # person gets the same color on every render and DaisyUI theme.
       # `initials:` overrides the derivation; an image (`src:` or the picture
       # slot) always wins over initials. The container gets `role="img"`,
-      # `aria-label` and `title` with the full name.
+      # `aria-label` and `title` with the full name, unless it carries
+      # `aria-hidden`.
       # @param name text
       # @param initials text
       # @param size select [xs, sm, md, lg, xl]
