@@ -13,8 +13,10 @@ whole block, so no individual PR relitigates it.
 
 A fifth change was announced with the block and then deferred: **#903 (residual daisyUI 4
 class names outside the FormBuilder — `label-text`, `input-bordered`, `form-control`) does
-not land in v3.1**; it is scheduled for v4. If you were waiting for it before upgrading,
-stop waiting — nothing in v3.1 touches those class names.
+not land in v3.1**; it landed after v3.11.0 — see
+[the dead daisyUI 4 classes](migration-v2-to-v3.md#the-formbuilders-dead-daisyui-4-classes-are-gone).
+If you were waiting for it before upgrading, stop waiting — nothing in v3.1 touches those
+class names.
 
 The pre-GA audit then admitted a few more changes under the same policy — each measured,
 each with its own CHANGELOG entry — and they get their own sections here as well. Each

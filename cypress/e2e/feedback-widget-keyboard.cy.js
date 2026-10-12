@@ -23,10 +23,40 @@ describe('FeedbackWidget panel from the keyboard', () => {
     expectFocusOnFrame('Tab from the ✕')
   })
 
-  // `cy.press` takes no modifiers; the wrap backwards is the trap's own handler.
-  it('reaches the frame with Shift+Tab from the ✕', () => {
+  // #1386 — the frame's last control is the trap's edge, and neither wrap may stop on a focus
+  // nobody can see: forward on `<body>`, outside the dialog; backward on the frame itself, with
+  // nothing focused inside it. The step into the frame is the browser's own, so a synthetic
+  // keydown cannot take it: these go through its keyboard path (CDP). `cy.press` takes no
+  // modifiers.
+  const lastControl = 'request-capture'
+  const shiftTab = () => {
+    const key = { key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9, modifiers: 8 }
+    const send = (type) => Cypress.automation('remote:debugger:protocol', {
+      command: 'Input.dispatchKeyEvent',
+      params: { type, ...key }
+    })
+
+    return cy.then(() => send('rawKeyDown').then(() => send('keyUp')))
+  }
+
+  it('goes from the ✕ with Shift+Tab straight to the last control in the frame', () => {
     cy.get(close).focus()
-    cy.focused().trigger('keydown', { key: 'Tab', shiftKey: true })
-    expectFocusOnFrame('Shift+Tab from the ✕')
+    shiftTab()
+
+    cy.get('#feedback-widget iframe').should(($frame) => {
+      expect($frame[0].ownerDocument.activeElement, 'the page').to.equal($frame[0])
+      expect($frame[0].contentDocument.activeElement.id, 'inside the frame').to.equal(lastControl)
+    })
+  })
+
+  it('goes from the last control in the frame with Tab straight to the ✕', () => {
+    cy.get('#feedback-widget iframe').its('0.contentDocument').then((doc) => {
+      doc.getElementById(lastControl).focus()
+    })
+    cy.press(Cypress.Keyboard.Keys.TAB)
+
+    cy.document().should((doc) => {
+      expect(doc.activeElement, 'Tab from the last control in the frame').to.equal(doc.querySelector(close))
+    })
   })
 })

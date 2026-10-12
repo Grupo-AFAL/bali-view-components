@@ -150,14 +150,14 @@
               travel (#1282). %>
           <div class="w-full" data-condition-target="value">
             <input type="text"
-                   class="input input-bordered input-sm w-full"
+                   class="input input-sm w-full"
                    placeholder="<%= t('bali_view.filters.select_date_range') %>"
                    aria-label="<%= value_aria_label %>"
                    data-controller="datepicker"
                    data-datepicker-locale-value="<%= I18n.locale %>"
                    data-datepicker-mode-value="range"
                    data-datepicker-alt-format-value="<%= short_date_format %>"
-                   data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+                   data-datepicker-alt-input-class-value="input input-sm w-full"
                    data-datepicker-default-dates-value="<%= [range_values[:start], range_values[:end]].compact.to_json %>"
                    data-action="change->condition#syncRangeDates"
                    data-condition-target="rangeInput">
@@ -174,7 +174,7 @@
         <% elsif attribute_type.to_sym == :date %>
           <%# Single date picker using Flatpickr %>
           <input type="text"
-                 class="input input-bordered input-sm w-full"
+                 class="input input-sm w-full"
                  name="<%= field_name %>"
                  value="<%= value %>"
                  placeholder="<%= t('bali_view.filters.select_date') %>"
@@ -183,12 +183,12 @@
                  data-datepicker-locale-value="<%= I18n.locale %>"
                  data-datepicker-mode-value="single"
                  data-datepicker-alt-format-value="<%= short_date_format %>"
-                 data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+                 data-datepicker-alt-input-class-value="input input-sm w-full"
                  data-condition-target="value">
         <% else %>
           <%# Single datetime picker using Flatpickr %>
           <input type="text"
-                 class="input input-bordered input-sm w-full"
+                 class="input input-sm w-full"
                  name="<%= field_name %>"
                  value="<%= value %>"
                  placeholder="<%= t('bali_view.filters.select_datetime') %>"
@@ -198,13 +198,13 @@
                  data-datepicker-mode-value="single"
                  data-datepicker-enable-time-value="true"
                  data-datepicker-alt-format-value="<%= short_datetime_format %>"
-                 data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+                 data-datepicker-alt-input-class-value="input input-sm w-full"
                  data-condition-target="value">
         <% end %>
 
       <% when :number %>
         <input type="number"
-               class="input input-bordered input-sm w-full"
+               class="input input-sm w-full"
                name="<%= field_name %>"
                value="<%= value %>"
                step="any"
@@ -214,7 +214,7 @@
 
       <% else %>
         <input type="text"
-               class="input input-bordered input-sm w-full"
+               class="input input-sm w-full"
                name="<%= field_name %>"
                value="<%= value %>"
                placeholder="<%= t('bali_view.filters.enter_value') %>"

@@ -8,7 +8,7 @@ module Bali
       DEFAULT_CENTER_LNG = -117.0308968
 
       BASE_CLASSES = "locations-map-component flex max-md:flex-col"
-      MAP_CLASSES = "location-map flex-1 h-[450px]"
+      MAP_CLASSES = "location-map md:flex-1 h-[450px]"
       CARDS_WRAPPER_CLASSES = "locations-map-component--cards flex-1 mr-3 max-md:mr-0"
       LOCATIONS_WRAPPER_CLASSES = "locations-map-component--locations flex-1 ml-3 " \
                                   "max-md:ml-0 max-md:mt-6"

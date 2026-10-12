@@ -1,15 +1,15 @@
 <%= render Bali::Drawer::Component.new(active: true, title: 'Required Fields') do %>
   <form action="/fake/submit" method="post" class="space-y-4">
-    <div class="form-control">
+    <div>
       <label class="label" for="required-name">Name</label>
-      <input type="text" id="required-name" name="name" required class="input input-bordered w-full">
+      <input type="text" id="required-name" name="name" required class="input w-full">
     </div>
-    <div class="form-control">
+    <div>
       <label class="label" for="required-description">Description</label>
       <textarea id="required-description" name="description" required rows="3"
-                class="textarea textarea-bordered w-full"></textarea>
+                class="textarea w-full"></textarea>
     </div>
-    <div class="form-control">
+    <div>
       <label class="label" for="required-urgency">Urgency</label>
       <select id="required-urgency" name="urgency" required class="select select-bordered w-full">
         <option value=""></option>

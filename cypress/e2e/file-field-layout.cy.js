@@ -12,7 +12,7 @@ describe('FileField layout', () => {
   const pickFile = name =>
     cy.get('input[type="file"]').selectFile(
       { contents: Cypress.Buffer.from('x'), fileName: name, mimeType: 'application/pdf' },
-      { force: true } // the native input is `display: none` by design
+      { force: true } // the native input is invisible by design
     )
 
   const assertBoxesDoNotIntersect = () => {

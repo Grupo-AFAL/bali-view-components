@@ -390,8 +390,41 @@ export class ModalController extends Controller {
     // which is what `handleTabKey` compares against (#1269).
     this.templateTarget.removeEventListener('keydown', this.handleTabKey)
     this.templateTarget.addEventListener('keydown', this.handleTabKey)
+    this.wrapperTarget.after(this.focusGuard)
 
     this._setInitialFocus()
+  }
+
+  // A Tab out of the last control of an iframe is a keydown in the frame's document, which
+  // `handleTabKey` never sees: the browser carried the focus past the panel and out of the
+  // dialog, to `<body>` (#1386). The guard is the stop after the panel, and sends the focus
+  // round to its first control.
+  //
+  // `fixed`, out of the flow: in a daisyUI `.modal`, which is a grid, it took a row of its own
+  // and moved the box's centre up from 364px to 182px in an 800px window. And a Turbo snapshot
+  // of a page left with the panel open carries the guard after the wrapper, so the restored
+  // page's controller adopts that one rather than add a second, dead one beside it. Not
+  // `data-turbo-temporary`: Turbo strips those from the live page on every
+  // `turbo:before-cache`, and a refresh morph of a page it has cached fires one with the
+  // panel still open.
+  get focusGuard () {
+    if (!this._focusGuard) {
+      const adopted = this.wrapperTarget.nextElementSibling
+      this._focusGuard = adopted?.matches('[data-bali-focus-guard]') ? adopted : document.createElement('span')
+      this._focusGuard.dataset.baliFocusGuard = ''
+      this._focusGuard.className = 'fixed'
+      this._focusGuard.tabIndex = 0
+      this._focusGuard.addEventListener('focus', this._onFocusGuard)
+    }
+
+    return this._focusGuard
+  }
+
+  _onFocusGuard = () => {
+    if (this._steppingBack) return
+
+    const target = this.focusableElements[0] || this.wrapperTarget
+    target.focus()
   }
 
   // Read on every Tab rather than kept from the open: `openModal` runs right after
@@ -441,8 +474,17 @@ export class ModalController extends Controller {
 
     if (event.shiftKey) {
       if (document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
+        // `.focus()` on an iframe focuses the frame and nothing inside it (#1386). From the guard
+        // just past it, this keydown's own default steps back into the frame, onto its last
+        // control.
+        if (last.localName === 'iframe') {
+          this._steppingBack = true
+          this.focusGuard.focus()
+          this._steppingBack = false
+        } else {
+          event.preventDefault()
+          last.focus()
+        }
       }
     } else {
       if (document.activeElement === last) {
@@ -578,6 +620,7 @@ export class ModalController extends Controller {
     if (this.hasTemplateTarget) {
       this.templateTarget.removeEventListener('keydown', this.handleTabKey)
     }
+    this._focusGuard?.remove()
 
     // Restore focus to the element that triggered the modal
     if (this.previouslyFocusedElement) {

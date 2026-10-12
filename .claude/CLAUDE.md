@@ -241,10 +241,11 @@ After editing component CSS files, rebuild with: `bundle exec rails app:tailwind
 namespaces it under `app:`.)
 Compiled output: `test/dummy/app/assets/builds/tailwind.css`
 
-## DaisyUI Tooltip Mobile Gotcha
+## DaisyUI Tooltip Gotcha
 
-DaisyUI tooltip pseudo-elements (`::before`/`::after`) can cause horizontal scroll on mobile.
-Wrap tooltip containers with `max-sm:overflow-hidden` to clip them on small screens.
+A daisyUI tooltip's `::before` is laid out even while hidden, so a trigger near a scroll
+container's edge gives it horizontal scroll at any width (#1392). Use `Bali::Tooltip` there: its
+balloon is portaled and exists only while open.
 
 ## Prohibited Patterns
 

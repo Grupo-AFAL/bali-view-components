@@ -11,8 +11,8 @@
       </legend>
 
       <div class="flex flex-wrap items-center gap-3">
-        <%# Frequency selector %>
-        <div class="form-control">
+        <%# The div holds the select at its content width, 89px; as a flex item daisyUI's `.select` grows to 20rem (320px). %>
+        <div>
           <%= select_tag :freq, options_for_select(frequency_options, default_frequency),
               id: control_id('freq'),
               aria: { label: t('.frequency_label') },
@@ -33,7 +33,7 @@
             <%= number_field_tag :interval, 1, min: 1,
                 id: control_id('interval'),
                 aria: { label: t('.interval_label') },
-                class: 'input input-bordered input-sm join-item w-14 text-center',
+                class: 'input input-sm join-item w-14 text-center',
                 disabled: disabled,
                 data: { rrule_attr: 'interval', action: 'recurrent-event-rule#setRule' } %>
             <span class="btn btn-sm join-item btn-disabled pointer-events-none bg-base-200 border-base-300 text-base-content/70 min-w-[4rem]">
@@ -245,7 +245,8 @@
       </legend>
 
       <div class="flex flex-wrap items-center gap-3">
-        <div class="form-control">
+        <%# Same as the frequency select: 88px wrapped, 320px without the div. %>
+        <div>
           <%= select_tag :end, options_for_select(ending_options),
               id: control_id('end'),
               aria: { label: t('.end_label') },
@@ -267,7 +268,7 @@
             <%= number_field_tag :count, 1, min: 1,
                 id: control_id('count'),
                 aria: { label: t('.count_label') },
-                class: 'input input-bordered input-sm join-item w-14 text-center',
+                class: 'input input-sm join-item w-14 text-center',
                 disabled: disabled,
                 data: { rrule_attr: 'count', action: 'recurrent-event-rule#setRule' } %>
             <span class="btn btn-sm join-item btn-disabled pointer-events-none bg-base-200 border-base-300 text-base-content/70">
@@ -281,7 +282,7 @@
           <%= text_field_tag :until, 6.months.from_now.to_date,
               id: control_id('until'),
               aria: { label: t('.until_label') },
-              class: 'input input-bordered input-sm w-36 text-sm',
+              class: 'input input-sm w-36 text-sm',
               disabled: disabled,
               data: {
                 controller: 'datepicker',

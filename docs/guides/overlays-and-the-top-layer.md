@@ -66,11 +66,13 @@ These controllers use it, and each takes only what it needs:
 | `datepicker-controller` (flatpickr) | The calendar joins the top layer on `onOpen` and leaves on `onClose`. Skipped when the calendar is deliberately in flow (`static`) or when the call site named its own container with an `appendTo` target. |
 | `slim-select-controller` | `.ss-content` joins each time the list opens, from `render.open()`: before SlimSelect positions the list and focuses its search box. Its own `beforeOpen` and `afterOpen` are debounced by 100 ms in 3.x and 4.x, too late for the focus. Connect is too early: a select rendered with the page in a closed Modal or Drawer connects before `showModal()`. Closed, the list is transparent and `scaleY(0)`, so it stays joined until the widget is torn down. |
 | `tooltip`, `hover_card` and `dropdown` with `popover: true` (tippy) | The popper is appended to the dialog instead of the configured `appendTo` (`<body>`, for the dropdown). No popover: Popper recomputes its offsets against whatever `offsetParent` the popper ends up with, and the dialog root is `position: fixed`, so the arithmetic stays right by itself. |
-| `image_grid` | The lightbox is built inside the dialog and shown as a popover. It is `position: fixed; inset: 0`, so there are no offsets to keep correct. |
+| `image_grid` | The lightbox is built inside the dialog and shown as a popover. It is `position: fixed; inset: 0`, so there are no offsets to keep correct; `width` and `height: auto` in `image_grid/index.css` undo the UA's `fit-content`, which shrank it to the photo. |
 
-Two small CSS blocks — in `bali/datepicker.css` and `bali/slim_select.css` — undo the
-`[popover]` rules from the UA stylesheet that get in their way and that those sheets do not
-already override: `inset: 0`, `margin: auto` and `color: CanvasText`.
+A popover brings the UA stylesheet's `[popover]` rules with it — `inset: 0`, `width` and
+`height: fit-content`, `margin: auto`, `overflow: auto`, `color: CanvasText` among them — and
+each sheet undoes the ones it does not already declare: `bali/datepicker.css` and
+`bali/slim_select.css` the `inset`, `margin` and `color`, `image_grid/index.css` the `width`
+and `height`, `toast_container/index.css` the `overflow` and `color`.
 
 **Outside a modal dialog nothing happens at all.** `topLayerHost` returns `null`, every
 widget behaves exactly as it did, and the stacking scale keeps meaning what it says.
@@ -107,6 +109,10 @@ Three things are worth knowing:
   `enterTopLayer` returns `false` when the browser has no Popover API — the signal to leave
   your widget alone rather than reparent it half-way, since a reparented popup with no top
   layer inherits the dialog's fixed containing block and lands off-screen on a scrolled page.
+
+  It also makes your popup a `[popover]`, with the UA rules listed above. A full-window
+  overlay keeps its `inset: 0` but shrinks to `fit-content` in the corner unless it declares
+  its own `width` and `height`; `auto` is enough, as in `image_grid/index.css`.
 
 ## Which of Bali's own overlays are in the top layer
 

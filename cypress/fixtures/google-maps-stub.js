@@ -1,5 +1,5 @@
-// Stands in for the Google Maps JavaScript API in locations-map.cy.js and
-// google-maps-color-scheme.cy.js.
+// Stands in for the Google Maps JavaScript API in locations-map.cy.js,
+// google-maps-color-scheme.cy.js and google-maps-loader.cy.js.
 //
 // The real API is a paid, keyed, network-loaded script that paints into a
 // canvas: a test can neither load it (there is no key in CI) nor read anything

@@ -2,13 +2,13 @@
   <% modal.with_header(title: 'Create New Item') %>
   <% modal.with_body do %>
     <form class="space-y-4">
-      <div class="form-control">
+      <div>
         <label class="label" for="name">Name</label>
-        <input type="text" id="name" class="input input-bordered w-full" placeholder="Enter name">
+        <input type="text" id="name" class="input w-full" placeholder="Enter name">
       </div>
-      <div class="form-control">
+      <div>
         <label class="label" for="description">Description</label>
-        <textarea id="description" class="textarea textarea-bordered w-full" placeholder="Enter description" rows="3"></textarea>
+        <textarea id="description" class="textarea w-full" placeholder="Enter description" rows="3"></textarea>
       </div>
     </form>
   <% end %>
