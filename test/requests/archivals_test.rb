@@ -63,9 +63,16 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
   def test_an_invalid_archival_re_renders_the_form_with_422_and_keeps_the_choice
     post bali.archivals_path(record_params), params: { archival: { reason: "replaced", note: "Soon" } }
 
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     assert_select "input[name='archival[reason]'][value=replaced][checked]"
     assert_select "#archival_successor_id_error", "Successor can't be blank"
+    refute @movie.reload.archived?
+  end
+
+  def test_a_malformed_archival_param_is_a_bad_request
+    post bali.archivals_path(record_params), params: { archival: "foo" }
+
+    assert_response :bad_request
     refute @movie.reload.archived?
   end
 
@@ -75,7 +82,7 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
 
     post bali.archivals_path(record_params), params: { archival: { reason: "replaced", successor_id: @remake.id } }
 
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     refute @movie.reload.archived?
   end
 
@@ -84,7 +91,7 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
 
     post bali.archivals_path(record_params), params: { archival: { reason: "replaced", successor_id: @remake.id } }
 
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     refute @movie.reload.archived?
   end
 

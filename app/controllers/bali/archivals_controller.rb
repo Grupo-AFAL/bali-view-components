@@ -8,7 +8,7 @@ module Bali
   # track rules after `create`.
   class ArchivalsController < ApplicationController
     # The drawer inserts this body. Without the line Rails renders `layouts/bali/application`,
-    # which calls `javascript_importmap_tags` and fails in a host without importmap-rails.
+    # which links a `bali/application` stylesheet that no host ships.
     layout false
 
     before_action :set_record
@@ -24,7 +24,7 @@ module Bali
       redirect_to return_path, status: :see_other
     rescue ActiveRecord::RecordInvalid => error
       @archival = error.record
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     rescue Bali::Archivable::AlreadyArchived
       redirect_to return_path, status: :see_other
     end
@@ -57,7 +57,7 @@ module Bali
 
     # The successor is looked up among the candidates, never by a type the request names.
     def archival_params
-      permitted = params.fetch(:archival, {}).permit(:reason, :note, :successor_id)
+      permitted = params.expect(archival: %i[reason note successor_id])
       { reason: permitted[:reason].presence, note: permitted[:note].presence,
         successor: @successors&.find_by(id: permitted[:successor_id]) }
     end
