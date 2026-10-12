@@ -53,8 +53,9 @@ module Bali
       # With Name (Derived Initials)
       # ----------------
       # `name:` derives two initials — the first letter of the FIRST and the LAST
-      # word ("Ana García López" → AL, "María de la Luz" → ML; a single word
-      # yields one letter) — and paints a deterministic background: the name is
+      # word that starts with a letter ("Ana García López" → AL, "María de la Luz"
+      # → ML, "Alberto Aprobador (demo)" → AA; a single word yields one letter) —
+      # and paints a deterministic background: the name is
       # hashed into the fixed Status palette (minus slate/gray), so the same
       # person gets the same color on every render and DaisyUI theme.
       # `initials:` overrides the derivation; an image (`src:` or the picture

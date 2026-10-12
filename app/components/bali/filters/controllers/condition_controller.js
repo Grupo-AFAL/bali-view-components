@@ -560,7 +560,7 @@ export class ConditionController extends Controller {
     const placeholder = this.t.placeholders?.enter_value || 'Enter value...'
     return `
       <input type="text"
-             class="input input-bordered input-sm w-full"
+             class="input input-sm w-full"
              name="${fieldName}"
              placeholder="${this.escapeHtml(placeholder)}"
              aria-label="${this.escapeHtml(this.valueAriaLabel)}"
@@ -572,7 +572,7 @@ export class ConditionController extends Controller {
     const placeholder = this.t.placeholders?.number || '0'
     return `
       <input type="number"
-             class="input input-bordered input-sm w-full"
+             class="input input-sm w-full"
              name="${fieldName}"
              step="any"
              placeholder="${this.escapeHtml(placeholder)}"
@@ -603,7 +603,7 @@ export class ConditionController extends Controller {
     const placeholder = this.t.placeholders?.select_date || 'Select date...'
     return `
       <input type="text"
-             class="input input-bordered input-sm w-full"
+             class="input input-sm w-full"
              name="${fieldName}"
              placeholder="${this.escapeHtml(placeholder)}"
              aria-label="${this.escapeHtml(this.valueAriaLabel)}"
@@ -611,7 +611,7 @@ export class ConditionController extends Controller {
              data-datepicker-locale-value="${this.localeValue}"
              data-datepicker-mode-value="single"
              data-datepicker-alt-format-value="${this.shortDateFormat()}"
-             data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+             data-datepicker-alt-input-class-value="input input-sm w-full"
              data-condition-target="value">
     `
   }
@@ -620,7 +620,7 @@ export class ConditionController extends Controller {
     const placeholder = this.t.placeholders?.select_datetime || 'Select date & time...'
     return `
       <input type="text"
-             class="input input-bordered input-sm w-full"
+             class="input input-sm w-full"
              name="${fieldName}"
              placeholder="${this.escapeHtml(placeholder)}"
              aria-label="${this.escapeHtml(this.valueAriaLabel)}"
@@ -629,7 +629,7 @@ export class ConditionController extends Controller {
              data-datepicker-mode-value="single"
              data-datepicker-enable-time-value="true"
              data-datepicker-alt-format-value="${this.shortDatetimeFormat()}"
-             data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+             data-datepicker-alt-input-class-value="input input-sm w-full"
              data-condition-target="value">
     `
   }
@@ -639,14 +639,14 @@ export class ConditionController extends Controller {
     return `
       <div class="w-full" data-condition-target="value">
         <input type="text"
-               class="input input-bordered input-sm w-full"
+               class="input input-sm w-full"
                placeholder="${this.escapeHtml(placeholder)}"
                aria-label="${this.escapeHtml(this.valueAriaLabel)}"
                data-controller="datepicker"
                data-datepicker-locale-value="${this.localeValue}"
                data-datepicker-mode-value="range"
                data-datepicker-alt-format-value="${this.shortDateFormat()}"
-               data-datepicker-alt-input-class-value="input input-bordered input-sm w-full"
+               data-datepicker-alt-input-class-value="input input-sm w-full"
                data-action="change->condition#syncRangeDates"
                data-condition-target="rangeInput">
         <input type="hidden" name="${rangeFieldNames.start}" data-condition-target="rangeStart">

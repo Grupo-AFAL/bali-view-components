@@ -1,0 +1,9 @@
+<%= render Bali::Card::Component.new(class: 'w-full') do |c| %>
+  <% c.with_header(title: 'Wednesday, October 7', subtitle: 'Kitchen list', icon: 'chef-hat') do |header| %>
+    <% header.with_badge do %>
+      <%= render Bali::Tag::Component.new(text: 'Actions', color: :primary, size: :sm) %>
+    <% end %>
+  <% end %>
+
+  <p>The icon stays beside the title and the badge goes to the far end; on a narrow screen it wraps below the title.</p>
+<% end %>

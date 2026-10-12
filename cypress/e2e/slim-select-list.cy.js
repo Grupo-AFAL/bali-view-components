@@ -56,4 +56,41 @@ describe('SlimSelect list', () => {
       expect(box.height, 'height').to.be.at.most(1)
     })
   })
+
+  // #1389 — a prompt is SlimSelect's placeholder: the selected option while nothing else is,
+  // so a remote search keeps it in the list. SlimSelect draws it hidden and counted it anyway.
+  describe('after a remote search, with a prompt', () => {
+    const search = term => {
+      cy.get('.ss-main').click()
+      cy.get('.ss-content.ss-open .ss-search input').type(term)
+      cy.wait('@remoteSearch')
+    }
+
+    beforeEach(() => {
+      cy.intercept('GET', '/users.json*').as('remoteSearch')
+      cy.visit('/bali/form/slim_select/remote_with_prompt')
+    })
+
+    // Before any search: SlimSelect's own render, while mounting, counted the prompt too.
+    it('says there are no results before a search, with nothing but the prompt', () => {
+      cy.get('.ss-main').click()
+
+      cy.get('.ss-content.ss-open .ss-list .ss-search').should('have.text', 'No results')
+    })
+
+    it('says there are no results when the search finds none', () => {
+      search('zz')
+
+      cy.get('.ss-content.ss-open .ss-status').should('have.text', 'No results')
+      cy.get('.ss-content.ss-open .ss-list .ss-search').should('have.text', 'No results')
+    })
+
+    // The dummy's /users.json has four names containing "jo".
+    it('leaves the prompt out of the count it reads out', () => {
+      search('jo')
+
+      cy.get('.ss-content.ss-open .ss-option:not(.ss-hide)').should('have.length', 4)
+      cy.get('.ss-content.ss-open .ss-status').should('have.text', '4 results available')
+    })
+  })
 })

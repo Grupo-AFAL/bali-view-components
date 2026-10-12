@@ -17,8 +17,13 @@ module Bali
     define_method(:rails_file_field, superclass.instance_method(:file_field))
 
     module FileFields
-      # hidden class hides the native file input (consistent with ImageField)
-      INPUT_CLASS = "hidden"
+      # Invisible over the button rather than `hidden`, which takes the control out of the Tab
+      # order and leaves the picker unreachable from the keyboard (#1385). Not `sr-only` either:
+      # its `clip-path: inset(50%)` leaves the browser no box to anchor a validation message to,
+      # so Chrome focuses the control and shows nothing (measured headed; headless paints no
+      # message). Over the button, the message points at the button. `pointer-events-none`
+      # keeps the label's pointer cursor, which over the input itself is the arrow.
+      INPUT_CLASS = "absolute inset-0 opacity-0 pointer-events-none"
       # `shrink-0`, `flex-wrap` and the floor on the file name are one fix split across three
       # constants, and none of them does anything to a row that still fits (#1370).
       #
@@ -42,7 +47,9 @@ module Bali
       WRAPPER_CLASS = "flex flex-wrap items-center gap-3"
       # `/70`, not `/60`: at 14px `/60` measured 4.04:1 on `afal`, under AA's 4.5:1.
       FILENAME_CLASS = "text-sm text-base-content/70 truncate min-w-[min(8rem,100%)]"
-      CTA_CLASS = "btn btn-soft btn-primary gap-2"
+      # `relative` positions the input; the input sits inside the `.btn` so daisyUI's
+      # `.btn:has(:focus-visible)` rings the button while the input has keyboard focus.
+      CTA_CLASS = "btn btn-soft btn-primary gap-2 relative"
       LABEL_CLASS = "cursor-pointer inline-flex shrink-0"
       DEFAULT_ICON = "upload"
 
@@ -88,22 +95,13 @@ module Bali
 
       def file_label(method, input_options, file_icon_name, choose_file_text, cta_size)
         @template.content_tag(:label, class: LABEL_CLASS) do
-          rails_file_field(method, input_options) +
-            file_cta(file_icon_name, choose_file_text, cta_size)
+          file_cta(rails_file_field(method, input_options), file_icon_name, choose_file_text, cta_size)
         end
       end
 
-      # `required` is dropped, not forwarded: on this family it is a constraint the user can
-      # never be told about. The native input is `display: none` (INPUT_CLASS) — correct, the
-      # CTA is what the user sees and clicks — and the browser still validates a hidden
-      # control but cannot focus it, so `form.reportValidity()` returns false, anchors no
-      # bubble anywhere and logs "An invalid form control with name='…' is not focusable".
-      # The submit button goes mute: no request, no message (#1125). Same dead end
-      # SlimSelect hit in #895, same answer — the attribute reaches a control the browser
-      # can report on, or it reaches nothing. Presence is the model's to validate.
       def build_file_input_options(options)
-        # Override class completely - file input must be hidden (not styled as DaisyUI input)
-        opts = dup_options(options).except(:required, "required").merge(class: INPUT_CLASS)
+        # `class:` is replaced, not merged: the input stays invisible inside the button.
+        opts = dup_options(options).merge(class: INPUT_CLASS)
         opts = prepend_action(opts, "file-input#onChange")
         prepend_data_attribute(opts, :file_input_target, :input)
       end
@@ -128,11 +126,20 @@ module Bali
         )
       end
 
-      def file_cta(icon_name, label_text, cta_size)
+      def file_cta(input, icon_name, label_text, cta_size)
         @template.content_tag(:span, class: "#{CTA_CLASS} #{cta_size}") do
           icon = @template.render(Bali::Icon::Component.new(icon_name))
-          label = label_text && @template.content_tag(:span, label_text)
-          icon + (label || "".html_safe)
+          input + icon + cta_text(label_text)
+        end
+      end
+
+      # `choose_file_text: false` hides the words, not the name: without a caption the input
+      # would reach Tab with an empty accessible name.
+      def cta_text(label_text)
+        if label_text
+          @template.content_tag(:span, label_text)
+        else
+          @template.content_tag(:span, default_choose_text, class: "sr-only")
         end
       end
 

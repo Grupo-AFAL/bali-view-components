@@ -60,6 +60,22 @@ module Bali
           end
         end
       end
+
+      # Expandable images inside a Drawer or a Modal
+      # --------------------------------------------
+      # The lightbox opens inside the dialog, in the top layer, so the open panel
+      # neither covers it nor makes it inert. It still covers the whole window.
+      #
+      # @param overlay select { choices: [drawer, modal] }
+      def in_overlay(overlay: :drawer)
+        panel = if overlay.to_sym == :modal
+                  Bali::Modal::Component.new(active: true)
+                else
+                  Bali::Drawer::Component.new(active: true, title: "Photos")
+                end
+
+        render_with_template(locals: { panel: panel })
+      end
     end
   end
 end

@@ -77,7 +77,8 @@ module Bali
       #
       # The date field uses flatpickr, whose calendar renders outside the drawer
       # DOM. The first Escape closes the open calendar (flatpickr consumes it);
-      # only the next Escape closes the drawer. Used by the Cypress suite.
+      # only the next Escape closes the drawer. The slim select's open list
+      # takes the first Escape the same way. Used by the Cypress suite.
       def dirty_form
         render_with_template(locals: { model: form_record })
       end
