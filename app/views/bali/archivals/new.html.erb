@@ -1,0 +1,11 @@
+<%= render Bali::FormPage::Component.new(title: t("bali_view.archivals.new.title"), context: :drawer) do |page| %>
+  <% page.with_body do %>
+    <%= render Bali::ArchivalForm::Component.new(
+          record: @record,
+          successors: @successors,
+          archival: @archival,
+          url: archivals_path(record_type: params[:record_type], record_id: params[:record_id]),
+          return_to: return_to
+        ) %>
+  <% end %>
+<% end %>

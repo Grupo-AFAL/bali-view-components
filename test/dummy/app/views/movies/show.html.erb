@@ -1,4 +1,4 @@
-<%# Movie Detail - Showcases: Breadcrumb, PageHeader, Tabs, Card, PropertiesTable, Avatar, Progress, Rate, List, Timeline, Tag, Tooltip, DeleteLink, Timeago %>
+<%# Movie Detail - Showcases: Breadcrumb, PageHeader, Tabs, Card, PropertiesTable, Avatar, Progress, Rate, List, Timeline, Tag, Tooltip, DeleteLink, Timeago, ArchivalNotice %>
 
 <%# Breadcrumb %>
 <%= render Bali::Breadcrumb::Component.new do |breadcrumb| %>
@@ -27,6 +27,15 @@
 
   <%# Action buttons on the right %>
   <div class="flex items-center gap-2">
+    <% unless @movie.archived? %>
+      <%= render Bali::Link::Component.new(
+        name: 'Archive',
+        href: bali.new_archival_path(record_type: 'Movie', record_id: @movie.id),
+        drawer: true,
+        variant: :ghost,
+        icon: 'archive'
+      ) %>
+    <% end %>
     <%= render Bali::Link::Component.new(
       name: 'Edit',
       href: edit_movie_path(@movie),
@@ -41,6 +50,13 @@
     ) %>
   </div>
 <% end %>
+
+<%= render Bali::ArchivalNotice::Component.new(
+  record: @movie,
+  successor_url: (movie_path(@movie.archival.successor) if @movie.archival&.successor),
+  unarchive_url: bali.unarchive_archivals_path(record_type: 'Movie', record_id: @movie.id),
+  class: 'mt-4'
+) %>
 
 <%# Tabs Container %>
 <div class="mt-6">

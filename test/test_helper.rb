@@ -16,6 +16,7 @@ require "view_component/test_case"
 require "capybara/minitest"
 
 require_relative "support/component_test_helpers"
+require_relative "support/archivable_declaration"
 
 class ActiveSupport::TestCase
   # TODO: Investigate thread-based parallelization to preserve coverage accuracy.

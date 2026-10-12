@@ -51,13 +51,13 @@ module Bali
   #   bin/rails g bali:install                       this generator: CSS, initializer,
   #                                                  Stimulus registration, npm deps
   #   bin/rails bali:install:migrations              the rake tasks the Rails engine API
-  #   bin/rails bali:install:migrations:saved_views  generates — all of them, or one of the
-  #                                                  six per-feature ones — copying
+  #   bin/rails bali:install:migrations:saved_views  generates — all of them, or one
+  #                                                  feature's — copying
   #                                                  db/migrate/* into the host
   #
   # The generator deliberately copies no migrations: the engine's tables belong to
   # the features that use them (saved views, content versions, dashboard widgets and
-  # three more), only three of the seven apps mount the engine at all, and a
+  # others), only three of the seven apps mount the engine at all, and a
   # generator that installed tables for the other four would be writing schema
   # nobody asked for. Forgetting the `g` is not silent — measured:
   # `Unrecognized command "bali:install"` followed by

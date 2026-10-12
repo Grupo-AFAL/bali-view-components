@@ -6,6 +6,11 @@ class Movie < ApplicationRecord
 
   has_many :characters, dependent: :destroy
 
+  # Reversible so the dummy shows the Reopen half of the notice, which gobierno-corporativo —
+  # irreversible, the default — never renders.
+  include Bali::Archivable
+  archivable successor_required_for: %i[replaced], reversible: true
+
   # Active Storage attachment for DirectUpload demo
   has_one_attached :poster
 

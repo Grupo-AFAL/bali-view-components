@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_25_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_11_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -51,6 +51,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_120000) do
     t.string "version_label"
     t.index ["acknowledgeable_type", "acknowledgeable_id", "user_type", "user_id"], name: "index_bali_acknowledgments_uniqueness", unique: true
     t.index ["user_type", "user_id"], name: "index_bali_acknowledgments_on_user"
+  end
+
+  create_table "bali_archivals", force: :cascade do |t|
+    t.integer "archivable_id", null: false
+    t.string "archivable_type", null: false
+    t.integer "archived_by_id"
+    t.string "archived_by_type"
+    t.datetime "created_at", null: false
+    t.text "note"
+    t.string "reason"
+    t.integer "successor_id"
+    t.string "successor_type"
+    t.datetime "unarchived_at"
+    t.integer "unarchived_by_id"
+    t.string "unarchived_by_type"
+    t.datetime "updated_at", null: false
+    t.index ["archivable_type", "archivable_id"], name: "index_bali_archivals_current", unique: true, where: "unarchived_at IS NULL"
+    t.index ["archivable_type", "archivable_id"], name: "index_bali_archivals_on_archivable"
+    t.index ["successor_type", "successor_id"], name: "index_bali_archivals_on_successor"
   end
 
   create_table "bali_block_editor_comments", force: :cascade do |t|
