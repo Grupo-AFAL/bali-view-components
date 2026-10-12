@@ -23,13 +23,14 @@ module Bali
       # @param available_attributes [Array<Hash>] Available filterable attributes
       #   Each hash should have: { key:, label:, type:, options: (for select) }
       #   Types: :text, :number, :date, :datetime, :select, :boolean
-      # @param filter_groups [Array<Hash>] Initial filter state (from URL params)
+      # @param filter_groups [Array<Hash>] Initial filter state (from URL params). Without it,
+      #   the `filter_form:`'s `filter_groups`; without either, one empty group.
       # @param apply_mode [Symbol] :batch (default) or :live
       # @param combinator [Symbol, nil] :and or :or - how groups are combined, as applied.
       #   Without it, the `filter_form:`'s `applied_combinator`; without either, :and, which
       #   is painted but not re-emitted as a choice.
-      # @param filter_form [Bali::FilterForm, nil] The form the groups were parsed with, for a
-      #   panel rendered outside a DataTable: it supplies the combinator `combinator:` leaves out.
+      # @param filter_form [Bali::FilterForm, nil] The applied state of a panel rendered outside
+      #   a DataTable: its groups and combinator, each overridden by the explicit argument.
       # @param max_groups [Integer] Maximum number of filter groups allowed
       # @param popover [Boolean] Whether to show filters in a popover (default: true)
       # @param button_text [String] Text for the popover trigger button
@@ -69,7 +70,7 @@ module Bali
         @url = url
         @preserved_params = preserved_params || {}
         @available_attributes = normalize_attributes(available_attributes)
-        @filter_groups = filter_groups.presence || [ default_filter_group ]
+        @filter_groups = filter_groups.presence || filter_form&.filter_groups.presence || [ default_filter_group ]
         @apply_mode = apply_mode
         # `@applied_combinator` is nil when the state did NOT carry `q[m]`; `@combinator` keeps
         # the render default ("and"). Re-emitting the default as if the user had chosen it

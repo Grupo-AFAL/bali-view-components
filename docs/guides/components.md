@@ -4546,7 +4546,6 @@ makes it a first-class popover attribute with no new API.
 <%= render Bali::Filters::Component.new(
   url: products_path,
   filter_form: @filter_form,
-  filter_groups: @filter_form.filter_groups,
   available_attributes: [
     { key: :name, label: 'Name', type: :text },
     { key: :status, label: 'Status', type: :select, options: Status.options }
@@ -4554,9 +4553,9 @@ makes it a first-class popover attribute with no new API.
 ) %>
 ```
 
-`filter_form:` gives the panel the combinator between groups as applied — an explicit
-`combinator:` wins over it. The groups themselves still go in `filter_groups:`. Inside a
-`DataTable`, `with_filters_panel` passes all of this on its own.
+`filter_form:` is the panel's applied state: its groups and the combinator between them.
+`filter_groups:` and `combinator:`, when passed, win over it. Inside a `DataTable`,
+`with_filters_panel` passes all of this on its own.
 
 **Features:**
 - Multiple filter groups with AND/OR combinators. Conditions inside a group narrow

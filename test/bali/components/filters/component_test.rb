@@ -405,26 +405,31 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="or"]', visible: :all
   end
 
-  # Outside a DataTable no form handed the panel its combinator: it painted AND over groups the
-  # state combined with OR, and Apply sent `q[m]=and`. The three sources, in precedence order.
+  # Outside a DataTable nothing handed the panel its state: given groups but no `combinator:`, it
+  # painted AND over groups the state combined with OR, and Apply sent `q[m]=and`. `filter_form:`
+  # is that state; the explicit arguments win over it.
 
-  def test_without_a_combinator_it_takes_the_one_its_filter_form_applied
+  def test_a_filter_form_alone_supplies_the_groups_and_the_combinator
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ], value: "" },
-      filter_groups: two_applied_groups, filter_form: filter_form_combining("or")
+      filter_form: applied_filter_form
     ))
 
+    assert_selector '[data-filters-target="form"] input[name="q[g][0][name_cont]"][value="Alien"]', visible: :all
+    assert_selector '[data-filters-target="form"] input[name="q[g][1][genre_cont]"][value="Drama"]', visible: :all
     assert_selector '[data-filters-target="form"] input[name="q[m]"][value="or"]', visible: :all
     assert_selector '[data-combinator="or"][aria-pressed="true"]', visible: :all
     assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="or"]', visible: :all
   end
 
-  def test_an_explicit_combinator_wins_over_the_filter_form
+  def test_explicit_groups_and_combinator_win_over_the_filter_form
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ], value: "" },
-      filter_groups: two_applied_groups, filter_form: filter_form_combining("or"), combinator: :and
+      filter_form: applied_filter_form, filter_groups: two_applied_groups, combinator: :and
     ))
 
+    assert_selector '[data-filters-target="form"] input[name="q[g][0][name_cont]"][value="a"]', visible: :all
+    assert_no_selector 'input[value="Alien"]', visible: :all
     assert_selector '[data-filters-target="form"] input[name="q[m]"][value="and"]', visible: :all
     assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="and"]', visible: :all
   end
@@ -574,8 +579,10 @@ class BaliFiltersComponentTest < ComponentTestCase
 
   private
 
-  def filter_form_combining(combinator)
-    Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: { m: combinator }))
+  def applied_filter_form
+    Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: {
+      m: "or", g: { "0" => { m: "and", name_cont: "Alien" }, "1" => { m: "and", genre_cont: "Drama" } }
+    }))
   end
 
   def two_applied_groups

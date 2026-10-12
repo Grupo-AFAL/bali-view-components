@@ -40,9 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Filters` acepta `filter_form:` y conserva el OR entre grupos.** Dibujado fuera de un DataTable
   sin `combinator:`, sobre un estado `q[m]=or`, el panel pintaba AND y «Aplicar» enviaba
-  `q[m]=and`. Ahora toma el combinador del `applied_combinator` de `filter_form:`; un
-  `combinator:` explícito sigue ganando. El ejemplo de la guía ya pasaba `filter_form:`, que
-  se descartaba en silencio. Dentro de un DataTable nada cambia.
+  `q[m]=and`. Ahora `filter_form:` le da los grupos y el combinador aplicados; `filter_groups:` y
+  `combinator:` explícitos siguen ganando. El ejemplo de la guía ya pasaba `filter_form:`, que se
+  descartaba en silencio. Dentro de un DataTable nada cambia.
 
 - **Filters: un envío que no sale ya no deja una URL en el historial.** La URL se empujaba antes
   de `requestSubmit()`, así que un formulario que no pasaba la validación del navegador, o cuyo
