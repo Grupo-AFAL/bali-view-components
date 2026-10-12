@@ -57,9 +57,6 @@ describe('TabsController', () => {
     })
 
     it('says so too when the request never gets an answer', () => {
-      // The controller used to rethrow the rejection and leave the spinner. Letting that through
-      // makes the panel, not the stray rejection, what fails.
-      cy.on('uncaught:exception', (error) => !error.message.includes('Failed to fetch'))
       cy.intercept('GET', '/tab2*', { forceNetworkError: true })
       cy.visit('/bali/tabs/on_demand?locale=es')
 

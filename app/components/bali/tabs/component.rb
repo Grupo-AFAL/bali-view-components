@@ -80,9 +80,7 @@ module Bali
       def container_attributes
         return options if navigation?
 
-        # `dup` too: `detach_data` hands back a hash without `data:` as it is, and
-        # `prepend_controller` would then write `data:` into `@options` itself.
-        prepend_values(prepend_controller(detach_data(options.dup), "tabs"), "tabs", translations: translations_json)
+        prepend_values(prepend_controller(detach_data(options), "tabs"), "tabs", translations: translations_json)
       end
 
       # What tabs/index.js writes into a panel whose `src:` failed to load.
