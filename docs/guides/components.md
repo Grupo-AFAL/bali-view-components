@@ -2665,7 +2665,8 @@ subgroups; it is rendered only when both sides have content and hidden below the
 Four home groups back this: `left` (filters, group by, columns), `memory` (saved views,
 the filter-persistence bookmark), `host` (your `toolbar_buttons`) and `right` (the view
 switch, alone). Host buttons get their own group precisely so the view switch stays pinned
-to the edge: inside `right` the JS orders by priority and they landed to its right.
+to the edge: inside `right` the JS orders by priority and they landed to its right. A
+listing without a view switch pins the `host` group to the edge instead.
 Export is NOT a toolbar control — it lives in the page's `⋯` menu, see
 [Secondary page actions](#secondary-page-actions-and-export).
 

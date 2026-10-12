@@ -1,39 +1,49 @@
 <%# The tooltips travel as VALUES on the controller element: Stimulus reads them off
     this.element, and set on the child button they were invisible — the text fell through to
-    the English fallback. The wrapper clips daisyUI's tooltip pseudo-element, which causes
-    horizontal scroll on a phone. %>
-<div class="max-sm:overflow-hidden"
-     data-controller="filter-persistence"
+    the English fallback. %>
+<div data-controller="filter-persistence"
      data-filter-persistence-storage-id-value="<%= storage_id %>"
      data-filter-persistence-enabled-value="<%= enabled? %>"
      data-filter-persistence-enabled-tooltip-value="<%= enabled_tooltip %>"
      data-filter-persistence-disabled-tooltip-value="<%= disabled_tooltip %>">
-  <%# Explicit aria-label: both icons are `aria-hidden` svgs and the label is only uncovered
-      inside the ⋯, so without this the button has no accessible name. It matches the visible
-      text so "Label in Name" does not break wherever that label does show.
+  <%# `Bali::Tooltip` and not daisyUI's `tooltip` class: daisyUI lays its hidden balloon out
+      as a `::before` of the button, and with the button at the toolbar's edge that box
+      overflowed the scroll container — measured on `data_table/with_filter_persistence` at
+      812px, the page scrolled to 901 with nothing visible past 812 (#1392). This balloon only
+      exists while it is open, portaled to the body. The `tooltip` target is how
+      filter-persistence-controller.js keeps its text in step with the state (updateTooltip). %>
+  <%= render Bali::Tooltip::Component.new(placement: :bottom,
+                                          data: { filter_persistence_target: "tooltip" }) do |balloon| %>
+    <% balloon.with_trigger do %>
+      <%# Explicit aria-label: both icons are `aria-hidden` svgs and the label is only uncovered
+          inside the ⋯, so without this the button has no accessible name. It matches the
+          visible text so "Label in Name" does not break wherever that label does show.
 
-      `aria-pressed` is the ONLY thing exposing which state it is in: the icon swap is visual
-      and `data-tip` is CSS-generated content. Without it the button announces the same on as
-      off, and since the click reloads through Turbo announcing nothing, there was no way to
-      tell which way it landed. The JS keeps it current (updateUI). %>
-  <button type="button"
-          class="tooltip tooltip-bottom btn btn-ghost btn-sm gap-2"
-          data-action="filter-persistence#toggle"
-          data-filter-persistence-target="button"
-          data-tip="<%= tooltip %>"
-          aria-pressed="<%= enabled? %>"
-          aria-label="<%= label %>">
-    <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless enabled? %>">
-      <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-5 h-5 text-primary') %>
-    </span>
-    <span data-filter-persistence-target="iconDisabled" class="<%= 'hidden' if enabled? %>">
-      <%= render Bali::Icon::Component.new('bookmark', class: 'w-5 h-5 text-base-content/55') %>
-    </span>
-    <%# No `sm:inline`, on purpose: in the toolbar this is an icon control. Inside the ⋯ the
-        control takes a whole row and a bare icon is anonymous there, so the unlayered rule in
-        data_table/index.css uncovers it there and only there. `btn-square` is left off the
-        button's class for the same reason: it would force width = height and the label would
-        overflow. %>
-    <span class="toolbar-control-label hidden"><%= label %></span>
-  </button>
+          `aria-pressed` is the ONLY thing exposing which state it is in: the icon swap is
+          visual, and the balloon describes the wrapper tippy is anchored to, not the button.
+          Without it the button announces the same on as off, and since the click reloads
+          through Turbo announcing nothing, there was no way to tell which way it landed. The
+          JS keeps it current (updateUI). %>
+      <button type="button"
+              class="btn btn-ghost btn-sm gap-2"
+              data-action="filter-persistence#toggle"
+              data-filter-persistence-target="button"
+              aria-pressed="<%= enabled? %>"
+              aria-label="<%= label %>">
+        <span data-filter-persistence-target="iconEnabled" class="<%= 'hidden' unless enabled? %>">
+          <%= render Bali::Icon::Component.new('bookmark-check', class: 'w-5 h-5 text-primary') %>
+        </span>
+        <span data-filter-persistence-target="iconDisabled" class="<%= 'hidden' if enabled? %>">
+          <%= render Bali::Icon::Component.new('bookmark', class: 'w-5 h-5 text-base-content/55') %>
+        </span>
+        <%# No `sm:inline`, on purpose: in the toolbar this is an icon control. Inside the ⋯
+            the control takes a whole row and a bare icon is anonymous there, so the unlayered
+            rule in data_table/index.css uncovers it there and only there. `btn-square` is left
+            off the button's class for the same reason: it would force width = height and the
+            label would overflow. %>
+        <span class="toolbar-control-label hidden"><%= label %></span>
+      </button>
+    <% end %>
+    <%= tooltip %>
+  <% end %>
 </div>

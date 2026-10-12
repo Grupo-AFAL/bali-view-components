@@ -127,6 +127,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   script en el origen de la app. Ahora pasan por el mismo `escapeHtml` que ya usaba la lista de
   `multiple: true`. Nada que hacer en la app.
 
+- **`DataTable`: sin view switch, los botones del anfitrión van pegados al borde derecho**
+  (#1390). Sólo el grupo del view switch absorbía el hueco de la fila, así que sin él
+  `toolbar_buttons` quedaba a media fila: a 1280 px, 635 px antes del borde en
+  `data_table/with_toolbar_buttons`. Ahora el grupo `host` lleva `ml-auto` cuando no hay view
+  switch; con view switch nada cambia, y dentro del ⋯ el botón conserva el ancho del menú.
+  afal-apps puede borrar su regla de `app/assets/tailwind/application.css`
+  (`git grep -n "bali-view-components#1390"`) y la prueba que la sostenía en
+  `test/controllers/td_flow/vendors_controller_test.rb` («the listing action sits in the last
+  toolbar group»). En gobierno-corporativo el «Limpiar filtros» de
+  `app/views/data_access_logs/index.html.erb`, un `toolbar_button` sin view switch, pasa
+  también al borde.
+
+- **`Filters::PersistenceToggle`: su tooltip ya no desborda la página** (#1392). Era el de
+  daisyUI, un `::before` que ocupa lugar aunque no se vea, y con el marcador al borde de la barra
+  del `DataTable` le daba scroll horizontal al contenedor (a 812 px la página medía 901 de
+  ancho). Ahora es un `Bali::Tooltip`, que sólo existe mientras está abierto y se abre también
+  con el foco del teclado, sin la regla `.tooltip:focus-visible` de afal-apps. El botón pierde
+  las clases `tooltip tooltip-bottom` y el `data-tip`; ninguna app los lee. afal-apps puede
+  devolver el filtro de contribuyente a `app/forms/finance/fiscal/cancellations_filter_form.rb`.
+
+- **`Tooltip`: un nodo que se mueve mientras conecta abre un solo globo.** Los dos `connect()`
+  de un tooltip movido antes de que cargue tippy armaban un tippy cada uno, y el hover mostraba
+  dos globos encimados; dentro de la barra del `DataTable`, que reacomoda sus controles al
+  conectar, pasaba al cargar la página. Ninguna de las siete apps tiene un `Bali::Tooltip` en esa
+  barra (`git grep` en `origin/main`), así que nadie lo vio; nada que hacer en la app.
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
