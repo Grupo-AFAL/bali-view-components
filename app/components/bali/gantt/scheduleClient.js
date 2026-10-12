@@ -76,46 +76,46 @@ export async function fetchSchedule (scheduleUrl) {
   throw new ScheduleError([], response.statusCode)
 }
 
+// Sends one edit and settles it; a newer edit aborting it makes it STALE. A request the network
+// dropped has no answer to read `errors` from, like a 500 page, and fails the same way: GanttFlow
+// says `change_failed`, not the browser's English "Failed to fetch".
+async function send (reqId, request) {
+  let response
+  try {
+    response = await request()
+  } catch (err) {
+    if (err && err.name === 'AbortError') return STALE
+    throw new ScheduleError([])
+  }
+  return settle(reqId, response)
+}
+
 // PATCH move/resize: { item: { id, starts_on, duration_days } }.
 // Returns the recalculated schedule, or STALE if a newer edit superseded it.
 export async function patchItem (patchUrl, { id, startsOn, durationDays }) {
   const { id: reqId, controller } = nextRequest()
-  let response
-  try {
-    response = await patch(patchUrl, {
-      body: { item: { id, starts_on: startsOn, duration_days: durationDays } },
-      responseKind: 'json',
-      signal: controller.signal
-    })
-  } catch (err) {
-    if (err && err.name === 'AbortError') return STALE
-    throw err
-  }
-  return settle(reqId, response)
+  return send(reqId, () => patch(patchUrl, {
+    body: { item: { id, starts_on: startsOn, duration_days: durationDays } },
+    responseKind: 'json',
+    signal: controller.signal
+  }))
 }
 
 // POST a dependency: { dependency: { predecessor_id, successor_id, lag_days } }.
 // The server validates cycles/self-links (422). Returns the schedule or STALE.
 export async function addDependency (dependenciesUrl, { predecessorId, successorId, lagDays = 0 }) {
   const { id: reqId, controller } = nextRequest()
-  let response
-  try {
-    response = await post(dependenciesUrl, {
-      body: {
-        dependency: {
-          predecessor_id: predecessorId,
-          successor_id: successorId,
-          lag_days: lagDays
-        }
-      },
-      responseKind: 'json',
-      signal: controller.signal
-    })
-  } catch (err) {
-    if (err && err.name === 'AbortError') return STALE
-    throw err
-  }
-  return settle(reqId, response)
+  return send(reqId, () => post(dependenciesUrl, {
+    body: {
+      dependency: {
+        predecessor_id: predecessorId,
+        successor_id: successorId,
+        lag_days: lagDays
+      }
+    },
+    responseKind: 'json',
+    signal: controller.signal
+  }))
 }
 
 // DELETE a dependency by id. `dependenciesUrl` is the collection; the id is
@@ -123,12 +123,5 @@ export async function addDependency (dependenciesUrl, { predecessorId, successor
 export async function removeDependency (dependenciesUrl, id) {
   const { id: reqId, controller } = nextRequest()
   const url = `${dependenciesUrl.replace(/\/$/, '')}/${id}`
-  let response
-  try {
-    response = await destroy(url, { responseKind: 'json', signal: controller.signal })
-  } catch (err) {
-    if (err && err.name === 'AbortError') return STALE
-    throw err
-  }
-  return settle(reqId, response)
+  return send(reqId, () => destroy(url, { responseKind: 'json', signal: controller.signal }))
 }

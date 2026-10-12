@@ -74,7 +74,8 @@ module Bali
         def translations_json
           {
             loading: I18n.t("bali_view.image_grid.loading"),
-            load_failed: I18n.t("bali_view.image_grid.load_failed")
+            load_failed: I18n.t("bali_view.image_grid.load_failed"),
+            close: I18n.t("bali_view.image_grid.close")
           }.to_json
         end
       end

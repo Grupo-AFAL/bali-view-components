@@ -466,4 +466,17 @@ describe('Gantt island', () => {
     // The toast leaves after 4 s, and a wrong text should be the failure, not a toast gone.
     cy.get('.toast .alert-error', { timeout: 3000 }).should('have.text', 'No se pudo aplicar el cambio')
   })
+
+  // A request the network dropped has no answer to read a message from either, and the browser's
+  // own («Failed to fetch») is in English.
+  it('says an edit the network dropped failed in the language of the page', () => {
+    cy.intercept('PATCH', '/admin/projects/*/schedule', { forceNetworkError: true }).as('patch')
+    cy.visit('/bali/gantt/editable?locale=es')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+    dragNode('.react-flow__node', 80)
+    cy.wait('@patch')
+
+    cy.get('.toast .alert-error', { timeout: 3000 }).should('have.text', 'No se pudo aplicar el cambio')
+  })
 })

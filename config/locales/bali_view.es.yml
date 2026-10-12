@@ -161,6 +161,7 @@ es:
       expand: "Ampliar imagen"
       loading: "Cargando"
       load_failed: "No se pudo cargar la imagen"
+      close: "Cerrar"
       empty_state:
         title: "Aún no hay imágenes"
         add_image: "Agregar imagen"

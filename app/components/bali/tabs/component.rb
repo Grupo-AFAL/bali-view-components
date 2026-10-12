@@ -41,7 +41,7 @@ module Bali
         @style = style&.to_sym
         @size = size&.to_sym
         @label = label
-        @options = prepend_class_name(options, "tabs-component")
+        @options = prepend_class_name(detach_data(options), "tabs-component")
       end
 
       def before_render

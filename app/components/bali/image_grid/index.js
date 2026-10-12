@@ -11,8 +11,8 @@ const TRANSITION_MS = 200
 // What the lightbox says when its trigger carries no translations: a button a host renders by
 // hand, without image/component.rb#translations_json, reads them in the `lang` of its page.
 const TEXTS = {
-  en: { loading: 'Loading', load_failed: 'Could not load image' },
-  es: { loading: 'Cargando', load_failed: 'No se pudo cargar la imagen' }
+  en: { loading: 'Loading', load_failed: 'Could not load image', close: 'Close' },
+  es: { loading: 'Cargando', load_failed: 'No se pudo cargar la imagen', close: 'Cerrar' }
 }
 
 /**
@@ -47,9 +47,7 @@ export class ImageExpanderController extends Controller {
     if (!src) return
 
     const alt = innerImg?.alt || ''
-    const closeLabel = this.element.getAttribute('aria-label') || 'Close'
-
-    this.overlay = this._buildOverlay(closeLabel)
+    this.overlay = this._buildOverlay()
 
     // A thumbnail inside a modal overlay would otherwise expand into a lightbox
     // that the overlay covers and renders inert. See utils/top-layer.js. The
@@ -127,7 +125,7 @@ export class ImageExpanderController extends Controller {
     img.src = src
   }
 
-  _buildOverlay (closeLabel) {
+  _buildOverlay () {
     const overlay = document.createElement('div')
     overlay.className = 'bali-image-expander-overlay'
     overlay.setAttribute('role', 'dialog')
@@ -144,7 +142,7 @@ export class ImageExpanderController extends Controller {
     const closeBtn = document.createElement('button')
     closeBtn.type = 'button'
     closeBtn.className = 'bali-image-expander-close'
-    closeBtn.setAttribute('aria-label', closeLabel)
+    closeBtn.setAttribute('aria-label', this.texts.close)
     closeBtn.textContent = '✕'
     closeBtn.addEventListener('click', () => this.close())
 

@@ -166,6 +166,7 @@ en:
       expand: "Expand image"
       loading: "Loading"
       load_failed: "Could not load image"
+      close: "Close"
       empty_state:
         title: "No images yet"
         add_image: "Add image"

@@ -62,14 +62,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     apps usa `false`.
 
 - **ImageGrid, Tabs, BlockEditor y Gantt dejan de escribir inglés desde JavaScript en una página
-  en español (#1428).** El visor de ImageGrid decía «Loading» y «Could not load image»; un panel
-  de Tabs cuyo `src:` fallaba, «Failed to load content»; las referencias de tipo `task`,
-  `project` y `document` del BlockEditor sin `references_config:`, «Task», «Project» y
-  «Document»; y una edición del Gantt rechazada sin `errors` en la respuesta, «Error 500» en vez
-  del `change_failed` que la isla ya traía traducido. Ahora salen de las traducciones de Bali:
-  llaves nuevas `bali_view.image_grid.loading` y `.load_failed`, `bali_view.tabs.load_failed` y
-  `bali_view.block_editor.entity_types.*`. Un botón `image-expander` escrito a mano, sin
-  ImageGrid, toma los del `lang` de la página.
+  en español (#1428).** El visor de ImageGrid decía «Loading» y «Could not load image», y su
+  botón de cerrar se anunciaba con el nombre del disparador («Ampliar imagen»); un panel de Tabs
+  cuyo `src:` fallaba, «Failed to load content»; las referencias de tipo `task`, `project` y
+  `document` del BlockEditor sin `references_config:`, «Task», «Project» y «Document»; y una
+  edición del Gantt rechazada sin `errors` en la respuesta, «Error 500», o «Failed to fetch» si
+  la red no la entregaba, en vez del `change_failed` que la isla ya traía traducido. Ahora salen
+  de las traducciones de Bali: llaves nuevas `bali_view.image_grid.loading`, `.load_failed` y
+  `.close`, `bali_view.tabs.load_failed` y `bali_view.block_editor.entity_types.*`. Un botón
+  `image-expander` escrito a mano, sin ImageGrid, toma los del `lang` de la página.
+  - Tabs deja de escribir su `data-controller` y sus valores en el hash `data:` que recibe: dos
+    Tabs con el mismo hash pintaban `tabs tabs` y un JSON de traducciones repetido e inválido.
   - **Anfitrión:** nada que hacer. Pasan al español las fotos de afal-apps (también las del
     censo, cuyo botón es a mano bajo `<html lang="es">`) y de centinela-web, y el cronograma de
     afal-apps. Ninguna de las siete apps usa Tabs con `src:` ni esos tres tipos de referencia, ni

@@ -88,6 +88,7 @@ describe('ImageGrid lightbox', () => {
     }
     const expectSpanish = () => {
       overlay().find('.bali-image-expander-spinner', { timeout: 2000 }).should('have.attr', 'aria-label', 'Cargando')
+      overlay().find('.bali-image-expander-close').should('have.attr', 'aria-label', 'Cerrar')
       overlay().find('.bali-image-expander-error').should('have.text', 'No se pudo cargar la imagen')
     }
 
