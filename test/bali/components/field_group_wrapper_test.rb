@@ -95,8 +95,8 @@ class BaliFieldGroupWrapperComponentTest < FormBuilderTestCase
   end
 
   # `required:` is a plain attribute the builder forwards to the control — and on the
-  # families whose control cannot carry it (a hidden file input, SlimSelect's clipped
-  # `<select>`) the call site's intent used to reach nothing the user could see. The
+  # families whose control cannot carry it (SlimSelect's clipped `<select>`, a widget over
+  # a hidden field) the call site's intent used to reach nothing the user could see. The
   # caption is where the user looks, so it says so on every family: an asterisk for the
   # eye, hidden from the reader, and a visually hidden word for the reader (#1125).
   def test_caption_marks_a_required_field

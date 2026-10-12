@@ -129,4 +129,22 @@ class BaliUtilsColorCalculatorTest < ActiveSupport::TestCase
   def test_deterministic_color_accepts_a_nil_seed
     assert_includes(Bali::Status::Component::PALETTE.values, @helper.deterministic_color(nil))
   end
+
+  # #1373: summing R+G+B put black on this blue, 4.06:1 where white gives 5.17.
+  def test_contrasting_text_color_picks_the_higher_contrast_ratio
+    assert_equal("#fff", @helper.contrasting_text_color("#535BEB"))
+  end
+
+  # Black and white tie at a relative luminance of 0.179. These two greys straddle it:
+  # #757575 gives white 4.61 and black 4.56, #767676 white 4.54 and black 4.62.
+  def test_contrasting_text_color_flips_where_the_two_ratios_cross
+    assert_equal("#fff", @helper.contrasting_text_color("#757575"))
+    assert_equal("#000", @helper.contrasting_text_color("#767676"))
+  end
+
+  def test_contrasting_text_color_reads_the_short_and_the_alpha_hex_forms
+    assert_equal("#000", @helper.contrasting_text_color("#fff"))
+    assert_equal("#000", @helper.contrasting_text_color("#ff08"))
+    assert_equal("#fff", @helper.contrasting_text_color("#535BEBcc"))
+  end
 end
