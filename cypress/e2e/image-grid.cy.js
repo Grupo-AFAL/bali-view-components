@@ -1,3 +1,5 @@
+import { shiftTab } from '../support/keys'
+
 // #1041 — ImageGrid had no E2E spec. With `expandable: true` each thumbnail
 // opens a lightbox that exists nowhere in the markup: the controller builds the
 // overlay, moves it to the top layer, loads the full-size image and takes over
@@ -115,6 +117,54 @@ describe('ImageGrid lightbox', () => {
           expect($overlay[0].matches(':popover-open'), ':popover-open').to.equal(true)
         })
         overlay().should(expectWholeWindow)
+      })
+    })
+  })
+
+  // Escape and Tab belong to the lightbox while it is open. Inside a Drawer or Modal the
+  // panel's own `keydown.esc` closed it in the same keystroke, and Tab walked out to the
+  // panel's controls behind the photo; on a page, out to the thumbnails. Real keys, through
+  // the browser's keyboard path: a synthetic Escape is no close request for a `<dialog>`, and
+  // a synthetic Tab moves nothing. `cy.press` takes no modifiers.
+  describe('keys while it is open', () => {
+    // `is-open` lands on the next frame, the way a reader sees it open.
+    const openIt = () => {
+      thumbnails().first().click()
+      overlay().should('have.class', 'is-open').find('img').should('exist')
+      expectFocusOnClose('on open')
+    }
+    const expectFocusOnClose = label => cy.document().should((doc) => {
+      expect(doc.activeElement.className, label).to.contain('bali-image-expander-close')
+    })
+
+    ;[['a page', '/bali/image_grid/expandable'],
+      ['a drawer', '/bali/image_grid/in_overlay?overlay=drawer'],
+      ['a modal', '/bali/image_grid/in_overlay?overlay=modal']].forEach(([where, path]) => {
+      it(`keeps Tab and Shift+Tab on its close button, from ${where}`, () => {
+        cy.visit(path)
+        openIt()
+
+        cy.press(Cypress.Keyboard.Keys.TAB)
+        expectFocusOnClose('after Tab')
+
+        shiftTab()
+        expectFocusOnClose('after Shift+Tab')
+      })
+    })
+
+    ;[['drawer', 'dialog.drawer-component'], ['modal', 'dialog.modal-component']].forEach(([panel, selector]) => {
+      it(`closes with Escape and leaves the ${panel} around it open`, () => {
+        cy.visit(`/bali/image_grid/in_overlay?overlay=${panel}`)
+        openIt()
+
+        cy.press(Cypress.Keyboard.Keys.ESC)
+
+        overlay().should('not.exist')
+        cy.get(selector).should(($dialog) => {
+          expect($dialog[0].matches(':modal'), ':modal').to.equal(true)
+        })
+        // Back on the thumbnail inside the panel that opened it.
+        cy.focused().should('have.attr', 'data-controller', 'image-expander')
       })
     })
   })

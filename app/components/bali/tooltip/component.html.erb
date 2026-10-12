@@ -1,7 +1,7 @@
 <%= tag.span class: container_classes, **container_attributes do %>
-  <span class="<%= trigger_classes %>" data-tooltip-target="trigger">
+  <%= tag.span class: trigger_classes, data: { tooltip_target: "trigger" }, **trigger_attributes do %>
     <%= trigger %>
-  </span>
+  <% end %>
   <template data-tooltip-target="content">
     <%= content %>
   </template>

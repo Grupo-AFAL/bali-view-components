@@ -10,8 +10,10 @@ module Bali
       #
       # The trigger is keyboard-reachable out of the box (the tooltip controller
       # makes the wrapper a tab stop when the slot brings no focusable of its
-      # own), and the balloon portals to `<body>` by default, so it escapes
-      # clipping ancestors — the app shell's `<main>`, a drawer.
+      # own) and named "More information", with the balloon's text as its
+      # description; `trigger_label:` names it otherwise. The balloon portals to
+      # `<body>` by default, so it escapes clipping ancestors — the app shell's
+      # `<main>`, a drawer.
       #
       # @param text text
       # @param icon text

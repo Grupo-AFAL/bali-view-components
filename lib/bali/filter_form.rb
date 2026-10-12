@@ -155,8 +155,10 @@ module Bali
       #   :date_range widgets — the "Custom…" picker of a preset range included — which
       #   otherwise repeat the caption. Zero-arity procs are resolved per-instance, like
       #   `label:`.
-      # @param placeholder_min [String] Min placeholder for :number_range
-      # @param placeholder_max [String] Max placeholder for :number_range
+      # @param placeholder_min [String, Proc] Min placeholder for :number_range, resolved
+      #   like `placeholder:`
+      # @param placeholder_max [String, Proc] Max placeholder for :number_range, resolved
+      #   like `placeholder:`
       # @param auto_submit [Boolean] Filter as soon as this control changes, instead
       #   of waiting for the Filter button. Opt-in per filter and off by default, so
       #   no existing row changes behaviour. Only for widgets whose change is a

@@ -171,6 +171,14 @@ module Bali
         )
       end
 
+      # With Upload Error
+      # ----------------
+      # Under `Bali::FormBuilder` the field's error shows under the avatar, and the file input
+      # carries `aria-invalid` and an `aria-describedby` that points at it.
+      def with_upload_error
+        render_with_template(template: 'bali/avatar/previews/with_upload_error')
+      end
+
       # Combined Features
       # ----------------
       # Avatar combining size, shape, ring, and presence indicator

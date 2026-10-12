@@ -11,7 +11,6 @@ module Bali
       OPTION_TO_DATA_ATTRIBUTE = {
         seconds: "data-datepicker-enable-seconds-value",
         time_24hr: "data-datepicker-time24hr-value",
-        default_date: "data-datepicker-default-date-value",
         min_time: "data-datepicker-min-time-value",
         max_time: "data-datepicker-max-time-value"
       }.freeze
@@ -33,12 +32,18 @@ module Bali
 
       private
 
-      # DatetimeFields builds its wrapper here too, from its own base.
+      # DatetimeFields builds its wrapper here too, from its own base. An option replaces its
+      # attribute in `wrapper_options:` under either spelling of the key, String or Symbol: both
+      # would render, and a parser keeps the first. SharedDateUtils#build_wrapper_options does
+      # the same for the date options.
       def merged_time_options(base, options)
         base_options = base.merge(options[:wrapper_options] || {})
 
         OPTION_TO_DATA_ATTRIBUTE.each_with_object(base_options.dup) do |(key, attr), result|
-          result[attr] = options[key] if options[key].present?
+          next if options[key].blank?
+
+          result.reject! { |name, _| name.to_s == attr }
+          result[attr] = options[key]
         end
       end
 

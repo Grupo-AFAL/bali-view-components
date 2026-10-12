@@ -195,6 +195,62 @@ describe('FiltersController', () => {
         expect(params.get('q[g][0][name_cont]')).to.equal('Alien')
       })
     })
+
+    // The browser refused the form, so no request went out: the address bar has nothing new
+    // to describe.
+    it('pushes nothing for a submit that does not go', () => {
+      cy.visit('/bali/filters/default')
+      openPanel()
+      cy.get(attribute).select('name')
+      cy.get(value).type('Alien').then(($input) => $input[0].setCustomValidity('Not this one'))
+      cy.window().then((win) => { win.__historyLength = win.history.length })
+      cy.location('href').then((before) => {
+        cy.get(applyButton).click()
+
+        cy.location('href').should('equal', before)
+        cy.window().then((win) => expect(win.history.length).to.equal(win.__historyLength))
+      })
+    })
+
+    // A listing `url:` can carry what PreservedParams::EXCLUDED_PARAMS keeps out of the hidden
+    // fields, and the controller used to build on that query too: re-sent, `saved_view`
+    // re-applies its payload over the user's edit, and a `clear_*` wipes what is being applied.
+    context('over a listing URL with params no request may take over', () => {
+      const excluded = ['saved_view', 'clear_search', 'q[name_cont]']
+      const listing = '/lookbook/preview/bali/filters/default?saved_view=3&clear_filters=true&clear_search=true&q[name_cont]=x&view=grid'
+
+      beforeEach(() => {
+        cy.visit(`/bali/filters/default?url=${encodeURIComponent(listing)}`)
+        openPanel()
+      })
+
+      it('applies without them', () => {
+        cy.get(attribute).select('name')
+        cy.get(value).type('Alien')
+        captureSubmission()
+
+        cy.get(applyButton).click()
+
+        cy.window().its('__submitted').then((entries) => {
+          const keys = entries.map(([key]) => key)
+          excluded.concat('clear_filters').forEach((key) => expect(keys).not.to.include(key))
+          expect(entries).to.deep.include(['view', 'grid'])
+          expect(entries).to.deep.include(['q[g][0][name_cont]', 'Alien'])
+        })
+        cy.location('search').should('not.include', 'saved_view').and('include', 'view=grid')
+      })
+
+      it('clears without them', () => {
+        cy.get('[data-filters-target="clearButton"]').click()
+
+        cy.location('search').should((search) => {
+          const params = new URLSearchParams(search)
+          excluded.forEach((key) => expect(params.has(key), key).to.equal(false))
+          expect(params.get('clear_filters')).to.equal('true')
+          expect(params.get('view')).to.equal('grid')
+        })
+      })
+    })
   })
 
   // #1352 — the panel's form holds the groups and the quick search's form the search, and
