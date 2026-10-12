@@ -143,6 +143,9 @@ en:
 
     # Conversational chat
     chat:
+      composer:
+        send: "Send"
+        placeholder: "Write a message…"
       typing_indicator:
         label: "Typing…"
 

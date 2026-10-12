@@ -49,23 +49,19 @@
     <% end %>
 
     <% chat.with_footer do %>
-      <div class="flex items-center gap-2">
-        <%# A chat composer is one unlabelled field in a row; both apps this came
-            from reach for `text_field_tag` here rather than a full form group. %>
-        <%= text_field_tag :message, nil,
-              placeholder: 'Write a message…',
-              class: 'input flex-1',
-              autocomplete: 'off',
-              aria: { label: 'Write a message' } %>
-        <%= render Bali::Button::Component.new(
-              name: 'Send', variant: :primary, icon: 'send',
-              data: { action: 'click->chat#showTyping' }
-            ) %>
-        <%= render Bali::Button::Component.new(
-              name: 'Stop typing', variant: :ghost, size: :sm,
-              data: { action: 'click->chat#hideTyping' }
-            ) %>
-      </div>
+      <%# The row the comment here used to describe by hand, and that both source apps wrote
+          for themselves: `Chat::Composer::Component`. The mic comes with it. %>
+      <%= render Bali::Chat::Composer::Component.new(
+            name: 'message',
+            field_options: { 'aria-label': 'Write a message' },
+            submit_options: { data: { action: 'click->chat#showTyping' } }) do |composer| %>
+        <% composer.with_action do %>
+          <%= render Bali::Button::Component.new(
+                name: 'Stop typing', variant: :ghost, size: :sm,
+                data: { action: 'click->chat#hideTyping' }
+              ) %>
+        <% end %>
+      <% end %>
     <% end %>
   <% end %>
 </div>

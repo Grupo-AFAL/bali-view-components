@@ -4278,7 +4278,9 @@ components that compose, so a host that only wants bubbles never mounts the cont
   <%= render Bali::Chat::TypingIndicator::Component.new(class: 'order-last') %>
 
   <% chat.with_footer do %>
-    <%= render 'form' %>
+    <%= form_with url: messages_path do %>
+      <%= render Bali::Chat::Composer::Component.new(name: 'message[content]') %>
+    <% end %>
   <% end %>
 <% end %>
 ```
@@ -4316,6 +4318,26 @@ Scrolled up in the history, their position is left alone; back at the bottom, it
 again. That decision is taken from the position recorded by the last real `scroll` event,
 because an append grows `scrollHeight` while `scrollTop` stays put — measuring after the
 fact reads "at the bottom" as "scrolled up by exactly the new message".
+
+**`Bali::Chat::Composer::Component`** — the row a conversation is written in: the field,
+the mic and send. It renders the ROW and not the form: the url, the method and whatever
+Stimulus hangs off the form stay the host's.
+
+- `name` - `name` of the field (`'message[content]'`)
+- `placeholder`, `submit` - the two bits of copy; translated by default
+- `rows` - starting height, and the floor the field returns to (default: `2`)
+- `dictation` - **on by default.** `false` drops the mic; `{ lang: 'en-US' }` says which
+  language is being spoken (default `es-MX`)
+- `field_options`, `submit_options` - straight onto the `<textarea>` and the send button,
+  for a `required`, an `id`, or a `data-action` of the host's own
+- `with_action` - anything else that belongs in the row, between the field and send
+
+**Dictation is on here and opt-in everywhere else.** A composer is where speaking instead of
+typing earns its place, so this is the one control in the library that starts with it. The
+recognition is the browser's, and the browsers that have it send the audio to **their** vendor
+— Google in Chrome, Microsoft in Edge, Apple in Safari. A host whose conversations carry data
+that may not leave passes `dictation: false`. The mic shows up only where the browser has
+recognition, so there is nothing to feature-detect at the call site.
 
 **`Bali::Chat::Message::Component`** — one bubble, over daisyUI's `chat` grid.
 

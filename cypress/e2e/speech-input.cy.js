@@ -169,6 +169,57 @@ describe('Dictation', () => {
     })
   })
 
+  // The composer is the one control that starts with dictation on, so what is pinned here is
+  // that it needs no wiring at the call site — and that `dictation: false` really is silent.
+  context('in the chat composer', () => {
+    const composer = () => cy.get('#composer-field')
+
+    beforeEach(() => {
+      cy.visit('/bali/chat/composer', {
+        onBeforeLoad (win) {
+          win.SpeechRecognition = function () {
+            const listeners = {}
+            const self = {
+              lang: null,
+              stopped: 0,
+              addEventListener (name, handler) { (listeners[name] ||= []).push(handler) },
+              start () {},
+              stop () { self.stopped += 1 },
+              emit (name, event) { (listeners[name] || []).forEach(handler => handler(event)) },
+              say (...phrases) {
+                self.emit('result', { results: phrases.map(phrase => [{ transcript: phrase }]) })
+              }
+            }
+            win.__speech = self
+            return self
+          }
+          delete win.webkitSpeechRecognition
+        }
+      })
+    })
+
+    it('comes with a working mic and nothing to wire', () => {
+      cy.get('#composer-form [data-speech-input-target="button"]').click()
+      cy.window().then(win => win.__speech.say('dictado en el chat'))
+
+      composer().should('have.value', 'dictado en el chat')
+    })
+
+    it('stops when the composer form is submitted', () => {
+      cy.get('#composer-form [data-speech-input-target="button"]').click()
+      cy.get('#composer-form button[type="submit"]').click()
+
+      cy.window().should(win => expect(win.__speech.stopped).to.equal(1))
+    })
+
+    it('renders no mic at all with `dictation: false`', () => {
+      cy.get('#composer-field-mute')
+        .parents('.bali-chat-composer')
+        .find('[data-speech-input-target]')
+        .should('not.exist')
+    })
+  })
+
   context('where the browser has none', () => {
     it('leaves the field exactly as it was', () => {
       visitWith({ recognition: false })

@@ -138,6 +138,9 @@ es:
 
     # Chat conversacional
     chat:
+      composer:
+        send: "Enviar"
+        placeholder: "Escribe un mensaje…"
       typing_indicator:
         label: "Escribiendo…"
 

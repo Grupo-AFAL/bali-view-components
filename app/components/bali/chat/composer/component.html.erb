@@ -1,0 +1,30 @@
+<%# Two elements and not one: the controller has to contain the field, the mic AND the status
+    line, and the status line cannot live in the row — a paragraph among the controls would
+    shove them sideways the moment it appears. So the outer carries the controller and the
+    host's classes, and the row inside is the flex. %>
+<%= tag.div(**wrapper_attributes) do %>
+  <%= tag.div(class: "flex items-end gap-2") do %>
+    <%= tag.textarea(nil, name: name, **field_attributes) %>
+
+    <% if dictation? %>
+      <%# Written hidden and revealed by `speech-input` only where the browser has
+          recognition: the markup never promises what the browser cannot do. %>
+      <%= tag.button(type: "button", hidden: true, class: "btn btn-ghost btn-square shrink-0",
+                     title: dictate_label, aria: { label: dictate_label, pressed: "false" },
+                     data: { 'speech-input-target': "button", action: "speech-input#toggle" }) do %>
+        <%= render Bali::Icon::Component.new("mic") %>
+      <% end %>
+    <% end %>
+
+    <% actions.each do |action| %>
+      <%= action %>
+    <% end %>
+
+    <%= tag.button(submit_label, **submit_attributes) %>
+  <% end %>
+
+  <% if dictation? %>
+    <%= tag.p(unavailable_label, class: "fieldset-label mt-2", role: "status", hidden: true,
+              data: { 'speech-input-target': "status" }) %>
+  <% end %>
+<% end %>

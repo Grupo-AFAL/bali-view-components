@@ -12,7 +12,8 @@ class ChatPreviewsTest < ActionDispatch::IntegrationTest
     "/lookbook/preview/bali/chat/default" => "[data-controller='chat'] [data-chat-target='messages']",
     "/lookbook/preview/bali/chat/header" => ".bali-chat > .border-b:first-child a[href]",
     "/lookbook/preview/bali/chat/bubbles" => ".chat.chat-end .chat-bubble-primary",
-    "/lookbook/preview/bali/chat/typing_indicator" => ".loading-dots"
+    "/lookbook/preview/bali/chat/typing_indicator" => ".loading-dots",
+    "/lookbook/preview/bali/chat/composer" => ".bali-chat-composer textarea[name]"
   }.freeze
 
   def test_every_chat_preview_renders_with_its_marker_element

@@ -26,6 +26,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   anfitrión. Por eso la opción nace apagada y la guía lo dice con todas sus letras: encenderla es
   una decisión de quien conoce sus datos, no de la biblioteca.
 
+- **`Bali::Chat::Composer::Component`: el renglón donde se escribe una conversación, con
+  micrófono incluido** (#1450). Campo, micrófono y enviar. Era la única pieza del chat que cada
+  quien seguía escribiendo a mano: las dos apps de las que salió el contenedor escriben el mismo
+  renglón, y el preview de este repo también, bajo un comentario que lo decía. Renderiza el
+  **renglón y no el formulario**: la url, el método y el Stimulus que el anfitrión le cuelgue
+  siguen siendo suyos. Con `with_action` se le agregan botones entre el campo y enviar, y
+  `field_options:` / `submit_options:` llegan tal cual al `<textarea>` y al botón.
+
+  **Aquí el dictado viene encendido**, y es la única excepción: un compositor es justo donde
+  hablar en vez de teclear se gana el lugar. `dictation: false` lo quita, y un anfitrión cuyas
+  conversaciones lleven datos que no deben salir debe hacer exactamente eso.
+
   **Anfitrión:** nada que hacer; sin `dictation:` no cambia un solo atributo. De paso, el
   `.control` ya no pisa un `controller:` que el call site hubiera declarado en `control_data:` —
   antes el contador lo sobrescribía sin decir nada—, porque el dictado y el contador comparten

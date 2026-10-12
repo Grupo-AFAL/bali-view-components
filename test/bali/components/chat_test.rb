@@ -240,3 +240,78 @@ class BaliChatTypingIndicatorComponentTest < ComponentTestCase
     assert_selector(".loading-dots")
   end
 end
+
+# The row every caller used to hand-roll, this repo's own preview included. Dictation is ON here
+# and opt-in on the field helper: a composer is where speaking earns its place. The default is
+# worth pinning, because flipping it sends audio out of a host that never asked for it.
+class BaliChatComposerComponentTest < ComponentTestCase
+  def test_renders_the_field_with_the_name_it_was_given
+    render_inline(Bali::Chat::Composer::Component.new(name: "message[content]"))
+    assert_selector('textarea[name="message[content]"][rows="2"]')
+    assert_selector("textarea.field-sizing-content.max-h-48")
+  end
+
+  def test_renders_a_submit_button
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('button[type="submit"]', text: "Send")
+  end
+
+  def test_dictation_is_on_without_asking_for_it
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('[data-controller~="speech-input"]')
+    assert_selector('textarea[data-speech-input-target="input"]')
+    assert_selector('textarea[data-action~="input->speech-input#typed"]')
+  end
+
+  # Hidden from the server; `speech-input` reveals it only where the browser can hear.
+  def test_renders_the_mic_hidden
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('button[type="button"][hidden][data-speech-input-target="button"]', visible: :all)
+    assert_selector('button[aria-pressed="false"][data-action="speech-input#toggle"]', visible: :all)
+  end
+
+  # The controller has to contain the status line too, and the line cannot sit in the row: a
+  # paragraph among the controls would shove them sideways the moment the browser refuses.
+  def test_the_status_line_is_inside_the_controller_and_outside_the_row
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('[data-controller~="speech-input"] > p[role="status"][hidden]', visible: :all)
+    assert_no_selector('.flex.items-end p[role="status"]', visible: :all)
+  end
+
+  def test_dictation_false_leaves_no_trace_of_it
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", dictation: false))
+    assert_no_selector('[data-controller~="speech-input"]')
+    assert_no_selector("[data-speech-input-target]", visible: :all)
+    assert_no_selector('[role="status"]', visible: :all)
+  end
+
+  def test_dictation_hash_carries_the_language
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", dictation: { lang: "en-US" }))
+    assert_selector('[data-speech-input-lang-value="en-US"]')
+  end
+
+  # No language is not an empty one: the controller's own default answers for it.
+  def test_dictation_true_leaves_the_language_to_the_controller
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_no_selector("[data-speech-input-lang-value]")
+  end
+
+  def test_actions_render_before_send
+    render_inline(Bali::Chat::Composer::Component.new(name: "message")) do |composer|
+      composer.with_action { "<button id=\"attach\" type=\"button\">Attach</button>".html_safe }
+    end
+    assert_selector('#attach ~ button[type="submit"]')
+  end
+
+  def test_field_options_reach_the_textarea_without_losing_balis_own_classes
+    render_inline(Bali::Chat::Composer::Component.new(
+                    name: "message", field_options: { required: true, id: "composer", class: "h-24" }
+                  ))
+    assert_selector("textarea#composer[required].h-24.textarea.field-sizing-content")
+  end
+
+  def test_the_hosts_classes_land_on_the_wrapper
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", class: "mt-4"))
+    assert_selector("div.bali-chat-composer.mt-4")
+  end
+end
