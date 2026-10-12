@@ -267,6 +267,13 @@ en:
     archival_form:
       submit: "Archive"
 
+    archival_notice:
+      archived: "Archived on %{date}."
+      archived_by: "Archived on %{date} by %{name}."
+      reason: "Reason: %{reason}."
+      successor_html: "Replaced by %{successor}."
+      reopen: "Reopen"
+
     archivals:
       new:
         title: "Archive"

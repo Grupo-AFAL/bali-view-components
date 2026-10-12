@@ -261,6 +261,13 @@ es:
     archival_form:
       submit: "Dar de baja"
 
+    archival_notice:
+      archived: "Dado de baja el %{date}."
+      archived_by: "Dado de baja el %{date} por %{name}."
+      reason: "Motivo: %{reason}."
+      successor_html: "Lo sustituye %{successor}."
+      reopen: "Reabrir"
+
     archivals:
       new:
         title: "Dar de baja"
