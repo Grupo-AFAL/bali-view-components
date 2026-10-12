@@ -30,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **Anfitrión:** cambian sus Icon con una clase de tamaño distinta de 4 (`size-N`, `w-N h-N`,
   `size-[18px]`). Para conservar el glyph de 16 px (la caja pasa a 16), la clase pasa a
   `size-4`. Un Icon con `inline` en `class:` ahora es `inline`: queda sobre la línea base del
-  texto, 4 px más abajo que antes.
+  texto, 4 px más abajo que antes. Como hijo directo de `.breadcrumbs li`, `.footer`, `.dock` o
+  `.avatar`, el `display` de daisyUI gana ahora al del Icon; ninguna app tiene un Icon ahí.
 
 - **`Tag` rechaza un `style:` que no sea variante.** `style:` es `:outline`, `:soft` o `:dash`;
   un string de CSS (`style: "opacity: .5"`) se descartaba sin aviso y salía un badge liso. Ahora
@@ -45,19 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ArgumentError` en 4.0. `size:` es `:small`, `:medium`, `:large` o un número de píxeles; otra
   clave caía sin aviso al default de 16 px y lo sigue haciendo, así que no cambia nada a la
   vista. Avatar::Upload pasaba `:sm` y pasa al default, los mismos 16 px.
-  **Anfitrión:** centinela-web pasa 28 claves así, que ahora avisan y siguen en 16 px. Antes de
-  4.0 hay que darle a cada una la clave o los píxeles que quiera (`:medium` y `:large` son 32 y
-  48 px, así que agrandarían el ícono). Las vistas, bajo `app/views/`:
-  - `:xs`: `app/helpers/application_helper.rb:38`, `operations_board/show:54`.
-  - `:sm`: `admin/alerts/show:15`, `admin/route_schedules/index:55`,
-    `admin/shift_schedules/index:51`, `admin/system_settings/index:16`, `admin/users/show:52,70`,
-    `dashboard/index:37,72,106,137,172`.
-  - `:md`: `admin/shifts/show:144`, `dashboard/index:62,94,127,161,190`.
-  - `:lg`: `admin/notification_logs/index:73`, `admin/notification_rules/index:67`,
-    `admin/notification_templates/index:63`, `admin/reports/index:19`,
-    `admin/route_schedules/index:64`, `admin/system_logs/index:69`,
-    `admin/system_monitoring/show:62`, `admin/system_settings/index:49`,
-    `operations_board/show:68`.
+  **Anfitrión:** centinela-web: 28 llamadas (lista en el PR), que ahora avisan y siguen en
+  16 px. Antes de 4.0 hay que darle a cada una la clave o los píxeles que quiera; `:medium` y
+  `:large` son 32 y 48 px.
 
 ### Fixed
 

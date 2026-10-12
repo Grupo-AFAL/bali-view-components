@@ -65,6 +65,21 @@ describe('Icon sizing', () => {
     })
   })
 
+  // Below `md` the variant does not apply and the base size does; without one, this kept SVG
+  // (no width or height attribute) measured 0x0 at 375px.
+  it('keeps the base size of a responsive icon below the breakpoint', () => {
+    cy.viewport(375, 800)
+    cy.get('#icon-responsive').should($icon => {
+      const { box, glyph } = measure($icon)
+      expect([glyph.width, glyph.height], 'glyph').to.deep.equal([16, 16])
+      expect([box.width, box.height], 'box').to.deep.equal([16, 16])
+    })
+    cy.viewport(1280, 800)
+    cy.get('#icon-responsive').should($icon => {
+      expect(measure($icon).glyph.width, 'glyph at md').to.equal(24)
+    })
+  })
+
   // `inline-flex` written on the element outranked it, and the icon stayed on screen.
   it('lets a display utility win', () => {
     cy.get('#icon-hidden').should('have.css', 'display', 'none')
