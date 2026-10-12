@@ -174,8 +174,8 @@ export class TextareaController extends Controller {
 
     // A field that is not being rendered — `display: none` on it or an ancestor: an inactive
     // tab, a closed Reveal — measures 0, and anything written from that measurement is wrong.
-    // It is fitted once it has a box again, because being shown fires no `input`: text a
-    // `form.reset()` put back while it was hidden came back at the height of its `rows`.
+    // Being shown fires no `input`, so it is fitted once it has a box again: text a hidden reset
+    // puts back would otherwise stay at its `rows`.
     if (textarea.scrollHeight === 0) {
       this.fitOnFirstBox()
       return
