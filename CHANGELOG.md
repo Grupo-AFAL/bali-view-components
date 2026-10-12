@@ -11,26 +11,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Una clase de tamaño en `Bali::Icon` dimensiona el ícono, no sólo su caja (#1424).**
   `Icon::Component.new(name, class: "size-6")`, o `w-5 h-5`, dejaba el glyph en 16 px: el
-  `*:h-4 *:w-4` del wrapper le ganaba a la clase. El tamaño por defecto y el de `size:` viven
-  ahora en `bali/general.css` con especificidad cero, así que la clase gana y el glyph la sigue.
-  Con `size:` y una clase a la vez gana la clase; antes ganaba el `width` en línea de un `size:`
-  numérico. Sin clase, `size:` y el default se ven igual que antes.
+  `*:h-4 *:w-4` del wrapper, en `@layer utilities`, le ganaba a la clase. El aspecto del Icon vive
+  ahora en `bali/general.css`, en `@layer components`, y lo que llega en `class:` gana: una
+  utilidad de tamaño mide el glyph y la caja, también por encima de `size:` (antes ganaba el
+  `width` en línea de un `size:` numérico), y `hidden`, `block` o `inline-block` aplican, donde
+  antes los tapaba el `inline-flex`. Vale igual para lo que llega por `icon_class:` y por los
+  slots `with_icon`. Sin clase de tamaño, el default y `size:` se ven igual que antes. Los
+  tamaños con nombre pasan a rem (`1rem`, `2rem`, `3rem`), como el default.
 
-  En Bali cambia lo que se ve donde se había escrito otro tamaño. Pasan a 14 px el ícono de cada
-  fila de Command, los chevrons del SideMenu y el de Reveal. El MenuSwitch pasa a 24 y la subida
-  de DirectUpload a 40. Pasan a 20 los demás íconos de DirectUpload, Topbar::IconAction,
-  BooleanIcon, el ⋯ de IndexPage y ShowPage, el título y la ✕ del panel de Filters y el marcador
-  de persistencia.
+  En Bali cambia el glyph donde se había escrito otro tamaño. Pasan a 14 px el ícono de cada fila
+  de Command y los chevrons del SideMenu; el MenuSwitch pasa a 24 y la subida de DirectUpload a
+  40. Pasan a 20 los demás íconos de DirectUpload, Topbar::IconAction, BooleanIcon, el ⋯ de
+  IndexPage y ShowPage, el título y la ✕ del panel de Filters y el marcador de persistencia.
   Pasan a 12 TrendIndicator, el enlace de Widget::Card, el chevron de Group by, el lápiz y el bote
-  de las vistas guardadas, el «guardado» y el aviso de condición incompleta de Filters. La ✕ de las
-  etiquetas de Filters pasa a 10 y el ícono de Card::Header a 24, como en #1426. Cada fila de una
-  tabla con un BooleanIcon crece 2 px.
+  de las vistas guardadas, el «guardado» y el aviso de condición incompleta de Filters, y a 10 la
+  ✕ de las etiquetas de Filters. Cada fila de una tabla con un BooleanIcon crece 2 px.
 
-  **Anfitrión:** sus llamadas con una clase de tamaño distinta de 4 pasan a verse de ese tamaño:
-  afal-apps 3, gobierno-corporativo 2, identity 11, costa-norte 1 y centinela-web 6. Para
-  conservar los 16 px de antes, la clase pasa a `size-4`. opina y garita no tienen ninguna. El
-  wrapper ya no lleva `*:h-4 *:w-4` ni `size-N`, y `size:` escribe sólo `--bali-icon-size`: el
-  golden de StatCard se regeneró por eso, con los mismos píxeles.
+  **Anfitrión:** cambian sus Icon con una clase de tamaño distinta de 4 (`size-N`, `w-N h-N`,
+  `size-[18px]`). Para conservar el glyph de 16 px (la caja pasa a 16), la clase pasa a
+  `size-4`. Un Icon con `inline` en `class:` ahora es `inline`: queda sobre la línea base del
+  texto, 4 px más abajo que antes.
+
+- **`Bali::Icon` rechaza un `size:` desconocido.** `size:` es `:small`, `:medium`, `:large` o un
+  número de píxeles; cualquier otra clave caía sin aviso a 16 px. Ahora levanta `ArgumentError`
+  con las válidas, como `Tag`. Avatar::Upload pasaba `:sm` y pasa a `:small`, sin cambio visible.
+  **Anfitrión:** centinela-web pasa `:xs`, `:sm`, `:md` y `:lg`, que hoy se ven de 16 px y al
+  subir levantan el error. `:small` conserva los 16 px; `:medium` y `:large` dan 32 y 48.
 
 - **`Tag` rechaza un `style:` que no sea variante.** `style:` es `:outline`, `:soft` o `:dash`;
   un string de CSS (`style: "opacity: .5"`) se descartaba sin aviso y salía un badge liso. Ahora
