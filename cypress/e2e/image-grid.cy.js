@@ -78,6 +78,40 @@ describe('ImageGrid lightbox', () => {
     overlay().find('.bali-image-expander-error').should('contain.text', 'Could not load image')
   })
 
+  // #1428 — the spinner and the error are written by the controller, so they need the page
+  // language handed to them: Bali's translations from ImageGrid, or else the `lang` of the page
+  // around a trigger a host wrote by hand.
+  describe('in the language of the page', () => {
+    // The spinner lives as long as the request is held, so its assertion has to give up before
+    // the request is answered: past that, a wrong label reads as a spinner that never existed.
+    const openBroken = () => {
+      cy.intercept('GET', 'https://placehold.co/1600x1067**', { statusCode: 500, body: '', delay: 3000 })
+      thumbnails().first().click()
+    }
+    const expectSpanish = () => {
+      overlay().find('.bali-image-expander-spinner', { timeout: 2000 }).should('have.attr', 'aria-label', 'Cargando')
+      overlay().find('.bali-image-expander-close').should('have.attr', 'aria-label', 'Cerrar')
+      overlay().find('.bali-image-expander-error').should('have.text', 'No se pudo cargar la imagen')
+    }
+
+    it('from ImageGrid', () => {
+      cy.visit('/bali/image_grid/expandable?locale=es')
+      // The preview layout writes `lang` too; without it, only ImageGrid's translations speak Spanish.
+      cy.document().then((doc) => doc.documentElement.removeAttribute('lang'))
+      openBroken()
+
+      expectSpanish()
+    })
+
+    it('from a trigger with no translations', () => {
+      cy.visit('/bali/image_grid/expandable?locale=es')
+      thumbnails().first().invoke('removeAttr', 'data-image-expander-translations-value')
+      openBroken()
+
+      expectSpanish()
+    })
+  })
+
   it('leaves a plain grid alone', () => {
     cy.visit('/bali/image_grid/default')
 

@@ -278,6 +278,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   FileInput, DirectUpload y BlockEditor.
   - **Anfitrión:** nada que hacer.
 
+- **ImageGrid, Tabs, BlockEditor y Gantt dejan de escribir inglés desde JavaScript en una página
+  en español (#1428).** El visor de ImageGrid decía «Loading» y «Could not load image», y su
+  botón de cerrar se anunciaba con el nombre del disparador («Ampliar imagen»); un panel de Tabs
+  cuyo `src:` fallaba, «Failed to load content», o se quedaba girando si la red no respondía;
+  las referencias de tipo `task`, `project` y `document` del BlockEditor sin
+  `references_config:`, «Task», «Project» y «Document»; y una edición del Gantt rechazada sin
+  `errors` en la respuesta, «Error 500», o «Failed to fetch» si la red no la entregaba, en vez
+  del `change_failed` que la isla ya traía traducido. Ahora salen de las traducciones de Bali:
+  llaves nuevas `bali_view.image_grid.loading`, `.load_failed` y `.close`,
+  `bali_view.tabs.load_failed` y `bali_view.block_editor.entity_types.*`. Un botón
+  `image-expander` escrito a mano, sin ImageGrid, toma los del `lang` de la página. El aviso de
+  Tabs lleva `role="alert"`.
+  - Tabs deja de escribir su `data-controller` en el hash `data:` que recibe. En Bali publicado,
+    dos Tabs con el mismo hash sólo pintaban `data-controller="tabs tabs"`. Con el valor de
+    traducciones nuevo también se habría repetido el JSON, que ya no se puede leer, y por eso se
+    corrige aquí.
+  - **Anfitrión:** nada que hacer. Pasan al español las fotos de afal-apps (también las del
+    censo, cuyo botón es a mano bajo `<html lang="es">`) y de centinela-web, y el cronograma de
+    afal-apps. Ninguna de las siete apps usa Tabs con `src:` ni esos tres tipos de referencia, ni
+    sobrescribe `bali_view` en sus locales.
+
 ### Dependencies
 
 - **Con tailwindcss-rails, `@tailwindcss/typography` no va en `package.json`** (alerta de
