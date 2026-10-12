@@ -483,8 +483,10 @@ Content container with optional header, image, and actions.
 **Slots:**
 - `with_header(title:, subtitle:, icon:, icon_class:, **html_options)` - The full header row:
   an optional Lucide icon, the `<h2 class="card-title">`, an optional subtitle and a
-  `with_badge` slot. `icon_class` paints the icon **alone** — a class on the header would tint
-  the title with it too, because the SVG inherits `currentColor` from the wrapper.
+  `with_badge` slot. The badge sits at the far end of the row, and wraps below the title when
+  the two do not fit side by side. `icon_class` paints the icon **alone** — a class on the
+  header would tint the title with it too, because the SVG inherits `currentColor` from the
+  wrapper.
 - `with_title(text, **html_options)` - A bare `<h2 class="card-title">`, for a text-only title.
 - `with_image(src:, href:, alt:, figure_class:)`, `with_action(href:, class:)`.
 
@@ -2277,8 +2279,9 @@ User avatar display: an image when there is one, derived initials when there is 
 - `status` - `:online`, `:offline` presence indicator (default: nil)
 - `ring` - Ring color: `:primary`, `:secondary`, `:accent`, `:neutral`, `:success`, `:warning`, `:error`, `:info` (default: nil)
 
-**Initials rule:** first letter of the *first* and the *last* word — "Ana García López" → AL,
-"María de la Luz" → ML; a single word yields one letter. Unicode-aware upcase.
+**Initials rule:** first letter of the *first* and the *last* word that starts with a letter —
+"Ana García López" → AL, "María de la Luz" → ML, "Alberto Aprobador (demo)" → AA; a single such
+word yields one letter, and a name with none renders no initials. Unicode-aware upcase.
 
 **Deterministic color:** the name is hashed (`Bali::Utils::ColorCalculator#deterministic_color`)
 into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style — the same
@@ -2309,7 +2312,8 @@ Labels and status indicators.
 - `color` - `:neutral`, `:primary`, `:secondary`, `:accent`, `:ghost`, `:info`, `:success`, `:warning`, `:error` (default: nil, daisyUI's own)
 - `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: nil, which renders like `:md`)
 - `style` - `:outline`, `:soft`, `:dash` (default: nil)
-- `custom_color` - Hex string applied as an inline background, with the text color picked for contrast (default: nil)
+- `custom_color` - Hex string applied as an inline background, with black or white text, whichever has the higher WCAG contrast ratio (default: nil)
+- `text_color` - Hex text color, written inline: over the one `custom_color` picks, which a class such as `text-white` cannot beat, and over a `color` variant's own text too (default: nil)
 - `rounded` - Fully rounded pill (default: false)
 - `icon` - Icon name, drawn before the text at the pill's own font-size so it fits every badge size (default: nil)
 
