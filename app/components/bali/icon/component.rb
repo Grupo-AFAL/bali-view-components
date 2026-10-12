@@ -47,8 +47,8 @@ module Bali
         large: 48
       }.freeze
 
-      # No size here: bali/general.css holds it, where a caller's utility can win.
-      CLASSES = "icon-component inline-flex items-center justify-center *:inline-block *:overflow-visible"
+      # Nothing but the hook: bali/general.css holds the look, where a caller's utility wins.
+      CLASSES = "icon-component"
 
       # @param name [String, Symbol] Icon name (Bali name or Lucide name)
       # @param tag_name [Symbol] HTML tag to wrap the icon (:span, :div, etc.)
@@ -139,7 +139,13 @@ module Bali
 
       # Only the variable: an inline `width`/`height` would outrank a caller's `size-*`.
       def apply_size_style(options)
-        options.merge(style: [ "--bali-icon-size: #{pixel_size}px", options[:style] ].compact.join("; "))
+        options.merge(style: [ "--bali-icon-size: #{size_value}", options[:style] ].compact.join("; "))
+      end
+
+      # Named sizes in rem, like the 1rem default in bali/general.css, so a root font-size
+      # other than 16px moves them together.
+      def size_value
+        numeric_size? ? "#{@size.to_i}px" : "#{pixel_size / 16}rem"
       end
 
       # Checks if a Lucide icon exists

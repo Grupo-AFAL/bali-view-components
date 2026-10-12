@@ -1,5 +1,5 @@
 <%# cypress/e2e/icon-size.cy.js measures each icon by its id. %>
-<div class="grid grid-cols-[3rem_1fr] items-center gap-x-4 gap-y-3">
+<div class="grid grid-cols-[3rem_1fr] items-center justify-items-start gap-x-4 gap-y-3">
   <%= render Bali::Icon::Component.new('user', id: 'icon-default') %>
   <code class="text-sm">Icon::Component.new('user')</code>
 
@@ -23,4 +23,28 @@
 
   <%= render Bali::Icon::Component.new('whatsapp', id: 'icon-kept', class: 'size-10') %>
   <code class="text-sm">'whatsapp', class: 'size-10'</code>
+</div>
+
+<div class="mt-8 grid grid-cols-[12rem_1fr] items-center gap-x-4 gap-y-3">
+  <div class="flex h-12 gap-2 border border-dashed border-base-300">
+    <%= render Bali::Icon::Component.new('user', id: 'icon-stretched') %>
+    <span class="self-center">Label</span>
+  </div>
+  <code class="text-sm">no size, in a flex row without items-center</code>
+
+  <div>
+    <%= render Bali::Icon::Component.new('user', id: 'icon-padded', class: 'p-2 rounded-full bg-base-200') %>
+  </div>
+  <code class="text-sm">class: 'p-2 rounded-full bg-base-200'</code>
+
+  <div class="flex w-24 gap-2 border border-dashed border-base-300">
+    <%= render Bali::Icon::Component.new('user', id: 'icon-tight', class: 'size-6') %>
+    <span>Unbreakablelabelthatoverflows</span>
+  </div>
+  <code class="text-sm">class: 'size-6', no shrink-0, in a tight flex row</code>
+
+  <div>
+    <%= render Bali::Icon::Component.new('user', id: 'icon-hidden', class: 'hidden') %>
+  </div>
+  <code class="text-sm">class: 'hidden'</code>
 </div>

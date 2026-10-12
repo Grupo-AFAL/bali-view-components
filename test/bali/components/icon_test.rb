@@ -15,10 +15,12 @@ class BaliIconComponentTest < ComponentTestCase
     assert_selector('span[id="my-icon"]')
   end
 
-  def test_sizes_named_sizes_set_the_size_variable
-    { small: 16, medium: 32, large: 48 }.each do |size, px|
+  # In rem, like the 1rem default in bali/general.css: a root font-size other than 16px
+  # moves them together.
+  def test_sizes_named_sizes_set_the_size_variable_in_rem
+    { small: 1, medium: 2, large: 3 }.each do |size, rem|
       render_inline(Bali::Icon::Component.new("snowflake", size: size))
-      assert_selector("span.icon-component[style='--bali-icon-size: #{px}px']")
+      assert_selector("span.icon-component[style='--bali-icon-size: #{rem}rem']")
     end
   end
 

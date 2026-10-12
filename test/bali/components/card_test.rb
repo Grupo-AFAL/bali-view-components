@@ -150,8 +150,7 @@ class BaliCardComponentTest < ComponentTestCase
       c.with_header(title: "Settings", icon: "settings")
     end
     assert_equal(
-      "icon-component inline-flex items-center justify-center " \
-      "*:inline-block *:overflow-visible shrink-0",
+      "icon-component shrink-0",
       page.find("span.icon-component")[:class]
     )
   end

@@ -75,7 +75,8 @@
       <% end %>
 
       <p>The chevron's <code>h-3.5</code> is a rule in the sheet too. It sizes the
-        icon's box, and the glyph follows it.</p>
+        icon's box; the glyph inside stays 16px, which <code>Icon</code> sets on its
+        own children.</p>
     <% end %>
 
     <%= render Bali::Reveal::Component.new(id: 'reveal-icon-tight', opened: true) do |c| %>

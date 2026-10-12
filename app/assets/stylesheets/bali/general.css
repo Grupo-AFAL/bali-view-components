@@ -49,18 +49,44 @@ a {
   @apply rounded-full;
 }
 
-/* Icon. The default and the `size:` option live here, at zero specificity, so a
-   size utility or component rule on the wrapper beats both and the glyph follows.
-   Written on the wrapper as `*:h-4 *:w-4`, the default sat in @layer utilities and
-   held every glyph at 16px whatever the caller wrote (#1424).
-   `inherit`, not `100%`: on a wrapper made `inline`, a percentage resolves against
-   the line's container — a 24px icon measured 1248px wide. */
+/* Icon. Its whole look is here and none of it on the element: a utility the caller writes
+   on the wrapper (`hidden`, `block`, `size-6`) wins because @layer utilities comes after
+   this layer, whatever the specificity. `:where()` only matters inside this layer, where a
+   component's own rule on the icon now wins without counting selectors. Written on the
+   element as `*:h-4 *:w-4`, the default sat in @layer utilities and held every glyph at
+   16px whatever size the caller wrote (#1424). */
 :where(.icon-component) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Without it, a wrapper the caller makes `inline-block` drops the glyph 3.2px below its
+     box, by the descent of the line it lays the glyph on. */
+  line-height: 0;
+}
+
+/* The glyph carries the default, not the wrapper: an unsized wrapper still stretches in a
+   flex or grid row and still grows with its own padding, as it always did. */
+:where(.icon-component) > * {
+  display: inline-block;
+  overflow: visible;
   width: var(--bali-icon-size, 1rem);
   height: var(--bali-icon-size, 1rem);
 }
 
-:where(.icon-component) > * {
+/* `size:` sizes the wrapper as well, as it always did. */
+:where(.icon-component[style*="--bali-icon-size"]) {
+  width: var(--bali-icon-size);
+  height: var(--bali-icon-size);
+}
+
+/* A size utility on the wrapper sizes the glyph. Bali's own class comes first in the
+   attribute, so a caller's always follows a space or a variant's colon. Only the attribute
+   counts: a sheet that sizes the wrapper (Reveal's `.trigger-icon`) leaves the glyph at its
+   default. `inherit`, not
+   `100%`: a glyph in percent counts as 0 towards a flex row's minimum, and a tight row
+   squeezed a `size-6` icon to 0x24. */
+:where(.icon-component:is([class*=" size-"], [class*=":size-"], [class*=" w-"],
+                          [class*=":w-"], [class*=" h-"], [class*=":h-"])) > * {
   width: inherit;
   height: inherit;
 }
