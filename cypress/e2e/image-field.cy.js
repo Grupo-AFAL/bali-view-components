@@ -2,11 +2,16 @@
 // file picker and the form submit: the preview the user sees is a blob URL the
 // controller creates, and the "clear" it offers has to put back the placeholder
 // AND empty the input, or the file the user just removed is still uploaded.
+import { paintedContrast } from '../support/painted_contrast'
+import { eachTheme } from '../support/themes'
+
 describe('ImageField', () => {
+  const NON_TEXT = 3
   const output = () => cy.get('[data-image-field-target="output"]')
   const input = () => cy.get('[data-image-field-target="input"]')
-  // The input and the clear button only show on hover (`hidden group-hover:flex`),
-  // and a Cypress hover is not a real one — the click is what is being tested.
+  // The input is invisible over the overlay and the clear button only shows on hover
+  // (`hidden group-hover:flex`), and a Cypress hover is not a real one — the click is
+  // what is being tested.
   const force = { force: true }
 
   beforeEach(() => {
@@ -65,5 +70,27 @@ describe('ImageField', () => {
 
     output().invoke('attr', 'src').should('match', /^data:image\/svg/)
     input().should('have.value', '')
+  })
+
+  // #1409: the input was `hidden`, so Tab never reached it. That Enter and Space then open the
+  // picker is measured in the PR — Cypress cannot observe the browser's file dialog.
+  it('is reached by Tab', () => {
+    cy.press(Cypress.Keyboard.Keys.TAB)
+    cy.document().should((doc) => {
+      expect(doc.activeElement.matches('[data-image-field-target="input"]'), 'focus on the file input').to.equal(true)
+    })
+  })
+
+  // The input is invisible, so the ring has to be the overlay's, around the image.
+  it('rings the image while the input has keyboard focus, every theme', () => {
+    cy.press(Cypress.Keyboard.Keys.TAB)
+    eachTheme((theme) => {
+      cy.document().should((doc) => {
+        const overlay = doc.querySelector('[data-image-field-target="input"]').closest('label')
+        expect(getComputedStyle(overlay).outlineStyle, `${theme}: ring drawn`).to.equal('solid')
+        expect(paintedContrast(overlay, { over: overlay.parentElement, property: 'outlineColor' }), theme)
+          .to.be.at.least(NON_TEXT)
+      })
+    })
   })
 })

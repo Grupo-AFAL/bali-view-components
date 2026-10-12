@@ -37,7 +37,8 @@ module Bali
             "absolute inset-0 flex justify-center items-center cursor-pointer",
             "rounded-lg",
             "group-hover:bg-base-content/20 group-hover:backdrop-blur-sm",
-            "max-md:bg-base-content/20 max-md:backdrop-blur-sm"
+            "max-md:bg-base-content/20 max-md:backdrop-blur-sm",
+            "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary"
           )
         end
 
@@ -51,7 +52,7 @@ module Bali
         def input_options
           opts = options.dup
           opts[:accept] = accepted_formats
-          opts[:class] = class_names("hidden", options[:class])
+          opts[:class] = class_names(Bali::FormBuilder::FileFields::INPUT_CLASS, options[:class])
           prepend_data_attribute(
             prepend_action(opts, "change->image-field#show"),
             "image-field-target",

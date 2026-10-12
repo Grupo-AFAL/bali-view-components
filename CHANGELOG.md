@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Avatar::Upload` e `ImageField` se usan con el teclado** (#1409). Su `<input type="file">`
+  estaba en `display: none`: Tab nunca llegaba y nada abría el selector sin ratón. Ahora queda
+  invisible sobre el botón de la cámara y sobre la imagen, como el de `file_group` desde #1385:
+  Tab lo alcanza, Enter o Espacio abren el selector y el control muestra el anillo de foco. Con
+  `Bali::FormBuilder` como builder por omisión, `Avatar::Upload` metía el `file_field` de Bali
+  —con su propio `<label>`— dentro del suyo; ahora usa el input de Rails. Nada que hacer en las
+  apps: sólo afal-apps usa `Avatar::Upload` (`daycare/children/_form`), ninguna usa `ImageField`,
+  y nada apunta a esos inputs.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added

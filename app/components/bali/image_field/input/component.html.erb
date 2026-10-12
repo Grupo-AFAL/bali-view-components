@@ -1,4 +1,4 @@
-<%= tag.label class: container_classes do %>
+<%= tag.label class: container_classes, aria: { label: t('.choose_image') } do %>
   <%= tag.span class: icon_wrapper_classes do %>
     <%= render Bali::Icon::Component.new(icon) %>
   <% end %>

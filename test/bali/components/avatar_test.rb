@@ -375,6 +375,25 @@ class BaliAvatarUploadComponentTest < ComponentTestCase
     end
     assert_selector('img[data-avatar-target="output"]')
   end
+
+  # Inside the button and invisible over it, never in a `display: none` box, which takes it out
+  # of the Tab order (#1409). The ring it draws is cypress/e2e/avatar.cy.js's.
+  def test_upload_functionality_puts_the_input_over_the_button_it_rings
+    @helper.form_with(url: "/") do |form|
+      render_inline(Bali::Avatar::Upload::Component.new(form: form, method: :avatar))
+    end
+    assert_selector('label[aria-label="Upload avatar image"] > input[type="file"]',
+                    class: Bali::FormBuilder::FileFields::INPUT_CLASS.split)
+    assert_no_selector('.hidden input[type="file"]')
+  end
+
+  # What hosts set as their default builder: there `file_field` is Bali's, with a `<label>` and a
+  # button of its own, and it nested that label inside this one.
+  def test_upload_functionality_renders_a_single_label_under_the_bali_form_builder
+    render_inline(Bali::Avatar::Upload::Component.new(form: movie_form_builder, method: :cover_photo))
+    assert_selector("label", count: 1)
+    assert_selector('label > input[type="file"][data-action="change->avatar#showImage"]')
+  end
 end
 
 class BaliAvatarGroupComponentTest < ComponentTestCase

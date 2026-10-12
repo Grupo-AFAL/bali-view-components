@@ -136,11 +136,23 @@ class BaliImageFieldInputComponentTest < ComponentTestCase
     assert_selector("label.absolute.inset-0.flex.cursor-pointer")
   end
 
-  def test_basic_rendering_hides_the_file_input_visually
+  # Invisible over the overlay, never `hidden`, which takes it out of the Tab order (#1409). The
+  # ring it draws is cypress/e2e/image-field.cy.js's.
+  def test_basic_rendering_puts_the_input_invisible_over_the_overlay
     helper.form_with(url: "/") do |form|
       render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
-    assert_selector('input[type="file"].hidden')
+    assert_selector('label.image-input-container > input[type="file"]',
+                    class: Bali::FormBuilder::FileFields::INPUT_CLASS.split)
+    assert_no_selector('input[type="file"].hidden')
+  end
+
+  # The overlay's only content is an icon, so without this the input reaches Tab with no name.
+  def test_basic_rendering_names_the_input
+    helper.form_with(url: "/") do |form|
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
+    end
+    assert_selector('label[aria-label="Choose image"] > input[type="file"]')
   end
 
   def test_file_formats_accepts_default_formats

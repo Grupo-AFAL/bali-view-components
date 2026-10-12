@@ -5,12 +5,8 @@
 
   <%= tag.div class: button_classes do %>
     <%= tag.label class: label_classes, aria: { label: t('.upload_image') } do %>
+      <%= file_input %>
       <%= render Bali::Icon::Component.new('camera', size: :sm) %>
-      <div class="hidden">
-        <%= @form.file_field @method,
-              accept: accepted_formats,
-              data: { avatar_target: 'input', action: 'change->avatar#showImage' } %>
-      </div>
     <% end %>
   <% end %>
 <% end %>
