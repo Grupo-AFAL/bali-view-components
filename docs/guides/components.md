@@ -4628,6 +4628,21 @@ A filter with no caption, no `aria_label:` and no `blank:` to fall back on logs 
 warning in development and test and renders anyway — a missing accessible name is not a
 reason to take a host's page down in production.
 
+#### A date's placeholder (`placeholder:`)
+
+A `date` or `date_range` filter repeats its caption as its placeholder unless it declares
+its own:
+
+```ruby
+filter_attribute :created_at, type: :date, input: :date_range, simple: true, advanced: false,
+  label: 'Requested on', placeholder: 'Select dates'
+```
+
+It takes a zero-arity proc like `label:`, for an I18n lookup that must not be frozen at
+class-load time, and instance-level `simple_filters:` hashes take the same key. It also fills
+the "Custom…" picker of a `presets:` range. No other widget reads it: `number_range` has
+`placeholder_min:`/`placeholder_max:`, and a select shows its `blank:`.
+
 #### Quick search (`search:`)
 
 Both filter surfaces — the `Filters` panel and `DataTable`'s `SimpleFilters` — take the same

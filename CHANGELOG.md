@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   blanco que elige `custom_color:`, al que una clase como `text-white` no le ganaba sin `!`, y
   también sobre el texto de una variante `color:`.
 
+- **SimpleFilters: `placeholder:` en `filter_attribute` para los filtros de fecha (#1400).** Un
+  `:date` o `:date_range` repetía su caption como placeholder y no había cómo declarar otro.
+  Ahora `filter_attribute` y los hashes de `simple_filters:` aceptan `placeholder:`, también como
+  proc sin argumentos; llega al campo y al calendario de «Personalizado…» de un rango con
+  `presets:`. Una app que lo inyectaba sobrescribiendo `simple_filters_config` puede borrar ese
+  método y declararlo en el filtro.
+
 ### Removed
 
 - **`Bali::Utils::ColorCalculator#convert_to_brightness_value`**, la suma R+G+B del cálculo
@@ -76,6 +83,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   con `display: none` —una pestaña inactiva, un Reveal cerrado— mide 0 y nada lo volvía a medir:
   un campo pre-llenado abría con el alto de sus `rows`, con el resto del texto fuera, hasta que
   alguien tecleaba. Ahora se ajusta la primera vez que tiene caja. Nada que hacer en la app.
+
+- **Filters: «Aplicar» en el popover pedía al servidor los grupos sin la búsqueda (#1352).** La
+  tabla mostraba un resultado que la URL de la barra no describía, y al recargar cambiaba. Ahora
+  la petición de «Aplicar» y la de la búsqueda llevan exactamente la query de esa URL: la
+  búsqueda, los grupos y lo que se preserva (`group_by`, `view`, `view_origin`). Por eso una
+  búsqueda aplica también los cambios del panel que aún no se habían aplicado, como ya hacía esa
+  URL al recargar. Nada que hacer en la app.
 
 ## [v3.11.0] - 2026-10-08
 
