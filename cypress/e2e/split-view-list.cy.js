@@ -13,6 +13,26 @@ describe('SplitView structured list', () => {
   const scrollToBottom = () => scroller().scrollTo('bottom', { ensureScrollable: false })
   const app = path =>
     `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
+  const spyOnFetch = { onBeforeLoad: (win) => cy.spy(win, 'fetch').as('fetch') }
+  const pagesFetched = fetch => fetch.getCalls().map((call) => String(call.args[0])).filter((url) => url.includes('page='))
+  // Two frames, so the observer has reported where the sentinel is now.
+  const nextFrames = () => cy.window().then((win) => new Cypress.Promise((resolve) => {
+    win.requestAnimationFrame(() => win.requestAnimationFrame(resolve))
+  }))
+
+  // Served with the observer's margin at 0, a page is fetched only when a scroll
+  // brings the sentinel into view. With the default 300px, the preview's 16rem
+  // pane and the dummy's 12rem one both leave page one's sentinel inside the
+  // margin, so page two arrived on load and a test that scrolled and counted
+  // passed whether or not its scroll fetched anything. `fetching on its own` is
+  // where the default margin is tested.
+  const withoutMargin = () =>
+    cy.intercept({ method: 'GET', url: /\/(split-view|lookbook\/preview\/bali\/split_view\/)/ }, (req) => {
+      if (req.query.page) return
+      req.on('response', (res) => {
+        res.body = String(res.body).replace('data-controller="split-view-list"', '$& data-split-view-list-root-margin-value="0px"')
+      })
+    })
 
   context('progressive enhancement', () => {
     beforeEach(() => cy.visit('/bali/split_view/default'))
@@ -44,10 +64,16 @@ describe('SplitView structured list', () => {
   })
 
   context('appending pages', () => {
-    beforeEach(() => cy.visit('/bali/split_view/default'))
+    beforeEach(() => {
+      withoutMargin()
+      cy.visit('/bali/split_view/default', spyOnFetch)
+    })
 
     it('appends the next page when the sentinel comes into view', () => {
+      nextFrames()
+      cy.get('@fetch').then((fetch) => expect(pagesFetched(fetch), 'pages fetched before a scroll').to.be.empty)
       rows().should('have.length', 5)
+
       scrollToBottom()
       rows().should('have.length', 10)
     })
@@ -112,15 +138,12 @@ describe('SplitView structured list', () => {
     // stops. It used to fetch page three as well and settle at fifteen rows.
     it('fetches only the pages that reach the sentinel', () => {
       cy.viewport(1000, 660)
-      cy.visit(app('/split-view'), { onBeforeLoad: (win) => cy.spy(win, 'fetch').as('fetch') })
+      cy.visit(app('/split-view'), spyOnFetch)
       rows().should('have.length', 10)
 
-      // Two frames, so the observer has reported where page two left the sentinel.
-      cy.window().then((win) => new Cypress.Promise((resolve) => {
-        win.requestAnimationFrame(() => win.requestAnimationFrame(resolve))
-      }))
+      nextFrames()
       cy.get('@fetch').then((fetch) => {
-        const pages = fetch.getCalls().map((call) => String(call.args[0])).filter((url) => url.includes('page='))
+        const pages = pagesFetched(fetch)
         expect(pages, 'pages fetched').to.have.length(1)
         expect(pages[0]).to.include('page=2')
       })
@@ -139,7 +162,10 @@ describe('SplitView structured list', () => {
   })
 
   context('deep link to a record beyond the first page', () => {
-    beforeEach(() => cy.visit('/bali/split_view/deep_link_beyond_the_first_page'))
+    beforeEach(() => {
+      withoutMargin()
+      cy.visit('/bali/split_view/deep_link_beyond_the_first_page')
+    })
 
     // The documented corner: the server finds the record against the whole table,
     // so the detail is there immediately — but its row simply is not on screen.
@@ -213,11 +239,12 @@ describe('SplitView structured list', () => {
   // click is an ordinary GET, which is what makes the rest behave — the server
   // renders page one and the filter rides into the sentinel's fetches on its own.
   context('filtering the list', () => {
-    const app = path =>
-      `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
     const pill = label => cy.get('[data-testid="list-filters"] a.split-view-filter').contains(label)
 
-    beforeEach(() => cy.visit(app('/split-view')))
+    beforeEach(() => {
+      withoutMargin()
+      cy.visit(app('/split-view'))
+    })
 
     it('puts the filter band above the rows and outside the scroll area', () => {
       cy.get('[data-testid="list-filters"]').should('be.visible')
@@ -279,7 +306,7 @@ describe('SplitView structured list', () => {
     // without the controller knowing anything about filters. Measured, because
     // "it should inherit them" is exactly the kind of thing that silently does not.
     it('carries the filter into the pages the sentinel fetches', () => {
-      cy.visit(app('/split-view?status=done'), { onBeforeLoad: (win) => cy.spy(win, 'fetch').as('fetch') })
+      cy.visit(app('/split-view?status=done'), spyOnFetch)
       cy.get('[data-testid="list-count"]').should('have.text', '17')
 
       // The rows that arrived really are the filtered ones: 17 of 20 movies
@@ -292,7 +319,7 @@ describe('SplitView structured list', () => {
       rows().should('have.length', 17)
       cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
       cy.get('@fetch').then((fetch) => {
-        const pages = fetch.getCalls().map((call) => String(call.args[0])).filter((url) => url.includes('page='))
+        const pages = pagesFetched(fetch)
         expect(pages, 'pages fetched').to.have.length(3)
         pages.forEach((url) => expect(url).to.include('status=done'))
       })
@@ -398,13 +425,14 @@ describe('SplitView structured list', () => {
   // and pages 2-4 are all continuations of `done`. One seam, which is exactly
   // what a listing ordered by its group key can produce.
   context('a grouped listing', () => {
-    const app = path =>
-      `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
     const groups = () => cy.get('.split-view-group')
     const headers = () => cy.get('.split-view-group-header')
     const group = key => cy.get(`[data-split-view-group-key="${key}"]`)
 
-    beforeEach(() => cy.visit(app('/split-view?grouped=status')))
+    beforeEach(() => {
+      withoutMargin()
+      cy.visit(app('/split-view?grouped=status'))
+    })
 
     it('puts a heading over each run of rows, with the group total beside it', () => {
       groups().should('have.length', 2)
@@ -571,11 +599,12 @@ describe('SplitView structured list', () => {
     // silently would be indistinguishable from reaching the end of the list, so
     // it has to land on the error state like any other failure.
     it('treats a 200 without the list in it as a failure, not as the end', () => {
-      cy.visit('/bali/split_view/default')
+      withoutMargin()
       cy.intercept('GET', '/split-view*', {
         statusCode: 200,
         body: '<html><body><h1>Please sign in</h1></body></html>'
       }).as('wrongPage')
+      cy.visit('/bali/split_view/default')
 
       scrollToBottom()
       cy.wait('@wrongPage')
@@ -586,12 +615,13 @@ describe('SplitView structured list', () => {
     })
 
     it('offers a retry that resumes from the same page', () => {
-      cy.visit('/bali/split_view/default')
+      withoutMargin()
       // `times: 1` so only the first attempt fails and the retry reaches the real
       // server. Registering a second, pass-through intercept instead does not
       // reliably unstub the first.
       cy.intercept({ method: 'GET', url: '/split-view*', times: 1 },
         { statusCode: 500, body: 'boom' }).as('failed')
+      cy.visit('/bali/split_view/default')
 
       scrollToBottom()
       cy.wait('@failed')
@@ -611,20 +641,21 @@ describe('SplitView structured list', () => {
 
   // A teardown is not a failure — and it used to be a licence. A page still in
   // flight when the list is disconnected arrived anyway, appended itself to a
-  // list the controller no longer owns, and the recursion at the end of
-  // `loadNext` kept the dead controller paging: measured, three requests for a
-  // listing nobody is looking at, where an aborted one asks once. The
+  // list the controller no longer owns and asked for the page after it, so the
+  // dead controller kept paging: measured, three requests for a listing nobody
+  // is looking at, where an aborted one asks once. The
   // `AbortError` that the abort then produces has to read as the teardown it is
   // rather than painting "could not load" and a retry button over a pane on its
   // way out (#1180).
   context('when the list is torn down mid-load', () => {
     it('stops fetching pages for a list that is gone', () => {
-      cy.visit('/bali/split_view/default')
+      withoutMargin()
       let issued = 0
       cy.intercept('GET', '/split-view*', (req) => {
         issued += 1
         req.on('response', (res) => { res.setDelay(800) })
       }).as('page')
+      cy.visit('/bali/split_view/default')
 
       scrollToBottom()
       // Counted on the way out rather than waited for with `@page`: the alias

@@ -91,12 +91,10 @@ export class SplitViewListController extends Controller {
     //
     // Observed afresh, the sentinel is reported where these rows leave it. The last
     // report, read here instead, predates their layout and still said "in view", so
-    // every page fetched the next one too: fifteen rows on load in the preview,
-    // where ten already put the sentinel ~590px below the fold, past its 300px margin.
-    if (this.nextUrlValue) {
-      this.observer?.unobserve(this.sentinelTarget)
-      this.observer?.observe(this.sentinelTarget)
-    }
+    // each page the sentinel asked for brought the next one with it: fifteen rows on
+    // load in the preview, where ten already put the sentinel ~590px below the fold.
+    this.observer?.unobserve(this.sentinelTarget)
+    if (this.nextUrlValue) this.observer?.observe(this.sentinelTarget)
   }
 
   append (html) {
@@ -117,10 +115,7 @@ export class SplitViewListController extends Controller {
     // The next page is read back out of the page we just fetched rather than
     // incremented here: the server owns what "next" means, including running out.
     this.nextUrlValue = list.dataset.splitViewListNextUrlValue || ''
-    if (!this.nextUrlValue) {
-      this.showState('end')
-      this.observer?.unobserve(this.sentinelTarget)
-    }
+    if (!this.nextUrlValue) this.showState('end')
   }
 
   // A grouped listing arrives as its own set of groups, and the first of them is

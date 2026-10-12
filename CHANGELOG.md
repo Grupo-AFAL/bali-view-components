@@ -9,14 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **SplitView: la lista con infinite scroll pide una página por vez.** Tras cada página que
-  llegaba pedía también la siguiente, aunque el sentinel hubiera quedado fuera de su margen: el
-  controlador leía el último aviso del `IntersectionObserver`, anterior a las filas nuevas. En la
-  dummy, sin desplazarse, cargaba las páginas 2 y 3 cuando la 2 ya dejaba el sentinel ~650 px
-  abajo. Ahora vuelve a observar el sentinel y decide con lo que el observer informa después del
-  layout; una página que no llena el panel sigue pidiendo la siguiente. Los inbox de
-  gobierno-corporativo y afal-apps (`td_flow/inboxes`) dejan de pedir esa página de más; no hay
-  nada que cambiar.
+- **SplitView: la lista con infinite scroll pide una página por vez.** Cada vez que el sentinel
+  pedía una página llegaban dos. Una página que no llena el panel sigue pidiendo la siguiente.
+  Afecta a los inbox de gobierno-corporativo (`inbox/show`) y afal-apps (`td_flow/inboxes/show`);
+  no tienen nada que cambiar.
 
 ## [v3.12.0] - 2026-10-11
 
