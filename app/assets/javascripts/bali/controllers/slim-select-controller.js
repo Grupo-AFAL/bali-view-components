@@ -2,6 +2,7 @@ import { Controller } from '@hotwired/stimulus'
 import { get, post } from '@rails/request.js'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 import { optionalPeer } from '../utils/optional-peer.js'
+import { inLanguageOf } from '../utils/language.js'
 
 // What a text value left unset falls back to, in the `lang` of the page. A select written by
 // hand carries none of the values slim_select_fields.rb writes from
@@ -203,17 +204,14 @@ export class SlimSelectController extends Controller {
     }
   }
 
-  // Each text value as written on the element, or else the page language's, read off the
-  // nearest `lang` as the browser does. A page without one, or in a language with no entry,
-  // reads English.
+  // Each text value as written on the element, or else the page language's.
   //
   // Present, not truthy: an empty value is kept. SlimSelect takes '' as "no placeholder" —
   // `placeholderText` is the one text setting it checks against `undefined` (3.4.3 to 4.6.0) — and
   // `slim_select_field placeholder: ""` writes exactly that. The other texts fall back to
   // SlimSelect's own through `||`.
   get texts () {
-    const lang = this.element.closest('[lang]')?.lang.toLowerCase().split(/[-_]/)[0]
-    const defaults = TEXTS[lang] || TEXTS.en
+    const defaults = inLanguageOf(this.element, TEXTS)
 
     return Object.fromEntries(
       Object.entries(defaults).map(([name, text]) => [

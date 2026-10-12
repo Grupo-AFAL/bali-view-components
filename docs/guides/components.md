@@ -4025,6 +4025,12 @@ delete items). Auto-installed via `registerAll` — no per-app code needed.
       } %>
 ```
 
+A button the trigger leaves unlabelled reads **Aceptar**/**Cancelar** under
+`<html lang="es">` (or any `es-*`) and **OK**/**Cancel** under any other
+`lang`, or none — taken each time the dialog opens, so a Turbo visit that
+changes the language is followed. `installConfirmDialog({ acceptText,
+cancelText })` replaces them in every language.
+
 Opt out globally with `window.BALI_DISABLE_CONFIRM_DIALOG = true` before
 `registerAll` runs.
 

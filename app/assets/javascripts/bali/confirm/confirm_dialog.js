@@ -12,6 +12,8 @@
  *   data-bali-confirm-accept, data-bali-confirm-cancel
  */
 
+import { inLanguageOf } from '../utils/language.js'
+
 const VARIANT_CLASSES = {
   danger: 'btn-error',
   warning: 'btn-warning',
@@ -20,14 +22,16 @@ const VARIANT_CLASSES = {
 
 const DEFAULT_ACCEPT_CLASS = 'btn-primary'
 
-// Fallback button labels for the bare `data-turbo-confirm` case (no per-trigger
-// labels). DeleteLink always supplies localized labels. Apps that use bare
-// `data-turbo-confirm` in a non-English locale should localize these once via
-// installConfirmDialog({ acceptText, cancelText }).
-const labels = {
-  accept: 'OK',
-  cancel: 'Cancel'
+// A button the trigger gives no `data-bali-confirm-accept`/`-cancel` shows the label passed to
+// installConfirmDialog({ acceptText, cancelText }), in any language, or else LABELS in the
+// dialog's language. That is read when the dialog opens, since a Turbo visit can change
+// `<html lang>`, and off the dialog rather than the trigger, which Modal leaves out and a caller
+// may pass as a plain `{ dataset }`.
+const LABELS = {
+  en: { accept: 'OK', cancel: 'Cancel' },
+  es: { accept: 'Aceptar', cancel: 'Cancelar' }
 }
+const labels = {}
 
 let dialog = null
 let boxEl = null
@@ -115,8 +119,9 @@ export function confirmDialog (message, formElement, submitter) {
 
   messageEl.textContent = message || ''
 
-  acceptBtn.textContent = dataValue(submitter, formElement, 'baliConfirmAccept') || labels.accept
-  cancelBtn.textContent = dataValue(submitter, formElement, 'baliConfirmCancel') || labels.cancel
+  const fallback = { ...inLanguageOf(dialog, LABELS), ...labels }
+  acceptBtn.textContent = dataValue(submitter, formElement, 'baliConfirmAccept') || fallback.accept
+  cancelBtn.textContent = dataValue(submitter, formElement, 'baliConfirmCancel') || fallback.cancel
 
   acceptBtn.className = 'btn'
   acceptBtn.classList.add(VARIANT_CLASSES[variant] || DEFAULT_ACCEPT_CLASS)

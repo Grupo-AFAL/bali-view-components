@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Los botones del diálogo de confirmación siguen el idioma de la página (#1409).** Un
+  `data-turbo-confirm` sin `data-bali-confirm-accept`/`-cancel`, y el aviso de cambios sin
+  guardar al cerrar un Modal o un Drawer, mostraban «OK»/«Cancel» en una página en español
+  salvo que la app llamara a `installConfirmDialog` con sus textos. Ahora muestran
+  «Aceptar»/«Cancelar» bajo `<html lang="es">` (o `es-MX`) y «OK»/«Cancel» con otro `lang` o
+  sin él, leído cada vez que el diálogo se abre. Los textos de `installConfirmDialog({
+  acceptText, cancelText })` siguen ganando en cualquier idioma, y un `data-bali-confirm-*`
+  del disparador, sobre ambos.
+  - **Anfitrión:** identity y opina pasan al español sin tocar nada. afal-apps,
+    gobierno-corporativo, costa-norte, centinela-web y garita pueden borrar de
+    `app/javascript/controllers/index.js` la línea `installConfirmDialog({ acceptText:
+    "Aceptar", cancelText: "Cancelar" })` y ese símbolo del `import` (`git grep -n
+    installConfirmDialog -- app`): sus layouts declaran `<html lang="es">`, o `I18n.locale`
+    en el `tracking` de costa-norte, que es `es-MX`.
+  - `bin/rails g bali:install` deja de sugerir esa línea.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added

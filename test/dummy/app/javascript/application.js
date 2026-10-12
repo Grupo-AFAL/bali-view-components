@@ -6,7 +6,8 @@ import * as ActiveStorage from '@rails/activestorage'
 // Bali Controllers - Core Bundle
 import {
   registerAllControllers,
-  registerAllComponents
+  registerAllComponents,
+  installConfirmDialog
 } from 'bali'
 import { startIslandLoader } from 'bali/react-island'
 
@@ -18,6 +19,9 @@ const application = Application.start()
 application.debug = false
 window.Stimulus = application
 window.Turbo = Turbo
+// The dialog's labels live inside this bundle, so confirm-dialog.cy.js sets them through here,
+// as a host's index.js does.
+window.installConfirmDialog = installConfirmDialog
 
 // Start ActiveStorage
 ActiveStorage.start()
