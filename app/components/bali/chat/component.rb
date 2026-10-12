@@ -30,7 +30,13 @@ module Bali
     #   turbo_stream.append 'messages', partial: 'messages/message', locals: { message: }
     class Component < ApplicationViewComponent
       renders_one :header
+      # The escape hatch, and what the two source apps still use: a footer of the host's own
+      # REPLACES the composer. One of them stacks a coverage banner, an actions turbo-frame and
+      # a rate-limit hint around its row; a container that imposed a composer would break it.
       renders_one :footer
+      # Buttons that belong in the composer's row, between the field and send — an attach, a
+      # model picker. Ignored when the host brought its own footer.
+      renders_many :composer_actions
 
       # @param id [String] DOM id of the scrollable message region — the target a
       #   Turbo Stream appends into (`turbo_stream.append 'chat-messages'`). Give
@@ -43,16 +49,39 @@ module Bali
       #   Padding and the gap between messages live here: the two implementations
       #   this came from disagreed (`p-4`/`space-y-4` against `p-5`/`gap-3`), so the
       #   default is one of them and the other passes a string.
-      def initialize(id: "chat-messages", threshold: 64, messages_class: nil, **options)
+      # @param url [String, nil] Where a message is posted. THIS is what brings the composer:
+      #   give the chat a url and it renders the form, the field, the mic and send, so adding a
+      #   chat to a screen is one component and not three. Leave it out for a read-only
+      #   transcript, and the chat stays what it was.
+      # @param composer [Hash] Options forwarded to `Chat::Composer::Component` — `name:`,
+      #   `placeholder:`, `submit:`, `rows:`, `dictation:`, `field_options:`, `submit_options:`.
+      #   Dictation is on unless `dictation: false` says otherwise.
+      # @param form_options [Hash] Onto the `form_with` the composer sits in: a `method:`, a
+      #   `data:` of the host's own.
+      def initialize(id: "chat-messages", threshold: 64, messages_class: nil,
+                     url: nil, composer: {}, form_options: {}, **options)
         @id = id
         @threshold = threshold
         @messages_class = messages_class
+        @url = url
+        @composer = composer
+        @form_options = form_options
         @options = options
       end
 
       private
 
-      attr_reader :id, :threshold, :messages_class, :options
+      attr_reader :id, :threshold, :messages_class, :url, :composer, :form_options, :options
+
+      # The host's footer wins: it is the whole footer, and a composer under it would be a
+      # second one.
+      def own_composer? = url.present? && !footer?
+
+      def composer_component
+        Bali::Chat::Composer::Component.new(**{ name: "message[content]" }.merge(composer))
+      end
+
+      def composer_form_options = { url: url }.merge(form_options)
 
       def wrapper_attributes
         attrs = prepend_controller(options.dup, "chat")

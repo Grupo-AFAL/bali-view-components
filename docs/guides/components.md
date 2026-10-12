@@ -4277,12 +4277,14 @@ components that compose, so a host that only wants bubbles never mounts the cont
 
   <%= render Bali::Chat::TypingIndicator::Component.new(class: 'order-last') %>
 
-  <% chat.with_footer do %>
-    <%= form_with url: messages_path do %>
-      <%= render Bali::Chat::Composer::Component.new(name: 'message[content]') %>
-    <% end %>
-  <% end %>
 <% end %>
+```
+
+A `url:` is all a chat needs to be writable: it brings the form, the field, the mic and send,
+so adding a chat to a screen is one component and not three.
+
+```erb
+<%= render Bali::Chat::Component.new(id: 'messages', url: messages_path, class: 'h-[60vh]') %>
 ```
 
 and the append is an ordinary Turbo Stream against the container's `id`:
@@ -4294,12 +4296,20 @@ turbo_stream.append 'messages', partial: 'messages/message', locals: { message: 
 An appended message lands after the indicator in the DOM; `order-last` keeps the indicator
 drawn below it, since the region is a flex column.
 
-**`Bali::Chat::Component`** — the scroll region and the append target.
+**`Bali::Chat::Component`** — the scroll region, the append target, and the composer.
 
 - `id` - DOM id of the scrollable region; what a Turbo Stream appends into (default:
   `'chat-messages'`). One per chat on the page.
 - `threshold` - Pixels short of the bottom that still count as "at the bottom"
   (default: `64`)
+- `url` - Where a message is posted. **This is what brings the composer** — the form, the
+  field, the mic and send. Leave it out for a read-only transcript
+- `composer` - Options for the row: `name:` (default `'message[content]'`), `placeholder:`,
+  `submit:`, `rows:`, `dictation:`, `field_options:`, `submit_options:`
+- `form_options` - Onto the `form_with` the composer sits in
+- `with_composer_action` - Anything else that belongs in the row, between the field and send
+- `with_footer` - The escape hatch: a footer of the host's own **replaces** the composer, for
+  a screen that stacks its own chrome around the row
 - `messages_class` - Extra classes for the scrollable region — its padding and the gap
   between messages
 - `**options` - HTML attributes for the wrapper. **The height goes here**: the wrapper is a

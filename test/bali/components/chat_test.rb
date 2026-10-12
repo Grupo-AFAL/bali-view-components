@@ -81,6 +81,64 @@ class BaliChatComponentTest < ComponentTestCase
     render_inline(Bali::Chat::Component.new)
     refute_selector(".border-b")
   end
+
+  # "One chat, with its mic": a url is all it takes, and the container renders the form, the
+  # field, the mic and send. Three components to assemble was the thing to remove.
+  def test_a_url_brings_the_composer_with_its_mic
+    render_inline(Bali::Chat::Component.new(url: "/messages"))
+    assert_selector("form[action='/messages'] textarea[name='message[content]']")
+    assert_selector("form [data-controller~='speech-input']")
+    assert_selector("[data-speech-input-target='button']", visible: :all)
+    assert_selector("form button[type='submit']")
+  end
+
+  # A read-only transcript is still a chat. Without a url nothing is added, which is also what
+  # keeps every host rendering one before this change rendering the same thing.
+  def test_without_a_url_there_is_no_footer_at_all
+    render_inline(Bali::Chat::Component.new)
+    assert_no_selector("form")
+    assert_no_selector(".border-t")
+  end
+
+  # The escape hatch, and what both source apps use: one of them stacks a coverage banner, an
+  # actions frame and a rate-limit hint around its row.
+  def test_a_footer_of_the_hosts_own_replaces_the_composer
+    render_inline(Bali::Chat::Component.new(url: "/messages")) do |chat|
+      chat.with_footer { '<p id="mine">My own row</p>'.html_safe }
+    end
+    assert_selector("#mine")
+    assert_no_selector("form")
+  end
+
+  def test_composer_options_travel_through
+    render_inline(Bali::Chat::Component.new(
+                    url: "/messages",
+                    composer: { name: "msg", placeholder: "Di algo", dictation: false }
+                  ))
+    assert_selector("textarea[name='msg'][placeholder='Di algo']")
+    assert_no_selector("[data-controller~='speech-input']")
+  end
+
+  def test_form_options_travel_through
+    render_inline(Bali::Chat::Component.new(url: "/messages",
+                                            form_options: { method: :patch, id: "composer-form" }))
+    assert_selector("form#composer-form input[name='_method'][value='patch']", visible: :all)
+  end
+
+  # More things in the row, without the host having to know the composer exists.
+  def test_composer_actions_render_in_the_row
+    render_inline(Bali::Chat::Component.new(url: "/messages")) do |chat|
+      chat.with_composer_action { '<button id="attach" type="button">Attach</button>'.html_safe }
+    end
+    assert_selector("#attach ~ button[type='submit']")
+  end
+
+  # The composer sits inside the footer that carries the follow-the-send action; one outside it
+  # would scroll nobody.
+  def test_the_composer_sits_inside_the_follow_on_submit_region
+    render_inline(Bali::Chat::Component.new(url: "/messages"))
+    assert_selector("[data-action='turbo:submit-end->chat#followSubmit'] form textarea")
+  end
 end
 
 class BaliChatMessageComponentTest < ComponentTestCase

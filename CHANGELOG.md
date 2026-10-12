@@ -26,6 +26,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   anfitrión. Por eso la opción nace apagada y la guía lo dice con todas sus letras: encenderla es
   una decisión de quien conoce sus datos, no de la biblioteca.
 
+- **`Chat::Component` con `url:` trae el compositor y el micrófono: agregar un chat a una
+  pantalla es UN componente, no tres** (#1450). Antes el contenedor era sólo la región de
+  mensajes y el formulario lo armaba cada quien en la ranura del pie — por eso el dictado no
+  tenía dónde vivir. Con `url:` el chat renderiza el formulario, el campo, el micrófono y
+  enviar; `composer:` lleva las opciones del renglón, `form_options:` las del formulario y
+  `with_composer_action` agrega botones entre el campo y enviar. Sin `url:` nada cambia: una
+  transcripción de sólo lectura sigue siendo un chat, y es también lo que deja intacto a quien
+  ya renderizaba uno. **`with_footer` sigue siendo la escotilla** y reemplaza al compositor, que
+  es lo que necesitan las dos apps de las que salió el contenedor: una apila banner de
+  cobertura, marco de acciones y leyenda de límite alrededor de su renglón.
+
 - **`Bali::Chat::Composer::Component`: el renglón donde se escribe una conversación, con
   micrófono incluido** (#1450). Campo, micrófono y enviar. Era la única pieza del chat que cada
   quien seguía escribiendo a mano: las dos apps de las que salió el contenedor escriben el mismo

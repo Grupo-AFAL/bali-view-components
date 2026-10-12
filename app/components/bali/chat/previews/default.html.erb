@@ -17,10 +17,11 @@
 
 <div class="p-6 bg-base-200 min-h-[560px]">
   <%= render Bali::Chat::Component.new(
-        id: 'chat-messages',
-        threshold: threshold,
-        class: 'h-[480px] max-w-2xl mx-auto rounded-box border border-base-300 bg-base-100'
-      ) do |chat| %>
+      id: 'chat-messages', threshold: threshold, class: 'h-[60vh]',
+      url: '/lookbook',
+      composer: { name: 'message',
+                  field_options: { 'aria-label': 'Write a message' },
+                  submit_options: { data: { action: 'click->chat#showTyping' } } }) do |chat| %>
 
     <% conversation.each do |role, body, minutes| %>
       <% assistant = role == 'assistant' %>
@@ -48,20 +49,13 @@
       <% end %>
     <% end %>
 
-    <% chat.with_footer do %>
-      <%# The row the comment here used to describe by hand, and that both source apps wrote
-          for themselves: `Chat::Composer::Component`. The mic comes with it. %>
-      <%= render Bali::Chat::Composer::Component.new(
-            name: 'message',
-            field_options: { 'aria-label': 'Write a message' },
-            submit_options: { data: { action: 'click->chat#showTyping' } }) do |composer| %>
-        <% composer.with_action do %>
-          <%= render Bali::Button::Component.new(
-                name: 'Stop typing', variant: :ghost, size: :sm,
-                data: { action: 'click->chat#hideTyping' }
-              ) %>
-        <% end %>
-      <% end %>
+    <%# No footer to assemble: the `url:` above is what brought the form, the field, the mic
+        and send. `with_composer_action` is for anything else that belongs in the row. %>
+    <% chat.with_composer_action do %>
+      <%= render Bali::Button::Component.new(
+            name: 'Stop typing', variant: :ghost, size: :sm,
+            data: { action: 'click->chat#hideTyping' }
+          ) %>
     <% end %>
   <% end %>
 </div>
