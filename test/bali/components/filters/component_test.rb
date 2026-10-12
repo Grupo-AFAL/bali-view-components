@@ -419,16 +419,14 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="or"]', visible: :all
   end
 
-  # DataTable passes the form's `applied_combinator` itself, nil when the state carried no `q[m]`:
-  # an explicit value, nil included, is the answer.
   def test_an_explicit_combinator_wins_over_the_filter_form
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ], value: "" },
-      filter_groups: two_applied_groups, filter_form: filter_form_combining("or"), combinator: nil
+      filter_groups: two_applied_groups, filter_form: filter_form_combining("or"), combinator: :and
     ))
 
     assert_selector '[data-filters-target="form"] input[name="q[m]"][value="and"]', visible: :all
-    assert_no_selector '[data-filters-target="searchForm"] input[name="q[m]"]', visible: :all
+    assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="and"]', visible: :all
   end
 
   def test_with_neither_it_paints_and_without_re_emitting_it

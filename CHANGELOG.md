@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   prueba de pagos de afal-apps. El de un filtro `slim_select` de SimpleFilters pasa de
   `q[<llave>]_select_div` a `simple-filter-q-<llave>_select_div`; nadie lo lee.
 
+### Removed
+
+- **La llave `bali_view.filters.select_value`.** La opción en blanco del valor select la leía en
+  el servidor y `placeholders.select` en el navegador, con el mismo texto; ahora las dos leen
+  `placeholders.select`. Una app que sobrescribía `select_value` lleva su texto a esa llave
+  (ninguna de las siete lo hace).
+
 ### Fixed
 
 - **Filters: lo que el panel pide y empuja ya no arrastra `saved_view` ni `clear_*` de `url:`.**
@@ -33,9 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Filters` acepta `filter_form:` y conserva el OR entre grupos.** Dibujado fuera de un DataTable
   sin `combinator:`, sobre un estado `q[m]=or`, el panel pintaba AND y «Aplicar» enviaba
-  `q[m]=and`. Ahora toma el combinador del `applied_combinator` de `filter_form:` (un
-  `combinator:` explícito, `nil` incluido, sigue ganando). El ejemplo de la guía ya pasaba
-  `filter_form:`, que se descartaba en silencio. Dentro de un DataTable nada cambia.
+  `q[m]=and`. Ahora toma el combinador del `applied_combinator` de `filter_form:`; un
+  `combinator:` explícito sigue ganando. El ejemplo de la guía ya pasaba `filter_form:`, que
+  se descartaba en silencio. Dentro de un DataTable nada cambia.
 
 - **Filters: un envío que no sale ya no deja una URL en el historial.** La URL se empujaba antes
   de `requestSubmit()`, así que un formulario que no pasaba la validación del navegador, o cuyo

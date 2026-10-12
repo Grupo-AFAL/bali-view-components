@@ -119,6 +119,20 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
                     visible: :all)
   end
 
+  # One text for the blank, whichever side draws the select: the one condition_controller.js
+  # reads from the translations.
+  def test_the_blank_reads_the_text_the_controller_builds_it_with
+    condition = { attribute: "status", operator: "eq", value: "active" }
+    I18n.with_locale(:es) do
+      render_inline(Bali::Filters::Condition::Component.new(
+        condition: condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+      ))
+    end
+    text = JSON.parse(page.find('[data-controller="condition"]')["data-condition-translations-value"]).dig("placeholders", "select")
+
+    assert_selector("[data-slim-select-placeholder-value='#{text}'] option[value='']", text: text, visible: :all)
+  end
+
   def test_select_type_slim_select_says_no_results_in_the_page_language
     condition = { attribute: "status", operator: "eq", value: "active" }
     I18n.with_locale(:es) do

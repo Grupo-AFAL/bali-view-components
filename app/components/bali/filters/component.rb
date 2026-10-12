@@ -6,9 +6,6 @@ module Bali
       include Bali::Filters::PreservedParams
       include Bali::Filters::Persistable
 
-      UNSET = Object.new.freeze
-      private_constant :UNSET
-
       attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
                   :filter_groups, :max_groups, :turbo_stream
 
@@ -29,8 +26,8 @@ module Bali
       # @param filter_groups [Array<Hash>] Initial filter state (from URL params)
       # @param apply_mode [Symbol] :batch (default) or :live
       # @param combinator [Symbol, nil] :and or :or - how groups are combined, as applied.
-      #   nil means the state carried none, and paints :and. Left out, it is the
-      #   `filter_form:`'s `applied_combinator`.
+      #   Without it, the `filter_form:`'s `applied_combinator`; without either, :and, which
+      #   is painted but not re-emitted as a choice.
       # @param filter_form [Bali::FilterForm, nil] The form the groups were parsed with, for a
       #   panel rendered outside a DataTable: it supplies the combinator `combinator:` leaves out.
       # @param max_groups [Integer] Maximum number of filter groups allowed
@@ -56,7 +53,7 @@ module Bali
         available_attributes:,
         filter_groups: [],
         apply_mode: :batch,
-        combinator: UNSET,
+        combinator: nil,
         filter_form: nil,
         max_groups: 10,
         popover: true,
@@ -77,8 +74,7 @@ module Bali
         # `@applied_combinator` is nil when the state did NOT carry `q[m]`; `@combinator` keeps
         # the render default ("and"). Re-emitting the default as if the user had chosen it
         # flipped an applied OR to AND on the next round-trip.
-        combinator = filter_form.try(:applied_combinator) if combinator.equal?(UNSET)
-        @applied_combinator = combinator.presence&.to_s
+        @applied_combinator = (combinator || filter_form&.applied_combinator).presence&.to_s
         @combinator = @applied_combinator || "and"
         @max_groups = max_groups
         @popover = popover
