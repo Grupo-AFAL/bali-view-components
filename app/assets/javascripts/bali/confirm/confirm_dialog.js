@@ -31,7 +31,7 @@ const LABELS = {
   en: { accept: 'OK', cancel: 'Cancel' },
   es: { accept: 'Aceptar', cancel: 'Cancelar' }
 }
-const labels = {}
+const installedLabels = {}
 
 let dialog = null
 let boxEl = null
@@ -119,7 +119,7 @@ export function confirmDialog (message, formElement, submitter) {
 
   messageEl.textContent = message || ''
 
-  const fallback = { ...inLanguageOf(dialog, LABELS), ...labels }
+  const fallback = { ...inLanguageOf(dialog, LABELS), ...installedLabels }
   acceptBtn.textContent = dataValue(submitter, formElement, 'baliConfirmAccept') || fallback.accept
   cancelBtn.textContent = dataValue(submitter, formElement, 'baliConfirmCancel') || fallback.cancel
 
@@ -137,8 +137,8 @@ export function confirmDialog (message, formElement, submitter) {
 }
 
 export function installConfirmDialog (options = {}) {
-  if (options.acceptText) labels.accept = options.acceptText
-  if (options.cancelText) labels.cancel = options.cancelText
+  if (options.acceptText) installedLabels.accept = options.acceptText
+  if (options.cancelText) installedLabels.cancel = options.cancelText
 
   if (typeof window === 'undefined' || window.BALI_DISABLE_CONFIRM_DIALOG) return
   if (installed) return

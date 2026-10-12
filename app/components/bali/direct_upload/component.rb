@@ -48,9 +48,8 @@ module Bali
       # @param max_file_size [Integer] Maximum file size in megabytes
       # @param accept [String] Accepted file types (MIME types or extensions)
       # @param drop_zone [Boolean] Show drag & drop area
-      # @param auto_upload [Boolean] Deprecated, removed in 4.0: files always upload as soon as
-      #   they are chosen. `false` left them waiting with nothing to start them, and the form
-      #   refused to submit while any waited.
+      # @param auto_upload [Boolean] Deprecated and ignored: files upload as soon as they are
+      #   chosen. Removed in 4.0.
       # @param options [Hash] Additional options passed to the container element
       #
       # rubocop:disable Metrics/ParameterLists

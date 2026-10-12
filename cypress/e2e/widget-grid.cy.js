@@ -136,6 +136,14 @@ describe('widget grid', () => {
     cy.get('[role="status"]').should('contain', 'position 2 of 4')
   })
 
+  // #1409 — the title is the host's text, and a `$&` in it is not a replacement pattern.
+  it('announces a title as it is written', () => {
+    cy.get('[data-widget-key="overdue_counts"]').invoke('attr', 'data-widget-title', 'Ventas $& 2026')
+    enterEditMode()
+    cy.get('[data-widget-key="overdue_counts"] .handle').focus().type('{rightarrow}')
+    cy.get('[role="status"]').should('contain', 'Ventas $& 2026')
+  })
+
   it('resizes a card immediately and saves the size', () => {
     enterEditMode()
     cy.get('[data-widget-key="low_stock_items"] [data-widget-size="large"]').click()

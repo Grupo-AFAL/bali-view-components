@@ -35,8 +35,8 @@ and `controllers/index.js` shares two calls. The rest genuinely differs — the 
 is done four ways — so the generator prints those as text to paste rather than inventing an
 eighth way. The list it prints: the daisyUI `themes:` block, `@custom-variant dark`, the AFAL
 theme import, `@plugin "@tailwindcss/typography"` (yours, not Bali's — Bali only ships the
-patch that keeps `prose-invert` working under daisyUI), `installConfirmDialog` with localised
-labels, and `bin/rails bali:install:migrations:<feature>`.
+patch that keeps `prose-invert` working under daisyUI), and
+`bin/rails bali:install:migrations:<feature>`.
 
 **Running it twice writes nothing twice, and so does running it on an app that was wired by
 hand** — which is what makes it the right thing to run after an upgrade: a line added to this

@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { interpolate } from '../utils/interpolate.js'
 
 /**
  * File Input Controller
@@ -98,8 +99,7 @@ export class FileInputController extends Controller {
 
   fileItemUI (file) {
     const escapedName = this.escapeHtml(file.name)
-    // A function, so a `$&` in a file name is not read as a pattern.
-    const removeLabel = this.escapeHtml(this.removeTextValue).replaceAll('%{name}', () => escapedName)
+    const removeLabel = interpolate(this.escapeHtml(this.removeTextValue), { name: escapedName })
     return `
       <li class="flex items-center gap-2 text-sm">
         <span class="truncate">${escapedName}</span>

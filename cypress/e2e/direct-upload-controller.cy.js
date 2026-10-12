@@ -83,6 +83,47 @@ describe('DirectUploadController', () => {
       row().find('.file-remove').should('have.attr', 'aria-label', 'Eliminar contrato.pdf')
     })
 
+    // What each region a screen reader speaks from says, where it mentions `text`. Strings, not
+    // the elements: Cypress would wrap those in jQuery.
+    const spokenIn = text => cy.document().then(doc =>
+      [...doc.querySelectorAll('[role="alert"], [aria-live]')]
+        .map(region => region.textContent.trim())
+        .filter(said => said.includes(text)))
+
+    it('says once that the form waits for an upload', () => {
+      stallUploads()
+      pickFile()
+      cy.get('form button[type="submit"]').click()
+
+      cy.get('[data-direct-upload-target="errorMessage"]').should('be.visible')
+        .and('have.text', 'Espera a que termine la subida de 1 archivo(s)')
+      spokenIn('Espera a que termine').should('deep.equal', ['Espera a que termine la subida de 1 archivo(s)'])
+    })
+
+    it('says once that a file failed to upload, and which', () => {
+      cy.intercept('POST', '**/rails/active_storage/direct_uploads', { statusCode: 500 })
+      pickFile()
+
+      row().find('.file-error').should('be.visible')
+      spokenIn('No se pudo subir').should('deep.equal', ['No se pudo subir contrato.pdf'])
+    })
+
+    // The dummy's field takes several files; each failure replacing the previous one in the live
+    // region would leave only the last name.
+    it('says every failure when several land together', () => {
+      cy.intercept('POST', '**/rails/active_storage/direct_uploads', { statusCode: 500 })
+      cy.get('[data-direct-upload-target="input"]').selectFile([
+        { contents: Cypress.Buffer.from('x'), fileName: 'acta.pdf', mimeType: 'application/pdf' },
+        { contents: Cypress.Buffer.from('x'), fileName: 'anexo.pdf', mimeType: 'application/pdf' }
+      ], { force: true })
+
+      row().find('.file-error:visible').should('have.length', 2)
+      spokenIn('No se pudo subir').then(said => {
+        expect(said.join(' ')).to.include('No se pudo subir acta.pdf')
+          .and.to.include('No se pudo subir anexo.pdf')
+      })
+    })
+
     // The dummy's field accepts `image/*,application/pdf`.
     it('says why a file was turned away', () => {
       pickFile('notas.txt', 'text/plain')
@@ -91,9 +132,7 @@ describe('DirectUploadController', () => {
         .and('have.text', 'notas.txt: tipo de archivo no aceptado')
     })
 
-    // `auto_upload: false` left a file waiting with nothing to start it, and the form guard then
-    // refused every submit. The option is retired, so not even a page still saying so holds one:
-    // only an upload that was attempted can fail.
+    // Only an upload that was attempted can fail.
     it('uploads a file as soon as it is chosen', () => {
       cy.intercept('POST', '**/rails/active_storage/direct_uploads', { statusCode: 500 })
       cy.get('[data-controller="direct-upload"]').invoke('attr', 'data-direct-upload-auto-upload-value', 'false')

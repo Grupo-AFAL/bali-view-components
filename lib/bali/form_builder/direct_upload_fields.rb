@@ -32,8 +32,8 @@ module Bali
       # @option options [Integer] :max_file_size (10) Max file size in MB
       # @option options [String] :accept ('*') Accepted MIME types or extensions
       # @option options [Boolean] :drop_zone (true) Show drag & drop zone
-      # @option options [Boolean] :auto_upload Deprecated, removed in 4.0: files always upload
-      #   as soon as they are chosen.
+      # @option options [Boolean] :auto_upload Deprecated and ignored: files upload as soon as
+      #   they are chosen. Removed in 4.0.
       #
       # @example Single file
       #   <%= form.direct_upload_field :attachment %>

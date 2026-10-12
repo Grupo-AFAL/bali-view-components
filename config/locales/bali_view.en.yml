@@ -188,7 +188,7 @@ en:
         uploading_file: "Uploading %{filename}: %{progress}%"
         completed: "%{filename} uploaded successfully"
         error: "Upload failed"
-        failed_file: "Failed to upload %{filename}: %{error}"
+        failed_file: "Failed to upload %{filename}"
       status:
         uploaded: "Already uploaded"
         marked_for_removal: "%{filename} marked for removal"

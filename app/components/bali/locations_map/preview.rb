@@ -14,6 +14,10 @@ module Bali
           icon_url: 'https://maps.google.com/mapfiles/kml/paddle/blu-blank.png' }
       ].freeze
 
+      # The `locale:` keyword below goes unread: the dummy's ComponentPreviewsController
+      # applies `?locale=` to the whole request. Lookbook raises "Unknown method parameter" for an
+      # `@param` the method does not take.
+
       # @label Default
       # Displays an interactive Google Map with location markers.
       #
@@ -37,7 +41,7 @@ module Bali
       def default(zoom: 12, clustered: false, locale: 'en')
         render_with_template(
           template: 'bali/locations_map/previews/default',
-          locals: { zoom: zoom, clustered: clustered, locale: locale, locations: Bali::LocationsMap::Preview::LOCATIONS }
+          locals: { zoom: zoom, clustered: clustered, locations: Bali::LocationsMap::Preview::LOCATIONS }
         )
       end
 

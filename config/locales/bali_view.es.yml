@@ -183,7 +183,7 @@ es:
         uploading_file: "Subiendo %{filename}: %{progress}%"
         completed: "%{filename} se subió correctamente"
         error: "No se pudo subir"
-        failed_file: "No se pudo subir %{filename}: %{error}"
+        failed_file: "No se pudo subir %{filename}"
       status:
         uploaded: "Ya subido"
         marked_for_removal: "%{filename} marcado para quitar"
