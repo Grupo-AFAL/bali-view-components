@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`autocomplete-address` usa `PlaceAutocompleteElement`, de la Places API (New)** (#1423).
+  `google.maps.places.Autocomplete` no está disponible para clientes nuevos desde marzo de 2025.
+  El cuadro de búsqueda es ahora el `<gmp-place-autocomplete>` de Google, que dibuja su propio
+  input: el controlador lo pone después del target `input` con el `id`, `name`, `value` y
+  `placeholder` de éste, y deja el input oculto y deshabilitado mientras está conectado. El
+  cuadro envía lo escrito bajo ese `name`, el `<label for>` lo nombra, sigue el `color-scheme` de
+  la página, y elegir una sugerencia llena los mismos nueve targets. Las clases y el `required`
+  del input no pasan al cuadro, así que el navegador ya no exige la dirección: valídala en el
+  modelo. Un input deshabilitado o de sólo lectura no recibe cuadro.
+  - **Anfitrión:** la llave necesita la **Places API (New)** habilitada en Google Cloud. Ninguna
+    de las siete apps usa el controlador; ga-apps sí (`pm/vendors/_form` y
+    `cafeteria/vendors/_form`), desde Bali 1.2.4: al subir, habilitar esa API.
+
+### Fixed
+
+- **`coordinates_polygon_group` y `coordinates_polygon_field` dibujan otra vez, y dejan de estar
+  deprecados** (#1423). Google retiró la Drawing Library, así que el `DrawingManager` de
+  `drawing-maps` no se construía y el campo no dibujaba nada. Ahora cada clic en el mapa agrega
+  un vértice y un clic en el primero cierra la figura; una figura dibujada dentro de otra se
+  guarda como hueco y se pinta en rojo, color que antes nunca llegaba al mapa. El campo guarda lo
+  mismo (`{ shells, holes }`) y «Clear» y «Clear holes» no cambian. Un campo sin valor, que el
+  builder pinta como `[]`, ya no agrega una figura vacía a `shells`. Los dos helpers ya no avisan
+  por `Bali.deprecator` ni se retiran en 4.0, y su preview de Lookbook vuelve. Nada que hacer en
+  las apps; ga-apps puede conservar su `pin 'bali/drawing-maps'`.
+
+- **`geocoder-maps`** (#1423): el pin es un `AdvancedMarkerElement` (`google.maps.Marker` está
+  deprecado desde febrero de 2024) y ya no cae con animación. Una dirección que Google no
+  encuentra avisa en el idioma de la página («No encontramos esa dirección en el mapa.») y no con
+  «Geocode was not successful…» en inglés; una llave rechazada o una cuota agotada van a la
+  consola, no a un `alert`. Un campo de dirección que reemplaza al original también geocodifica,
+  y el controlador desconectado deja de escuchar: antes cada campo conservaba su listener, que
+  tronaba con `Missing target element`. Ninguna app lo usa.
+
 ## [v3.13.0] - 2026-10-12
 
 ### Added

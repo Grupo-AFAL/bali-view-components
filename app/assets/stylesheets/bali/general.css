@@ -110,3 +110,10 @@ input.input::placeholder,
 textarea.textarea::placeholder {
   @apply text-base-content/70;
 }
+
+/* Google's `<gmp-place-autocomplete>` (the `autocomplete-address` controller) declares
+   `color-scheme: light dark` on itself, so it followed the operating system: white on afal-dark.
+   A rule from the page outranks its own, in any layer. */
+gmp-place-autocomplete {
+  color-scheme: inherit;
+}
