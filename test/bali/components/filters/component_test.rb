@@ -405,6 +405,43 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="or"]', visible: :all
   end
 
+  # Outside a DataTable no form handed the panel its combinator: it painted AND over groups the
+  # state combined with OR, and Apply sent `q[m]=and`. The three sources, in precedence order.
+
+  def test_without_a_combinator_it_takes_the_one_its_filter_form_applied
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ], value: "" },
+      filter_groups: two_applied_groups, filter_form: filter_form_combining("or")
+    ))
+
+    assert_selector '[data-filters-target="form"] input[name="q[m]"][value="or"]', visible: :all
+    assert_selector '[data-combinator="or"][aria-pressed="true"]', visible: :all
+    assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="or"]', visible: :all
+  end
+
+  # DataTable passes the form's `applied_combinator` itself, nil when the state carried no `q[m]`:
+  # an explicit value, nil included, is the answer.
+  def test_an_explicit_combinator_wins_over_the_filter_form
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ], value: "" },
+      filter_groups: two_applied_groups, filter_form: filter_form_combining("or"), combinator: nil
+    ))
+
+    assert_selector '[data-filters-target="form"] input[name="q[m]"][value="and"]', visible: :all
+    assert_no_selector '[data-filters-target="searchForm"] input[name="q[m]"]', visible: :all
+  end
+
+  def test_with_neither_it_paints_and_without_re_emitting_it
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ], value: "" },
+      filter_groups: two_applied_groups
+    ))
+
+    assert_selector '[data-filters-target="form"] input[name="q[m]"][value="and"]', visible: :all
+    assert_selector '[data-combinator="and"][aria-pressed="true"]', visible: :all
+    assert_no_selector '[data-filters-target="searchForm"] input[name="q[m]"]', visible: :all
+  end
+
   def test_a_between_with_both_ends_blank_emits_no_phantom_group
     # The popover serialises its empty inputs, and a between {start:"",end:""} is a Hash (present?) —
     # it counted as a condition and emitted a group carrying nothing but the combinators.
@@ -430,6 +467,16 @@ class BaliFiltersComponentTest < ComponentTestCase
 
     assert_includes names, "per"
     assert_not_includes names, "saved_view"
+  end
+
+  # The hidden fields and the URL filters_controller.js pushes are built from the same `url:`,
+  # each on its own side. cypress/e2e/filters-controller.cy.js reads what the JS one drops.
+  def test_the_controller_drops_the_params_the_hidden_fields_leave_out
+    source = Bali::Engine.root.join("app/components/bali/filters/controllers/filters_controller.js").read
+    list = source[/^const EXCLUDED_PARAMS = \[(.*)\]$/, 1]
+    refute_nil list, "filters_controller.js no longer declares EXCLUDED_PARAMS"
+
+    assert_equal Bali::Filters::PreservedParams::EXCLUDED_PARAMS, list.scan(/'([^']+)'/).flatten
   end
 
   # --- The localised tooltips live on the controller's ELEMENT ---
@@ -525,5 +572,18 @@ class BaliFiltersComponentTest < ComponentTestCase
     end
 
     assert_includes error.message, ":field_name"
+  end
+
+  private
+
+  def filter_form_combining(combinator)
+    Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: { m: combinator }))
+  end
+
+  def two_applied_groups
+    [
+      { combinator: "and", conditions: [ { attribute: "name", operator: "cont", value: "a" } ] },
+      { combinator: "and", conditions: [ { attribute: "status", operator: "eq", value: "active" } ] }
+    ]
   end
 end

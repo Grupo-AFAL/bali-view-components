@@ -6,6 +6,9 @@ module Bali
       include Bali::Filters::PreservedParams
       include Bali::Filters::Persistable
 
+      UNSET = Object.new.freeze
+      private_constant :UNSET
+
       attr_reader :url, :available_attributes, :apply_mode, :id, :popover, :combinator,
                   :filter_groups, :max_groups, :turbo_stream
 
@@ -25,7 +28,11 @@ module Bali
       #   Types: :text, :number, :date, :datetime, :select, :boolean
       # @param filter_groups [Array<Hash>] Initial filter state (from URL params)
       # @param apply_mode [Symbol] :batch (default) or :live
-      # @param combinator [Symbol] :and (default) or :or - how groups are combined
+      # @param combinator [Symbol, nil] :and or :or - how groups are combined, as applied.
+      #   nil means the state carried none, and paints :and. Left out, it is the
+      #   `filter_form:`'s `applied_combinator`.
+      # @param filter_form [Bali::FilterForm, nil] The form the groups were parsed with, for a
+      #   panel rendered outside a DataTable: it supplies the combinator `combinator:` leaves out.
       # @param max_groups [Integer] Maximum number of filter groups allowed
       # @param popover [Boolean] Whether to show filters in a popover (default: true)
       # @param button_text [String] Text for the popover trigger button
@@ -49,7 +56,8 @@ module Bali
         available_attributes:,
         filter_groups: [],
         apply_mode: :batch,
-        combinator: nil,
+        combinator: UNSET,
+        filter_form: nil,
         max_groups: 10,
         popover: true,
         button_text: nil,
@@ -69,6 +77,7 @@ module Bali
         # `@applied_combinator` is nil when the state did NOT carry `q[m]`; `@combinator` keeps
         # the render default ("and"). Re-emitting the default as if the user had chosen it
         # flipped an applied OR to AND on the next round-trip.
+        combinator = filter_form.try(:applied_combinator) if combinator.equal?(UNSET)
         @applied_combinator = combinator.presence&.to_s
         @combinator = @applied_combinator || "and"
         @max_groups = max_groups

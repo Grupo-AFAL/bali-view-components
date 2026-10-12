@@ -16,6 +16,8 @@ module Bali
       # `saved_view` is NOT preserved: re-sending it makes the server re-apply the view's
       # payload, silently trampling the filters or the search the user has just typed.
       # (`page` does travel: preserving it is deliberate Bali behaviour.)
+      # filters_controller.js drops the same keys off `url:` in its own EXCLUDED_PARAMS, for the
+      # URL it pushes and the one Clear visits.
       EXCLUDED_PARAMS = %w[q clear_filters clear_search saved_view].freeze
 
       # Extract non-filter query params to preserve them when submitting.

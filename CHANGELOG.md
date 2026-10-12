@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`placeholder_min:` y `placeholder_max:` aceptan un proc sin argumentos**, como `placeholder:`
+  (#1403): `filter_attribute` y los hashes de `simple_filters:` los resuelven por instancia, para
+  un `t(...)` que no debe congelarse al cargar la clase. Antes el proc llegaba tal cual al
+  placeholder del `number_range`.
+
+### Changed
+
+- **`slim_select_field`: el id del contenedor sigue al del select** (`<id del select>_select_div`).
+  Con un `html: { id: }` explícito seguía siendo el `field_id` del atributo, repetido en cada
+  renglón de un formulario por fila (`_proposed_member_row` de gobierno-corporativo); un select
+  con `id: nil` deja al contenedor sin id. Sin id explícito no cambia, y ése es el que lee la
+  prueba de pagos de afal-apps. El de un filtro `slim_select` de SimpleFilters pasa de
+  `q[<llave>]_select_div` a `simple-filter-q-<llave>_select_div`; nadie lo lee.
+
+### Fixed
+
+- **Filters: lo que el panel pide y empuja ya no arrastra `saved_view` ni `clear_*` de `url:`.**
+  «Aplicar» y «Limpiar» partían de la query de `url:` tal cual, mientras los campos ocultos ya
+  descartaban `q`, `clear_filters`, `clear_search` y `saved_view`: un `saved_view` reenviado
+  vuelve a aplicar la vista sobre lo que el usuario acaba de editar. Ahora los dos lados
+  descartan las mismas llaves. Sólo afecta a un anfitrión cuyo `url:` trae esa query.
+
+- **`Filters` acepta `filter_form:` y conserva el OR entre grupos.** Dibujado fuera de un DataTable
+  sin `combinator:`, sobre un estado `q[m]=or`, el panel pintaba AND y «Aplicar» enviaba
+  `q[m]=and`. Ahora toma el combinador del `applied_combinator` de `filter_form:` (un
+  `combinator:` explícito, `nil` incluido, sigue ganando). El ejemplo de la guía ya pasaba
+  `filter_form:`, que se descartaba en silencio. Dentro de un DataTable nada cambia.
+
+- **Filters: un envío que no sale ya no deja una URL en el historial.** La URL se empujaba antes
+  de `requestSubmit()`, así que un formulario que no pasaba la validación del navegador, o cuyo
+  `submit` se cancelaba, dejaba en la barra una consulta que nadie pidió.
+
+- **Filters: la opción en blanco del valor de un select ya no se ofrece como valor.** SlimSelect
+  la listaba, la contaba en «N resultados disponibles» y dejaba elegirla; ahora es su
+  placeholder, marcada como la marca el FormBuilder, y el valor se vacía con la ✕ del select.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added

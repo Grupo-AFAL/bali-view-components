@@ -13,6 +13,11 @@ const PORTALED_POPUPS = '.flatpickr-calendar, .ss-content'
 const PANEL_SHIFT_PROPERTY = '--bali-filters-panel-shift'
 const VIEWPORT_GUTTER = 16
 
+// What the `url:` query may carry and no request may take over:
+// Bali::Filters::PreservedParams::EXCLUDED_PARAMS, which keeps the same keys out of the hidden
+// fields. `q` stands for every `q[...]` key.
+const EXCLUDED_PARAMS = ['q', 'clear_filters', 'clear_search', 'saved_view']
+
 /**
  * Main controller for the Filters component.
  * Handles adding/removing groups, form submission, and URL management.
@@ -421,7 +426,7 @@ export class FiltersController extends Controller {
    * the `q[...]` ones stay out because they are exactly what is being cleared.
    */
   preservedParamsUrl () {
-    const url = new URL(this.urlValue, window.location.origin)
+    const url = this.listingUrl()
     const form = this.hasSearchFormTarget
       ? this.searchFormTarget
       : (this.hasFormTarget ? this.formTarget : null)
@@ -435,11 +440,20 @@ export class FiltersController extends Controller {
     return url
   }
 
+  listingUrl () {
+    const url = new URL(this.urlValue, window.location.origin)
+    for (const key of [...url.searchParams.keys()]) {
+      if (EXCLUDED_PARAMS.includes(key.split('[')[0])) url.searchParams.delete(key)
+    }
+
+    return url
+  }
+
   /**
    * Build the current URL with all filter params
    */
   buildUrl () {
-    const url = new URL(this.urlValue, window.location.origin)
+    const url = this.listingUrl()
     const formData = new FormData(this.formTarget)
     // The quick-search form is only painted when the host passed `search:`. Reading the
     // target unguarded threw "Missing target element" right here, and since `_submit()`
@@ -449,13 +463,6 @@ export class FiltersController extends Controller {
     const searchFormData = this.hasSearchFormTarget
       ? new FormData(this.searchFormTarget)
       : new FormData()
-
-    // Clear existing q params
-    for (const key of [...url.searchParams.keys()]) {
-      if (key.startsWith('q[')) {
-        url.searchParams.delete(key)
-      }
-    }
 
     // `urlValue` is the listing's URL and can already carry the very params both forms
     // paint as hidden fields (`locale`, `group_by`, `view`), so appending them left the
@@ -629,36 +636,36 @@ export class FiltersController extends Controller {
     const restore = this._withoutUnsubmittableConditions()
 
     try {
-      // Update URL for history
-      const url = this.buildUrl()
-      this.pushHistory(url)
-
-      // Submit the form (Turbo will handle the response with morphing)
-      this._requestSubmitAs(form, url)
+      this._requestSubmitAs(form, this.buildUrl())
     } finally {
       restore()
     }
   }
 
   /**
-   * Private: submit `form` carrying exactly the query of `url`, the one pushed to history.
+   * Private: submit `form` carrying exactly the query of `url`, and push `url` to history.
    * Neither form holds the whole state — the panel has the groups, the quick search the
    * search and the groups as last applied — so `requestSubmit()` alone asked for part of it
    * (#1352). `formdata` fires on the
    * entry list both Turbo (`new FormData(form)`) and a native submit build, synchronously
-   * inside `requestSubmit()`.
+   * inside `requestSubmit()` — and only for a submission that goes: one that fails constraint
+   * validation, or whose `submit` is cancelled, builds none. Pushed before `requestSubmit()`,
+   * such a submit would leave the address bar describing a request nobody made.
    */
   _requestSubmitAs (form, url) {
     const carryUrl = ({ formData }) => {
       for (const key of [...formData.keys()]) formData.delete(key)
       for (const [key, value] of url.searchParams) formData.append(key, value)
     }
+    const pushUrl = () => this.pushHistory(url)
 
     form.addEventListener('formdata', carryUrl)
+    form.addEventListener('formdata', pushUrl, { once: true })
     try {
       form.requestSubmit()
     } finally {
       form.removeEventListener('formdata', carryUrl)
+      form.removeEventListener('formdata', pushUrl)
     }
   }
 

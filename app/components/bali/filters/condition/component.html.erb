@@ -103,6 +103,7 @@
           <%# Single searchable select for "is" / "is not" (SlimSelect).
               slim-select-sm matches the select-sm height of the field/operator selects. %>
           <div class="w-full slim-select-sm" data-controller="slim-select"
+               data-slim-select-allow-deselect-option-value="true"
                data-slim-select-placeholder-value="<%= t('bali_view.filters.select_value') %>"
                data-slim-select-search-placeholder-value="<%= t('bali_view.filters.search') %>"
                data-slim-select-no-results-text-value="<%= t('bali_view.form_builder.slim_select.no_results') %>"
@@ -114,7 +115,10 @@
                     aria-label="<%= value_aria_label %>"
                     data-slim-select-target="select"
                     data-condition-target="value">
-              <option value="">
+              <%# Marked as Bali::FormBuilder::SlimSelectFields#build_select marks a blank, or
+                  SlimSelect offers it as a value and counts it among the results. Emptying the
+                  value is the deselect button's job, which is why the wrapper allows it. %>
+              <option value="" data-placeholder="true">
                 <%= t('bali_view.filters.select_value') %>
               </option>
               <% attribute_options.each do |opt| %>
