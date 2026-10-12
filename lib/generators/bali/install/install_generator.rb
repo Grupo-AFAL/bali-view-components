@@ -719,7 +719,15 @@ module Bali
       say "      @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));"
       say "  · Markdown/rich text? Tailwind's typography plugin is yours, not Bali's —"
       say "    Bali only ships the patch that keeps prose-invert working under daisyUI:"
-      say '      @plugin "@tailwindcss/typography";   (and yarn add -D @tailwindcss/typography)'
+      say '      @plugin "@tailwindcss/typography";'
+      # Measured: the standalone binary of tailwindcss-rails builds `prose` with no
+      # node_modules copy at all, while the npm CLI of cssbundling-rails stops at
+      # `Can't resolve '@tailwindcss/typography'`.
+      if css_path == CSSBUNDLING_CSS
+        say "      #{package_manager} add -D @tailwindcss/typography"
+      else
+        say "    Nothing to install: tailwindcss-rails' binary embeds the plugin."
+      end
       say "  · Localised confirm buttons (registerAll already installs the dialog itself):"
       say '      installConfirmDialog({ acceptText: "Aceptar", cancelText: "Cancelar" })'
       say "  · Optional peers, per component you render — the build works without them and"

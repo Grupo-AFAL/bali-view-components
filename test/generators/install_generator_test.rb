@@ -147,6 +147,26 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
     assert_match(/DEPRECATED/, output)
   end
 
+  # The six apps that list @tailwindcss/typography in package.json build with
+  # tailwindcss-rails, whose binary embeds the plugin: the entry was dead weight
+  # that carried Dependabot alert #254. Only the npm CLI needs the package.
+  def test_tailwindcss_rails_is_not_told_to_install_the_typography_plugin
+    host_app
+
+    output = run_generator
+
+    assert_match(/@plugin "@tailwindcss\/typography";/, output)
+    assert_no_match(/add -D @tailwindcss\/typography/, output)
+  end
+
+  def test_cssbundling_is_told_to_install_the_typography_plugin
+    host_app(css: :cssbundling)
+
+    output = run_generator
+
+    assert_match(/npm add -D @tailwindcss\/typography/, output)
+  end
+
   def test_block_editor_flag_turns_it_on_and_brings_its_packages
     host_app
     run_generator %w[--block-editor]

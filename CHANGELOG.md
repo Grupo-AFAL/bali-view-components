@@ -13,8 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (alerta de dependabot #254: complejidad cuadrática que agota el CPU, corregida en 7.1.6).**
   typography 0.5.20, la última, fija esa versión exacta. Pero el `tailwindcss` standalone de
   tailwindcss-rails trae el plugin embebido y nunca lee el de `node_modules`: con esa copia
-  reemplazada por una que lanza un error, el CSS de la dummy sale idéntico byte a byte. Nada
-  cambia para los anfitriones.
+  reemplazada por una que lanza un error, el CSS de la dummy sale idéntico byte a byte.
+  `bin/rails g bali:install` ya no pide `yarn add -D @tailwindcss/typography` en una app con
+  tailwindcss-rails; sólo en una con cssbundling-rails, cuyo CLI de npm sí lo necesita.
+  **Anfitrión:** afal-apps, gobierno-corporativo, identity, costa-norte, centinela-web y opina
+  compilan con tailwindcss-rails y pueden quitar `@tailwindcss/typography` de sus
+  `devDependencies`. Es lo único que trae ahí `postcss-selector-parser` 6.0.10, así que eso
+  cierra la misma alerta en su repo.
 
 ## [v3.12.0] - 2026-10-11
 
