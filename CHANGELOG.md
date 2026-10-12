@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.12.0] - 2026-10-11
+
 ### Added
 
 - **`Bali::Tag` acepta `text_color:`**, un hex para el texto, en línea: gana sobre el negro o
