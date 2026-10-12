@@ -1,0 +1,22 @@
+<%= tag.li(**options) do %>
+  <%# Hidden from screen readers: the name is printed beside it, and the avatar's
+      own label would have it read twice. %>
+  <%= render Bali::Avatar::Component.new(name: author, size: :xs, class: "self-start",
+                                         aria: { hidden: true }) %>
+  <div class="min-w-0 flex-1">
+    <div class="flex items-center gap-2">
+      <div class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
+        <span class="text-sm font-medium"><%= author %></span>
+        <%= time %>
+      </div>
+      <% if actions? %>
+        <div class="flex shrink-0 items-center gap-1">
+          <% actions.each do |action| %>
+            <%= action %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    <div class="mt-1 text-sm break-words"><%= content %></div>
+  </div>
+<% end %>

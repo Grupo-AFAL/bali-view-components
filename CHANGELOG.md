@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `presets:`. Una app que lo inyectaba sobrescribiendo `simple_filters_config` puede borrar ese
   método y declararlo en el filtro.
 
+- **`Bali::CommentThread`** (#730): la lista de comentarios —avatar con iniciales, autor, hora
+  relativa con la fecha en el tooltip (`relative: false` la muestra fija), cuerpo y acciones— y
+  el formulario abajo o arriba (`form_position:`). El estado vacío es un ítem de la lista que sólo
+  se ve cuando está solo, así que el primer comentario y el último entran y salen con un
+  `append`, `prepend` o `remove` contra el `id:` de la lista, sin reemplazarla.
+  `Bali::CommentThread::Comment::Component` se renderiza suelto, para el stream. **Anfitrión:**
+  opina (`feedback_posts/comments/_comment`) y afal-apps (`td_flow/projects/user_stories/_comments`
+  y `_comment`) pueden cambiar su versión a mano por el componente.
+
 ### Changed
 
 - **Las clases de daisyUI 4 que quedaban fuera del FormBuilder desaparecen del marcado** (#903).

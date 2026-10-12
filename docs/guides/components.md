@@ -2501,6 +2501,59 @@ canvas box instead of leaving a container-height hole.
 <% end %>
 ```
 
+#### CommentThread
+
+A list of comments — avatar, author, time, body and actions — and the form that adds to it.
+
+```erb
+<%= render Bali::CommentThread::Component.new(id: dom_id(story, :comments_list),
+                                              empty_text: t('.empty')) do |thread| %>
+  <% story.comments.each do |comment| %>
+    <% thread.with_comment(id: dom_id(comment), author: comment.user.name,
+                           timestamp: comment.created_at) do |c| %>
+      <%= markdown(comment.body) %>
+      <% c.with_action { button_to 'Delete', [story, comment], method: :delete } if policy(comment).destroy? %>
+    <% end %>
+  <% end %>
+  <% thread.with_form { render 'comments/form', story: } %>
+<% end %>
+```
+
+**`Bali::CommentThread::Component`**
+
+- `id` - DOM id of the `<ul>`, and the target of the host's streams (required)
+- `empty_text` - What the list says while it holds no comment (default: from the locale files)
+- `form_position` - `:bottom` or `:top`: where the `form` slot sits (default: `:bottom`)
+- `**options` - HTML attributes for the wrapper around the form and the list
+- `with_comment(**)` slot - One `Comment` below, built in place
+- `with_form` slot - The form; its fields, its route and its reset are the host's
+
+Whatever the block outputs also lands in the list, after the `with_comment` items. That is
+the way in for a host whose stream renders a partial: the page renders that same partial
+(`render partial: 'comments/comment', collection: @comments`) instead of `with_comment`.
+
+**The empty state never needs replacing.** It is an item of the list that shows only while
+it is the list's sole child, so the first comment and the last one come and go with the same
+streams as any other:
+
+```ruby
+turbo_stream.prepend dom_id(story, :comments_list), partial: 'comments/comment', locals: { comment: }
+turbo_stream.remove dom_id(comment)
+```
+
+**`Bali::CommentThread::Comment::Component`** — one comment, renderable on its own for a
+stream.
+
+- `author` - The commenter's name; the avatar derives its initials and colour from it
+- `timestamp` - When it was written
+- `relative` - `true` shows the distance ("5 minutes ago", `Bali::Timeago`) with the
+  `I18n.l(format: :short)` date in its tooltip; `false` shows that date itself (default: `true`)
+- `**options` - HTML attributes for the `<li>`: `id:` is what a `remove` stream targets
+- `with_action` slot - One per action (delete, …), beside the author
+
+The body is the block, rendered as given: escaping, Markdown and sanitising are the host's.
+The avatar is hidden from screen readers, because the name is printed beside it.
+
 #### DataTable
 
 Complete data table wrapper with filters, quick search, summary, and pagination. Integrates with `Bali::FilterForm` — when a `filter_form` is given, `with_filters_panel` auto-configures attributes, filter groups, and search.
