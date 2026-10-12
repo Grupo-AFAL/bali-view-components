@@ -29,11 +29,8 @@ export class ImageFieldController extends Controller {
     }
   }
 
-  disconnect () {
-    this.revokeBlobUrl()
-  }
-
-  // Private: clean up blob URL to prevent memory leaks
+  // Private: clean up blob URL to prevent memory leaks. Never on `disconnect`: Turbo's snapshot
+  // for Back still shows the blob, and restored a broken image with the file still on the input.
   revokeBlobUrl () {
     if (this.currentBlobUrl) {
       URL.revokeObjectURL(this.currentBlobUrl)

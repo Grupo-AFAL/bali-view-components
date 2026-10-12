@@ -19,8 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   borrar se alcanza con Tab y se activa con Enter; un `clear_button` propio debe ocultarse con
   `opacity-0 pointer-events-none`, no con `hidden` (ejemplo en la preview
   `with_custom_clear_button`). `Avatar::Upload` libera la URL `blob:` de la foto anterior al
-  elegir otra. Nada que hacer en las apps: sólo afal-apps usa `Avatar::Upload`
-  (`daycare/children/_form`), ninguna usa `ImageField`, y nada apunta a esos inputs.
+  elegir otra, e `ImageField` ya no la libera al desconectarse: con Atrás, Turbo restauraba la
+  vista previa rota con el archivo todavía en el input. Nada que hacer en las apps: sólo
+  afal-apps usa `Avatar::Upload` (`daycare/children/_form`), ninguna usa `ImageField`, y nada
+  apunta a esos inputs.
 
 ## [v3.12.0] - 2026-10-11
 

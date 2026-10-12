@@ -59,6 +59,25 @@ describe('ImageField', () => {
     cy.get('@revoke').should('have.been.called')
   })
 
+  // Turbo restores Back from a snapshot taken before the controller disconnects, so that snapshot
+  // still points at the blob: revoked on disconnect, it came back as a broken image with the
+  // file still on the input.
+  it('still shows the chosen file after a Turbo visit and Back', () => {
+    input().selectFile('cypress/fixtures/sample-image.png', force)
+    output().invoke('attr', 'src').should('match', /^blob:/)
+
+    cy.window().then((win) => win.Turbo.visit('/lookbook/preview/bali/image_field/default'))
+    cy.location('pathname').should('include', '/image_field/default')
+    cy.go('back')
+    cy.location('pathname').should('include', '/image_field/with_input')
+
+    output().should(($img) => {
+      expect($img.attr('src'), 'the restored preview').to.match(/^blob:/)
+      expect($img[0].complete, 'image settled').to.equal(true)
+      expect($img[0].naturalWidth, 'the restored preview loads').to.be.greaterThan(0)
+    })
+  })
+
   it('keeps working with a clear button supplied by the host', () => {
     cy.visit('/bali/image_field/with_custom_clear_button')
 
