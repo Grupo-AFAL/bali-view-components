@@ -70,7 +70,7 @@ module Bali
           alt_input: options[:alt_input],
           allow_input: options[:allow_input],
           alt_format: options[:alt_format],
-          default_date: options[:default_date].presence,
+          default_date: default_date(method, options),
           disabled_dates: (options[:disabled_dates] || []).to_json
         }
 
@@ -88,6 +88,14 @@ module Bali
       end
 
       private
+
+      # flatpickr reads `defaultDate` before the input's own value, so a default on a field that
+      # already holds a date would replace it: on an edit form, the saved one.
+      def default_date(method, options)
+        value = options.key?(:value) ? options[:value] : object.try(method)
+
+        options[:default_date].presence if value.blank?
+      end
 
       # Users can type directly into the visible input by default, but flatpickr
       # silently discards anything that doesn't match the effective altFormat on

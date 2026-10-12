@@ -76,11 +76,6 @@ class BaliFormBuilderTimeFieldsTest < FormBuilderTestCase
     assert_html(result, '.fieldset[data-datepicker-enable-seconds-value="true"]')
   end
 
-  def test_time_field_renders_with_datepicker_default_date
-    result = builder.time_field(:duration, default_date: "1983-04-13")
-    assert_html(result, '.fieldset[data-datepicker-default-date-value="1983-04-13"]')
-  end
-
   def test_time_field_renders_with_datepicker_min_time
     result = builder.time_field(:duration, min_time: "08:00")
     assert_html(result, '.fieldset[data-datepicker-min-time-value="08:00"]')

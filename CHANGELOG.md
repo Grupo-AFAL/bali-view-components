@@ -20,7 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `manual: true` en un campo de fecha.
 
 - **`date_field` y `date_group` respetan `default_date:`**, que descartaban sin aviso; `datetime_*`
-  y `time_*` ya lo hacían. Como en esos dos, reemplaza el valor del registro. Ninguna app lo pasa.
+  y `time_*` ya lo hacían. Ninguna app lo pasa.
+
+- **`default_date:` sólo aplica a un campo sin valor**, en las tres familias. flatpickr lo lee antes
+  que el valor del input, así que en un `datetime_*` o `time_*` de un formulario de edición
+  reemplazaba la fecha guardada. Ninguna app lo pasa.
 
 - **Textarea `auto_grow`: un `form.reset()` con el campo oculto lo dejaba al alto de sus `rows`**
   al volver a mostrarse, con el texto restaurado fuera de vista. Ahora se ajusta en cuanto vuelve
@@ -130,9 +134,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`datetime_field` y `datetime_group` ignoraban `time_24hr:`.** Sólo `time_field` traducía sus
   opciones de hora a `data-datepicker-*`; en un `datetime_*` se descartaban sin aviso y el campo
   salía en 12 horas, aunque la guía documenta `time_24hr: true`. Ahora toma las de `time_field`
-  del mismo mapa: `time_24hr`, `seconds`, `min_time` y `max_time`, y `default_date`, que
-  reemplaza el valor del registro, como en `time_field`. Ninguna llamada a `datetime_*` en
-  `origin/main` de la flota pasa alguna de las cinco. Quien use el rodeo
+  del mismo mapa: `time_24hr`, `seconds`, `min_time`, `max_time` y `default_date`. Ninguna
+  llamada a `datetime_*` en `origin/main` de la flota pasa alguna de las cinco. Quien use el rodeo
   `wrapper_options: { "data-datepicker-time24hr-value": true }` en un `datetime_*` puede
   cambiarlo por `time_24hr: true` (`git grep -n "time24hr-value"`).
 

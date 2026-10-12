@@ -119,6 +119,19 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     end
   end
 
+  # flatpickr reads `defaultDate` before the input's value, so a default on a field that holds a
+  # date would replace it: on an edit form, the saved one.
+  def test_every_date_family_keeps_a_saved_date_over_default_date
+    saved = movie_form_builder(Movie.new(release_date: Date.new(2026, 3, 9)))
+
+    %i[date_field datetime_field time_field].each do |helper|
+      result = saved.public_send(helper, :release_date, default_date: "2026-01-01")
+
+      assert_html(result, 'input[name="movie[release_date]"][value]')
+      refute_html(result, "[data-datepicker-default-date-value]")
+    end
+  end
+
   def test_date_group_with_period_option_passes_period_to_datepicker_controller
     result = builder.date_group(:release_date, period: "day")
     assert_html(result, 'div[data-datepicker-period-value="day"]')
