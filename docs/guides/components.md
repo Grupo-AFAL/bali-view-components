@@ -4553,12 +4553,17 @@ makes it a first-class popover attribute with no new API.
 ) %>
 ```
 
+`filter_form:` is the panel's applied state: its groups and the combinator between them.
+`filter_groups:` and `combinator:`, when passed, win over it. Inside a `DataTable`,
+`with_filters_panel` passes all of this on its own.
+
 **Features:**
 - Multiple filter groups with AND/OR combinators. Conditions inside a group narrow
   (AND) unless the user switches a row to OR — the seed used to be OR, so a second
   condition widened the listing instead of narrowing it (#1121); a group that arrives in
-  the URL with `m=or` keeps it. Groups combine with AND. Whatever the groups' combinator,
-  the panel is ANDed with the quick search and the rest of `q` (#1345).
+  the URL with `m=or` keeps it. Groups combine with AND unless the toggle between them says
+  OR (`q[m]=or`). Whatever the groups' combinator, the panel is ANDed with the quick search
+  and the rest of `q` (#1345).
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
 - Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted
@@ -4749,7 +4754,7 @@ filter_attribute :created_at, type: :date, input: :date_range, simple: true, adv
 It takes a zero-arity proc like `label:`, for an I18n lookup that must not be frozen at
 class-load time, and instance-level `simple_filters:` hashes take the same key. It also fills
 the "Custom…" picker of a `presets:` range. No other widget reads it: `number_range` has
-`placeholder_min:`/`placeholder_max:`, and a select shows its `blank:`.
+`placeholder_min:`/`placeholder_max:`, which take a proc too, and a select shows its `blank:`.
 
 #### Quick search (`search:`)
 

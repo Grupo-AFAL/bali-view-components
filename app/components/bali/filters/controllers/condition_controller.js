@@ -33,11 +33,8 @@ export class ConditionController extends Controller {
   // Whether a value was ever chosen for the attribute currently selected.
   everHadValue = false
 
-  /**
-   * Getter for translations with fallback to empty object
-   */
   get t () {
-    return this.translationsValue || {}
+    return this.translationsValue
   }
 
   connect () {
@@ -553,11 +550,11 @@ export class ConditionController extends Controller {
   // `value_aria_label` in component.rb's translations_json. The ERB says why it is an
   // aria-label.
   get valueAriaLabel () {
-    return this.t.value_aria_label || 'Value'
+    return this.t.value_aria_label
   }
 
   buildTextInput (fieldName) {
-    const placeholder = this.t.placeholders?.enter_value || 'Enter value...'
+    const placeholder = this.t.placeholders.enter_value
     return `
       <input type="text"
              class="input input-sm w-full"
@@ -569,7 +566,7 @@ export class ConditionController extends Controller {
   }
 
   buildNumberInput (fieldName) {
-    const placeholder = this.t.placeholders?.number || '0'
+    const placeholder = this.t.placeholders.number
     return `
       <input type="number"
              class="input input-sm w-full"
@@ -600,7 +597,7 @@ export class ConditionController extends Controller {
   }
 
   buildDateInput (fieldName) {
-    const placeholder = this.t.placeholders?.select_date || 'Select date...'
+    const placeholder = this.t.placeholders.select_date
     return `
       <input type="text"
              class="input input-sm w-full"
@@ -617,7 +614,7 @@ export class ConditionController extends Controller {
   }
 
   buildDatetimeInput (fieldName) {
-    const placeholder = this.t.placeholders?.select_datetime || 'Select date & time...'
+    const placeholder = this.t.placeholders.select_datetime
     return `
       <input type="text"
              class="input input-sm w-full"
@@ -635,7 +632,7 @@ export class ConditionController extends Controller {
   }
 
   buildDateRangeInput (rangeFieldNames) {
-    const placeholder = this.t.placeholders?.select_date_range || 'Select date range...'
+    const placeholder = this.t.placeholders.select_date_range
     return `
       <div class="w-full" data-condition-target="value">
         <input type="text"
@@ -656,27 +653,24 @@ export class ConditionController extends Controller {
   }
 
   buildBooleanInput (fieldName) {
-    const anyLabel = this.t.boolean?.any || 'Any'
-    const yesLabel = this.t.boolean?.yes || 'Yes'
-    const noLabel = this.t.boolean?.no || 'No'
+    const { any, yes, no } = this.t.boolean
     return `
       <select class="select select-bordered select-sm w-full"
               name="${fieldName}"
               aria-label="${this.escapeHtml(this.valueAriaLabel)}"
               data-condition-target="value">
-        <option value="">${this.escapeHtml(anyLabel)}</option>
-        <option value="true">${this.escapeHtml(yesLabel)}</option>
-        <option value="false">${this.escapeHtml(noLabel)}</option>
+        <option value="">${this.escapeHtml(any)}</option>
+        <option value="true">${this.escapeHtml(yes)}</option>
+        <option value="false">${this.escapeHtml(no)}</option>
       </select>
     `
   }
 
+  // The searchable select filters/condition/component.html.erb draws, attribute for attribute:
+  // change both.
   buildSelectInput (fieldName, options) {
-    const placeholder = this.t.placeholders?.select || 'Select...'
-    const searchPlaceholder = this.t.search || 'Search...'
-    const noResults = this.t.no_results || 'No results'
-    // Left empty, SlimSelect reads them out in its own English.
-    const { deselect = '', remove = '', results_count: resultsCount = '' } = this.t.slim_select || {}
+    const placeholder = this.escapeHtml(this.t.placeholders.select)
+    const { deselect, remove, results_count: resultsCount } = this.t.slim_select
     const optionsHtml = options
       .map((opt) => {
         const [label, value] = Array.isArray(opt) ? opt : [opt, opt]
@@ -686,9 +680,10 @@ export class ConditionController extends Controller {
 
     return `
       <div class="w-full slim-select-sm" data-controller="slim-select"
-           data-slim-select-placeholder-value="${this.escapeHtml(placeholder)}"
-           data-slim-select-search-placeholder-value="${this.escapeHtml(searchPlaceholder)}"
-           data-slim-select-no-results-text-value="${this.escapeHtml(noResults)}"
+           data-slim-select-allow-deselect-option-value="true"
+           data-slim-select-placeholder-value="${placeholder}"
+           data-slim-select-search-placeholder-value="${this.escapeHtml(this.t.search)}"
+           data-slim-select-no-results-text-value="${this.escapeHtml(this.t.no_results)}"
            data-slim-select-deselect-text-value="${this.escapeHtml(deselect)}"
            data-slim-select-remove-text-value="${this.escapeHtml(remove)}"
            data-slim-select-results-count-text-value="${this.escapeHtml(resultsCount)}">
@@ -697,7 +692,7 @@ export class ConditionController extends Controller {
                 aria-label="${this.escapeHtml(this.valueAriaLabel)}"
                 data-slim-select-target="select"
                 data-condition-target="value">
-          <option value="">${this.escapeHtml(placeholder)}</option>
+          <option value="" data-placeholder="true">${placeholder}</option>
           ${optionsHtml}
         </select>
       </div>
@@ -708,8 +703,8 @@ export class ConditionController extends Controller {
   // both. Tailwind never scans this package's JavaScript, so a class here is generated only
   // because that template writes it too.
   buildMultiSelectInput (fieldName, options) {
-    const selectValuesLabel = this.t.placeholders?.select_values || 'Select values...'
-    const selectedCountTemplate = this.t.selected_count || '%{count} selected'
+    const selectValuesLabel = this.t.placeholders.select_values
+    const selectedCountTemplate = this.t.selected_count
     const optionsHtml = options
       .map((opt) => {
         const [label, value] = Array.isArray(opt) ? opt : [opt, opt]

@@ -11,11 +11,8 @@ export class MultiSelectController extends Controller {
     translations: { type: Object, default: {} }
   }
 
-  /**
-   * Getter for translations with fallback to empty object
-   */
   get t () {
-    return this.translationsValue || {}
+    return this.translationsValue
   }
 
   connect () {
@@ -126,9 +123,8 @@ export class MultiSelectController extends Controller {
     const checkboxes = this.element.querySelectorAll('input[type="checkbox"]:checked')
     const labels = Array.from(checkboxes).map(cb => cb.dataset.label)
 
-    // Get translated strings with fallbacks
-    const selectValuesLabel = this.t.select_values || 'Select values...'
-    const selectedCountTemplate = this.t.selected_count || '%{count} selected'
+    const selectValuesLabel = this.t.select_values
+    const selectedCountTemplate = this.t.selected_count
 
     if (labels.length === 0) {
       this.labelTarget.textContent = selectValuesLabel

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`placeholder_min:` y `placeholder_max:` aceptan un proc sin argumentos**, como `placeholder:`
+  (#1403): `filter_attribute` y los hashes de `simple_filters:` los resuelven por instancia, para
+  un `t(...)` que no debe congelarse al cargar la clase. Antes el proc llegaba tal cual al
+  placeholder del `number_range`.
+
+### Changed
+
+- **`slim_select_field`: el id del contenedor sigue al del select** (`<id del select>_select_div`).
+  Con un `html: { id: }` explícito seguía siendo el `field_id` del atributo, repetido en cada
+  renglón de un formulario por fila (`_proposed_member_row` de gobierno-corporativo); un select
+  con `id: nil` deja al contenedor sin id. Sin id explícito no cambia, y ése es el que lee la
+  prueba de pagos de afal-apps. El de un filtro `slim_select` de SimpleFilters pasa de
+  `q[<llave>]_select_div` a `simple-filter-q-<llave>_select_div`; nadie lo lee.
+
+### Removed
+
+- **La llave `bali_view.filters.select_value`.** La opción en blanco del valor select la leía en
+  el servidor y `placeholders.select` en el navegador, con el mismo texto; ahora las dos leen
+  `placeholders.select`. Una app que sobrescribía `select_value` lleva su texto a esa llave
+  (ninguna de las siete lo hace).
+
+- **`Bali::Utils::Url`** y su `#add_query_param`: el último que lo llamaba era el enlace de
+  limpiar, que ahora sale de `PreservedParams#clear_filters_url`. Ninguna de las siete apps lo
+  llama.
+
 ### Fixed
 
 - **Google Maps: una llamada al loader después de la primera recibe las bibliotecas que pide**
@@ -48,6 +75,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pedía una página llegaban dos. Una página que no llena el panel sigue pidiendo la siguiente.
   Afecta a los inbox de gobierno-corporativo (`inbox/show`) y afal-apps (`td_flow/inboxes/show`);
   no tienen nada que cambiar.
+
+- **Filters y SimpleFilters: ninguna URL que arman arrastra ya `saved_view`, `clear_*` ni `q[...]`
+  de la query de `url:`.** «Aplicar» llevaba `saved_view`, `clear_filters` y `clear_search` (los
+  `q[...]` ya los quitaba). «Limpiar», la ✕ de la búsqueda, «Limpiar todo» de las etiquetas y
+  «Limpiar» de SimpleFilters llevaban además los `q[...]`: un filtro escrito en `url:` sobrevivía
+  a la limpieza, un `saved_view` volvía a aplicar la vista, y un `clear_filters` en `url:` hacía
+  que la ✕ de la búsqueda borrara también los filtros. Ahora todas parten de los campos ocultos,
+  que filtra una sola lista (`PreservedParams::EXCLUDED_PARAMS`); los dos enlaces de limpiar,
+  de `clear_filters_url`, que reemplaza a `AppliedTags#clear_all_url` y a
+  `SimpleFilters#clear_href` (ninguna app los llama). «Limpiar todo» de las etiquetas lleva
+  además los `preserved_params:` del `Filters` (`group_by`, `view`), como ya los llevaba su
+  «Limpiar». **Anfitrión:** sólo cambia una app cuyo `url:` trae esa query; las cuatro `url:` de
+  opina son rutas sin query, así que su «Limpiar» no cambia. El comentario de opina en
+  `shared/_filter_bar.html.erb`, que describe un «Limpiar» al listado pelado que descarta
+  `preserved_params`, ya no se cumplía desde v3.1.1 y queda obsoleto al subir.
+
+- **`Filters` acepta `filter_form:` y conserva el OR entre grupos.** Dibujado fuera de un DataTable
+  sin `combinator:`, sobre un estado `q[m]=or`, el panel pintaba AND y «Aplicar» enviaba
+  `q[m]=and`. Ahora `filter_form:` le da los grupos y el combinador aplicados; `filter_groups:` y
+  `combinator:` explícitos siguen ganando. El ejemplo de la guía ya pasaba `filter_form:`, que se
+  descartaba en silencio. Dentro de un DataTable nada cambia.
+
+- **Filters: un envío que no sale ya no deja una URL en el historial.** La URL se empujaba antes
+  de `requestSubmit()`, así que un formulario que no pasaba la validación del navegador, o cuyo
+  `submit` se cancelaba, dejaba en la barra una consulta que nadie pidió.
+
+- **SlimSelect: la ✕ que vacía el valor (`allow_deselect_option:`) pasa de opacidad 0.5 a 0.55.**
+  Es un control y pide 3:1: en `afal` medía 3.05:1, el mínimo de los seis temas; ahora el
+  mínimo es 3.52:1, también en `afal`.
+
+- **Filters: la opción en blanco del valor de un select ya no se ofrece como valor.** SlimSelect
+  la listaba, la contaba en «N resultados disponibles» y dejaba elegirla; ahora es su
+  placeholder, marcada como la marca el FormBuilder, y el valor se vacía con la ✕ del select.
 
 ### Dependencies
 
