@@ -360,6 +360,8 @@ es:
       default_label: Gráfica
     legend:
       label: Leyenda
+    help_tip:
+      label: Más información
     clipboard:
       copied: ¡Copiado!
       copy_label: Copiar al portapapeles

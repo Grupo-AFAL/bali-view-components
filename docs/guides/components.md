@@ -3847,6 +3847,8 @@ what opens it.
   AppLayout's own `<main>` under `viewport_locked` is one. Pass `:parent` to keep the balloon
   inside the trigger's subtree. Inside an open modal/drawer the balloon goes to the top-layer
   host regardless, so it never paints under an overlay.
+- `trigger_label` - accessible name for a trigger with no text of its own, such as an icon: the
+  trigger becomes `role="img"` with that `aria-label`. A trigger with text is named by it.
 
 **Keyboard.** The default trigger is `focusin` rather than tippy's `focus` because the
 element tippy watches is the wrapper around the slot, and a `focus` on the caller's own
@@ -3885,8 +3887,10 @@ hand-rolled Tooltip + Icon pair per call site.
 - `placement` - `:top` (default), `:bottom`, `:left`, `:right`
 - Everything else passes through to `Bali::Tooltip` (`append_to:`, `class:`, `data:`, …)
 
-The trigger is keyboard-reachable out of the box, and the balloon inherits Tooltip's
-`:body` portal default, so it escapes clipping ancestors without per-call opt-ins.
+The trigger is keyboard-reachable out of the box and named "More information"
+(`bali_view.help_tip.label`), with the balloon's text as its description once open; pass
+`trigger_label:` for a more specific name. The balloon inherits Tooltip's `:body` portal
+default, so it escapes clipping ancestors without per-call opt-ins.
 
 #### Kanban
 

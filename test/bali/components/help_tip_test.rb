@@ -28,6 +28,26 @@ class BaliHelpTipComponentTest < ComponentTestCase
 
     assert_includes(rendered_content, "<strong>Rich</strong> help")
   end
+
+  # The trigger is an icon, and the tab stop the tooltip controller makes of it had no name.
+  # The balloon's text is its description once open.
+  def test_the_trigger_is_an_image_named_more_information
+    render_inline(Bali::HelpTip::Component.new("Systematic overview"))
+
+    assert_selector('.trigger[role="img"][aria-label="More information"]')
+  end
+
+  def test_the_name_follows_the_locale
+    I18n.with_locale(:es) { render_inline(Bali::HelpTip::Component.new("Help")) }
+
+    assert_selector('.trigger[aria-label="Más información"]')
+  end
+
+  def test_a_caller_can_name_the_trigger
+    render_inline(Bali::HelpTip::Component.new("Help", trigger_label: "About SIPOC"))
+
+    assert_selector('.trigger[role="img"][aria-label="About SIPOC"]')
+  end
 end
 
 # #993: the FieldGroupWrapper "?" and a host's "?" are the same component now —

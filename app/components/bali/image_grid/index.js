@@ -57,13 +57,13 @@ export class ImageExpanderController extends Controller {
     this.overlay.querySelector('.bali-image-expander-close').focus()
 
     this._onKeydown = this._onKeydown.bind(this)
-    document.addEventListener('keydown', this._onKeydown)
+    document.addEventListener('keydown', this._onKeydown, true)
   }
 
   close () {
     if (!this.overlay) return
 
-    document.removeEventListener('keydown', this._onKeydown)
+    document.removeEventListener('keydown', this._onKeydown, true)
     const overlay = this.overlay
     this.overlay = null
 
@@ -81,15 +81,27 @@ export class ImageExpanderController extends Controller {
 
   disconnect () {
     if (this.overlay) {
-      document.removeEventListener('keydown', this._onKeydown)
+      document.removeEventListener('keydown', this._onKeydown, true)
       this.overlay.remove()
       this.overlay = null
       document.body.style.overflow = ''
     }
   }
 
+  // In the capture phase, so the lightbox spends its keys before a Drawer or Modal around it
+  // sees them: the panel's `keydown.esc` closed it in the same keystroke, and Tab walked out to
+  // its controls behind the photo. Escape is cancelled as well, or the `<dialog>` turns it into
+  // a close request of its own.
   _onKeydown (event) {
-    if (event.key === 'Escape') this.close()
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      event.stopPropagation()
+      this.close()
+    } else if (event.key === 'Tab') {
+      // The close button is the lightbox's only control.
+      event.preventDefault()
+      this.overlay.querySelector('.bali-image-expander-close').focus()
+    }
   }
 
   _loadImage (src, alt) {

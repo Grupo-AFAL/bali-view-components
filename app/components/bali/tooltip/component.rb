@@ -34,10 +34,15 @@ module Bali
       # CSS-selector String for a specific portal. Inside an open modal/drawer the
       # controller portals to the top-layer host regardless, so the balloon never
       # paints under an overlay.
-      def initialize(placement: :top, trigger_event: DEFAULT_TRIGGER, append_to: :body, **options)
+      #
+      # @param trigger_label [String, nil] Accessible name for a trigger with no text of its own,
+      #   an icon: the trigger becomes `role="img"` with this `aria-label`. It is the element the
+      #   controller makes the tab stop, and the balloon describes it once open.
+      def initialize(placement: :top, trigger_event: DEFAULT_TRIGGER, append_to: :body, trigger_label: nil, **options)
         @placement = placement&.to_sym
         @trigger_event = trigger_event
         @append_to = append_to
+        @trigger_label = trigger_label
         @options = options
       end
 
@@ -57,6 +62,12 @@ module Bali
 
       def trigger_classes
         class_names("trigger", "cursor-pointer")
+      end
+
+      def trigger_name
+        return {} if @trigger_label.blank?
+
+        { role: "img", "aria-label": @trigger_label }
       end
 
       private

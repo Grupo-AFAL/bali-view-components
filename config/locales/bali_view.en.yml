@@ -366,6 +366,8 @@ en:
       default_label: Chart
     legend:
       label: Legend
+    help_tip:
+      label: More information
     clipboard:
       copied: Copied!
       copy_label: Copy to clipboard

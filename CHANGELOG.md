@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **El lightbox de `image-expander` (ImageGrid) se queda con Escape y Tab.** Dentro de un Drawer
+  o Modal, Escape cerraba el lightbox y el panel en la misma pulsación; ahora cierra sólo el
+  lightbox y el foco vuelve a la miniatura, dentro del panel. Tab y Shift+Tab ya no salen al
+  `<body>`, al ✕ del panel ni a las miniaturas: se quedan en el botón de cerrar. En afal-apps
+  deja de ser cierto «la tecla Esc cierra además el drawer» de
+  `docs/src/content/docs/desarrollo/terminales/hallazgos-y-seguimiento.mdx`.
+
+- **Modal y Drawer: Tab desde el último control entra al iframe que va primero.** Se detenía en
+  el iframe sin nada enfocado adentro y hacía falta otro Tab; ahora cae en el primer control del
+  frame (Chromium). Nada que hacer en la app.
+
+- **Modal y Drawer se cierran antes de que Turbo guarde la página en su caché.** Una página que
+  se dejaba con el panel abierto volvía con Atrás con el panel pintado pero sin `showModal()`, y
+  la página de detrás seguía respondiendo al mouse y al teclado. Ahora vuelve cerrado. No se
+  cierran en un refresh, que hace morph alrededor del panel, en la navegación de un frame
+  promovida a visita ni cuando sólo cambia el fragmento de la URL. Nada que hacer en la app.
+
+- **`HelpTip`: el ícono tiene nombre.** El controlador del tooltip lo vuelve parada de
+  tabulación, y se anunciaba como un genérico sin nombre. Ahora es `role="img"` con
+  `aria-label` «Más información» (`bali_view.help_tip.label`), y el texto del globo sigue siendo
+  su descripción. `Bali::Tooltip` acepta `trigger_label:` para nombrar así un disparador sin
+  texto, y HelpTip lo deja pasar para un nombre más preciso. En un campo con `tooltip:` el ícono
+  está dentro del `<label>`, así que el nombre accesible del control suma el suyo: «Email Más
+  información». `fill_in` de Capybara lee el texto del `<label>` y sigue encontrando el campo.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added
