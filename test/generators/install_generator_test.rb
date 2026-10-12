@@ -147,9 +147,7 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
     assert_match(/DEPRECATED/, output)
   end
 
-  # The six apps that list @tailwindcss/typography in package.json build with
-  # tailwindcss-rails, whose binary embeds the plugin: the entry was dead weight
-  # that carried Dependabot alert #254. Only the npm CLI needs the package.
+  # tailwindcss-rails' binary embeds the plugin; only an npm-built Tailwind resolves it from node_modules.
   def test_tailwindcss_rails_is_not_told_to_install_the_typography_plugin
     host_app
 

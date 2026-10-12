@@ -723,10 +723,10 @@ module Bali
       # Measured: the standalone binary of tailwindcss-rails builds `prose` with no
       # node_modules copy at all, while the npm CLI of cssbundling-rails stops at
       # `Can't resolve '@tailwindcss/typography'`.
-      if css_path == CSSBUNDLING_CSS
-        say "      #{package_manager} add -D @tailwindcss/typography"
-      else
+      if css_path == TAILWIND_RAILS_CSS
         say "    Nothing to install: tailwindcss-rails' binary embeds the plugin."
+      else
+        say "      #{package_manager} add -D @tailwindcss/typography"
       end
       say "  · Localised confirm buttons (registerAll already installs the dialog itself):"
       say '      installConfirmDialog({ acceptText: "Aceptar", cancelText: "Cancelar" })'
