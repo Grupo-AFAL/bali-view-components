@@ -74,7 +74,7 @@ export class DatepickerController extends Controller {
       // this is necessary because `altInputClass` option does not inherit the original classes
       altInputClass: `input ${this.altInputClassValue}`,
       mode: this.modeValue,
-      disable: this.disableWeekendsValue ? [this.isWeekend] : this.disabledDatesValue,
+      disable: this.disableWeekendsValue ? [this.isWeekend, ...this.disabledDatesValue] : this.disabledDatesValue,
       allowInput: this.allowInputValue,
       static: this.staticValue,
       onOpen: [this.joinTopLayer],

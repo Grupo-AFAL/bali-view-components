@@ -74,7 +74,7 @@ module Bali
           disabled_dates: (options[:disabled_dates] || []).to_json
         }
 
-        if options[:mode] == "range"
+        if options[:mode].to_s == "range"
           if options[:value].respond_to?(:first) && !options[:value].is_a?(String)
             values[:default_dates] = [ options[:value].first, options[:value].last ]
           elsif options[:value].is_a?(String) && options[:value].present?
@@ -160,7 +160,12 @@ module Bali
           }
         }.merge(dup_options(options[:wrapper_options] || {}))
 
-        cv = controller_values(method, options)
+        cv = controller_values(method, options).compact
+        # The same attribute in `wrapper_options:` would render beside the option's, and a parser
+        # keeps the first. TimeFields#merged_time_options does the same for the time options.
+        written = cv.keys.map { |key| "data-datepicker-#{hyphenize(key)}-value" }
+        wrapper_options.reject! { |name, _| written.include?(name.to_s) }
+
         prepend_values(wrapper_options, "datepicker", cv)
         wrapper_options
       end

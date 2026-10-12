@@ -95,8 +95,9 @@ describe('Datepicker arrows', () => {
   })
 
   // flatpickr drops a disabled date from the selection, so landing on one would empty the field
-  // and submit `date=`. The preview's weekdays-only field holds a Friday.
-  it('skips the disabled dates to the next enabled one, in the direction of the arrow', () => {
+  // and submit `date=`. The preview's field holds a Friday, under `disable_weekends` and with the
+  // Monday after it in `disabled_dates`: both count.
+  it('skips weekends and disabled dates alike, in the direction of the arrow', () => {
     field('end_date').should('have.attr', 'type', 'hidden').and('have.value', '2026-10-16')
 
     field('end_date').then($input => {
@@ -104,14 +105,14 @@ describe('Datepicker arrows', () => {
 
       arrow('end_date', 'nextDate').click()
       field('end_date').should($after => {
-        expect($after.val()).to.equal('2026-10-19')
-        expect(changes).to.deep.equal(['2026-10-19'])
+        expect($after.val()).to.equal('2026-10-20')
+        expect(changes).to.deep.equal(['2026-10-20'])
       })
 
       arrow('end_date', 'previousDate').click()
       field('end_date').should($after => {
         expect($after.val()).to.equal('2026-10-16')
-        expect(changes).to.deep.equal(['2026-10-19', '2026-10-16'])
+        expect(changes).to.deep.equal(['2026-10-20', '2026-10-16'])
       })
     })
   })

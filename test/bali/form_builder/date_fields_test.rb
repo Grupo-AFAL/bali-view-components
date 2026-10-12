@@ -108,6 +108,24 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     assert_html(result, "div[data-datepicker-default-dates-value]")
   end
 
+  def test_date_group_with_a_symbol_range_mode_passes_default_dates_to_datepicker_controller
+    result = builder.date_group(:release_date, mode: :range, value: %w[2024-01-01 2024-01-31])
+    assert_html(result, %(div[data-datepicker-default-dates-value='["2024-01-01","2024-01-31"]']))
+  end
+
+  # Both spellings would render, and a parser keeps the first.
+  def test_an_option_replaces_the_same_attribute_written_in_wrapper_options
+    result = builder.date_field(:release_date, min_date: "2026-01-01",
+                                               wrapper_options: { "data-datepicker-min-date-value": "2025-01-01" })
+    assert_html(result, '.fieldset[data-datepicker-min-date-value="2026-01-01"]')
+    assert_equal 1, result.scan("data-datepicker-min-date-value").size
+
+    result = builder.datetime_field(:release_date, time_24hr: true,
+                                                   wrapper_options: { "data-datepicker-time24hr-value": false })
+    assert_html(result, '.fieldset[data-datepicker-time24hr-value="true"]')
+    assert_equal 1, result.scan("data-datepicker-time24hr-value").size
+  end
+
   # Counted in the markup: two writers of the same key render the attribute twice, and a parser
   # keeps the first one without a word.
   def test_every_date_family_passes_default_date_to_datepicker_controller_once

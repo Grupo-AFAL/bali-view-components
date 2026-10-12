@@ -26,6 +26,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que el valor del input, así que en un `datetime_*` o `time_*` de un formulario de edición
   reemplazaba la fecha guardada. Ninguna app lo pasa.
 
+- **`mode: :range` como símbolo no pasaba el valor del rango al calendario** (`default_dates`);
+  sólo la cadena `"range"` lo hacía. Las tres apps que usan rango escriben la cadena.
+
+- **`disable_weekends: true` anulaba `disabled_dates:`**: el calendario y las flechas sólo
+  deshabilitaban los fines de semana. Ahora cuentan las dos. Ninguna app las usa.
+
+- **Una opción de fecha y el mismo `data-datepicker-*-value` en `wrapper_options:` pintaban el
+  atributo dos veces** (`min_date:`, `time_24hr:`, …), y el navegador se quedaba con el primero,
+  que en las opciones de hora era el de `wrapper_options`. Ahora sale una vez, con el valor de la
+  opción. afal-apps puede cambiar el rodeo `wrapper_options: { "data-datepicker-time24hr-value":
+  true }` de `marketing/pop_requests/fields/_recorded_date.html.erb` por `time_24hr: true`.
+
 - **Textarea `auto_grow`: un `form.reset()` con el campo oculto lo dejaba al alto de sus `rows`**
   al volver a mostrarse, con el texto restaurado fuera de vista. Ahora se ajusta en cuanto vuelve
   a tener caja. Nada que hacer en las apps.
