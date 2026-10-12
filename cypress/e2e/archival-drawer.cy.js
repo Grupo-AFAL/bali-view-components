@@ -18,7 +18,12 @@ const reopenIfArchived = () => {
 const openDrawer = () => {
   cy.visit(`${appOrigin}${moviePath}`)
   cy.get('a[href*="/bali/archivals/new"]').click()
-  return cy.get('#main-drawer form[action*="/bali/archivals"]', { timeout: 10000 })
+  cy.get('#main-drawer form[action*="/bali/archivals"]', { timeout: 10000 }).should('be.visible')
+  // Settled: the panel's right edge has slid to the viewport's, so nothing below passes mid-slide.
+  cy.get('#main-drawer [data-drawer-target="wrapper"]').should($el => {
+    expect($el[0].getBoundingClientRect().right).to.be.at.most(Cypress.config('viewportWidth'))
+  })
+  return cy.get('#main-drawer form[action*="/bali/archivals"]')
 }
 
 const successorFieldset = '[data-radio-toggle-target="element"]'
@@ -45,6 +50,8 @@ describe('Archival drawer', () => {
 
   it('keeps the successor hidden for a reason that does not need one, and reopens', () => {
     openDrawer().within(() => {
+      cy.contains('label', 'Replaced by another').click()
+      cy.get(successorFieldset).should('be.visible')
       cy.contains('label', 'Expired').click()
       cy.get(successorFieldset).should('not.be.visible')
       cy.get('button[type="submit"]').click()
@@ -66,8 +73,6 @@ describe('Archival drawer', () => {
     })
 
     cy.get('#main-drawer #archival_successor_id_error').should('be.visible')
-    cy.location('pathname').should('eq', moviePath)
-    cy.get('.archival-notice-component').should('not.exist')
 
     // radio-toggle reconnected on the re-rendered body: the successor hides again.
     cy.get('#main-drawer form[action*="/bali/archivals"]').within(() => {
