@@ -1,0 +1,14 @@
+<%= tag.li(**options) do %>
+  <%= tag.span(class: "legend-item__marker", style: "background-color: #{marker_color}", "aria-hidden": true) %>
+  <% if icon.present? %>
+    <%= render Bali::Icon::Component.new(icon, size: :small, **icon_options) %>
+  <% end %>
+  <% if description.present? %>
+    <%= render Bali::Tooltip::Component.new do |tooltip| %>
+      <% tooltip.with_trigger { tag.span(label, class: "legend-item__label legend-item__label--described") } %>
+      <%= description %>
+    <% end %>
+  <% else %>
+    <%= tag.span(label, class: "legend-item__label") %>
+  <% end %>
+<% end %>

@@ -358,6 +358,8 @@ es:
     chart:
       loading: Cargando...
       default_label: Gráfica
+    legend:
+      label: Leyenda
     clipboard:
       copied: ¡Copiado!
       copy_label: Copiar al portapapeles

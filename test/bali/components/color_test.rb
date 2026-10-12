@@ -3,8 +3,8 @@
 require "test_helper"
 
 # The point of #691 is that `color:` means one thing across the library, so this
-# file walks the seven components that take one rather than asserting the same
-# thing seven times in seven files. A component added to COMPONENTS gets the
+# file walks the eight components that take one rather than asserting the same
+# thing eight times in eight files. A component added to COMPONENTS gets the
 # whole contract for free; one that cannot pass it does not belong in the table.
 class BaliColorContractTest < ComponentTestCase
   HEATMAP_DATA = { Mon: { 0 => 1, 1 => 2 }, Tue: { 0 => 3, 1 => 4 } }.freeze
@@ -29,7 +29,8 @@ class BaliColorContractTest < ComponentTestCase
     },
     "Bali::Kanban::Column" => lambda { |**color|
       Bali::Kanban::Column::Component.new(title: "Todo", status: "todo", **color)
-    }
+    },
+    "Bali::Legend::Item" => ->(**color) { Bali::Legend::Item::Component.new(label: "Current", **color) }
   }.freeze
 
   COMPONENTS.each do |name, build|
