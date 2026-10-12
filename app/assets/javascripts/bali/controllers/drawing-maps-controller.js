@@ -27,7 +27,7 @@ export class DrawingMapsController extends Controller {
 
     try {
       this.googleMaps = await GoogleMapsLoader({
-        libraries: ['drawing', 'geometry'],
+        libraries: ['geometry'],
         language: 'es',
         key: this.data.get('key')
       })

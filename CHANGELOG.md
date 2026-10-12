@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Google Maps: una llamada al loader después de la primera recibe las bibliotecas que pide**
+  (#1409). La API se carga una vez por página, con las opciones de la primera llamada, y
+  `loadGoogleMapsApi` ignoraba en silencio lo que pedían las siguientes: un `autocomplete-address`
+  en una página donde `LocationsMap` ya la había cargado fallaba con `Cannot read properties of
+  undefined (reading 'Autocomplete')`. Ahora cada llamada importa sus `libraries` con
+  `google.maps.importLibrary`, y una `key`, `language`, `region`, `v`, `channel` o `client`
+  distinta de la cargada, que no puede cambiar sin recargar, avisa en la consola una vez por
+  opción. Una biblioteca que la API no conoce hace fallar la llamada, que antes la ignoraba si no
+  era la primera. Los parámetros de la URL del script van codificados, y `timeout: 0` espera sin
+  plazo, como en XHR, en vez de volverse 10 s. `LocationsMap` deja de pedir `drawing`, que no usa,
+  y `drawing-maps` también: ninguna versión que Google sirve construye su `DrawingManager`. Nada
+  que hacer en la app.
+
 - **`Avatar::Upload` e `ImageField` se usan con el teclado** (#1409). Su `<input type="file">`
   estaba en `display: none`: Tab nunca llegaba y nada abría el selector sin ratón. Ahora queda
   invisible sobre el botón de la cámara y sobre la imagen, como el de `file_group` desde #1385:
@@ -30,6 +43,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   la foto se ve también junto al campo, como ya pasa con cada `text_group` del formulario; el
   avatar sigue centrado dentro de su `flex justify-center`, con mensaje o sin él. Ninguna app usa
   `ImageField`, y nada apunta a esos inputs.
+
+### Dependencies
+
+- **Con tailwindcss-rails, `@tailwindcss/typography` no va en `package.json`** (alerta de
+  dependabot #254: typography 0.5.20 fija `postcss-selector-parser` 6.0.10). El binario de
+  tailwindcss-rails trae el plugin embebido y no lee el de `node_modules`;
+  `bin/rails g bali:install` ya sólo pide el paquete donde Tailwind sale de npm. La dummy lo
+  quita. **Anfitrión:** afal-apps, gobierno-corporativo, identity, costa-norte, centinela-web y
+  opina pueden quitarlo de `devDependencies`; es lo único que trae ahí la 6.0.10, así que eso
+  cierra la alerta. (centinela-web: borrar también su `tailwind.config.js`, que ningún
+  `@config` carga.)
 
 ## [v3.12.0] - 2026-10-11
 
