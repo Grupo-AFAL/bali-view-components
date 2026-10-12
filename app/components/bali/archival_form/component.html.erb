@@ -18,5 +18,5 @@
 
   <%# The engine serves this form as a drawer body. Rendered on a page, `drawer#submit` finds no
       panel and degrades to a plain submit (#984). %>
-  <%= form.submit_group t(".submit"), drawer: true, cancel_path: return_to.presence %>
+  <%= form.submit_group t(".submit"), drawer: true, cancel_path: return_to %>
 <% end %>

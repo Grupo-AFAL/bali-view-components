@@ -12,7 +12,7 @@ module Bali
         @record = record
         @successors = successors
         @url = url
-        @return_to = return_to
+        @return_to = Bali::Archival.local_path(return_to)
         @archival = archival || Bali::Archival.new(archivable: record)
       end
 
