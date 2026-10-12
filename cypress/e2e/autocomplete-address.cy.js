@@ -20,7 +20,7 @@ describe('autocomplete-address', () => {
 
   const TARGETS = ['street', 'streetNumber', 'neighbourhood', 'city', 'state', 'country', 'postalCode', 'latitude', 'longitude']
 
-  const mount = (attributes = '') => {
+  const mount = ({ attributes = '', built = true } = {}) => {
     cy.visit('/bali/empty_state/default')
     cy.get('body').then(([body]) => body.insertAdjacentHTML('beforeend', `
       <form id="address-form">
@@ -30,8 +30,13 @@ describe('autocomplete-address', () => {
           ${TARGETS.map((target) => `<input type="text" name="${target}" data-autocomplete-address-target="${target}">`).join('')}
         </div>
       </form>`))
+    if (built) {
+      cy.window().should((win) => expect(win.__fakeMaps?.registry.autocompletes, 'autocomplete built').to.have.length(1))
+      return
+    }
+
+    // Nothing to wait for when it builds no box: it would have, a microtask after the import.
     cy.window().should((win) => expect(win.google?.maps?.places, 'places imported').to.not.eq(undefined))
-    // The controller builds a microtask after the import resolves.
     cy.wait(50)
   }
 
@@ -138,7 +143,7 @@ describe('autocomplete-address', () => {
         expect([input.hidden, input.disabled, input.readOnly]).to.deep.eq([false, attribute === 'disabled', attribute === 'readonly'])
       })
 
-      mount(attribute)
+      mount({ attributes: attribute, built: false })
       expectUntouched()
 
       cy.document().then((doc) => doc.dispatchEvent(new Event('turbo:before-cache')))
