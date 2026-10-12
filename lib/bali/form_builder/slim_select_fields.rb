@@ -29,6 +29,8 @@ module Bali
         content_width: nil
       }.freeze
 
+      # slim-select-controller.js keeps the `en` and `es` strings of these keys in its TEXTS,
+      # for a select written by hand, which gets none of these values.
       TEXT_KEYS = {
         placeholder: :placeholder,
         search_placeholder: :search_placeholder,

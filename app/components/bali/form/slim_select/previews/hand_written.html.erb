@@ -1,0 +1,17 @@
+<%# `lang` stands for the host layout's `<html lang>`. The first select comes from
+    `slim_select_field`, which writes Bali's translations onto it; the second is written by
+    hand, carries none, and reads that `lang` instead (#1389). %>
+<div lang="<%= lang %>" class="grid gap-4 max-w-sm">
+  <% I18n.with_locale(lang) do %>
+    <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+      <%= form.slim_select_group :name, options, include_blank: true, allow_deselect_option: true,
+                                                 label: 'From slim_select_field' %>
+    <% end %>
+  <% end %>
+
+  <div class="slim-select" data-controller="slim-select" data-slim-select-allow-deselect-option-value="true">
+    <%= select_tag :hand_written, options_for_select([['', '', { data: { placeholder: true } }], *options]),
+                   class: 'select select-bordered', 'aria-label': 'Written by hand',
+                   data: { slim_select_target: 'select' } %>
+  </div>
+</div>

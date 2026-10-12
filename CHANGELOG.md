@@ -153,6 +153,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   conectar, pasaba al cargar la página. Ninguna de las siete apps tiene un `Bali::Tooltip` en esa
   barra (`git grep` en `origin/main`), así que nadie lo vio; nada que hacer en la app.
 
+- **SlimSelect escrito a mano habla el idioma de la página, y su cuenta de resultados ya no
+  incluye el placeholder (#1389).**
+  - Un `div[data-controller="slim-select"]` fuera del FormBuilder no lleva los
+    `data-slim-select-*-value` que escribe `slim_select_field` y salía en inglés: «Select
+    value», «Search...», «Clear», «N results available», «No results». Ahora el controlador
+    toma los mismos textos `en`/`es` de `bali_view.form_builder.slim_select` según el `lang`
+    más cercano, el `<html lang="es">` del layout. Sin `lang`, o en otro idioma, usa inglés.
+    Un `data-slim-select-*-value` escrito en el elemento sigue ganando, y un override de esas
+    llaves en la app sólo llega al FormBuilder. Las islas React que llaman a `new SlimSelect`
+    no pasan por el controlador y conservan sus textos.
+  - SlimSelect contaba el placeholder (`include_blank:`/`prompt:` de `slim_select_field`, o un
+    `<option data-placeholder="true">`) entre los resultados que anuncia, aunque lo dibuja
+    oculto. Una búsqueda remota sin coincidencias dejaba la lista en blanco y anunciaba «1
+    results available», y cuatro coincidencias anunciaban «5». Ahora la cuenta lo deja fuera,
+    y una lista que sólo lo tiene a él muestra y anuncia «Sin resultados» (`no_results`), igual
+    que un select sin placeholder.
+  - **Anfitrión:** nada que hacer. Los cinco selects escritos a mano de gobierno-corporativo,
+    en cuatro vistas, pasan al español en lo que no fijan ellos mismos. El `prompt:` de sus dos
+    selects remotos sale de `f.select` sin `data-placeholder`, así que para SlimSelect es una
+    opción visible y se sigue contando; `slim_select_field` sí lo vuelve placeholder (#1397).
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
