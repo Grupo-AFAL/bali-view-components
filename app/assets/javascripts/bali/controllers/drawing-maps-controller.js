@@ -218,6 +218,8 @@ export class DrawingMapsController extends Controller {
   }
 
   clearHoles = () => {
+    // With no map nothing is drawn yet, and storing that would erase the shells in the field.
+    if (!this.map) return
     if (!window.confirm(this.confirmationMessageToClearValue)) return
 
     const shells = this.drawnPolygons.map(polygon => {

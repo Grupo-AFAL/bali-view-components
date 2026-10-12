@@ -214,7 +214,7 @@ export default class extends Controller {
 
     this.fold(item)
     this.sync()
-    item.dataset.toolbarOverflowWidth = Math.round(required - this.requiredWidth())
+    item.dataset.toolbarOverflowWidth = required - this.requiredWidth()
   }
 
   fitsBack (item) {

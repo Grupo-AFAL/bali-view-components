@@ -137,19 +137,24 @@ describe('Google Maps loader', () => {
   // `coordinates_polygon_group` renders «Clear» and «Clear holes» beside the map, clickable while
   // the script is still loading.
   it('lets drawing-maps clear before its map exists', () => {
+    const stored = JSON.stringify({ shells: [[{ lat: 32.51, lng: -117.01 }, { lat: 32.52, lng: -117 }, { lat: 32.5, lng: -117 }]], holes: [] })
+
     stubGoogleMaps({ delay: 2000 })
     visit()
     mount(`
       <div data-controller="drawing-maps" data-drawing-maps-key="">
         <div data-drawing-maps-target="map"></div>
-        <input type="hidden" value='{"shells":[],"holes":[]}' data-drawing-maps-target="polygonField">
+        <input type="hidden" value='${stored}' data-drawing-maps-target="polygonField">
         <button type="button" data-action="drawing-maps#clearHoles">Clear holes</button>
         <button type="button" data-action="drawing-maps#clear">Clear</button>
       </div>`)
     cy.on('window:confirm', () => true)
     cy.window().should((win) => expect(win.__fakeMaps, 'still loading').to.eq(undefined))
 
+    // Only holes go: the shell the form was rendered with stays in the field.
     cy.contains('button', 'Clear holes').click()
+    cy.get('[data-drawing-maps-target="polygonField"]').should('have.value', stored)
+
     cy.contains('button', /^Clear$/).click()
 
     // Stimulus catches what an action throws and logs it.

@@ -22,8 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Un mapa de Google cuyo script llega después del timeout se construye al llegar (#1409).**
   LocationsMap, `geocoder-maps`, `drawing-maps` y `autocomplete-address` no se construían nunca
   si el script de Google tardaba más que los 10 s del loader; ahora piden la API sin plazo
-  (`timeout: 0`) y construyen una sola vez cuando el script llega, si siguen en la página. Un
-  script que falla sigue registrando su error. Un mapa reconectado mientras el script carga ya
+  (`timeout: 0`) y construyen una sola vez cuando el script llega, si siguen en la página, así
+  que ya no registran «Timed out loading the Google Maps API» a los 10 s. Un script que falla
+  sigue registrando su error. Un mapa reconectado mientras el script carga ya
   no construye dos mapas en el mismo elemento.
 
 - **El ⋯ de la barra del DataTable sólo mueve lo que cambia de lugar (#1409).** Cada recálculo
