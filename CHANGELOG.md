@@ -52,11 +52,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 
-- **ransack queda acotado a `>= 5.0.2, < 6.0` en el gemspec.** 5.0.2 es la primera 5.x con el parche
-  de GHSA-vxc9-rm8f-p56j y de GHSA-j3f8-w227-4hh8, que llegan por el `q[...]` de un `FilterForm`;
-  6.0 no se ha probado con Bali. **Anfitrión:** nada que hacer: las siete apps ya están en 5.0.2 y declaran
-  ransack porque lo usan directamente (`ransackable_attributes`). ga-apps, en Bali 1.2.4 con
-  ransack 4.1.1 (`~> 4`), tendrá que pasar a 5.0.2 al subir de Bali.
+- **ransack queda acotado a `>= 5.0.2, < 6.0` en el gemspec.** 5.0.2 es la primera 5.x con el
+  parche de GHSA-vxc9-rm8f-p56j y de GHSA-j3f8-w227-4hh8, que llegan por el `q[...]` de un
+  `FilterForm`; 6.0 no se ha probado con Bali. **Anfitrión:** nada que hacer: las siete apps ya
+  están en 5.0.2 y declaran ransack porque lo usan directamente (`ransackable_attributes`).
+  ga-apps, en Bali 1.2.4 con ransack 4.1.1 (`~> 4`), tendrá que pasar a 5.0.2 al subir de Bali.
 
 ## [v3.13.0] - 2026-10-12
 
