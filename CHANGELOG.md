@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.13.0] - 2026-10-12
+
 ### Added
 
 - **`placeholder_min:` y `placeholder_max:` aceptan un proc sin argumentos**, como `placeholder:`
