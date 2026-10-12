@@ -92,8 +92,9 @@ before assuming a name maps:
 - `app/components/bali/icon/lucide_mapping.rb` — legacy Bali names → Lucide (authoritative)
 - `app/components/bali/icon/kept_icons.rb` — brand, regional and custom-domain SVGs
 
-Sizing is Tailwind (`size-3.5`, `size-4`, `size-5`, `size-6`) or the component's
-`size:` keyword where it has one.
+Size it with a Tailwind utility in `class:` (`size-3.5`, `size-5`, `w-5 h-5`) or with
+`size:` (`:small`, `:medium`, `:large` or pixels); with both, the class wins. Either one
+sizes the glyph, not only its box. With neither, the icon is 16px.
 
 ## The handbook templates (Nexus / Scalo)
 

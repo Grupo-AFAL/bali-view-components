@@ -26,7 +26,7 @@ module Bali
       # @param name select { choices: [user, check, alert, trash, edit, search, home, settings, bell, star, heart, mail, phone, calendar, clock, download, upload, copy, filter, plus, minus, x, chevron-down, chevron-up, chevron-left, chevron-right, arrow-left, arrow-right] }
       # @param size select { choices: [~, small, medium, large] }
       def default(name: 'user', size: nil)
-        render Icon::Component.new(name, size: size&.to_sym)
+        render Bali::Icon::Component.new(name, size: size&.to_sym)
       end
 
       # Icon with custom styling
@@ -36,7 +36,15 @@ module Bali
       # @param name text
       # @param color select { choices: [text-soft-primary, text-soft-secondary, text-soft-accent, text-soft-success, text-soft-warning, text-soft-error, text-soft-info] }
       def with_custom_class(name: 'star', color: 'text-soft-primary')
-        render Icon::Component.new(name, class: color)
+        render Bali::Icon::Component.new(name, class: color)
+      end
+
+      # Sizing
+      # ------
+      # A size utility in `class:` sizes the glyph, not only its box, and wins over
+      # `size:`. With neither, the icon is 16px.
+      def sizing
+        render_with_template(template: 'bali/icon/previews/sizing')
       end
 
       # Lucide-mapped icons
@@ -119,7 +127,7 @@ module Bali
       #
       # @param name text
       def direct_lucide(name: 'activity')
-        render Icon::Component.new(name)
+        render Bali::Icon::Component.new(name)
       end
     end
   end

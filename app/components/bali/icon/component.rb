@@ -40,36 +40,28 @@ module Bali
                                .sort.freeze
       end
 
+      # In pixels.
       SIZES = {
-        small: "size-4",
-        medium: "size-8",
-        large: "size-12"
-      }.freeze
-
-      # Size mappings for Lucide icons (in pixels)
-      LUCIDE_SIZES = {
         small: 16,
         medium: 32,
         large: 48
       }.freeze
 
-      # SVG size classes for child elements
-      SIZE_SVG_CLASSES = {
-        medium: "*:h-8 *:w-8",
-        large: "*:h-12 *:w-12"
-      }.freeze
+      # Nothing but the hook: bali/general.css holds the look, where a caller's utility wins.
+      CLASSES = "icon-component"
 
       # @param name [String, Symbol] Icon name (Bali name or Lucide name)
       # @param tag_name [Symbol] HTML tag to wrap the icon (:span, :div, etc.)
       # @param size [Symbol, Numeric] Icon size — :small / :medium / :large or
-      #   an integer in pixels (e.g. 24)
+      #   an integer in pixels (e.g. 24). A size utility in `class:` (`size-6`,
+      #   `w-5 h-5`) wins over it.
       # @param options [Hash] Additional HTML attributes
       def initialize(name, tag_name: :span, size: nil, **options)
         @name = name.to_s
         @tag_name = tag_name
-        @size = size
-        options = apply_size_style(options) if numeric_size?
-        @options = hide_from_assistive_tech(prepend_class_name(options, component_classes))
+        @size = known_size(size)
+        options = apply_size_style(options) if @size
+        @options = hide_from_assistive_tech(prepend_class_name(options, CLASSES))
       end
 
       def call
@@ -139,16 +131,34 @@ module Bali
         @size.is_a?(Numeric)
       end
 
+      # @deprecated An unknown key falls back to the default 16px, as it always did, but
+      #   without a word it let `size: :sm` live on in Avatar::Upload. Raises in 4.0.
+      def known_size(size)
+        return size if size.nil? || size.is_a?(Numeric)
+        return size.to_sym if SIZES.key?(size.to_sym)
+
+        Bali.deprecator.warn(
+          "Bali::Icon(size: #{size.inspect}) is not a size and raises in 4.0; it renders at the " \
+          "default 16px. Valid: #{SIZES.keys.map(&:inspect).join(', ')}, or pixels as a number."
+        )
+        nil
+      end
+
       def pixel_size
         return @size.to_i if numeric_size?
 
-        LUCIDE_SIZES[@size] || 16
+        SIZES.fetch(@size, 16)
       end
 
+      # Only the variable: an inline `width`/`height` would outrank a caller's `size-*`.
       def apply_size_style(options)
-        px = "#{@size.to_i}px"
-        sizing = "width: #{px}; height: #{px}; --bali-icon-size: #{px}"
-        options.merge(style: [ sizing, options[:style] ].compact.join("; "))
+        options.merge(style: [ "--bali-icon-size: #{size_value}", options[:style] ].compact.join("; "))
+      end
+
+      # Named sizes in rem, like the 1rem default in bali/general.css, so a root font-size
+      # other than 16px moves them together.
+      def size_value
+        numeric_size? ? "#{@size.to_i}px" : "#{pixel_size / 16}rem"
       end
 
       # Checks if a Lucide icon exists
@@ -212,29 +222,6 @@ module Bali
 
       def comparable_name(name)
         name.to_s.downcase.tr("_", "-")
-      end
-
-      def component_classes
-        return numeric_component_classes if numeric_size?
-
-        class_names(
-          "icon-component",
-          "inline-flex items-center justify-center",
-          "*:inline-block *:h-4 *:w-4 *:overflow-visible",
-          SIZES[@size],
-          SIZE_SVG_CLASSES[@size]
-        )
-      end
-
-      # Numeric sizes drive the wrapper and direct children via inline style
-      # plus the `--bali-icon-size` CSS variable, so no Tailwind safelist is
-      # required and consumers can pass any pixel value.
-      def numeric_component_classes
-        class_names(
-          "icon-component",
-          "inline-flex items-center justify-center",
-          "*:inline-block *:overflow-visible"
-        )
       end
     end
   end

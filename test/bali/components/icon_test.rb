@@ -15,25 +15,28 @@ class BaliIconComponentTest < ComponentTestCase
     assert_selector('span[id="my-icon"]')
   end
 
-  def test_sizes_renders_with_small_size_class
-    render_inline(Bali::Icon::Component.new("snowflake", size: :small))
-    assert_selector("span.icon-component.size-4")
+  # In rem, like the 1rem default in bali/general.css: a root font-size other than 16px
+  # moves them together.
+  def test_sizes_named_sizes_set_the_size_variable_in_rem
+    { small: 1, medium: 2, large: 3 }.each do |size, rem|
+      render_inline(Bali::Icon::Component.new("snowflake", size: size))
+      assert_selector("span.icon-component[style='--bali-icon-size: #{rem}rem']")
+    end
   end
 
-  def test_sizes_renders_with_medium_size_class
-    render_inline(Bali::Icon::Component.new("snowflake", size: :medium))
-    assert_selector("span.icon-component.size-8")
+  # Raises in 4.0. Until then it draws the default, which is what it always drew.
+  def test_sizes_unknown_key_warns_and_renders_the_default
+    assert_deprecated(/Bali::Icon\(size: :sm\).*Valid: :small, :medium, :large/, Bali.deprecator) do
+      render_inline(Bali::Icon::Component.new("snowflake", size: :sm))
+    end
+    assert_selector("span.icon-component:not([style])")
   end
 
-  def test_sizes_renders_with_large_size_class
-    render_inline(Bali::Icon::Component.new("snowflake", size: :large))
-    assert_selector("span.icon-component.size-12")
-  end
-
-  def test_sizes_numeric_size_renders_inline_style_with_pixel_dimensions
+  # #1424: an inline `width`/`height` would outrank a caller's `size-*` class.
+  # That the class wins is measured in cypress/e2e/icon-size.cy.js.
+  def test_sizes_numeric_size_sets_only_the_size_variable
     render_inline(Bali::Icon::Component.new("snowflake", size: 24))
-    assert_selector("span.icon-component[style*='width: 24px'][style*='height: 24px']")
-    assert_selector("span.icon-component[style*='--bali-icon-size: 24px']")
+    assert_selector("span.icon-component[style='--bali-icon-size: 24px']")
   end
 
   # Deliberately NOT 24: Lucide's default is 24, so a 24px fixture passes even
@@ -55,11 +58,13 @@ class BaliIconComponentTest < ComponentTestCase
     refute_match(/(?<!-)width="24"/, rendered_content)
   end
 
-  def test_sizes_numeric_size_drops_named_size_classes
-    render_inline(Bali::Icon::Component.new("snowflake", size: 24))
-    refute_selector("span.size-4")
-    refute_selector("span.size-8")
-    refute_selector("span.size-12")
+  # #1424: a size utility on the wrapper ties with the caller's in @layer utilities,
+  # and the order Tailwind emits them in, not the caller, picks the winner.
+  def test_sizes_the_wrapper_carries_no_size_utility
+    [ nil, :medium, 24 ].each do |size|
+      render_inline(Bali::Icon::Component.new("snowflake", size: size))
+      refute_match(/(^|\s)(\*:)?(size|w|h)-/, page.find("span.icon-component")[:class])
+    end
   end
 
   def test_sizes_numeric_size_preserves_user_supplied_inline_style

@@ -33,6 +33,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   todas las llamadas, esos slots y los mapas de `Tag.for` pasan una variante o `nil`; nada que
   hacer.
 
+- **Una clase de tamaño en `Bali::Icon` dimensiona el ícono, no sólo su caja (#1424).**
+  `Icon::Component.new(name, class: "size-6")`, o `w-5 h-5`, dejaba el glyph en 16 px: el
+  `*:h-4 *:w-4` del wrapper, en `@layer utilities`, le ganaba a la clase. El aspecto del Icon vive
+  ahora en `bali/general.css`, en `@layer components`, y lo que llega en `class:` gana: una
+  utilidad de tamaño mide el glyph y la caja, también por encima de `size:` (antes ganaba el
+  `width` en línea de un `size:` numérico), y `hidden`, `block` o `inline-block` aplican, donde
+  antes los tapaba el `inline-flex`. Vale igual para lo que llega por `icon_class:` y por los
+  slots `with_icon`. Sin clase de tamaño, el default y `size:` se ven igual que antes. Los
+  tamaños con nombre pasan a rem (`1rem`, `2rem`, `3rem`), como el default.
+
+  En Bali cambia el glyph donde se había escrito otro tamaño. Pasan a 14 px el ícono de cada fila
+  de Command y los chevrons del SideMenu; el MenuSwitch pasa a 24 y la subida de DirectUpload a
+  40. Pasan a 20 los demás íconos de DirectUpload, Topbar::IconAction, BooleanIcon, el ⋯ de
+  IndexPage y ShowPage, el título y la ✕ del panel de Filters y el marcador de persistencia.
+  Pasan a 12 TrendIndicator, el enlace de Widget::Card, el chevron de Group by, el lápiz y el bote
+  de las vistas guardadas, el «guardado» y el aviso de condición incompleta de Filters, y a 10 la
+  ✕ de las etiquetas de Filters. Cada fila de una tabla con un BooleanIcon crece 2 px.
+
+  **Anfitrión:** cambian sus Icon con una clase de tamaño distinta de 4 (`size-N`, `w-N h-N`,
+  `size-[18px]`). Para conservar el glyph de 16 px (la caja pasa a 16), la clase pasa a
+  `size-4`. Un Icon con `inline` en `class:` ahora es `inline`: queda sobre la línea base del
+  texto, 4 px más abajo que antes. Como hijo directo de `.breadcrumbs li`, `.footer`, `.dock` o
+  `.avatar`, el `display` de daisyUI gana ahora al del Icon; ninguna app tiene un Icon ahí.
+
 ### Deprecated
 
 - **`auto_upload:` de `Bali::DirectUpload` y de `direct_upload_field`/`direct_upload_group`
@@ -43,6 +67,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Anfitrión:** gobierno-corporativo pasa `auto_upload: true` en
     `app/views/evidences/_upload_form.html.erb`: hay que borrar esa línea. Ninguna de las siete
     apps usa `false`.
+
+- **Un `size:` desconocido en `Bali::Icon` avisa por `Bali.deprecator`** y levanta
+  `ArgumentError` en 4.0. `size:` es `:small`, `:medium`, `:large` o un número de píxeles; otra
+  clave caía sin aviso al default de 16 px y lo sigue haciendo, así que no cambia nada a la
+  vista. Avatar::Upload pasaba `:sm` y pasa al default, los mismos 16 px.
+  **Anfitrión:** centinela-web: 28 llamadas (lista en el PR), que ahora avisan y siguen en
+  16 px. Antes de 4.0 hay que darle a cada una la clave o los píxeles que quiera; `:medium` y
+  `:large` son 32 y 48 px.
 
 ### Removed
 

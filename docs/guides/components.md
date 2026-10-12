@@ -3017,14 +3017,20 @@ Renders an icon by name, resolving Lucide icons first (1,600+ available), then k
 
 ```erb
 <%= render Bali::Icon::Component.new('check', size: :large) %>
+<%= render Bali::Icon::Component.new('check', class: 'size-5') %>
 <%= render Bali::Icon::Component.new('alert', class: 'text-soft-error') %>
 ```
 
 **Options:**
 - `name` - Icon name: Bali name, Lucide name, or kept brand/regional icon (required, positional)
 - `tag_name` - Wrapper HTML tag (default: `:span`)
-- `size` - `:small`, `:medium`, `:large`, or an integer in pixels (default: nil, renders at 16px)
-- `**options` - Additional HTML attributes (e.g. `class`)
+- `size` - `:small`, `:medium`, `:large`, or an integer in pixels (default: nil, renders at 16px);
+  any other key warns through `Bali.deprecator`, renders at 16px and raises in 4.0. A size
+  utility in `class:` (`size-5`, `w-5 h-5`) sizes the icon too, and wins over `size:`. A
+  responsive or state variant needs a base size, `size-4 md:size-6`: with `md:size-6` alone, a
+  custom or kept SVG with no width/height attributes measured 0×0 below the breakpoint
+- `**options` - Additional HTML attributes (e.g. `class`). A display utility in `class:`
+  (`hidden`, `inline-block`) applies
 
 #### InfoLevel
 
