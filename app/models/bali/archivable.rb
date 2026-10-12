@@ -68,9 +68,11 @@ module Bali
     def archive!(by: nil, reason: nil, note: nil, successor: nil)
       raise AlreadyArchived if archived?
 
-      transaction(requires_new: true) do
+      archival = transaction(requires_new: true) do
         archivals.create!(archived_by: by, reason: reason, note: note, successor: successor)
-      end.tap { reset_archival }
+      end
+      reset_archival
+      archival
     rescue ActiveRecord::RecordNotUnique
       raise AlreadyArchived
     end
@@ -79,14 +81,14 @@ module Bali
       raise NotReversible unless archival_reversible
       raise NotArchived unless archived?
 
-      archival.tap do |current|
-        current.with_lock do
-          raise NotArchived if current.unarchived_at?
+      current = archival
+      current.with_lock do
+        raise NotArchived if current.unarchived_at?
 
-          current.update!(unarchived_at: Time.current, unarchived_by: by)
-        end
-        reset_archival
+        current.update!(unarchived_at: Time.current, unarchived_by: by)
       end
+      reset_archival
+      current
     end
   end
 end
