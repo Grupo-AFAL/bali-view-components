@@ -36,8 +36,8 @@ Every engine model follows the same four steps, so learning one teaches you the 
 The features on this page are unrelated to each other, and an app usually adopts one of
 them. Rails' plain `bali:install:migrations` does not know that: it copies **every**
 migration an engine ships, so asking for saved views also hands you every other
-feature's table — tables you never asked for, permanently in the `db/schema.rb` every one of your PRs
-reviews (#1079).
+feature's table — tables you never asked for, permanently in the `db/schema.rb` every one
+of your PRs reviews (#1079).
 
 So name the feature. One task per table, listed by `bin/rails -T bali`:
 
@@ -303,15 +303,16 @@ of them needing a successor, and makes the model irreversible.
 
 | Method | Does | Raises |
 |---|---|---|
-| `archive!(by:, reason:, note:, successor:)` | Creates the current archival; returns it | `AlreadyArchived` when one exists, including a concurrent archive; `ActiveRecord::RecordInvalid` for an unknown `reason`, a missing required successor, a successor that is the record itself, or a `note` over 500 characters |
-| `unarchive!(by:)` | Stamps `unarchived_at` and `unarchived_by` on the current archival; the row stays as history | `NotReversible` on a model without `reversible: true` (checked first); `NotArchived` when nothing is archived, including a concurrent reopen |
+| `archive!(by: nil, reason: nil, note: nil, successor: nil)` | Creates the current archival; returns it | `AlreadyArchived` when one exists, including a concurrent archive; `ActiveRecord::RecordInvalid` for an unknown `reason`, a missing required successor, a successor that is the record itself, or a `note` over 500 characters |
+| `unarchive!(by: nil)` | Stamps `unarchived_at` and `unarchived_by` on the current archival; the row stays as history | `NotReversible` on a model without `reversible: true` (checked first); `NotArchived` when nothing is archived, including a concurrent reopen |
 | `archived?` | Whether a current archival exists | |
 | `archival` | The current archival, or `nil` | |
 | `archivals` | Every archival, newest first | |
 | `Document.archived` | Records with a current archival | |
 | `Document.not_archived` | Records without one | |
 
-All the errors live under `Bali::Archivable`.
+The three errors (`AlreadyArchived`, `NotArchived`, `NotReversible`) live under
+`Bali::Archivable`.
 
 ### Reasons and their labels
 
@@ -362,17 +363,19 @@ The notice renders nothing for a record that is not archived. Pass `unarchive_ur
 example `bali.unarchive_archivals_path(record_type: 'Document', record_id: @document.id)`) to
 add a "Reopen" button; do it only for a reversible model and a person who may reopen.
 
-The form is a drawer body, served without a layout: the engine's controllers do not inherit
-your `ApplicationController` and cannot render your layout. To show it on a page of your own,
-render `Bali::ArchivalForm::Component` yourself.
+The form is a drawer body, served without a layout: the drawer inserts it, and the engine's own
+layout links a stylesheet no host ships. To show it on a page of your own, render
+`Bali::ArchivalForm::Component.new(record:, successors:, url: bali.archivals_path, return_to:)`
+yourself. The post still goes to the engine, so a validation failure comes back as the same
+layoutless `422` body. `new_archival_path` takes `return_to:` as a query parameter too.
 
 Where the person lands afterwards is `return_to` when it is a local path, else the record's own
 page (`main_app.polymorphic_path(record)`). Anything else in `return_to` (`//host`,
 `javascript:`) is dropped by both the form and the controller. With a local `return_to`, Cancel
 is a link to it: inside the drawer it only closes the drawer, on a page it navigates. Without
-one, Cancel is a button that only closes the drawer.
+one, Cancel is a button that only closes the drawer, so on a page it does nothing.
 
-The HTTP side needs four settings, all default-deny: see
+The HTTP side needs four settings, the first two default-deny: see
 [Archivals in Engines](engines.md#archivals-721). A malformed `archival` parameter answers
 `400`; a validation failure answers `422` and re-renders the form in the drawer.
 
@@ -381,7 +384,7 @@ The HTTP side needs four settings, all default-deny: see
 `Bali::Archivable` is namespaced, so it never resolves to an `Archivable` of your own, but one
 model cannot include both: they define the same `archive!` and `archived?`. Four fleet apps
 have an `Archivable` already (an `archived_at` flag): afal-apps, opina, costa-norte and
-centinela-web (measured on each `origin/main`). Gobierno-corporativo has one too, and replaces
+centinela-web. Gobierno-corporativo has one too, and replaces
 it with this one.
 
 ### Porting the table from gobierno-corporativo

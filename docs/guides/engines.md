@@ -461,15 +461,14 @@ end
 Bali.archivals_actor = ->(controller) { controller.current_user }
 
 Bali.archival_successors = lambda do |controller, document|
-  Pundit.policy_scope!(controller.current_user, Document).where.not(id: document.id)
+  Pundit.policy_scope!(controller.current_user, Document).not_archived.where.not(id: document.id)
 end
 ```
 
 `archivables` is the whitelist of `record_type` to resolver, empty by default, so every
 `record_type` answers 404 and the parameter is never a `constantize`. The engine's controllers
 do not include Pundit, so call it by its module. The resolver returns `nil` without a session
-because `current_user` is `nil` there and a policy scope cannot take it: that is a 404, not an
-error.
+so a `nil` user never reaches your policy scope: that is a 404, not an error.
 
 `archivals_authorize` receives the action: `"new"`, `"create"` or `"unarchive"`, so the form,
 archiving and reopening can be gated separately. Falsy answers 403.
