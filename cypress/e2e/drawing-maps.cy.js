@@ -92,11 +92,15 @@ describe('drawing-maps', () => {
     mount()
     fakeMaps((maps) => SHELL.slice(0, 2).forEach((vertex) => maps.click(vertex)))
 
+    const vertices = (label, expected) => fakeMaps(({ registry }) => {
+      expect(registry.polylines.map((line) => line.getPath().getLength()), label).to.deep.eq(expected)
+    })
+
     fakeMaps((maps) => maps.clickMidpoint(0))
-    fakeMaps(({ registry }) => expect(registry.polylines[0].getPath().getLength(), 'after the handle').to.eq(2))
+    vertices('after the handle', [2])
 
     fakeMaps((maps) => maps.clickLine({ lat: 32.53, lng: -117.03 }))
-    fakeMaps(({ registry }) => expect(registry.polylines[0].getPath().getLength(), 'after the line').to.eq(3))
+    vertices('after the line', [3])
   })
 
   it('stores a vertex dragged on a polygon', () => {

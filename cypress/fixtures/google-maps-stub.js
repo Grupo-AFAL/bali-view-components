@@ -447,13 +447,15 @@
 
     clickMidpoint (edge) {
       const line = registry.polylines[registry.polylines.length - 1]
+      if (!line) return
+
       const [from, to] = [line.getPath().getAt(edge), line.getPath().getAt(edge + 1)]
 
       line.emit('click', { edge, latLng: toLatLng({ lat: (from.lat() + to.lat()) / 2, lng: (from.lng() + to.lng()) / 2 }), stop () {} })
     },
 
     clickLine (point) {
-      registry.polylines[registry.polylines.length - 1].emit('click', { latLng: toLatLng(point), stop () {} })
+      registry.polylines[registry.polylines.length - 1]?.emit('click', { latLng: toLatLng(point), stop () {} })
     },
 
     // The person picks a suggestion: the element shows its text and fires `gmp-select`.
