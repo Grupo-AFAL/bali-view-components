@@ -5,10 +5,10 @@
   <% end %>
   <% if description.present? %>
     <%= render Bali::Tooltip::Component.new do |tooltip| %>
-      <% tooltip.with_trigger { tag.span(label, class: "legend-item__label--described") } %>
+      <% tooltip.with_trigger { tag.span(label, class: "legend-item__label legend-item__label--described") } %>
       <%= description %>
     <% end %>
   <% else %>
-    <span><%= label %></span>
+    <%= tag.span(label, class: "legend-item__label") %>
   <% end %>
 <% end %>

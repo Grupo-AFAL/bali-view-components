@@ -105,7 +105,7 @@ class BaliLegendComponentTest < ComponentTestCase
       legend.with_item(label: "Current", color: :success, description: "Approved and in force")
     end
 
-    assert_selector("li [data-controller='tooltip'] .trigger", text: "Current")
+    assert_selector("li [data-controller='tooltip'] .trigger .legend-item__label--described", text: "Current")
     assert_no_selector("li .icon-component")
     assert_match(%r{<template data-tooltip-target="content">\s*Approved and in force\s*</template>},
                  rendered_content)
@@ -117,7 +117,7 @@ class BaliLegendComponentTest < ComponentTestCase
     end
 
     assert_no_selector("[data-controller='tooltip']")
-    assert_selector("li > span", text: "Current")
+    assert_selector("li > .legend-item__label", text: "Current")
   end
 
   def test_an_entry_without_a_colour_raises
