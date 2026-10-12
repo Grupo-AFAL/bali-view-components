@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **FeedbackWidget: Escape dentro del panel de Opina lo cierra, si Opina lo pide.** Con el foco
+  dentro del iframe, Escape no llega a la página (ni `keydown` ni el `cancel` del `<dialog>`),
+  así que el panel no se cerraba. El widget atiende ahora
+  `{ type: 'bali:feedback:close-request' }` desde su propio frame y el origen de Opina, y cierra
+  el drawer por el mismo camino que Escape. **opina** tiene que mandarlo en su embed:
+  `document.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) window.parent.postMessage({ type: 'bali:feedback:close-request' }, '*') })`.
+  Hasta entonces nada cambia.
+
 - **El lightbox de `image-expander` (ImageGrid) se queda con Escape y Tab.** Dentro de un Drawer
   o Modal, Escape cerraba el lightbox y el panel en la misma pulsación; ahora cierra sólo el
   lightbox y el foco vuelve a la miniatura, dentro del panel. Tab y Shift+Tab ya no salen al
@@ -30,9 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tabulación, y se anunciaba como un genérico sin nombre. Ahora es `role="img"` con
   `aria-label` «Más información» (`bali_view.help_tip.label`), y el texto del globo sigue siendo
   su descripción. `Bali::Tooltip` acepta `trigger_label:` para nombrar así un disparador sin
-  texto, y HelpTip lo deja pasar para un nombre más preciso. En un campo con `tooltip:` el ícono
-  está dentro del `<label>`, así que el nombre accesible del control suma el suyo: «Email Más
-  información». `fill_in` de Capybara lee el texto del `<label>` y sigue encontrando el campo.
+  texto, y HelpTip lo deja pasar para un nombre más preciso.
+  **En un campo con `tooltip:`** el ícono va dentro del `<label>`: se anuncia «Más información»,
+  imagen, con el texto de ayuda, y el nombre accesible del campo pasa de «Email» a «Email Más
+  información». `fill_in` y `find_field` de Capybara leen el texto del `<label>` y siguen
+  encontrando el campo; una prueba que lo busque por nombre accesible exacto (`getByLabel`)
+  tendría que ajustarse, y ninguna app tiene una.
 
 ## [v3.12.0] - 2026-10-11
 

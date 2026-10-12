@@ -5122,6 +5122,11 @@ and kept in browser history. The widget sends it to the frame with `postMessage`
 has loaded, as `{ type: 'bali:feedback:token', token }`, addressed to the Opina origin and
 never to `*`. The Opina instance has to listen for that message; see the migration guide.
 
+Escape pressed inside the embed never reaches the page, so it cannot close the panel by
+itself. The embed asks for it with `{ type: 'bali:feedback:close-request' }` posted to its
+parent, and the widget closes the drawer the way Escape on the page does. Like every message
+from the embed, it is only accepted from the widget's own frame and the Opina origin.
+
 What the URL does carry is `color_scheme`, so the embed can follow the host's theme:
 `dark` when `<html>` declares `color-scheme: dark` (or `only dark`) at the moment the panel
 opens, as Bali's dark themes do, and `light` for anything else, `light dark` included. Only

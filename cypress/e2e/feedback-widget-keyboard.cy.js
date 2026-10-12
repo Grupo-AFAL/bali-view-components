@@ -59,4 +59,42 @@ describe('FeedbackWidget panel from the keyboard', () => {
       expect(doc.activeElement, 'Tab from the last control in the frame').to.equal(doc.querySelector(close))
     })
   })
+
+  // Escape pressed inside the frame stays in the frame's document: the page sees neither the
+  // key nor the `<dialog>`'s `cancel`. The embed asks for the close by message, as the
+  // stand-in does; the count proves the request was sent, so a panel left open is the widget's.
+  context('closing from inside the frame', () => {
+    const closeRequest = 'bali:feedback:close-request'
+    const countCloseRequests = () => cy.window().then((win) => {
+      win.__closeRequests = 0
+      win.addEventListener('message', (event) => {
+        if (event.data?.type === closeRequest) win.__closeRequests += 1
+      })
+    })
+    const expectPanel = (open) => cy.get('#feedback-widget').should(($dialog) => {
+      expect($dialog[0].matches(':modal'), ':modal').to.equal(open)
+      expect($dialog.hasClass('drawer-open'), 'drawer-open').to.equal(open)
+    })
+
+    it('closes the panel on Escape pressed in the embed', () => {
+      countCloseRequests()
+      cy.get('#feedback-widget iframe').its('0.contentDocument').then((doc) => {
+        doc.getElementById(lastControl).focus()
+      })
+      cy.press(Cypress.Keyboard.Keys.ESC)
+
+      cy.window().its('__closeRequests').should('equal', 1)
+      expectPanel(false)
+    })
+
+    it('ignores a close request that did not come from its own frame', () => {
+      countCloseRequests()
+      cy.window().then((win) => win.postMessage({ type: closeRequest }, appOrigin))
+
+      cy.window().its('__closeRequests').should('equal', 1)
+      // Nothing to wait for on success: a whole turn of the event loop for it to be acted on.
+      cy.wait(250)
+      expectPanel(true)
+    })
+  })
 })

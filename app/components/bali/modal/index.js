@@ -589,7 +589,8 @@ export class ModalController extends Controller {
   //
   // Not Escape pressed inside an <iframe> in the panel: measured in Chromium and
   // Firefox, same-origin and cross-origin, that keydown stays in the frame's document
-  // and this one sees neither the key nor a `cancel`. An embed has to ask for the close.
+  // and this one sees neither the key nor a `cancel`. An embed has to ask for the close,
+  // as FeedbackWidget's does with `bali:feedback:close-request`.
   _onDialogCancel = event => {
     // Only the dialog's OWN close request. An `<input type="file">` whose OS
     // picker was dismissed fires `cancel` too, and unlike the dialog's, that
