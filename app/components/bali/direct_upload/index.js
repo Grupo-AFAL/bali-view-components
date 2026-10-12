@@ -33,7 +33,6 @@ export class DirectUploadController extends Controller {
     maxFiles: { type: Number, default: 10 },
     maxFileSize: { type: Number, default: 10 }, // in MB
     accept: { type: String, default: '*' },
-    autoUpload: { type: Boolean, default: true },
     fieldName: String,
     removeFieldName: String,
     translations: Object
@@ -88,8 +87,9 @@ export class DirectUploadController extends Controller {
     if (uploading > 0) {
       event.preventDefault()
       event.stopPropagation()
-      this.showError(`Please wait for ${uploading} upload(s) to complete`)
-      this.announce(`Upload in progress. Please wait for ${uploading} file(s) to finish uploading.`)
+      const message = this.t('uploads_in_progress', { count: uploading })
+      this.showError(message)
+      this.announce(message)
     }
   }
 
@@ -139,10 +139,7 @@ export class DirectUploadController extends Controller {
       })
 
       this.renderFileItem(id)
-
-      if (this.autoUploadValue) {
-        this.uploadFile(id)
-      }
+      this.uploadFile(id)
     })
   }
 
@@ -154,19 +151,19 @@ export class DirectUploadController extends Controller {
     for (const file of files) {
       // Check max files
       if (this.multipleValue && (currentCount + validFiles.length) >= this.maxFilesValue) {
-        this.showError(`Maximum ${this.maxFilesValue} files allowed`)
+        this.showError(this.t('too_many_files', { max: this.maxFilesValue }))
         break
       }
 
       // Check file size
       if (file.size > maxSizeBytes) {
-        this.showError(`${file.name} exceeds ${this.maxFileSizeValue}MB limit`)
+        this.showError(this.t('file_too_large', { filename: file.name, max: this.maxFileSizeValue }))
         continue
       }
 
       // Check file type
       if (!this.isAcceptedType(file)) {
-        this.showError(`${file.name}: File type not accepted`)
+        this.showError(this.t('invalid_type', { filename: file.name }))
         continue
       }
 
@@ -254,7 +251,7 @@ export class DirectUploadController extends Controller {
     this.createHiddenField(id, signedId)
 
     // Announce success
-    this.announce(`${fileData.file.name} uploaded successfully`)
+    this.announce(this.t('completed', { filename: fileData.file.name }))
 
     // Dispatch completion event
     this.dispatch('complete', {
@@ -276,13 +273,13 @@ export class DirectUploadController extends Controller {
     if (!fileData) return
 
     fileData.status = 'error'
-    fileData.error = error.message || 'Upload failed'
+    fileData.error = error.message || this.t('error')
     fileData.xhr = null
 
     this.updateFileUI(id)
 
     // Announce error
-    this.announce(`Failed to upload ${fileData.file.name}: ${fileData.error}`)
+    this.announce(this.t('failed_file', { filename: fileData.file.name, error: fileData.error }))
   }
 
   // ==================== Actions ====================
@@ -396,8 +393,8 @@ export class DirectUploadController extends Controller {
     button.disabled = true
 
     // Announce removal
-    const filename = row.querySelector('.font-medium')?.textContent || 'File'
-    this.announce(`${filename} marked for removal`)
+    const filename = row.querySelector('.font-medium').textContent
+    this.announce(this.t('marked_for_removal', { filename }))
   }
 
   createRemoveField (attachmentId) {
@@ -466,11 +463,6 @@ export class DirectUploadController extends Controller {
     removeBtn.setAttribute('aria-label', this.t('remove_file', { filename }))
 
     switch (fileData.status) {
-      case 'pending':
-        percentage.textContent = this.t('pending')
-        progress.setAttribute('aria-label', this.t('pending_file', { filename }))
-        break
-
       case 'uploading':
         // Default state shown above
         break

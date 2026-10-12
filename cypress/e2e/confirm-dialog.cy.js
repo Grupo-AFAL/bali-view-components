@@ -45,7 +45,7 @@ describe('Confirm dialog', () => {
     cy.contains('button', 'Eliminar registro').should('be.visible')
   })
 
-  // #1409 — the preview layout carries no `lang`, so each test sets the one a host layout writes.
+  // #1409 — the labels of a trigger that sets none, in the language of the page.
   describe('button labels', () => {
     const openIn = (lang, trigger) => {
       cy.document().then(doc => { doc.documentElement.lang = lang })

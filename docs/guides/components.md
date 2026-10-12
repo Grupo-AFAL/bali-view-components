@@ -4972,7 +4972,8 @@ Uploads files from the browser directly to cloud storage (S3, GCS, Azure) via Ac
 - `max_file_size` - Maximum file size in megabytes (default: 10)
 - `accept` - Accepted file types, MIME types or extensions (default: `"*"`)
 - `drop_zone` - Show the drag & drop area (default: true)
-- `auto_upload` - Upload files immediately on selection (default: true)
+
+Files upload as soon as they are chosen. `auto_upload:` is deprecated and removed in 4.0.
 
 Requires Active Storage and CORS configuration on the bucket — see the [DirectUpload setup guide](direct-upload-setup.md). Client-side validation is UX only; always validate on the server.
 

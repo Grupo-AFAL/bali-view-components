@@ -1,8 +1,6 @@
-<% I18n.with_locale(locale) do %>
-  <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-    <%= form.file_group :files, required: 'required', multiple: true,
-                           accept: '.jpg, .jpeg, .png, .gif, .pdf',
-                           choose_file_text: 'Seleccionar',
-                           non_selected_text: 'No hay documentos seleccionados' %>
-  <% end %>
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.file_group :files, required: 'required', multiple: true,
+                         accept: '.jpg, .jpeg, .png, .gif, .pdf',
+                         choose_file_text: 'Seleccionar',
+                         non_selected_text: 'No hay documentos seleccionados' %>
 <% end %>

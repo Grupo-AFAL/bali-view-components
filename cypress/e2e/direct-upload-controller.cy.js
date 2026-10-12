@@ -50,43 +50,56 @@ describe('DirectUploadController', () => {
     })
   })
 
-  // #1409 — each row's names come from Bali's translations, handed over with their placeholders
-  // intact: the file name and the progress only exist in the browser.
-  context('names each file in the page language', () => {
-    const pickFile = () => cy.get('[data-direct-upload-target="input"]').selectFile(
-      { contents: Cypress.Buffer.from('x'), fileName: 'contrato.pdf', mimeType: 'application/pdf' },
-      { force: true } // the native input is hidden behind the drop zone
-    )
+  // #1409 — every text the controller writes comes from Bali's translations, handed over with
+  // their placeholders intact: the file name, the progress and the limits only exist here.
+  context('in the page language', () => {
+    const pickFile = (fileName = 'contrato.pdf', mimeType = 'application/pdf') =>
+      cy.get('[data-direct-upload-target="input"]').selectFile(
+        { contents: Cypress.Buffer.from('x'), fileName, mimeType },
+        { force: true } // the native input is hidden behind the drop zone
+      )
     const row = () => cy.get('[data-direct-upload-target="fileList"] [data-file-id]')
+    const stallUploads = () =>
+      cy.intercept('POST', '**/rails/active_storage/direct_uploads', { statusCode: 500, delay: 10000 })
 
     beforeEach(() => {
       cy.visit(`${dummyAppUrl}/direct_uploads/new?locale=es`)
     })
 
-    // `auto_upload: false` is the only way a file stays pending.
-    it('while it waits to upload', () => {
-      cy.get('[data-controller="direct-upload"]').invoke('attr', 'data-direct-upload-auto-upload-value', 'false')
-      pickFile()
-
-      row().find('.percentage').should('have.text', 'Esperando...')
-      row().find('progress').should('have.attr', 'aria-label', 'Esperando para subir contrato.pdf')
-      row().find('.file-cancel').should('have.attr', 'aria-label', 'Cancelar la subida de contrato.pdf')
-    })
-
-    it('while it uploads', () => {
-      cy.intercept('POST', '**/rails/active_storage/direct_uploads', { statusCode: 500, delay: 10000 })
+    it('names a file while it uploads', () => {
+      stallUploads()
       pickFile()
 
       row().find('progress').should('have.attr', 'aria-label', 'Subiendo contrato.pdf: 0%')
+      row().find('.file-cancel').should('have.attr', 'aria-label', 'Cancelar la subida de contrato.pdf')
     })
 
-    it('once its upload failed', () => {
+    it('says a file failed to upload, and names its buttons', () => {
       cy.intercept('POST', '**/rails/active_storage/direct_uploads', { statusCode: 500 })
       pickFile()
 
-      row().find('.file-retry').should('be.visible')
-        .and('have.attr', 'aria-label', 'Reintentar la subida de contrato.pdf')
+      row().find('.file-error').should('be.visible').and('have.text', 'No se pudo subir')
+      row().find('.file-retry').should('have.attr', 'aria-label', 'Reintentar la subida de contrato.pdf')
       row().find('.file-remove').should('have.attr', 'aria-label', 'Eliminar contrato.pdf')
+    })
+
+    // The dummy's field accepts `image/*,application/pdf`.
+    it('says why a file was turned away', () => {
+      pickFile('notas.txt', 'text/plain')
+
+      cy.get('[data-direct-upload-target="errorMessage"]').should('be.visible')
+        .and('have.text', 'notas.txt: tipo de archivo no aceptado')
+    })
+
+    // `auto_upload: false` left a file waiting with nothing to start it, and the form guard then
+    // refused every submit. The option is retired, so not even a page still saying so holds one:
+    // only an upload that was attempted can fail.
+    it('uploads a file as soon as it is chosen', () => {
+      cy.intercept('POST', '**/rails/active_storage/direct_uploads', { statusCode: 500 })
+      cy.get('[data-controller="direct-upload"]').invoke('attr', 'data-direct-upload-auto-upload-value', 'false')
+      pickFile()
+
+      row().find('.file-error').should('be.visible')
     })
   })
 })
