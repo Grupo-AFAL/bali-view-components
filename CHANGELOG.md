@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Tag` acepta `text_color:`**, un hex para el texto, en línea: gana sobre el negro o
+  blanco que elige `custom_color:`, al que una clase como `text-white` no le ganaba sin `!`, y
+  también sobre el texto de una variante `color:`.
+
+### Removed
+
+- **`Bali::Utils::ColorCalculator#convert_to_brightness_value`**, la suma R+G+B del cálculo
+  anterior. Ninguna app la llama.
+
 ### Fixed
 
 - **Dependabot lee las gemas privadas con un registro `git`.** `github-afal` (`x-access-token`, el
@@ -17,6 +28,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deja de ejecutar el código del Gemfile y aborta con `unexpected_external_code` ante cualquier gema de
   git, como pasó en bali-auth el 11/10. Antes del registro el código ya se ejecutaba; lo nuevo es que una
   gema comprometida podría leer `BUNDLE_GITHUB_TOKEN`.
+
+- **El texto sobre un `custom_color:` se elige por contraste WCAG.** La suma R+G+B ponía negro
+  sobre azules y violetas medios, aunque el blanco contrastara más (`#535BEB`: negro a 4.06:1).
+  Ahora gana el de mayor razón de contraste, y un hex corto (`#fff`) se lee completo; antes daba
+  blanco sobre blanco. Cambia en `Tag`, `Status` y `Timeline::Header`, sólo en los hex que la
+  suma resolvía mal. En la flota:
+  - **opina:** el texto de `_project_badge` puede pasar de negro a blanco o al revés, siempre
+    hacia el que contrasta más. Nada que hacer.
+  - **costa-norte:** su `custom_color:` va a `StatCard`, que no usa este cálculo. Nada cambia.
+  - **afal-apps:** las proteínas siguen en blanco, porque `ProteinHelper#protein_tag` lo fuerza
+    con `class: "text-white!"`. Cambiarlo por `text_color: "#fff"` sólo quita el `!`: la res
+    (`#B46E50`) y el pollo (`#E0640B`) siguen en blanco, bajo AA en texto chico. Sin forzar el
+    color, esas dos salen en negro, sobre AA. Las otras tres son blancas de cualquier modo.
+- **`Card::Header` con `icon:` y `with_badge` deja el ícono junto al título.** `justify-between`
+  repartía el espacio entre los tres hijos y, en una tarjeta ancha, el título quedaba a la mitad
+  del renglón. Ícono y títulos son ahora un grupo, y el renglón hace `flex-wrap`: en pantalla
+  angosta el badge baja en vez de apretar el título. centinela-web puede quitar el
+  `justify-start!` del header y el `ml-auto` del Tag en `operations_board/show.html.erb`, con su
+  comentario; afal-apps puede volver a `with_header` + `with_badge` en
+  `cafeteria/reports/details/_day.html.erb` si ajusta la prueba que busca `h2.card-title ~`.
+- **`Avatar` deriva las iniciales sólo de palabras que empiezan con letra.** «Alberto Aprobador
+  (demo)» daba «A(»; ahora «AA». Un nombre sin ninguna palabra así no lleva iniciales, como un
+  `name:` vacío. `initials:` sigue ganando. Nada que hacer en las apps.
 
 ## [v3.11.0] - 2026-10-08
 
