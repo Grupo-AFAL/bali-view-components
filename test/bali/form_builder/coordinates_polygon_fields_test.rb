@@ -9,7 +9,6 @@ class BaliFormBuilderCoordinatesPolygonFieldsTest < FormBuilderTestCase
     render_inline(Bali::FieldGroupWrapper::Component.new(builder, :available_region)) { "" }
   end
 
-  # Deprecated in v3.10.0 while the map drew through the retired DrawingManager (#1423).
   def test_neither_helper_warns
     %i[coordinates_polygon_group coordinates_polygon_field].each do |name|
       warnings = []

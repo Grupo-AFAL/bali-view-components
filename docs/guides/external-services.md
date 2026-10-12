@@ -141,6 +141,7 @@ The address autocomplete form field also requires Google Maps APIs.
 
 ### Requirements
 
+- **Maps JavaScript API**, which loads the search box.
 - **Places API (New)**, for the suggestions and the place picked. It is listed apart
   from the legacy **Places API**, which the field no longer uses.
 
@@ -160,11 +161,11 @@ from a global, in that order.
 window.GOOGLE_MAPS_API_KEY = '...'
 ```
 
-Enable it:
+Enable both:
 
 1. Go to **APIs & Services → Library**
-2. Enable **Places API (New)**
-3. Add it to your API key restrictions
+2. Enable **Maps JavaScript API** and **Places API (New)**
+3. Add both to your API key restrictions
 
 ---
 

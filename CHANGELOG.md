@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `placeholder` de éste, y deja el input oculto y deshabilitado mientras está conectado. El
   cuadro envía lo escrito bajo ese `name`, el `<label for>` lo nombra, sigue el `color-scheme` de
   la página, y elegir una sugerencia llena los mismos nueve targets. Las clases y el `required`
-  del input no pasan al cuadro.
+  del input no pasan al cuadro, así que el navegador ya no exige la dirección: valídala en el
+  modelo. Un input deshabilitado o de sólo lectura no recibe cuadro.
   - **Anfitrión:** la llave necesita la **Places API (New)** habilitada en Google Cloud. Ninguna
     de las siete apps usa el controlador; ga-apps sí (`pm/vendors/_form` y
     `cafeteria/vendors/_form`), desde Bali 1.2.4: al subir, habilitar esa API.

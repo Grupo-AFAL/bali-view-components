@@ -71,10 +71,12 @@ key comes from the `apiKey` value or `window.GOOGLE_MAPS_API_KEY`, and needs the
 **Places API (New)** enabled.
 
 The search box is Google's `<gmp-place-autocomplete>`, which draws its own input: the
-controller puts it right after the `input` target with that input's `name`, `value`
-and `placeholder`, and keeps the input hidden and disabled while it is connected. The
-box submits what it holds under the input's name. Classes, an `id` a `<label for>`
-points at, and `required` stay on the hidden input.
+controller puts it right after the `input` target with that input's `id`, `name`,
+`value` and `placeholder`, and keeps the input hidden and disabled while it is
+connected. The box submits what it holds under the input's name, and a `<label for>`
+names it. Classes and `required` stay on the hidden input, where `required` no longer
+stops a submit: a disabled control is not validated. A disabled or read-only input
+gets no box and stays as it is.
 
 ```html
 <div data-controller="autocomplete-address"
