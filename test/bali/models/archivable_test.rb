@@ -129,8 +129,8 @@ class BaliArchivableTest < ActiveSupport::TestCase
   def test_scopes_chain_with_other_conditions
     @movie.archive!(by: @ana)
 
-    assert_equal [ @movie.id ], Movie.where(name: "Blade Runner").archived.ids
-    assert_empty Movie.where(name: "Blade Runner").not_archived
+    assert_equal [ @movie.id ], Movie.where("name LIKE ?", "Blade Runner%").archived.ids
+    assert_equal [ @remake.id ], Movie.where("name LIKE ?", "Blade Runner%").not_archived.ids
   end
 
   def test_the_database_refuses_two_current_archivals
