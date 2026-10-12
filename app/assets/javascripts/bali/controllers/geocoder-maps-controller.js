@@ -1,11 +1,17 @@
 import { Controller } from '@hotwired/stimulus'
 import * as formatters from '../utils/formatters.js'
 import { hostColorScheme, observeHostColorScheme } from '../utils/color-scheme.js'
+import { inLanguageOf } from '../utils/language.js'
 
 const TIJUANA_LAT = 32.5036383
 const TIJUANA_LNG = -117.0308968
 const DEFAULT_ZOOM = 15
 const TIJUANA_CITY = 'Tijuana'
+
+const TEXTS = {
+  en: { addressNotFound: 'We could not find that address on the map.' },
+  es: { addressNotFound: 'No encontramos esa dirección en el mapa.' }
+}
 
 export class GeocoderMapsController extends Controller {
   static values = { draggableMarker: { type: Boolean, default: false } }
@@ -24,6 +30,8 @@ export class GeocoderMapsController extends Controller {
 
   async connect () {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
+    // On the element, not on each field: a field put in later geocodes too.
+    this.element.addEventListener('change', this.geocodeAddress)
 
     const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
 
@@ -32,7 +40,7 @@ export class GeocoderMapsController extends Controller {
 
     try {
       this.googleMaps = await GoogleMapsLoader({
-        libraries: ['places'],
+        libraries: ['marker'],
         language: 'es',
         key: this.data.get('key'),
         // No deadline: a script that arrives late still builds.
@@ -42,7 +50,6 @@ export class GeocoderMapsController extends Controller {
       if (this.map || !this.element.isConnected) return
 
       this.initializeMap()
-      this.initializeAddressListeners()
       this.initializeAddress()
     } catch (error) {
       console.error(error)
@@ -51,6 +58,7 @@ export class GeocoderMapsController extends Controller {
 
   disconnect () {
     this.themeObserver.disconnect()
+    this.element.removeEventListener('change', this.geocodeAddress)
   }
 
   initializeMap (center = { lat: TIJUANA_LAT, lng: TIJUANA_LNG }, zoom = DEFAULT_ZOOM) {
@@ -59,6 +67,8 @@ export class GeocoderMapsController extends Controller {
     this.map = new this.googleMaps.Map(this.mapTarget, {
       center,
       zoom,
+      // An AdvancedMarkerElement draws nothing on a map built without one.
+      mapId: Date.now().toString(),
       colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT
     })
   }
@@ -69,15 +79,7 @@ export class GeocoderMapsController extends Controller {
     if (!this.map) return
 
     this.initializeMap(this.map.getCenter(), this.map.getZoom())
-    this.marker?.setMap(this.map)
-  }
-
-  initializeAddressListeners () {
-    this.routeTarget.addEventListener('change', this.geocodeAddress)
-    this.streetNumberTarget.addEventListener('change', this.geocodeAddress)
-    this.sublocalityLevel1Target.addEventListener('change', this.geocodeAddress)
-    this.localityTarget.addEventListener('change', this.geocodeAddress)
-    this.postalCodeTarget.addEventListener('change', this.geocodeAddress)
+    if (this.marker) this.marker.map = this.map
   }
 
   initializeAddress () {
@@ -91,14 +93,30 @@ export class GeocoderMapsController extends Controller {
     }
   }
 
-  geocodeAddress = () => {
+  get addressFields () {
+    return [
+      this.routeTarget,
+      this.streetNumberTarget,
+      this.sublocalityLevel1Target,
+      this.localityTarget,
+      this.postalCodeTarget
+    ]
+  }
+
+  geocodeAddress = ({ target }) => {
+    if (!this.map || !this.addressFields.includes(target)) return
+
     const geocoder = new this.googleMaps.Geocoder()
     geocoder.geocode({ address: this.getAddress() }, (results, status) => {
       if (status === 'OK') {
-        this.setAddressPin(results[0].geometry.location)
-        this.setLatLng(results[0].geometry.location)
+        const location = results[0].geometry.location.toJSON()
+        this.setAddressPin(location)
+        this.setLatLng(location)
+      } else if (status === 'ZERO_RESULTS') {
+        window.alert(inLanguageOf(this.element, TEXTS).addressNotFound)
       } else {
-        window.alert('Geocode was not successful for the following reason: ' + status)
+        // A denied key or a spent quota is for the app to fix, not the person filling the form.
+        console.error(`Geocoding the address failed: ${status}`)
       }
     })
   }
@@ -128,28 +146,27 @@ export class GeocoderMapsController extends Controller {
     )
   }
 
-  setAddressPin (location) {
-    this.map.setCenter(location)
+  setAddressPin (position) {
+    this.map.setCenter(position)
     this.map.setZoom(DEFAULT_ZOOM)
 
     if (this.marker) {
-      this.marker.setMap(null)
+      this.marker.position = position
+      return
     }
 
-    this.marker = new this.googleMaps.Marker({
+    this.marker = new this.googleMaps.marker.AdvancedMarkerElement({
       map: this.map,
-      position: location,
-      animation: this.googleMaps.Animation.DROP,
-      draggable: this.draggableMarkerValue
+      position,
+      gmpDraggable: this.draggableMarkerValue
     })
-    this.marker.addListener('dragend', () => {
-      this.setLatLng(this.marker.getPosition())
-    })
+    // Read back after a drag, `position` is a literal, not a LatLng (3.66).
+    this.marker.addEventListener('gmp-dragend', () => this.setLatLng(this.marker.position))
   }
 
-  setLatLng (location) {
-    this.latitudeTarget.value = location.lat()
-    this.longitudeTarget.value = location.lng()
+  setLatLng ({ lat, lng }) {
+    this.latitudeTarget.value = lat
+    this.longitudeTarget.value = lng
   }
 
   geolocate = () => {
