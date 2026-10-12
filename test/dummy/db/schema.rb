@@ -68,6 +68,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_11_120000) do
     t.string "unarchived_by_type"
     t.datetime "updated_at", null: false
     t.index ["archivable_type", "archivable_id"], name: "index_bali_archivals_current", unique: true, where: "unarchived_at IS NULL"
+    t.index ["archivable_type", "archivable_id"], name: "index_bali_archivals_on_archivable"
     t.index ["successor_type", "successor_id"], name: "index_bali_archivals_on_successor"
   end
 

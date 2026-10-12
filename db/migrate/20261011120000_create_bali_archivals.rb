@@ -3,10 +3,7 @@
 class CreateBaliArchivals < ActiveRecord::Migration[7.0]
   def change
     create_table :bali_archivals do |t|
-      # No index of its own: `archival`, `archived` and `not_archived` ask for the current row,
-      # which the partial unique index below serves. `archivals` (the history) and
-      # `dependent: :destroy` look up by record alone and scan, at a few rows per record.
-      t.references :archivable, polymorphic: true, null: false, index: false
+      t.references :archivable, polymorphic: true, null: false
       t.references :archived_by, polymorphic: true, index: false
       t.string :reason
       t.text :note
