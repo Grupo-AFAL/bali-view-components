@@ -6,7 +6,8 @@ module Bali
       # @param record [ActiveRecord::Base] the record to archive; includes Bali::Archivable
       # @param successors [ActiveRecord::Relation, nil] the records that may replace it
       # @param url [String] where the form posts
-      # @param return_to [String, nil] the path the engine redirects to afterwards
+      # @param return_to [String, nil] the path the engine redirects to afterwards; anything that is
+      #   not a local path (see Bali::Archival.local_path) is dropped
       # @param archival [Bali::Archival, nil] an invalid archival to re-render with its errors
       def initialize(record:, successors:, url:, return_to: nil, archival: nil)
         @record = record
