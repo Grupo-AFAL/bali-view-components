@@ -393,6 +393,23 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[name='q[created_at]']")
   end
 
+  # #1400: declared on the FilterForm, the placeholder reaches both date controls that read it —
+  # the bare picker and the "Custom…" one behind a preset select — instead of the caption.
+  def test_a_placeholder_declared_on_the_filter_form_reaches_the_date_pickers
+    form_class = Class.new(Bali::FilterForm) do
+      filter_attribute :release_date, type: :date, input: :date_range, simple: true, advanced: false,
+                       label: "Released", placeholder: "Select dates"
+      filter_attribute :created_at, type: :date, input: :date_range, simple: true, advanced: false,
+                       label: "Created", placeholder: "Select a range", presets: %i[today]
+    end
+    form = form_class.new(Movie.all, ActionController::Parameters.new({}))
+
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: form.simple_filters_config))
+
+    assert_selector("input[name='q[release_date]'][placeholder='Select dates']", visible: :all)
+    assert_selector("input[id$='-custom'][placeholder='Select a range']", visible: :all)
+  end
+
   def test_persists_date_range_value
     date_filters = [
       {
