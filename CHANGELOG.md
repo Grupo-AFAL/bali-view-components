@@ -14,9 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   febrero; un año desde el 29 de febrero, el 28. Una flecha que cae en una fecha deshabilitada
   (fin de semana con `disable_weekends`, `disabled_dates`) sigue a la siguiente habilitada en su
   dirección: el viernes ▶ da el lunes, donde desde v3.12.0 no hacía nada. Si no hay ninguna en un
-  año —pasado `max_date`, por ejemplo— no hace nada. Un campo `mode: "range"` ya no dibuja
-  flechas: daban el paso sobre la primera fecha y el rango quedaba en un día. Nada que hacer en
-  las apps: ninguna usa `manual: true` en un campo de fecha.
+  año —pasado `max_date`, por ejemplo— no hace nada. `manual: true` con `mode: "range"` levanta
+  `ArgumentError`: las flechas daban el paso sobre la primera fecha y el rango quedaba en un día,
+  y unas cableadas a mano sobre un rango ya no hacen nada. Nada que hacer en las apps: ninguna usa
+  `manual: true` en un campo de fecha.
 
 - **`date_field` y `date_group` respetan `default_date:`**, que descartaban sin aviso; `datetime_*`
   y `time_*` ya lo hacían. Como en esos dos, reemplaza el valor del registro. Ninguna app lo pasa.

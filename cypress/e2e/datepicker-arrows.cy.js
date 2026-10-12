@@ -49,7 +49,30 @@ describe('Datepicker arrows', () => {
     })
   })
 
-  // #1409. `setMonth` keeps the day and lets it overflow: January 31 plus a month was March 3.
+  // #1409. The FormBuilder raises on `manual:` with `mode: "range"`, which leaves arrows wired by
+  // hand: a step moves one date, and on a range it would replace the selection with that day.
+  it('leaves a range as it is', () => {
+    // An Array from the page's own realm: flatpickr tells a range with `instanceof Array`.
+    cy.window().then(win => {
+      const picker = win.document.querySelector('input[name="form_record[date]"]')._flatpickr
+      picker.set('mode', 'range')
+      picker.setDate(win.Array.of('2026-10-05', '2026-10-09'))
+    })
+
+    field('date').then($input => {
+      const range = $input.val()
+      const changes = recordChanges($input)
+      expect(range).to.contain('2026-10-05').and.contain('2026-10-09')
+
+      arrow('date', 'nextDate').click()
+      field('date').should($after => {
+        expect($after.val()).to.equal(range)
+        expect(changes).to.deep.equal([])
+      })
+    })
+  })
+
+  // #1409. `setMonth` keeps the day and lets it overflow: January 31 plus a month is March 3.
   ;[
     ['month', 'nextDate', '2026-01-31', '2026-02-28'],
     ['month', 'previousDate', '2026-03-31', '2026-02-28'],
@@ -71,8 +94,8 @@ describe('Datepicker arrows', () => {
     })
   })
 
-  // flatpickr drops a disabled date from the selection, so landing on one emptied the field and,
-  // announced, submitted `date=`. The preview's weekdays-only field holds a Friday.
+  // flatpickr drops a disabled date from the selection, so landing on one would empty the field
+  // and submit `date=`. The preview's weekdays-only field holds a Friday.
   it('skips the disabled dates to the next enabled one, in the direction of the arrow', () => {
     field('end_date').should('have.attr', 'type', 'hidden').and('have.value', '2026-10-16')
 

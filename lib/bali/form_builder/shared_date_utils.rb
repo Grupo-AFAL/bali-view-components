@@ -18,7 +18,13 @@ module Bali
         "H" => "HH", "h" => "hh", "i" => "MM", "S" => "ss", "K" => "AM/PM"
       }.freeze
 
+      # The arrows of `manual:` step one date, and datepicker-controller.js#stepDate refuses a
+      # range for arrows wired by hand.
       def date_field(method, options = {})
+        if options[:manual] && options[:mode].to_s == "range"
+          raise ArgumentError, 'manual: steps a single date; it has no meaning on mode: "range"'
+        end
+
         opts = dup_options(options)
         clear_btn = build_clear_button if opts[:clear]
         # `token_list`, not `Array#join`: the join stringified whatever it was
@@ -151,10 +157,8 @@ module Bali
         wrapper_options
       end
 
-      # The arrows step one date, `selectedDates[0]` in datepicker-controller.js#stepDate: on a
-      # range the first click replaced the selection with a single day.
       def build_date_input(clear_btn, method, options)
-        if options[:manual] && options[:mode].to_s != "range"
+        if options[:manual]
           input = text_field(method, options)
           safe_join([ previous_date_button, input, next_date_button, clear_btn ].compact)
         else

@@ -230,19 +230,20 @@ export class DatepickerController extends Controller {
   }
 
   // `setDate` gets its `triggerChange`, which flatpickr defaults to false: without it the input
-  // gets no `change`, so a `submit-on-change` form never heard the arrows (#1380).
+  // gets no `change`, and a `submit-on-change` form never hears the arrows (#1380).
   //
-  // A step onto a disabled date (a weekend under `disable_weekends`, a `disabled_dates` entry)
-  // carries on to the next enabled one, a day at a time in the arrow's direction: `setDate` would
-  // drop a disabled date, empty the field and announce that, so the form submitted `date=`. Past
-  // `min_date`/`max_date` no date is left that way, so the search gives up a year out and the
-  // arrow does nothing. The step is taken on a copy so a refused one leaves the selection where
-  // it was: `selectedDates[0]` is flatpickr's own Date.
+  // `setDate` drops a disabled date and empties the field, which the `change` turns into a
+  // `date=` submit. So a step onto one (a weekend under `disable_weekends`, a `disabled_dates`
+  // entry) carries on to the next enabled date, a day at a time in the arrow's direction. Past
+  // `min_date`/`max_date` none is left that way: the search gives up a year out and the arrow
+  // does nothing. The step is taken on a copy so a refused one leaves the selection where it
+  // was: `selectedDates[0]` is flatpickr's own Date.
   //
-  // One date only: the FormBuilder draws no arrows on a range (SharedDateUtils#build_date_input).
+  // A step moves one date, so a range is left as it is. The FormBuilder raises on `manual:` with
+  // `mode: "range"` (SharedDateUtils#date_field); this covers arrows wired by hand.
   stepDate (by) {
     const selected = this.flatpickr.selectedDates[0]
-    if (!selected) return
+    if (!selected || this.flatpickr.config.mode === 'range') return
 
     const date = new Date(selected)
 
