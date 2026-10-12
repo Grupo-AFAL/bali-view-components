@@ -35,7 +35,7 @@ export class ImageFieldController extends Controller {
     }
     if (this.hasClearTarget) {
       // Hiding the button that has focus would drop focus on the body.
-      if (this.clearTarget.contains(document.activeElement)) this.inputTarget?.focus()
+      if (this.clearTarget.contains(document.activeElement)) this.inputTarget.focus()
       this.clearTarget.hidden = true
     }
   }
