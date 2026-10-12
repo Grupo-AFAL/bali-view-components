@@ -60,9 +60,23 @@ module Bali
         end
 
         def expand_button_data
-          { controller: "image-expander", action: "click->image-expander#open" }.tap do |data|
+          {
+            controller: "image-expander",
+            action: "click->image-expander#open",
+            image_expander_translations_value: translations_json
+          }.tap do |data|
             data[:image_expander_src_value] = full_src if full_src
           end
+        end
+
+        # What image_grid/index.js writes into the lightbox. Its TEXTS are the same
+        # sentences, for a trigger a host renders without this component.
+        def translations_json
+          {
+            loading: I18n.t("bali_view.image_grid.loading"),
+            load_failed: I18n.t("bali_view.image_grid.load_failed"),
+            close: I18n.t("bali_view.image_grid.close")
+          }.to_json
         end
       end
     end

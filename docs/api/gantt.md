@@ -319,7 +319,7 @@ GET <urls[:schedule]>
 | `200` | **The complete document** — same shape as `data:` | Replaces its whole schedule with it (reconcile) |
 | `422` | `{ "errors": ["…"] }` | Rolls the optimistic edit back and shows the messages in a toast |
 | `404` | — | Assumes its copy is stale and re-`GET`s `urls[:schedule]` — **only if you passed one**; without it the recovery degrades to a rollback and an error toast, and the board stays stale until the visitor reloads |
-| anything else | — | Rolls back and reports `Error <status>` |
+| anything else | `{ "errors": ["…"] }`, or none | Rolls back and shows the messages, or else `bali_view.gantt.island.change_failed` |
 
 **Always answer with the whole document, never a patch.** A move cascades:
 successors shift, group rollups move, the critical path is recomputed. The

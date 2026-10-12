@@ -147,6 +147,24 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
     assert_match(/DEPRECATED/, output)
   end
 
+  # tailwindcss-rails' binary embeds the plugin; only an npm-built Tailwind resolves it from node_modules.
+  def test_tailwindcss_rails_is_not_told_to_install_the_typography_plugin
+    host_app
+
+    output = run_generator
+
+    assert_match(/@plugin "@tailwindcss\/typography";/, output)
+    assert_no_match(/add -D @tailwindcss\/typography/, output)
+  end
+
+  def test_cssbundling_is_told_to_install_the_typography_plugin
+    host_app(css: :cssbundling)
+
+    output = run_generator
+
+    assert_match(/npm add -D @tailwindcss\/typography/, output)
+  end
+
   def test_block_editor_flag_turns_it_on_and_brings_its_packages
     host_app
     run_generator %w[--block-editor]
@@ -165,10 +183,8 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  # `registerAll` already installs the confirm dialog — the issue asked for a
-  # second call and it would be a no-op. The five apps that DO call
-  # `installConfirmDialog` pass Spanish button labels, which is a localisation
-  # choice no generator can make for them.
+  # `registerAll` already installs the confirm dialog, with button labels in the
+  # page's `lang` — the issue asked for a second call and it would be a no-op.
   def test_registers_the_controllers_without_reinstalling_the_confirm_dialog
     host_app
     run_generator

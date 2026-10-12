@@ -69,4 +69,10 @@ module ComponentTestHelpers
   ensure
     Bali.deprecator.behavior = previous
   end
+
+  # The keys the JS file at `path` reads off `receiver` (`this.texts.loading`), which the
+  # translations its component renders have to carry: a key missing there paints "undefined".
+  def translation_keys_read_by(path, receiver)
+    Bali::Engine.root.join(path).read.scan(/(?<![\w$.])#{Regexp.escape(receiver)}\.(\w+)/).flatten.uniq
+  end
 end

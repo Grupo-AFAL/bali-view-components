@@ -146,6 +146,9 @@ es:
     # Image grid
     image_grid:
       expand: "Ampliar imagen"
+      loading: "Cargando"
+      load_failed: "No se pudo cargar la imagen"
+      close: "Cerrar"
       empty_state:
         title: "Aún no hay imágenes"
         add_image: "Agregar imagen"
@@ -164,19 +167,21 @@ es:
       file_list:
         aria_label: "Archivos para subir"
       file_status:
-        pending: "Esperando..."
-        uploading: "Subiendo..."
-        completed: "Subido"
-        error: "Error"
+        uploading_file: "Subiendo %{filename}: %{progress}%"
+        completed: "%{filename} se subió correctamente"
+        error: "No se pudo subir"
+        failed_file: "No se pudo subir %{filename}"
       status:
         uploaded: "Ya subido"
+        marked_for_removal: "%{filename} marcado para quitar"
       errors:
+        uploads_in_progress: "Espera a que termine la subida de %{count} archivo(s)"
         too_many_files: "Máximo %{max} archivos permitidos"
-        file_too_large: "El archivo excede el límite de %{max}MB"
-        invalid_type: "Tipo de archivo no aceptado"
+        file_too_large: "%{filename} excede el límite de %{max}MB"
+        invalid_type: "%{filename}: tipo de archivo no aceptado"
       actions:
-        cancel: "Cancelar"
-        retry: "Reintentar"
+        cancel_file: "Cancelar la subida de %{filename}"
+        retry_file: "Reintentar la subida de %{filename}"
         remove: "Eliminar"
         dismiss: "Cerrar error"
         remove_file: "Eliminar %{filename}"
@@ -347,6 +352,8 @@ es:
       default_label: Gráfica
     legend:
       label: Leyenda
+    help_tip:
+      label: Más información
     clipboard:
       copied: ¡Copiado!
       copy_label: Copiar al portapapeles
@@ -365,6 +372,8 @@ es:
       confirm_cancel: Cancelar
     image_field:
       clear_image: Borrar imagen
+      input:
+        choose_image: Seleccionar imagen
     loader:
       loading: Cargando...
     frame:
@@ -585,6 +594,10 @@ es:
       # La única entrada traducible de la lista de lenguajes de bloques de código;
       # el resto son nombres propios.
       plain_text: "Texto plano"
+      entity_types:
+        task: "Tarea"
+        project: "Proyecto"
+        document: "Documento"
     document_page:
       toggle_toc: "Alternar tabla de contenido"
       toggle_details: "Alternar detalles"
@@ -653,6 +666,7 @@ es:
       card_moved: "%{card} movida a %{column}, posición %{position} de %{total}"
     tabs:
       navigation: "Navegación de secciones"
+      load_failed: "No se pudo cargar el contenido"
     topbar:
       user_menu:
         trigger_label: "Menú de usuario de %{name}"

@@ -112,7 +112,10 @@ module Bali
           data: {
             controller: "file-input",
             file_input_non_selected_text_value: non_selected_text,
-            file_input_multiple_value: multiple
+            file_input_multiple_value: multiple,
+            # `%{name}` left in: file-input-controller.js fills in the file's, which only
+            # the browser knows.
+            file_input_remove_text_value: I18n.t("bali_view.file_input.remove")
           }
         }
       end

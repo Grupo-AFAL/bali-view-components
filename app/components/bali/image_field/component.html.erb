@@ -6,16 +6,18 @@
 
     <%= input %>
 
-    <% if clear_button? %>
-      <%= clear_button %>
-    <% else %>
-      <%= render Bali::Button::Component.new(
-            icon: :x,
-            type: :button,
-            class: clear_button_classes,
-            data: { action: 'image-field#clear' },
-            aria: { label: t('.clear_image') }
-          ) %>
+    <%= tag.div hidden: !image?, data: { image_field_target: 'clear' } do %>
+      <% if clear_button? %>
+        <%= clear_button %>
+      <% else %>
+        <%= render Bali::Button::Component.new(
+              icon: :x,
+              type: :button,
+              class: clear_button_classes,
+              data: { action: 'image-field#clear' },
+              aria: { label: t('.clear_image') }
+            ) %>
+      <% end %>
     <% end %>
   <% end %>
 <% end %>

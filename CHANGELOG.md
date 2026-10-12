@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   un `t(...)` que no debe congelarse al cargar la clase. Antes el proc llegaba tal cual al
   placeholder del `number_range`.
 
+- **`Bali::Tooltip` acepta `trigger_label:`**: nombra un disparador sin texto propio, como un
+  ícono, con `role="img"` y ese `aria-label`.
+
 ### Changed
 
 - **`slim_select_field`: el id del contenedor sigue al del select** (`<id del select>_select_div`).
@@ -23,12 +26,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   prueba de pagos de afal-apps. El de un filtro `slim_select` de SimpleFilters pasa de
   `q[<llave>]_select_div` a `simple-filter-q-<llave>_select_div`; nadie lo lee.
 
+### Deprecated
+
+- **`auto_upload:` de `Bali::DirectUpload` y de `direct_upload_field`/`direct_upload_group`
+  (#1409).** Con `auto_upload: false` nada arrancaba la subida. El archivo se quedaba en
+  «Waiting...», y el formulario se negaba a enviarse mientras esperara («Please wait for 1
+  upload(s) to complete»). Ahora los archivos se suben siempre al elegirlos. La opción se
+  ignora, avisa por `Bali.deprecator` y se retira en 4.0.
+  - **Anfitrión:** gobierno-corporativo pasa `auto_upload: true` en
+    `app/views/evidences/_upload_form.html.erb`: hay que borrar esa línea. Ninguna de las siete
+    apps usa `false`.
+
 ### Removed
 
 - **La llave `bali_view.filters.select_value`.** La opción en blanco del valor select la leía en
   el servidor y `placeholders.select` en el navegador, con el mismo texto; ahora las dos leen
   `placeholders.select`. Una app que sobrescribía `select_value` lleva su texto a esa llave
   (ninguna de las siete lo hace).
+
+- **`Bali::Utils::Url`** y su `#add_query_param`: el último que lo llamaba era el enlace de
+  limpiar, que ahora sale de `PreservedParams#clear_filters_url`. Ninguna de las siete apps lo
+  llama.
 
 - **Las llaves `enter_value`, `select_date`, `select_datetime`, `select_date_range`,
   `select_values`, `any`, `yes` y `no` de `bali_view.filters`.** Cada una repetía el texto de su
@@ -38,20 +56,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `placeholders.*` y `boolean.*`; el `0` del campo numérico, escrito a mano en el ERB, también
   sale de `placeholders.number`. Ninguna de las siete apps sobrescribe las llaves borradas.
 
-- **`Bali::Utils::Url`** y su `#add_query_param`: el último que lo llamaba era el enlace de
-  limpiar, que ahora sale de `PreservedParams#clear_filters_url`. Ninguna de las siete apps lo
-  llama.
-
 ### Fixed
 
-- **`Bali::Tag` sin `href:` es un `<span>`, no un `<div>`.** Dentro de un `<label>`, donde el
-  formulario de epics de opina pone sus fichas de proyecto, un `<div>` es HTML inválido. `.badge`
-  es `inline-flex`, así que a la vista no cambia nada: 0 píxeles distintos en los previews de Tag
-  y Tags, en `afal` y `afal-dark`. **Anfitrión:** una prueba que busque `div.badge` deja de
-  encontrarlo; centinela-web tiene dos (`test/controllers/dashboard_controller_test.rb:135-136`),
-  que pasan a `span.badge`. Un `<form>` dentro del bloque de un Tag (identity:
-  `admin/accounts/_roles_card`, `app_accesses/show`) se ve igual pero deja de ser HTML válido; va
-  junto al Tag, no dentro.
+- **Un mapa de Google cuyo script llega después del timeout se construye al llegar (#1409).**
+  LocationsMap, `geocoder-maps`, `drawing-maps` y `autocomplete-address` no se construían nunca
+  si el script de Google tardaba más que los 10 s del loader; ahora piden la API sin plazo
+  (`timeout: 0`) y construyen una sola vez cuando el script llega, si siguen en la página, así
+  que ya no registran «Timed out loading the Google Maps API» a los 10 s. Un script que falla
+  sigue registrando su error. Un mapa reconectado mientras el script carga ya
+  no construye dos mapas en el mismo elemento.
+
+- **El ⋯ de la barra del DataTable sólo mueve lo que cambia de lugar (#1409).** Cada recálculo
+  sacaba a la fila todo lo que estaba en el ⋯ y lo volvía a meter, así que cada controlador de
+  esos controles se reconectaba dos veces por recálculo; ahora ninguno, y un recálculo que no
+  mueve nada ya no cierra el dropdown que estaba abierto. Por encima del
+  breakpoint el ⋯ además listaba los controles al revés de la barra; ahora en su orden, como ya
+  lo hacía en el teléfono, también entre dos botones de `with_toolbar_button`, que comparten
+  prioridad y además volvían a la fila invertidos. Esos botones pasan de ser lo primero del ⋯ a
+  lo último: 31 llamadas en 28 vistas de afal-apps y una de gobierno-corporativo.
+
+- **Google Maps: una llamada al loader después de la primera recibe las bibliotecas que pide**
+  (#1409). La API se carga una vez por página, con las opciones de la primera llamada, y
+  `loadGoogleMapsApi` ignoraba en silencio lo que pedían las siguientes: un `autocomplete-address`
+  en una página donde `LocationsMap` ya la había cargado fallaba con `Cannot read properties of
+  undefined (reading 'Autocomplete')`. Ahora cada llamada importa sus `libraries` con
+  `google.maps.importLibrary`, y una `key`, `language`, `region`, `v`, `channel` o `client`
+  distinta de la cargada, que no puede cambiar sin recargar, avisa en la consola una vez por
+  opción. Una biblioteca que la API no conoce hace fallar la llamada, que antes la ignoraba si no
+  era la primera. Los parámetros de la URL del script van codificados, y `timeout: 0` espera sin
+  plazo, como en XHR, en vez de volverse 10 s. `LocationsMap` deja de pedir `drawing`, que no usa,
+  y `drawing-maps` también: ninguna versión que Google sirve construye su `DrawingManager`. Nada
+  que hacer en la app.
+
+- **`Avatar::Upload` e `ImageField` se usan con el teclado** (#1409). Su `<input type="file">`
+  estaba en `display: none`: Tab nunca llegaba y nada abría el selector sin ratón. Ahora queda
+  invisible sobre el botón de la cámara y sobre la imagen, como el de `file_group` desde #1385:
+  Tab lo alcanza, Enter o Espacio abren el selector y el control muestra el anillo de foco. Con
+  `Bali::FormBuilder` como builder por omisión, `Avatar::Upload` metía el `file_field` de Bali
+  —con su propio `<label>`— dentro del suyo; ahora usa el input de Rails. En `ImageField`, el
+  foco de teclado muestra lo mismo que el hover (velo, ícono y botón de borrar), y el botón de
+  borrar se alcanza con Tab y se activa con Enter. El botón de borrar sólo aparece cuando hay una
+  imagen que borrar: ya no sobre el placeholder, donde abajo de `md` se veía siempre. El grupo se
+  llama `group/image-field`: un `clear_button` propio se oculta con `opacity-0
+  pointer-events-none` y aparece con `group-hover/image-field:` y
+  `group-has-focus-visible/image-field:` (ejemplo en la preview `with_custom_clear_button`);
+  sin nombre, el hover sobre cualquier `.group` que lo contuviera velaba la imagen. Con
+  `Bali::FormBuilder`, `Avatar::Upload` muestra el error del campo bajo el avatar y el input
+  lleva `aria-invalid`. `Avatar::Upload` libera la URL `blob:` de la foto anterior al elegir
+  otra, e `ImageField` ya no la libera al desconectarse: con Atrás, Turbo restauraba la vista
+  previa rota con el archivo todavía en el input. Sólo afal-apps usa `Avatar::Upload`
+  (`daycare/children/_form`): ese formulario pinta `f.error_summary` arriba, y ahora el error de
+  la foto se ve también junto al campo, como ya pasa con cada `text_group` del formulario; el
+  avatar sigue centrado dentro de su `flex justify-center`, con mensaje o sin él. Ninguna app usa
+  `ImageField`, y nada apunta a esos inputs.
+
+- **SplitView: la lista con infinite scroll pide una página por vez.** Cada vez que el sentinel
+  pedía una página llegaban dos. Una página que no llena el panel sigue pidiendo la siguiente.
+  Afecta a los inbox de gobierno-corporativo (`inbox/show`) y afal-apps (`td_flow/inboxes/show`);
+  no tienen nada que cambiar.
 
 - **Filters y SimpleFilters: ninguna URL que arman arrastra ya `saved_view`, `clear_*` ni `q[...]`
   de la query de `url:`.** «Aplicar» llevaba `saved_view`, `clear_filters` y `clear_search` (los
@@ -86,6 +148,164 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   la listaba, la contaba en «N resultados disponibles» y dejaba elegirla; ahora es su
   placeholder, marcada como la marca el FormBuilder, y el valor se vacía con la ✕ del select.
 
+- **DatePicker con `manual: true`: las flechas.** El paso de mes o de año cae en el último día del
+  mes destino si ese mes es más corto: el 31 de enero ▶ daba el 3 de marzo y ahora da el 28 de
+  febrero; un año desde el 29 de febrero, el 28. Una flecha que cae en una fecha deshabilitada
+  (fin de semana con `disable_weekends`, `disabled_dates`) sigue a la siguiente habilitada en su
+  dirección: el viernes ▶ da el lunes, donde desde v3.12.0 no hacía nada. Si no hay ninguna en un
+  año —pasado `max_date`, por ejemplo— no hace nada. `manual: true` con `mode: "range"` levanta
+  `ArgumentError`: las flechas daban el paso sobre la primera fecha y el rango quedaba en un día,
+  y unas cableadas a mano sobre un rango ya no hacen nada. Nada que hacer en las apps: ninguna usa
+  `manual: true` en un campo de fecha.
+
+- **`date_*` respeta `default_date:`, y en las tres familias sólo aplica a un campo sin valor.**
+  `date_field` y `date_group` lo descartaban sin aviso. En `datetime_*` y `time_*`, flatpickr lo
+  leía antes que el valor del input, así que en un formulario de edición reemplazaba la fecha
+  guardada. Ninguna app lo pasa.
+
+- **`mode: :range` como símbolo no pasaba el valor del rango al calendario** (`default_dates`);
+  sólo la cadena `"range"` lo hacía. Las tres apps que usan rango escriben la cadena.
+
+- **`disable_weekends: true` anulaba `disabled_dates:`**: el calendario y las flechas sólo
+  deshabilitaban los fines de semana. Ahora cuentan las dos. Ninguna app las usa.
+
+- **Una opción de fecha y el mismo `data-datepicker-*-value` en `wrapper_options:` pintaban el
+  atributo dos veces** (`min_date:`, `time_24hr:`, …), y el navegador se quedaba con el primero,
+  que en las opciones de hora era el de `wrapper_options`. Ahora sale una vez, con el valor de la
+  opción. Nada que hacer en las apps.
+
+- **`wrapper_options: { data: … }` en un campo de fecha reemplazaba el `data` del contenedor**, y
+  con él `data-controller="datepicker"`: el campo salía sin calendario. Ahora se suma, llave por
+  llave. Ninguna app pasa `data:` en `wrapper_options`.
+
+- **Textarea `auto_grow`: un `form.reset()` con el campo oculto lo dejaba al alto de sus `rows`**
+  al volver a mostrarse, con el texto restaurado fuera de vista. Ahora se ajusta en cuanto vuelve
+  a tener caja. Nada que hacer en las apps.
+
+- **FeedbackWidget: Escape dentro del panel de Opina lo cierra, si Opina lo pide.** Con el foco
+  dentro del iframe, Escape no llega a la página (ni `keydown` ni el `cancel` del `<dialog>`),
+  así que el panel no se cerraba. El widget atiende ahora
+  `{ type: 'bali:feedback:close-request' }` desde su propio frame y el origen de Opina, y cierra
+  el drawer por el mismo camino que Escape. **opina** tiene que mandarlo en su embed
+  (Grupo-AFAL/opina#127):
+  `document.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) window.parent.postMessage({ type: 'bali:feedback:close-request' }, '*') })`.
+  Hasta entonces nada cambia.
+
+- **El lightbox de `image-expander` (ImageGrid) se queda con Escape y Tab.** Dentro de un Drawer
+  o Modal, Escape cerraba el lightbox y el panel en la misma pulsación; ahora cierra sólo el
+  lightbox y el foco vuelve a la miniatura, dentro del panel. Tab y Shift+Tab ya no salen al
+  `<body>`, al ✕ del panel ni a las miniaturas: se quedan en el botón de cerrar. En afal-apps
+  deja de ser cierto «la tecla Esc cierra además el drawer» de
+  `docs/src/content/docs/desarrollo/terminales/hallazgos-y-seguimiento.mdx`.
+
+- **Modal y Drawer: Tab desde el último control entra al iframe que va primero.** Se detenía en
+  el iframe sin nada enfocado adentro y hacía falta otro Tab; ahora cae en el primer control del
+  frame (Chromium). Nada que hacer en la app.
+
+- **Modal y Drawer se cierran antes de que Turbo guarde la página en su caché.** Una página que
+  se dejaba con el panel abierto volvía con Atrás con el panel pintado pero sin `showModal()`, y
+  la página de detrás seguía respondiendo al mouse y al teclado. Ahora vuelve cerrado. No se
+  cierran cuando la visita va a la misma ruta con `replace` (un refresh), en la navegación de un
+  frame promovida a visita (`Tabs` con su `turbo_action: :advance` dentro de un drawer) ni cuando
+  sólo cambia el fragmento de la URL. Y un panel que vuelve abierto de todos modos, como el de la
+  copia que toma un frame promovido, se abre otra vez con `showModal()`. Nada que hacer en la app.
+
+- **`HelpTip`: el ícono tiene nombre.** El controlador del tooltip lo vuelve parada de
+  tabulación, y se anunciaba como un genérico sin nombre. Ahora es `role="img"` con
+  `aria-label` «Más información» (`bali_view.help_tip.label`), y el texto del globo sigue siendo
+  su descripción; un `trigger_label:` pasado a HelpTip le da un nombre más preciso.
+  **En un campo con `tooltip:`** el ícono va dentro del `<label>`: se anuncia «Más información»,
+  imagen, con el texto de ayuda, y el nombre accesible del campo pasa de «Email» a «Email Más
+  información». `fill_in` y `find_field` de Capybara leen el texto del `<label>` y siguen
+  encontrando el campo; una prueba que lo busque por nombre accesible exacto (`getByLabel`)
+  tendría que ajustarse, y ninguna app tiene una.
+
+- **Los botones del diálogo de confirmación siguen el idioma de la página (#1409).** Un
+  `data-turbo-confirm` sin `data-bali-confirm-accept`/`-cancel`, y el aviso de cambios sin
+  guardar al cerrar un Modal o un Drawer, mostraban «OK»/«Cancel» en una página en español
+  salvo que la app llamara a `installConfirmDialog` con sus textos. Ahora muestran
+  «Aceptar»/«Cancelar» bajo `<html lang="es">` (o `es-MX`) y «OK»/«Cancel» con otro `lang` o
+  sin él, leído cada vez que el diálogo se abre. Los textos de `installConfirmDialog({
+  acceptText, cancelText })` siguen ganando en cualquier idioma, y un `data-bali-confirm-*`
+  del disparador, sobre ambos.
+  - **Anfitrión:** identity y opina pasan al español sin tocar nada. afal-apps,
+    gobierno-corporativo, costa-norte, centinela-web y garita pueden borrar de
+    `app/javascript/controllers/index.js` la línea `installConfirmDialog({ acceptText:
+    "Aceptar", cancelText: "Cancelar" })` y ese símbolo del `import` (`git grep -n
+    installConfirmDialog -- app`): sus layouts declaran `<html lang="es">`, o `I18n.locale`
+    en el `tracking` de costa-norte, que es `es-MX`. Ninguna prueba de las siete afirma
+    «OK»/«Cancel».
+  - `bin/rails g bali:install` deja de sugerir esa línea.
+
+- **FileInput y DirectUpload hablan el idioma de la página (#1409).** En una página en español,
+  el botón que quita un archivo de un `file_group`/`file_field` con `multiple: true` se
+  anunciaba «Remove contrato.pdf». `Bali::DirectUpload` escribía en inglés todo lo que pinta
+  desde JavaScript: los nombres de cada fila («Uploading…», «Cancel upload of…», «Retry upload
+  of…», «Remove…»), el «Upload failed» de una subida que falla, la alerta (límite de archivos,
+  de tamaño, tipo no aceptado, subida en curso) y lo que anuncia a los lectores de pantalla.
+  Ahora todo sale de las traducciones de Bali, por el camino que cada componente ya tenía: el
+  FormBuilder escribe `bali_view.file_input.remove` en el campo, y DirectUpload pasa sus textos
+  en `data-direct-upload-translations-value`. JavaScript sólo pone el nombre del archivo, el
+  porcentaje y los límites.
+  - DirectUpload dice cada cosa una vez a un lector de pantalla. La espera del formulario va
+    sólo en la alerta, que ya es `role="alert"`, y deja de repetirse en la región viva. El
+    fallo de una subida va sólo en la región viva, con el nombre del archivo: el texto rojo de
+    la fila deja de ser `role="alert"`. Con `multiple`, los fallos que llegan juntos se anuncian
+    todos; antes cada uno reemplazaba al anterior y sólo se oía el último.
+  - Llaves de `bali_view.direct_upload`:
+    - nuevas: `file_status.uploading_file`, `file_status.failed_file`,
+      `status.marked_for_removal`, `errors.uploads_in_progress`, `actions.cancel_file` y
+      `actions.retry_file`;
+    - cambian de texto `file_status.completed`, `file_status.error`, `errors.file_too_large` y
+      `errors.invalid_type`, que nadie leía;
+    - se retiran `file_status.pending`, `file_status.uploading`, `actions.cancel` y
+      `actions.retry`.
+  - **Anfitrión:** nada que hacer.
+    - Pasan al español los `file_group` con `multiple: true` de afal-apps, el campo de
+      adjuntos de opina y el `DirectUpload` de evidencias de gobierno-corporativo.
+    - Ninguna de las siete apps sobrescribe llaves de `direct_upload` ni de `file_input`, y
+      ninguna prueba suya afirma estos textos en inglés.
+    - Un `data-controller="file-input"` escrito a mano sin `data-file-input-remove-text-value`
+      sigue en inglés.
+
+- **Un `$&` en el texto de la app ya no se lee como patrón (#1409).** Kanban (`%{card}`),
+  WidgetGrid (`%{widget}`), DocumentEditor (`%{number}`, `%{time}`) y el `translator` del Gantt
+  llenaban los placeholders de sus traducciones con `String#replace`. Esa función lee `$&`,
+  `$'` o `$$` en el valor como patrón, así que un widget titulado `Ventas $& 2026` se
+  anunciaba `«Ventas %{widget} 2026» se movió…`. Ahora todos usan `utils/interpolate.js`, como
+  FileInput, DirectUpload y BlockEditor.
+  - **Anfitrión:** nada que hacer.
+
+- **ImageGrid, Tabs, BlockEditor y Gantt dejan de escribir inglés desde JavaScript en una página
+  en español (#1428).** El visor de ImageGrid decía «Loading» y «Could not load image», y su
+  botón de cerrar se anunciaba con el nombre del disparador («Ampliar imagen»); un panel de Tabs
+  cuyo `src:` fallaba, «Failed to load content», o se quedaba girando si la red no respondía;
+  las referencias de tipo `task`, `project` y `document` del BlockEditor sin
+  `references_config:`, «Task», «Project» y «Document»; y una edición del Gantt rechazada sin
+  `errors` en la respuesta, «Error 500», o «Failed to fetch» si la red no la entregaba, en vez
+  del `change_failed` que la isla ya traía traducido. Ahora salen de las traducciones de Bali:
+  llaves nuevas `bali_view.image_grid.loading`, `.load_failed` y `.close`,
+  `bali_view.tabs.load_failed` y `bali_view.block_editor.entity_types.*`. Un botón
+  `image-expander` escrito a mano, sin ImageGrid, toma los del `lang` de la página. El aviso de
+  Tabs lleva `role="alert"`.
+  - Tabs deja de escribir su `data-controller` en el hash `data:` que recibe. En Bali publicado,
+    dos Tabs con el mismo hash sólo pintaban `data-controller="tabs tabs"`. Con el valor de
+    traducciones nuevo también se habría repetido el JSON, que ya no se puede leer, y por eso se
+    corrige aquí.
+  - **Anfitrión:** nada que hacer. Pasan al español las fotos de afal-apps (también las del
+    censo, cuyo botón es a mano bajo `<html lang="es">`) y de centinela-web, y el cronograma de
+    afal-apps. Ninguna de las siete apps usa Tabs con `src:` ni esos tres tipos de referencia, ni
+    sobrescribe `bali_view` en sus locales.
+
+- **`Bali::Tag` sin `href:` es un `<span>`, no un `<div>`.** Dentro de un `<label>`, donde el
+  formulario de epics de opina pone sus fichas de proyecto, un `<div>` es HTML inválido. `.badge`
+  es `inline-flex`, así que a la vista no cambia nada: 0 píxeles distintos en los previews de Tag
+  y Tags, en `afal` y `afal-dark`. **Anfitrión:** una prueba que busque `div.badge` deja de
+  encontrarlo; centinela-web tiene dos (`test/controllers/dashboard_controller_test.rb:135-136`),
+  que pasan a `span.badge`. Un `<form>` dentro del bloque de un Tag (identity:
+  `admin/accounts/_roles_card`, `app_accesses/show`) se ve igual pero deja de ser HTML válido; va
+  junto al Tag, no dentro.
+
 - **Un control movido o quitado de la página mientras carga su dependencia ya no deja una
   instancia montada (#1409).** Tooltip, HoverCard, Dropdown con `popover: true`, Carousel,
   SortableList, RichTextEditor, QrScanner, LocationsMap y `geocoder-maps`, `drawing-maps` y
@@ -102,35 +322,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sobre listas fuera de la página; ahora 2. Mientras se sostiene un elemento la conserva, para no
   soltarlo. Nada que hacer en la app.
 
-- **Un mapa de Google cuyo script llega después del timeout se construye al llegar (#1409).**
-  LocationsMap, `geocoder-maps`, `drawing-maps` y `autocomplete-address` no se construían nunca
-  si el script de Google tardaba más que los 10 s del loader; ahora piden la API sin plazo
-  (`timeout: 0`) y construyen una sola vez cuando el script llega, si siguen en la página, así
-  que ya no registran «Timed out loading the Google Maps API» a los 10 s. Un script que falla
-  sigue registrando su error. Un mapa reconectado mientras el script carga ya
-  no construye dos mapas en el mismo elemento.
+### Dependencies
 
-- **El ⋯ de la barra del DataTable sólo mueve lo que cambia de lugar (#1409).** Cada recálculo
-  sacaba a la fila todo lo que estaba en el ⋯ y lo volvía a meter, así que cada controlador de
-  esos controles se reconectaba dos veces por recálculo; ahora ninguno, y un recálculo que no
-  mueve nada ya no cierra el dropdown que estaba abierto. Por encima del
-  breakpoint el ⋯ además listaba los controles al revés de la barra; ahora en su orden, como ya
-  lo hacía en el teléfono, también entre dos botones de `with_toolbar_button`, que comparten
-  prioridad y además volvían a la fila invertidos. Esos botones pasan de ser lo primero del ⋯ a
-  lo último: 31 llamadas en 28 vistas de afal-apps y una de gobierno-corporativo.
-
-- **Google Maps: una llamada al loader después de la primera recibe las bibliotecas que pide**
-  (#1409). La API se carga una vez por página, con las opciones de la primera llamada, y
-  `loadGoogleMapsApi` ignoraba en silencio lo que pedían las siguientes: un `autocomplete-address`
-  en una página donde `LocationsMap` ya la había cargado fallaba con `Cannot read properties of
-  undefined (reading 'Autocomplete')`. Ahora cada llamada importa sus `libraries` con
-  `google.maps.importLibrary`, y una `key`, `language`, `region`, `v`, `channel` o `client`
-  distinta de la cargada, que no puede cambiar sin recargar, avisa en la consola una vez por
-  opción. Una biblioteca que la API no conoce hace fallar la llamada, que antes la ignoraba si no
-  era la primera. Los parámetros de la URL del script van codificados, y `timeout: 0` espera sin
-  plazo, como en XHR, en vez de volverse 10 s. `LocationsMap` deja de pedir `drawing`, que no usa,
-  y `drawing-maps` también: ninguna versión que Google sirve construye su `DrawingManager`. Nada
-  que hacer en la app.
+- **Con tailwindcss-rails, `@tailwindcss/typography` no va en `package.json`** (alerta de
+  dependabot #254: typography 0.5.20 fija `postcss-selector-parser` 6.0.10). El binario de
+  tailwindcss-rails trae el plugin embebido y no lee el de `node_modules`;
+  `bin/rails g bali:install` ya sólo pide el paquete donde Tailwind sale de npm. La dummy lo
+  quita. **Anfitrión:** afal-apps, gobierno-corporativo, identity, costa-norte, centinela-web y
+  opina pueden quitarlo de `devDependencies`; es lo único que trae ahí la 6.0.10, así que eso
+  cierra la alerta. (centinela-web: borrar también su `tailwind.config.js`, que ningún
+  `@config` carga.)
 
 ## [v3.12.0] - 2026-10-11
 

@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { DirectUpload } from '@rails/activestorage'
+import { interpolate } from '../../../assets/javascripts/bali/utils/interpolate.js'
 
 // Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
 // public event names stay put when a host registers this controller under a
@@ -33,9 +34,9 @@ export class DirectUploadController extends Controller {
     maxFiles: { type: Number, default: 10 },
     maxFileSize: { type: Number, default: 10 }, // in MB
     accept: { type: String, default: '*' },
-    autoUpload: { type: Boolean, default: true },
     fieldName: String,
-    removeFieldName: String
+    removeFieldName: String,
+    translations: Object
   }
 
   // Track files: Map<id, { file, progress, status, signedId, error, xhr, element }>
@@ -87,8 +88,7 @@ export class DirectUploadController extends Controller {
     if (uploading > 0) {
       event.preventDefault()
       event.stopPropagation()
-      this.showError(`Please wait for ${uploading} upload(s) to complete`)
-      this.announce(`Upload in progress. Please wait for ${uploading} file(s) to finish uploading.`)
+      this.showError(this.t('uploads_in_progress', { count: uploading }))
     }
   }
 
@@ -138,10 +138,7 @@ export class DirectUploadController extends Controller {
       })
 
       this.renderFileItem(id)
-
-      if (this.autoUploadValue) {
-        this.uploadFile(id)
-      }
+      this.uploadFile(id)
     })
   }
 
@@ -153,19 +150,19 @@ export class DirectUploadController extends Controller {
     for (const file of files) {
       // Check max files
       if (this.multipleValue && (currentCount + validFiles.length) >= this.maxFilesValue) {
-        this.showError(`Maximum ${this.maxFilesValue} files allowed`)
+        this.showError(this.t('too_many_files', { max: this.maxFilesValue }))
         break
       }
 
       // Check file size
       if (file.size > maxSizeBytes) {
-        this.showError(`${file.name} exceeds ${this.maxFileSizeValue}MB limit`)
+        this.showError(this.t('file_too_large', { filename: file.name, max: this.maxFileSizeValue }))
         continue
       }
 
       // Check file type
       if (!this.isAcceptedType(file)) {
-        this.showError(`${file.name}: File type not accepted`)
+        this.showError(this.t('invalid_type', { filename: file.name }))
         continue
       }
 
@@ -225,7 +222,7 @@ export class DirectUploadController extends Controller {
 
     upload.create((error, blob) => {
       if (error) {
-        this.handleError(id, error)
+        this.handleError(id)
       } else {
         this.handleSuccess(id, blob.signed_id)
       }
@@ -253,7 +250,7 @@ export class DirectUploadController extends Controller {
     this.createHiddenField(id, signedId)
 
     // Announce success
-    this.announce(`${fileData.file.name} uploaded successfully`)
+    this.announce(this.t('completed', { filename: fileData.file.name }))
 
     // Dispatch completion event
     this.dispatch('complete', {
@@ -270,18 +267,18 @@ export class DirectUploadController extends Controller {
     }
   }
 
-  handleError (id, error) {
+  handleError (id) {
     const fileData = this.files.get(id)
     if (!fileData) return
 
     fileData.status = 'error'
-    fileData.error = error.message || 'Upload failed'
+    fileData.error = this.t('error')
     fileData.xhr = null
 
     this.updateFileUI(id)
 
     // Announce error
-    this.announce(`Failed to upload ${fileData.file.name}: ${fileData.error}`)
+    this.announce(this.t('failed_file', { filename: fileData.file.name }))
   }
 
   // ==================== Actions ====================
@@ -395,8 +392,8 @@ export class DirectUploadController extends Controller {
     button.disabled = true
 
     // Announce removal
-    const filename = row.querySelector('.font-medium')?.textContent || 'File'
-    this.announce(`${filename} marked for removal`)
+    const filename = row.querySelector('.font-medium').textContent
+    this.announce(this.t('marked_for_removal', { filename }))
   }
 
   createRemoveField (attachmentId) {
@@ -447,7 +444,7 @@ export class DirectUploadController extends Controller {
     // Update progress and ARIA attributes
     progress.value = fileData.progress
     progress.setAttribute('aria-valuenow', fileData.progress)
-    progress.setAttribute('aria-label', `Uploading ${fileData.file.name}: ${fileData.progress}%`)
+    progress.setAttribute('aria-label', this.t('uploading_file', { filename: fileData.file.name, progress: fileData.progress }))
     percentage.textContent = `${fileData.progress}%`
 
     // Reset visibility
@@ -460,16 +457,11 @@ export class DirectUploadController extends Controller {
 
     // Update button aria-labels with filename
     const filename = fileData.file.name
-    cancelBtn.setAttribute('aria-label', `Cancel upload of ${filename}`)
-    retryBtn.setAttribute('aria-label', `Retry upload of ${filename}`)
-    removeBtn.setAttribute('aria-label', `Remove ${filename}`)
+    cancelBtn.setAttribute('aria-label', this.t('cancel_file', { filename }))
+    retryBtn.setAttribute('aria-label', this.t('retry_file', { filename }))
+    removeBtn.setAttribute('aria-label', this.t('remove_file', { filename }))
 
     switch (fileData.status) {
-      case 'pending':
-        percentage.textContent = 'Waiting...'
-        progress.setAttribute('aria-label', `Waiting to upload ${filename}`)
-        break
-
       case 'uploading':
         // Default state shown above
         break
@@ -492,6 +484,11 @@ export class DirectUploadController extends Controller {
         removeBtn.classList.remove('hidden')
         break
     }
+  }
+
+  // component.rb#translations_json hands the sentences over with their Rails placeholders.
+  t (key, values) {
+    return interpolate(this.translationsValue[key], values)
   }
 
   // ==================== Hidden Fields ====================
@@ -556,16 +553,15 @@ export class DirectUploadController extends Controller {
 
   // ==================== Accessibility ====================
 
-  /**
-   * Announce a message to screen readers via live region
-   */
+  // One node per message: failures that land together would each overwrite the last if the
+  // region's text were replaced. A node leaves after a second, so the same message can be
+  // announced again.
   announce (message) {
-    if (this.hasAnnouncerTarget) {
-      this.announcerTarget.textContent = message
-      // Clear after announcement to allow repeated messages
-      setTimeout(() => {
-        this.announcerTarget.textContent = ''
-      }, 1000)
-    }
+    if (!this.hasAnnouncerTarget) return
+
+    const node = document.createElement('p')
+    node.textContent = message
+    this.announcerTarget.append(node)
+    setTimeout(() => node.remove(), 1000)
   }
 }

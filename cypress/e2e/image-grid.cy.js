@@ -1,3 +1,5 @@
+import { shiftTab } from '../support/keys'
+
 // #1041 — ImageGrid had no E2E spec. With `expandable: true` each thumbnail
 // opens a lightbox that exists nowhere in the markup: the controller builds the
 // overlay, moves it to the top layer, loads the full-size image and takes over
@@ -76,6 +78,40 @@ describe('ImageGrid lightbox', () => {
     overlay().find('.bali-image-expander-error').should('contain.text', 'Could not load image')
   })
 
+  // #1428 — the spinner and the error are written by the controller, so they need the page
+  // language handed to them: Bali's translations from ImageGrid, or else the `lang` of the page
+  // around a trigger a host wrote by hand.
+  describe('in the language of the page', () => {
+    // The spinner lives as long as the request is held, so its assertion has to give up before
+    // the request is answered: past that, a wrong label reads as a spinner that never existed.
+    const openBroken = () => {
+      cy.intercept('GET', 'https://placehold.co/1600x1067**', { statusCode: 500, body: '', delay: 3000 })
+      thumbnails().first().click()
+    }
+    const expectSpanish = () => {
+      overlay().find('.bali-image-expander-spinner', { timeout: 2000 }).should('have.attr', 'aria-label', 'Cargando')
+      overlay().find('.bali-image-expander-close').should('have.attr', 'aria-label', 'Cerrar')
+      overlay().find('.bali-image-expander-error').should('have.text', 'No se pudo cargar la imagen')
+    }
+
+    it('from ImageGrid', () => {
+      cy.visit('/bali/image_grid/expandable?locale=es')
+      // The preview layout writes `lang` too; without it, only ImageGrid's translations speak Spanish.
+      cy.document().then((doc) => doc.documentElement.removeAttribute('lang'))
+      openBroken()
+
+      expectSpanish()
+    })
+
+    it('from a trigger with no translations', () => {
+      cy.visit('/bali/image_grid/expandable?locale=es')
+      thumbnails().first().invoke('removeAttr', 'data-image-expander-translations-value')
+      openBroken()
+
+      expectSpanish()
+    })
+  })
+
   it('leaves a plain grid alone', () => {
     cy.visit('/bali/image_grid/default')
 
@@ -115,6 +151,54 @@ describe('ImageGrid lightbox', () => {
           expect($overlay[0].matches(':popover-open'), ':popover-open').to.equal(true)
         })
         overlay().should(expectWholeWindow)
+      })
+    })
+  })
+
+  // Escape and Tab belong to the lightbox while it is open. Inside a Drawer or Modal the
+  // panel's own `keydown.esc` closed it in the same keystroke, and Tab walked out to the
+  // panel's controls behind the photo; on a page, out to the thumbnails. Real keys, through
+  // the browser's keyboard path: a synthetic Escape is no close request for a `<dialog>`, and
+  // a synthetic Tab moves nothing. `cy.press` takes no modifiers.
+  describe('keys while it is open', () => {
+    // `is-open` lands on the next frame, the way a reader sees it open.
+    const openIt = () => {
+      thumbnails().first().click()
+      overlay().should('have.class', 'is-open').find('img').should('exist')
+      expectFocusOnClose('on open')
+    }
+    const expectFocusOnClose = label => cy.document().should((doc) => {
+      expect(doc.activeElement.className, label).to.contain('bali-image-expander-close')
+    })
+
+    ;[['a page', '/bali/image_grid/expandable'],
+      ['a drawer', '/bali/image_grid/in_overlay?overlay=drawer'],
+      ['a modal', '/bali/image_grid/in_overlay?overlay=modal']].forEach(([where, path]) => {
+      it(`keeps Tab and Shift+Tab on its close button, from ${where}`, () => {
+        cy.visit(path)
+        openIt()
+
+        cy.press(Cypress.Keyboard.Keys.TAB)
+        expectFocusOnClose('after Tab')
+
+        shiftTab()
+        expectFocusOnClose('after Shift+Tab')
+      })
+    })
+
+    ;[['drawer', 'dialog.drawer-component'], ['modal', 'dialog.modal-component']].forEach(([panel, selector]) => {
+      it(`closes with Escape and leaves the ${panel} around it open`, () => {
+        cy.visit(`/bali/image_grid/in_overlay?overlay=${panel}`)
+        openIt()
+
+        cy.press(Cypress.Keyboard.Keys.ESC)
+
+        overlay().should('not.exist')
+        cy.get(selector).should(($dialog) => {
+          expect($dialog[0].matches(':modal'), ':modal').to.equal(true)
+        })
+        // Back on the thumbnail inside the panel that opened it.
+        cy.focused().should('have.attr', 'data-controller', 'image-expander')
       })
     })
   })

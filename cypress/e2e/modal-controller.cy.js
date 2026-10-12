@@ -383,26 +383,155 @@ describe('ModalController', () => {
       })
     })
 
-    // A Turbo snapshot of a page left with the panel open carries the guard; the restored
-    // controller added its own beside it, and the copy was a Tab stop that went nowhere.
-    it('is not doubled when Turbo restores a page left with the panel open', () => {
-      const appOrigin = new URL(Cypress.config('baseUrl')).origin
+    // Tab from the last control wraps to the first, and when that is an iframe `.focus()`
+    // stopped on the frame with nothing focused inside it: one more Tab to reach its first
+    // control. A real Tab, because the step into the frame is the browser's own.
+    it('wraps Tab from the last control into a first iframe, onto its first control', () => {
+      cy.visit('/bali/button/default')
+      cy.document().then((doc) => {
+        doc.body.insertAdjacentHTML('beforeend',
+          '<dialog id="by-hand" class="modal modal-open" data-controller="modal" data-modal-target="template">' +
+          '<div class="modal-box" data-modal-target="wrapper" tabindex="-1"><div data-modal-target="content">' +
+          '<iframe title="Embed" srcdoc="<button id=in-frame>In the frame</button>"></iframe>' +
+          '<button type="button" id="last">Last</button></div></div></dialog>')
+      })
+      cy.get(`#by-hand > ${guards}`).should('exist')
+      cy.get('#by-hand iframe').its('0.contentDocument.body').find('#in-frame').should('exist')
 
-      cy.visit(`${appOrigin}/admin/studios`)
+      cy.get('#last').focus()
+      cy.press(Cypress.Keyboard.Keys.TAB)
+
+      cy.get('#by-hand iframe').should(($frame) => {
+        expect($frame[0].ownerDocument.activeElement, 'the page').to.equal($frame[0])
+        expect($frame[0].contentDocument.activeElement.id, 'inside the frame').to.equal('in-frame')
+      })
+    })
+
+    // What a snapshot of an open panel restores: `open`, the open class and the guard after
+    // the wrapper, and no `showModal()` behind any of it — the page around it was not inert.
+    it('promotes a panel restored open, keeping the guard it came with', () => {
+      cy.visit('/bali/button/default')
+      cy.document().then((doc) => {
+        doc.body.insertAdjacentHTML('beforeend',
+          '<dialog id="restored" class="modal modal-open" open data-controller="modal" data-modal-target="template">' +
+          '<div class="modal-box" data-modal-target="wrapper" tabindex="-1"><div data-modal-target="content">' +
+          '<button type="button">Only</button></div></div>' +
+          '<span data-bali-focus-guard class="fixed" tabindex="0"></span></dialog>')
+      })
+
+      cy.get('#restored').should(($dialog) => {
+        expect($dialog[0].matches(':modal'), ':modal').to.equal(true)
+        expect($dialog.children(guards), 'guards').to.have.length(1)
+      })
+    })
+  })
+
+  // A snapshot keeps the panel's `open` attribute and none of what `showModal()` did: restored,
+  // the panel was painted open over a page that was not inert.
+  context('Turbo cache', () => {
+    const appOrigin = new URL(Cypress.config('baseUrl')).origin
+    const mainDrawer = win => win.document.getElementById('main-drawer')
+
+    const openTheDrawer = () => {
       cy.get('[data-action*="drawer#open"]').first().click()
       cy.get('#main-drawer.drawer-open button[data-action*="drawer#close"]').should('exist')
-      cy.get(`#main-drawer > ${guards}`).should('have.length', 1)
+      cy.window().should(win => expect(mainDrawer(win).matches(':modal'), ':modal on open').to.equal(true))
+    }
 
-      cy.window().then((win) => win.Turbo.visit('/admin/movies'))
+    // Leaves /admin/studios for /admin/movies and comes back. The probe on <body> is what tells
+    // a snapshot from Turbo's cache from a fresh page, which arrives closed whatever this does.
+    const leaveAndComeBack = () => {
+      cy.document().then(doc => doc.body.setAttribute('data-cache-probe', ''))
+      cy.window().then(win => win.Turbo.visit('/admin/movies'))
       cy.location('pathname').should('eq', '/admin/movies')
+      cy.get('body').should('not.have.attr', 'data-cache-probe')
       cy.go('back')
       cy.location('pathname').should('eq', '/admin/studios')
+      cy.get('body').should('have.attr', 'data-cache-probe')
+    }
 
-      // The restored controller has placed its guard once it has seated the focus.
-      cy.focused().should(($focused) => {
-        expect($focused[0].closest('#main-drawer'), 'focus in the restored panel').to.not.equal(null)
+    const countBeforeCache = () => cy.window().then(win => {
+      win.__beforeCache = 0
+      win.document.addEventListener('turbo:before-cache', () => { win.__beforeCache += 1 })
+    })
+
+    beforeEach(() => {
+      cy.viewport(1280, 900)
+      cy.visit(`${appOrigin}/admin/studios`)
+    })
+
+    it('restores a page left with the panel open with the panel closed', () => {
+      openTheDrawer()
+      leaveAndComeBack()
+
+      cy.window().should(win => {
+        const drawer = mainDrawer(win)
+        expect(drawer.hasAttribute('open'), 'open attribute').to.equal(false)
+        expect(drawer.classList.contains('drawer-open'), 'drawer-open').to.equal(false)
       })
-      cy.get(`#main-drawer > ${guards}`).should('have.length', 1)
+    })
+
+    // A refresh fires `turbo:before-cache` with the panel open, then morphs around it
+    // (`modal-morph-top-layer.cy.js`): the page stays, and so must the panel. The page visited
+    // again with `replace` caches it every time; a `<turbo-stream action="refresh">` does only
+    // when Turbo already holds a snapshot of the page, and only if a frame is painted before
+    // the response lands.
+    it('keeps the panel open through a refresh morph', () => {
+      cy.document().then(doc => doc.head.insertAdjacentHTML('beforeend', '<meta name="turbo-refresh-method" content="morph">'))
+      openTheDrawer()
+      countBeforeCache()
+
+      cy.window().then(win => {
+        win.__morphed = false
+        win.addEventListener('turbo:morph', () => { win.__morphed = true }, { once: true })
+        win.Turbo.visit(win.location.href, { action: 'replace' })
+      })
+      cy.window().its('__morphed', { timeout: 15000 }).should('equal', true)
+
+      cy.window().should(win => {
+        expect(win.__beforeCache, 'turbo:before-cache').to.be.greaterThan(0)
+        expect(mainDrawer(win).matches(':modal'), ':modal after the refresh').to.equal(true)
+      })
+    })
+
+    // A link in a `<turbo-frame>` that advances the URL — `Bali::Tabs`' default `turbo_action`
+    // inside a drawer — renders only the frame, and promotes the navigation to a visit that
+    // renders nothing (`willRender: false`). That visit caches the page with the panel open.
+    it('keeps the panel open when a frame inside it advances the URL', () => {
+      cy.intercept('GET', '/frame-in-the-panel*', {
+        headers: { 'content-type': 'text/html' },
+        body: '<html><head></head><body><turbo-frame id="in-the-panel">' +
+          '<p id="frame-loaded">Loaded</p></turbo-frame></body></html>'
+      })
+      openTheDrawer()
+      countBeforeCache()
+      cy.get('#main-drawer [data-drawer-target="content"]').then(($content) => {
+        $content[0].insertAdjacentHTML('beforeend', '<turbo-frame id="in-the-panel">' +
+          '<a id="advance" href="/frame-in-the-panel" data-turbo-action="advance">Next</a></turbo-frame>')
+      })
+
+      cy.get('#advance').click()
+
+      cy.get('#frame-loaded').should('exist')
+      cy.location('pathname').should('eq', '/frame-in-the-panel')
+      cy.window().should(win => {
+        expect(win.__beforeCache, 'turbo:before-cache').to.be.greaterThan(0)
+        expect(mainDrawer(win).matches(':modal'), ':modal after the frame advanced').to.equal(true)
+      })
+    })
+
+    // A history entry with no visit behind it — an anchor inside the panel — fires one too,
+    // and nothing replaces the page.
+    it('keeps the panel open when the URL only gains a fragment', () => {
+      openTheDrawer()
+      countBeforeCache()
+
+      cy.window().then(win => { win.location.hash = 'inside-the-panel' })
+
+      cy.window().should(win => {
+        expect(win.__beforeCache, 'turbo:before-cache').to.be.greaterThan(0)
+        expect(mainDrawer(win).matches(':modal'), ':modal after the fragment').to.equal(true)
+      })
     })
   })
 })

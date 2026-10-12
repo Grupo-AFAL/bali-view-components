@@ -48,13 +48,14 @@ module Bali
       # @param max_file_size [Integer] Maximum file size in megabytes
       # @param accept [String] Accepted file types (MIME types or extensions)
       # @param drop_zone [Boolean] Show drag & drop area
-      # @param auto_upload [Boolean] Upload files immediately on selection
+      # @param auto_upload [Boolean] Deprecated and ignored: files upload as soon as they are
+      #   chosen. Removed in 4.0.
       # @param options [Hash] Additional options passed to the container element
       #
       # rubocop:disable Metrics/ParameterLists
       def initialize(form:, method:, multiple: false, max_files: DEFAULT_MAX_FILES,
                      max_file_size: DEFAULT_MAX_FILE_SIZE_MB, accept: "*", drop_zone: true,
-                     auto_upload: true, **options)
+                     auto_upload: nil, **options)
         @form = form
         @method = method
         @multiple = multiple
@@ -62,8 +63,8 @@ module Bali
         @max_file_size = max_file_size
         @accept = accept
         @drop_zone = drop_zone
-        @auto_upload = auto_upload
         @options = options
+        warn_auto_upload unless auto_upload.nil?
       end
       # rubocop:enable Metrics/ParameterLists
 
@@ -73,10 +74,6 @@ module Bali
 
       def drop_zone?
         @drop_zone
-      end
-
-      def auto_upload?
-        @auto_upload
       end
 
       # Returns existing attachments for the form object's attachment method.
@@ -123,10 +120,36 @@ module Bali
           direct_upload_max_files_value: max_files,
           direct_upload_max_file_size_value: max_file_size,
           direct_upload_accept_value: accept,
-          direct_upload_auto_upload_value: auto_upload?,
           direct_upload_field_name_value: field_name,
-          direct_upload_remove_field_name_value: remove_field_name
+          direct_upload_remove_field_name_value: remove_field_name,
+          direct_upload_translations_value: translations_json
         }
+      end
+
+      # Every text index.js writes, with the Rails placeholders left in: it fills in the file
+      # name, the progress and the limits, which only exist in the browser.
+      def translations_json
+        {
+          uploading_file: t("bali_view.direct_upload.file_status.uploading_file"),
+          completed: t("bali_view.direct_upload.file_status.completed"),
+          error: t("bali_view.direct_upload.file_status.error"),
+          failed_file: t("bali_view.direct_upload.file_status.failed_file"),
+          marked_for_removal: t("bali_view.direct_upload.status.marked_for_removal"),
+          uploads_in_progress: t("bali_view.direct_upload.errors.uploads_in_progress"),
+          too_many_files: t("bali_view.direct_upload.errors.too_many_files"),
+          file_too_large: t("bali_view.direct_upload.errors.file_too_large"),
+          invalid_type: t("bali_view.direct_upload.errors.invalid_type"),
+          cancel_file: t("bali_view.direct_upload.actions.cancel_file"),
+          retry_file: t("bali_view.direct_upload.actions.retry_file"),
+          remove_file: t("bali_view.direct_upload.actions.remove_file")
+        }.to_json
+      end
+
+      def warn_auto_upload
+        Bali.deprecator.warn(
+          "Bali::DirectUpload(auto_upload:) is deprecated and is removed in 4.0: files upload " \
+          "as soon as they are chosen. Delete the option."
+        )
       end
 
       def direct_upload_url

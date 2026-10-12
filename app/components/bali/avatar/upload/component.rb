@@ -25,12 +25,16 @@ module Bali
 
         # The tint is the label's, over the button's opaque base-100: the button sits on the
         # picture's corner, and a translucent fill there let the photo show through.
+        #
+        # The input inside is invisible, so the ring is the button's. daisyUI only rings a
+        # `.btn:has(:focus-visible)`, and `.btn` would restyle this button, so the same outline
+        # (2px, offset 2px) is written out with `has-focus-visible:`.
         def button_classes
           class_names(
             "absolute -bottom-1 -right-1",
             "w-10 h-10 rounded-full bg-base-100",
             "flex justify-center items-center",
-            "focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2"
+            "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary"
           )
         end
 
@@ -43,6 +47,32 @@ module Bali
 
         def avatar_options
           @options.merge(size: @size, shape: @shape)
+        end
+
+        # Rails' own field: Bali's `file_field` brings a `<label>` and a button of its own, and
+        # nested that label inside this one.
+        def raw_file_field
+          options = {
+            accept: accepted_formats,
+            class: Bali::FormBuilder::FileFields::INPUT_CLASS,
+            aria: { label: t(".upload_image") },
+            data: { avatar_target: "input", action: "change->avatar#showImage" }
+          }
+          if bali_form_builder?
+            @form.rails_file_field(@method, @form.merge_aria_attributes(options, @method))
+          else
+            @form.file_field(@method, options)
+          end
+        end
+
+        def error_message
+          @form.error_message(@method) if bali_form_builder?
+        end
+
+        # One guard for one contract: the input's `aria-describedby` names the `<p id>` that
+        # `error_message` renders, so neither may come without the other.
+        def bali_form_builder?
+          @form.respond_to?(:rails_file_field)
         end
       end
     end

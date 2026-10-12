@@ -43,5 +43,26 @@ describe('TabsController', () => {
       cy.wait('@loadTab3')
       cy.get('[role="tablist"] .tab:nth-child(3)').first().should('have.attr', 'data-content-loaded')
     })
+
+    // #1428
+    const failedPanel = () => cy.get('.tabs-content [role="tabpanel"]:nth-child(2) .alert-error').first()
+
+    it('says the content failed to load in the language of the page', () => {
+      cy.intercept('GET', '/tab2*', { statusCode: 500, body: '' })
+      cy.visit('/bali/tabs/on_demand?locale=es')
+
+      cy.get('[role="tablist"] .tab:nth-child(2)').first().click()
+
+      failedPanel().should('have.attr', 'role', 'alert').and('have.text', 'No se pudo cargar el contenido')
+    })
+
+    it('says so too when the request never gets an answer', () => {
+      cy.intercept('GET', '/tab2*', { forceNetworkError: true })
+      cy.visit('/bali/tabs/on_demand?locale=es')
+
+      cy.get('[role="tablist"] .tab:nth-child(2)').first().click()
+
+      failedPanel().should('have.text', 'No se pudo cargar el contenido')
+    })
   })
 })
