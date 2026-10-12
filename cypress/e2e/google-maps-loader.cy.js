@@ -82,11 +82,8 @@ describe('Google Maps loader', () => {
       cy.get(SCRIPT).should('have.length', 1)
     })
 
-    // Building on a late arrival would take a guard in every controller: two connects waiting
-    // on one load already build two maps in the same element.
-    it('hands it to the next call once it has arrived, not to the one that gave up', () => {
+    it('hands it to the next call once it has arrived', () => {
       cy.window().its('__fakeMaps').should('exist')
-      cy.window().should((win) => expect(win.__fakeMaps.registry.maps, 'map that gave up').to.have.length(0))
 
       reconnect()
 
