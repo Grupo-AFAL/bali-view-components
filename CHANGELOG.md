@@ -16,8 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   undefined (reading 'Autocomplete')`. Ahora cada llamada importa sus `libraries` con
   `google.maps.importLibrary`, y una `key`, `language`, `region`, `v`, `channel` o `client`
   distinta de la cargada, que no puede cambiar sin recargar, avisa en la consola una vez por
-  opción. Los parámetros de la URL del script van codificados, y `timeout: 0` ya no se vuelve
-  10 s. `LocationsMap` deja de pedir `drawing`, que no usa. Nada que hacer en la app.
+  opción. Una biblioteca que la API no conoce hace fallar la llamada, que antes la ignoraba si no
+  era la primera. Los parámetros de la URL del script van codificados, y `timeout: 0` espera sin
+  plazo, como en XHR, en vez de volverse 10 s. `LocationsMap` deja de pedir `drawing`, que no usa,
+  y `drawing-maps` también: ninguna versión que Google sirve construye su `DrawingManager`. Nada
+  que hacer en la app.
 
 ## [v3.12.0] - 2026-10-11
 

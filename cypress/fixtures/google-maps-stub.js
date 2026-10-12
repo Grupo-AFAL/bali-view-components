@@ -199,14 +199,11 @@
   }
 
   // What the script's `libraries=` and a later importLibrary put on google.maps; any other
-  // name is rejected, as the real API rejects it. `drawing` loads empty: the API dropped
-  // DrawingManager in 3.65, and drawing-maps fails to build it inside its `try`, as it does
-  // against Google.
+  // name is rejected, as the real API rejects it.
   const libraries = {
     marker: { AdvancedMarkerElement: FakeAdvancedMarkerElement, PinElement: FakePinElement },
     places: { Autocomplete: FakeAutocomplete },
-    geometry: {},
-    drawing: {}
+    geometry: {}
   }
 
   const importLibrary = (name) => {

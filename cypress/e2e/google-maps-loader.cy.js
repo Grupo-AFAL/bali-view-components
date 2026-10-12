@@ -132,30 +132,33 @@ describe('Google Maps loader', () => {
       cy.window().then((win) => win.loadGoogleMapsApi({ language: 'es' }))
       cy.window().then((win) => win.loadGoogleMapsApi({ language: 'es' }))
       loaderWarnings([
-        'The Google Maps API loads once per page and is already loaded with another `language`: this call\'s is ignored.'
+        'The Google Maps API loads once per page, with the first call\'s options: this call\'s `language` is ignored.'
       ])
     })
   })
 
   // #1409
-  describe('the script URL', () => {
-    it('carries each option encoded', () => {
-      stubGoogleMaps()
-      visitAndMountMap({ 'data-locations-map-api-key-value': 'a+b&c=d' })
+  it('encodes the key in the script URL', () => {
+    stubGoogleMaps()
+    visitAndMountMap({ 'data-locations-map-api-key-value': 'a+b&c=d' })
 
-      cy.wait('@mapsApi').its('request.url').should((url) => {
-        expect(new URL(url).searchParams.get('key')).to.eq('a+b&c=d')
-      })
+    cy.wait('@mapsApi').its('request.url').should((url) => {
+      expect(new URL(url).searchParams.get('key')).to.eq('a+b&c=d')
     })
   })
 
-  // #1409
-  it('gives up at once on `timeout: 0`', () => {
+  // #1409 — 0 is no deadline, as for XHR.
+  it('waits without a deadline on `timeout: 0`', () => {
+    cy.clock(Date.now(), ['setTimeout', 'clearTimeout'])
     stubGoogleMaps({ delay: 2000 })
     visit()
 
-    cy.window()
-      .then((win) => win.loadGoogleMapsApi({ timeout: 0 }).then(() => 'loaded', (error) => error.message))
-      .should('eq', 'Timed out loading the Google Maps API')
+    let result
+    cy.window().then((win) => {
+      result = win.loadGoogleMapsApi({ timeout: 0 }).then(() => 'loaded', (error) => error.message)
+    })
+    cy.tick(10000)
+
+    cy.window().then(() => result).should('eq', 'loaded')
   })
 })

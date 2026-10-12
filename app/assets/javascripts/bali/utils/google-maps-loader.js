@@ -13,22 +13,21 @@ export default function (options = {}) {
   } else {
     apiOptions = options
     api = new Promise((resolve, reject) => {
-      // Hook up the on load callback
       window[CALLBACK_NAME] = function () {
         resolve(window.google.maps)
       }
 
-      // Prepare the `script` tag to be inserted into the page
       const scriptElement = document.createElement('script')
-      scriptElement.async = true // Load asynchronously to not block rendering
+      scriptElement.async = true
       scriptElement.onerror = function () {
         scriptElement.remove()
         api = null
+        warnedKeys.clear()
         reject(new Error('Could not load the Google Maps API'))
       }
       const params = new URLSearchParams({
         callback: CALLBACK_NAME,
-        loading: 'async' // Google Maps recommended async loading parameter
+        loading: 'async'
       })
       optionsKeys.forEach(key => {
         if (options[key]) {
@@ -39,8 +38,6 @@ export default function (options = {}) {
         params.set('libraries', options.libraries.join(','))
       }
       scriptElement.src = `${options.apiUrl || API_URL}?${params}`
-
-      // Insert the `script` tag
       document.body.appendChild(scriptElement)
     })
   }
@@ -52,13 +49,17 @@ export default function (options = {}) {
   const libraries = options.libraries || []
   const loaded = api.then(maps => Promise.all(libraries.map(name => maps.importLibrary(name))).then(() => maps))
 
+  // 0 is no deadline, as for XHR: setTimeout would read it as "at once".
+  const timeout = options.timeout ?? defaultTimeout
+  if (timeout === 0) return loaded
+
   // The timeout is the caller's, not the script's: a script still loading when its caller gives
   // up runs once it arrives, removed from the page or not (Chromium and Firefox, measured), so the
   // next call waits for it rather than load a second copy of the API over it.
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(function () {
       reject(new Error('Timed out loading the Google Maps API'))
-    }, options.timeout ?? defaultTimeout)
+    }, timeout)
 
     loaded.then(resolve, reject).finally(() => clearTimeout(timeoutId))
   })
@@ -69,6 +70,6 @@ function warnAboutIgnoredOptions (options) {
     if (!options[key] || options[key] === apiOptions[key] || warnedKeys.has(key)) return
 
     warnedKeys.add(key)
-    console.warn(`The Google Maps API loads once per page and is already loaded with another \`${key}\`: this call's is ignored.`)
+    console.warn(`The Google Maps API loads once per page, with the first call's options: this call's \`${key}\` is ignored.`)
   })
 }
