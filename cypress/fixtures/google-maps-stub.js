@@ -198,8 +198,8 @@
     }
   }
 
-  // What the script's `libraries=` and a later importLibrary put on google.maps; any other
-  // name is rejected, as the real API rejects it.
+  // What the script's `libraries=` and a later importLibrary put on google.maps; a name the API
+  // does not know is rejected, as the real one rejects it.
   const libraries = {
     marker: { AdvancedMarkerElement: FakeAdvancedMarkerElement, PinElement: FakePinElement },
     places: { Autocomplete: FakeAutocomplete },
