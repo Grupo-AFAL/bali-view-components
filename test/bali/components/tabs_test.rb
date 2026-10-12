@@ -28,14 +28,17 @@ class BaliTabsComponentTest < ComponentTestCase
     assert_equal "No se pudo cargar el contenido", translations["load_failed"]
   end
 
-  def test_rendering_leaves_the_callers_data_hash_alone
+  def test_rendering_leaves_the_callers_data_hash_and_its_own_options_alone
     data = { turbo_frame: "panel" }
     2.times do
       render_inline(Bali::Tabs::Component.new(data: data)) { |c| c.with_tab(title: "Tab 1", active: true) { "Content" } }
     end
+    component = Bali::Tabs::Component.new
+    component.send(:container_attributes)
 
     assert_equal({ turbo_frame: "panel" }, data)
     assert_equal "tabs", page.find(".tabs-component")["data-controller"]
+    assert_equal "tabs", component.send(:container_attributes).dig(:data, :controller)
   end
 
   def test_basic_rendering_renders_tabs_with_tablist_role_for_accessibility
