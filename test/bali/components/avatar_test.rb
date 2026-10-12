@@ -394,6 +394,16 @@ class BaliAvatarUploadComponentTest < ComponentTestCase
     assert_selector("label", count: 1)
     assert_selector('label > input[type="file"][data-action="change->avatar#showImage"]')
   end
+
+  # Rails' own `file_field` knows nothing of Bali's error markup, and the old one sat in a
+  # `div.hidden`: either way the user never saw why the picture was refused.
+  def test_upload_functionality_shows_the_field_error_under_the_bali_form_builder
+    movie = Movie.new.tap { |record| record.errors.add(:cover_photo, "is too large") }
+    render_inline(Bali::Avatar::Upload::Component.new(form: movie_form_builder(movie), method: :cover_photo))
+
+    assert_selector("p#movie_cover_photo_error", text: "is too large")
+    assert_selector('input[type="file"][aria-invalid="true"][aria-describedby="movie_cover_photo_error"]')
+  end
 end
 
 class BaliAvatarGroupComponentTest < ComponentTestCase

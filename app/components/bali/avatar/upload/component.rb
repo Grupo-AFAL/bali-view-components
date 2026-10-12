@@ -59,10 +59,15 @@ module Bali
             data: { avatar_target: "input", action: "change->avatar#showImage" }
           }
           if @form.respond_to?(:rails_file_field)
-            @form.rails_file_field(@method, options)
+            @form.rails_file_field(@method, @form.merge_aria_attributes(options, @method))
           else
             @form.file_field(@method, options)
           end
+        end
+
+        # Bali's builder only; the input's `aria-describedby` above points at it.
+        def error_message
+          @form.error_message(@method) if @form.respond_to?(:error_message)
         end
       end
     end
