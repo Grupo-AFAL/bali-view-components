@@ -22,6 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   y `drawing-maps` también: ninguna versión que Google sirve construye su `DrawingManager`. Nada
   que hacer en la app.
 
+### Dependencies
+
+- **Con tailwindcss-rails, `@tailwindcss/typography` no va en `package.json`** (alerta de
+  dependabot #254: typography 0.5.20 fija `postcss-selector-parser` 6.0.10). El binario de
+  tailwindcss-rails trae el plugin embebido y no lee el de `node_modules`;
+  `bin/rails g bali:install` ya sólo pide el paquete donde Tailwind sale de npm. La dummy lo
+  quita. **Anfitrión:** afal-apps, gobierno-corporativo, identity, costa-norte, centinela-web y
+  opina pueden quitarlo de `devDependencies`; es lo único que trae ahí la 6.0.10, así que eso
+  cierra la alerta. (centinela-web: borrar también su `tailwind.config.js`, que ningún
+  `@config` carga.)
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added
