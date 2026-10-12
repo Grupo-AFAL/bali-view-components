@@ -1,5 +1,6 @@
 // Stands in for the Google Maps JavaScript API in locations-map.cy.js,
-// google-maps-color-scheme.cy.js and google-maps-loader.cy.js.
+// google-maps-color-scheme.cy.js, google-maps-loader.cy.js and the specs of the
+// drawing-maps, autocomplete-address and geocoder-maps controllers.
 //
 // The real API is a paid, keyed, network-loaded script that paints into a
 // canvas: a test can neither load it (there is no key in CI) nor read anything
@@ -12,7 +13,7 @@
 // nothing here asserts anything, it only makes the controller's side effects
 // observable.
 (function () {
-  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [], polygons: [], autocompletes: [] }
+  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [], polygons: [], polylines: [], autocompletes: [], geocodes: [] }
 
   class ListenerHost {
     constructor () {
@@ -28,6 +29,65 @@
 
     emit (event, payload) {
       (this.listeners[event] || []).forEach((handler) => handler(payload))
+    }
+  }
+
+  // The real API hands back LatLng objects wherever it was given literals: a polygon's path,
+  // a click, a geocoded location.
+  class FakeLatLng {
+    constructor (lat, lng) {
+      this.latitude = lat
+      this.longitude = lng
+    }
+
+    lat () {
+      return this.latitude
+    }
+
+    lng () {
+      return this.longitude
+    }
+
+    toJSON () {
+      return { lat: this.latitude, lng: this.longitude }
+    }
+  }
+
+  const toLatLng = (point) => point instanceof FakeLatLng ? point : new FakeLatLng(point.lat, point.lng)
+
+  // A path: `insert_at` and `set_at` fire as the real MVCArray fires them, which is how a
+  // controller hears a vertex added or dragged.
+  class FakeMVCArray extends ListenerHost {
+    constructor (items = []) {
+      super()
+      this.items = items
+    }
+
+    getArray () {
+      return this.items
+    }
+
+    getAt (index) {
+      return this.items[index]
+    }
+
+    getLength () {
+      return this.items.length
+    }
+
+    forEach (callback) {
+      this.items.forEach(callback)
+    }
+
+    push (item) {
+      this.items.push(item)
+      this.emit('insert_at', this.items.length - 1)
+      return this.items.length
+    }
+
+    setAt (index, item) {
+      this.items[index] = item
+      this.emit('set_at', index)
     }
   }
 
@@ -130,11 +190,20 @@
     }
   }
 
+  // On a map built without a `mapId` the real one draws nothing and logs this error.
   class FakeAdvancedMarkerElement extends ListenerHost {
     constructor (options) {
       super()
       Object.assign(this, options)
+      if (this.map && !this.map.options.mapId) {
+        console.error('The map is initialized without a valid Map ID, which will prevent use of Advanced Markers.')
+      }
       registry.markers.push(this)
+    }
+
+    // Its `gmp-*` events are DOM events, heard with addEventListener.
+    addEventListener (event, handler) {
+      this.addListener(event, handler)
     }
   }
 
@@ -150,24 +219,69 @@
     setMap (map) {
       this.map = map
     }
+
+    getMap () {
+      return this.map
+    }
+
+    setOptions (options) {
+      Object.assign(this.options, options)
+    }
   }
 
+  // The real one still builds, and says on construction that it is deprecated.
   class FakeMarker extends FakeOverlay {
     constructor (options) {
       super(options)
+      console.warn('As of February 21st, 2024, google.maps.Marker is deprecated. Please use google.maps.marker.AdvancedMarkerElement instead.')
       registry.markers.push(this)
     }
   }
 
+  class FakePolyline extends FakeOverlay {
+    constructor (options) {
+      super(options)
+      this.path = new FakeMVCArray(options.path.map(toLatLng))
+      registry.polylines.push(this)
+    }
+
+    getPath () {
+      return this.path
+    }
+  }
+
+  // One ring, which is all the controllers hand it.
   class FakePolygon extends FakeOverlay {
     constructor (options) {
       super(options)
+      this.paths = new FakeMVCArray([new FakeMVCArray(options.paths.map(toLatLng))])
       registry.polygons.push(this)
     }
 
-    getPaths () {
-      return [this.options.paths]
+    getPath () {
+      return this.paths.getAt(0)
     }
+
+    getPaths () {
+      return this.paths
+    }
+  }
+
+  // Ray casting over the polygon's ring, as `google.maps.geometry.poly.containsLocation`.
+  const containsLocation = (point, polygon) => {
+    const vertices = polygon.getPath().getArray()
+    const { lat, lng } = toLatLng(point).toJSON()
+    let inside = false
+
+    for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+      const [a, b] = [vertices[i], vertices[j]]
+      if ((a.lat() > lat) !== (b.lat() > lat) &&
+          lng < ((b.lng() - a.lng()) * (lat - a.lat())) / (b.lat() - a.lat()) + a.lng()) {
+        inside = !inside
+      }
+    }
+
+    return inside
   }
 
   class FakeLatLngBounds {
@@ -192,9 +306,73 @@
   class FakeAutocomplete extends ListenerHost {
     constructor (input, options) {
       super()
+      console.warn('As of March 1st, 2025, google.maps.places.Autocomplete is not available to new customers. Please use google.maps.places.PlaceAutocompleteElement instead.')
       this.input = input
       this.options = options
       registry.autocompletes.push(this)
+    }
+  }
+
+  // <gmp-place-autocomplete> draws its own input in a closed shadow root, in the scheme of the
+  // operating system unless the page says otherwise, and is a form-associated element: it
+  // submits what it holds under its `name`. All three measured on 3.66.
+  class FakePlaceAutocompleteElement extends window.HTMLElement {
+    static formAssociated = true
+
+    constructor (options = {}) {
+      super()
+      this.attachShadow({ mode: 'closed' }).innerHTML = '<style>:host { display: block; color-scheme: light dark }</style>'
+      this.internals = this.attachInternals()
+      this.currentValue = ''
+      Object.assign(this, options)
+      registry.autocompletes.push(this)
+    }
+
+    get value () {
+      return this.currentValue
+    }
+
+    set value (value) {
+      this.currentValue = value ?? ''
+      this.internals.setFormValue(this.currentValue)
+    }
+
+    get name () {
+      return this.getAttribute('name')
+    }
+
+    set name (name) {
+      this.setAttribute('name', name)
+    }
+  }
+  window.customElements.define('gmp-place-autocomplete', FakePlaceAutocompleteElement)
+
+  // Only the fields asked for arrive, as with the real `fetchFields`.
+  class FakePlace {
+    constructor (place) {
+      this.place = place
+    }
+
+    fetchFields ({ fields }) {
+      const all = {
+        formattedAddress: this.place.formattedAddress,
+        location: toLatLng(this.place.location),
+        addressComponents: this.place.addressComponents
+      }
+      fields.forEach((field) => { this[field] = all[field] })
+
+      return Promise.resolve({ place: this })
+    }
+  }
+
+  // Answers with `__fakeMaps.geocoderReply`; the callback is called later, as the real one is.
+  class FakeGeocoder {
+    geocode (request, callback) {
+      registry.geocodes.push(request)
+      const { status, location } = window.__fakeMaps.geocoderReply
+      const results = status === 'OK' ? [{ geometry: { location: toLatLng(location) } }] : []
+
+      setTimeout(() => callback(results, status), 0)
     }
   }
 
@@ -202,8 +380,9 @@
   // does not know is rejected, as the real one rejects it.
   const libraries = {
     marker: { AdvancedMarkerElement: FakeAdvancedMarkerElement, PinElement: FakePinElement },
-    places: { Autocomplete: FakeAutocomplete },
-    geometry: {}
+    places: { Autocomplete: FakeAutocomplete, PlaceAutocompleteElement: FakePlaceAutocompleteElement },
+    geometry: { poly: { containsLocation } },
+    geocoding: { Geocoder: FakeGeocoder }
   }
 
   const importLibrary = (name) => {
@@ -223,11 +402,14 @@
       Marker: FakeMarker,
       Animation: { DROP: 'DROP' },
       Polygon: FakePolygon,
-      // Nothing here fires: the polygon's edits are not under test.
+      Polyline: FakePolyline,
+      LatLng: FakeLatLng,
+      // In the core, before any importLibrary, as on 3.66.
+      Geocoder: FakeGeocoder,
       event: {
         trigger () {},
-        addListener () {
-          return { remove () {} }
+        addListener (instance, event, handler) {
+          return instance.addListener(event, handler)
         }
       },
       importLibrary
@@ -237,8 +419,49 @@
   const requested = new URL(window.document.currentScript.src).searchParams.get('libraries')
   requested?.split(',').forEach((name) => { window.google.maps[name] = libraries[name] })
 
+  // A click lands on the topmost clickable polygon under it, and on the map only where there is
+  // none: a click inside a shell never reaches the map's listeners (measured on 3.66).
+  const clickTarget = (map, latLng) =>
+    registry.polygons.filter((polygon) => polygon.map === map && polygon.options.clickable !== false && containsLocation(latLng, polygon)).pop() || map
+
   window.__fakeMaps = {
     registry,
+
+    geocoderReply: { status: 'OK', location: { lat: 32.5322, lng: -117.0372 } },
+
+    // On the map the person last saw: a theme switch builds another.
+    click (point) {
+      const map = registry.maps[registry.maps.length - 1]
+      const latLng = toLatLng(point)
+
+      clickTarget(map, latLng).emit('click', { latLng, stop () {} })
+    },
+
+    // A vertex of the line being drawn: the line takes that click, and says which vertex.
+    clickVertex (vertex) {
+      const line = registry.polylines[registry.polylines.length - 1]
+
+      line?.emit('click', { vertex, latLng: line.getPath().getAt(vertex), stop () {} })
+    },
+
+    // The person picks a suggestion: the element shows its text and fires `gmp-select`.
+    selectPlace (place) {
+      registry.autocompletes.filter((element) => element.isConnected).forEach((element) => {
+        element.value = place.formattedAddress
+
+        const event = new window.Event('gmp-select')
+        event.placePrediction = { toPlace: () => new FakePlace(place) }
+        element.dispatchEvent(event)
+      })
+    },
+
+    // Where a drag leaves the pin, `position` reads back as a literal (measured on 3.66).
+    dragMarker (index, point) {
+      const marker = registry.markers[index]
+
+      marker.position = { lat: point.lat, lng: point.lng }
+      marker.emit('gmp-dragend')
+    },
 
     // A marker click carries the coordinates back through `latLng`, which is
     // how the controller finds the card that goes with it.

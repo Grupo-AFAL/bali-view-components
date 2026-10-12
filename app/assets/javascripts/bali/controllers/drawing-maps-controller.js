@@ -1,10 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { hostColorScheme, observeHostColorScheme } from '../utils/color-scheme.js'
 
-/**
- * @deprecated Removed in 4.0 with `coordinates_polygon_group`: it draws through
- * `google.maps.drawing.DrawingManager`, which the Maps JavaScript API dropped in 3.65.
- */
 export class DrawingMapsController extends Controller {
   static targets = ['map', 'polygonField']
   static values = {
@@ -40,7 +36,7 @@ export class DrawingMapsController extends Controller {
       // Removed during the await, nothing would destroy it; moved, the other connect builds it.
       if (this.map || !this.element.isConnected) return
 
-      const polygonOptions = {
+      this.polygonOptions = {
         fillColor: '#eaeaea',
         fillOpacity: 0.6,
         strokeWeight: this.strokeWeightValue,
@@ -51,9 +47,7 @@ export class DrawingMapsController extends Controller {
       }
 
       this.initializeMaps()
-      this.initializeDrawing(polygonOptions)
-      this.initializeDrawingManager(polygonOptions)
-      this.setDrawingManagerListener()
+      this.initializeDrawing()
     } catch (error) {
       console.error(error)
     }
@@ -69,8 +63,13 @@ export class DrawingMapsController extends Controller {
     this.map = new this.googleMaps.Map(this.mapTarget, {
       center,
       zoom,
-      colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT
+      colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT,
+      // While drawing, a click on a place's icon adds a vertex instead of opening the place.
+      clickableIcons: !this.editableValue,
+      ...(this.editableValue && { draggableCursor: 'crosshair' })
     })
+
+    if (this.editableValue) this.map.addListener('click', this.addVertex)
   }
 
   // Google reads `colorScheme` only while it builds a map, so a theme switch builds another
@@ -80,90 +79,90 @@ export class DrawingMapsController extends Controller {
 
     this.initializeMaps(this.map.getCenter(), this.map.getZoom())
     this.drawnPolygons.forEach(polygon => polygon.setMap(this.map))
+    this.sketch?.setMap(this.map)
   }
 
-  initializeDrawing (polygonOptions) {
+  initializeDrawing () {
     const parsedValue = JSON.parse(this.polygonFieldTarget.value)
-    if (this.isLegacyFormat(parsedValue)) {
-      const paths = Array.isArray(parsedValue) ? parsedValue : []
-      this.drawAndConfigurePolygonFromPaths(paths, polygonOptions, false)
+    // The builder renders a field with no value as `[]`: a ring with no vertex, not a shell.
+    if (this.isLegacyFormat(parsedValue) && parsedValue.length > 0) {
+      this.addPolygon(parsedValue, false)
     }
 
     const shells = parsedValue.shells || []
     const holes = parsedValue.holes || []
 
-    shells.forEach((paths) => {
-      this.drawAndConfigurePolygonFromPaths(paths, polygonOptions, false)
-    })
-
-    holes.forEach((paths) => {
-      this.drawAndConfigurePolygonFromPaths(paths, polygonOptions, true)
-    })
+    shells.forEach((paths) => this.addPolygon(paths, false))
+    holes.forEach((paths) => this.addPolygon(paths, true))
   }
 
-  initializeDrawingManager (polygonOptions) {
-    if (!this.editableValue) return
-
-    this.drawingManager = new this.googleMaps.drawing.DrawingManager({
-      drawingMode: this.googleMaps.drawing.OverlayType.POLYGON,
-      drawingControl: true,
-      drawingControlOptions: {
-        position: this.googleMaps.ControlPosition.TOP_CENTER,
-        drawingModes: [this.googleMaps.drawing.OverlayType.POLYGON]
-      },
-      polygonOptions
-    })
-    this.drawingManager.setMap(this.map)
-  }
-
-  setDrawingManagerListener () {
-    if (!this.editableValue) return
-
-    this.googleMaps.event.addListener(
-      this.drawingManager,
-      'polygoncomplete',
-      this.storePolygonAndAddListeners
-    )
-  }
-
-  storePolygonAndAddListeners = (polygon) => {
-    polygon.metadata ||= {}
-    polygon.metadata.hole = false
-
-    if (this.isHole(polygon)) {
-      polygon.metadata.hole = true
-      polygon.fillColor = 'red'
+  // Google retired the Drawing Library and its DrawingManager, so the shape is drawn the way that
+  // drew it: a click adds a vertex, and a click on the first vertex closes the shape.
+  addVertex = ({ latLng }) => {
+    if (this.sketch) {
+      this.sketch.getPath().push(latLng)
+      return
     }
 
-    this.setPolygonListener(polygon)
-    this.drawnPolygons.push(polygon)
+    this.sketch = new this.googleMaps.Polyline({
+      map: this.map,
+      path: [latLng],
+      editable: true,
+      strokeWeight: this.strokeWeightValue
+    })
+    this.sketch.addListener('click', this.clickSketch)
+  }
+
+  // A click on the line itself lands on the line, not on the map.
+  clickSketch = (event) => {
+    if (event.vertex === 0 && this.sketch.getPath().getLength() >= 3) {
+      this.closeSketch()
+    } else if (event.vertex === undefined) {
+      this.addVertex(event)
+    }
+  }
+
+  closeSketch () {
+    const vertices = this.sketch.getPath().getArray()
+    this.discardSketch()
+
+    this.addPolygon(vertices, this.isHole(vertices))
     this.storeCoordinates()
   }
 
-  isHole = (polygon) => {
-    if (this.drawnPolygons.length === 0) return false
+  discardSketch () {
+    this.sketch?.setMap(null)
+    this.sketch = null
+  }
 
-    const polygonVertices = polygon.getPath().getArray()
-    let result = false
-    for (const drawnPolygon of this.drawnPolygons) {
-      const allVerticesWithinPolygon = polygonVertices.every((vertice) => {
-        return this.googleMaps.geometry.poly.containsLocation(vertice, drawnPolygon)
-      })
+  isHole = (vertices) => {
+    return this.drawnPolygons.some((drawnPolygon) => {
+      return vertices.every((vertex) => this.googleMaps.geometry.poly.containsLocation(vertex, drawnPolygon))
+    })
+  }
 
-      if (allVerticesWithinPolygon) {
-        result = true
-        break
-      }
-    }
+  addPolygon = (paths, hole) => {
+    // In the options: assigned to the polygon once built, the colour never reaches the map.
+    const polygon = new this.googleMaps.Polygon({
+      ...this.polygonOptions,
+      ...(hole && { fillColor: 'red' }),
+      paths,
+      map: this.map
+    })
+    polygon.metadata = { hole }
 
-    return result
+    this.drawnPolygons.push(polygon)
+    this.setPolygonListener(polygon)
   }
 
   setPolygonListener = (polygon) => {
-    polygon.getPaths().forEach((path, index) => {
+    polygon.getPaths().forEach((path) => {
       this.googleMaps.event.addListener(path, 'set_at', () => this.storeCoordinates())
       this.googleMaps.event.addListener(path, 'insert_at', () => this.storeCoordinates())
     })
+
+    // A click inside a polygon lands on the polygon, and that is where a hole is drawn.
+    if (this.editableValue) polygon.addListener('click', this.addVertex)
   }
 
   coordinatesFromDrawnPolygons = () => {
@@ -171,8 +170,8 @@ export class DrawingMapsController extends Controller {
     const holesCoordinates = []
     this.drawnPolygons.forEach(polygon => {
       const coordinates = []
-      polygon.getPaths().forEach((path, index) => {
-        path.forEach((latlng, index) => {
+      polygon.getPaths().forEach((path) => {
+        path.forEach((latlng) => {
           coordinates.push({ lat: latlng.lat(), lng: latlng.lng() })
         })
       })
@@ -197,21 +196,10 @@ export class DrawingMapsController extends Controller {
     return Array.isArray(values)
   }
 
-  drawAndConfigurePolygonFromPaths = (paths, polygonOptions, hole) => {
-    const polygon = new this.googleMaps.Polygon({ ...polygonOptions, paths })
-    polygon.setMap(this.map)
-    polygon.metadata = { hole }
-    this.drawnPolygons.push(polygon)
-    this.setPolygonListener(polygon)
-
-    if (hole) {
-      polygon.fillColor = 'red'
-    }
-  }
-
   clear = () => {
     if (!window.confirm(this.confirmationMessageToClearValue)) return
 
+    this.discardSketch()
     this.drawnPolygons.forEach((polygon) => polygon.setMap(null))
     this.drawnPolygons = []
     this.storeCoordinates()

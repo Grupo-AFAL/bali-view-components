@@ -24,7 +24,7 @@ controller by hand.
 | [`checkbox-reveal`](#checkbox-reveal) | Shows its `item` targets while at least one checkbox is checked | hand markup |
 | [`checkbox-toggle`](#checkbox-toggle) | Toggles `on`/`off` targets from the state of one checkbox | hand markup |
 | [`datepicker`](#datepicker) | flatpickr date picker, fully configured via values | `f.date_group`, `f.datetime_group`, `f.time_group` |
-| [`drawing-maps`](#drawing-maps) | Google Map with polygon drawing serialized to a form field — deprecated | `f.coordinates_polygon_group` |
+| [`drawing-maps`](#drawing-maps) | Google Map with polygon drawing serialized to a form field | `f.coordinates_polygon_group` |
 | [`dynamic-fields`](#dynamic-fields) | Adds/removes rows of nested form fields | `f.dynamic_fields_group` |
 | [`elements-overlap`](#elements-overlap) | Keeps a fixed element from overlapping a dynamic one | hand markup |
 | [`file-input`](#file-input) | Shows the chosen filename(s) next to a file input | `f.file_group`, `f.file_field` |
@@ -65,10 +65,16 @@ Stream after a user action.
 
 ## `autocomplete-address`
 
-Google Places autocomplete: the user picks an address in the `input` target and the
-controller distributes its components across the other targets. Loads the Google
-Maps JS API on demand; the key comes from the `apiKey` value or
-`window.GOOGLE_MAPS_API_KEY`.
+Google Places autocomplete: the user picks an address and the controller distributes
+its components across the other targets. Loads the Google Maps JS API on demand; the
+key comes from the `apiKey` value or `window.GOOGLE_MAPS_API_KEY`, and needs the
+**Places API (New)** enabled.
+
+The search box is Google's `<gmp-place-autocomplete>`, which draws its own input: the
+controller puts it right after the `input` target with that input's `name`, `value`
+and `placeholder`, and keeps the input hidden and disabled while it is connected. The
+box submits what it holds under the input's name. Classes, an `id` a `<label for>`
+points at, and `required` stay on the hidden input.
 
 ```html
 <div data-controller="autocomplete-address"
@@ -155,13 +161,11 @@ overlay cannot cover it; `static` and an `appendTo` target opt out of that.
 
 ## `drawing-maps`
 
-**Deprecated, removed in 4.0, with no replacement.** It draws through
-`google.maps.drawing.DrawingManager`, which the Maps JavaScript API no longer offers as of
-version 3.65.
-
 Google Map with polygon drawing: shapes the user draws (including holes) are
-serialized as JSON into the `polygonField` target on every edit.
-`f.coordinates_polygon_group` renders it; by hand:
+serialized as JSON into the `polygonField` target on every edit. Each click on the map
+adds a vertex, and a click on the first vertex closes the shape; a shape drawn inside
+another is stored as a hole and painted red. `f.coordinates_polygon_group` renders it;
+by hand:
 
 ```html
 <div data-controller="drawing-maps" data-drawing-maps-key="YOUR_KEY"
@@ -175,8 +179,8 @@ serialized as JSON into the `polygonField` target on every edit.
 ```
 
 The field value must parse as JSON: `{"shells": [...], "holes": [...]}` (a legacy
-bare array of paths is still read). `editable: false` renders the polygons without
-the drawing toolbar. Note the API key is a plain data attribute
+bare array of points is still read as one shell). `editable: false` renders the
+polygons and draws nothing. Note the API key is a plain data attribute
 (`data-drawing-maps-key`), not a Stimulus value.
 
 ## `dynamic-fields`
@@ -305,7 +309,9 @@ the marker updates them again.
 </div>
 ```
 
-Each address field re-geocodes on `change`. Heads-up: the geocoding query is biased
+Each address field re-geocodes on `change`, and the key needs the **Geocoding API**
+enabled. An address Google cannot find is reported with an alert in the language of
+the nearest `lang` (English or Spanish). Heads-up: the geocoding query is biased
 to Baja California, Mexico — the city falls back to Tijuana when `locality` is
 empty, and the map centers there by default. The API key is a plain data attribute
 (`data-geocoder-maps-key`). `data-geocoder-maps-test-mode="true"` skips the Google
