@@ -218,7 +218,7 @@ class BaliImageFieldWithInputSlotTest < ComponentTestCase
 
   def test_with_input_slot_renders_default_clear_button_using_bali_button
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Component.new) do |c|
+    render_inline(Bali::ImageField::Component.new(src: "/photo.png")) do |c|
       c.with_input(form: form, method: :avatar)
     end
     end
@@ -229,7 +229,7 @@ class BaliImageFieldWithInputSlotTest < ComponentTestCase
 
   def test_with_custom_clear_button_renders_custom_clear_button_when_provided
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Component.new) do |c|
+    render_inline(Bali::ImageField::Component.new(src: "/photo.png")) do |c|
       c.with_input(form: form, method: :avatar)
     c.with_clear_button do
       '<button class="custom-clear">Clear</button>'.html_safe
@@ -238,6 +238,21 @@ class BaliImageFieldWithInputSlotTest < ComponentTestCase
     end
     assert_selector(".custom-clear")
     assert_text("Clear")
+  end
+
+  # Over the bare placeholder there is nothing to clear.
+  def test_with_input_slot_hides_the_clear_button_over_the_placeholder
+    helper.form_with(url: "/") do |form|
+      render_inline(Bali::ImageField::Component.new) { |c| c.with_input(form: form, method: :avatar) }
+    end
+    assert_selector('[data-image-field-target="clear"][hidden] .clear-image-button', visible: :all)
+  end
+
+  def test_with_input_slot_offers_the_clear_button_over_an_image
+    helper.form_with(url: "/") do |form|
+      render_inline(Bali::ImageField::Component.new(src: "/photo.png")) { |c| c.with_input(form: form, method: :avatar) }
+    end
+    assert_selector('[data-image-field-target="clear"]:not([hidden]) .clear-image-button')
   end
 
   def test_without_input_slot_does_not_render_placeholder_input_or_clear_button

@@ -53,6 +53,10 @@ module Bali
 
       attr_reader :src, :placeholder_url, :options
 
+      def image?
+        src != placeholder_url
+      end
+
       def container_classes
         class_names(
           "image-field-component",

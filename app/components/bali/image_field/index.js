@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 
 export class ImageFieldController extends Controller {
-  static targets = ['output', 'input', 'placeholder']
+  static targets = ['output', 'input', 'placeholder', 'clear']
 
   // Track blob URL for cleanup
   currentBlobUrl = null
@@ -20,6 +20,7 @@ export class ImageFieldController extends Controller {
       this.currentBlobUrl = URL.createObjectURL(file)
       this.outputTarget.src = this.currentBlobUrl
       this.outputTarget.style.objectFit = 'cover'
+      if (this.hasClearTarget) this.clearTarget.hidden = false
     }
   }
 
@@ -31,6 +32,11 @@ export class ImageFieldController extends Controller {
     }
     if (this.hasInputTarget) {
       this.inputTarget.value = ''
+    }
+    if (this.hasClearTarget) {
+      // Hiding the button that has focus would drop focus on the body.
+      if (this.clearTarget.contains(document.activeElement)) this.inputTarget?.focus()
+      this.clearTarget.hidden = true
     }
   }
 

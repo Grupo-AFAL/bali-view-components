@@ -16,13 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Bali::FormBuilder` como builder por omisión, `Avatar::Upload` metía el `file_field` de Bali
   —con su propio `<label>`— dentro del suyo; ahora usa el input de Rails. En `ImageField`, el
   foco de teclado muestra lo mismo que el hover (velo, ícono y botón de borrar), y el botón de
-  borrar se alcanza con Tab y se activa con Enter; un `clear_button` propio debe ocultarse con
-  `opacity-0 pointer-events-none`, no con `hidden` (ejemplo en la preview
-  `with_custom_clear_button`). `Avatar::Upload` libera la URL `blob:` de la foto anterior al
-  elegir otra, e `ImageField` ya no la libera al desconectarse: con Atrás, Turbo restauraba la
-  vista previa rota con el archivo todavía en el input. Nada que hacer en las apps: sólo
-  afal-apps usa `Avatar::Upload` (`daycare/children/_form`), ninguna usa `ImageField`, y nada
-  apunta a esos inputs.
+  borrar se alcanza con Tab y se activa con Enter. El botón de borrar sólo aparece cuando hay una
+  imagen que borrar: ya no sobre el placeholder, donde abajo de `md` se veía siempre. El grupo se
+  llama `group/image-field`: un `clear_button` propio se oculta con `opacity-0
+  pointer-events-none` y aparece con `group-hover/image-field:` y
+  `group-has-focus-visible/image-field:` (ejemplo en la preview `with_custom_clear_button`);
+  sin nombre, el hover sobre cualquier `.group` que lo contuviera velaba la imagen. Con
+  `Bali::FormBuilder`, `Avatar::Upload` muestra el error del campo bajo el avatar y el input
+  lleva `aria-invalid`. `Avatar::Upload` libera la URL `blob:` de la foto anterior al elegir
+  otra, e `ImageField` ya no la libera al desconectarse: con Atrás, Turbo restauraba la vista
+  previa rota con el archivo todavía en el input. Nada que hacer en las apps: sólo afal-apps usa
+  `Avatar::Upload` (`daycare/children/_form`), ninguna usa `ImageField`, y nada apunta a esos
+  inputs.
 
 ## [v3.12.0] - 2026-10-11
 

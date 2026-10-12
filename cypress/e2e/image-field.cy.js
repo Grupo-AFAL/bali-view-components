@@ -155,5 +155,21 @@ describe('ImageField', () => {
 
     output().invoke('attr', 'src').should('match', /^data:image\/svg/)
     input().should('have.value', '')
+    // The button hides with nothing left to clear; focus goes to the input instead of the body.
+    cy.focused().should('match', '[data-image-field-target="input"]')
+  })
+
+  // Over the bare placeholder there is nothing to clear, yet the button was in the Tab order and,
+  // below `md`, always on screen.
+  it('offers the clear button only while there is an image', () => {
+    const clear = () => cy.get('[data-action="image-field#clear"]')
+    cy.viewport(375, 667)
+
+    clear().should('not.be.visible')
+    input().selectFile('cypress/fixtures/sample-image.png', force)
+    clear().should('be.visible').click()
+
+    output().invoke('attr', 'src').should('match', /^data:image\/svg/)
+    clear().should('not.be.visible')
   })
 })
