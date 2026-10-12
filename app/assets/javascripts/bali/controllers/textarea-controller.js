@@ -92,6 +92,7 @@ export class TextareaController extends Controller {
   }
 
   fitOnFirstBox () {
+    this.firstBoxObserver?.disconnect()
     this.firstBoxObserver = new window.ResizeObserver(() => {
       if (this.inputTarget.scrollHeight === 0) return
 
@@ -173,12 +174,10 @@ export class TextareaController extends Controller {
 
     // A field that is not being rendered — `display: none` on it or an ancestor: an inactive
     // tab, a closed Reveal — measures 0, and anything written from that measurement is wrong.
-    // Nothing is left inline either: an `overflow-y: hidden` of ours beats the stylesheet and
-    // would show the field, once it finally has a box, clipped at its `rows` with no way to
-    // scroll.
+    // Being shown fires no `input`, so it is fitted once it has a box again: text a hidden reset
+    // puts back would otherwise stay at its `rows`.
     if (textarea.scrollHeight === 0) {
-      textarea.style.height = ''
-      textarea.style.overflowY = ''
+      this.fitOnFirstBox()
       return
     }
 

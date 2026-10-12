@@ -57,7 +57,7 @@ More than one hit means you have it. The fix is to force a single copy in your `
 
 then `yarn install` and rebuild. Re-check after every `@blocknote/*` upgrade: `resolutions` keeps the tree deduped but the pinned floor has to move with the editor.
 
-> **Node >= 22 is required to install this.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, which declares `engines.node: ">=22"`. On Node 20, `yarn install` stops with `error lib0@1.0.0-rc.22: The engine "node" is incompatible with this module` and `Found incompatible module` -- an install-time failure, not a runtime one, so you will see it immediately rather than in production. This repository's own CI moved from Node 20 to 22 for exactly this reason. `lib0` is the only package in the tree that asks for 22.
+> **Node >= 22 is required.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, which declares `engines.node: ">=22"`. Yarn 4 does not check it: on Node 20, `yarn install` adds `lib0` with no error and no warning, so the install will not tell you. This repository's own CI runs Node 22 for this reason. `lib0` is the only package in the tree that asks for 22.
 
 ### Step 2 -- esbuild flags
 

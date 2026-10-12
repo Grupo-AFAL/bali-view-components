@@ -76,12 +76,14 @@ describe('ConditionController', () => {
     hint().should('have.class', 'is-shown')
   })
 
+  // The blank is SlimSelect's placeholder, so the value is emptied with its deselect button.
   it('says so as soon as a chosen value is cleared, before Apply is pressed', () => {
     pickValue('Drama')
     hint().should('not.have.class', 'is-shown')
 
-    pickValue('Select...')
+    cy.get(`${container} .ss-deselect`).click()
 
+    value().should('have.value', '')
     hint().should('have.class', 'is-shown')
   })
 
@@ -153,5 +155,42 @@ describe('ConditionController', () => {
 
       hint().should('have.class', 'is-shown')
     })
+  })
+})
+
+// #1409 — the blank of a select-type value is SlimSelect's placeholder. Unmarked, SlimSelect
+// offered it as a value and counted it among the results it reads out.
+describe('ConditionController: the blank of a select value', () => {
+  const appOrigin = new URL(Cypress.config('baseUrl')).origin
+  const container = '[data-condition-target="valueContainer"]'
+  const openPanel = () => cy.get('[data-filters-target="dropdown"] > button').click()
+
+  const expectNoBlankOnOffer = () => {
+    cy.get(`${container} .ss-main`).click()
+    cy.get(`${container} select option:not([value=""])`).then(($options) => {
+      const labels = $options.toArray().map((option) => option.textContent.trim())
+      const matching = labels.filter((label) => label.toLowerCase().includes('e')).length
+
+      cy.get('.ss-content.ss-open .ss-option:not(.ss-hide)').should(($shown) => {
+        expect($shown.toArray().map((option) => option.textContent.trim())).to.deep.equal(labels)
+      })
+      cy.get('.ss-content.ss-open .ss-search input').type('e')
+      cy.get('.ss-content.ss-open .ss-status').should('have.text', `${matching} results available`)
+    })
+  }
+
+  it('is no value on offer on a condition built in the browser', () => {
+    cy.visit(`${appOrigin}/admin/movies`)
+    openPanel()
+    cy.get('[data-condition-target="attribute"]').select('genre')
+
+    expectNoBlankOnOffer()
+  })
+
+  it('is no value on offer on a condition painted by the server', () => {
+    cy.visit(`${appOrigin}/admin/movies`, { qs: { 'q[g][0][m]': 'and', 'q[g][0][genre_eq]': 'Drama' } })
+    openPanel()
+
+    expectNoBlankOnOffer()
   })
 })

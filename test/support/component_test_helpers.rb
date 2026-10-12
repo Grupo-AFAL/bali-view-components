@@ -34,6 +34,18 @@ module ComponentTestHelpers
     captured.first
   end
 
+  # The keys a Stimulus controller reads off `this.t` — `this.t.a.b`, and `const { b } = this.t.a`
+  # — the ones its `translations` value has to carry now that the controllers keep no
+  # fallbacks of their own: a key missing from the JSON paints "undefined".
+  def translation_paths_read_by(controller_path)
+    source = Bali::Engine.root.join(controller_path).read
+    reads = source.scan(/this\.t\.(\w+)(?:\.(\w+))?/).map(&:compact)
+    reads += source.scan(/const \{ ([^}]+) \} = this\.t\.(\w+)/).flat_map do |names, key|
+      names.split(",").map { |name| [ key, name.split(":").first.strip ] }
+    end
+    reads.uniq
+  end
+
   def silence_deprecations(&block)
     Bali.deprecator.silence(&block)
   end

@@ -9,7 +9,6 @@ en:
       search_placeholder: "Search..."
       search: "Search..."
       select_field: "Select field..."
-      select_value: "Select..."
       select_values: "Select values..."
       enter_value: "Enter value..."
       remove_condition: "Remove condition"
@@ -371,6 +370,8 @@ en:
       default_label: Chart
     legend:
       label: Legend
+    help_tip:
+      label: More information
     clipboard:
       copied: Copied!
       copy_label: Copy to clipboard
@@ -389,6 +390,8 @@ en:
       confirm_cancel: Cancel
     image_field:
       clear_image: Clear image
+      input:
+        choose_image: Choose image
     loader:
       loading: Loading...
     frame:

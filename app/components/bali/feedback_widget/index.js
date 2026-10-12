@@ -26,6 +26,10 @@ const CONTEXT_REQUEST_TYPE = 'bali:feedback:context-request'
 const CAPTURE_REQUEST_TYPE = 'bali:feedback:capture-request'
 const CAPTURE_RESULT_TYPE = 'bali:feedback:capture'
 
+// The embed asking for the panel to close. Escape pressed inside the frame stays in the
+// frame's document: this page sees neither the key nor the `<dialog>`'s `cancel`.
+const CLOSE_REQUEST_TYPE = 'bali:feedback:close-request'
+
 // Frames of the capture stream to let go by after the panel is hidden, before the
 // picture is taken. See `freshFrames`.
 const FRAMES_AFTER_HIDING = 3
@@ -37,8 +41,8 @@ const FRAME_TIMEOUT = 500
  * The panel itself is a `Bali::Drawer`, so opening, closing, Escape, the focus
  * containment and the `<dialog>` in the top layer are the drawer's job and this
  * controller does not repeat any of it: it opens the drawer by name, loads the
- * embed, hands over the token and the page context, polls the unread badge, and
- * takes the screenshot the embed asks for.
+ * embed, hands over the token and the page context, polls the unread badge, takes
+ * the screenshot the embed asks for, and passes on the close it asks for.
  */
 export class FeedbackWidgetController extends Controller {
   static targets = ['trigger', 'badge', 'unread', 'iframe']
@@ -67,9 +71,9 @@ export class FeedbackWidgetController extends Controller {
     window.removeEventListener('message', this.handleMessage)
   }
 
-  // There is no matching `close`, and there cannot be: while the drawer is open
-  // the rest of the page is inert, so the button is not clickable. The
-  // drawer's own ✕, its overlay and Escape are the ways out.
+  // The button never closes the panel: while the drawer is open the rest of the
+  // page is inert, so it is not clickable. The drawer's own ✕, its overlay, Escape
+  // and the embed's close request are the ways out.
   open () {
     // The drawer restores its markup on close, so the frame is a fresh one on
     // every open and the embed reloads instead of showing whatever it held the
@@ -150,6 +154,13 @@ export class FeedbackWidgetController extends Controller {
 
     if (event.data?.type === CONTEXT_REQUEST_TYPE) this.sendContext()
     if (event.data?.type === CAPTURE_REQUEST_TYPE) this.capture()
+    if (event.data?.type === CLOSE_REQUEST_TYPE) this.close()
+  }
+
+  // The drawer's own close request, the one Escape on the page makes: it arrives as the
+  // `cancel` the drawer already answers, through the same guards.
+  close () {
+    document.getElementById(this.drawerIdValue)?.requestClose()
   }
 
   // -- Screen capture -----------------------------------------------------------

@@ -36,7 +36,7 @@ module Bali
 
       # Common pattern: help icon with tooltip explanation
       def help_tip
-        render Tooltip::Component.new(class: "help-tip") do |c|
+        render Tooltip::Component.new(class: "help-tip", trigger_label: "More information") do |c|
           c.with_trigger do
             tag.span "?",
                      class: "w-6 h-6 rounded-full border border-neutral flex items-center justify-center text-sm"

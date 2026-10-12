@@ -6,7 +6,7 @@ This guide covers complete setup of Bali ViewComponents in your Rails applicatio
 
 - Rails 8.1+ (the gemspec requires `>= 8.1, < 9.0`)
 - Ruby 4.0+
-- Node.js 18+ and npm/yarn
+- Node.js 22+ and npm/yarn
 - Tailwind CSS v4 (via tailwindcss-rails or Vite)
 - daisyUI 5.7+
 
@@ -35,7 +35,9 @@ and `controllers/index.js` shares two calls. The rest genuinely differs — the 
 is done four ways — so the generator prints those as text to paste rather than inventing an
 eighth way. The list it prints: the daisyUI `themes:` block, `@custom-variant dark`, the AFAL
 theme import, `@plugin "@tailwindcss/typography"` (yours, not Bali's — Bali only ships the
-patch that keeps `prose-invert` working under daisyUI), and
+patch that keeps `prose-invert` working under daisyUI; tailwindcss-rails' binary embeds the
+plugin, so only an app whose Tailwind comes from npm (cssbundling-rails, Vite) adds the
+package), and
 `bin/rails bali:install:migrations:<feature>`.
 
 **Running it twice writes nothing twice, and so does running it on an app that was wired by

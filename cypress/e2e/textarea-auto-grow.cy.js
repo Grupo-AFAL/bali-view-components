@@ -171,20 +171,46 @@ describe('Textarea auto-grow bounds', () => {
   })
 })
 
-// #1377. A field that connects with no box measures 0, and nothing measured it again once it was
-// shown: a pre-filled one opened clipped at its `rows` until somebody typed in it.
-describe('Textarea auto-grow hidden at connect', () => {
+// #1377. A field with no box measures 0, and being shown fires no `input`: what fits it is
+// measuring again once it has a box.
+describe('Textarea auto-grow while hidden', () => {
   const field = () => cy.get('#auto_grow_in_reveal')
+  const toggle = () => cy.get('#auto_grow_reveal .reveal-trigger').click()
+  const fitsItsText = () => field().should($field => {
+    expect($field[0].clientHeight).to.be.greaterThan(0)
+    expect($field[0].scrollHeight).to.be.at.most($field[0].clientHeight)
+  })
 
-  it('fits its pre-filled text the first time it is shown, with nothing typed', () => {
+  beforeEach(() => {
     cy.visit('/bali/form/text_area/auto_grow_hidden')
     field().should('not.be.visible')
+  })
 
-    cy.get('#auto_grow_reveal .reveal-trigger').click()
+  it('fits its pre-filled text the first time it is shown, with nothing typed', () => {
+    toggle()
 
-    field().should($field => {
-      expect($field[0].clientHeight).to.be.greaterThan(0)
-      expect($field[0].scrollHeight).to.be.at.most($field[0].clientHeight)
-    })
+    fitsItsText()
+  })
+
+  // #1409. A reset with the field hidden puts the rendered text back where nothing can measure
+  // it. Shown again, the field has the height it had before anything was typed: not the `rows`
+  // it starts from, and not the height of the text the reset took away.
+  it('fits the text a reset put back while it was hidden, the next time it is shown', () => {
+    let asOpened
+    toggle()
+    fitsItsText().then($field => { asOpened = $field[0].clientHeight })
+
+    field().type('\nseventh\neighth\nninth\ntenth', { delay: 0 })
+    field().should($field => expect($field[0].clientHeight).to.be.greaterThan(asOpened))
+    toggle()
+    field().should('not.be.visible')
+
+    cy.get('button[type="reset"]').click()
+    field().should('have.value', 'First line\nsecond\nthird\nfourth\nfifth\nsixth')
+
+    toggle()
+
+    fitsItsText()
+    field().should($field => expect($field[0].clientHeight).to.equal(asOpened))
   })
 })

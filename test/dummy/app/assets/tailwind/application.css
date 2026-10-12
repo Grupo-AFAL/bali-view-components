@@ -4,7 +4,9 @@
 }
 /* Same pairing afal-apps ships: daisyUI maps the prose palette onto the theme,
    and bali/prose-invert.css (imported below via bali.css) keeps `prose-invert`
-   functional on top of that mapping (#1063). */
+   functional on top of that mapping (#1063). The plugin is the copy embedded
+   in tailwindcss-rails' standalone binary, never one in node_modules, so
+   package.json does not list it. */
 @plugin "@tailwindcss/typography";
 
 /* ==============================================
