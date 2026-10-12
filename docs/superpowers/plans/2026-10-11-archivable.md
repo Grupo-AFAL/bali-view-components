@@ -4,7 +4,7 @@
 
 **Goal:** Ship archival as a Bali engine feature — a polymorphic `bali_archivals` table, the
 `Bali::Archivable` concern, a default-deny engine controller and two components — release it as
-`v3.13.0`, then have gobierno-corporativo (GC) adopt it, copy its rows and delete its own copy.
+`v3.14.0`, then have gobierno-corporativo (GC) adopt it, copy its rows and delete its own copy.
 
 **Architecture:** `Bali::Archival` is one row per archival of any host record; the
 `Bali::Archivable` concern gives a host model `archive!`/`unarchive!`/`archived?`, a `has_one
@@ -24,7 +24,7 @@ Postgres in GC.
 
 ## Global Constraints
 
-- **Two deliverables, in order.** Bali PR → release `v3.13.0` → GC PR (deploy 1) → GC PR
+- **Two deliverables, in order.** Bali PR → release `v3.14.0` → GC PR (deploy 1) → GC PR
   (deploy 2, after deploy 1 is in production). GC pins Bali by tag, so nothing on the GC side
   starts before the tag exists.
 - **Inside the spec only.** Nothing from sub-projects 2–6 (Markdown copy, TDFlow pilot,
@@ -87,7 +87,7 @@ Postgres in GC.
 
 ---
 
-# Deliverable 1 — Bali (PR, then release v3.13.0)
+# Deliverable 1 — Bali (PR, then release v3.14.0)
 
 ### Task 1: Preflight — worktree, dependencies, premise
 
@@ -2048,15 +2048,15 @@ At most two rounds; prose nits do not open a second one.
 
 ---
 
-### Task 10: Release v3.13.0
+### Task 10: Release v3.14.0
 
 **Files:** `lib/bali/version.rb`, `package.json`, `Gemfile.lock`, `README.md`,
 `docs/guides/installation.md`, `CHANGELOG.md` — per `docs/guides/release-channels.md`
 § Cutting a release.
 
 - [ ] **Step 1:** After the feature PR merges, and only with Fede's go-ahead: a release PR
-  `release/v3.13.0` off `main` that bumps the six files (`[Unreleased]` becomes
-  `## [v3.13.0] - <date>`, merging repeated `###` headings).
+  `release/v3.14.0` off `main` that bumps the six files (`[Unreleased]` becomes
+  `## [v3.14.0] - <date>`, merging repeated `###` headings).
 - [ ] **Step 2:** `bin/rails test` (the dependency contract test checks the four install pins).
 - [ ] **Step 3:** After that PR merges, tag its `merge_commit_sha` and publish the GitHub
   Release exactly as release-channels.md § Cutting a release step 4 shows.
@@ -2072,13 +2072,13 @@ with no todo file), Spanish product copy and PR prose, `Closes #NNN` in English.
 ### Task 11: GC preflight and the Bali bump
 
 **Files:**
-- Modify: `Gemfile:85` (`tag: "v3.13.0"`), `Gemfile.lock`
-- Modify: `package.json:42` (`#v3.13.0`), `yarn.lock`
+- Modify: `Gemfile:85` (`tag: "v3.14.0"`), `Gemfile.lock`
+- Modify: `package.json:42` (`#v3.14.0`), `yarn.lock`
 - Create: `db/migrate/<timestamp>_create_bali_archivals.bali.rb` (installed, not written)
 - Modify: `db/schema.rb`
 
 **Interfaces:**
-- Consumes: the `v3.13.0` tag.
+- Consumes: the `v3.14.0` tag.
 - Produces: worktree `/home/fede/code/gobierno-corporativo.worktrees/bali-archivable` on
   `feat/bali-archivable` with `bali_archivals` in its schema.
 
@@ -2096,8 +2096,8 @@ for f in "$PWD"/config/*.{p8,pem,key}; do [ -f "$f" ] && ln -sf "$f" "$DEST/conf
 
 - [ ] **Step 2: Bump Bali, Ruby and JS to the same tag**
 
-Edit `Gemfile` (`tag: "v3.12.0"` → `"v3.13.0"`) and `package.json`
-(`#v3.12.0` → `#v3.13.0`), then:
+Edit `Gemfile` (the `tag:` GC pins on `main` at that moment → `"v3.14.0"`) and `package.json`
+(the `#vX.Y.Z` GC pins → `#v3.14.0`), then:
 
 ```bash
 export PATH="$HOME/.local/share/mise/shims:$HOME/.hermes/node/bin:$PATH"
@@ -2131,7 +2131,7 @@ Postgres 18 rewrites `check_constraint` lines on a local migrate — that is noi
 
 ```bash
 git add Gemfile Gemfile.lock package.json yarn.lock db/migrate/*_create_bali_archivals.bali.rb db/schema.rb
-git commit -m "chore(deps): Bali v3.13.0 e instala bali_archivals"
+git commit -m "chore(deps): Bali v3.14.0 e instala bali_archivals"
 ```
 
 ---
