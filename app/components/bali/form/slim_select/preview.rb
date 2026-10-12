@@ -137,6 +137,17 @@ module Bali
           )
         end
 
+        # @label Inside a Modal or Drawer
+        # Both panels are rendered closed with the page, so every select here connects
+        # before its `<dialog>` is shown with `showModal()`. Each panel holds a select with
+        # local options and one with a remote search.
+        def in_dialog
+          render_with_template(
+            template: 'bali/form/slim_select/previews/in_dialog',
+            locals: { model: form_record, options: OPTIONS }
+          )
+        end
+
         # @label Allow Deselect
         # Single select with X button to clear selection
         def allow_deselect

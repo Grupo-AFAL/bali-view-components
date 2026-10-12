@@ -125,7 +125,7 @@ export class ModalController extends Controller {
       this.templateTarget.addEventListener('click', this._onOverlayClick)
       this.templateTarget.addEventListener('cancel', this._onDialogCancel)
 
-      // Capture-phase probe for the flatpickr popup guard (see _recordPopupState).
+      // Capture-phase probe for the popup guard (see _recordPopupState).
       this.element.addEventListener('keydown', this._recordPopupState, true)
     }
 
@@ -541,7 +541,14 @@ export class ModalController extends Controller {
     this._mousedownOnOverlay = false
   }
 
-  _markDirty = () => {
+  // SlimSelect's list holds nothing the form sends: a pick reaches here as the `change` of
+  // its hidden <select>, and typing a search asked to confirm a close that lost nothing.
+  // Ignoring every target with no `name` instead would also ignore flatpickr's altInput,
+  // whose date reaches the named field only after the close is decided — measured on
+  // `drawer/dirty_form`, ✕ then closed a drawer with a typed date without asking.
+  _markDirty = ({ target }) => {
+    if (target.closest('.ss-content')) return
+
     this._dirty = true
   }
 
@@ -563,14 +570,14 @@ export class ModalController extends Controller {
     this._closeWithConfirmation()
   }
 
-  // flatpickr binds its Escape handler on the input itself, so it closes the
-  // calendar at the target phase — before our bubble-phase `close()` could see
-  // `.flatpickr-calendar.open`. Sampling here in the capture phase (which runs
-  // before the target phase) records whether a popup was open so `close()` can
-  // defer to it. Kept generic to the `.flatpickr-calendar.open` marker.
+  // flatpickr binds its Escape handler on the input itself, and SlimSelect on its
+  // combobox and search box, so each closes its popup at the target phase — before
+  // our bubble-phase `close()` could see `.flatpickr-calendar.open` or
+  // `.ss-content.ss-open`. Sampling here in the capture phase (which runs before the
+  // target phase) records whether a popup was open so `close()` can defer to it.
   _recordPopupState = event => {
     if (event.key === 'Escape') {
-      this._escapeHadOpenPopup = Boolean(document.querySelector('.flatpickr-calendar.open'))
+      this._escapeHadOpenPopup = Boolean(document.querySelector('.flatpickr-calendar.open, .ss-content.ss-open'))
     }
   }
 
