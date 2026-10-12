@@ -9,8 +9,6 @@ en:
       search_placeholder: "Search..."
       search: "Search..."
       select_field: "Select field..."
-      select_values: "Select values..."
-      enter_value: "Enter value..."
       remove_condition: "Remove condition"
       remove_filter: "Remove filter"
       incomplete_condition: "No value chosen, so this condition is ignored"
@@ -28,16 +26,6 @@ en:
       persistence_enabled: "Filters are being saved. Click to disable."
       persistence_disabled: "Filters are not saved. Click to enable."
       persistence_label: "Remember filters"
-
-      # Date/time placeholders
-      select_date: "Select date..."
-      select_datetime: "Select date & time..."
-      select_date_range: "Select date range..."
-
-      # Boolean values
-      any: "Any"
-      "yes": "Yes"
-      "no": "No"
 
       # Group combinators
       combinators:

@@ -142,6 +142,23 @@ class BaliFiltersAppliedTagsComponentTest < ComponentTestCase
     assert_text("Yes")
   end
 
+  # The tag names a boolean value with the text the condition's select offers for it.
+  def test_value_labels_for_boolean_type_read_the_condition_select_keys
+    filter_groups = [
+      {
+        combinator: "or", conditions: [ { attribute: "verified", operator: "eq", value: "true" },
+                                        { attribute: "verified", operator: "eq", value: "false" } ]
+      }
+    ]
+    with_filter_texts_marked(:boolean) do
+      render_inline(Bali::Filters::AppliedTags::Component.new(
+        filter_groups: filter_groups, available_attributes: @available_attributes, url: "/users"
+      ))
+    end
+    assert_text("boolean.yes")
+    assert_text("boolean.no")
+  end
+
   def test_any_filters_returns_true_when_filters_have_values
     filter_groups = [
       {

@@ -9,8 +9,6 @@ es:
       search_placeholder: "Buscar..."
       search: "Buscar..."
       select_field: "Seleccionar campo..."
-      select_values: "Seleccionar valores..."
-      enter_value: "Ingrese valor..."
       remove_condition: "Eliminar condición"
       remove_filter: "Eliminar filtro"
       incomplete_condition: "Sin valor elegido, así que esta condición se ignora"
@@ -28,16 +26,6 @@ es:
       persistence_enabled: "Los filtros se están guardando. Haz clic para desactivar."
       persistence_disabled: "Los filtros no se guardan. Haz clic para activar."
       persistence_label: "Recordar filtros"
-
-      # Date/time placeholders
-      select_date: "Seleccionar fecha..."
-      select_datetime: "Seleccionar fecha y hora..."
-      select_date_range: "Seleccionar rango de fechas..."
-
-      # Boolean values
-      any: "Cualquiera"
-      "yes": "Sí"
-      "no": "No"
 
       # Group combinators
       combinators:

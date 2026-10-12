@@ -30,6 +30,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `placeholders.select`. Una app que sobrescribía `select_value` lleva su texto a esa llave
   (ninguna de las siete lo hace).
 
+- **Las llaves `enter_value`, `select_date`, `select_datetime`, `select_date_range`,
+  `select_values`, `any`, `yes` y `no` de `bali_view.filters`.** Cada una repetía el texto de su
+  gemela en `placeholders.*` o `boolean.*`: el widget de valor que pinta el servidor y las
+  etiquetas aplicadas leían éstas, y `condition_controller.js` aquéllas, así que una app que
+  sobrescribiera una veía el cambio sólo hasta cambiar de campo. Ahora todos leen
+  `placeholders.*` y `boolean.*`; el `0` del campo numérico, escrito a mano en el ERB, también
+  sale de `placeholders.number`. Ninguna de las siete apps sobrescribe las llaves borradas.
+
 - **`Bali::Utils::Url`** y su `#add_query_param`: el último que lo llamaba era el enlace de
   limpiar, que ahora sale de `PreservedParams#clear_filters_url`. Ninguna de las siete apps lo
   llama.

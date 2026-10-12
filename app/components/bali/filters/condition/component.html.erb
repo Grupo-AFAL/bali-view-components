@@ -74,7 +74,7 @@
                  data-action="click->multi-select#toggle keydown.enter->multi-select#toggle:prevent keydown.space->multi-select#toggle:prevent"
                  data-multi-select-target="trigger">
               <span class="flex-1 truncate text-left" data-multi-select-target="label">
-                <%= t('bali_view.filters.select_values') %>
+                <%= t('bali_view.filters.placeholders.select_values') %>
               </span>
             </div>
             <%# condition_controller.js#buildMultiSelectInput builds this same widget, attribute for
@@ -156,7 +156,7 @@
           <div class="w-full" data-condition-target="value">
             <input type="text"
                    class="input input-sm w-full"
-                   placeholder="<%= t('bali_view.filters.select_date_range') %>"
+                   placeholder="<%= t('bali_view.filters.placeholders.select_date_range') %>"
                    aria-label="<%= value_aria_label %>"
                    data-controller="datepicker"
                    data-datepicker-locale-value="<%= I18n.locale %>"
@@ -182,7 +182,7 @@
                  class="input input-sm w-full"
                  name="<%= field_name %>"
                  value="<%= value %>"
-                 placeholder="<%= t('bali_view.filters.select_date') %>"
+                 placeholder="<%= t('bali_view.filters.placeholders.select_date') %>"
                  aria-label="<%= value_aria_label %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
@@ -196,7 +196,7 @@
                  class="input input-sm w-full"
                  name="<%= field_name %>"
                  value="<%= value %>"
-                 placeholder="<%= t('bali_view.filters.select_datetime') %>"
+                 placeholder="<%= t('bali_view.filters.placeholders.select_datetime') %>"
                  aria-label="<%= value_aria_label %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
@@ -213,7 +213,7 @@
                name="<%= field_name %>"
                value="<%= value %>"
                step="any"
-               placeholder="0"
+               placeholder="<%= t('bali_view.filters.placeholders.number') %>"
                aria-label="<%= value_aria_label %>"
                data-condition-target="value">
 
@@ -222,7 +222,7 @@
                class="input input-sm w-full"
                name="<%= field_name %>"
                value="<%= value %>"
-               placeholder="<%= t('bali_view.filters.enter_value') %>"
+               placeholder="<%= t('bali_view.filters.placeholders.enter_value') %>"
                aria-label="<%= value_aria_label %>"
                data-condition-target="value">
       <% end %>
