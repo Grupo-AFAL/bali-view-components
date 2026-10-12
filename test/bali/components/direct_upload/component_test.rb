@@ -148,8 +148,6 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
 
   # Auto upload
 
-  # `auto_upload: false` left every file waiting with nothing to start it, and the form
-  # guard refused the submit while any waited.
   def test_auto_upload_is_deprecated_and_no_longer_reaches_the_controller
     assert_deprecated(/DirectUpload\(auto_upload:\) is deprecated/, Bali.deprecator) do
       render_component(auto_upload: false)

@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { DirectUpload } from '@rails/activestorage'
+import { interpolate } from '../../../assets/javascripts/bali/utils/interpolate.js'
 
 // Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
 // public event names stay put when a host registers this controller under a
@@ -87,9 +88,7 @@ export class DirectUploadController extends Controller {
     if (uploading > 0) {
       event.preventDefault()
       event.stopPropagation()
-      const message = this.t('uploads_in_progress', { count: uploading })
-      this.showError(message)
-      this.announce(message)
+      this.showError(this.t('uploads_in_progress', { count: uploading }))
     }
   }
 
@@ -223,7 +222,7 @@ export class DirectUploadController extends Controller {
 
     upload.create((error, blob) => {
       if (error) {
-        this.handleError(id, error)
+        this.handleError(id)
       } else {
         this.handleSuccess(id, blob.signed_id)
       }
@@ -268,18 +267,18 @@ export class DirectUploadController extends Controller {
     }
   }
 
-  handleError (id, error) {
+  handleError (id) {
     const fileData = this.files.get(id)
     if (!fileData) return
 
     fileData.status = 'error'
-    fileData.error = error.message || this.t('error')
+    fileData.error = this.t('error')
     fileData.xhr = null
 
     this.updateFileUI(id)
 
     // Announce error
-    this.announce(this.t('failed_file', { filename: fileData.file.name, error: fileData.error }))
+    this.announce(this.t('failed_file', { filename: fileData.file.name }))
   }
 
   // ==================== Actions ====================
@@ -487,13 +486,9 @@ export class DirectUploadController extends Controller {
     }
   }
 
-  // component.rb#translations_json hands the sentences over with their Rails placeholders. The
-  // replacement is a function so a `$&` in a file name is not read as a pattern.
-  t (key, values = {}) {
-    return Object.entries(values).reduce(
-      (text, [name, value]) => text.replaceAll(`%{${name}}`, () => value),
-      this.translationsValue[key]
-    )
+  // component.rb#translations_json hands the sentences over with their Rails placeholders.
+  t (key, values) {
+    return interpolate(this.translationsValue[key], values)
   }
 
   // ==================== Hidden Fields ====================

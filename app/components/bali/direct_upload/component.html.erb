@@ -120,12 +120,13 @@
                     aria-valuemax="100"
                     aria-valuenow="0"></progress>
         </div>
-        <div class="file-error text-soft-error text-xs mt-1 hidden" role="alert"></div>
+        <%# Not an alert: index.js#handleError announces the failure once, with the file's name. %>
+        <div class="file-error text-soft-error text-xs mt-1 hidden"></div>
       </div>
       <div class="file-status flex items-center gap-2">
         <span class="percentage text-xs text-base-content/70" aria-hidden="true">0%</span>
         <%# The three buttons are named after the file by index.js#updateFileUI, from
-            translations_json, before the row reaches the page. %>
+            translations_json, in the same task that appends the row. %>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-cancel"
                 data-action="direct-upload#cancel">

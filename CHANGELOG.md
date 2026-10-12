@@ -22,7 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `app/javascript/controllers/index.js` la línea `installConfirmDialog({ acceptText:
     "Aceptar", cancelText: "Cancelar" })` y ese símbolo del `import` (`git grep -n
     installConfirmDialog -- app`): sus layouts declaran `<html lang="es">`, o `I18n.locale`
-    en el `tracking` de costa-norte, que es `es-MX`.
+    en el `tracking` de costa-norte, que es `es-MX`. Ninguna prueba de las siete afirma
+    «OK»/«Cancel».
   - `bin/rails g bali:install` deja de sugerir esa línea.
 
 - **FileInput y DirectUpload hablan el idioma de la página (#1409).** En una página en español,
@@ -35,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   FormBuilder escribe `bali_view.file_input.remove` en el campo, y DirectUpload pasa sus textos
   en `data-direct-upload-translations-value`. JavaScript sólo pone el nombre del archivo, el
   porcentaje y los límites.
+  - DirectUpload dice cada cosa una vez a un lector de pantalla. La espera del formulario va
+    sólo en la alerta, que ya es `role="alert"`, y deja de repetirse en la región viva. El
+    fallo de una subida va sólo en la región viva, con el nombre del archivo: el texto rojo de
+    la fila deja de ser `role="alert"`.
   - Llaves de `bali_view.direct_upload`:
     - nuevas: `file_status.uploading_file`, `file_status.failed_file`,
       `status.marked_for_removal`, `errors.uploads_in_progress`, `actions.cancel_file` y
@@ -46,7 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Anfitrión:** nada que hacer.
     - Pasan al español los `file_group` con `multiple: true` de afal-apps, el campo de
       adjuntos de opina y el `DirectUpload` de evidencias de gobierno-corporativo.
-    - Ninguna de las siete apps sobrescribe llaves de `direct_upload` ni de `file_input`.
+    - Ninguna de las siete apps sobrescribe llaves de `direct_upload` ni de `file_input`, y
+      ninguna prueba suya afirma estos textos en inglés.
     - Un `data-controller="file-input"` escrito a mano sin `data-file-input-remove-text-value`
       sigue en inglés.
 
