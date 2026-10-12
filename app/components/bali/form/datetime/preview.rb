@@ -27,6 +27,18 @@ module Bali
             locals: { model: record }
           )
         end
+
+        # @label 24-Hour Format
+        # Datetime picker on a 24-hour clock (22:00 instead of 10:00 PM).
+        # Pass `time_24hr: true`; `seconds: true` adds the seconds, as on `time_group`.
+        def time_24hr
+          record = form_record
+          record.datetime = ::Time.zone.local(2026, 8, 22, 22)
+          render_with_template(
+            template: 'bali/form/datetime/previews/time_24hr',
+            locals: { model: record }
+          )
+        end
       end
     end
   end

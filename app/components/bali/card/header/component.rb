@@ -20,11 +20,7 @@ module Bali
 
         def call
           tag.div(class: header_classes, **@options.except(:class)) do
-            safe_join([
-              render_icon,
-              render_titles,
-              badge
-            ].compact)
+            safe_join([ render_heading, badge ].compact)
           end
         end
 
@@ -32,10 +28,19 @@ module Bali
 
         def header_classes
           class_names(
-            "flex items-center gap-3",
+            "flex flex-wrap items-center gap-3",
             @options[:class],
             "justify-between" => badge?
           )
+        end
+
+        # The icon and the titles are one flex item: as two, `justify-between` puts
+        # the same gap between the icon and the title as between the title and the
+        # badge (#1372).
+        def render_heading
+          tag.div(class: "flex items-center gap-3 min-w-0") do
+            safe_join([ render_icon, render_titles ].compact)
+          end
         end
 
         def render_icon

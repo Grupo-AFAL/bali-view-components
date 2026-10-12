@@ -14,9 +14,11 @@ import { Controller } from '@hotwired/stimulus'
          data-file-input-non-selected-text-value="No file selected"
          data-file-input-multiple-value="false">
       <label class="cursor-pointer inline-flex shrink-0">
-        <input type="file" class="hidden"
-               data-action="file-input#onChange" data-file-input-target="input">
-        <span class="btn btn-soft btn-primary btn-sm gap-2">Choose file</span>
+        <span class="btn btn-soft btn-primary btn-sm gap-2 relative">
+          <input type="file" class="absolute inset-0 opacity-0 pointer-events-none"
+                 data-action="file-input#onChange" data-file-input-target="input">
+          Choose file
+        </span>
       </label>
       <span class="text-sm text-base-content/70 truncate min-w-[min(8rem,100%)]"
             data-file-input-target="value">No file selected</span>
@@ -74,11 +76,11 @@ export class FileInputController extends Controller {
 
   filesValueContent () {
     if (this.filesArray.length === 0) {
-      return this.nonSelectedTextValue
+      return this.escapeHtml(this.nonSelectedTextValue)
     }
 
     if (!this.multipleValue) {
-      return this.filesArray.map(f => f.name).join(', ')
+      return this.escapeHtml(this.filesArray.map(f => f.name).join(', '))
     }
 
     return this.filesListUI()

@@ -1,0 +1,16 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%# A closed Reveal hides its content with `display: none`, so the field connects with no box
+      and can only be sized once it is opened. %>
+  <%= render Bali::Reveal::Component.new(id: 'auto_grow_reveal') do |c| %>
+    <% c.with_trigger do |trigger| %>
+      <% trigger.with_title { 'Notes' } %>
+    <% end %>
+
+    <%= form.text_area_group :text,
+        rows: 2,
+        auto_grow: true,
+        input_id: 'auto_grow_in_reveal',
+        value: "First line\nsecond\nthird\nfourth\nfifth\nsixth",
+        help: 'Pre-filled and hidden on load: all six lines show as soon as it opens.' %>
+  <% end %>
+<% end %>

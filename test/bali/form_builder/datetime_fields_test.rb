@@ -87,6 +87,25 @@ class BaliFormBuilderDatetimeFieldsTest < FormBuilderTestCase
     assert_html(result, '.fieldset[data-datepicker-enable-time-value="true"]')
   end
 
+  # #1399: the time options reached `time_field` only, so `datetime_group :at, time_24hr: true`
+  # rendered a 12-hour clock.
+  def test_datetime_field_with_time_24hr_renders_the_time24hr_value
+    result = builder.datetime_field(:release_date, time_24hr: true)
+    assert_html(result, '.fieldset[data-datepicker-time24hr-value="true"]')
+  end
+
+  def test_datetime_group_with_time_24hr_sets_a_24_hour_placeholder
+    result = builder.datetime_group(:release_date, time_24hr: true)
+    assert_html(result, 'input[placeholder="dd/mm/yyyy HH:MM"]')
+  end
+
+  def test_datetime_field_takes_every_time_option_time_field_takes
+    Bali::FormBuilder::TimeFields::OPTION_TO_DATA_ATTRIBUTE.each do |option, attribute|
+      result = builder.datetime_field(:release_date, option => "08:00")
+      assert_html(result, %(.fieldset[#{attribute}="08:00"]))
+    end
+  end
+
   # #datetime_group typing (allow_input) and placeholder
 
   def test_datetime_group_by_default_does_not_render_the_allow_input_attribute

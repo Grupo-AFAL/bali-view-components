@@ -337,6 +337,27 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_equal [], missing
   end
 
+  # A select written by hand gets none of these values, and slim-select-controller.js falls
+  # back to its own TEXTS in the page's `lang` (#1389). Those have to be what this builder
+  # writes, for every locale the gem ships. The two toggle buttons are the only texts Ruby
+  # renders itself, so the controller has no entry for them.
+  def test_the_controllers_fallback_texts_are_the_ones_the_builder_writes
+    source = Bali::Engine.root.join("app/assets/javascripts/bali/controllers/slim-select-controller.js").read
+    table = source[/^const TEXTS = \{\n(.*?)^\}/m, 1]
+    refute_nil table, "slim-select-controller.js no longer declares TEXTS"
+    controller = table.scan(/^  (\w+): \{\n(.*?)^  \}/m).to_h do |locale, entries|
+      [ locale, entries.scan(/^    (\w+): '([^']*)'/).to_h ]
+    end
+
+    locales = Dir[Bali::Engine.root.join("config/locales/bali_view.*.yml")].map { |path| path[/bali_view\.(\w+)\.yml\z/, 1] }
+    texts = Bali::FormBuilder::SlimSelectFields::TEXT_KEYS.except(:select_all_text, :deselect_all_text)
+    builder = locales.sort.to_h do |locale|
+      [ locale, texts.to_h { |option, key| [ option.to_s.camelize(:lower), I18n.t(key, scope: "bali_view.form_builder.slim_select", locale: locale) ] } ]
+    end
+
+    assert_equal builder, controller.sort.to_h
+  end
+
   # The English defaults are SlimSelect's own `maxValuesMessage` and `addableText`, word for
   # word, so an English host reads what it read before #1232.
   def test_slim_select_field_max_values_message_defaults_to_slim_selects_own_text
