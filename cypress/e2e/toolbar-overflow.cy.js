@@ -175,6 +175,58 @@ describe('DataTable toolbar overflow', () => {
     cy.focused().closest('[data-toolbar-overflow-target="item"]').should('have.length', 1)
   })
 
+  // The measured collapse sacrifices the lowest priority first, and appending each one left the
+  // ⋯ reading the toolbar backwards above the breakpoint.
+  it('lists the ⋯ in the toolbar\'s order when the row is measured', () => {
+    cy.viewport(800, 800)
+    cy.visit('/bali/data_table/complete')
+
+    cy.get(`${menu} > [data-toolbar-overflow-target="item"]`).should(($items) => {
+      const priorities = [...$items].map((el) => Number(el.dataset.toolbarOverflowPriority))
+      expect(priorities).to.have.length.at.least(2)
+      expect(priorities).to.deep.equal([...priorities].sort((a, b) => b - a))
+    })
+  })
+
+  // A move reconnects every controller inside the item, and expanding the row to measure it
+  // again moved each control that stays in the ⋯ out and back in.
+  it('reconnects nothing that stays in the ⋯ when the row is measured again', () => {
+    cy.viewport(800, 800)
+    cy.visit('/bali/data_table/complete')
+    cy.get(`${menu} [data-controller]`).should('have.length.at.least', 1)
+
+    const connects = []
+
+    cy.get('[data-controller~="toolbar-overflow"]').then(($toolbar) => {
+      const toolbar = $toolbar[0]
+      const { Stimulus } = toolbar.ownerDocument.defaultView
+      let wrapped = 0
+
+      toolbar.querySelectorAll(`${menu} [data-controller]`).forEach((element) => {
+        element.dataset.controller.split(' ').forEach((identifier) => {
+          const controller = Stimulus.getControllerForElementAndIdentifier(element, identifier)
+          if (!controller) return
+
+          const connect = controller.connect.bind(controller)
+          controller.connect = () => {
+            connects.push(identifier)
+            return connect()
+          }
+          wrapped += 1
+        })
+      })
+      expect(wrapped, 'controllers watched inside the ⋯').to.be.greaterThan(0)
+
+      Stimulus.getControllerForElementAndIdentifier(toolbar, 'toolbar-overflow').apply(false)
+
+      // Stimulus reconnects from a MutationObserver, which Cypress's own observer runs ahead
+      // of: a retrying assertion saw the array still empty and passed. A task later it is not.
+      return new Cypress.Promise((resolve) => setTimeout(resolve))
+    }).then(() => {
+      expect(connects, 'controllers reconnected').to.deep.equal([])
+    })
+  })
+
   it('does not render the ⋯ when there is nothing to collapse', () => {
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/default')

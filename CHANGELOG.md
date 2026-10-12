@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   un HoverCard. SortableList, los mapas y `autocomplete-address`, cuyo `disconnect()` nunca
   destruyó su instancia, ahora la reutilizan al reconectarse en vez de apilar otra.
 
+- **El ⋯ de la barra del DataTable sólo mueve lo que cambia de lugar (#1409).** Cada recálculo
+  sacaba a la fila todo lo que estaba en el ⋯ y lo volvía a meter, así que cada controlador de
+  esos controles se reconectaba dos veces por recálculo; ahora ninguno. Por encima del
+  breakpoint el ⋯ además listaba los controles al revés de la barra; ahora en su orden, como ya
+  lo hacía en el teléfono. Los botones de `with_toolbar_button` pasan de ser lo primero del ⋯ a
+  lo último (30 listados de afal-apps y uno de gobierno-corporativo los usan).
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added
