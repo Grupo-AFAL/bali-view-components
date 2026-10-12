@@ -109,6 +109,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   la listaba, la contaba en «N resultados disponibles» y dejaba elegirla; ahora es su
   placeholder, marcada como la marca el FormBuilder, y el valor se vacía con la ✕ del select.
 
+- **DatePicker con `manual: true`: las flechas.** El paso de mes o de año cae en el último día del
+  mes destino si ese mes es más corto: el 31 de enero ▶ daba el 3 de marzo y ahora da el 28 de
+  febrero; un año desde el 29 de febrero, el 28. Una flecha que cae en una fecha deshabilitada
+  (fin de semana con `disable_weekends`, `disabled_dates`) sigue a la siguiente habilitada en su
+  dirección: el viernes ▶ da el lunes, donde desde v3.12.0 no hacía nada. Si no hay ninguna en un
+  año —pasado `max_date`, por ejemplo— no hace nada. `manual: true` con `mode: "range"` levanta
+  `ArgumentError`: las flechas daban el paso sobre la primera fecha y el rango quedaba en un día,
+  y unas cableadas a mano sobre un rango ya no hacen nada. Nada que hacer en las apps: ninguna usa
+  `manual: true` en un campo de fecha.
+
+- **`date_*` respeta `default_date:`, y en las tres familias sólo aplica a un campo sin valor.**
+  `date_field` y `date_group` lo descartaban sin aviso. En `datetime_*` y `time_*`, flatpickr lo
+  leía antes que el valor del input, así que en un formulario de edición reemplazaba la fecha
+  guardada. Ninguna app lo pasa.
+
+- **`mode: :range` como símbolo no pasaba el valor del rango al calendario** (`default_dates`);
+  sólo la cadena `"range"` lo hacía. Las tres apps que usan rango escriben la cadena.
+
+- **`disable_weekends: true` anulaba `disabled_dates:`**: el calendario y las flechas sólo
+  deshabilitaban los fines de semana. Ahora cuentan las dos. Ninguna app las usa.
+
+- **Una opción de fecha y el mismo `data-datepicker-*-value` en `wrapper_options:` pintaban el
+  atributo dos veces** (`min_date:`, `time_24hr:`, …), y el navegador se quedaba con el primero,
+  que en las opciones de hora era el de `wrapper_options`. Ahora sale una vez, con el valor de la
+  opción. Nada que hacer en las apps.
+
+- **`wrapper_options: { data: … }` en un campo de fecha reemplazaba el `data` del contenedor**, y
+  con él `data-controller="datepicker"`: el campo salía sin calendario. Ahora se suma, llave por
+  llave. Ninguna app pasa `data:` en `wrapper_options`.
+
+- **Textarea `auto_grow`: un `form.reset()` con el campo oculto lo dejaba al alto de sus `rows`**
+  al volver a mostrarse, con el texto restaurado fuera de vista. Ahora se ajusta en cuanto vuelve
+  a tener caja. Nada que hacer en las apps.
+
 ### Dependencies
 
 - **Con tailwindcss-rails, `@tailwindcss/typography` no va en `package.json`** (alerta de

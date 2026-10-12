@@ -18,7 +18,13 @@ module Bali
         "H" => "HH", "h" => "hh", "i" => "MM", "S" => "ss", "K" => "AM/PM"
       }.freeze
 
+      # The arrows of `manual:` step one date, and datepicker-controller.js#stepDate refuses a
+      # range for arrows wired by hand.
       def date_field(method, options = {})
+        if options[:manual] && options[:mode].to_s == "range"
+          raise ArgumentError, 'manual: steps a single date; it has no meaning on mode: "range"'
+        end
+
         opts = dup_options(options)
         clear_btn = build_clear_button if opts[:clear]
         # `token_list`, not `Array#join`: the join stringified whatever it was
@@ -64,10 +70,11 @@ module Bali
           alt_input: options[:alt_input],
           allow_input: options[:allow_input],
           alt_format: options[:alt_format],
+          default_date: default_date(method, options),
           disabled_dates: (options[:disabled_dates] || []).to_json
         }
 
-        if options[:mode] == "range"
+        if options[:mode].to_s == "range"
           if options[:value].respond_to?(:first) && !options[:value].is_a?(String)
             values[:default_dates] = [ options[:value].first, options[:value].last ]
           elsif options[:value].is_a?(String) && options[:value].present?
@@ -81,6 +88,14 @@ module Bali
       end
 
       private
+
+      # flatpickr reads `defaultDate` before the input's own value, so a default on a field that
+      # already holds a date would replace it: on an edit form, the saved one.
+      def default_date(method, options)
+        value = options.key?(:value) ? options[:value] : object.try(method)
+
+        options[:default_date].presence if value.blank?
+      end
 
       # Users can type directly into the visible input by default, but flatpickr
       # silently discards anything that doesn't match the effective altFormat on
@@ -135,17 +150,24 @@ module Bali
 
       def build_wrapper_options(method, options)
         wrapper_class = class_names(WRAPPER_CLASS, "join" => options[:manual])
+        caller_options = dup_options(options[:wrapper_options] || {})
 
+        # `data:` is merged key by key: put in place of this one, it took the controller with it.
         wrapper_options = {
           class: wrapper_class,
           data: {
             controller: "datepicker",
             'datepicker-period-value': options[:period],
             'datepicker-locale-value': I18n.locale
-          }
-        }.merge(dup_options(options[:wrapper_options] || {}))
+          }.merge(caller_options[:data] || {})
+        }.merge(caller_options.except(:data))
 
-        cv = controller_values(method, options)
+        cv = controller_values(method, options).compact
+        # The same attribute in `wrapper_options:` would render beside the option's, and a parser
+        # keeps the first. TimeFields#merged_time_options does the same for the time options.
+        written = cv.keys.map { |key| "data-datepicker-#{hyphenize(key)}-value" }
+        wrapper_options.reject! { |name, _| written.include?(name.to_s) }
+
         prepend_values(wrapper_options, "datepicker", cv)
         wrapper_options
       end

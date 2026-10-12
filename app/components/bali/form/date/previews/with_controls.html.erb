@@ -1,7 +1,7 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
   <%= form.date_group :date, value: Date.today, manual: true, period: 'day' %>
 
-  <%# A Friday, so the next day is a disabled one: the arrow leaves the field as it is. %>
-  <%= form.date_group :end_date, label: 'Weekdays only', value: Date.new(2026, 10, 16),
-        manual: true, period: 'day', disable_weekends: true %>
+  <%# A Friday before a Monday off: the arrow skips the weekend and the holiday to Tuesday. %>
+  <%= form.date_group :end_date, label: 'Weekdays only, Monday 19 off', value: Date.new(2026, 10, 16),
+        manual: true, period: 'day', disable_weekends: true, disabled_dates: [Date.new(2026, 10, 19)] %>
 <% end %>
