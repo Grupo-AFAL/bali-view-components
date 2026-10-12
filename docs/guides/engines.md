@@ -478,9 +478,9 @@ archiving and reopening can be gated separately. Falsy answers 403.
 the reasons that require one, so nobody can reach an archival that fails on submit.
 
 A whitelisted model that does not include `Bali::Archivable` is a 404. Archiving answers `303`
-to `return_to` (a path or URL of your host, through Rails' `url_from`) or to the record's page; an invalid archival answers `422` and
-re-renders the form in the drawer; a malformed `archival` parameter answers `400`; reopening a
-model that is not reversible answers `404`.
+to `return_to` (a path or URL of your host, through Rails' `url_from`) or to the record's page; an
+invalid archival answers `422` and re-renders the form in the drawer; a malformed `archival`
+parameter answers `400`; reopening a model that is not reversible answers `404`.
 
 ## Block Editor comments (#706)
 

@@ -68,11 +68,11 @@ module Bali
     def archive!(by: nil, reason: nil, note: nil, successor: nil)
       raise AlreadyArchived if archived?
 
-      archival = transaction(requires_new: true) do
+      created = transaction(requires_new: true) do
         archivals.create!(archived_by: by, reason: reason, note: note, successor: successor)
       end
       reset_archival
-      archival
+      created
     rescue ActiveRecord::RecordNotUnique
       raise AlreadyArchived
     end

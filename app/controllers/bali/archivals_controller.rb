@@ -4,8 +4,8 @@ module Bali
   # #721 — archive and reopen a host record. The record arrives in the query string
   # (`?record_type=Document&record_id=7`) and two default-deny layers stand before every action,
   # as in Bali::ContentVersionsController: `Bali.archivables` (404) and
-  # `Bali.archivals_authorize` (403). A host's bali-analytics track rule reads `@record` and, after
-  # `create`, `@archival` (gobierno-corporativo's rule will; today it reads `@document`).
+  # `Bali.archivals_authorize` (403). A track rule reads `@record` and, after `create`,
+  # `@archival`; renaming either silences it.
   class ArchivalsController < ApplicationController
     # The drawer inserts this body. Without the line Rails renders `layouts/bali/application`,
     # which links a `bali/application` stylesheet that no host ships.

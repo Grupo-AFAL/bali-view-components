@@ -205,8 +205,7 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  # A host's bali-analytics track rule reads these two ivars (gobierno-corporativo's will; today its
-  # rule reads `@document`). Renaming one switches that event off with no error.
+  # A track rule reads `@record` and, after `create`, `@archival`; renaming either silences it.
   def test_create_leaves_the_record_and_the_new_archival_where_track_rules_read_them
     post bali.archivals_path(record_params), params: { archival: { reason: "expired" } }
 
