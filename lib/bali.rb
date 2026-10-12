@@ -363,6 +363,40 @@ module Bali
     [ user, user.try(:name).presence || I18n.t("bali_view.content_versions.unknown_author") ]
   }
 
+  # Archivals (#721) — archiving and reopening a host record (`bali_archivals` table, installed
+  # with `bin/rails bali:install:migrations:archivals`). Same two default-deny layers as content
+  # versions.
+  #
+  # Whitelist of archivable models `Bali::ArchivalsController` accepts over HTTP: the key is the
+  # `record_type` of the query string, the value a callable returning the record or nil. Empty by
+  # default, so every `record_type` is a 404. Scope in the resolver: someone else's record is
+  # then a 404, not a 403 that confirms it exists. The engine's controllers do not include
+  # Pundit, so call it by its module.
+  # With no session `current_user` is nil and a policy scope cannot take it: answer nil, a 404.
+  # Example: Bali.archivables = {
+  #   "Document" => lambda do |controller, id|
+  #     user = controller.current_user
+  #     Pundit.policy_scope!(user, Document).find_by(id: id) if user
+  #   end
+  # }
+  mattr_accessor :archivables, default: {}
+
+  # Bali::ArchivalsController authorization: callable (controller, record, action) — truthy
+  # allows, falsy answers 403. `action` is "new", "create" or "unarchive". Denies by default.
+  # Example: ->(controller, record, _action) { Pundit.policy!(controller.current_user, record).archive? }
+  mattr_accessor :archivals_authorize, default: ->(_controller, _record, _action) { false }
+
+  # Who archives or reopens: callable (controller), stored as `archived_by` / `unarchived_by`.
+  # Example: ->(controller) { controller.current_member }
+  mattr_accessor :archivals_actor, default: ->(controller) { controller.try(:current_user) }
+
+  # The records that may replace this one: callable (controller, record) returning a relation,
+  # or nil when there is no successor. With nil (or an empty relation) the form offers neither
+  # the successor nor the reasons that require one, so no one can reach an archival that fails
+  # on submit.
+  # Example: ->(controller, document) { Document.published.where.not(id: document.id) }
+  mattr_accessor :archival_successors, default: ->(_controller, _record) { nil }
+
   # Concerns the host injects into every controller of this engine (#710).
   #
   # `isolate_namespace` means `Bali::ApplicationController` inherits from

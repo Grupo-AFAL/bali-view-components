@@ -99,4 +99,12 @@ Bali.config do |config|
   # `comments[:users]` (DocumentsController::DEMO_USERS), or the editor only knows how to
   # label it "User <id>".
   config.block_editor_comments_user = ->(_controller) { "user-1" }
+
+  # #721 — archiving movies through the engine's drawer. The defaults deny everything and the
+  # engine's controller has no `current_user`; the dummy does not authenticate, so it opens the
+  # gate and signs as the demo user.
+  config.archivables = { "Movie" => ->(_controller, id) { Movie.find_by(id: id) } }
+  config.archivals_authorize = ->(_controller, _record, _action) { true }
+  config.archivals_actor = ->(_controller) { User.demo }
+  config.archival_successors = ->(_controller, movie) { Movie.where.not(id: movie.id).order(:name) }
 end
