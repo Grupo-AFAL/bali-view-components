@@ -107,7 +107,7 @@ the host's models, and authorization is two default-deny layers.
 
 | Route | Action |
 |---|---|
-| `GET /archivals/new` | The form, for a page or a drawer |
+| `GET /archivals/new` | The form as a drawer body, served without a layout (the engine's controller cannot render the host's; its own layout needs importmap-rails). A host that wants a page renders `Bali::ArchivalForm` itself |
 | `POST /archivals` | `archive!`, then `303` to `return_to` when it is a relative path (starts with `/`, not `//`), else `main_app.polymorphic_path(record)`; an invalid archival re-renders the form with `422` |
 | `POST /archivals/unarchive` | `unarchive!`, same redirect; `404` on a model that is not reversible |
 
@@ -115,8 +115,13 @@ Configuration in `lib/bali.rb`, each entry documented like `content_versions_*`:
 
 ```ruby
 # Whitelist + resolver. Empty by default: every record_type is a 404.
+# The engine's controllers do not include Pundit, so call it by its module; with no session
+# `current_user` is nil and a policy scope cannot take it: answer nil, a 404.
 Bali.archivables = {
-  "Document" => ->(controller, id) { controller.policy_scope(Document).find_by(id: id) }
+  "Document" => lambda do |controller, id|
+    user = controller.current_user
+    Pundit.policy_scope!(user, Document).find_by(id: id) if user
+  end
 }
 
 # truthy allows, falsy is a 403. action: "new", "create" or "unarchive". Denies by default.
@@ -135,15 +140,19 @@ whitelisted but does not include the concern is a `404`, as in content versions.
 
 ## 4. The components
 
-**`Bali::ArchivalForm::Component.new(record:, successors:, url:, return_to: nil)`** — the
+**`Bali::ArchivalForm::Component.new(record:, successors:, url:, return_to: nil, archival: nil)`**
+(`archival:` is the invalid archival the `422` re-render shows, with its errors and the person's
+choice) — the
 reasons as a radio group with their I18n labels; the successor select, revealed by the existing
 `radio-toggle` controller only for the reasons that require one; the note as a text area; the
 submit group. Built with `Bali::FormBuilder`. The engine's `new` renders it; a host can render it
 inside its own container.
 
-**`Bali::ArchivalNotice::Component.new(record:, successor_url: nil, unarchive_url: nil)`** — the
+**`Bali::ArchivalNotice::Component.new(record:, successor_url: nil, unarchive_url: nil, **options)`**
+(`options` reach the alert, as `class:` does elsewhere in Bali) — the
 notice on an archived record — in the `es` locale, «Dado de baja el {fecha} por {quién}. Motivo:
-{etiqueta}. Lo sustituye {enlace}» — composed on `Bali::Notification`. The "Reopen" button appears only when
+{etiqueta}. Lo sustituye {enlace}» — composed on `Bali::Alert`, the inline alert (`Bali::Notification` is deprecated, removed in 4.0,
+and a floating toast). The "Reopen" button appears only when
 `unarchive_url:` is given; the host passes it when the model is reversible and the person may
 reopen. Renders nothing when the record is not archived.
 
@@ -154,8 +163,9 @@ Both components get Lookbook previews.
 
 ## 5. How GC adopts it
 
-Order: Bali first (PR and release `v3.13.0`), then GC (bump, adoption, deletion) — GC pins Bali by
-tag.
+Order: Bali first (PR and release — the next minor after what `main` carries when the PR merges,
+`v3.14.0` unless another branch releases first; `v3.13.0` had already shipped), then GC (bump,
+adoption, deletion) — GC pins Bali by tag.
 
 GC deletes:
 - `app/models/concerns/archivable.rb` and `app/models/document/archival.rb`;
@@ -167,7 +177,8 @@ GC changes, in `Document`:
 - `include Bali::Archivable` and `archivable successor_required_for: %i[replaced]` (irreversible);
 - the `active` scope's `NOT EXISTS (… document_archivals …)` becomes `not_archived`;
 - `predecessor_documents` goes through `Bali::Archival` rows naming the document as successor;
-- `successor_document` becomes `archival&.successor`;
+- `replaced_by` (the Document method, not the archival's column) keeps its name and becomes
+  `archival&.successor`;
 - `archive_with_change_control` calls `archive!`. Its deactivation change log stays in GC until
   Publishable (sub-project 6).
 
@@ -209,6 +220,7 @@ line it covers, and each PR goes through DHH review until rails-worthy.
 
 ## 7. Documentation
 
-- `docs/guides/engine-models.md`: an «Archivable» section, and a row in its GC porting table.
+- `docs/guides/engine-models.md`: an «Archivable» section, with its own «Porting the table from
+  gobierno-corporativo» table (the guide has no shared one, only per-feature ones).
 - `docs/guides/engines.md`: the four `Bali.archiv*` entries.
 - CHANGELOG under `[Unreleased]`.

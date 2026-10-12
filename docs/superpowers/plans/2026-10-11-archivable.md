@@ -26,7 +26,9 @@ Postgres in GC.
 
 - **Two deliverables, in order.** Bali PR → release `v3.14.0` → GC PR (deploy 1) → GC PR
   (deploy 2, after deploy 1 is in production). GC pins Bali by tag, so nothing on the GC side
-  starts before the tag exists.
+  starts before the tag exists. `v3.14.0` is the name expected when this was written (v3.13.0
+  had shipped); other branches may cut a release first, so Task 10 takes the next minor after
+  whatever `main` carries and Task 11 follows the tag that actually exists.
 - **Inside the spec only.** Nothing from sub-projects 2–6 (Markdown copy, TDFlow pilot,
   Reviewable, Events, Publishable). GC's deactivation change log stays in GC.
 - **Table:** `bali_archivals`, columns exactly as spec §1; indexes exactly two: unique partial on
@@ -76,7 +78,8 @@ Postgres in GC.
    record's own page. Pinned in Task 6 (`test_return_to_is_followed_only_when_it_is_a_path_of_this_app`).
 3. **A `successor_id` the person was not offered** (outside `Bali.archival_successors`, or any id
    when there are no candidates). Expect it never stored; `422` when the reason needs one. Pinned
-   in Task 6 (`test_a_successor_outside_the_candidates_is_never_stored`).
+   in Task 6 (`test_a_successor_outside_the_candidates_is_never_stored` and
+   `test_a_successor_id_is_never_stored_when_there_are_no_candidates`).
 4. **An archival written by GC's outgoing container during deploy 1** (after the copy ran).
    Expect it in `bali_archivals` after deploy 2. Pinned in Task 12
    (`test_running_the_copy_again_adds_only_the_rows_written_since`) and verified on the database
@@ -94,24 +97,23 @@ Postgres in GC.
 **Files:** none (environment and measurements; findings go into the PR body).
 
 **Interfaces:**
-- Consumes: the spec and this plan on branch `docs/721-archivable-spec`.
-- Produces: worktree `/home/fede/code/bali-view-components.worktrees/721-archivable` on branch
-  `feat/721-archivable`, a green baseline, and a dummy server on 3021 that later tasks use.
+- Consumes: the spec and this plan, already committed on branch `feat/721-archivable`, which is
+  checked out in the worktree `/home/fede/code/bali-view-components.worktrees/archivable-spec`.
+- Produces: a green baseline in that worktree, and a dummy server on 3021 that later tasks use.
 
-- [ ] **Step 1: Create the worktree from the docs branch** (the PR carries spec, plan and code)
+- [ ] **Step 1: Work in the existing worktree** (the PR carries spec, plan and code). The branch
+  and the worktree already exist; there is nothing to create.
 
 ```bash
-cd /home/fede/code/bali-view-components
-git fetch origin
-git worktree add --no-track -b feat/721-archivable \
-  /home/fede/code/bali-view-components.worktrees/721-archivable docs/721-archivable-spec
+git -C /home/fede/code/bali-view-components.worktrees/archivable-spec branch --show-current   # feat/721-archivable
+git -C /home/fede/code/bali-view-components.worktrees/archivable-spec fetch origin
 ```
 
 - [ ] **Step 2: Install, build and load databases** (from the worktree root)
 
 ```bash
 export PATH="$HOME/.local/share/mise/shims:$HOME/.hermes/node/bin:$PATH"
-cd /home/fede/code/bali-view-components.worktrees/721-archivable
+cd /home/fede/code/bali-view-components.worktrees/archivable-spec
 bundle install && yarn install && (cd test/dummy && yarn install)
 readlink -f test/dummy/node_modules/bali-view-components   # must print this worktree's path
 bin/rails db:schema:load && bin/rails db:seed
@@ -171,6 +173,7 @@ Run it in the background; `touch test/dummy/tmp/restart.txt` restarts it after `
 - Modify: `test/dummy/db/schema.rb` (regenerated, not hand-edited)
 - Modify: `lib/bali/engine_migrations.rb:7-18,42-46` (counts that rot)
 - Modify: `lib/tasks/bali_tasks.rake:5-8` (same)
+- Modify: `lib/generators/bali/install/install_generator.rb:54-60` (same)
 - Test: `test/bali/engine_migrations_test.rb`
 
 **Interfaces:**
@@ -206,8 +209,9 @@ Expected: FAIL — `Expected [...] to include "archivals".`
 class CreateBaliArchivals < ActiveRecord::Migration[7.0]
   def change
     create_table :bali_archivals do |t|
-      # No index of its own: every lookup by record — `archival`, `archived`, `not_archived` —
-      # asks for the current row, which the partial unique index below serves.
+      # No index of its own: `archival`, `archived` and `not_archived` ask for the current row,
+      # which the partial unique index below serves. `archivals` (the history) and
+      # `dependent: :destroy` look up by record alone and scan, at a few rows per record.
       t.references :archivable, polymorphic: true, null: false, index: false
       t.references :archived_by, polymorphic: true, index: false
       t.string :reason
@@ -251,7 +255,9 @@ other — an app that adopts saved views also gets every other feature's table i
 in the `db/schema.rb` every one of its PRs reviews (#1079)." and "…identical to installing them
 all." In `lib/tasks/bali_tasks.rake:5`, "copies the five migrations the engine ships" becomes
 "copies every migration the engine ships". (The rake file's runtime notice already counts with
-`features.size`.)
+`features.size`; the "four extra tables" at `bali_tasks.rake:33-34` is history and stays.) In
+`lib/generators/bali/install/install_generator.rb:54-60`, the comment says "one of the six
+per-feature ones" and "and three more": rewrite it without numbers.
 
 - [ ] **Step 6: Run the tests**
 
@@ -268,7 +274,8 @@ committed schema.rb — a red here means Step 4's diff carried noise.
 
 ```bash
 git add db/migrate/20261011120000_create_bali_archivals.rb test/dummy/db/schema.rb \
-  lib/bali/engine_migrations.rb lib/tasks/bali_tasks.rake test/bali/engine_migrations_test.rb
+  lib/bali/engine_migrations.rb lib/tasks/bali_tasks.rake \
+  lib/generators/bali/install/install_generator.rb test/bali/engine_migrations_test.rb
 git commit -m "feat(archivable): tabla bali_archivals y su instalador por feature (#721)"
 ```
 
@@ -362,10 +369,12 @@ class BaliArchivableTest < ActiveSupport::TestCase
                  [ archival.archived_by, archival.reason, archival.note, archival.successor ]
   end
 
+  # The second call is invalid on its own (`misfiled` is not a reason): without the guard it
+  # would raise RecordInvalid, so the redirect for "already archived" comes before validation.
   def test_archiving_twice_raises_already_archived
     @movie.archive!(by: @ana)
 
-    assert_raises(Bali::Archivable::AlreadyArchived) { @movie.archive!(by: @ana) }
+    assert_raises(Bali::Archivable::AlreadyArchived) { @movie.archive!(by: @ana, reason: :misfiled) }
     assert_equal 1, @movie.archivals.count
   end
 
@@ -483,8 +492,20 @@ class BaliArchivableTest < ActiveSupport::TestCase
   end
 
   def test_name_of_prefers_title_then_name
+    assert_equal "Acta", Bali::Archival.name_of(Document.new(title: "Acta", author_name: "Ana"))
     assert_equal "Blade Runner", Bali::Archival.name_of(@movie)
     assert_equal "Ana", Bali::Archival.name_of(@ana)
+  end
+
+  def test_include_alone_takes_every_default
+    model = Class.new(ApplicationRecord) do
+      self.table_name = "movies"
+      include Bali::Archivable
+    end
+
+    assert_equal Bali::Archivable::DEFAULT_REASONS, model.archival_reasons
+    assert_empty model.archival_successor_required_for
+    refute model.archival_reversible
   end
 end
 ```
@@ -719,7 +740,7 @@ Expected: PASS.
 | Remove / change | Test that must fail | Expected message |
 |---|---|---|
 | `rescue ActiveRecord::RecordNotUnique` + its `raise` in `archive!` | `test_a_concurrent_archival_raises_already_archived` | `[Bali::Archivable::AlreadyArchived] exception expected, not ActiveRecord::RecordNotUnique` |
-| `raise AlreadyArchived if archived?` | `test_archiving_twice_raises_already_archived` | same shape, `RecordNotUnique` |
+| `raise AlreadyArchived if archived?` | `test_archiving_twice_raises_already_archived` | `[Bali::Archivable::AlreadyArchived] exception expected, not ActiveRecord::RecordInvalid` |
 | the `validates :reason` line | `test_a_reason_outside_the_models_list_is_invalid` | `ActiveRecord::RecordInvalid expected but nothing was raised` |
 | `on: :create` on the reason validation | `test_reopening_an_archival_whose_reason_was_retired` | `assert_nothing_raised` reports `RecordInvalid` |
 | the `validates :successor_id` line | `test_a_reason_that_needs_a_successor_is_invalid_without_one` | nothing was raised |
@@ -728,6 +749,8 @@ Expected: PASS.
 | `.not` in `not_archived` | `test_scopes_split_records_by_their_current_archival` | `Expected [..] to be equal to [..]` |
 | `-> { current }` on `has_one :archival` | `test_reopening_keeps_the_archival_as_history` | `Expected true to not be truthy` (`refute @movie.archived?`) |
 | `raise NotReversible unless archival_reversible` | `test_unarchive_on_an_irreversible_model_raises_not_reversible` | nothing was raised |
+| `record.try(:title).presence ||` in `name_of` | `test_name_of_prefers_title_then_name` | `Expected: "Acta"` / `Actual: ...` |
+| `default: false` of `archival_reversible` → `true` | `test_include_alone_takes_every_default` | `Expected true to not be truthy` |
 | `unique: true` in the migration (then `RAILS_ENV=test bin/rails db:schema:load` after hand-editing schema.rb the same way; restore both and reload after) | `test_the_database_refuses_two_current_archivals` | nothing was raised |
 
 - [ ] **Step 9: Commit**
@@ -770,6 +793,8 @@ needs the invalid archival, with its errors and the person's choice. Default: a 
 require "test_helper"
 
 class BaliArchivalFormComponentTest < ComponentTestCase
+  include ArchivableDeclaration
+
   def setup
     studio = Tenant.create!(name: "Studio")
     @movie = studio.movies.create!(name: "Blade Runner", status: 0)
@@ -795,8 +820,16 @@ class BaliArchivalFormComponentTest < ComponentTestCase
                     text: "Blade Runner 2049"
   end
 
+  def test_several_reasons_that_need_a_successor_reach_radio_toggle_as_a_comma_list
+    with_archivable(successor_required_for: %i[replaced superseded]) do
+      render_form
+    end
+
+    assert_selector "fieldset[data-radio-toggle-target='element'][data-radio-toggle-value='replaced,superseded']"
+  end
+
   def test_without_candidates_neither_the_successor_nor_its_reasons_are_offered
-    [ nil, Movie.none ].each do |successors|
+    [ Movie.none, nil ].each do |successors|
       render_form(successors: successors)
 
       assert_no_selector "input[name='archival[reason]'][value='replaced']"
@@ -886,6 +919,7 @@ module Bali
         @successors.present? && @record.archival_successor_required_for.any?
       end
 
+      # radio-toggle-controller.js splits `data-radio-toggle-value` on ','.
       def successor_reasons = @record.archival_successor_required_for.join(",")
 
       def successor_options
@@ -974,12 +1008,14 @@ Expected: PASS.
 | the `return … unless @successors.blank?` branch (always subtract) | `test_offers_every_reason_with_its_label` (no `replaced` radio) |
 | `@successors.present? &&` in `successor_field?` | `test_without_candidates_neither_the_successor_nor_its_reasons_are_offered` |
 | `radio_toggle_disable_hidden_value: true` | `test_the_successor_is_revealed_by_radio_toggle_for_the_reasons_that_need_one` |
+| `.join(",")` → `.first` in `successor_reasons` | `test_several_reasons_that_need_a_successor_reach_radio_toggle_as_a_comma_list` |
 | the `hidden_field_tag` line | `test_return_to_travels_with_the_form` |
 | `archival || ` in `initialize` (always a new archival) | `test_re_renders_an_invalid_archival_with_its_choice_and_its_error` |
 | `drawer: true` on `submit_group` | `test_submits_through_the_drawer` |
 
 Each must fail on its `assert_selector`/`assert_no_selector` ("expected to find …"), not on an
-error.
+error. The second row relies on the loop's first value being `Movie.none`: the empty relation
+reaches `assert_no_selector "select[…]"` and fails there, where `nil` would raise `nil.map`.
 
 - [ ] **Step 7: Commit**
 
@@ -1049,7 +1085,7 @@ class BaliArchivalNoticeComponentTest < ComponentTestCase
     render_inline(Bali::ArchivalNotice::Component.new(record: @movie))
 
     assert_text "Replaced by Blade Runner 2049."
-    assert_no_link "Blade Runner 2049"
+    assert_no_selector ".archival-notice-component a"
   end
 
   def test_leaves_out_what_was_not_recorded
@@ -1284,11 +1320,11 @@ Expected: PASS (`icon_previews_test` guards the fully-qualified constants in `pr
 
 | Remove / change | Test that must fail |
 |---|---|
-| `def render? = @archival.present?` | `test_renders_nothing_for_a_record_that_is_not_archived` |
-| the `if @successor_url` on the link line | `test_names_the_successor_without_a_link_when_no_url_is_given` |
+| `def render? = @archival.present?` | `test_renders_nothing_for_a_record_that_is_not_archived` (errors on `nil.created_at`: read it — the guard's absence can only surface as this error) |
+| the `if @successor_url` on the link line | `test_names_the_successor_without_a_link_when_no_url_is_given` (`Bali::Link` then renders an `<a>` with no `href`, which `assert_no_selector ".archival-notice-component a"` catches and `assert_no_link` would not) |
 | `return t(".archived", …) if archival.archived_by.nil?` | `test_leaves_out_what_was_not_recorded` (errors on `name_of(nil)`: read it — the line under test is the guard, so an error IS the regression here) |
 | `if archival.reason.present?` | `test_leaves_out_what_was_not_recorded` (`exact_text` mismatch) |
-| `if unarchive_url` in the template | `test_reopen_appears_only_with_an_unarchive_url` |
+| `if unarchive_url` in the template | `test_reopen_appears_only_with_an_unarchive_url` (run it and read the failure; if `form_with url: nil` errors, annotate it like the row above. If the error is a routing one unrelated to the guard, assert `assert_no_selector "form[action]"` on the first render instead, so the row fails on an assertion) |
 | `**options` on the Alert | `test_options_reach_the_alert` |
 
 - [ ] **Step 8: Commit**
@@ -1391,6 +1427,15 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
   def test_a_successor_outside_the_candidates_is_never_stored
     remake = @remake
     Bali.archival_successors = ->(_controller, movie) { Movie.where.not(id: [ movie.id, remake.id ]) }
+
+    post bali.archivals_path(record_params), params: { archival: { reason: "replaced", successor_id: @remake.id } }
+
+    assert_response :unprocessable_entity
+    refute @movie.reload.archived?
+  end
+
+  def test_a_successor_id_is_never_stored_when_there_are_no_candidates
+    Bali.archival_successors = ->(*) { nil }
 
     post bali.archivals_path(record_params), params: { archival: { reason: "replaced", successor_id: @remake.id } }
 
@@ -1525,8 +1570,12 @@ Expected: ERROR — `NoMethodError: undefined method 'archivables' for module Ba
   # default, so every `record_type` is a 404. Scope in the resolver: someone else's record is
   # then a 404, not a 403 that confirms it exists. The engine's controllers do not include
   # Pundit, so call it by its module.
+  # With no session `current_user` is nil and a policy scope cannot take it: answer nil, a 404.
   # Example: Bali.archivables = {
-  #   "Document" => ->(controller, id) { Pundit.policy_scope!(controller.current_user, Document).find_by(id: id) }
+  #   "Document" => lambda do |controller, id|
+  #     user = controller.current_user
+  #     Pundit.policy_scope!(user, Document).find_by(id: id) if user
+  #   end
   # }
   mattr_accessor :archivables, default: {}
 
@@ -1573,8 +1622,8 @@ module Bali
   # `Bali.archivals_authorize` (403). `@record` and `@archival` are read by hosts' bali-analytics
   # track rules after `create`.
   class ArchivalsController < ApplicationController
-    # The form is a drawer body. This controller inherits Bali::ApplicationController, not the
-    # host's, so the host's layout — its helpers, its unprefixed routes — cannot render here.
+    # The drawer inserts this body. Without the line Rails renders `layouts/bali/application`,
+    # which calls `javascript_importmap_tags` and fails in a host without importmap-rails.
     layout false
 
     before_action :set_record
@@ -1682,9 +1731,10 @@ Expected: PASS.
 | `rescue Bali::Archivable::NotReversible` | `test_unarchive_on_an_irreversible_model_is_not_found` | the exception surfaces: this rescue IS the 404 |
 | `&& !path.start_with?("//")` | `test_return_to_is_followed_only_when_it_is_a_path_of_this_app` | `ActionController::Redirecting::UnsafeRedirectError` — Rails' own guard (`raise_on_open_redirects`) turning it into a 500; the check is what makes it the record's page instead |
 | `@successors&.find_by(…)` → `Movie.find_by(id: permitted[:successor_id])` | `test_a_successor_outside_the_candidates_is_never_stored` | `Expected response to be a <422>, but was a <303>` |
+| `&.` → `.` in `@successors&.find_by(…)` | `test_a_successor_id_is_never_stored_when_there_are_no_candidates` | the `NoMethodError` on nil surfaces: this safe navigation IS the guard, so the error is the regression |
 | `rescue Bali::Archivable::AlreadyArchived` | `test_archiving_an_archived_record_redirects_and_keeps_the_first_archival` | the exception surfaces |
 | `rescue ActiveRecord::RecordInvalid` | `test_an_invalid_archival_re_renders_the_form_with_422_and_keeps_the_choice` | the exception surfaces |
-| `layout false` | `test_new_serves_the_form_as_a_drawer_body` | `Expected exactly 0 elements matching "html"` — or an error from the engine layout's `javascript_importmap_tags`; either way, this line is what keeps the layout out |
+| `layout false` | `test_new_serves_the_form_as_a_drawer_body` | `Expected exactly 0 elements matching "html"` — or an error from `layouts/bali/application`'s `javascript_importmap_tags`; either way, this line is what keeps that layout out |
 
 - [ ] **Step 9: Run RuboCop and commit**
 
@@ -1899,7 +1949,9 @@ git commit -m "test(archivable): el drawer de baja en la dummy, con Cypress (#72
 **Files:**
 - Modify: `docs/guides/engine-models.md` (install list; new "Archivable" section with its GC
   porting table)
-- Modify: `docs/guides/engines.md` (authorize table rows; "Archivals (#721)" section)
+- Modify: `docs/guides/engines.md` (authorize table rows; "Archivals (#721)" section; the
+  count at lines 173-174)
+- Modify: `docs/guides/installation.md:80-82` (count and install list)
 - Modify: `CHANGELOG.md` (`[Unreleased]` → `### Added`)
 
 **Interfaces:**
@@ -1953,7 +2005,12 @@ git commit -m "test(archivable): el drawer de baja en la dummy, con Cypress (#72
 | `OBSOLESCENCE_REASONS` | `Bali::Archivable::DEFAULT_REASONS` | Same five keys |
 | one row per document, forever | `unarchived_at` / `unarchived_by` | Unused while the model is irreversible |
 
-- [ ] **Step 2: `engines.md`**
+- [ ] **Step 2: `engines.md` and `installation.md`**
+
+At `docs/guides/engines.md:173-174` ("copies **all five**… four dead tables", already stale) and
+`docs/guides/installation.md:80-82` ("plus six that copy one each" and the enumerated list
+without `:archivals`): remove the numbers and add `:archivals` to the list, or point to
+`bin/rails -T bali`.
 
 Add four rows to the table in "The real gate":
 
@@ -1966,15 +2023,21 @@ Add four rows to the table in "The real gate":
 
 and a `## Archivals (#721)` section after "Content versions (#707)": the initializer with all
 four entries (the GC shape from Task 14 Step 3, written generically with `Pundit.policy_scope!`
-and `Pundit.policy!` — the engine's controllers do not include Pundit), what `action` takes, why
+and `Pundit.policy!` — the engine's controllers do not include Pundit — with the resolver
+guarded by `if user`, as Task 14 Step 3 has it), what `action` takes, why
 the resolver returns nil without a session, and a pointer to engine-models.md for the model.
 
-- [ ] **Step 3: Run every guide example as written** (CLAUDE.md step 6): paste the model block
-  and the initializer into the dummy temporarily (they must boot and archive a record via
-  `bin/rails runner`), then remove them. Check every claim against Tasks 1–7's results.
+- [ ] **Step 3: Run every guide example as written** (CLAUDE.md step 6) in a minimal host
+  (`rails new --minimal` + the gem by `path:`, see [[host-minimo-para-verificar-el-engine]]), not
+  in the dummy: the guide's block is `class Document`, and the dummy's `Document` has
+  `enum :status, { draft:, published:, archived: }` whose `archived?` and `Document.archived`
+  collide with the concern — the collision the guide warns about. In the host, run
+  `bin/rails bali:install:migrations:archivals`, migrate, paste the model block and the
+  initializer, and archive a record via `bin/rails runner`. That proves the installer and the
+  initializer in a real host. Check every claim against Tasks 1–7's results.
 
-- [ ] **Step 4: CHANGELOG** — under `## [Unreleased]`, a `### Added` heading above the existing
-  `### Fixed`:
+- [ ] **Step 4: CHANGELOG** — `## [Unreleased]` is empty (v3.13.0 took its entries): add `### Added`
+  as its first heading, or append to an `### Added` another merged PR created there by then:
 
 ```markdown
 ### Added
@@ -1993,7 +2056,7 @@ the resolver returns nil without a session, and a pointer to engine-models.md fo
 - [ ] **Step 5: Commit**
 
 ```bash
-git add docs/guides/engine-models.md docs/guides/engines.md CHANGELOG.md
+git add docs/guides/engine-models.md docs/guides/engines.md docs/guides/installation.md CHANGELOG.md
 git commit -m "docs(archivable): guía de adopción y CHANGELOG (#721)"
 ```
 
@@ -2032,7 +2095,7 @@ Expected: no hits (nothing in the fleet collides with the new constants, table o
 ```
 
 Launch `dhh-code-reviewer` with a prompt that opens: "Scope: read-only review of the worktree
-`/home/fede/code/bali-view-components.worktrees/721-archivable`, diff in
+`/home/fede/code/bali-view-components.worktrees/archivable-spec`, diff in
 `<scratchpad>/branch.diff`, host greps in `<scratchpad>/hostgrep.txt`. Do not write or edit any
 file. If you think the assignment is wrong, say so and stop." Then the criteria: CLAUDE.md
 § Resolving an issue steps 1–6, the comment rule, the spec. Check each finding; apply what holds.
@@ -2041,7 +2104,9 @@ At most two rounds; prose nits do not open a second one.
 - [ ] **Step 4: Re-run what the fixes touched**, then the full Minitest suite once more.
 
 - [ ] **Step 5: PR** (only with the team lead's go-ahead) — body in Spanish, opening
-  `Part of #721`; sections: what ships, premise measured (Task 1), readers walked (host greps,
+  `Part of #721` (not `Closes`: #721 tracks six sub-projects and closing it on the first would be
+  wrong; `.claude/hooks/pr-closes-keyword.sh` blocks only Spanish closing verbs, so never write
+  «Cierra», «Resuelve» or «Arregla» before an issue number anywhere in the body); sections: what ships, premise measured (Task 1), readers walked (host greps,
   dummy, both locales, light/dark themes), the ambiguities this plan resolved (layout, notice on
   `Bali::Alert`, `archival:` keyword, empty successors = nil), the review summary, the eight
   screenshots and the visual decisions for Fede. End with the attribution line.
@@ -2054,9 +2119,10 @@ At most two rounds; prose nits do not open a second one.
 `docs/guides/installation.md`, `CHANGELOG.md` — per `docs/guides/release-channels.md`
 § Cutting a release.
 
-- [ ] **Step 1:** After the feature PR merges, and only with Fede's go-ahead: a release PR
-  `release/v3.14.0` off `main` that bumps the six files (`[Unreleased]` becomes
-  `## [v3.14.0] - <date>`, merging repeated `###` headings).
+- [ ] **Step 1:** After the feature PR merges, and only with Fede's go-ahead: read the version
+  `main` carries and take the next minor (`v3.14.0` unless another branch released first), then a
+  release PR `release/v<next>` off `main` that bumps the six files (`[Unreleased]` becomes
+  `## [v<next>] - <date>`, merging repeated `###` headings).
 - [ ] **Step 2:** `bin/rails test` (the dependency contract test checks the four install pins).
 - [ ] **Step 3:** After that PR merges, tag its `merge_commit_sha` and publish the GitHub
   Release exactly as release-channels.md § Cutting a release step 4 shows.
@@ -2078,7 +2144,7 @@ with no todo file), Spanish product copy and PR prose, `Closes #NNN` in English.
 - Modify: `db/schema.rb`
 
 **Interfaces:**
-- Consumes: the `v3.14.0` tag.
+- Consumes: the Bali tag Task 10 published (`v3.14.0` unless it took a later one).
 - Produces: worktree `/home/fede/code/gobierno-corporativo.worktrees/bali-archivable` on
   `feat/bali-archivable` with `bali_archivals` in its schema.
 
@@ -2096,8 +2162,8 @@ for f in "$PWD"/config/*.{p8,pem,key}; do [ -f "$f" ] && ln -sf "$f" "$DEST/conf
 
 - [ ] **Step 2: Bump Bali, Ruby and JS to the same tag**
 
-Edit `Gemfile` (the `tag:` GC pins on `main` at that moment → `"v3.14.0"`) and `package.json`
-(the `#vX.Y.Z` GC pins → `#v3.14.0`), then:
+Edit `Gemfile` (the `tag:` GC pins on `main` at that moment → the tag that exists, `"v3.14.0"`
+unless Task 10 took a later one) and `package.json` (the `#vX.Y.Z` GC pins → the same tag), then:
 
 ```bash
 export PATH="$HOME/.local/share/mise/shims:$HOME/.hermes/node/bin:$PATH"
@@ -2145,7 +2211,8 @@ git commit -m "chore(deps): Bali v3.14.0 e instala bali_archivals"
 **Interfaces:**
 - Consumes: both tables (deploy 1 keeps `document_archivals`).
 - Produces: class `CopyDocumentArchivalsToBaliArchivals` with an idempotent `up` (copies only
-  documents with no row in `bali_archivals`); Task 16 repeats the same INSERT.
+  documents with no row in `bali_archivals`); Task 16 calls it again instead of repeating the
+  INSERT.
 
 - [ ] **Step 1: Generate the empty migration** (it fixes the timestamp the test requires; it
   sorts after Task 11's installed `create_bali_archivals`)
@@ -2241,8 +2308,8 @@ empty `change` copies nothing.
 # frozen_string_literal: true
 
 # Bali#721. Deploy 1 copies and keeps `document_archivals`: during the switch the outgoing
-# container still reads it. Deploy 2 repeats this INSERT for what that container wrote after the
-# copy ran, then drops the table — hence the NOT EXISTS.
+# container still reads it. Deploy 2 runs this migration again for what that container wrote after
+# the copy ran, then drops the table — hence the NOT EXISTS.
 class CopyDocumentArchivalsToBaliArchivals < ActiveRecord::Migration[8.1]
   def up
     execute <<~SQL.squish
@@ -2275,7 +2342,9 @@ data a re-run of `up` cannot recover.)
 ```bash
 bin/rails db:migrate && DISABLE_SPRING=1 bin/rails test test/models/document/archival_copy_migration_test.rb
 ```
-Expected: PASS. Control: remove the `WHERE NOT EXISTS (…)` clause → the third test fails with
+Expected: PASS. `db:migrate` rewrites GC's `db/schema.rb` with Postgres 18 `check_constraint`
+noise: as in Task 11 Step 4, keep only the `version:` line (the table was added in Task 11) and
+put the other hunks back before Step 6 stages the file. Control: remove the `WHERE NOT EXISTS (…)` clause → the third test fails with
 `ActiveRecord::RecordNotUnique` from the partial index — that error is the regression (a second
 run would abort the deploy), so it counts. Remove the two `NULLIF`s → the second test fails on
 `assert_nil archival.reason` ("Expected \"\" to be nil"). Restore.
@@ -2303,7 +2372,9 @@ git commit -m "feat(documentos): copia document_archivals a bali_archivals (depl
 - Create: `test/fixtures/bali/archivals.yml`
 - Modify tests: `test/models/document_test.rb`, `test/models/document/referenceable_test.rb:303`,
   `test/controllers/documents_controller_test.rb:135`, `test/support/published_document_helper.rb:64-73`,
-  `test/jobs/document/read_reminder_job_test.rb:25`
+  `test/jobs/document/read_reminder_job_test.rb:25`,
+  `test/controllers/documents/entity_reference_resolutions_controller_test.rb:29`,
+  `test/controllers/documents/entity_references_controller_test.rb:234`
 
 **Interfaces:**
 - Consumes: `Bali::Archivable` (Task 3), the copied rows (Task 12).
@@ -2360,9 +2431,11 @@ In `test/models/document_test.rb`:
   end
 ```
 
-Elsewhere: `target.create_archival!(user: @user, reason: "obsolete")` (documents_controller_test:135)
-and `target.create_archival!(user: users(:admin), reason: "obsolete")` (referenceable_test:303)
-become `target.archive!(by: …, note: "obsolete")`; `read_reminder_job_test.rb:25` becomes
+Elsewhere: `target.create_archival!(user: @user, reason: "obsolete")` (documents_controller_test:135),
+`target.create_archival!(user: users(:admin), reason: "obsolete")` (referenceable_test:303) and the
+same call at `entity_reference_resolutions_controller_test.rb:29` and
+`entity_references_controller_test.rb:234` become `target.archive!(by: …, note: "obsolete")`
+(`doc.archive!(by: @user, note: "obsolete")` where the receiver is `doc`); `read_reminder_job_test.rb:25` becomes
 `log.document.archive!(by: users(:admin), note: "out of scope")`; in
 `published_document_helper.rb`:
 
@@ -2453,8 +2526,8 @@ git commit -m "refactor(documentos): Document adopta Bali::Archivable y borra su
 **Files:**
 - Modify: `config/initializers/bali.rb` (four entries)
 - Modify: `app/views/documents/show.html.erb` (menu item ~124–130, banner ~156–180, sidebar ~306–316)
-- Modify: `config/routes.rb:608` (delete the documents archival resource)
-- Modify: `app/helpers/navigation_helper.rb:227` (delete `"documents/archivals"`)
+- Modify: `config/routes.rb` (delete the documents archival resource, by content)
+- Modify: `app/helpers/navigation_helper.rb` (delete `"documents/archivals"`, by content)
 - Modify: `config/initializers/bali_analytics.rb:81-88` (port the rule)
 - Modify: `config/locales/es.yml` (and `en.yml` where the same keys exist)
 - Modify: `app/javascript/controllers/index.js:36-37`
@@ -2647,8 +2720,11 @@ end
   - Sidebar: `@document.archival.reason` (both occurrences) → `@document.archival.note`.
 
 - [ ] **Step 5: Remove what the engine replaced**
-  - `config/routes.rb:608`: delete `resource :archival, only: [ :new, :create ], module: :documents`.
-  - `app/helpers/navigation_helper.rb:227`: delete `"documents/archivals" => :documentos,`.
+  - `config/routes.rb` (the line was 608, now ~612): delete `resource :archival, only: [ :new,
+    :create ], module: :documents`, found by content. The second `resource :archival … module:
+    "business_process"` (~881) is the business-process archival, outside this spec: it stays.
+  - `app/helpers/navigation_helper.rb` (~227): delete `"documents/archivals" => :documentos,` by
+    content; `"business_process/archivals"` (~143) stays.
   - Delete the controller, `app/views/documents/archivals/`, `toggle_field_controller.js` and its
     two lines in `app/javascript/controllers/index.js`.
   - `config/locales/es.yml`: delete `documents.archivals` (new/form/create),
@@ -2664,8 +2740,9 @@ es:
 ```
 
   (merge into GC's existing `activerecord:` root). Repeat the deletions in `en.yml` where those
-  keys exist. Then `git grep -n -E "obsolescence_reasons|obsolete_label|obsoleted_on|documents\.archivals|toggle-field" -- app config test`
-  must be empty.
+  keys exist. Then `git grep -n -E "\.obsolete_label|obsolete_label:|obsoleted_on|obsolescence_reasons|documents\.archivals|toggle-field" -- app config test`
+  must be empty (the anchors keep out `descendants_to_obsolete_labels` in `business_process.rb`
+  and its test).
 
 - [ ] **Step 6: Port the analytics rule** — `config/initializers/bali_analytics.rb:81-88`:
 
@@ -2779,9 +2856,12 @@ re-read it from `Document::ChangeLog` before running.) The three numbers go in t
 
 - [ ] **Step 6: PR** (team lead's go-ahead; deploy 1). Spanish body: what changes for people
   (drawer instead of page, the notice's wording — Bali's es copy, with GC's `replaced` label kept),
-  the two-deploy plan and why, the copy's proof, the screenshots, the wording decisions for Fede
-  (drawer title and submit read «Dar de baja», not «Marcar como Obsoleto»; overridable in GC's
-  locale if he prefers).
+  the two-deploy plan and why, the copy's proof, the screenshots, the wording decisions for Fede, one per element: the drawer title and submit read «Dar de baja»,
+  not «Marcar como Obsoleto»; the field labels (Bali's «Motivo»/«Sucesor»/«Nota» against GC's
+  «Motivo de Obsolescencia»/«Documento Sucesor»/«Detalle del Motivo»); the help text «(opcional,
+  máx. 500 caracteres)»; and the flashes `documents.archivals.create.success` and
+  `already_archived`, which the engine's bare redirect drops. Each label can be overridden under
+  `activerecord.attributes.bali/archival` in GC's locale.
 
 ---
 
@@ -2794,33 +2874,22 @@ Only after deploy 1 is in production.
 **Files:**
 - Create: `db/migrate/<timestamp>_drop_document_archivals.rb`
 - Delete: `test/models/document/archival_copy_migration_test.rb` (its table is gone from the
-  schema; the INSERT it covered runs once more below)
+  schema; the INSERT it covered runs once more below, through deploy 1's migration)
 - Modify: `db/schema.rb`
 
 - [ ] **Step 1: Write the migration** — `bin/rails generate migration DropDocumentArchivals`, then
-  replace its body:
+  replace its body (`<deploy-1-timestamp>` is Task 12's migration, already in `db/migrate`):
 
 ```ruby
 # frozen_string_literal: true
 
-# Bali#721, deploy 2. The INSERT is deploy 1's copy again: it picks up the archivals the outgoing
-# container wrote to this table after deploy 1's copy ran.
+require_relative "<deploy-1-timestamp>_copy_document_archivals_to_bali_archivals"
+
+# Bali#721, deploy 2. Deploy 1's copy runs again to pick up the archivals the outgoing container
+# wrote to this table after it ran; a migration file never changes, so depending on it is safe.
 class DropDocumentArchivals < ActiveRecord::Migration[8.1]
   def up
-    execute <<~SQL.squish
-      INSERT INTO bali_archivals
-        (archivable_type, archivable_id, archived_by_type, archived_by_id, reason, note,
-         successor_type, successor_id, created_at, updated_at)
-      SELECT 'Document', a.document_id, 'User', a.user_id,
-             NULLIF(a.obsolescence_reason, ''), NULLIF(a.reason, ''),
-             CASE WHEN a.successor_document_id IS NOT NULL THEN 'Document' END,
-             a.successor_document_id, a.created_at, a.updated_at
-      FROM document_archivals a
-      WHERE NOT EXISTS (
-        SELECT 1 FROM bali_archivals b
-        WHERE b.archivable_type = 'Document' AND b.archivable_id = a.document_id
-      )
-    SQL
+    CopyDocumentArchivalsToBaliArchivals.new.up
     drop_table :document_archivals
   end
 
