@@ -179,10 +179,12 @@ class BaliArchivableTest < ActiveSupport::TestCase
     end
   end
 
-  def test_name_of_prefers_title_then_name
-    assert_equal "Acta", Bali::Archival.name_of(Document.new(title: "Acta", author_name: "Ana"))
-    assert_equal "Blade Runner", Bali::Archival.name_of(@movie)
-    assert_equal "Ana", Bali::Archival.name_of(@ana)
+  def test_name_of_prefers_title_then_name_then_id
+    both = Struct.new(:id, :title, :name)
+
+    assert_equal "Acta", Bali::Archival.name_of(both.new(1, "Acta", "Ana"))
+    assert_equal "Ana", Bali::Archival.name_of(both.new(1, "", "Ana"))
+    assert_equal "#1", Bali::Archival.name_of(both.new(1, nil, ""))
   end
 
   def test_include_alone_takes_every_default
