@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dentro del iframe, Escape no llega a la página (ni `keydown` ni el `cancel` del `<dialog>`),
   así que el panel no se cerraba. El widget atiende ahora
   `{ type: 'bali:feedback:close-request' }` desde su propio frame y el origen de Opina, y cierra
-  el drawer por el mismo camino que Escape. **opina** tiene que mandarlo en su embed:
+  el drawer por el mismo camino que Escape. **opina** tiene que mandarlo en su embed
+  (Grupo-AFAL/opina#127):
   `document.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) window.parent.postMessage({ type: 'bali:feedback:close-request' }, '*') })`.
   Hasta entonces nada cambia.
 
