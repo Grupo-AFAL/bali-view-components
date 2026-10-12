@@ -16,17 +16,19 @@ export class AutocompleteAddressController extends Controller {
   ]
 
   async connect () {
-    const { default: GoogleMapsLoader, googleMapsApi } = await import('../utils/google-maps-loader.js')
+    const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
 
     try {
-      // A timeout is this call giving up, not the script: the autocomplete builds once it arrives.
-      this.googleMaps = await GoogleMapsLoader({
+      const options = {
         libraries: ['places'],
         language: 'es',
         key: this.apiKeyValue || window.GOOGLE_MAPS_API_KEY
-      }).catch(error => {
+      }
+      // The loader's TimeoutError is this call giving up, not the script: the autocomplete builds
+      // once it arrives.
+      this.googleMaps = await GoogleMapsLoader(options).catch(error => {
         console.error(error)
-        return googleMapsApi()
+        if (error.name === 'TimeoutError') return GoogleMapsLoader({ ...options, timeout: 0 })
       })
       // Removed during the await, nothing would destroy it; moved, the other connect builds it.
       if (!this.googleMaps || this.autocomplete || !this.element.isConnected) return

@@ -137,6 +137,25 @@ describe('DataTable toolbar overflow', () => {
     cy.get(`${menu} .dropdown-open`).should('not.exist')
   })
 
+  // A recalculation fires on any resize of the row or a control —a font that loads, a widget
+  // that mounts— and closed whatever dropdown the reader had open even when nothing moved.
+  it('leaves an open dropdown open when the row is measured again and nothing moves', () => {
+    cy.viewport(1440, 800)
+    cy.visit('/bali/data_table/complete')
+
+    cy.get(`${groupByItem} [data-dropdown-target="trigger"]`)
+      .focus()
+      .trigger('keydown', { key: 'ArrowDown' })
+    cy.get(`${groupByItem} .dropdown-open`).should('have.length', 1)
+
+    cy.get('[data-controller~="toolbar-overflow"]').then(($toolbar) => {
+      const { Stimulus } = $toolbar[0].ownerDocument.defaultView
+      Stimulus.getControllerForElementAndIdentifier($toolbar[0], 'toolbar-overflow').apply(false)
+    })
+
+    cy.get(`${groupByItem} .dropdown-open`).should('have.length', 1)
+  })
+
   it('keeps keyboard focus on the toolbar when the breakpoint is crossed', () => {
     // A 400% zoom leaves the viewport at 320px CSS: crossing the threshold cannot cost a keyboard
     // user their position. The collapse moves the node, so without restoring focus it falls to

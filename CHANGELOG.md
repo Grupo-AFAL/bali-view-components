@@ -21,11 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   LocationsMap, `geocoder-maps`, `drawing-maps` y `autocomplete-address` no se construían nunca
   si el script de Google tardaba más que los 10 s del loader; ahora registran el timeout
   igual que antes y construyen una sola vez cuando el script llega, si siguen en la página. Un
-  mapa reconectado mientras el script carga ya no construye dos mapas en el mismo elemento.
+  mapa reconectado mientras el script carga ya no construye dos mapas en el mismo elemento. El
+  loader rechaza el timeout con un `DOMException` `TimeoutError` en vez de un `Error`, con el
+  mismo mensaje.
 
 - **El ⋯ de la barra del DataTable sólo mueve lo que cambia de lugar (#1409).** Cada recálculo
   sacaba a la fila todo lo que estaba en el ⋯ y lo volvía a meter, así que cada controlador de
-  esos controles se reconectaba dos veces por recálculo; ahora ninguno. Por encima del
+  esos controles se reconectaba dos veces por recálculo; ahora ninguno, y un recálculo que no
+  mueve nada ya no cierra el dropdown que estaba abierto. Por encima del
   breakpoint el ⋯ además listaba los controles al revés de la barra; ahora en su orden, como ya
   lo hacía en el teléfono. Los botones de `with_toolbar_button` pasan de ser lo primero del ⋯ a
   lo último (30 listados de afal-apps y uno de gobierno-corporativo los usan).

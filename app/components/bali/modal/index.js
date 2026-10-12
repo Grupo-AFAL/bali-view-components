@@ -91,7 +91,7 @@ export class ModalController extends Controller {
     return 'modalSize'
   }
 
-  async connect () {
+  connect () {
     this.setupListeners(`${this.eventPrefix}:open`)
   }
 

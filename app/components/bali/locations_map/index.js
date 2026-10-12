@@ -22,21 +22,23 @@ export class LocationsMapController extends Controller {
   async connect () {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
 
-    const { default: GoogleMapsLoader, googleMapsApi } = await import('../../../assets/javascripts/bali/utils/google-maps-loader.js')
+    const { default: GoogleMapsLoader } = await import('../../../assets/javascripts/bali/utils/google-maps-loader.js')
     const clusterer = await import('@googlemaps/markerclusterer')
       .catch(optionalPeer('@googlemaps/markerclusterer'))
     if (!clusterer) return
     this.MarkerClusterer = clusterer.MarkerClusterer
 
     try {
-      // A timeout is this call giving up, not the script: the map builds once it arrives.
-      this.googleMaps = await GoogleMapsLoader({
+      const options = {
         libraries: ['drawing'],
         language: this.localeValue,
         key: this.apiKeyValue
-      }).catch(error => {
+      }
+      // The loader's TimeoutError is this call giving up, not the script: the map builds
+      // once it arrives.
+      this.googleMaps = await GoogleMapsLoader(options).catch(error => {
         console.error(error)
-        return googleMapsApi()
+        if (error.name === 'TimeoutError') return GoogleMapsLoader({ ...options, timeout: 0 })
       })
       if (!this.googleMaps) return
 

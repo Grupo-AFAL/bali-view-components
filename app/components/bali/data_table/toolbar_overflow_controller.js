@@ -147,7 +147,6 @@ export default class extends Controller {
   apply (narrow) {
     const focused = this.focusedControl()
 
-    this.closeOpenDropdowns()
     this.groupTargets.forEach(group => this.sortByPriority(group))
     this.sync()
 
@@ -275,6 +274,8 @@ export default class extends Controller {
   // because the priorities descend following the row (see OVERFLOW_PRIORITIES); renumbering
   // them without looking at the layout breaks this correspondence without anything failing.
   place (item, container) {
+    this.closeOpenDropdowns()
+
     const next = Array.from(container.children)
       .find(child => this.priorityOf(child) < this.priorityOf(item))
 
@@ -304,7 +305,8 @@ export default class extends Controller {
 
   /**
    * Close before moving. A dropdown keeps its state in the `dropdown-open` class, which SURVIVES
-   * the move — it would stay open inside the ⋯.
+   * the move — it would stay open inside the ⋯. Only before a move: a recalculation that moves
+   * nothing leaves open what the reader opened.
    */
   closeOpenDropdowns () {
     this.element.querySelectorAll('.dropdown-open').forEach(dropdown => {
