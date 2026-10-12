@@ -162,17 +162,18 @@ class BaliCardComponentTest < ComponentTestCase
       header.with_badge { "NEW" }
     end
     end
-    assert_selector(".card-body > .flex.items-center.gap-3.justify-between")
+    assert_selector(".card-body > .flex.items-center.gap-3")
     assert_selector("h2.card-title", text: "Notifications")
     assert_text("NEW")
   end
 
-  def test_header_slot_does_not_add_justify_between_without_badge
+  def test_header_slot_without_badge_renders_the_heading_alone
     render_inline(Bali::Card::Component.new) do |c|
       c.with_header(title: "No Badge")
     end
-    assert_selector(".card-body > .flex.items-center.gap-3")
-    assert_no_selector(".justify-between")
+    row = page.find(".card-body > .flex.items-center.gap-3")
+    assert_equal(1, row.all(:xpath, "./*").size)
+    assert_no_selector(".ml-auto")
   end
 
   # #1372: `justify-between` spread three children and left the title halfway
@@ -183,17 +184,20 @@ class BaliCardComponentTest < ComponentTestCase
         header.with_badge { '<span class="badge">Beta</span>'.html_safe }
       end
     end
-    row = page.find(".card-body > .justify-between")
+    row = page.find(".card-body > .flex.flex-wrap")
     assert_equal(2, row.all(:xpath, "./*").size)
-    assert_selector(".justify-between > .flex.items-center.gap-3.min-w-0 > span.icon-component + div > h2.card-title", text: "Dashboard")
-    assert_selector(".justify-between > .badge:last-child", text: "Beta")
+    assert_selector(".flex-wrap > .flex.items-center.gap-3.min-w-0 > span.icon-component + div > h2.card-title", text: "Dashboard")
+    assert_selector(".flex-wrap > :last-child > .badge", text: "Beta")
   end
 
-  def test_header_slot_row_wraps_so_the_badge_drops_below_a_long_title
+  # The row wraps so the badge drops below a long title. `justify-between` put a
+  # badge alone on its line at the start; an auto margin keeps it at the end of
+  # whichever line it is on.
+  def test_header_slot_keeps_the_badge_at_the_end_of_its_line_when_it_wraps
     render_inline(Bali::Card::Component.new) do |c|
-      c.with_header(title: "Dashboard") { |header| header.with_badge { "Beta" } }
+      c.with_header(title: "Dashboard", class: "mb-4") { |header| header.with_badge { "Beta" } }
     end
-    assert_selector(".card-body > .flex.flex-wrap.justify-between")
+    assert_selector(".card-body > .flex.flex-wrap.mb-4 > .ml-auto:last-child", text: "Beta")
   end
 
   def test_header_slot_renders_header_with_icon_subtitle_and_badge

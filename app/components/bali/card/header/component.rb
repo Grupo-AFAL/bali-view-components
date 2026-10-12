@@ -20,27 +20,28 @@ module Bali
 
         def call
           tag.div(class: header_classes, **@options.except(:class)) do
-            safe_join([ render_heading, badge ].compact)
+            safe_join([ render_heading, render_badge ].compact)
           end
         end
 
         private
 
         def header_classes
-          class_names(
-            "flex flex-wrap items-center gap-3",
-            @options[:class],
-            "justify-between" => badge?
-          )
+          class_names("flex flex-wrap items-center gap-3", @options[:class])
         end
 
-        # The icon and the titles are one flex item: as two, `justify-between` puts
-        # the same gap between the icon and the title as between the title and the
-        # badge (#1372).
+        # The icon and the titles are one flex item, so the row only ever wraps
+        # before the badge (#1372).
         def render_heading
           tag.div(class: "flex items-center gap-3 min-w-0") do
             safe_join([ render_icon, render_titles ].compact)
           end
+        end
+
+        # An auto margin, not `justify-between`: alone on its line once the row
+        # wraps, the badge went to the start of it.
+        def render_badge
+          tag.div(badge, class: "ml-auto flex") if badge?
         end
 
         def render_icon

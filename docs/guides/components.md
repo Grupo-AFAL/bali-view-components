@@ -483,8 +483,8 @@ Content container with optional header, image, and actions.
 **Slots:**
 - `with_header(title:, subtitle:, icon:, icon_class:, **html_options)` - The full header row:
   an optional Lucide icon at 24 px, the `<h2 class="card-title">`, an optional subtitle and a
-  `with_badge` slot. The badge sits at the far end of the row, and wraps below the title when
-  the two do not fit side by side. `icon_class` paints the icon **alone** — a class on the
+  `with_badge` slot. The badge sits at the far end of the row, and wraps below the title —
+  still at the far end — when the two do not fit side by side. `icon_class` paints the icon **alone** — a class on the
   header would tint the title with it too, because the SVG inherits `currentColor` from the
   wrapper.
 - `with_title(text, **html_options)` - A bare `<h2 class="card-title">`, for a text-only title.

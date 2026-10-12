@@ -23,7 +23,7 @@ class CardHeaderPreviewsTest < ActionDispatch::IntegrationTest
       "header_with_badge renders the header without its badge"
     assert_select ".badge.tag-component", { text: "Beta", count: 1 },
       "header_complete renders the header without its badge"
-    assert_select ".flex.items-center.gap-3.justify-between", { minimum: 2 },
+    assert_select ".flex.flex-wrap > .ml-auto > .badge.tag-component", { minimum: 2 },
       "the badge layout is gone from the header wrappers"
   end
 

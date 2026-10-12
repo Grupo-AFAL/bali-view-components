@@ -21,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `gap-3`. Ahora usa `size: 24`; el título no se mueve. Se ve más grande en los headers con
   `icon:` de afal-apps, costa-norte, centinela-web y garita; nada que hacer.
 
+- **El badge de `Card::Header` que baja de renglón queda al final**, como el que cabe; solo en
+  su renglón, `justify-between` lo dejaba al inicio. centinela-web ya puede quitar el
+  `justify-start!` del header y el `ml-auto` del Tag en `operations_board/show.html.erb`, como
+  decía v3.12.0, y como el renglón ya no lleva `justify-between`, afal-apps cambia
+  `.justify-between` por `.flex-wrap` en los dos selectores de
+  `test/controllers/td_flow/reports_controller_test.rb`.
+
 - **`Avatar` conserva el acento de una inicial descompuesta.** Con el nombre en NFD («A» +
   U+0301) la inicial era «A»; ahora es «Á», igual que en NFC.
 
