@@ -58,7 +58,9 @@ export class AutocompleteAddressController extends Controller {
   // successor draws its own input and cannot take ours. It is a form-associated element, so it
   // submits under the input's name while the input sits hidden and disabled.
   initializeAutocomplete () {
-    const { id, name, value, placeholder } = this.inputTarget
+    const { id, name, value, placeholder, disabled, readOnly } = this.inputTarget
+    // The box has no read-only state, and the teardown hands back an enabled input.
+    if (disabled || readOnly) return
 
     this.autocomplete = new this.googleMaps.places.PlaceAutocompleteElement({ name, value, placeholder })
     this.autocomplete.addEventListener('gmp-select', this.fillInAddress)

@@ -20,17 +20,19 @@ describe('autocomplete-address', () => {
 
   const TARGETS = ['street', 'streetNumber', 'neighbourhood', 'city', 'state', 'country', 'postalCode', 'latitude', 'longitude']
 
-  const mount = () => {
+  const mount = (attributes = '') => {
     cy.visit('/bali/empty_state/default')
     cy.get('body').then(([body]) => body.insertAdjacentHTML('beforeend', `
       <form id="address-form">
         <div data-controller="autocomplete-address">
           <label for="address">Address</label>
-          <input type="text" id="address" name="address" value="Calle 5" placeholder="Search address" data-autocomplete-address-target="input">
+          <input type="text" id="address" name="address" value="Calle 5" placeholder="Search address" data-autocomplete-address-target="input" ${attributes}>
           ${TARGETS.map((target) => `<input type="text" name="${target}" data-autocomplete-address-target="${target}">`).join('')}
         </div>
       </form>`))
-    cy.window().should((win) => expect(win.__fakeMaps?.registry.autocompletes, 'autocomplete built').to.have.length(1))
+    cy.window().should((win) => expect(win.google?.maps?.places, 'places imported').to.not.eq(undefined))
+    // The controller builds a microtask after the import resolves.
+    cy.wait(50)
   }
 
   const controllerElement = () => cy.get('[data-controller="autocomplete-address"]')
@@ -124,6 +126,23 @@ describe('autocomplete-address', () => {
 
       expect(element.querySelectorAll('gmp-place-autocomplete'), 'gmp-place-autocomplete').to.have.length(0)
       expect([input.hidden, input.disabled, input.value, input.id]).to.deep.eq([false, false, 'Calle 7', 'address'])
+    })
+  })
+
+  ;['disabled', 'readonly'].forEach((attribute) => {
+    it(`leaves a ${attribute} input as it is`, () => {
+      const expectUntouched = () => controllerElement().should(([element]) => {
+        const input = element.querySelector('[data-autocomplete-address-target="input"]')
+
+        expect(element.querySelectorAll('gmp-place-autocomplete'), 'gmp-place-autocomplete').to.have.length(0)
+        expect([input.hidden, input.disabled, input.readOnly]).to.deep.eq([false, attribute === 'disabled', attribute === 'readonly'])
+      })
+
+      mount(attribute)
+      expectUntouched()
+
+      cy.document().then((doc) => doc.dispatchEvent(new Event('turbo:before-cache')))
+      expectUntouched()
     })
   })
 

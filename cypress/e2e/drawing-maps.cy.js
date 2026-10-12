@@ -87,6 +87,18 @@ describe('drawing-maps', () => {
     fakeMaps(({ registry }) => expect(registry.polylines.map((line) => line.getPath().getLength())).to.deep.eq([2]))
   })
 
+  // Google inserts a vertex where that handle is dragged to, not where it is clicked.
+  it('adds no vertex on a click on the handle halfway along a segment, and one on the line', () => {
+    mount()
+    fakeMaps((maps) => SHELL.slice(0, 2).forEach((vertex) => maps.click(vertex)))
+
+    fakeMaps((maps) => maps.clickMidpoint(0))
+    fakeMaps(({ registry }) => expect(registry.polylines[0].getPath().getLength(), 'after the handle').to.eq(2))
+
+    fakeMaps((maps) => maps.clickLine({ lat: 32.53, lng: -117.03 }))
+    fakeMaps(({ registry }) => expect(registry.polylines[0].getPath().getLength(), 'after the line').to.eq(3))
+  })
+
   it('stores a vertex dragged on a polygon', () => {
     mount({ shells: [SHELL], holes: [] })
 
@@ -125,6 +137,8 @@ describe('drawing-maps', () => {
 
     cy.document().then((doc) => doc.documentElement.setAttribute('data-theme', 'afal-dark'))
     cy.window().should((win) => expect(win.__fakeMaps.registry.maps, 'map rebuilt').to.have.length(2))
+
+    fakeMaps(({ registry }) => expect(registry.polylines[0].map, 'line on the new map').to.eq(registry.maps[1]))
     draw(SHELL.slice(2))
 
     expectStored({ shells: [SHELL], holes: [] })

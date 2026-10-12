@@ -113,11 +113,12 @@ export class DrawingMapsController extends Controller {
     this.sketch.addListener('click', this.clickSketch)
   }
 
-  // A click on the line itself lands on the line, not on the map.
+  // A click on the line itself lands on the line, not on the map. On a vertex it reports `vertex`,
+  // and on the handle halfway along a segment `edge`, which Google drags to insert a vertex.
   clickSketch = (event) => {
     if (event.vertex === 0 && this.sketch.getPath().getLength() >= 3) {
       this.closeSketch()
-    } else if (event.vertex === undefined) {
+    } else if (event.vertex === undefined && event.edge === undefined) {
       this.addVertex(event)
     }
   }

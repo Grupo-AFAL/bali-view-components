@@ -437,11 +437,23 @@
       clickTarget(map, latLng).emit('click', { latLng, stop () {} })
     },
 
-    // A vertex of the line being drawn: the line takes that click, and says which vertex.
+    // On the line being drawn, which takes the click: a vertex reports `vertex`, the handle
+    // halfway along a segment `edge`, and the line between them neither (measured on 3.66).
     clickVertex (vertex) {
       const line = registry.polylines[registry.polylines.length - 1]
 
       line?.emit('click', { vertex, latLng: line.getPath().getAt(vertex), stop () {} })
+    },
+
+    clickMidpoint (edge) {
+      const line = registry.polylines[registry.polylines.length - 1]
+      const [from, to] = [line.getPath().getAt(edge), line.getPath().getAt(edge + 1)]
+
+      line.emit('click', { edge, latLng: toLatLng({ lat: (from.lat() + to.lat()) / 2, lng: (from.lng() + to.lng()) / 2 }), stop () {} })
+    },
+
+    clickLine (point) {
+      registry.polylines[registry.polylines.length - 1].emit('click', { latLng: toLatLng(point), stop () {} })
     },
 
     // The person picks a suggestion: the element shows its text and fires `gmp-select`.
