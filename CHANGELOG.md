@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`date_field` y `date_group` respetan `default_date:`**, que descartaban sin aviso; `datetime_*`
   y `time_*` ya lo hacían. Como en esos dos, reemplaza el valor del registro. Ninguna app lo pasa.
 
+- **Textarea `auto_grow`: un `form.reset()` con el campo oculto lo dejaba al alto de sus `rows`**
+  al volver a mostrarse, con el texto restaurado fuera de vista. Ahora se ajusta en cuanto vuelve
+  a tener caja. Nada que hacer en las apps.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added
