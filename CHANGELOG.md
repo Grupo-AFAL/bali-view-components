@@ -32,18 +32,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `size-4`. Un Icon con `inline` en `class:` ahora es `inline`: queda sobre la línea base del
   texto, 4 px más abajo que antes.
 
-- **`Bali::Icon` rechaza un `size:` desconocido.** `size:` es `:small`, `:medium`, `:large` o un
-  número de píxeles; cualquier otra clave caía sin aviso a 16 px. Ahora levanta `ArgumentError`
-  con las válidas, como `Tag`. Avatar::Upload pasaba `:sm` y pasa a `:small`, sin cambio visible.
-  **Anfitrión:** centinela-web pasa `:xs`, `:sm`, `:md` y `:lg`, que hoy se ven de 16 px y al
-  subir levantan el error. `:small` conserva los 16 px; `:medium` y `:large` dan 32 y 48.
-
 - **`Tag` rechaza un `style:` que no sea variante.** `style:` es `:outline`, `:soft` o `:dash`;
   un string de CSS (`style: "opacity: .5"`) se descartaba sin aviso y salía un badge liso. Ahora
   levanta `ArgumentError` con las tres variantes, como un `color:` o un `size:` desconocidos,
   también si llega por `Tags#with_item` o `SplitView::List::Item#with_tag`. En las siete apps
   todas las llamadas, esos slots y los mapas de `Tag.for` pasan una variante o `nil`; nada que
   hacer.
+
+### Deprecated
+
+- **Un `size:` desconocido en `Bali::Icon` avisa por `Bali.deprecator`** y levanta
+  `ArgumentError` en 4.0. `size:` es `:small`, `:medium`, `:large` o un número de píxeles; otra
+  clave caía sin aviso al default de 16 px y lo sigue haciendo, así que no cambia nada a la
+  vista. Avatar::Upload pasaba `:sm` y pasa al default, los mismos 16 px.
+  **Anfitrión:** centinela-web pasa 28 claves así, que ahora avisan y siguen en 16 px. Antes de
+  4.0 hay que darle a cada una la clave o los píxeles que quiera (`:medium` y `:large` son 32 y
+  48 px, así que agrandarían el ícono). Las vistas, bajo `app/views/`:
+  - `:xs`: `app/helpers/application_helper.rb:38`, `operations_board/show:54`.
+  - `:sm`: `admin/alerts/show:15`, `admin/route_schedules/index:55`,
+    `admin/shift_schedules/index:51`, `admin/system_settings/index:16`, `admin/users/show:52,70`,
+    `dashboard/index:37,72,106,137,172`.
+  - `:md`: `admin/shifts/show:144`, `dashboard/index:62,94,127,161,190`.
+  - `:lg`: `admin/notification_logs/index:73`, `admin/notification_rules/index:67`,
+    `admin/notification_templates/index:63`, `admin/reports/index:19`,
+    `admin/route_schedules/index:64`, `admin/system_logs/index:69`,
+    `admin/system_monitoring/show:62`, `admin/system_settings/index:49`,
+    `operations_board/show:68`.
 
 ### Fixed
 

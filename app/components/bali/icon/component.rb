@@ -60,7 +60,7 @@ module Bali
         @name = name.to_s
         @tag_name = tag_name
         @size = known_size(size)
-        options = apply_size_style(options) if size
+        options = apply_size_style(options) if @size
         @options = hide_from_assistive_tech(prepend_class_name(options, CLASSES))
       end
 
@@ -131,14 +131,17 @@ module Bali
         @size.is_a?(Numeric)
       end
 
-      # An unknown key used to fall back to 16px without a word, which is how
-      # `size: :sm` lived on in Avatar::Upload.
+      # @deprecated An unknown key falls back to the default 16px, as it always did, but
+      #   without a word it let `size: :sm` live on in Avatar::Upload. Raises in 4.0.
       def known_size(size)
         return size if size.nil? || size.is_a?(Numeric)
         return size.to_sym if SIZES.key?(size.to_sym)
 
-        raise ArgumentError, "Bali::Icon::Component: unknown size #{size.to_sym.inspect}. " \
-                             "Valid: #{SIZES.keys.map(&:inspect).join(', ')}, or pixels as a number."
+        Bali.deprecator.warn(
+          "Bali::Icon(size: #{size.inspect}) is not a size and raises in 4.0; it renders at the " \
+          "default 16px. Valid: #{SIZES.keys.map(&:inspect).join(', ')}, or pixels as a number."
+        )
+        nil
       end
 
       def pixel_size

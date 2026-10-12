@@ -5,7 +5,7 @@
 
   <%= tag.div class: button_classes do %>
     <%= tag.label class: label_classes, aria: { label: t('.upload_image') } do %>
-      <%= render Bali::Icon::Component.new('camera', size: :small) %>
+      <%= render Bali::Icon::Component.new('camera') %>
       <div class="hidden">
         <%= @form.file_field @method,
               accept: accepted_formats,

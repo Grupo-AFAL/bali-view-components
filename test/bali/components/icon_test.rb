@@ -24,12 +24,12 @@ class BaliIconComponentTest < ComponentTestCase
     end
   end
 
-  def test_sizes_unknown_key_raises_and_lists_the_valid_ones
-    error = assert_raises(ArgumentError) do
-      Bali::Icon::Component.new("snowflake", size: :sm)
+  # Raises in 4.0. Until then it draws the default, which is what it always drew.
+  def test_sizes_unknown_key_warns_and_renders_the_default
+    assert_deprecated(/Bali::Icon\(size: :sm\).*Valid: :small, :medium, :large/, Bali.deprecator) do
+      render_inline(Bali::Icon::Component.new("snowflake", size: :sm))
     end
-    assert_includes error.message, "unknown size :sm"
-    assert_includes error.message, "Valid: :small, :medium, :large, or pixels as a number."
+    assert_selector("span.icon-component:not([style])")
   end
 
   # #1424: an inline `width`/`height` would outrank a caller's `size-*` class.
