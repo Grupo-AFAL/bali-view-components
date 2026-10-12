@@ -70,8 +70,8 @@ class BaliFormBuilderInputClassOptionTest < FormBuilderTestCase
   # and each with another way to say the same thing:
   #
   # `file_group`: its `<input type="file">` is forced to `INPUT_CLASS` and
-  # hidden — the button the user sees is drawn beside it, and `file_class:` is
-  # what classes the thing on screen.
+  # invisible inside the button the user sees, and `file_class:` is what
+  # classes the thing on screen.
   #
   # `block_editor_group` / `rich_text_group`: what the user types into is a
   # ProseMirror `contenteditable` BlockNote builds client-side, so at render

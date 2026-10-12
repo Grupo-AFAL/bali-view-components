@@ -33,9 +33,15 @@ export class TooltipController extends Controller {
     this.makeTriggerFocusable()
 
     const tippyModule = await import('tippy.js').catch(optionalPeer('tippy.js'))
-    if (!tippyModule) return
+    // A node moved while this awaits is disconnected and connected again, and both connects
+    // resume here. Inside the DataTable toolbar, whose overflow controller re-appends every
+    // item on its own connect, that built two tippys on one trigger: two balloons per hover,
+    // measured on `data_table/with_filter_persistence` (#1392).
+    if (!tippyModule || this.tippy) return
     const { default: tippy } = tippyModule
 
+    // Reached from outside: filter-persistence-controller.js (updateTooltip) rewrites the `content`
+    // template and calls `setContent` on `triggerTarget._tippy`.
     this.tippy = tippy(this.triggerTarget, {
       allowHTML: true,
       appendTo: this.appendToOption,
@@ -159,5 +165,6 @@ export class TooltipController extends Controller {
     if (!this.tippy) return
 
     this.tippy.destroy()
+    this.tippy = null
   }
 }

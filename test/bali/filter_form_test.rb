@@ -1484,6 +1484,29 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     assert_equal("Género 2", form.simple_filters_config.first[:aria_label])
   end
 
+  # #1400. The date widgets read `filter[:placeholder]`, and no definition could hand it to them:
+  # the field always repeated its caption as its placeholder.
+  def test_filter_attribute_hands_a_placeholder_to_the_simple_row
+    form_class = Class.new(Bali::FilterForm) do
+      filter_attribute :release_date, type: :date, input: :date_range, simple: true, advanced: false,
+                       label: "Released", placeholder: -> { "Select dates" }
+    end
+
+    config = form_class.new(Movie.all, params({})).simple_filters_config.first
+
+    assert_equal("Select dates", config[:placeholder])
+  end
+
+  def test_an_instance_level_simple_filter_hash_carries_placeholder
+    form = Bali::FilterForm.new(
+      Movie.all, params({}),
+      simple_filters: [ { attribute: :release_date, type: :date, label: "Released",
+                          placeholder: "Pick a day" } ]
+    )
+
+    assert_equal("Pick a day", form.simple_filters_config.first[:placeholder])
+  end
+
   # The sentinel CANNOT be the absence of the key: `simple_filter` delegates to
   # `filter_attribute`, which always stores `explicit_label:`, so `defined_simple_filters` hands
   # the `:label` key back set even when nobody wrote it. With `key?` as the condition, EVERY
