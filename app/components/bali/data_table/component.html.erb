@@ -109,9 +109,12 @@
       <%# Host buttons: arbitrary content Bali does not cover, so they are neither listing
           state nor display mode. Their OWN group and not inside the right-hand one: there the
           JS sorts by descending priority (10 against 50) and they ended up to the right OF the
-          view switch, which is the only thing that can sit against the edge. %>
+          view switch, which goes against the edge whenever there is one. Without it the edge
+          is theirs, and the `ml-auto` goes on the group, never on the items: those are what
+          the JS moves into the ⋯, and an auto margin there cancels the menu's
+          `items-stretch`. %>
       <% if show_toolbar_host? %>
-        <%= tag.div(**overflow_group_attributes("host", css_class: "flex items-end gap-1 sm:gap-2 shrink-0")) do %>
+        <%= tag.div(**overflow_group_attributes("host", css_class: class_names("flex items-end gap-1 sm:gap-2 shrink-0", "ml-auto": !show_toolbar_right?))) do %>
           <% toolbar_buttons.each do |button| %>
             <%= tag.div(**overflow_item_attributes(:toolbar_buttons, group: "host")) do %>
               <%= button %>

@@ -17,10 +17,11 @@ module Bali
     # size it) and the message region takes what is left.
     #
     #   <%= render Bali::Chat::Component.new(id: 'messages', class: 'h-[60vh]') do |chat| %>
+    #     <% chat.with_header do %><%= render 'chat_header' %><% end %>
     #     <%= render Bali::Chat::Message::Component.new(position: :end, color: :primary) do %>
     #       Hello
     #     <% end %>
-    #     <%= render Bali::Chat::TypingIndicator::Component.new %>
+    #     <%= render Bali::Chat::TypingIndicator::Component.new(class: 'order-last') %>
     #     <% chat.with_footer do %><%= render 'form' %><% end %>
     #   <% end %>
     #
@@ -28,6 +29,7 @@ module Bali
     #
     #   turbo_stream.append 'messages', partial: 'messages/message', locals: { message: }
     class Component < ApplicationViewComponent
+      renders_one :header
       renders_one :footer
 
       # @param id [String] DOM id of the scrollable message region — the target a

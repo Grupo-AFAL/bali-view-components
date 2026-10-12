@@ -3,6 +3,40 @@ import { get, post } from '@rails/request.js'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 import { optionalPeer } from '../utils/optional-peer.js'
 
+// What a text value left unset falls back to, in the `lang` of the page. A select written by
+// hand carries none of the values slim_select_fields.rb writes from
+// `bali_view.form_builder.slim_select` (its TEXT_KEYS), so these are those same strings from
+// config/locales/bali_view.{en,es}.yml, keyed by the value's name: slim_select_fields_test.rb
+// fails when the two drift apart.
+const TEXTS = {
+  en: {
+    placeholder: 'Select value',
+    searchPlaceholder: 'Search',
+    noResultsText: 'No results',
+    searchingText: 'Searching...',
+    resultsText: 'Results',
+    ajaxPlaceholder: 'Type 2 chars to search...',
+    maxValuesMessage: '{number} selected',
+    addableText: 'Press "Enter" to add {value}',
+    deselectText: 'Clear',
+    removeText: 'Remove',
+    resultsCountText: '{count} results available'
+  },
+  es: {
+    placeholder: 'Selecciona una opción',
+    searchPlaceholder: 'Buscar',
+    noResultsText: 'Sin resultados',
+    searchingText: 'Buscando...',
+    resultsText: 'Resultados',
+    ajaxPlaceholder: 'Escribe al menos 2 caracteres para buscar...',
+    maxValuesMessage: '{number} seleccionados',
+    addableText: 'Presiona "Enter" para agregar {value}',
+    deselectText: 'Borrar selección',
+    removeText: 'Quitar',
+    resultsCountText: '{count} resultados disponibles'
+  }
+}
+
 export class SlimSelectController extends Controller {
   static values = {
     addItems: Boolean,
@@ -15,17 +49,15 @@ export class SlimSelectController extends Controller {
     disabled: Boolean,
     hideSelected: Boolean,
     searchHighlight: Boolean,
-    noResultsText: { type: String, default: 'No results' },
-    searchingText: { type: String, default: 'Searching...' },
-    resultsText: { type: String, default: 'Results' },
-    // Templates with SlimSelect's own `{number}` / `{value}` / `{count}` markers, and the labels
-    // it reads out from 3.5. `slim_select_fields.rb` emits them translated; left empty,
-    // SlimSelect's English applies. `resultsCountText` is SlimSelect's `resultsText`: the name
-    // `resultsText` here already belongs to the label of the remote results' group.
+    noResultsText: String,
+    searchingText: String,
+    resultsText: String,
     maxValuesMessage: String,
     addableText: String,
     deselectText: String,
     removeText: String,
+    // SlimSelect's `resultsText`: the name `resultsText` here already belongs to the label of
+    // the remote results' group.
     resultsCountText: String,
     ajaxParamName: String,
     ajaxValueName: String,
@@ -37,11 +69,8 @@ export class SlimSelectController extends Controller {
     // a select that depends on another field of the form possible.
     ajaxExtraParams: Object,
     ajaxParamSelectors: Object,
-    placeholder: { type: String, default: 'Select value' },
-    ajaxPlaceholder: {
-      type: String,
-      default: 'Type 2 chars to search...'
-    },
+    placeholder: String,
+    ajaxPlaceholder: String,
     afterChangeFetchUrl: String,
     afterChangeFetchMethod: { type: String, default: 'get' },
     contentWidth: String
@@ -76,29 +105,30 @@ export class SlimSelectController extends Controller {
       const slimSelect = await import('slim-select').catch(optionalPeer('slim-select'))
       if (!slimSelect) return
       const { default: SlimSelect } = slimSelect
+      const texts = this.texts
 
       const options = {
         select: this.selectTarget,
         settings: {
-          placeholderText: this.placeholderValue,
+          placeholderText: texts.placeholder,
           showSearch: this.showSearchValue,
           openPosition:
             this.showContentValue === 'undefined'
               ? 'down'
               : this.showContentValue,
-          searchPlaceholder: this.searchPlaceholderValue,
+          searchPlaceholder: texts.searchPlaceholder,
           closeOnSelect: this.closeOnSelectValue,
           allowDeselect: this.allowDeselectOptionValue,
           disabled: this.disabledValue,
           hideSelected: this.hideSelectedValue,
           searchHighlight: this.searchHighlightValue,
-          searchText: this.noResultsTextValue,
-          searchingText: this.searchingTextValue,
-          maxValuesMessage: this.maxValuesMessageValue,
-          addableText: this.addableTextValue,
-          deselectText: this.deselectTextValue,
-          removeText: this.removeTextValue,
-          resultsText: this.resultsCountTextValue,
+          searchText: texts.noResultsText,
+          searchingText: texts.searchingText,
+          maxValuesMessage: texts.maxValuesMessage,
+          addableText: texts.addableText,
+          deselectText: texts.deselectText,
+          removeText: texts.removeText,
+          resultsText: texts.resultsCountText,
           // 4.x opens the list as a modal below 768px by default, and slim_select.css has no
           // rules for `.ss-modal-*`: measured at 375px, the overlay stayed `position: static`
           // and 0px tall, the list 264px wide under a 343px trigger, and its options unpainted
@@ -165,11 +195,32 @@ export class SlimSelectController extends Controller {
         contentEl.classList.add('slim-select-sm-content')
       }
 
-      this.joinTopLayer()
       this.forwardAccessibility()
+      this.leavePlaceholderOutOfResults()
+      this.joinTopLayerOnOpen()
     } catch (error) {
       console.error('[SlimSelect] Failed to initialize:', error)
     }
+  }
+
+  // Each text value as written on the element, or else the page language's, read off the
+  // nearest `lang` as the browser does. A page without one, or in a language with no entry,
+  // reads English.
+  //
+  // Present, not truthy: an empty value is kept. SlimSelect takes '' as "no placeholder" —
+  // `placeholderText` is the one text setting it checks against `undefined` (3.4.3 to 4.6.0) — and
+  // `slim_select_field placeholder: ""` writes exactly that. The other texts fall back to
+  // SlimSelect's own through `||`.
+  get texts () {
+    const lang = this.element.closest('[lang]')?.lang.toLowerCase().split(/[-_]/)[0]
+    const defaults = TEXTS[lang] || TEXTS.en
+
+    return Object.fromEntries(
+      Object.entries(defaults).map(([name, text]) => [
+        name,
+        this.data.has(`${name}Value`) ? this[`${name}Value`] : text
+      ])
+    )
   }
 
   disconnect () {
@@ -210,15 +261,63 @@ export class SlimSelectController extends Controller {
     }
   }
 
+  // SlimSelect counts the placeholder among the results it reads out, though it draws it
+  // hidden, and a remote search keeps it in the list because it is the selected option.
+  // Measured on 4.5.0 and 4.6.0: a remote search with no matches left the list blank and read
+  // out "1 results available", and four matches read "5". Reported upstream as
+  // https://github.com/brianvoe/slim-select/issues/719 — this method goes once that is fixed.
+  // A list holding nothing but the placeholder takes SlimSelect's own empty branch — "No
+  // results", or the addable hint — as a select without one does. SlimSelect has already
+  // rendered once while mounting, so a list that counted one is rendered again.
+  //
+  // `announce` is the one private member this touches: the count comes from the data handed
+  // in, so a renamed internal cannot throw in here, ahead of `afterChange`.
+  leavePlaceholderOutOfResults () {
+    const render = this.select.render
+    const renderOptions = render.renderOptions.bind(render)
+    const optionsIn = data => data.flatMap(item => item.options || [item])
+
+    render.renderOptions = data => {
+      const options = optionsIn(data)
+      const results = options.filter(option => !option.placeholder)
+      if (results.length === 0) return renderOptions([])
+
+      renderOptions(data)
+      // `announce` arrived with the count, in 3.6.
+      if (render.announce && results.length < options.length) {
+        render.announce(this.select.settings.resultsText.replace('{count}', results.length))
+      }
+    }
+
+    const data = this.select.store.getData(false)
+    if (optionsIn(data).some(option => option.placeholder)) render.renderOptions(data)
+  }
+
   // SlimSelect portals `.ss-content` to <body>, which a modal overlay both covers
   // and renders inert — see utils/top-layer.js for the hit-test that measured it.
   //
-  // Done once, at connect, rather than on each open: SlimSelect debounces its open
-  // callbacks and `afterClose` by 100ms, so a hook that reparents there fires long
-  // after the list is already on screen and clickable. The list is parked at `top: -9999px`
-  // while closed, so leaving it in the top layer for the widget's lifetime shows
-  // nothing; when the overlay closes it takes its contents with it, and `teardown()`
-  // removes the node either way.
+  // On each open, not at connect: a select rendered inside a closed Modal or Drawer connects
+  // before `showModal()`, with no host to join — and so does one a Modal puts back on close,
+  // when it restores the content it was rendered with.
+  //
+  // From `render.open()`, not SlimSelect's `beforeOpen`: `beforeOpen`, `afterOpen` and
+  // `afterClose` are debounced by 100ms in 3.x and 4.x. Joined from `beforeOpen`, the list sat
+  // under the dialog that long and its search box, focused while still inert, took no
+  // keystroke. `Render#open` is public in SlimSelect's typings; a bump that stops routing
+  // opens through it fails slim-select-in-dialog.cy.js, and nothing at runtime.
+  //
+  // Closed, the list is transparent and then `scaleY(0)`, so it stays joined until
+  // `teardown()` rather than leaving from `afterClose`, which is as late and races a reopen.
+  joinTopLayerOnOpen () {
+    const render = this.select.render
+    const open = render.open.bind(render)
+
+    render.open = (...args) => {
+      this.joinTopLayer()
+      return open(...args)
+    }
+  }
+
   joinTopLayer () {
     const contentEl = this.select?.render?.content?.main
     const host = contentEl && topLayerHost(this.element)
@@ -293,7 +392,7 @@ export class SlimSelectController extends Controller {
 
     return new Promise((resolve, reject) => {
       if (search.length < 2) {
-        return reject(this.ajaxPlaceholderValue)
+        return reject(this.texts.ajaxPlaceholder)
       }
 
       get(this.ajaxUrlValue, {
@@ -317,7 +416,7 @@ export class SlimSelectController extends Controller {
             }
           })
 
-          resolve([{ label: this.resultsTextValue, options }])
+          resolve([{ label: this.texts.resultsText, options }])
         })
     })
   }

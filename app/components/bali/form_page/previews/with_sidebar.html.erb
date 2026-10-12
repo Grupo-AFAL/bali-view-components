@@ -12,19 +12,19 @@
 ) do |page| %>
   <% page.with_body do %>
     <div class="space-y-4">
-      <div class="form-control">
-        <label class="label"><span class="label-text">Title</span></label>
-        <input type="text" value="Inception" class="input input-bordered w-full" />
+      <div>
+        <label class="label"><span>Title</span></label>
+        <input type="text" value="Inception" class="input w-full" />
       </div>
-      <div class="form-control">
-        <label class="label"><span class="label-text">Genre</span></label>
+      <div>
+        <label class="label"><span>Genre</span></label>
         <select class="select select-bordered w-full">
           <option>Sci-Fi</option>
         </select>
       </div>
-      <div class="form-control">
-        <label class="label"><span class="label-text">Description</span></label>
-        <textarea class="textarea textarea-bordered h-24 w-full">A mind-bending thriller about dream infiltration.</textarea>
+      <div>
+        <label class="label"><span>Description</span></label>
+        <textarea class="textarea h-24 w-full">A mind-bending thriller about dream infiltration.</textarea>
       </div>
       <div class="flex justify-end gap-2 pt-4">
         <%= render Bali::Link::Component.new(name: "Cancel", href: "/admin/movies/1", variant: :ghost) %>

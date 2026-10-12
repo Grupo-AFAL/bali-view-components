@@ -114,6 +114,40 @@ module Bali
           )
         end
 
+        # @label Remote with a prompt
+        # The prompt is SlimSelect's placeholder, selected while nothing else is. It is not one
+        # of the results: a search that finds nothing says so, and the count it reads out
+        # leaves the placeholder out (#1389).
+        def remote_with_prompt
+          render_with_template(
+            template: 'bali/form/slim_select/previews/remote_with_prompt',
+            locals: { model: form_record }
+          )
+        end
+
+        # @label Written by hand
+        # A SlimSelect written in the view, outside the FormBuilder, says what
+        # `slim_select_field` says in the page's `lang` (#1389). A
+        # `data-slim-select-*-value` written on it still wins.
+        # @param lang select { choices: [en, es] }
+        def hand_written(lang: 'en')
+          render_with_template(
+            template: 'bali/form/slim_select/previews/hand_written',
+            locals: { model: form_record, options: OPTIONS, lang: lang }
+          )
+        end
+
+        # @label Inside a Modal or Drawer
+        # Both panels are rendered closed with the page, so every select here connects
+        # before its `<dialog>` is shown with `showModal()`. Each panel holds a select with
+        # local options and one with a remote search.
+        def in_dialog
+          render_with_template(
+            template: 'bali/form/slim_select/previews/in_dialog',
+            locals: { model: form_record, options: OPTIONS }
+          )
+        end
+
         # @label Allow Deselect
         # Single select with X button to clear selection
         def allow_deselect

@@ -44,17 +44,18 @@ class BaliFiltersPersistenceToggleTest < ComponentTestCase
     assert_selector('[data-filter-persistence-enabled-value="true"]')
   end
 
-  # Both icons are `aria-hidden` svgs and `data-tip` is invisible to a screen reader: without an
-  # aria-label the button has no accessible name.
+  # Both icons are `aria-hidden` svgs and the balloon is not the button's: without an aria-label
+  # the button has no accessible name.
   def test_the_button_has_an_accessible_name
     render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
 
     assert_selector('button[data-action="filter-persistence#toggle"][aria-label="Remember filters"]')
   end
 
-  # The name does not change with the state, the icons are `aria-hidden` and `data-tip` is
-  # CSS-generated content: `aria-pressed` is the only thing telling a screen reader whether the
-  # filters are being remembered. Without it the button announces the same in both states.
+  # The name does not change with the state, the icons are `aria-hidden` and the balloon
+  # describes the wrapper tippy is anchored to: `aria-pressed` is the only thing telling a screen
+  # reader whether the filters are being remembered. Without it the button announces the same in
+  # both states.
   def test_the_button_announces_its_state
     render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
 
@@ -65,6 +66,28 @@ class BaliFiltersPersistenceToggleTest < ComponentTestCase
     render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies", enabled: true))
 
     assert_selector('button[data-action="filter-persistence#toggle"][aria-pressed="true"]')
+  end
+
+  # CONTRACT with filter-persistence-controller.js, which reaches the balloon through the
+  # `tooltip` target to keep its text in step with the state.
+  def test_the_tooltip_is_a_bali_tooltip_the_controller_can_reach
+    render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
+
+    assert_selector('[data-controller="filter-persistence"] ' \
+                    '[data-controller="tooltip"][data-filter-persistence-target="tooltip"] ' \
+                    '[data-tooltip-target="trigger"] button[data-action="filter-persistence#toggle"]')
+    assert_no_selector(".tooltip, [data-tip]")
+  end
+
+  # Capybara reads no text inside a `<template>`, so the markup is matched instead.
+  def test_the_balloon_says_the_state_it_was_rendered_in
+    render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies"))
+    assert_match(%r{<template data-tooltip-target="content">\s*Filters are not saved\. Click to enable\.\s*</template>},
+                 rendered_content)
+
+    render_inline(Bali::Filters::PersistenceToggle::Component.new(storage_id: "movies", enabled: true))
+    assert_match(%r{<template data-tooltip-target="content">\s*Filters are being saved\. Click to disable\.\s*</template>},
+                 rendered_content)
   end
 
   # CONTRACT with data_table/index.css: without this class the control is an anonymous icon inside

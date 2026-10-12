@@ -5,11 +5,12 @@ require "test_helper"
 # The component tests render classes, not previews, and Cypress only visits
 # `/bali/chat/default`. Everything specific to the preview path — the nested
 # `Bali::Chat::Message` / `Bali::Chat::TypingIndicator` constants resolving under a
-# namespace Zeitwerk reloads, `render_with_template` finding three templates in a
+# namespace Zeitwerk reloads, `render_with_template` finding four templates in a
 # directory the engine excludes from eager loading — could 500 with the suite green.
 class ChatPreviewsTest < ActionDispatch::IntegrationTest
   PREVIEWS = {
     "/lookbook/preview/bali/chat/default" => "[data-controller='chat'] [data-chat-target='messages']",
+    "/lookbook/preview/bali/chat/header" => ".bali-chat > .border-b:first-child a[href]",
     "/lookbook/preview/bali/chat/bubbles" => ".chat.chat-end .chat-bubble-primary",
     "/lookbook/preview/bali/chat/typing_indicator" => ".loading-dots"
   }.freeze

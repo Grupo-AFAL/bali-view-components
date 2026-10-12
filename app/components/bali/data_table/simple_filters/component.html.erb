@@ -36,7 +36,7 @@
                 "aria-label": search_label,
                 autocomplete: "off",
                 data: { "1p-ignore": "", lpignore: "true", "form-type": "other" },
-                class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0' if search_icon}"
+                class: "input input-sm w-full #{'join-item rounded-l-none border-l-0' if search_icon}"
               ) %>
         </div>
       </div>
@@ -126,14 +126,14 @@
                      name="<%= names[:min] %>"
                      value="<%= values[:min] %>"
                      placeholder="<%= filter[:placeholder_min] || t('.placeholder_min') %>"
-                     class="input input-bordered input-sm w-20 <%= 'join-item rounded-l-none border-l-0' if filter[:icon] %>"
+                     class="input input-sm w-20 <%= 'join-item rounded-l-none border-l-0' if filter[:icon] %>"
                      step="<%= filter[:step] || 'any' %>" />
               <span class="text-base-content/70 text-xs">–</span>
               <input type="number"
                      name="<%= names[:max] %>"
                      value="<%= values[:max] %>"
                      placeholder="<%= filter[:placeholder_max] || t('.placeholder_max') %>"
-                     class="input input-bordered input-sm w-20"
+                     class="input input-sm w-20"
                      step="<%= filter[:step] || 'any' %>" />
             </div>
           </div>
@@ -190,7 +190,7 @@
                   # (#1155), and later with the select's fallback ("Cualquier fecha"), which
                   # is the opposite of what the user opens this field to say.
                   "aria-label": preset_picker_accessible_name(filter),
-                  alt_input_class: "input input-bordered input-sm w-full",
+                  alt_input_class: "input input-sm w-full",
                   wrapper_options: {
                     class: class_names("flatpickr", "hidden" => preset_select_value(filter) != Bali::DateRangePresets::CUSTOM)
                   },
@@ -216,7 +216,7 @@
                   # mobileInput of a single date) at the `label[for]`. With no caption there was
                   # nothing to point at and that field came out unnamed (#1155).
                   "aria-label": aria_label_for(filter),
-                  alt_input_class: "input input-bordered input-sm w-full #{'join-item rounded-l-none border-l-0 max-sm:w-24 max-sm:px-1' if filter[:icon]}",
+                  alt_input_class: "input input-sm w-full #{'join-item rounded-l-none border-l-0 max-sm:w-24 max-sm:px-1' if filter[:icon]}",
                   wrapper_options: { class: "flatpickr #{'grow' if filter[:icon]}" },
                   **({ mode: "range" } if date_range?(filter))
                 ) %>

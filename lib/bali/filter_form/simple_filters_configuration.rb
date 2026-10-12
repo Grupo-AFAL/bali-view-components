@@ -52,6 +52,7 @@ module Bali
               predicate: attr[:input] == :date_range ? nil : attr[:predicate],
               icon: attr[:icon],
               step: attr[:step],
+              placeholder: attr[:placeholder],
               placeholder_min: attr[:placeholder_min],
               placeholder_max: attr[:placeholder_max],
               auto_submit: attr[:auto_submit],
@@ -133,6 +134,7 @@ module Bali
             type: type,
             predicate: predicate,
             icon: filter[:icon],
+            placeholder: resolve_definition_value(filter[:placeholder]),
             # Instance-level `simple_filters:` hashes reach the component through here
             # too, so `auto_submit: true` works in both shapes of the configuration.
             auto_submit: filter[:auto_submit],

@@ -42,7 +42,7 @@
 
     <%# Always in the DOM, hidden by a class — a Turbo Stream (or the buttons below)
         toggles it without ever destroying the node it targets. %>
-    <%= render Bali::Chat::TypingIndicator::Component.new(author: 'Assistant') do |indicator| %>
+    <%= render Bali::Chat::TypingIndicator::Component.new(author: 'Assistant', class: 'order-last') do |indicator| %>
       <% indicator.with_avatar do %>
         <%= render Bali::Avatar::Component.new(initials: 'AI', size: :xs) %>
       <% end %>
@@ -54,7 +54,7 @@
             from reach for `text_field_tag` here rather than a full form group. %>
         <%= text_field_tag :message, nil,
               placeholder: 'Write a message…',
-              class: 'input input-bordered flex-1',
+              class: 'input flex-1',
               autocomplete: 'off',
               aria: { label: 'Write a message' } %>
         <%= render Bali::Button::Component.new(

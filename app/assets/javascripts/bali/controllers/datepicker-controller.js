@@ -45,15 +45,17 @@ export class DatepickerController extends Controller {
   async connect () {
     const flatpickrModule = await import('flatpickr').catch(optionalPeer('flatpickr'))
     if (!flatpickrModule) return
+    const locale = await this.setLocale(this.localeValue)
+
+    // disconnect() can land during these awaits with nothing to destroy, and an instance mounted
+    // on a detached field ends up in Turbo's snapshot, dead beside the next one (#1415).
+    if (!this.element.isConnected) return
     const { default: flatpickr } = flatpickrModule
 
     const input =
       this.element.nodeName === 'INPUT'
         ? this.element
         : this.element.querySelector('input')
-
-    // this is necesary because `altInputClass` option does not inherit the original classes
-    this.altInputClassValue = `input ${this.altInputClassValue}`
 
     const options = {
       altInput: this.altInputValue,
@@ -63,13 +65,14 @@ export class DatepickerController extends Controller {
       noCalendar: this.noCalendarValue,
       enableSeconds: this.enableSecondsValue,
       time_24hr: this.time24hrValue,
-      locale: await this.setLocale(this.localeValue),
+      locale,
       defaultDate: this.defaultDates(),
       minDate: this.minDateValue,
       maxDate: this.maxDateValue,
       minTime: this.minTimeValue,
       maxTime: this.maxTimeValue,
-      altInputClass: this.altInputClassValue,
+      // this is necessary because `altInputClass` option does not inherit the original classes
+      altInputClass: `input ${this.altInputClassValue}`,
       mode: this.modeValue,
       disable: this.disableWeekendsValue ? [this.isWeekend] : this.disabledDatesValue,
       allowInput: this.allowInputValue,
@@ -219,43 +222,43 @@ export class DatepickerController extends Controller {
   }
 
   nextDate () {
-    const currentDate = this.flatpickr.selectedDates[0]
-
-    switch (this.periodValue) {
-      case 'day':
-        currentDate.setDate(currentDate.getDate() + 1)
-        break
-      case 'month':
-        currentDate.setMonth(currentDate.getMonth() + 1)
-        break
-      case 'year':
-        currentDate.setFullYear(currentDate.getFullYear() + 1)
-        break
-      default:
-        return
-    }
-
-    this.flatpickr.setDate(currentDate)
+    this.stepDate(1)
   }
 
   previousDate () {
-    const currentDate = this.flatpickr.selectedDates[0]
+    this.stepDate(-1)
+  }
+
+  // `setDate` gets its `triggerChange`, which flatpickr defaults to false: without it the input
+  // gets no `change`, so a `submit-on-change` form never heard the arrows (#1380).
+  //
+  // A step onto a disabled date (a weekend under `disable_weekends`, past `min_date`/`max_date`)
+  // is refused before it reaches `setDate`, which would drop it, empty the field and announce
+  // that: the form submitted `date=`. The step is taken on a copy so a refused one leaves the
+  // selection where it was: `selectedDates[0]` is flatpickr's own Date.
+  stepDate (by) {
+    const selected = this.flatpickr.selectedDates[0]
+    if (!selected) return
+
+    const date = new Date(selected)
 
     switch (this.periodValue) {
       case 'day':
-        currentDate.setDate(currentDate.getDate() - 1)
+        date.setDate(date.getDate() + by)
         break
       case 'month':
-        currentDate.setMonth(currentDate.getMonth() - 1)
+        date.setMonth(date.getMonth() + by)
         break
       case 'year':
-        currentDate.setFullYear(currentDate.getFullYear() - 1)
+        date.setFullYear(date.getFullYear() + by)
         break
       default:
         return
     }
 
-    this.flatpickr.setDate(currentDate)
+    if (!this.flatpickr.isEnabled(date)) return
+
+    this.flatpickr.setDate(date, true)
   }
 
   isWeekend = date => {

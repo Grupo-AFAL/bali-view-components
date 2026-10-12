@@ -1,0 +1,31 @@
+<%
+  comments = [
+    ['Ana García López', 3.days.ago, 'The acceptance criteria cover the happy path. What happens when the approver is on leave?'],
+    ['Luis Pérez', 5.hours.ago, 'Delegation is in scope: the approver names a substitute, and the request moves to them. Spec: https://example.com/specs/approvals/delegation-and-substitutes-for-every-approval-level'],
+    ['María de la Luz Hernández', 12.minutes.ago, 'Agreed. I will add a scenario for it before the review.']
+  ]
+%>
+
+<div class="p-6 bg-base-200">
+  <%= render Bali::Card::Component.new(style: :bordered, shadow: false, class: 'max-w-2xl mx-auto') do |card| %>
+    <% card.with_title('Comments') %>
+    <%= render Bali::CommentThread::Component.new(id: 'comments', form_position: form_position) do |thread| %>
+      <% comments.each_with_index do |(author, at, body), index| %>
+        <% thread.with_comment(id: "comment_#{index + 1}", author: author, timestamp: at, relative: relative) do |comment| %>
+          <% comment.with_action do %>
+            <%= render Bali::DeleteLink::Component.new(href: '#', name: 'Delete', icon: true, size: :xs,
+                                                       confirm: 'Delete this comment?') %>
+          <% end %>
+          <%= body %>
+        <% end %>
+      <% end %>
+
+      <% thread.with_form do %>
+        <%= form_with url: '/lookbook', method: :post, builder: Bali::FormBuilder do |f| %>
+          <%= f.text_area_group :body, label: 'Add a comment', rows: 2 %>
+          <%= f.submit_field 'Comment', variant: :primary, size: :sm %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

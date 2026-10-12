@@ -153,6 +153,9 @@ en:
       typing_indicator:
         label: "Typing…"
 
+    comment_thread:
+      empty: "No comments yet."
+
     # Modal
     modal:
       close: "Close modal"

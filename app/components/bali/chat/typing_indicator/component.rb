@@ -20,10 +20,8 @@ module Bali
       #     render Bali::Chat::TypingIndicator::Component.new(visible: true)
       #   end
       #
-      # or from the page, through the container's controller — the indicator
-      # registers itself as a `chat` target:
-      #
-      #   data: { action: 'turbo:submit-end->chat#showTyping' }
+      # or from the page, with the container's `chat#showTyping` and `chat#hideTyping`
+      # — the indicator registers itself as a `chat` target.
       #
       # The dots are daisyUI's `loading loading-dots`, so this component ships no CSS.
       class Component < ApplicationViewComponent
@@ -54,12 +52,6 @@ module Bali
           @show_label = show_label
           @bubble_class = bubble_class
           @options = options
-        end
-
-        # See {Bali::Chat::Message::Component#before_render}: the avatar slot is
-        # forwarded, so it has to be set before it is asked about.
-        def before_render
-          content
         end
 
         private

@@ -1,0 +1,48 @@
+<%
+  conversation = [
+    ['assistant', 'Good morning. I have the September board pack open — what would you like to go through?'],
+    ['user',      'Were the audit committee minutes signed?'],
+    ['assistant', 'Yes: signed on 3 September by all four members. The scanned copy is attached to folio ACT-2026-0311.'],
+    ['user',      'And the conflict of interest declarations?'],
+    ['assistant', 'Eleven of twelve are in. The outstanding one is from the alternate director appointed last month.'],
+    ['user',      'When does that window close?'],
+    ['assistant', 'On 19 September. I can set a reminder for the fifteenth if that helps.'],
+    ['user',      'Please do. Anything else pending before the session?'],
+    ['assistant', 'Two things: the anti-money-laundering policy is due for its annual review, and last quarter’s risk matrix has not been circulated yet.']
+  ]
+%>
+
+<div class="p-6 bg-base-200 min-h-[560px]">
+  <%= render Bali::Chat::Component.new(
+        class: 'h-[480px] max-w-2xl mx-auto rounded-box border border-base-300 bg-base-100'
+      ) do |chat| %>
+    <% chat.with_header do %>
+      <div class="flex items-center gap-3">
+        <span class="grid size-8 shrink-0 place-items-center rounded-field bg-primary/10 text-primary">
+          <%= render Bali::Icon::Component.new('brain', size: :small) %>
+        </span>
+        <div class="flex min-w-0 flex-1 flex-col">
+          <span class="text-sm font-semibold">Board assistant</span>
+          <span class="truncate text-xs text-base-content/70">
+            Answers from the September board pack, the signed minutes of every committee and each policy in force at the date of the session
+          </span>
+        </div>
+        <%= render Bali::Link::Component.new(
+              name: 'Pause', href: '/lookbook', icon: 'pause',
+              variant: :neutral, style: :outline, size: :sm, class: 'shrink-0'
+            ) %>
+      </div>
+    <% end %>
+
+    <% conversation.each do |role, body| %>
+      <% assistant = role == 'assistant' %>
+      <%= render Bali::Chat::Message::Component.new(
+            position: assistant ? :start : :end,
+            color: assistant ? nil : :primary,
+            bubble_class: 'max-w-[82%]'
+          ) do %>
+        <%= body %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

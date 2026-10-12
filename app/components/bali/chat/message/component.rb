@@ -63,13 +63,6 @@ module Bali
           @options = options
         end
 
-        # Slots set inside the render block only register once `content` runs, and
-        # the avatar and the header are emitted *before* the bubble. Without this
-        # they would be asked about while still unset, and silently skipped.
-        def before_render
-          content
-        end
-
         def render_header?
           header? || author.present? || timestamp_text.present?
         end
