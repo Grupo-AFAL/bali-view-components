@@ -43,6 +43,31 @@ describe('Avatar upload', () => {
     })
   })
 
+  // Turbo's snapshot for Back still points at the blob, so it is never revoked on disconnect; the
+  // controller that connects to the snapshot owns it, and the next pick releases it.
+  it('still shows the chosen file after a Turbo visit and Back, and releases it on the next pick', () => {
+    input().selectFile('cypress/fixtures/sample-image.png', { force: true })
+    picture().invoke('attr', 'src').should('match', /^blob:/)
+
+    cy.window().then((win) => win.Turbo.visit('/lookbook/preview/bali/avatar/default'))
+    cy.location('pathname').should('include', '/avatar/default')
+    cy.go('back')
+    cy.location('pathname').should('include', '/avatar/with_upload')
+
+    picture().should(($img) => {
+      expect($img.attr('src'), 'the restored picture').to.match(/^blob:/)
+      expect($img[0].complete, 'image settled').to.equal(true)
+      expect($img[0].naturalWidth, 'the restored picture loads').to.be.greaterThan(0)
+    })
+
+    picture().invoke('attr', 'src').then((restored) => {
+      input().selectFile('cypress/fixtures/sample-image.png', { force: true })
+
+      picture().invoke('attr', 'src').should('not.eq', restored)
+      cy.get('@revoke').should('have.been.calledWith', restored)
+    })
+  })
+
   it('leaves the file on the input for the form to submit', () => {
     input().selectFile('cypress/fixtures/sample-image.png', { force: true })
 
@@ -81,6 +106,7 @@ describe('Avatar upload', () => {
     eachTheme((theme) => {
       cy.document().should((doc) => {
         const button = doc.querySelector('[data-avatar-target="input"]').closest('label').parentElement
+        expect(doc.getAnimations(), 'colour transitions settled').to.have.length(0)
         expect(getComputedStyle(button).outlineStyle, `${theme}: ring drawn`).to.equal('solid')
         expect(paintedContrast(button, { over: button.parentElement, property: 'outlineColor' }), theme)
           .to.be.at.least(NON_TEXT)

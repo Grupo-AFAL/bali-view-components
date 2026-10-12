@@ -61,8 +61,9 @@ describe('ImageField', () => {
 
   // Turbo restores Back from a snapshot taken before the controller disconnects, so that snapshot
   // still points at the blob: revoked on disconnect, it came back as a broken image with the
-  // file still on the input.
-  it('still shows the chosen file after a Turbo visit and Back', () => {
+  // file still on the input. The controller that connects to the snapshot owns that blob, and
+  // the next pick releases it.
+  it('still shows the chosen file after a Turbo visit and Back, and releases it on the next pick', () => {
     input().selectFile('cypress/fixtures/sample-image.png', force)
     output().invoke('attr', 'src').should('match', /^blob:/)
 
@@ -75,6 +76,33 @@ describe('ImageField', () => {
       expect($img.attr('src'), 'the restored preview').to.match(/^blob:/)
       expect($img[0].complete, 'image settled').to.equal(true)
       expect($img[0].naturalWidth, 'the restored preview loads').to.be.greaterThan(0)
+    })
+
+    output().invoke('attr', 'src').then((restored) => {
+      input().selectFile('cypress/fixtures/sample-image.png', force)
+
+      output().invoke('attr', 'src').should('not.eq', restored)
+      cy.get('@revoke').should('have.been.calledWith', restored)
+    })
+  })
+
+  // A host card that is a `.group` itself answered an unnamed `group-*` variant too, so focus
+  // anywhere in the card veiled the image.
+  it('ignores keyboard focus elsewhere in a host `.group`', () => {
+    cy.document().then((doc) => {
+      const field = doc.querySelector('[data-controller~="image-field"]')
+      const card = Object.assign(doc.createElement('div'), { className: 'group' })
+      const sibling = Object.assign(doc.createElement('input'), { id: 'sibling' })
+      field.before(card)
+      card.append(sibling, field)
+    })
+
+    cy.press(Cypress.Keyboard.Keys.TAB)
+    cy.document().should((doc) => {
+      const overlay = doc.querySelector('label.image-input-container')
+      expect(doc.activeElement.id, 'focus on the sibling field').to.equal('sibling')
+      expect(getComputedStyle(overlay).backdropFilter, 'no veil').to.equal('none')
+      expect(getComputedStyle(overlay.querySelector('span')).display, 'no camera icon').to.equal('none')
     })
   })
 
@@ -105,6 +133,7 @@ describe('ImageField', () => {
     eachTheme((theme) => {
       cy.document().should((doc) => {
         const overlay = doc.querySelector('[data-image-field-target="input"]').closest('label')
+        expect(doc.getAnimations(), 'colour transitions settled').to.have.length(0)
         expect(getComputedStyle(overlay).outlineStyle, `${theme}: ring drawn`).to.equal('solid')
         expect(paintedContrast(overlay, { over: overlay.parentElement, property: 'outlineColor' }), theme)
           .to.be.at.least(NON_TEXT)

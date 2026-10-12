@@ -4915,10 +4915,12 @@ Image preview with an optional file input overlay for uploading/replacing an ima
 
 **Slots:** `input` (file input, takes `form:` and `method:`), `clear_button` (override the default clear button).
 
-A custom `clear_button` hides with `opacity-0 pointer-events-none` and reveals with `group-hover:`
-and `group-has-focus-visible:`, never with `hidden`. Revealed from `display: none` by
-`group-has-focus-visible:`, the button is gone again by the time Tab reaches it: the input has
-already blurred. The `with_custom_clear_button` preview has the classes.
+A custom `clear_button` hides with `opacity-0 pointer-events-none` and reveals with
+`group-hover/image-field:` and `group-has-focus-visible/image-field:`, never with `hidden`.
+Revealed from `display: none` by `group-has-focus-visible/image-field:`, the button is gone again
+by the time Tab reaches it: the input has already blurred. The group is named so a host card
+that is a `.group` itself does not reveal it. The `with_custom_clear_button` preview has the
+classes.
 
 #### RichTextEditor
 

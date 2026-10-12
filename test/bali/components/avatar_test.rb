@@ -319,7 +319,7 @@ class BaliAvatarUploadComponentTest < ComponentTestCase
       render_inline(Bali::Avatar::Upload::Component.new(form: form, method: :avatar, src: "/default-avatar.png"))
     end
     assert_selector('[data-controller="avatar"]')
-    assert_selector('label[aria-label="Upload avatar image"]')
+    assert_selector('label input[type="file"][aria-label="Upload avatar image"]')
     assert_selector('input[type="file"]')
   end
 
@@ -382,7 +382,7 @@ class BaliAvatarUploadComponentTest < ComponentTestCase
     @helper.form_with(url: "/") do |form|
       render_inline(Bali::Avatar::Upload::Component.new(form: form, method: :avatar))
     end
-    assert_selector('label[aria-label="Upload avatar image"] > input[type="file"]',
+    assert_selector('label > input[type="file"][aria-label="Upload avatar image"]',
                     class: Bali::FormBuilder::FileFields::INPUT_CLASS.split)
     assert_no_selector('.hidden input[type="file"]')
   end

@@ -87,7 +87,7 @@ class BaliImageFieldComponentTest < ComponentTestCase
 
   def test_styling_classes_applies_base_component_classes
     render_inline(component)
-    assert_selector(".image-field-component.group.relative.w-fit")
+    assert_selector(".image-field-component.relative.w-fit", class: "group/image-field")
   end
 
   def test_options_passthrough_passes_extra_options_to_container
@@ -152,7 +152,14 @@ class BaliImageFieldInputComponentTest < ComponentTestCase
     helper.form_with(url: "/") do |form|
       render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
-    assert_selector('label[aria-label="Choose image"] > input[type="file"]')
+    assert_selector('label > input[type="file"][aria-label="Choose image"]')
+  end
+
+  def test_basic_rendering_keeps_the_callers_aria_beside_the_name
+    helper.form_with(url: "/") do |form|
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar, aria: { describedby: "hint" }))
+    end
+    assert_selector('input[type="file"][aria-label="Choose image"][aria-describedby="hint"]')
   end
 
   def test_file_formats_accepts_default_formats

@@ -4,8 +4,8 @@
   <% end %>
 
   <%= tag.div class: button_classes do %>
-    <%= tag.label class: label_classes, aria: { label: t('.upload_image') } do %>
-      <%= file_input %>
+    <%= tag.label class: label_classes do %>
+      <%= raw_file_field %>
       <%= render Bali::Icon::Component.new('camera', size: :sm) %>
     <% end %>
   <% end %>

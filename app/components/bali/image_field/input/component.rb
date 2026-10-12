@@ -31,16 +31,17 @@ module Bali
 
         attr_reader :formats, :options
 
-        # What hover reveals, keyboard focus reveals too. `has-focus-visible`, not
-        # `focus-within`: a click on the overlay focuses the input as well, and `focus-within`
-        # left the image just picked tinted and blurred after the pointer had gone.
+        # `has-focus-visible`, not `focus-within`: a click on the overlay focuses the input as
+        # well, and `focus-within` left the image just picked tinted and blurred after the
+        # pointer had gone.
         def container_classes
           class_names(
             "image-input-container",
             "absolute inset-0 flex justify-center items-center cursor-pointer",
             "rounded-lg",
-            "group-hover:bg-base-content/20 group-hover:backdrop-blur-sm",
-            "group-has-focus-visible:bg-base-content/20 group-has-focus-visible:backdrop-blur-sm",
+            "group-hover/image-field:bg-base-content/20 group-hover/image-field:backdrop-blur-sm",
+            "group-has-focus-visible/image-field:bg-base-content/20",
+            "group-has-focus-visible/image-field:backdrop-blur-sm",
             "max-md:bg-base-content/20 max-md:backdrop-blur-sm",
             "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary"
           )
@@ -49,7 +50,7 @@ module Bali
         def icon_wrapper_classes
           class_names(
             "hidden",
-            "group-hover:flex group-has-focus-visible:flex max-md:flex"
+            "group-hover/image-field:flex group-has-focus-visible/image-field:flex max-md:flex"
           )
         end
 
@@ -57,6 +58,7 @@ module Bali
           opts = options.dup
           opts[:accept] = accepted_formats
           opts[:class] = class_names(Bali::FormBuilder::FileFields::INPUT_CLASS, options[:class])
+          opts[:aria] = { label: t(".choose_image") }.merge(opts[:aria].to_h)
           prepend_data_attribute(
             prepend_action(opts, "change->image-field#show"),
             "image-field-target",

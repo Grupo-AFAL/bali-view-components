@@ -26,8 +26,9 @@ module Bali
         # The tint is the label's, over the button's opaque base-100: the button sits on the
         # picture's corner, and a translucent fill there let the photo show through.
         #
-        # The input inside is invisible, so the ring is the button's: the outline daisyUI draws
-        # on a `.btn:has(:focus-visible)`, the way `file_group` rings its own (#1385).
+        # The input inside is invisible, so the ring is the button's. daisyUI only rings a
+        # `.btn:has(:focus-visible)`, and `.btn` would restyle this button, so the same outline
+        # (2px, offset 2px) is written out with `has-focus-visible:`.
         def button_classes
           class_names(
             "absolute -bottom-1 -right-1",
@@ -50,10 +51,11 @@ module Bali
 
         # Rails' own field: Bali's `file_field` brings a `<label>` and a button of its own, and
         # nested that label inside this one.
-        def file_input
+        def raw_file_field
           options = {
             accept: accepted_formats,
             class: Bali::FormBuilder::FileFields::INPUT_CLASS,
+            aria: { label: t(".upload_image") },
             data: { avatar_target: "input", action: "change->avatar#showImage" }
           }
           if @form.respond_to?(:rails_file_field)

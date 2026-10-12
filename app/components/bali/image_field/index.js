@@ -6,6 +6,11 @@ export class ImageFieldController extends Controller {
   // Track blob URL for cleanup
   currentBlobUrl = null
 
+  // The page Turbo restores for Back still shows the last controller's blob: this one owns it.
+  connect () {
+    if (this.outputTarget.src.startsWith('blob:')) this.currentBlobUrl = this.outputTarget.src
+  }
+
   show () {
     const file = this.inputTarget.files[0]
     if (file) {

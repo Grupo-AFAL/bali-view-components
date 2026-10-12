@@ -56,7 +56,7 @@ module Bali
       def container_classes
         class_names(
           "image-field-component",
-          "group relative w-fit",
+          "group/image-field relative w-fit",
           options[:class]
         )
       end
@@ -104,7 +104,8 @@ module Bali
           "absolute -top-2 -right-2",
           "bg-base-200 text-base-content",
           "opacity-0 pointer-events-none",
-          "group-hover:opacity-80 group-hover:pointer-events-auto group-has-focus-visible:opacity-80",
+          "group-hover/image-field:opacity-80 group-hover/image-field:pointer-events-auto",
+          "group-has-focus-visible/image-field:opacity-80",
           "max-md:opacity-80 max-md:pointer-events-auto"
         )
       end
