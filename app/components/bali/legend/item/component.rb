@@ -32,7 +32,8 @@ module Bali
         #   the dot at 55% of base-content and the icon at /60, where `:neutral` is base-content.
         # @param custom_color [String, nil] Hex colour; wins over `color:`
         # @param icon [String, nil] Icon name (Bali::Icon pipeline), drawn after the dot
-        # @param description [String, nil] Longer explanation, behind a Bali::HelpTip
+        # @param description [String, nil] Longer explanation. Makes the label the trigger of a
+        #   Bali::Tooltip, dotted-underlined and reachable with Tab; blank leaves a plain label.
         # @param options [Hash] HTML attributes for the `<li>`
         def initialize(label:, color: nil, custom_color: nil, icon: nil, description: nil, **options)
           @label = label

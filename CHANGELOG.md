@@ -10,12 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`Bali::Legend`: la clave de un código de color** (#994). Una fila de entradas, cada una con
-  punto, ícono opcional, etiqueta y `description:` detrás de un `Bali::HelpTip`, que se alcanza con
-  el teclado (un `title` nativo no). El color va como en el resto de la librería: `color:` con un
-  nombre semántico o `custom_color:` con un hex; `:ghost` se pinta apagado (punto al 55 %, ícono
-  a `/60`). La lista se nombra con `title:` o, sin título, con `aria_label:`. **Anfitrión:** reemplaza las leyendas
-  hechas a mano de gobierno-corporativo (`processes/catalog/_state_legend`) y centinela-web
-  (`locations/index`); sus PRs llegan con la versión que lo traiga.
+  punto, ícono opcional, etiqueta y `description:`, que hace de la etiqueta el disparador de un
+  `Bali::Tooltip` (subrayado punteado) y se alcanza con el teclado (un `title` nativo no). El color
+  va como en el resto de la librería: `color:` con un nombre semántico o `custom_color:` con un
+  hex; `:ghost` se pinta apagado (punto al 55 %, ícono a `/60`). La lista se nombra con `title:` o,
+  sin título, con `aria_label:`. **Anfitrión:** reemplaza las leyendas hechas a mano de
+  gobierno-corporativo (`processes/catalog/_state_legend`) y centinela-web (`locations/index`);
+  sus PRs llegan con la versión que lo traiga.
 
 ### Fixed
 

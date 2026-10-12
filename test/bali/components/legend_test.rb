@@ -100,22 +100,24 @@ class BaliLegendComponentTest < ComponentTestCase
     assert_selector("li span.icon-component[style='color: #{Bali::Color.soft('#7C3AED')}']")
   end
 
-  def test_a_description_is_reachable_through_a_help_tip
+  def test_a_description_makes_the_label_its_tooltip_trigger
     render_inline(Bali::Legend::Component.new) do |legend|
       legend.with_item(label: "Current", color: :success, description: "Approved and in force")
     end
 
-    assert_selector("li [data-controller='tooltip'] .trigger span.icon-component")
+    assert_selector("li [data-controller='tooltip'] .trigger", text: "Current")
+    assert_no_selector("li .icon-component")
     assert_match(%r{<template data-tooltip-target="content">\s*Approved and in force\s*</template>},
                  rendered_content)
   end
 
-  def test_a_blank_description_renders_no_help_tip
+  def test_a_blank_description_leaves_a_plain_label
     render_inline(Bali::Legend::Component.new) do |legend|
       legend.with_item(label: "Current", color: :success, description: "")
     end
 
     assert_no_selector("[data-controller='tooltip']")
+    assert_selector("li > span", text: "Current")
   end
 
   def test_an_entry_without_a_colour_raises

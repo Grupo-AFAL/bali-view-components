@@ -6,8 +6,10 @@ module Bali
       # The key to a colour code: a dot, an optional icon and a label per
       # colour, wrapping in a row. The list is named by the title, or by
       # `aria_label:` when there is none; dots and icons are hidden from
-      # assistive tech, so each entry reads as its label. `:ghost` (Draft)
-      # paints muted, the one name that differs from `:neutral` (Obsolete).
+      # assistive tech, so each entry reads as its label. A `description:`
+      # makes the label a tooltip trigger, underlined with dots and reachable
+      # with Tab. `:ghost` (Draft) paints muted, the one name that differs from
+      # `:neutral` (Obsolete).
       #
       # @param title text
       # @param icons toggle

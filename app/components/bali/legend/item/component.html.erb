@@ -3,8 +3,12 @@
   <% if icon.present? %>
     <%= render Bali::Icon::Component.new(icon, size: :small, **icon_options) %>
   <% end %>
-  <span><%= label %></span>
   <% if description.present? %>
-    <%= render Bali::HelpTip::Component.new(description) %>
+    <%= render Bali::Tooltip::Component.new do |tooltip| %>
+      <% tooltip.with_trigger { tag.span(label, class: "legend-item__label--described") } %>
+      <%= description %>
+    <% end %>
+  <% else %>
+    <span><%= label %></span>
   <% end %>
 <% end %>

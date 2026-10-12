@@ -3045,8 +3045,8 @@ and a label per colour, wrapping in a row. The card around it, if there is one, 
   required, and `custom_color:` wins
 - `icon` - an icon after the dot, in the colour's ink: `text-soft-<color>`, or for a hex the mix
   described under [Colors](#colors)
-- `description` - a longer explanation behind a `Bali::HelpTip` after the label, reachable with
-  the keyboard; blank renders none
+- `description` - a longer explanation: the label becomes the trigger of a `Bali::Tooltip`,
+  underlined with dots and reachable with Tab, and no icon is added; blank leaves a plain label
 - `**options` - HTML attributes for the `<li>`
 
 The dot paints the same value `Bali::Color.css` returns, so a host that paints its own marks

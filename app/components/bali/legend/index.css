@@ -14,8 +14,8 @@
 }
 
 /* Beside the title while it has 16rem to wrap in, so a second row starts under the first entry;
- * with less, under the title at full width. Kept beside it at 375px, eight states with icons and
- * help tips went one per row, 156px tall; under it they take 116px. */
+ * with less, under the title at full width: at 375px gobierno-corporativo's eight states take four
+ * rows there, against five kept beside it. */
 .legend-component__items {
   @apply flex grow basis-64 flex-wrap items-center gap-x-4 gap-y-1;
 }
@@ -28,8 +28,6 @@
   @apply size-2.5 shrink-0 rounded-full;
 }
 
-/* HelpTip's trigger is an inline span, and its line box adds the space under the baseline:
- * 20px rows beside a 16px title. As a flex box it is the icon's own 16px. */
-.legend-item .trigger {
-  @apply flex;
+.legend-item__label--described {
+  @apply cursor-help underline decoration-dotted underline-offset-2;
 }
