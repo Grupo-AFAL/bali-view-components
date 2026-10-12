@@ -179,6 +179,14 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
     end
   end
 
+  # file-input-controller.js fills in `%{name}` with the file the button removes.
+  def test_i18n_hands_the_remove_button_name_to_the_controller_with_its_placeholder
+    I18n.with_locale(:es) do
+      result = builder.file_field(:cover_photo, multiple: true)
+      assert_html(result, '[data-file-input-remove-text-value="Eliminar %{name}"]')
+    end
+  end
+
   # constants
 
   def test_constants_has_input_class_constant

@@ -50,7 +50,7 @@ class BaliTagsComponentTest < ComponentTestCase
       c.with_item(text: "Second")
       c.with_item(text: "Third")
     end
-    assert_selector("div.badge", count: 3)
+    assert_selector("span.badge", count: 3)
     assert_text("First")
     assert_text("Second")
     assert_text("Third")
@@ -60,28 +60,28 @@ class BaliTagsComponentTest < ComponentTestCase
     render_inline(Bali::Tags::Component.new) do |c|
       c.with_item(text: "Primary", color: :primary)
     end
-    assert_selector("div.badge.badge-primary", text: "Primary")
+    assert_selector("span.badge.badge-primary", text: "Primary")
   end
 
   def test_tag_items_renders_tag_with_size
     render_inline(Bali::Tags::Component.new) do |c|
       c.with_item(text: "Small", size: :sm)
     end
-    assert_selector("div.badge.badge-sm", text: "Small")
+    assert_selector("span.badge.badge-sm", text: "Small")
   end
 
   def test_tag_items_renders_tag_with_style
     render_inline(Bali::Tags::Component.new) do |c|
       c.with_item(text: "Outline", style: :outline)
     end
-    assert_selector("div.badge.badge-outline", text: "Outline")
+    assert_selector("span.badge.badge-outline", text: "Outline")
   end
 
   def test_tag_items_renders_tag_with_rounded
     render_inline(Bali::Tags::Component.new) do |c|
       c.with_item(text: "Rounded", rounded: true)
     end
-    assert_selector("div.badge.rounded-full", text: "Rounded")
+    assert_selector("span.badge.rounded-full", text: "Rounded")
   end
 
   def test_tag_items_renders_link_tags_when_href_provided

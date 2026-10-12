@@ -48,7 +48,8 @@ export class HovercardController extends Controller {
     const content = this.getInitialContent()
 
     const tippyModule = await import('tippy.js').catch(optionalPeer('tippy.js'))
-    if (!tippyModule) return
+    // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+    if (!tippyModule || this.tippy || !this.element.isConnected) return
     const { default: tippy } = tippyModule
 
     this.tippy = tippy(this.triggerTarget, {
@@ -106,6 +107,7 @@ export class HovercardController extends Controller {
     this.tippy?.reference.removeEventListener('pointerdown', this.onPointerDown)
     this.tippy?.reference.removeEventListener('click', this.onClick)
     this.tippy?.destroy()
+    this.tippy = null
   }
 
   // A tap fires pointerdown, then the compatibility `mouseenter` that opens the card,
@@ -156,7 +158,7 @@ export class HovercardController extends Controller {
       html = `<div class="hover-card-content">${html}</div>`
     }
 
-    this.tippy.setContent(html)
+    this.tippy?.setContent(html)
     this.contentLoaded = true
   }
 }

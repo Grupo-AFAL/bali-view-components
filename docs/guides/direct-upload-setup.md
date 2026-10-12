@@ -281,7 +281,6 @@ end
 | `max_file_size` | Integer | `10` | Max file size in MB |
 | `accept` | String | `*` | Accepted MIME types or extensions |
 | `drop_zone` | Boolean | `true` | Show drag & drop area |
-| `auto_upload` | Boolean | `true` | Upload immediately on selection |
 
 ---
 

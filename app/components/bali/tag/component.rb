@@ -91,7 +91,7 @@ module Bali
       attr_reader :text, :href
 
       def tag_name
-        href.present? ? :a : :div
+        href.present? ? :a : :span
       end
 
       # A `size:` that is not a key raised in the constructor, so by now @size

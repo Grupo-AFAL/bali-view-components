@@ -144,8 +144,8 @@ module Bali
           if type == :number_range
             config[:value] = current_number_range_value(filter[:attribute])
             config[:step] = filter[:step]
-            config[:placeholder_min] = filter[:placeholder_min]
-            config[:placeholder_max] = filter[:placeholder_max]
+            config[:placeholder_min] = resolve_definition_value(filter[:placeholder_min])
+            config[:placeholder_max] = resolve_definition_value(filter[:placeholder_max])
           end
 
           # Normalized here and not only in `filter_attribute` because an instance-level

@@ -76,12 +76,14 @@ describe('ConditionController', () => {
     hint().should('have.class', 'is-shown')
   })
 
+  // The blank is SlimSelect's placeholder, so the value is emptied with its deselect button.
   it('says so as soon as a chosen value is cleared, before Apply is pressed', () => {
     pickValue('Drama')
     hint().should('not.have.class', 'is-shown')
 
-    pickValue('Select...')
+    cy.get(`${container} .ss-deselect`).click()
 
+    value().should('have.value', '')
     hint().should('have.class', 'is-shown')
   })
 
@@ -98,6 +100,36 @@ describe('ConditionController', () => {
     operator().find('option[value="gt"]').invoke('attr', 'data-range', 'true')
     operator().select('gt')
     cy.get(`${container} [data-condition-target="rangeInput"]`).should('exist')
+  })
+
+  // The keys the server paints the same widgets with (condition/component_test.rb): every text
+  // is replaced by its own key, so a builder that reads another one paints it.
+  it('builds each widget with the text of its own key', () => {
+    cy.visit('/bali/filters/all_field_types?popover=false')
+    cy.get('[data-controller="condition"]').then(($condition) => {
+      const translations = JSON.parse($condition.attr('data-condition-translations-value'))
+      for (const scope of ['placeholders', 'boolean']) {
+        for (const key in translations[scope]) translations[scope][key] = `${scope}.${key}`
+      }
+      $condition.attr('data-condition-translations-value', JSON.stringify(translations))
+    })
+    const widget = (attribute, op, selector) => {
+      cy.get('[data-condition-target="attribute"]').select(attribute)
+      operator().select(op)
+      return cy.get(`${container} ${selector}`)
+    }
+    const texts = (...expected) => ($els) => expect($els.toArray().map((el) => el.textContent.trim())).to.deep.eq(expected)
+    const input = 'input[data-condition-target="value"]'
+
+    widget('name', 'cont', input).should('have.attr', 'placeholder', 'placeholders.enter_value')
+    widget('age', 'eq', input).should('have.attr', 'placeholder', 'placeholders.number')
+    widget('birth_date', 'eq', input).should('have.attr', 'placeholder', 'placeholders.select_date')
+    widget('last_login', 'eq', input).should('have.attr', 'placeholder', 'placeholders.select_datetime')
+    widget('birth_date', 'between', '[data-condition-target="rangeInput"]')
+      .should('have.attr', 'placeholder', 'placeholders.select_date_range')
+    widget('status', 'eq', 'option[data-placeholder]').should(texts('placeholders.select'))
+    widget('status', 'in', '[data-multi-select-target="label"]').should(texts('placeholders.select_values'))
+    widget('is_active', 'eq', 'option').should(texts('boolean.any', 'boolean.yes', 'boolean.no'))
   })
 
   context('on Apply', () => {
@@ -153,5 +185,42 @@ describe('ConditionController', () => {
 
       hint().should('have.class', 'is-shown')
     })
+  })
+})
+
+// #1409 — the blank of a select-type value is SlimSelect's placeholder. Unmarked, SlimSelect
+// offered it as a value and counted it among the results it reads out.
+describe('ConditionController: the blank of a select value', () => {
+  const appOrigin = new URL(Cypress.config('baseUrl')).origin
+  const container = '[data-condition-target="valueContainer"]'
+  const openPanel = () => cy.get('[data-filters-target="dropdown"] > button').click()
+
+  const expectNoBlankOnOffer = () => {
+    cy.get(`${container} .ss-main`).click()
+    cy.get(`${container} select option:not([value=""])`).then(($options) => {
+      const labels = $options.toArray().map((option) => option.textContent.trim())
+      const matching = labels.filter((label) => label.toLowerCase().includes('e')).length
+
+      cy.get('.ss-content.ss-open .ss-option:not(.ss-hide)').should(($shown) => {
+        expect($shown.toArray().map((option) => option.textContent.trim())).to.deep.equal(labels)
+      })
+      cy.get('.ss-content.ss-open .ss-search input').type('e')
+      cy.get('.ss-content.ss-open .ss-status').should('have.text', `${matching} results available`)
+    })
+  }
+
+  it('is no value on offer on a condition built in the browser', () => {
+    cy.visit(`${appOrigin}/admin/movies`)
+    openPanel()
+    cy.get('[data-condition-target="attribute"]').select('genre')
+
+    expectNoBlankOnOffer()
+  })
+
+  it('is no value on offer on a condition painted by the server', () => {
+    cy.visit(`${appOrigin}/admin/movies`, { qs: { 'q[g][0][m]': 'and', 'q[g][0][genre_eq]': 'Drama' } })
+    openPanel()
+
+    expectNoBlankOnOffer()
   })
 })

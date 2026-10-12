@@ -6,7 +6,9 @@
             icon: 'trash-2',
             type: :button,
             variant: :error,
-            class: 'btn-circle btn-sm absolute -top-2 -right-2 hidden group-hover:flex max-md:flex',
+            class: 'btn-circle btn-sm absolute -top-2 -right-2 opacity-0 pointer-events-none ' \
+                   'group-hover/image-field:opacity-100 group-hover/image-field:pointer-events-auto ' \
+                   'group-has-focus-visible/image-field:opacity-100 max-md:opacity-100 max-md:pointer-events-auto',
             data: { action: 'image-field#clear' },
             aria: { label: 'Delete image' }
           ) %>

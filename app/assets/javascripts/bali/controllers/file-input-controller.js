@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { interpolate } from '../utils/interpolate.js'
 
 /**
  * File Input Controller
@@ -29,7 +30,9 @@ export class FileInputController extends Controller {
   static targets = ['value', 'input']
   static values = {
     nonSelectedText: String,
-    multiple: { type: Boolean, default: false }
+    multiple: { type: Boolean, default: false },
+    // file_fields.rb writes Bali's `file_input.remove`, with its `%{name}` left in.
+    removeText: { type: String, default: 'Remove %{name}' }
   }
 
   // Escape HTML to prevent XSS when inserting user-provided content
@@ -96,6 +99,7 @@ export class FileInputController extends Controller {
 
   fileItemUI (file) {
     const escapedName = this.escapeHtml(file.name)
+    const removeLabel = interpolate(this.escapeHtml(this.removeTextValue), { name: escapedName })
     return `
       <li class="flex items-center gap-2 text-sm">
         <span class="truncate">${escapedName}</span>
@@ -103,7 +107,7 @@ export class FileInputController extends Controller {
                 class="btn btn-ghost btn-xs text-soft-error hover:bg-error/10"
                 data-action="file-input#removeFile"
                 data-file-input-name-param="${escapedName}"
-                aria-label="Remove ${escapedName}">
+                aria-label="${removeLabel}">
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 6h18"></path>
             <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>

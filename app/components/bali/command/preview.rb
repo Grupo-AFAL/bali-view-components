@@ -3,6 +3,10 @@
 module Bali
   module Command
     class Preview < ApplicationViewComponentPreview
+      # The `locale:` keywords below go unread: the dummy's ComponentPreviewsController
+      # applies `?locale=` to the whole request. Lookbook raises "Unknown method parameter" for an
+      # `@param` the method does not take.
+
       # @label Default
       # Command palette with grouped pages, recents, and quick actions.
       # The search-well trigger is the component's own default — no slot needed.
@@ -11,7 +15,7 @@ module Bali
       # The footer is Bali's translation: switch `locale` to see it.
       # @param locale select { choices: [en, es] }
       def default(locale: "en")
-        render_with_template(template: "bali/command/previews/default", locals: { locale: locale })
+        render_with_template(template: "bali/command/previews/default")
       end
 
       # @label Compact density
@@ -19,7 +23,7 @@ module Bali
       # the only result on open, so the footer counts it in the singular.
       # @param locale select { choices: [en, es] }
       def compact(locale: "en")
-        render_with_template(template: "bali/command/previews/compact", locals: { locale: locale })
+        render_with_template(template: "bali/command/previews/compact")
       end
 
       # @label Custom trigger

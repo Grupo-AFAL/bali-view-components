@@ -1,3 +1,5 @@
+import { interpolate } from '../../../assets/javascripts/bali/utils/interpolate.js'
+
 // UI strings of the Gantt island (#705, decision D12). The island receives an
 // `i18n` prop — a FLAT object served by Rails from `bali_view.gantt.island.*`
 // (see Bali::Gantt::Translations) — and falls back to these English defaults
@@ -68,13 +70,5 @@ export const DEFAULT_I18N = {
 // typo shows up on screen instead of vanishing.
 export function translator (overrides) {
   const table = { ...DEFAULT_I18N, ...(overrides || {}) }
-  return (key, vars) => {
-    let str = String(table[key] ?? key)
-    if (vars) {
-      for (const [name, value] of Object.entries(vars)) {
-        str = str.replaceAll(`%{${name}}`, String(value))
-      }
-    }
-    return str
-  }
+  return (key, vars) => interpolate(String(table[key] ?? key), vars)
 }

@@ -56,7 +56,7 @@ module Bali
     # Call it where the options ENTER the component, not next to the first
     # `prepend_*`, so a `prepend_*` added later is safe too.
     def detach_data(options)
-      return options unless options.key?(:data)
+      return options.dup unless options.key?(:data)
 
       options.merge(data: options[:data].dup)
     end

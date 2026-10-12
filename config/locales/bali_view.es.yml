@@ -9,9 +9,6 @@ es:
       search_placeholder: "Buscar..."
       search: "Buscar..."
       select_field: "Seleccionar campo..."
-      select_value: "Seleccionar..."
-      select_values: "Seleccionar valores..."
-      enter_value: "Ingrese valor..."
       remove_condition: "Eliminar condición"
       remove_filter: "Eliminar filtro"
       incomplete_condition: "Sin valor elegido, así que esta condición se ignora"
@@ -30,16 +27,6 @@ es:
       persistence_disabled: "Los filtros no se guardan. Haz clic para activar."
       persistence_label: "Recordar filtros"
 
-      # Date/time placeholders
-      select_date: "Seleccionar fecha..."
-      select_datetime: "Seleccionar fecha y hora..."
-      select_date_range: "Seleccionar rango de fechas..."
-
-      # Boolean values
-      any: "Cualquiera"
-      "yes": "Sí"
-      "no": "No"
-
       # Group combinators
       combinators:
         and: "Y"
@@ -55,7 +42,7 @@ es:
       # Selected count for multi-select
       selected_count: "%{count} seleccionados"
 
-      # Placeholders (nested structure for JavaScript controller)
+      # Placeholders
       placeholders:
         enter_value: "Ingrese valor..."
         number: "0"
@@ -65,7 +52,7 @@ es:
         select: "Seleccionar..."
         select_values: "Seleccionar valores..."
 
-      # Boolean (nested structure for JavaScript controller)
+      # Boolean
       boolean:
         any: "Cualquiera"
         "yes": "Sí"
@@ -159,6 +146,9 @@ es:
     # Image grid
     image_grid:
       expand: "Ampliar imagen"
+      loading: "Cargando"
+      load_failed: "No se pudo cargar la imagen"
+      close: "Cerrar"
       empty_state:
         title: "Aún no hay imágenes"
         add_image: "Agregar imagen"
@@ -177,19 +167,21 @@ es:
       file_list:
         aria_label: "Archivos para subir"
       file_status:
-        pending: "Esperando..."
-        uploading: "Subiendo..."
-        completed: "Subido"
-        error: "Error"
+        uploading_file: "Subiendo %{filename}: %{progress}%"
+        completed: "%{filename} se subió correctamente"
+        error: "No se pudo subir"
+        failed_file: "No se pudo subir %{filename}"
       status:
         uploaded: "Ya subido"
+        marked_for_removal: "%{filename} marcado para quitar"
       errors:
+        uploads_in_progress: "Espera a que termine la subida de %{count} archivo(s)"
         too_many_files: "Máximo %{max} archivos permitidos"
-        file_too_large: "El archivo excede el límite de %{max}MB"
-        invalid_type: "Tipo de archivo no aceptado"
+        file_too_large: "%{filename} excede el límite de %{max}MB"
+        invalid_type: "%{filename}: tipo de archivo no aceptado"
       actions:
-        cancel: "Cancelar"
-        retry: "Reintentar"
+        cancel_file: "Cancelar la subida de %{filename}"
+        retry_file: "Reintentar la subida de %{filename}"
         remove: "Eliminar"
         dismiss: "Cerrar error"
         remove_file: "Eliminar %{filename}"
@@ -360,6 +352,8 @@ es:
       default_label: Gráfica
     legend:
       label: Leyenda
+    help_tip:
+      label: Más información
     clipboard:
       copied: ¡Copiado!
       copy_label: Copiar al portapapeles
@@ -378,6 +372,8 @@ es:
       confirm_cancel: Cancelar
     image_field:
       clear_image: Borrar imagen
+      input:
+        choose_image: Seleccionar imagen
     loader:
       loading: Cargando...
     frame:
@@ -598,6 +594,10 @@ es:
       # La única entrada traducible de la lista de lenguajes de bloques de código;
       # el resto son nombres propios.
       plain_text: "Texto plano"
+      entity_types:
+        task: "Tarea"
+        project: "Proyecto"
+        document: "Documento"
     document_page:
       toggle_toc: "Alternar tabla de contenido"
       toggle_details: "Alternar detalles"
@@ -666,6 +666,7 @@ es:
       card_moved: "%{card} movida a %{column}, posición %{position} de %{total}"
     tabs:
       navigation: "Navegación de secciones"
+      load_failed: "No se pudo cargar el contenido"
     topbar:
       user_menu:
         trigger_label: "Menú de usuario de %{name}"

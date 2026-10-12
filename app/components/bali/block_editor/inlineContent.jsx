@@ -1,12 +1,13 @@
 import { createReactInlineContentSpec } from '@blocknote/react'
 
-// Default entity type display configuration.
+// Default entity type display configuration. Their labels are Bali's translations, the
+// `entity_types` the component's translations_json hands over (see useEntityReferences).
 // Host apps can override via the referencesConfig prop (from references_config: in Ruby).
 // Colors use DaisyUI semantic names which are resolved to CSS vars at render time.
 export const DEFAULT_ENTITY_TYPE_CONFIG = {
-  task: { icon: '\u2610', label: 'Task', color: 'info' },
-  project: { icon: '\u25C8', label: 'Project', color: 'accent' },
-  document: { icon: '\u25E7', label: 'Document', color: 'success' },
+  task: { icon: '\u2610', color: 'info' },
+  project: { icon: '\u25C8', color: 'accent' },
+  document: { icon: '\u25E7', color: 'success' },
   default: { icon: '#', label: '', color: 'secondary' }
 }
 

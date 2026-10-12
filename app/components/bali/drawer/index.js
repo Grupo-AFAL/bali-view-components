@@ -49,7 +49,7 @@ export class DrawerController extends ModalController {
     return 'data-drawer-id'
   }
 
-  async connect () {
+  connect () {
     this.setupListeners(`${this.eventPrefix}:open`)
 
     // Store the default size class from the panel

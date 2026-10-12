@@ -121,6 +121,22 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
+  # The wrapper's id is the select's, suffixed: a per-row form names each row's select with
+  # `html: { id: }`, and its wrappers repeated one id. The derived one is read by a host test.
+  def test_slim_select_field_wrapper_id_follows_the_select_id
+    assert_html(builder.slim_select_field(:status, Movie.statuses.to_a),
+                "div#movie_status_select_div select#movie_status")
+    assert_html(builder.slim_select_field(:status, Movie.statuses.to_a, html: { id: "member-7-status" }),
+                "div#member-7-status_select_div select#member-7-status")
+  end
+
+  def test_slim_select_field_without_a_select_id_leaves_the_wrapper_without_one
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, html: { id: nil })
+
+    assert_html(result, 'div[data-controller="slim-select"] select:not([id])')
+    refute_html(result, 'div[data-controller="slim-select"][id]')
+  end
+
   # include_blank / prompt -> SlimSelect placeholder (issue gobierno-corporativo#570)
 
   def test_slim_select_field_include_blank_renders_a_slim_select_placeholder_option

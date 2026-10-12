@@ -403,9 +403,8 @@ module Bali
 
     # [symbol, specifier] — what a fully wired Stimulus index has.
     #
-    # No `installConfirmDialog`: `registerAll` already installs it. The five
-    # applications that call it anyway pass Spanish button labels, which is a
-    # localisation choice no generator can make for an app it has not read.
+    # No `installConfirmDialog`: `registerAll` already installs it, with button
+    # labels in the page's `lang`.
     def javascript_wiring
       wiring = [
         [ "registerAll", "bali-view-components" ],
@@ -719,9 +718,15 @@ module Bali
       say "      @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));"
       say "  · Markdown/rich text? Tailwind's typography plugin is yours, not Bali's —"
       say "    Bali only ships the patch that keeps prose-invert working under daisyUI:"
-      say '      @plugin "@tailwindcss/typography";   (and yarn add -D @tailwindcss/typography)'
-      say "  · Localised confirm buttons (registerAll already installs the dialog itself):"
-      say '      installConfirmDialog({ acceptText: "Aceptar", cancelText: "Cancelar" })'
+      say '      @plugin "@tailwindcss/typography";'
+      # Measured: the standalone binary of tailwindcss-rails builds `prose` with no
+      # node_modules copy at all, while the npm CLI of cssbundling-rails stops at
+      # `Can't resolve '@tailwindcss/typography'`.
+      if css_path == TAILWIND_RAILS_CSS
+        say "    Nothing to install: tailwindcss-rails' binary embeds the plugin."
+      else
+        say "      #{package_manager} add -D @tailwindcss/typography"
+      end
       say "  · Optional peers, per component you render — the build works without them and"
       say "    each one says so in the console when its component runs. Charts first:"
       say "      #{package_manager} add chart.js       # Bali::Chart, registered above"

@@ -6,19 +6,22 @@ import {
   resolveColor
 } from './inlineContent'
 
-export function useEntityReferences (editor, { referencesUrl, referencesResolveUrl, referencesConfig }) {
+export function useEntityReferences (editor, { referencesUrl, referencesResolveUrl, referencesConfig, typeLabels = {} }) {
   // Merge host-provided entity type config with defaults
   useMemo(() => {
+    const defaults = Object.fromEntries(Object.entries(DEFAULT_ENTITY_TYPE_CONFIG).map(
+      ([type, config]) => [type, { label: typeLabels[type], ...config }]
+    ))
     if (!referencesConfig || Object.keys(referencesConfig).length === 0) {
-      setActiveEntityConfig(DEFAULT_ENTITY_TYPE_CONFIG)
+      setActiveEntityConfig(defaults)
       return
     }
-    const merged = { ...DEFAULT_ENTITY_TYPE_CONFIG }
+    const merged = { ...defaults }
     for (const [type, overrides] of Object.entries(referencesConfig)) {
-      merged[type] = { ...(DEFAULT_ENTITY_TYPE_CONFIG[type] || DEFAULT_ENTITY_TYPE_CONFIG.default), ...overrides }
+      merged[type] = { ...(defaults[type] || defaults.default), ...overrides }
     }
     setActiveEntityConfig(merged)
-  }, [referencesConfig])
+  }, [referencesConfig, typeLabels])
 
   // Fetch entity reference suggestions from server
   const getEntityReferenceItems = useCallback(async (query) => {

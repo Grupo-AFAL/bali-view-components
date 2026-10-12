@@ -1,4 +1,5 @@
 import { cdp, frameAt } from '../support/accessibility_tree'
+import { allowResizeObserverLoop } from '../support/resize_observer_loop'
 import { drag } from '../support/tap'
 
 // Gantt island (#705): mounts GanttFlow through the COMPLETE circuit of a host —
@@ -251,6 +252,8 @@ describe('Gantt island', () => {
     cy.get('.react-flow__node').should('have.length.greaterThan', 0)
 
     cy.get('div[title="Drag to resize the table"]').then(([splitter]) => {
+      // Both CI failures fired during the drag back, not at mount: allowed from here on.
+      allowResizeObserverLoop()
       const table = splitter.previousElementSibling
       const start = table.getBoundingClientRect().width
       const { left, top } = splitter.getBoundingClientRect()
@@ -451,5 +454,32 @@ describe('Gantt island', () => {
         .its('status')
         .should('equal', 200)
     })
+  })
+
+  // #1428 — a failure with no `errors` of its own (a 500, a proxy's HTML page) gets the island's
+  // translated `change_failed`, not a status code.
+  it('says an edit failed in the language of the page', () => {
+    cy.intercept('PATCH', '/admin/projects/*/schedule', { statusCode: 500, headers: { 'content-type': 'text/html' }, body: '<h1>500</h1>' }).as('patch')
+    cy.visit('/bali/gantt/editable?locale=es')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+    dragNode('.react-flow__node', 80)
+    cy.wait('@patch')
+
+    // The toast leaves after 4 s, and a wrong text should be the failure, not a toast gone.
+    cy.get('.toast .alert-error', { timeout: 3000 }).should('have.text', 'No se pudo aplicar el cambio')
+  })
+
+  // A request the network dropped has no answer to read a message from either, and the browser's
+  // own («Failed to fetch») is in English.
+  it('says an edit the network dropped failed in the language of the page', () => {
+    cy.intercept('PATCH', '/admin/projects/*/schedule', { forceNetworkError: true }).as('patch')
+    cy.visit('/bali/gantt/editable?locale=es')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+    dragNode('.react-flow__node', 80)
+    cy.wait('@patch')
+
+    cy.get('.toast .alert-error', { timeout: 3000 }).should('have.text', 'No se pudo aplicar el cambio')
   })
 })

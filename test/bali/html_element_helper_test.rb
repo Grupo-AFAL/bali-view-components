@@ -88,11 +88,13 @@ class BaliHtmlElementHelperTest < ActiveSupport::TestCase
     assert_equal({ controller: "my-tooltip" }, detached[:data])
   end
 
-  # So it is always safe to call, rather than something to think about first.
-  def test_detach_data_leaves_a_hash_without_data_exactly_as_it_found_it
-    options = { id: "card" }
+  # Without `data:` there is nothing to copy at depth 2, but the write still lands at depth 1.
+  def test_prepending_onto_a_detached_hash_without_data_leaves_the_original_alone
+    original = { id: "card" }
 
-    assert_same(options, @helper.detach_data(options))
+    @helper.prepend_data_attribute(@helper.detach_data(original), :controller, "modal")
+
+    assert_equal({ id: "card" }, original)
   end
 
   # Pinned because 39 other call sites still do this: it is the documented

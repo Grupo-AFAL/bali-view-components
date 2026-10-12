@@ -13,4 +13,7 @@
         value: "First line\nsecond\nthird\nfourth\nfifth\nsixth",
         help: 'Pre-filled and hidden on load: all six lines show as soon as it opens.' %>
   <% end %>
+
+  <%# Outside the Reveal, so the form can be reset while the field is hidden. %>
+  <%= render Bali::Button::Component.new(name: 'Reset', type: :reset, variant: :ghost, size: :sm) %>
 <% end %>

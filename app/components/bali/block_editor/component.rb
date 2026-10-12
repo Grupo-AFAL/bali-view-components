@@ -365,7 +365,8 @@ module Bali
           upload_too_large: t("bali_view.block_editor.upload_too_large"),
           upload_failed: t("bali_view.block_editor.upload_failed"),
           user_fallback: t("bali_view.block_editor.user_fallback"),
-          plain_text: t("bali_view.block_editor.plain_text")
+          plain_text: t("bali_view.block_editor.plain_text"),
+          entity_types: t("bali_view.block_editor.entity_types")
         }.to_json
       end
 

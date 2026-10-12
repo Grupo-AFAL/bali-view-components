@@ -106,6 +106,19 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     assert_selector('[data-controller="slim-select"][data-slim-select-search-placeholder-value]')
   end
 
+  # Unmarked, SlimSelect offered the blank as a value and counted it among the results.
+  # cypress/e2e/filters-condition-controller.cy.js opens both this select and the one
+  # condition_controller.js#buildSelectInput builds.
+  def test_select_type_marks_its_blank_as_slim_selects_placeholder
+    condition = { attribute: "status", operator: "eq", value: "active" }
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+    ))
+
+    assert_selector('[data-slim-select-allow-deselect-option-value="true"] option[value=""][data-placeholder="true"]',
+                    visible: :all)
+  end
+
   def test_select_type_slim_select_says_no_results_in_the_page_language
     condition = { attribute: "status", operator: "eq", value: "active" }
     I18n.with_locale(:es) do
@@ -235,6 +248,67 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     end
     translations = JSON.parse(page.find('[data-controller="condition"]')["data-condition-translations-value"])
     assert_equal "Valor", translations["value_aria_label"]
+  end
+
+  # condition_controller.js builds its widgets from these texts with no fallback of its own: a
+  # key it reads and this hash lacks paints "undefined".
+  def test_translations_carry_every_text_the_controller_reads
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: @empty_condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+    ))
+    translations = JSON.parse(page.find('[data-controller="condition"]')["data-condition-translations-value"])
+    reads = translation_paths_read_by("app/components/bali/filters/controllers/condition_controller.js")
+
+    assert_operator reads.size, :>, 10, "the scan no longer finds what condition_controller.js reads"
+    assert_empty reads.reject { |path| translations.dig(*path).present? }
+  end
+
+  # The multi-select's texts come from here or from condition_controller.js#buildMultiSelectInput,
+  # which copies the same two keys from the translations above.
+  def test_multi_select_translations_carry_every_text_its_controller_reads
+    condition = { attribute: "status", operator: "in", value: [] }
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
+    ))
+    translations = JSON.parse(page.find('[data-controller="multi-select"]')["data-multi-select-translations-value"])
+    reads = translation_paths_read_by("app/components/bali/filters/controllers/multi_select_controller.js")
+
+    assert_equal [ %w[select_values], %w[selected_count] ], reads.sort
+    assert_empty reads.reject { |path| translations.dig(*path).present? }
+  end
+
+  # The ERB paints the widget a condition loads with; condition_controller.js builds the one that
+  # replaces it from translations_json. Each text has to come from one key, or a host that
+  # overrides it sees the change only after the field or operator does.
+  def test_widgets_painted_here_say_what_the_controller_builds_them_with
+    attributes = @available_attributes + [ { key: :starts_at, label: "Starts", type: :datetime } ]
+    value = '[data-condition-target="value"]'
+    widgets = [
+      [ "name", "cont", value, "placeholder", %w[placeholders enter_value] ],
+      [ "age", "eq", value, "placeholder", %w[placeholders number] ],
+      [ "created_at", "eq", value, "placeholder", %w[placeholders select_date] ],
+      [ "starts_at", "eq", value, "placeholder", %w[placeholders select_datetime] ],
+      [ "created_at", "between", '[data-condition-target="rangeInput"]', "placeholder", %w[placeholders select_date_range] ],
+      [ "status", "eq", "option[data-placeholder]", nil, %w[placeholders select] ],
+      [ "status", "in", '[data-multi-select-target="label"]', nil, %w[placeholders select_values] ],
+      [ "verified", "eq", "#{value} option[value='']", nil, %w[boolean any] ],
+      [ "verified", "eq", "#{value} option[value='true']", nil, %w[boolean yes] ],
+      [ "verified", "eq", "#{value} option[value='false']", nil, %w[boolean no] ]
+    ]
+
+    with_filter_texts_marked(:placeholders, :boolean) do
+      widgets.each do |attribute, operator, selector, html_attribute, path|
+        render_inline(Bali::Filters::Condition::Component.new(
+          condition: { attribute: attribute, operator: operator, value: "" },
+          group_index: 0, condition_index: 0, available_attributes: attributes
+        ))
+        widget = page.find(selector, visible: :all)
+        translations = JSON.parse(page.find('[data-controller="condition"]')["data-condition-translations-value"])
+
+        assert_equal translations.dig(*path), html_attribute ? widget[html_attribute] : widget.text(:all).strip,
+                     "#{attribute} #{operator}"
+      end
+    end
   end
 
   def test_with_pre_selected_attribute_shows_select_for_boolean_type

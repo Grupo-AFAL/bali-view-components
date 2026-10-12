@@ -44,11 +44,8 @@ export class FiltersController extends Controller {
     translations: { type: Object, default: {} }
   }
 
-  /**
-   * Getter for translations with fallback to empty object
-   */
   get t () {
-    return this.translationsValue || {}
+    return this.translationsValue
   }
 
   groupIndex = 0
@@ -415,13 +412,12 @@ export class FiltersController extends Controller {
 
   /**
    * The listing's base URL WITH the params that have to survive clearing (the display mode,
-   * the grouping, and any `preserved_params` from the host). `urlValue` arrives with no query
-   * string, so building the URL out of it alone dropped those params: clearing the search
-   * while on cards sent the user back to the table. They live as hidden fields of the form;
+   * the grouping, and any `preserved_params` from the host): clearing the search while on
+   * cards used to send the user back to the table. They live as hidden fields of the form;
    * the `q[...]` ones stay out because they are exactly what is being cleared.
    */
   preservedParamsUrl () {
-    const url = new URL(this.urlValue, window.location.origin)
+    const url = this.listingUrl()
     const form = this.hasSearchFormTarget
       ? this.searchFormTarget
       : (this.hasFormTarget ? this.formTarget : null)
@@ -435,11 +431,19 @@ export class FiltersController extends Controller {
     return url
   }
 
+  // `url:` without its query: what of it may travel is already in the forms, as the hidden
+  // fields Bali::Filters::PreservedParams writes — `saved_view`, `clear_*` and `q[...]` left out.
+  listingUrl () {
+    const url = new URL(this.urlValue, window.location.origin)
+    url.search = ''
+    return url
+  }
+
   /**
    * Build the current URL with all filter params
    */
   buildUrl () {
-    const url = new URL(this.urlValue, window.location.origin)
+    const url = this.listingUrl()
     const formData = new FormData(this.formTarget)
     // The quick-search form is only painted when the host passed `search:`. Reading the
     // target unguarded threw "Missing target element" right here, and since `_submit()`
@@ -450,27 +454,8 @@ export class FiltersController extends Controller {
       ? new FormData(this.searchFormTarget)
       : new FormData()
 
-    // Clear existing q params
-    for (const key of [...url.searchParams.keys()]) {
-      if (key.startsWith('q[')) {
-        url.searchParams.delete(key)
-      }
-    }
-
-    // `urlValue` is the listing's URL and can already carry the very params both forms
-    // paint as hidden fields (`locale`, `group_by`, `view`), so appending them left the
-    // pushed URL saying `?locale=es&locale=es`. The server keeps one, but that URL is the
-    // one the user copies. The FIRST write of a key drops whatever the base URL held for
-    // it; the writes after it append, so a multi-value field keeps all of its values.
-    const written = new Set()
     const append = (key, value) => {
-      if (!value || value.trim() === '') return
-
-      if (!written.has(key)) {
-        url.searchParams.delete(key)
-        written.add(key)
-      }
-      url.searchParams.append(key, value)
+      if (value && value.trim() !== '') url.searchParams.append(key, value)
     }
 
     // Add form params (only non-empty values)
@@ -542,11 +527,8 @@ export class FiltersController extends Controller {
         ? 'or'
         : 'and'
 
-    // Get translated labels with fallbacks
-    const andLabel = this.t.combinators?.and || 'AND'
-    const orLabel = this.t.combinators?.or || 'OR'
-
-    const toggleLabel = this.t.combinator_toggle || 'Combine conditions with'
+    const { and: andLabel, or: orLabel } = this.t.combinators
+    const toggleLabel = this.t.combinator_toggle
     const divider = document.createElement('div')
     divider.className = 'flex items-center justify-center gap-2 my-2'
     divider.innerHTML = `
@@ -629,36 +611,36 @@ export class FiltersController extends Controller {
     const restore = this._withoutUnsubmittableConditions()
 
     try {
-      // Update URL for history
-      const url = this.buildUrl()
-      this.pushHistory(url)
-
-      // Submit the form (Turbo will handle the response with morphing)
-      this._requestSubmitAs(form, url)
+      this._requestSubmitAs(form, this.buildUrl())
     } finally {
       restore()
     }
   }
 
   /**
-   * Private: submit `form` carrying exactly the query of `url`, the one pushed to history.
+   * Private: submit `form` carrying exactly the query of `url`, and push `url` to history.
    * Neither form holds the whole state — the panel has the groups, the quick search the
    * search and the groups as last applied — so `requestSubmit()` alone asked for part of it
    * (#1352). `formdata` fires on the
    * entry list both Turbo (`new FormData(form)`) and a native submit build, synchronously
-   * inside `requestSubmit()`.
+   * inside `requestSubmit()` — and only for a submission that goes: one that fails constraint
+   * validation, or whose `submit` is cancelled, builds none. Pushed before `requestSubmit()`,
+   * such a submit would leave the address bar describing a request nobody made.
    */
   _requestSubmitAs (form, url) {
     const carryUrl = ({ formData }) => {
       for (const key of [...formData.keys()]) formData.delete(key)
       for (const [key, value] of url.searchParams) formData.append(key, value)
     }
+    const pushUrl = () => this.pushHistory(url)
 
     form.addEventListener('formdata', carryUrl)
+    form.addEventListener('formdata', pushUrl, { once: true })
     try {
       form.requestSubmit()
     } finally {
       form.removeEventListener('formdata', carryUrl)
+      form.removeEventListener('formdata', pushUrl)
     }
   }
 

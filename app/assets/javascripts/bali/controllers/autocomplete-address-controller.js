@@ -22,8 +22,13 @@ export class AutocompleteAddressController extends Controller {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['places'],
         language: 'es',
-        key: this.apiKeyValue || window.GOOGLE_MAPS_API_KEY
+        key: this.apiKeyValue || window.GOOGLE_MAPS_API_KEY,
+        // No deadline: a script that arrives late still builds.
+        timeout: 0
       })
+      // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+      if (this.autocomplete || !this.element.isConnected) return
+
       this.initializeAddressListener()
     } catch (error) {
       console.error(error)

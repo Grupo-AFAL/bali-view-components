@@ -61,6 +61,10 @@ module Bali
           )
         end
 
+        # The `locale:` keywords below go unread: the dummy's ComponentPreviewsController
+        # applies `?locale=` to the whole request. Lookbook raises "Unknown method parameter" for an
+        # `@param` the method does not take.
+
         # @label Multiple
         # Multi-select with tags for selected values. What SlimSelect reads out — the tags'
         # remove buttons, the clear button, the count of results — follows `locale`.
@@ -68,7 +72,7 @@ module Bali
         def multiple(locale: 'en')
           render_with_template(
             template: 'bali/form/slim_select/previews/multiple',
-            locals: { model: form_record, options: OPTIONS, locale: locale }
+            locals: { model: form_record, options: OPTIONS }
           )
         end
 
@@ -81,7 +85,7 @@ module Bali
 
           render_with_template(
             template: 'bali/form/slim_select/previews/many_selected',
-            locals: { model: form_record, options: rooms, locale: locale }
+            locals: { model: form_record, options: rooms }
           )
         end
 
@@ -91,7 +95,7 @@ module Bali
         def addable(locale: 'en')
           render_with_template(
             template: 'bali/form/slim_select/previews/addable',
-            locals: { model: form_record, options: OPTIONS, locale: locale }
+            locals: { model: form_record, options: OPTIONS }
           )
         end
 

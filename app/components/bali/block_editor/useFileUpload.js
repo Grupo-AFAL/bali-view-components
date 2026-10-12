@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { MAX_UPLOAD_SIZE } from './constants'
+import { interpolate } from '../../../assets/javascripts/bali/utils/interpolate.js'
 
 // The toast belongs to the editor whose upload failed, so it is appended INSIDE
 // that editor's container (`.block-editor-component`, already `position: relative`)
@@ -23,15 +24,6 @@ function showUploadError (message, container) {
   toast.textContent = message
   host.appendChild(toast)
   setTimeout(() => toast.remove(), 5000)
-}
-
-// Rails ships the sentence with its placeholders intact; the numbers only exist
-// in the browser, so they are substituted here.
-function interpolate (template, values) {
-  return Object.entries(values).reduce(
-    (text, [key, value]) => text.replaceAll(`%{${key}}`, value),
-    template
-  )
 }
 
 // English is what a host gets when it wires this controller up by hand instead
