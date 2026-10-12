@@ -53,6 +53,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de `requestSubmit()`, así que un formulario que no pasaba la validación del navegador, o cuyo
   `submit` se cancelaba, dejaba en la barra una consulta que nadie pidió.
 
+- **SlimSelect: la ✕ que vacía el valor (`allow_deselect_option:`) pasa de opacidad 0.5 a 0.55.**
+  Es un control y pide 3:1: en `afal` medía 3.05:1, el mínimo de los seis temas; ahora el
+  mínimo es 3.52:1, también en `afal`.
+
 - **Filters: la opción en blanco del valor de un select ya no se ofrece como valor.** SlimSelect
   la listaba, la contaba en «N resultados disponibles» y dejaba elegirla; ahora es su
   placeholder, marcada como la marca el FormBuilder, y el valor se vacía con la ✕ del select.
