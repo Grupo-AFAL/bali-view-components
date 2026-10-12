@@ -142,6 +142,30 @@ class BaliAvatarComponentTest < ComponentTestCase
     assert_text("ÁN")
   end
 
+  # #1393: the demo users' "(demo)" suffix gave "A(".
+  def test_initials_skip_words_that_do_not_start_with_a_letter
+    {
+      "Alberto Aprobador (demo)" => "AA",
+      "Ana López -" => "AL",
+      "Juan Pérez (Contador)" => "JP"
+    }.each do |name, initials|
+      assert_equal(initials, Bali::Avatar::Component.new(name: name).initials, name)
+    end
+  end
+
+  def test_initials_skip_punctuation_around_lowercase_accented_names
+    assert_equal("ÁN", Bali::Avatar::Component.new(name: "(demo) álvaro núñez").initials)
+    assert_equal("ÉÑ", Bali::Avatar::Component.new(name: "émile ñúñez [test]").initials)
+  end
+
+  def test_initials_a_name_without_a_word_starting_with_a_letter_renders_no_initials
+    assert_nil(Bali::Avatar::Component.new(name: "(demo) 123 -").initials)
+
+    render_inline(Bali::Avatar::Component.new(name: "(demo) 123 -"))
+    assert_no_selector(".avatar-placeholder")
+    assert_no_selector("span[aria-hidden]")
+  end
+
   def test_initials_explicit_initials_override_the_derivation
     render_inline(Bali::Avatar::Component.new(name: "Ana García", initials: "ZZ"))
     assert_text("ZZ")
