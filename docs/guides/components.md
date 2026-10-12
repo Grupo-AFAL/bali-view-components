@@ -2729,19 +2729,22 @@ the row has one keyboard: Tab reaches a trigger without opening it, a click, Ent
 walk the checkboxes. They are CSS dropdowns, not `popover:` ones: like the `⋯`, an ancestor of
 the toolbar with `overflow` (a drawer, a card with `overflow-hidden`) clips their panels.
 
-**Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
-`⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
-copies of the column selector would be two Stimulus controllers driving one table. Survival
-order lives in `OVERFLOW_PRIORITIES` — search/filters stay in the row; group by, columns,
-saved views, the persistence bookmark and host `toolbar_buttons` collapse; and the view
-switch collapses only below `sm` (`NARROW_OVERFLOW_THRESHOLD`), first in the `⋯`, so on a
-phone the search has the row to itself. Three consequences worth knowing:
+**When the row does not fit.** The toolbar measures its row and folds secondary controls
+into a `⋯` menu, lowest priority first, until the row fits, and unfolds them when there is
+room again; below `sm` (640px) it folds every collapsible control without measuring. The
+nodes are **moved**, never duplicated: two copies of the column selector would be two
+Stimulus controllers driving one table. Survival order lives in `OVERFLOW_PRIORITIES` —
+search/filters stay in the row; group by, columns, saved views, the persistence bookmark and
+host `toolbar_buttons` collapse; and the view switch collapses only below `sm`
+(`NARROW_OVERFLOW_THRESHOLD`), first in the `⋯`, so on a phone the search has the row to
+itself. Three consequences worth knowing:
 
 - **The order inside a group** is defined by `OVERFLOW_PRIORITIES`, not by the template:
-  expanding re-sorts each group by descending priority, which is what lets the controller be
-  stateless across Turbo reconnects. **The order of the groups** is the template's. The
-  numbers descend in reading order, so the `⋯` lists the collapsed controls in the same
-  order the row does — except the view switch, last in the row and first in the phone's `⋯`.
+  each control goes back to its place by descending priority, which is what lets the
+  controller be stateless across Turbo reconnects. **The order of the groups** is the
+  template's. The numbers descend in reading order, so the `⋯` lists the collapsed controls
+  in the same order the row does — except the view switch, last in the row and first in the
+  phone's `⋯`.
 - The separator is not a control: it carries no priority and is not an `item`, so it can
   never travel into the `⋯`. The controller only hides it — when a collapse empties either
   of the two groups it flanks, and by CSS (`max-sm:hidden`) when the bundle has not loaded.

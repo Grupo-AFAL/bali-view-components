@@ -158,7 +158,7 @@ export class QrScannerController extends Controller {
     const QrScanner = qrScannerModule.default
 
     // Removed during the await, nothing would destroy it; moved, the other connect builds it.
-    if (this.scanner || !this.element.isConnected) return null
+    if (this.scanner || !this.active) return null
 
     this.scanner = new QrScanner(this.videoTarget, result => this.onScan(result), {
       preferredCamera: this.cameraValue,
