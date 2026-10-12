@@ -247,12 +247,13 @@ describe('Gantt island', () => {
   // A phone's table opens at 60% of the board, under the 260 px the splitter held as its floor:
   // the first move widened a 215 px table to 260, and it could not be dragged back.
   it('drags a phone board\'s table narrower than it opened', () => {
-    allowResizeObserverLoop()
     cy.viewport(390, 844)
     cy.visit('/bali/gantt/default')
     cy.get('.react-flow__node').should('have.length.greaterThan', 0)
 
     cy.get('div[title="Drag to resize the table"]').then(([splitter]) => {
+      // Both CI failures fired during the drag back, not at mount: allowed from here on.
+      allowResizeObserverLoop()
       const table = splitter.previousElementSibling
       const start = table.getBoundingClientRect().width
       const { left, top } = splitter.getBoundingClientRect()
