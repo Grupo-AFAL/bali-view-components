@@ -61,11 +61,15 @@ module Bali
           )
         end
 
+        # The `locale:` keywords below go unread: the dummy's ComponentPreviewsController
+        # applies `?locale=` to the whole request. Lookbook raises "Unknown method parameter" for an
+        # `@param` the method does not take.
+
         # @label Multiple
         # Multi-select with tags for selected values. What SlimSelect reads out — the tags'
         # remove buttons, the clear button, the count of results — follows `locale`.
         # @param locale select { choices: [en, es] }
-        def multiple(locale: 'en') # applied to the request by the dummy's ComponentPreviewsController
+        def multiple(locale: 'en')
           render_with_template(
             template: 'bali/form/slim_select/previews/multiple',
             locals: { model: form_record, options: OPTIONS }
@@ -76,7 +80,7 @@ module Bali
         # Past 20 values SlimSelect replaces the chips with one count, `max_values_message:`.
         # Its default is Bali's translation: switch `locale` to see it.
         # @param locale select { choices: [en, es] }
-        def many_selected(locale: 'en') # applied to the request by the dummy's ComponentPreviewsController
+        def many_selected(locale: 'en')
           rooms = (1..27).map { |n| ["Room #{n}", n] }
 
           render_with_template(
@@ -88,7 +92,7 @@ module Bali
         # @label Addable
         # Allows users to add new options that don't exist in the list
         # @param locale select { choices: [en, es] }
-        def addable(locale: 'en') # applied to the request by the dummy's ComponentPreviewsController
+        def addable(locale: 'en')
           render_with_template(
             template: 'bali/form/slim_select/previews/addable',
             locals: { model: form_record, options: OPTIONS }
