@@ -170,3 +170,21 @@ describe('Textarea auto-grow bounds', () => {
     })
   })
 })
+
+// #1377. A field that connects with no box measures 0, and nothing measured it again once it was
+// shown: a pre-filled one opened clipped at its `rows` until somebody typed in it.
+describe('Textarea auto-grow hidden at connect', () => {
+  const field = () => cy.get('#auto_grow_in_reveal')
+
+  it('fits its pre-filled text the first time it is shown, with nothing typed', () => {
+    cy.visit('/bali/form/text_area/auto_grow_hidden')
+    field().should('not.be.visible')
+
+    cy.get('#auto_grow_reveal .reveal-trigger').click()
+
+    field().should($field => {
+      expect($field[0].clientHeight).to.be.greaterThan(0)
+      expect($field[0].scrollHeight).to.be.at.most($field[0].clientHeight)
+    })
+  })
+})

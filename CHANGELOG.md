@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Tag` acepta `text_color:`**, un hex para el texto, en línea: gana sobre el negro o
+  blanco que elige `custom_color:`, al que una clase como `text-white` no le ganaba sin `!`, y
+  también sobre el texto de una variante `color:`.
+
+- **SimpleFilters: `placeholder:` en `filter_attribute` para los filtros de fecha (#1400).** Un
+  `:date` o `:date_range` repetía su caption como placeholder y no había cómo declarar otro.
+  Ahora `filter_attribute` y los hashes de `simple_filters:` aceptan `placeholder:`, también como
+  proc sin argumentos; llega al campo y al calendario de «Personalizado…» de un rango con
+  `presets:`. Una app que lo inyectaba sobrescribiendo `simple_filters_config` puede borrar ese
+  método y declararlo en el filtro.
+
+### Removed
+
+- **`Bali::Utils::ColorCalculator#convert_to_brightness_value`**, la suma R+G+B del cálculo
+  anterior. Ninguna app la llama.
+
 ### Fixed
 
 - **Dependabot lee las gemas privadas con un registro `git`.** `github-afal` (`x-access-token`, el
@@ -17,6 +35,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deja de ejecutar el código del Gemfile y aborta con `unexpected_external_code` ante cualquier gema de
   git, como pasó en bali-auth el 11/10. Antes del registro el código ya se ejecutaba; lo nuevo es que una
   gema comprometida podría leer `BUNDLE_GITHUB_TOKEN`.
+
+- **El texto sobre un `custom_color:` se elige por contraste WCAG.** La suma R+G+B ponía negro
+  sobre azules y violetas medios, aunque el blanco contrastara más (`#535BEB`: negro a 4.06:1).
+  Ahora gana el de mayor razón de contraste, y un hex corto (`#fff`) se lee completo; antes daba
+  blanco sobre blanco. Cambia en `Tag`, `Status` y `Timeline::Header`, sólo en los hex que la
+  suma resolvía mal. En la flota:
+  - **opina:** el texto de `_project_badge` puede pasar de negro a blanco o al revés, siempre
+    hacia el que contrasta más. Nada que hacer.
+  - **costa-norte:** su `custom_color:` va a `StatCard`, que no usa este cálculo. Nada cambia.
+  - **afal-apps:** las proteínas siguen en blanco, porque `ProteinHelper#protein_tag` lo fuerza
+    con `class: "text-white!"`. Cambiarlo por `text_color: "#fff"` sólo quita el `!`: la res
+    (`#B46E50`) y el pollo (`#E0640B`) siguen en blanco, bajo AA en texto chico. Sin forzar el
+    color, esas dos salen en negro, sobre AA. Las otras tres son blancas de cualquier modo.
+
+- **`Card::Header` con `icon:` y `with_badge` deja el ícono junto al título.** `justify-between`
+  repartía el espacio entre los tres hijos y, en una tarjeta ancha, el título quedaba a la mitad
+  del renglón. Ícono y títulos son ahora un grupo, y el renglón hace `flex-wrap`: en pantalla
+  angosta el badge baja en vez de apretar el título. centinela-web puede quitar el
+  `justify-start!` del header y el `ml-auto` del Tag en `operations_board/show.html.erb`, con su
+  comentario; afal-apps puede volver a `with_header` + `with_badge` en
+  `cafeteria/reports/details/_day.html.erb` si ajusta la prueba que busca `h2.card-title ~`.
+
+- **`Avatar` deriva las iniciales sólo de palabras que empiezan con letra.** «Alberto Aprobador
+  (demo)» daba «A(»; ahora «AA». Un nombre sin ninguna palabra así no lleva iniciales, como un
+  `name:` vacío. `initials:` sigue ganando. Nada que hacer en las apps.
+
+- **DatePicker: las flechas de `manual: true` no disparaban `change`.** ◀ ▶ movían el día (o el
+  mes, o el año, según `period:`) sin avisar al input, así que un formulario con
+  `submit-on-change` sólo se enviaba al elegir en el calendario. Ahora cada clic dispara un
+  `change` y un `input`, como el calendario. Una flecha que cae en una fecha deshabilitada (un fin
+  de semana con `disable_weekends`, fuera de `min_date`/`max_date`) ya no vacía el campo: no hace
+  nada. afal-apps puede, si quiere, volver a las flechas de Bali en
+  `daycare/shared/_day_nav.html.erb`, que hoy son `Bali::Link` por esto
+  (`git grep -n "bali-view-components#1380"`).
+
+- **`datetime_field` y `datetime_group` ignoraban `time_24hr:`.** Sólo `time_field` traducía sus
+  opciones de hora a `data-datepicker-*`; en un `datetime_*` se descartaban sin aviso y el campo
+  salía en 12 horas, aunque la guía documenta `time_24hr: true`. Ahora toma las de `time_field`
+  del mismo mapa: `time_24hr`, `seconds`, `min_time` y `max_time`, y `default_date`, que
+  reemplaza el valor del registro, como en `time_field`. Ninguna llamada a `datetime_*` en
+  `origin/main` de la flota pasa alguna de las cinco. Quien use el rodeo
+  `wrapper_options: { "data-datepicker-time24hr-value": true }` en un `datetime_*` puede
+  cambiarlo por `time_24hr: true` (`git grep -n "time24hr-value"`).
+
+- **Textarea `auto_grow`: un campo oculto al conectarse no crecía al mostrarse.** Dentro de algo
+  con `display: none` —una pestaña inactiva, un Reveal cerrado— mide 0 y nada lo volvía a medir:
+  un campo pre-llenado abría con el alto de sus `rows`, con el resto del texto fuera, hasta que
+  alguien tecleaba. Ahora se ajusta la primera vez que tiene caja. Nada que hacer en la app.
+
+- **Filters: «Aplicar» en el popover pedía al servidor los grupos sin la búsqueda (#1352).** La
+  tabla mostraba un resultado que la URL de la barra no describía, y al recargar cambiaba. Ahora
+  la petición de «Aplicar» y la de la búsqueda llevan exactamente la query de esa URL: la
+  búsqueda, los grupos y lo que se preserva (`group_by`, `view`, `view_origin`). Por eso una
+  búsqueda aplica también los cambios del panel que aún no se habían aplicado, como ya hacía esa
+  URL al recargar. Nada que hacer en la app.
+
+- **Google Maps: tras un error de red, la siguiente llamada vuelve a pedir la API** (#1387).
+  `loadGoogleMapsApi` guardaba su primera respuesta toda la vida de la página, con el rechazo por
+  tiempo incluido, así que después de un fallo ningún mapa (`LocationsMap`, `drawing-maps`,
+  `geocoder-maps`, `autocomplete-address` ni el de una app) volvía sin recargar. Un script que no
+  carga (`onerror`, que no existía) se quita y la siguiente llamada lo pide de nuevo. El tiempo de
+  espera es ahora de cada llamada: un script lento que llega después se conserva y la siguiente
+  llamada lo usa, sin cargar una segunda copia de la API. Si el script no responde nunca, o
+  responde pero la API no termina de cargar (falla su `main.js`), cada llamada se rinde a los 10 s
+  y no se reintenta hasta recargar. El rechazo por tiempo dice ahora «Timed out loading the Google
+  Maps API». Nada que hacer en la app.
+
+- **`LocationsMap`: el mapa ya no mide 0 px de alto en el teléfono** (#1388). Ahora mide 450 px
+  de alto también por debajo de `md`; en escritorio no cambia. **Anfitrión:** centinela-web puede
+  borrar su `.location-map { min-height: 450px }` de `app/assets/tailwind/application.css`
+  (`git grep -n "location-map" -- '*.css'`).
 
 - **`file_group` / `file_field` se usan con el teclado, y `required:` vuelve a llegar al input**
   (#1385). El `<input type="file">` estaba en `display: none`: Tab nunca llegaba y nada abría el

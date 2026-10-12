@@ -81,9 +81,9 @@ module Bali
         return nil if value.blank?
         return value if hex?(value)
 
+        hint = " Semantic names belong in `color:`." if param == :custom_color
         raise ArgumentError,
-              "#{component}: #{param} #{value.inspect} is not a hex colour " \
-              "(#rgb or #rrggbb). Semantic names belong in `color:`."
+              "#{component}: #{param} #{value.inspect} is not a hex colour (#rgb or #rrggbb).#{hint}"
       end
 
       def hex?(value)
