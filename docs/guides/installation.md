@@ -6,7 +6,8 @@ This guide covers complete setup of Bali ViewComponents in your Rails applicatio
 
 - Rails 8.1+ (the gemspec requires `>= 8.1, < 9.0`)
 - Ruby 4.0+
-- Node.js 18+ and npm/yarn
+- Node.js 18+ and npm/yarn; 20.19+ with SlimSelect 4.5, and 22+ with the BlockEditor, whose
+  `lib0` (under BlockNote) declares `engines.node >=22`
 - Tailwind CSS v4 (via tailwindcss-rails or Vite)
 - daisyUI 5.7+
 
