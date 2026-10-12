@@ -4897,7 +4897,7 @@ The component renders its own `Bali::Card`, so do not wrap it in another one.
 
 #### ImageField
 
-Image preview with an optional file input overlay for uploading/replacing an image, plus a clear button. Hover and keyboard focus reveal the same things: the overlay, its icon and the clear button. The clear button exists only while there is an image to clear: never over the bare placeholder, and clearing hides it and moves focus to the input.
+Image preview with an optional file input overlay for uploading/replacing an image, plus a clear button. Hover and keyboard focus reveal the same things: the overlay, its icon and the clear button. The clear button shows only while there is an image to clear, never over the bare placeholder. Clearing hides it, and when the clear button had focus, focus moves to the input.
 
 ```erb
 <%= form_with(model: @user) do |f| %>

@@ -58,16 +58,21 @@ module Bali
             aria: { label: t(".upload_image") },
             data: { avatar_target: "input", action: "change->avatar#showImage" }
           }
-          if @form.respond_to?(:rails_file_field)
+          if bali_form_builder?
             @form.rails_file_field(@method, @form.merge_aria_attributes(options, @method))
           else
             @form.file_field(@method, options)
           end
         end
 
-        # Bali's builder only; the input's `aria-describedby` above points at it.
         def error_message
-          @form.error_message(@method) if @form.respond_to?(:error_message)
+          @form.error_message(@method) if bali_form_builder?
+        end
+
+        # One guard for one contract: the input's `aria-describedby` names the `<p id>` that
+        # `error_message` renders, so neither may come without the other.
+        def bali_form_builder?
+          @form.respond_to?(:rails_file_field)
         end
       end
     end

@@ -1,4 +1,4 @@
 <% movie = Movie.new.tap { |record| record.errors.add(:cover_photo, 'must be a JPG, PNG or WebP image') } %>
-<%= form_with(model: movie, url: '/lookbook', builder: Bali::FormBuilder, local: true) do |form| %>
+<%= form_with(model: movie, url: '/lookbook', builder: Bali::FormBuilder) do |form| %>
   <%= render(Bali::Avatar::Upload::Component.new(form: form, method: :cover_photo, src: 'avatar.png')) %>
 <% end %>

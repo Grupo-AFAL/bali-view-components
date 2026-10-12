@@ -25,9 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Bali::FormBuilder`, `Avatar::Upload` muestra el error del campo bajo el avatar y el input
   lleva `aria-invalid`. `Avatar::Upload` libera la URL `blob:` de la foto anterior al elegir
   otra, e `ImageField` ya no la libera al desconectarse: con Atrás, Turbo restauraba la vista
-  previa rota con el archivo todavía en el input. Nada que hacer en las apps: sólo afal-apps usa
-  `Avatar::Upload` (`daycare/children/_form`), ninguna usa `ImageField`, y nada apunta a esos
-  inputs.
+  previa rota con el archivo todavía en el input. Sólo afal-apps usa `Avatar::Upload`
+  (`daycare/children/_form`): ese formulario pinta `f.error_summary` arriba, y ahora el error de
+  la foto se ve también junto al campo, como ya pasa con cada `text_group` del formulario; el
+  avatar sigue centrado dentro de su `flex justify-center`, con mensaje o sin él. Ninguna app usa
+  `ImageField`, y nada apunta a esos inputs.
 
 ## [v3.12.0] - 2026-10-11
 
