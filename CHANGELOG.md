@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Un control movido o quitado de la página mientras carga su dependencia ya no deja una
+  instancia montada (#1409).** Tooltip, HoverCard, Dropdown con `popover: true`, Carousel,
+  SortableList, RichTextEditor, QrScanner, LocationsMap y `geocoder-maps`, `drawing-maps` y
+  `autocomplete-address` montaban después del `await` de su `connect()` aunque el elemento ya no
+  estuviera en la página, y uno movido en ese lapso montaba dos veces: dos tarjetas por hover en
+  un HoverCard. SortableList, los mapas y `autocomplete-address`, cuyo `disconnect()` nunca
+  destruyó su instancia, ahora la reutilizan al reconectarse en vez de apilar otra.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added

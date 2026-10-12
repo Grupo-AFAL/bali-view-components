@@ -36,6 +36,8 @@ export class LocationsMapController extends Controller {
       })
 
       this.googleMarkers = await this.googleMaps.importLibrary('marker')
+      // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+      if (this.map || !this.element.isConnected) return
 
       this.loadLocations()
       this.initializeMap()

@@ -36,6 +36,9 @@ export class GeocoderMapsController extends Controller {
         language: 'es',
         key: this.data.get('key')
       })
+      // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+      if (this.map || !this.element.isConnected) return
+
       this.initializeMap()
       this.initializeAddressListeners()
       this.initializeAddress()

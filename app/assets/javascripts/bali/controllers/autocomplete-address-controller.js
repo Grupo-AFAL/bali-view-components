@@ -24,6 +24,9 @@ export class AutocompleteAddressController extends Controller {
         language: 'es',
         key: this.apiKeyValue || window.GOOGLE_MAPS_API_KEY
       })
+      // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+      if (this.autocomplete || !this.element.isConnected) return
+
       this.initializeAddressListener()
     } catch (error) {
       console.error(error)

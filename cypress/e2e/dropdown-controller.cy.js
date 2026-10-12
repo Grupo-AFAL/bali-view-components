@@ -367,6 +367,35 @@ describe('DropdownController', () => {
         })
       })
     })
+
+    // A connect still awaiting tippy when the dropdown leaves the page finds its disconnect()
+    // already run, with nothing to destroy: whatever it builds then, nothing ever destroys.
+    it('builds nothing on a dropdown that left the page while tippy was loading', () => {
+      let dropdown
+
+      cy.get(popoverDropdown).then(($dropdown) => {
+        dropdown = $dropdown[0]
+        const win = dropdown.ownerDocument.defaultView
+        const controller = win.Stimulus.getControllerForElementAndIdentifier(dropdown, 'dropdown')
+        const setupPopover = controller.setupPopover.bind(controller)
+
+        return new Cypress.Promise((resolve) => {
+          controller.setupPopover = () => {
+            const settingUp = setupPopover()
+            dropdown.remove()
+            settingUp.then(resolve)
+            return settingUp
+          }
+          // A move: Stimulus disconnects the controller, which puts the menu back, and connects
+          // it again.
+          dropdown.parentNode.insertBefore(dropdown, dropdown.nextSibling)
+        })
+      }).then(() => {
+        // Built, tippy would have taken the menu into its popper.
+        expect(dropdown.querySelector(menu), 'menu in the wrapper').to.not.equal(null)
+        expect(dropdown.querySelector(trigger)._tippy, 'tippy on the trigger').to.equal(undefined)
+      })
+    })
   })
 
   // #1269: Modal and Drawer open with `showModal()`, which makes everything outside the

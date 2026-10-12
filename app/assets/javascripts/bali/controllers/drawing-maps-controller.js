@@ -23,14 +23,16 @@ export class DrawingMapsController extends Controller {
 
     const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
 
-    this.drawnPolygons = []
-
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['drawing', 'geometry'],
         language: 'es',
         key: this.data.get('key')
       })
+      // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+      if (this.map || !this.element.isConnected) return
+
+      this.drawnPolygons = []
 
       const polygonOptions = {
         fillColor: '#eaeaea',
