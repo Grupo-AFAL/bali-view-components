@@ -6,7 +6,6 @@
     "build:watch": "node esbuild.config.mjs --watch"
   },
   "devDependencies": {
-    "@tailwindcss/typography": "^0.5.20",
     "esbuild": "^0.28.2"
   },
   "dependencies": {

@@ -7,7 +7,107 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`placeholder_min:` y `placeholder_max:` aceptan un proc sin argumentos**, como `placeholder:`
+  (#1403): `filter_attribute` y los hashes de `simple_filters:` los resuelven por instancia, para
+  un `t(...)` que no debe congelarse al cargar la clase. Antes el proc llegaba tal cual al
+  placeholder del `number_range`.
+
+### Changed
+
+- **`slim_select_field`: el id del contenedor sigue al del select** (`<id del select>_select_div`).
+  Con un `html: { id: }` explícito seguía siendo el `field_id` del atributo, repetido en cada
+  renglón de un formulario por fila (`_proposed_member_row` de gobierno-corporativo); un select
+  con `id: nil` deja al contenedor sin id. Sin id explícito no cambia, y ése es el que lee la
+  prueba de pagos de afal-apps. El de un filtro `slim_select` de SimpleFilters pasa de
+  `q[<llave>]_select_div` a `simple-filter-q-<llave>_select_div`; nadie lo lee.
+
+### Removed
+
+- **La llave `bali_view.filters.select_value`.** La opción en blanco del valor select la leía en
+  el servidor y `placeholders.select` en el navegador, con el mismo texto; ahora las dos leen
+  `placeholders.select`. Una app que sobrescribía `select_value` lleva su texto a esa llave
+  (ninguna de las siete lo hace).
+
+- **`Bali::Utils::Url`** y su `#add_query_param`: el último que lo llamaba era el enlace de
+  limpiar, que ahora sale de `PreservedParams#clear_filters_url`. Ninguna de las siete apps lo
+  llama.
+
 ### Fixed
+
+- **Google Maps: una llamada al loader después de la primera recibe las bibliotecas que pide**
+  (#1409). La API se carga una vez por página, con las opciones de la primera llamada, y
+  `loadGoogleMapsApi` ignoraba en silencio lo que pedían las siguientes: un `autocomplete-address`
+  en una página donde `LocationsMap` ya la había cargado fallaba con `Cannot read properties of
+  undefined (reading 'Autocomplete')`. Ahora cada llamada importa sus `libraries` con
+  `google.maps.importLibrary`, y una `key`, `language`, `region`, `v`, `channel` o `client`
+  distinta de la cargada, que no puede cambiar sin recargar, avisa en la consola una vez por
+  opción. Una biblioteca que la API no conoce hace fallar la llamada, que antes la ignoraba si no
+  era la primera. Los parámetros de la URL del script van codificados, y `timeout: 0` espera sin
+  plazo, como en XHR, en vez de volverse 10 s. `LocationsMap` deja de pedir `drawing`, que no usa,
+  y `drawing-maps` también: ninguna versión que Google sirve construye su `DrawingManager`. Nada
+  que hacer en la app.
+
+- **`Avatar::Upload` e `ImageField` se usan con el teclado** (#1409). Su `<input type="file">`
+  estaba en `display: none`: Tab nunca llegaba y nada abría el selector sin ratón. Ahora queda
+  invisible sobre el botón de la cámara y sobre la imagen, como el de `file_group` desde #1385:
+  Tab lo alcanza, Enter o Espacio abren el selector y el control muestra el anillo de foco. Con
+  `Bali::FormBuilder` como builder por omisión, `Avatar::Upload` metía el `file_field` de Bali
+  —con su propio `<label>`— dentro del suyo; ahora usa el input de Rails. En `ImageField`, el
+  foco de teclado muestra lo mismo que el hover (velo, ícono y botón de borrar), y el botón de
+  borrar se alcanza con Tab y se activa con Enter. El botón de borrar sólo aparece cuando hay una
+  imagen que borrar: ya no sobre el placeholder, donde abajo de `md` se veía siempre. El grupo se
+  llama `group/image-field`: un `clear_button` propio se oculta con `opacity-0
+  pointer-events-none` y aparece con `group-hover/image-field:` y
+  `group-has-focus-visible/image-field:` (ejemplo en la preview `with_custom_clear_button`);
+  sin nombre, el hover sobre cualquier `.group` que lo contuviera velaba la imagen. Con
+  `Bali::FormBuilder`, `Avatar::Upload` muestra el error del campo bajo el avatar y el input
+  lleva `aria-invalid`. `Avatar::Upload` libera la URL `blob:` de la foto anterior al elegir
+  otra, e `ImageField` ya no la libera al desconectarse: con Atrás, Turbo restauraba la vista
+  previa rota con el archivo todavía en el input. Sólo afal-apps usa `Avatar::Upload`
+  (`daycare/children/_form`): ese formulario pinta `f.error_summary` arriba, y ahora el error de
+  la foto se ve también junto al campo, como ya pasa con cada `text_group` del formulario; el
+  avatar sigue centrado dentro de su `flex justify-center`, con mensaje o sin él. Ninguna app usa
+  `ImageField`, y nada apunta a esos inputs.
+
+- **SplitView: la lista con infinite scroll pide una página por vez.** Cada vez que el sentinel
+  pedía una página llegaban dos. Una página que no llena el panel sigue pidiendo la siguiente.
+  Afecta a los inbox de gobierno-corporativo (`inbox/show`) y afal-apps (`td_flow/inboxes/show`);
+  no tienen nada que cambiar.
+
+- **Filters y SimpleFilters: ninguna URL que arman arrastra ya `saved_view`, `clear_*` ni `q[...]`
+  de la query de `url:`.** «Aplicar» llevaba `saved_view`, `clear_filters` y `clear_search` (los
+  `q[...]` ya los quitaba). «Limpiar», la ✕ de la búsqueda, «Limpiar todo» de las etiquetas y
+  «Limpiar» de SimpleFilters llevaban además los `q[...]`: un filtro escrito en `url:` sobrevivía
+  a la limpieza, un `saved_view` volvía a aplicar la vista, y un `clear_filters` en `url:` hacía
+  que la ✕ de la búsqueda borrara también los filtros. Ahora todas parten de los campos ocultos,
+  que filtra una sola lista (`PreservedParams::EXCLUDED_PARAMS`); los dos enlaces de limpiar,
+  de `clear_filters_url`, que reemplaza a `AppliedTags#clear_all_url` y a
+  `SimpleFilters#clear_href` (ninguna app los llama). «Limpiar todo» de las etiquetas lleva
+  además los `preserved_params:` del `Filters` (`group_by`, `view`), como ya los llevaba su
+  «Limpiar». **Anfitrión:** sólo cambia una app cuyo `url:` trae esa query; las cuatro `url:` de
+  opina son rutas sin query, así que su «Limpiar» no cambia. El comentario de opina en
+  `shared/_filter_bar.html.erb`, que describe un «Limpiar» al listado pelado que descarta
+  `preserved_params`, ya no se cumplía desde v3.1.1 y queda obsoleto al subir.
+
+- **`Filters` acepta `filter_form:` y conserva el OR entre grupos.** Dibujado fuera de un DataTable
+  sin `combinator:`, sobre un estado `q[m]=or`, el panel pintaba AND y «Aplicar» enviaba
+  `q[m]=and`. Ahora `filter_form:` le da los grupos y el combinador aplicados; `filter_groups:` y
+  `combinator:` explícitos siguen ganando. El ejemplo de la guía ya pasaba `filter_form:`, que se
+  descartaba en silencio. Dentro de un DataTable nada cambia.
+
+- **Filters: un envío que no sale ya no deja una URL en el historial.** La URL se empujaba antes
+  de `requestSubmit()`, así que un formulario que no pasaba la validación del navegador, o cuyo
+  `submit` se cancelaba, dejaba en la barra una consulta que nadie pidió.
+
+- **SlimSelect: la ✕ que vacía el valor (`allow_deselect_option:`) pasa de opacidad 0.5 a 0.55.**
+  Es un control y pide 3:1: en `afal` medía 3.05:1, el mínimo de los seis temas; ahora el
+  mínimo es 3.52:1, también en `afal`.
+
+- **Filters: la opción en blanco del valor de un select ya no se ofrece como valor.** SlimSelect
+  la listaba, la contaba en «N resultados disponibles» y dejaba elegirla; ahora es su
+  placeholder, marcada como la marca el FormBuilder, y el valor se vacía con la ✕ del select.
 
 - **DatePicker con `manual: true`: las flechas.** El paso de mes o de año cae en el último día del
   mes destino si ese mes es más corto: el 31 de enero ▶ daba el 3 de marzo y ahora da el 28 de
@@ -42,6 +142,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Textarea `auto_grow`: un `form.reset()` con el campo oculto lo dejaba al alto de sus `rows`**
   al volver a mostrarse, con el texto restaurado fuera de vista. Ahora se ajusta en cuanto vuelve
   a tener caja. Nada que hacer en las apps.
+
+### Dependencies
+
+- **Con tailwindcss-rails, `@tailwindcss/typography` no va en `package.json`** (alerta de
+  dependabot #254: typography 0.5.20 fija `postcss-selector-parser` 6.0.10). El binario de
+  tailwindcss-rails trae el plugin embebido y no lee el de `node_modules`;
+  `bin/rails g bali:install` ya sólo pide el paquete donde Tailwind sale de npm. La dummy lo
+  quita. **Anfitrión:** afal-apps, gobierno-corporativo, identity, costa-norte, centinela-web y
+  opina pueden quitarlo de `devDependencies`; es lo único que trae ahí la 6.0.10, así que eso
+  cierra la alerta. (centinela-web: borrar también su `tailwind.config.js`, que ningún
+  `@config` carga.)
 
 ## [v3.12.0] - 2026-10-11
 

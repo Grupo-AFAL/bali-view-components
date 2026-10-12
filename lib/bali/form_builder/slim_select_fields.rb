@@ -239,15 +239,21 @@ module Bali
               data: { action: action, slim_select_target: target })
       end
 
-      # The wrapper id used to be a bare `#{method}_select_div`, which ignored the
-      # object name, the index and any nested-attribute path — so two forms for
-      # the same model on one page emitted the very same id twice.
       def wrapper_attributes(method, options, html_options, select_class, variant = nil)
         {
-          id: field_id(method, "select_div"),
+          id: wrapper_id(method, html_options),
           class: class_names([ WRAPPER_CLASS, variant, select_class ].compact),
           data: stimulus_data(options, html_options)
         }
+      end
+
+      # The select's own id, suffixed, so it is as unique as the select's: Rails' derived one
+      # (`movie_status_select_div`) or the caller's `html: { id: }`, which a per-row form
+      # writes per row. A select written with `id: nil` gets none.
+      def wrapper_id(method, html_options)
+        return field_id(method, "select_div") unless html_options.key?(:id)
+
+        "#{html_options[:id]}_select_div" if html_options[:id].present?
       end
 
       def stimulus_data(options, html_options)
