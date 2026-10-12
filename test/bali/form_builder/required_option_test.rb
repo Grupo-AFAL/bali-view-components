@@ -4,7 +4,7 @@ require "test_helper"
 
 # `required:` is a plain HTML attribute: the builder does not read it, Rails
 # forwards it, and it lands on whatever element the family renders. That is fine
-# for the twenty families whose control is a native input, and it was a lie for
+# for the families whose control is a native input, and it was a lie for
 # the rest — `<div required>`, `<trix-editor required>` and `<button required>`
 # are not valid, do nothing, and read at the call site as if the browser were
 # now enforcing the field.
@@ -40,7 +40,11 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
     "select_group" => ->(b, o) { b.select_group(:status, [], html: o) },
     # Its `<select>` is a plain, visible one — SlimSelect is not involved, so unlike
     # `slim_select_group` below the browser has somewhere to anchor the message.
-    "time_zone_select_group" => ->(b, o) { b.time_zone_select_group(:name, html: o) }
+    "time_zone_select_group" => ->(b, o) { b.time_zone_select_group(:name, html: o) },
+    # Its input is invisible over the button, not clipped like slim-select's: the message
+    # anchors to the input's box, which cypress/e2e/file-field-keyboard.cy.js holds to the
+    # button's (#1385).
+    "file_group" => ->(b, o) { b.file_group(:name, **o) }
   }.freeze
 
   # Everything whose "control" is a widget over a hidden field, plus the submit
@@ -59,16 +63,8 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
   # remembering: its per-input attributes travel in `html:`, so a top-level
   # `required:` is a group option and never reaches a radio. Passing it in
   # `html:` does reach them — asserted below.
-  #
-  # `file_group` is the third kind, and the one #1125 was about: its control is a real
-  # `<input type="file">`, but the family hides it with `display: none` and draws a button
-  # in its place. A hidden control is still validated and can never be focused, so
-  # `form.reportValidity()` returns false, shows nothing, and logs "An invalid form control
-  # with name='…' is not focusable" — the submit button goes mute. Same dead end as
-  # slim-select, same answer: the attribute is not emitted.
   DROPS = {
     "slim_select_group" => ->(b, o) { b.slim_select_group(:status, [], html: o) },
-    "file_group" => ->(b, o) { b.file_group(:name, **o) },
     "radio_group" => ->(b, o) { b.radio_group(:status, [ %w[One 1] ], **o) },
     "radio_buttons_group" => ->(b, o) { b.radio_buttons_group(:status, { a: [ %w[One 1] ] }, **o) },
     "rich_text_group" => ->(b, o) { b.rich_text_group(:synopsis, **o) },
@@ -142,14 +138,6 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
     assert_empty marked, "a caption was marked as required with no `required:` at all: #{marked.inspect}"
   end
 
-  def test_a_required_file_group_says_so_in_the_caption_and_nowhere_else
-    html = builder.file_group(:name, required: true)
-    fragment = Nokogiri::HTML5.fragment(html.to_s)
-
-    assert_empty required_elements(html)
-    assert_equal "*", fragment.at_css(".fieldset-legend span[aria-hidden]").text
-  end
-
   # The other half of `radio_group`'s story: the attribute is not lost, it is in
   # the hash the family reads element attributes from.
   def test_radio_group_puts_required_on_its_inputs_when_it_travels_in_html
@@ -169,8 +157,8 @@ class BaliFormBuilderRequiredOptionTest < FormBuilderTestCase
     assert_empty required_elements(html)
   end
 
-  def test_file_field_drops_required_like_its_group
-    assert_empty required_elements(builder.file_field(:name, required: true))
+  def test_file_field_carries_required_like_its_group
+    assert_equal %w[input], required_elements(builder.file_field(:name, required: true))
   end
 
   def test_slim_select_field_drops_required_like_its_group

@@ -117,8 +117,6 @@ module Bali
         # comes back with the `<input>`, but it does not count as an argument: rails-ujs
         # reads it and none of the six apps has it. It goes before the splat on purpose: a
         # `builder:` the host passes to `with_action` still wins, and a test covers that.
-        # Moving this form to the Bali builder's idiom is another discussion, set aside for
-        # v4 (#903).
         def render_form_action
           helpers.form_with(url: href, method: method, class: "contents",
                             builder: ActionView::Helpers::FormBuilder, **form_options) do |form|

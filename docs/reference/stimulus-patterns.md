@@ -111,12 +111,12 @@ Value names are camelCase; the DOM attribute is the dasherized form
 ## Optional heavy dependencies load dynamically
 
 A controller that needs an optional peer imports it inside `connect`, so the peer is
-only in the bundle (and only fetched) when the component is actually on the page —
-`app/components/bali/sortable_list/index.js`:
+only in the bundle (and only fetched) when the component is actually on the page. The shape:
 
 ```javascript
 async connect () {
   const { default: Sortable } = await import('sortablejs')
+  if (!this.element.isConnected) return
 
   this.sortable = new Sortable(this.element, { … })
 }
@@ -125,6 +125,9 @@ async connect () {
 Anything that can run before that import resolves (a keyboard path, an early event)
 guards with `this.sortable?.…`. Which peer belongs to which component is mapped in
 `docs/guides/installation.md`.
+
+The `isConnected` line is there because `disconnect()` can land during the `await` with nothing
+to destroy yet, as in `chart/index.js:69` and `datepicker-controller.js` (#1415).
 
 ## Events
 

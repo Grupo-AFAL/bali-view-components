@@ -177,6 +177,27 @@ describe('LocationsMap', () => {
     })
   })
 
+  // #1388 — Below `md` the component stacks in a column, where an unprefixed `flex-1` sets the
+  // map's flex-basis to 0% on the height axis: it beat `h-[450px]` and the map was 0px tall.
+  describe('size', () => {
+    const mapFills = (width) => {
+      cy.viewport(width, 800)
+      stubGoogleMaps()
+      cy.visit('/bali/locations_map/default')
+
+      cy.get('.locations-map-component').should(([component]) => {
+        const map = component.querySelector('.location-map').getBoundingClientRect()
+
+        expect(map.height, 'height').to.eq(450)
+        expect(map.width, 'width').to.eq(component.getBoundingClientRect().width)
+      })
+    }
+
+    it('keeps the map 450px tall on a phone', () => mapFills(375))
+
+    it('stretches the map across the row on a desktop', () => mapFills(1280))
+  })
+
   describe('clustering', () => {
     it('hands every marker to the clusterer when it is asked for', () => {
       viewport()

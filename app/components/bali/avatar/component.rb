@@ -123,9 +123,10 @@ module Bali
         )
       end
 
-      # Two initials: first letter of the first and the last word
-      # ("Ana García López" → "AL"), unicode-aware upcase; a single word yields one letter.
-      # An explicit `initials:` always wins over the derivation.
+      # Two initials: first letter of the first and the last word that starts with a
+      # letter ("Ana García López (demo)" → "AL"), unicode-aware upcase; a single such
+      # word yields one letter, none yields no initials. An explicit `initials:` always
+      # wins over the derivation.
       def initials
         @derived_initials ||= @initials || derive_initials
       end
@@ -162,11 +163,9 @@ module Bali
       end
 
       def derive_initials
-        return if @name.blank?
-
-        words = @name.split
-        letters = words.size >= 2 ? [ words.first[0], words.last[0] ] : [ words.first[0] ]
-        letters.join.upcase
+        words = @name.to_s.split.grep(/\A\p{L}/)
+        words = [ words.first, words.last ] if words.size > 2
+        words.map { |word| word[0] }.join.upcase.presence
       end
 
       # Inline style, like Status: the same person gets the same colour on

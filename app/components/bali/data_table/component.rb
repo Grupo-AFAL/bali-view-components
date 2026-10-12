@@ -639,7 +639,7 @@ module Bali
       # The host's buttons fall into none of the three buckets: a group of their own,
       # between what is remembered and the right edge. Put inside the right-hand group the
       # JS ordered them by priority (10 against 50) and they ended up AFTER the view switch,
-      # which is the only thing that goes flush with the edge.
+      # which goes flush with the edge whenever there is one; without it, this group does.
       def show_toolbar_host?
         declared_toolbar_controls.include?(:toolbar_buttons)
       end

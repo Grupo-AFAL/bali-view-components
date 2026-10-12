@@ -125,7 +125,7 @@ export class ModalController extends Controller {
       this.templateTarget.addEventListener('click', this._onOverlayClick)
       this.templateTarget.addEventListener('cancel', this._onDialogCancel)
 
-      // Capture-phase probe for the flatpickr popup guard (see _recordPopupState).
+      // Capture-phase probe for the popup guard (see _recordPopupState).
       this.element.addEventListener('keydown', this._recordPopupState, true)
     }
 
@@ -390,8 +390,41 @@ export class ModalController extends Controller {
     // which is what `handleTabKey` compares against (#1269).
     this.templateTarget.removeEventListener('keydown', this.handleTabKey)
     this.templateTarget.addEventListener('keydown', this.handleTabKey)
+    this.wrapperTarget.after(this.focusGuard)
 
     this._setInitialFocus()
+  }
+
+  // A Tab out of the last control of an iframe is a keydown in the frame's document, which
+  // `handleTabKey` never sees: the browser carried the focus past the panel and out of the
+  // dialog, to `<body>` (#1386). The guard is the stop after the panel, and sends the focus
+  // round to its first control.
+  //
+  // `fixed`, out of the flow: in a daisyUI `.modal`, which is a grid, it took a row of its own
+  // and moved the box's centre up from 364px to 182px in an 800px window. And a Turbo snapshot
+  // of a page left with the panel open carries the guard after the wrapper, so the restored
+  // page's controller adopts that one rather than add a second, dead one beside it. Not
+  // `data-turbo-temporary`: Turbo strips those from the live page on every
+  // `turbo:before-cache`, and a refresh morph of a page it has cached fires one with the
+  // panel still open.
+  get focusGuard () {
+    if (!this._focusGuard) {
+      const adopted = this.wrapperTarget.nextElementSibling
+      this._focusGuard = adopted?.matches('[data-bali-focus-guard]') ? adopted : document.createElement('span')
+      this._focusGuard.dataset.baliFocusGuard = ''
+      this._focusGuard.className = 'fixed'
+      this._focusGuard.tabIndex = 0
+      this._focusGuard.addEventListener('focus', this._onFocusGuard)
+    }
+
+    return this._focusGuard
+  }
+
+  _onFocusGuard = () => {
+    if (this._steppingBack) return
+
+    const target = this.focusableElements[0] || this.wrapperTarget
+    target.focus()
   }
 
   // Read on every Tab rather than kept from the open: `openModal` runs right after
@@ -441,8 +474,17 @@ export class ModalController extends Controller {
 
     if (event.shiftKey) {
       if (document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
+        // `.focus()` on an iframe focuses the frame and nothing inside it (#1386). From the guard
+        // just past it, this keydown's own default steps back into the frame, onto its last
+        // control.
+        if (last.localName === 'iframe') {
+          this._steppingBack = true
+          this.focusGuard.focus()
+          this._steppingBack = false
+        } else {
+          event.preventDefault()
+          last.focus()
+        }
       }
     } else {
       if (document.activeElement === last) {
@@ -499,7 +541,14 @@ export class ModalController extends Controller {
     this._mousedownOnOverlay = false
   }
 
-  _markDirty = () => {
+  // SlimSelect's list holds nothing the form sends: a pick reaches here as the `change` of
+  // its hidden <select>, and typing a search asked to confirm a close that lost nothing.
+  // Ignoring every target with no `name` instead would also ignore flatpickr's altInput,
+  // whose date reaches the named field only after the close is decided — measured on
+  // `drawer/dirty_form`, ✕ then closed a drawer with a typed date without asking.
+  _markDirty = ({ target }) => {
+    if (target.closest('.ss-content')) return
+
     this._dirty = true
   }
 
@@ -521,14 +570,14 @@ export class ModalController extends Controller {
     this._closeWithConfirmation()
   }
 
-  // flatpickr binds its Escape handler on the input itself, so it closes the
-  // calendar at the target phase — before our bubble-phase `close()` could see
-  // `.flatpickr-calendar.open`. Sampling here in the capture phase (which runs
-  // before the target phase) records whether a popup was open so `close()` can
-  // defer to it. Kept generic to the `.flatpickr-calendar.open` marker.
+  // flatpickr binds its Escape handler on the input itself, and SlimSelect on its
+  // combobox and search box, so each closes its popup at the target phase — before
+  // our bubble-phase `close()` could see `.flatpickr-calendar.open` or
+  // `.ss-content.ss-open`. Sampling here in the capture phase (which runs before the
+  // target phase) records whether a popup was open so `close()` can defer to it.
   _recordPopupState = event => {
     if (event.key === 'Escape') {
-      this._escapeHadOpenPopup = Boolean(document.querySelector('.flatpickr-calendar.open'))
+      this._escapeHadOpenPopup = Boolean(document.querySelector('.flatpickr-calendar.open, .ss-content.ss-open'))
     }
   }
 
@@ -571,6 +620,7 @@ export class ModalController extends Controller {
     if (this.hasTemplateTarget) {
       this.templateTarget.removeEventListener('keydown', this.handleTabKey)
     }
+    this._focusGuard?.remove()
 
     // Restore focus to the element that triggered the modal
     if (this.previouslyFocusedElement) {

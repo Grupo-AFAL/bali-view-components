@@ -483,8 +483,10 @@ Content container with optional header, image, and actions.
 **Slots:**
 - `with_header(title:, subtitle:, icon:, icon_class:, **html_options)` - The full header row:
   an optional Lucide icon, the `<h2 class="card-title">`, an optional subtitle and a
-  `with_badge` slot. `icon_class` paints the icon **alone** — a class on the header would tint
-  the title with it too, because the SVG inherits `currentColor` from the wrapper.
+  `with_badge` slot. The badge sits at the far end of the row, and wraps below the title when
+  the two do not fit side by side. `icon_class` paints the icon **alone** — a class on the
+  header would tint the title with it too, because the SVG inherits `currentColor` from the
+  wrapper.
 - `with_title(text, **html_options)` - A bare `<h2 class="card-title">`, for a text-only title.
 - `with_image(src:, href:, alt:, figure_class:)`, `with_action(href:, class:)`.
 
@@ -2277,8 +2279,9 @@ User avatar display: an image when there is one, derived initials when there is 
 - `status` - `:online`, `:offline` presence indicator (default: nil)
 - `ring` - Ring color: `:primary`, `:secondary`, `:accent`, `:neutral`, `:success`, `:warning`, `:error`, `:info` (default: nil)
 
-**Initials rule:** first letter of the *first* and the *last* word — "Ana García López" → AL,
-"María de la Luz" → ML; a single word yields one letter. Unicode-aware upcase.
+**Initials rule:** first letter of the *first* and the *last* word that starts with a letter —
+"Ana García López" → AL, "María de la Luz" → ML, "Alberto Aprobador (demo)" → AA; a single such
+word yields one letter, and a name with none renders no initials. Unicode-aware upcase.
 
 **Deterministic color:** the name is hashed (`Bali::Utils::ColorCalculator#deterministic_color`)
 into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style — the same
@@ -2309,7 +2312,8 @@ Labels and status indicators.
 - `color` - `:neutral`, `:primary`, `:secondary`, `:accent`, `:ghost`, `:info`, `:success`, `:warning`, `:error` (default: nil, daisyUI's own)
 - `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: nil, which renders like `:md`)
 - `style` - `:outline`, `:soft`, `:dash` (default: nil)
-- `custom_color` - Hex string applied as an inline background, with the text color picked for contrast (default: nil)
+- `custom_color` - Hex string applied as an inline background, with black or white text, whichever has the higher WCAG contrast ratio (default: nil)
+- `text_color` - Hex text color, written inline: over the one `custom_color` picks, which a class such as `text-white` cannot beat, and over a `color` variant's own text too (default: nil)
 - `rounded` - Fully rounded pill (default: false)
 - `icon` - Icon name, drawn before the text at the pill's own font-size so it fits every badge size (default: nil)
 
@@ -2497,6 +2501,59 @@ canvas box instead of leaving a container-height hole.
 <% end %>
 ```
 
+#### CommentThread
+
+A list of comments — avatar, author, time, body and actions — and the form that adds to it.
+
+```erb
+<%= render Bali::CommentThread::Component.new(id: dom_id(story, :comments_list),
+                                              empty_text: t('.empty')) do |thread| %>
+  <% story.comments.each do |comment| %>
+    <% thread.with_comment(id: dom_id(comment), author: comment.user.name,
+                           timestamp: comment.created_at) do |c| %>
+      <%= markdown(comment.body) %>
+      <% c.with_action { button_to 'Delete', [story, comment], method: :delete } if policy(comment).destroy? %>
+    <% end %>
+  <% end %>
+  <% thread.with_form { render 'comments/form', story: } %>
+<% end %>
+```
+
+**`Bali::CommentThread::Component`**
+
+- `id` - DOM id of the `<ul>`, and the target of the host's streams (required)
+- `empty_text` - What the list says while it holds no comment (default: from the locale files)
+- `form_position` - `:bottom` or `:top`: where the `form` slot sits (default: `:bottom`)
+- `**options` - HTML attributes for the wrapper around the form and the list
+- `with_comment(**)` slot - One `Comment` below, built in place
+- `with_form` slot - The form; its fields, its route and its reset are the host's
+
+Whatever the block outputs also lands in the list, after the `with_comment` items. That is
+the way in for a host whose stream renders a partial: the page renders that same partial
+(`render partial: 'comments/comment', collection: @comments`) instead of `with_comment`.
+
+**The empty state never needs replacing.** It is an item of the list that shows only while
+it is the list's sole child, so the first comment and the last one come and go with the same
+streams as any other:
+
+```ruby
+turbo_stream.prepend dom_id(story, :comments_list), partial: 'comments/comment', locals: { comment: }
+turbo_stream.remove dom_id(comment)
+```
+
+**`Bali::CommentThread::Comment::Component`** — one comment, renderable on its own for a
+stream.
+
+- `author` - The commenter's name; the avatar derives its initials and colour from it
+- `timestamp` - When it was written
+- `relative` - `true` shows the distance ("5 minutes ago", `Bali::Timeago`) with the
+  `I18n.l(format: :short)` date in its tooltip; `false` shows that date itself (default: `true`)
+- `**options` - HTML attributes for the `<li>`: `id:` is what a `remove` stream targets
+- `with_action` slot - One per action (delete, …), beside the author
+
+The body is the block, rendered as given: escaping, Markdown and sanitising are the host's.
+The avatar is hidden from screen readers, because the name is printed beside it.
+
 #### DataTable
 
 Complete data table wrapper with filters, quick search, summary, and pagination. Integrates with `Bali::FilterForm` — when a `filter_form` is given, `with_filters_panel` auto-configures attributes, filter groups, and search.
@@ -2661,7 +2718,8 @@ subgroups; it is rendered only when both sides have content and hidden below the
 Four home groups back this: `left` (filters, group by, columns), `memory` (saved views,
 the filter-persistence bookmark), `host` (your `toolbar_buttons`) and `right` (the view
 switch, alone). Host buttons get their own group precisely so the view switch stays pinned
-to the edge: inside `right` the JS orders by priority and they landed to its right.
+to the edge: inside `right` the JS orders by priority and they landed to its right. A
+listing without a view switch pins the `host` group to the edge instead.
 Export is NOT a toolbar control — it lives in the page's `⋯` menu, see
 [Secondary page actions](#secondary-page-actions-and-export).
 
@@ -4637,6 +4695,21 @@ separately: the period select falls back to its blank option ("Any date"), while
 A filter with no caption, no `aria_label:` and no `blank:` to fall back on logs a `[Bali]`
 warning in development and test and renders anyway — a missing accessible name is not a
 reason to take a host's page down in production.
+
+#### A date's placeholder (`placeholder:`)
+
+A `date` or `date_range` filter repeats its caption as its placeholder unless it declares
+its own:
+
+```ruby
+filter_attribute :created_at, type: :date, input: :date_range, simple: true, advanced: false,
+  label: 'Requested on', placeholder: 'Select dates'
+```
+
+It takes a zero-arity proc like `label:`, for an I18n lookup that must not be frozen at
+class-load time, and instance-level `simple_filters:` hashes take the same key. It also fills
+the "Custom…" picker of a `presets:` range. No other widget reads it: `number_range` has
+`placeholder_min:`/`placeholder_max:`, and a select shows its `blank:`.
 
 #### Quick search (`search:`)
 

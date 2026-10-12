@@ -16,16 +16,18 @@
         <%# Quick search input with clear button %>
         <%= form_with url: url, method: :get, class: 'flex-1 min-w-0 sm:flex-initial', data: { turbo_stream: turbo_stream, turbo_action: 'replace', filters_target: 'searchForm' } do %>
           <%= preserved_params_hidden_fields %>
-          <%# The ACTIVE filters travel as hidden fields: without this, searching re-sent only
-              q[...search...] and the server took "empty attributes" as a new state — it wiped
-              the applied filters (and, with persistence on, the saved ones too). %>
+          <%# The APPLIED filters travel as hidden fields for the submit the filters controller
+              does not intercept (before it connects, or after a JS error): without them a
+              search sent only q[...search...] and the server took it as a new state — it wiped
+              the applied filters (and, with persistence on, the saved ones too). When the
+              controller does intercept, `_submit` replaces them with the URL it pushes. %>
           <%= active_filter_hidden_fields %>
           <%# `min-w-0` at all three levels: `sm:w-64` is the width the search WANTS, not a
               floor. Without this it could not shrink, and in a cramped toolbar (a DataTable
               with a sidebar) the field painted outside its box, on top of the controls next
               to it, instead of giving them width. %>
           <div class="join focus-within:ring-2 focus-within:ring-primary/20 rounded-lg w-full sm:w-auto min-w-0">
-            <label class="input input-bordered input-sm join-item <%= search_width %> min-w-0 flex items-center gap-2">
+            <label class="input input-sm join-item <%= search_width %> min-w-0 flex items-center gap-2">
               <%= tag.input(
                     type: "text",
                     name: search_field_name,

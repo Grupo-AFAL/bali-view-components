@@ -54,7 +54,7 @@
             from reach for `text_field_tag` here rather than a full form group. %>
         <%= text_field_tag :message, nil,
               placeholder: 'Write a message…',
-              class: 'input input-bordered flex-1',
+              class: 'input flex-1',
               autocomplete: 'off',
               aria: { label: 'Write a message' } %>
         <%= render Bali::Button::Component.new(

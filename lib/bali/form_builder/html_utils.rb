@@ -38,10 +38,11 @@ module Bali
         lg: "textarea-lg", xl: "textarea-xl"
       }.freeze
 
-      # daisyUI 5 dropped `label-text-alt`; `fieldset-label` is its successor for
-      # the messages under a control. Unlike `.label` — the other candidate — it
-      # is a block-level flex container with no `white-space: nowrap`, so a long
-      # validation message wraps instead of overflowing the fieldset.
+      # `fieldset-label` is daisyUI 5's class for the messages under a control
+      # (daisyUI 4's alt label class is gone). Unlike `.label` — the other
+      # candidate — it is a block-level flex container with no
+      # `white-space: nowrap`, so a long validation message wraps instead of
+      # overflowing the fieldset.
       #
       # The help's grey is not daisyUI's `/60`: bali/utilities.css lifts every
       # `.fieldset-label` to `/70`. On the page `text-error` read 2.75:1 on `afal` (AA
@@ -215,7 +216,7 @@ module Bali
       # The mark a required field's caption carries: an asterisk for the eye, hidden
       # from the reader, and a word for the reader. `required:` is a plain attribute
       # the builder forwards to the control, and on the families whose control cannot
-      # carry it — a hidden file input, SlimSelect's clipped `<select>` — the call
+      # carry it — SlimSelect's clipped `<select>`, a widget over a hidden field — the call
       # site's intent used to reach nothing the user could see; on the rest it showed
       # only once the browser complained. The native attribute already announces
       # "required" where it exists, so the hidden word is the only announcement

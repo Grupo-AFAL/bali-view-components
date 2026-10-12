@@ -64,15 +64,14 @@
                   Without it, `f.text_field` came out wrapped in a `div.control` with the `input`
                   class repeated and `f.submit` as a `<button>`, losing the POST's `name="commit"`
                   (#1137). The `data-disable-with` comes back with the `<input>` but does not count
-                  as an argument: rails-ujs reads it and none of the six apps has it. Moving these
-                  forms to the Bali builder's idiom is another discussion, set aside for v4 (#903). %>
+                  as an argument: rails-ujs reads it and none of the six apps has it. %>
               <%= form_with url: view_url(view), method: :patch, class: 'flex gap-1 p-1',
                     builder: ActionView::Helpers::FormBuilder do |f| %>
                 <%# Explicit id per view: N rename forms + the save one generated N+1 duplicate
                     "name" ids (invalid HTML, confused autofill). %>
                 <%= f.text_field :name, value: view.name, required: true,
                       id: "saved-view-name-#{view.id}",
-                      class: 'input input-bordered input-xs grow' %>
+                      class: 'input input-xs grow' %>
                 <%= f.submit t('.save'), class: 'btn btn-primary btn-xs' %>
               <% end %>
             </li>
@@ -109,7 +108,7 @@
                 data: { action: 'submit->saved-views#injectColumns' } do |f| %>
             <%= f.text_field :name, placeholder: t('.name_placeholder'), required: true,
                   id: nil,
-                  class: 'input input-bordered input-sm grow' %>
+                  class: 'input input-sm grow' %>
             <%= f.hidden_field :payload, value: payload_json, data: { saved_views_target: 'payload' } %>
             <%= f.submit t('.save'), class: 'btn btn-primary btn-sm' %>
           <% end %>

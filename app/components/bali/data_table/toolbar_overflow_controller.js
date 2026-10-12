@@ -244,10 +244,15 @@ export default class extends Controller {
       .sort((a, b) => this.priorityOf(b) - this.priorityOf(a))
   }
 
+  // Only what is out of place moves. Moving a node disconnects and reconnects every controller
+  // inside it, and this runs on every `apply()` and on `turbo:before-cache`: re-appending the
+  // whole group reconnected the filters' datepicker just as Turbo left the page (#1415).
   sortByPriority (group) {
     Array.from(group.children)
       .sort((a, b) => this.priorityOf(b) - this.priorityOf(a))
-      .forEach(item => group.appendChild(item))
+      .forEach((item, index) => {
+        if (group.children[index] !== item) group.insertBefore(item, group.children[index])
+      })
   }
 
   homeGroupFor (item) {

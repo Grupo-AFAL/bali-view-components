@@ -504,6 +504,15 @@ nothing. The markers are SlimSelect's and are written without Rails' `%`:
 <%= f.slim_select_group :room_ids, rooms, multiple: true, max_values_message: "{number} rooms" %>
 ```
 
+A SlimSelect written by hand — a `div[data-controller="slim-select"]` in the view, outside
+the builder — gets none of these written on it, and the controller falls back to the same
+`en` and `es` strings, picked by the page's `lang` (`<html lang="es">`). A page without
+`lang`, or in another language, reads English; a host override of these keys reaches only
+the builder. A `data-slim-select-*-value` written on the element still wins, named after the
+option — `no_results_text` is `data-slim-select-no-results-text-value` — for every option
+in the table but `select_all_text` and `deselect_all_text`: those two label buttons the
+builder renders itself, and the controller has no value for them.
+
 **AJAX Options:**
 - `ajax_url` - URL to fetch options
 - `ajax_param_name` - Query parameter name (default: "q")
@@ -714,11 +723,11 @@ The text under the control is `help:`. See
 [Non-model forms](#non-model-forms) for `input_name:`, which is what names the input on a
 form with no model behind it.
 
-`required:` marks the caption with an asterisk and is dropped from the input: the native
-input is hidden behind the button, and a hidden control the browser cannot focus turns
-`reportValidity()` into a silent `false` — the submit button stops working with no message
-(#1125). Validate presence on the model as well; see
-[`required:`](#required-is-a-plain-html-passthrough--and-not-every-family-has-a-control-to-put-it-on).
+The native input sits invisible over the button: Tab reaches it, Enter or Space opens the
+picker, and the button shows the focus ring. `required:` reaches the input and marks the
+caption, and the browser's message points at the button. No browser fills a file input back
+in, so an edit form whose record already has its file leaves `required:` off; validate
+presence on the model as well.
 
 ### direct_upload_group
 
@@ -1153,22 +1162,13 @@ real association to render at all and is left unswept by name.
 
 `required:` is not a Bali option: it reaches the control as the HTML attribute on the
 families whose control is a native input (`text_*`, `email_*`, `number_*`, `date_*`,
-`select_*`, `boolean_*`, `switch_*`, and the rest of the native-control families), and
-is **dropped silently** by the families whose visible control is a widget over a hidden
-field — `slim_select_*`, `file_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
+`select_*`, `boolean_*`, `switch_*`, `file_*`, and the rest of the native-control families),
+and is **dropped silently** by the families whose visible control is a widget over a hidden
+field — `slim_select_*`, `radio_*`, `radio_buttons_*`, `rich_text_*`,
 `block_editor_*`, `rich_text_area_*`, `coordinates_polygon_*`,
 `recurrent_event_rule_*`, `direct_upload_*`, `time_period_*` and the submit pair. A
 `required` on a `type="hidden"` input would either do nothing or, worse, make the form
 unsubmittable, so those families need a model validation instead of the attribute.
-
-`file_*` is on the dropped side for the "worse" reason, and it is worth knowing why: its
-control is a real `<input type="file">`, but the family hides it (`display: none`) and
-draws a button in its place. The browser still validates a hidden control and can never
-focus it, so `form.reportValidity()` — which is what a `submit_group(..., drawer: true)`
-calls — returns false, shows no bubble, and logs "An invalid form control with name='…' is
-not focusable". The submit button went mute: no request, no message (#1125). The attribute
-is not emitted now; validate presence on the model and let `error_summary` say so after
-the 422.
 
 **Whichever camp the family is in, the caption says so.** `required: true` — at the top
 level, or in `html:` on the families that take one — appends a red asterisk to the
@@ -1200,6 +1200,40 @@ Both are honoured by every family whose control is a native named input, and by 
 three families whose control is a widget over a hidden field — the hidden field is what
 the form submits, so that is what gets renamed. An explicit `name:` / `id:` still wins
 over either.
+
+**Without `scope:` there is nothing to escape.** `form_with url:` alone names each control
+after its method, and a string method is the name as written — so a filter form needs no
+hand-written SlimSelect. The builder's texts follow `I18n.locale` and any override of
+`bali_view.form_builder.slim_select`, where a hand-written one only knows the page's `lang`,
+and on a flat list `include_blank:` / `prompt:` become SlimSelect's placeholder instead of
+an option:
+
+```erb
+<%= form_with url: stores_path, method: :get do |f| %>
+  <%= f.slim_select_field :store_id, stores, include_blank: true %>
+  <%= f.slim_select_field "q[region_eq]", regions %>
+<% end %>
+<%# => <select id="store_id" name="store_id"> and <select name="q[region_eq]"> %>
+```
+
+**A slot that hands you no builder** — `BulkActions`' `with_control`, drawn inside the
+action's own form — gets one from `fields`, which emits no second `<form>`. Its
+`namespace:` prefixes the ids, so two actions mounting the same control do not repeat one:
+
+```erb
+<% action.with_control do %>
+  <%= fields namespace: "bulk_store" do |f| %>
+    <%= f.slim_select_field :value, stores, control_class: "w-56", html: { "aria-label": "Store" } %>
+  <% end %>
+<% end %>
+<%# => <div class="control w-56"> … <select id="bulk_store_value" name="value"> %>
+```
+
+The width goes on the box, through `control_class:`, as on every family. In a flex row like
+that slot the widget sizes to its content — 108px for two short names — so it takes a `w-*`,
+which gives 224px there, where a `max-w-*` only caps those 108px. A bare `w-*` is safe here
+because SlimSelect's `.control` carries no `w-full` to lose to. `html: { class: }` lands on
+the `<select>`, which SlimSelect clips to 1×1, so a width there changes nothing.
 
 **A form that does have a model can still render a value that is not one of its
 attributes** — a jsonb leaf, a threshold in a nested config, anything travelling
