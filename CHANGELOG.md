@@ -32,11 +32,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Filters: lo que el panel pide y empuja ya no arrastra `saved_view` ni `clear_*` de `url:`.**
-  «Aplicar» y «Limpiar» partían de la query de `url:` tal cual, mientras los campos ocultos ya
-  descartaban `q`, `clear_filters`, `clear_search` y `saved_view`: un `saved_view` reenviado
-  vuelve a aplicar la vista sobre lo que el usuario acaba de editar. Ahora los dos lados
-  descartan las mismas llaves. Sólo afecta a un anfitrión cuyo `url:` trae esa query.
+- **Filters y SimpleFilters: ninguna URL que arman arrastra ya `saved_view`, `clear_*` ni `q[...]`
+  de la query de `url:`.** «Aplicar» llevaba `saved_view`, `clear_filters` y `clear_search` (los
+  `q[...]` ya los quitaba). «Limpiar», la ✕ de la búsqueda, «Limpiar todo» de las etiquetas y
+  «Limpiar» de SimpleFilters llevaban además los `q[...]`: un filtro escrito en `url:` sobrevivía
+  a la limpieza, un `saved_view` volvía a aplicar la vista, y un `clear_filters` en `url:` hacía
+  que la ✕ de la búsqueda borrara también los filtros. Ahora todas parten de los campos ocultos,
+  que filtra una sola lista (`PreservedParams::EXCLUDED_PARAMS`); los dos enlaces de limpiar,
+  de `clear_filters_url`, que reemplaza a `AppliedTags#clear_all_url` y a
+  `SimpleFilters#clear_href` (ninguna app los llama). Sólo afecta a un anfitrión cuyo `url:`
+  trae esa query.
 
 - **`Filters` acepta `filter_form:` y conserva el OR entre grupos.** Dibujado fuera de un DataTable
   sin `combinator:`, sobre un estado `q[m]=or`, el panel pintaba AND y «Aplicar» enviaba

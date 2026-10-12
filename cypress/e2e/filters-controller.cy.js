@@ -212,16 +212,15 @@ describe('FiltersController', () => {
       })
     })
 
-    // `url:` can carry what PreservedParams::EXCLUDED_PARAMS keeps out of the hidden fields, and
-    // the controller builds on `url:` too: re-sent, `saved_view` re-applies its payload over the
-    // user's edit, and a `clear_*` wipes what is being applied.
+    // A listing `url:` can carry what PreservedParams::EXCLUDED_PARAMS keeps out of the hidden
+    // fields, and the controller used to build on that query too: re-sent, `saved_view`
+    // re-applies its payload over the user's edit, and a `clear_*` wipes what is being applied.
     context('over a listing URL with params no request may take over', () => {
       const excluded = ['saved_view', 'clear_search', 'q[name_cont]']
       const listing = '/lookbook/preview/bali/filters/default?saved_view=3&clear_filters=true&clear_search=true&q[name_cont]=x&view=grid'
 
       beforeEach(() => {
-        cy.visit('/bali/filters/default')
-        cy.get('[data-controller="filters"]').invoke('attr', 'data-filters-url-value', listing)
+        cy.visit(`/bali/filters/default?url=${encodeURIComponent(listing)}`)
         openPanel()
       })
 

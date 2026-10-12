@@ -4,7 +4,7 @@ module Bali
   module Filters
     module AppliedTags
       class Component < ApplicationViewComponent
-        include Utils::Url
+        include Bali::Filters::PreservedParams
 
         attr_reader :filter_groups, :available_attributes, :url
 
@@ -12,6 +12,7 @@ module Bali
           @filter_groups = filter_groups || []
           @available_attributes = available_attributes
           @url = url
+          @preserved_params = {}
           @options = options
         end
 
@@ -21,10 +22,6 @@ module Bali
 
         def any_filters?
           applied_filters.any?
-        end
-
-        def clear_all_url
-          add_query_param(url, :clear_filters, true)
         end
 
         private

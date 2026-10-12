@@ -33,11 +33,8 @@ export class ConditionController extends Controller {
   // Whether a value was ever chosen for the attribute currently selected.
   everHadValue = false
 
-  /**
-   * Getter for translations with fallback to empty object
-   */
   get t () {
-    return this.translationsValue || {}
+    return this.translationsValue
   }
 
   connect () {
@@ -669,6 +666,8 @@ export class ConditionController extends Controller {
     `
   }
 
+  // The searchable select filters/condition/component.html.erb draws, attribute for attribute:
+  // change both.
   buildSelectInput (fieldName, options) {
     const placeholder = this.escapeHtml(this.t.placeholders.select)
     const { deselect, remove, results_count: resultsCount } = this.t.slim_select

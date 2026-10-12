@@ -101,7 +101,8 @@
           </div>
         <% else %>
           <%# Single searchable select for "is" / "is not" (SlimSelect).
-              slim-select-sm matches the select-sm height of the field/operator selects. %>
+              slim-select-sm matches the select-sm height of the field/operator selects.
+              condition_controller.js#buildSelectInput builds this same widget: change both. %>
           <div class="w-full slim-select-sm" data-controller="slim-select"
                data-slim-select-allow-deselect-option-value="true"
                data-slim-select-placeholder-value="<%= t('bali_view.filters.placeholders.select') %>"

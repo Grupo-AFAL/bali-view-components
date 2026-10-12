@@ -22,6 +22,16 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector('[data-controller="filters"]')
   end
 
+  # filters_controller.js builds the divider between groups from these, with no fallback of its own.
+  def test_translations_carry_every_text_the_controller_reads
+    render_inline(Bali::Filters::Component.new(url: "/users", available_attributes: @available_attributes))
+    translations = JSON.parse(page.find('[data-controller="filters"]')["data-filters-translations-value"])
+    reads = translation_paths_read_by("app/components/bali/filters/controllers/filters_controller.js")
+
+    assert_includes reads, %w[combinators and]
+    assert_empty reads.reject { |path| translations.dig(*path).present? }
+  end
+
   def test_rendering_renders_a_filter_group_by_default
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes
@@ -470,16 +480,6 @@ class BaliFiltersComponentTest < ComponentTestCase
 
     assert_includes names, "per"
     assert_not_includes names, "saved_view"
-  end
-
-  # The hidden fields and the URL filters_controller.js pushes are built from the same `url:`,
-  # each on its own side. cypress/e2e/filters-controller.cy.js reads what the JS one drops.
-  def test_the_controller_drops_the_params_the_hidden_fields_leave_out
-    source = Bali::Engine.root.join("app/components/bali/filters/controllers/filters_controller.js").read
-    list = source[/^const EXCLUDED_PARAMS = \[(.*)\]$/, 1]
-    refute_nil list, "filters_controller.js no longer declares EXCLUDED_PARAMS"
-
-    assert_equal Bali::Filters::PreservedParams::EXCLUDED_PARAMS, list.scan(/'([^']+)'/).flatten
   end
 
   # --- The localised tooltips live on the controller's ELEMENT ---

@@ -13,11 +13,6 @@ const PORTALED_POPUPS = '.flatpickr-calendar, .ss-content'
 const PANEL_SHIFT_PROPERTY = '--bali-filters-panel-shift'
 const VIEWPORT_GUTTER = 16
 
-// What the `url:` query may carry and no request may take over:
-// Bali::Filters::PreservedParams::EXCLUDED_PARAMS, which keeps the same keys out of the hidden
-// fields. `q` stands for every `q[...]` key.
-const EXCLUDED_PARAMS = ['q', 'clear_filters', 'clear_search', 'saved_view']
-
 /**
  * Main controller for the Filters component.
  * Handles adding/removing groups, form submission, and URL management.
@@ -49,11 +44,8 @@ export class FiltersController extends Controller {
     translations: { type: Object, default: {} }
   }
 
-  /**
-   * Getter for translations with fallback to empty object
-   */
   get t () {
-    return this.translationsValue || {}
+    return this.translationsValue
   }
 
   groupIndex = 0
@@ -420,9 +412,8 @@ export class FiltersController extends Controller {
 
   /**
    * The listing's base URL WITH the params that have to survive clearing (the display mode,
-   * the grouping, and any `preserved_params` from the host). `urlValue` arrives with no query
-   * string, so building the URL out of it alone dropped those params: clearing the search
-   * while on cards sent the user back to the table. They live as hidden fields of the form;
+   * the grouping, and any `preserved_params` from the host): clearing the search while on
+   * cards used to send the user back to the table. They live as hidden fields of the form;
    * the `q[...]` ones stay out because they are exactly what is being cleared.
    */
   preservedParamsUrl () {
@@ -440,12 +431,11 @@ export class FiltersController extends Controller {
     return url
   }
 
+  // `url:` without its query: what of it may travel is already in the forms, as the hidden
+  // fields Bali::Filters::PreservedParams writes — `saved_view`, `clear_*` and `q[...]` left out.
   listingUrl () {
     const url = new URL(this.urlValue, window.location.origin)
-    for (const key of [...url.searchParams.keys()]) {
-      if (EXCLUDED_PARAMS.includes(key.split('[')[0])) url.searchParams.delete(key)
-    }
-
+    url.search = ''
     return url
   }
 
@@ -464,20 +454,8 @@ export class FiltersController extends Controller {
       ? new FormData(this.searchFormTarget)
       : new FormData()
 
-    // `urlValue` is the listing's URL and can already carry the very params both forms
-    // paint as hidden fields (`locale`, `group_by`, `view`), so appending them left the
-    // pushed URL saying `?locale=es&locale=es`. The server keeps one, but that URL is the
-    // one the user copies. The FIRST write of a key drops whatever the base URL held for
-    // it; the writes after it append, so a multi-value field keeps all of its values.
-    const written = new Set()
     const append = (key, value) => {
-      if (!value || value.trim() === '') return
-
-      if (!written.has(key)) {
-        url.searchParams.delete(key)
-        written.add(key)
-      }
-      url.searchParams.append(key, value)
+      if (value && value.trim() !== '') url.searchParams.append(key, value)
     }
 
     // Add form params (only non-empty values)
@@ -549,11 +527,8 @@ export class FiltersController extends Controller {
         ? 'or'
         : 'and'
 
-    // Get translated labels with fallbacks
-    const andLabel = this.t.combinators?.and || 'AND'
-    const orLabel = this.t.combinators?.or || 'OR'
-
-    const toggleLabel = this.t.combinator_toggle || 'Combine conditions with'
+    const { and: andLabel, or: orLabel } = this.t.combinators
+    const toggleLabel = this.t.combinator_toggle
     const divider = document.createElement('div')
     divider.className = 'flex items-center justify-center gap-2 my-2'
     divider.innerHTML = `
