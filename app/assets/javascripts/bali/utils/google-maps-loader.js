@@ -51,3 +51,9 @@ export default function (options = {}) {
     api.then(resolve, reject).finally(() => clearTimeout(timeoutId))
   })
 }
+
+// The script's own load, with no timeout: a caller that gave up waits on it to build once the
+// API arrives. Null when nothing is loading, or when the script failed.
+export function googleMapsApi () {
+  return api
+}

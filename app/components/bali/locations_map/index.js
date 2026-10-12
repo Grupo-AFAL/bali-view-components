@@ -22,18 +22,23 @@ export class LocationsMapController extends Controller {
   async connect () {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
 
-    const { default: GoogleMapsLoader } = await import('../../../assets/javascripts/bali/utils/google-maps-loader.js')
+    const { default: GoogleMapsLoader, googleMapsApi } = await import('../../../assets/javascripts/bali/utils/google-maps-loader.js')
     const clusterer = await import('@googlemaps/markerclusterer')
       .catch(optionalPeer('@googlemaps/markerclusterer'))
     if (!clusterer) return
     this.MarkerClusterer = clusterer.MarkerClusterer
 
     try {
+      // A timeout is this call giving up, not the script: the map builds once it arrives.
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['drawing'],
         language: this.localeValue,
         key: this.apiKeyValue
+      }).catch(error => {
+        console.error(error)
+        return googleMapsApi()
       })
+      if (!this.googleMaps) return
 
       this.googleMarkers = await this.googleMaps.importLibrary('marker')
       // Removed during the await, nothing would destroy it; moved, the other connect builds it.

@@ -21,16 +21,20 @@ export class DrawingMapsController extends Controller {
   async connect () {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
 
-    const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
+    const { default: GoogleMapsLoader, googleMapsApi } = await import('../utils/google-maps-loader.js')
 
     try {
+      // A timeout is this call giving up, not the script: the map builds once it arrives.
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['drawing', 'geometry'],
         language: 'es',
         key: this.data.get('key')
+      }).catch(error => {
+        console.error(error)
+        return googleMapsApi()
       })
       // Removed during the await, nothing would destroy it; moved, the other connect builds it.
-      if (this.map || !this.element.isConnected) return
+      if (!this.googleMaps || this.map || !this.element.isConnected) return
 
       this.drawnPolygons = []
 

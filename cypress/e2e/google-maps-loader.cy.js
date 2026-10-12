@@ -53,6 +53,20 @@ describe('Google Maps loader', () => {
     cy.get(SCRIPT).should('have.length', 1)
   })
 
+  // Taken out and put back while the script loads, the map has two connects waiting on it, and
+  // each built a map in the same element with every marker on it.
+  it('builds one map when it reconnects while the script loads', () => {
+    stubGoogleMaps({ delay: 2000 })
+    visitAndMountMap()
+    cy.get(SCRIPT)
+    cy.window().should((win) => expect(win.__fakeMaps, 'still loading').to.eq(undefined))
+
+    reconnect()
+
+    mapBuilt()
+    cy.window().its('__fakeMaps.registry.markers').should('have.length', 6)
+  })
+
   // A timeout is the caller giving up, not the script: it still runs once it arrives, and a new
   // one would load a second copy of the API over it.
   describe('when the script outlives the timeout', () => {
@@ -73,6 +87,22 @@ describe('Google Maps loader', () => {
       mapBuilt()
       cy.get('@mapsApi.all').should('have.length', 1)
       cy.get(SCRIPT).should('have.length', 1)
+    })
+
+    // The map that gave up builds itself once the script arrives: before, it stayed an empty box
+    // until something reconnected it.
+    it('builds the map once the script arrives', () => {
+      mapBuilt()
+      cy.window().its('__fakeMaps.registry.markers').should('have.length', 6)
+    })
+
+    it('builds nothing for a map that left the page before the script arrived', () => {
+      cy.get('[data-controller="locations-map"]').then(([element]) => element.remove())
+
+      // The stub defines `__fakeMaps` and calls the loader back in the same task, so a build
+      // would already be in the registry here.
+      cy.window().its('__fakeMaps').should('exist')
+      cy.window().its('__fakeMaps.registry.maps').should('have.length', 0)
     })
 
     it('hands it to the next call once it has arrived', () => {

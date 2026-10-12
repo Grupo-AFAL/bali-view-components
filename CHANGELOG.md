@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   un HoverCard. SortableList, los mapas y `autocomplete-address`, cuyo `disconnect()` nunca
   destruyó su instancia, ahora la reutilizan al reconectarse en vez de apilar otra.
 
+- **Un mapa de Google cuyo script llega después del timeout se construye al llegar (#1409).**
+  LocationsMap, `geocoder-maps`, `drawing-maps` y `autocomplete-address` no se construían nunca
+  si el script de Google tardaba más que los 10 s del loader; ahora registran el timeout
+  igual que antes y construyen una sola vez cuando el script llega, si siguen en la página. Un
+  mapa reconectado mientras el script carga ya no construye dos mapas en el mismo elemento.
+
 - **El ⋯ de la barra del DataTable sólo mueve lo que cambia de lugar (#1409).** Cada recálculo
   sacaba a la fila todo lo que estaba en el ⋯ y lo volvía a meter, así que cada controlador de
   esos controles se reconectaba dos veces por recálculo; ahora ninguno. Por encima del
