@@ -18,19 +18,27 @@ export class DrawingMapsController extends Controller {
     confirmationMessageToClear: { type: String, default: 'Would you like to continue?' }
   }
 
+  // Not with the map: «Clear» and «Clear holes» sit beside it in the form and work before the
+  // script has arrived.
+  initialize () {
+    this.drawnPolygons = []
+  }
+
   async connect () {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
 
     const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
 
-    this.drawnPolygons = []
-
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['geometry'],
         language: 'es',
-        key: this.data.get('key')
+        key: this.data.get('key'),
+        // No deadline: a script that arrives late still builds.
+        timeout: 0
       })
+      // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+      if (this.map || !this.element.isConnected) return
 
       const polygonOptions = {
         fillColor: '#eaeaea',
@@ -210,6 +218,8 @@ export class DrawingMapsController extends Controller {
   }
 
   clearHoles = () => {
+    // With no map nothing is drawn yet, and storing that would erase the shells in the field.
+    if (!this.map) return
     if (!window.confirm(this.confirmationMessageToClearValue)) return
 
     const shells = this.drawnPolygons.map(polygon => {

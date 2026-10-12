@@ -15,7 +15,8 @@ export class CarouselController extends Controller {
 
   async connect () {
     const glide = await import('@glidejs/glide').catch(optionalPeer('@glidejs/glide'))
-    if (!glide) return
+    // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+    if (!glide || this.glide || !this.element.isConnected) return
     const { default: Glide } = glide
 
     const options = {
@@ -47,6 +48,7 @@ export class CarouselController extends Controller {
     if (!this.glide) return
 
     this.glide.destroy()
+    this.glide = null
   }
 
   // Glide moves a class onto the active bullet and touches nothing else. The

@@ -24,7 +24,8 @@ export class SortableListController extends Controller {
     this.setupKeyboardReordering()
 
     const sortablejs = await import('sortablejs').catch(optionalPeer('sortablejs'))
-    if (!sortablejs) return
+    // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+    if (!sortablejs || this.sortable || !this.element.isConnected) return
     const { default: Sortable } = sortablejs
 
     this.sortable = new Sortable(this.element, {

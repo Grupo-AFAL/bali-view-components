@@ -23,6 +23,10 @@
     <%= render Bali::Button::Component.new(name: 'Import', variant: :ghost, size: :sm,
                                            icon: 'upload', responsive: false) %>
   <% end %>
+  <% c.with_toolbar_button do %>
+    <%= render Bali::Button::Component.new(name: 'Export', variant: :ghost, size: :sm,
+                                           icon: 'download', responsive: false) %>
+  <% end %>
 
   <% c.with_table do %>
     <%# No `id:`: the listing's identity lives in the DataTable (`#toolbar-demo table`). %>

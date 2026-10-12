@@ -34,10 +34,11 @@ export class TooltipController extends Controller {
 
     const tippyModule = await import('tippy.js').catch(optionalPeer('tippy.js'))
     // A node moved while this awaits is disconnected and connected again, and both connects
-    // resume here. Inside the DataTable toolbar, whose overflow controller re-appends every
-    // item on its own connect, that built two tippys on one trigger: two balloons per hover,
-    // measured on `data_table/with_filter_persistence` (#1392).
-    if (!tippyModule || this.tippy) return
+    // resume here. Inside the DataTable toolbar, whose overflow controller moves items into the
+    // ⋯ on its own connect, that built two tippys on one trigger: two balloons per hover,
+    // measured on `data_table/with_filter_persistence` (#1392). One removed has already had its
+    // disconnect(), with nothing to destroy yet.
+    if (!tippyModule || this.tippy || !this.element.isConnected) return
     const { default: tippy } = tippyModule
 
     // Reached from outside: filter-persistence-controller.js (updateTooltip) rewrites the `content`

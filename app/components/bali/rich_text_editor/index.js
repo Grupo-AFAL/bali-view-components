@@ -48,6 +48,8 @@ export class RichTextEditorController extends Controller {
     const { ImageExtensions } = await useImage(this)
 
     const { SlashCommandsExtension } = await useSlashCommands(this)
+    // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+    if (this.editor || !this.element.isConnected) return
 
     this.editor = new Editor({
       element: this.element,
@@ -80,6 +82,7 @@ export class RichTextEditorController extends Controller {
 
   disconnect () {
     this.editor?.destroy()
+    this.editor = null
   }
 
   onUpdate = ({ editor }) => {

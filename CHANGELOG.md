@@ -39,6 +39,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Un control movido o quitado de la página mientras carga su dependencia ya no deja una
+  instancia montada (#1409).** Tooltip, HoverCard, Dropdown con `popover: true`, Carousel,
+  SortableList, RichTextEditor, QrScanner, LocationsMap y `geocoder-maps`, `drawing-maps` y
+  `autocomplete-address` montaban después del `await` de su `connect()` aunque el elemento ya no
+  estuviera en la página, y uno movido en ese lapso montaba dos veces: dos tarjetas por hover en
+  un HoverCard. A QrScanner le faltaba sólo el movimiento (la remoción ya la cubría su
+  `this.active`) y a Tooltip sólo la remoción (el movimiento lo cubría desde #1392); a los demás,
+  las dos. SortableList, los mapas y `autocomplete-address`, cuyo `disconnect()` nunca destruyó
+  su instancia, ahora la reutilizan al reconectarse en vez de apilar otra.
+
+- **Un mapa de Google cuyo script llega después del timeout se construye al llegar (#1409).**
+  LocationsMap, `geocoder-maps`, `drawing-maps` y `autocomplete-address` no se construían nunca
+  si el script de Google tardaba más que los 10 s del loader; ahora piden la API sin plazo
+  (`timeout: 0`) y construyen una sola vez cuando el script llega, si siguen en la página, así
+  que ya no registran «Timed out loading the Google Maps API» a los 10 s. Un script que falla
+  sigue registrando su error. Un mapa reconectado mientras el script carga ya
+  no construye dos mapas en el mismo elemento.
+
+- **El ⋯ de la barra del DataTable sólo mueve lo que cambia de lugar (#1409).** Cada recálculo
+  sacaba a la fila todo lo que estaba en el ⋯ y lo volvía a meter, así que cada controlador de
+  esos controles se reconectaba dos veces por recálculo; ahora ninguno, y un recálculo que no
+  mueve nada ya no cierra el dropdown que estaba abierto. Por encima del
+  breakpoint el ⋯ además listaba los controles al revés de la barra; ahora en su orden, como ya
+  lo hacía en el teléfono, también entre dos botones de `with_toolbar_button`, que comparten
+  prioridad y además volvían a la fila invertidos. Esos botones pasan de ser lo primero del ⋯ a
+  lo último: 31 llamadas en 28 vistas de afal-apps y una de gobierno-corporativo.
+
 - **Google Maps: una llamada al loader después de la primera recibe las bibliotecas que pide**
   (#1409). La API se carga una vez por página, con las opciones de la primera llamada, y
   `loadGoogleMapsApi` ignoraba en silencio lo que pedían las siguientes: un `autocomplete-address`

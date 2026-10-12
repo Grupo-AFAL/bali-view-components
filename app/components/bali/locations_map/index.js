@@ -31,10 +31,14 @@ export class LocationsMapController extends Controller {
     try {
       this.googleMaps = await GoogleMapsLoader({
         language: this.localeValue,
-        key: this.apiKeyValue
+        key: this.apiKeyValue,
+        // No deadline: a script that arrives late still builds.
+        timeout: 0
       })
 
       this.googleMarkers = await this.googleMaps.importLibrary('marker')
+      // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+      if (this.map || !this.element.isConnected) return
 
       this.loadLocations()
       this.initializeMap()

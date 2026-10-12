@@ -147,10 +147,7 @@ export default class extends Controller {
   apply (narrow) {
     const focused = this.focusedControl()
 
-    this.closeOpenDropdowns()
-    // Always start from the whole row: collapsing is incremental and without expanding first,
-    // widening would never give anything back.
-    this.expand()
+    this.groupTargets.forEach(group => this.sortByPriority(group))
     this.sync()
 
     if (narrow) {
@@ -174,9 +171,14 @@ export default class extends Controller {
   collapseAll () {
     if (!this.hasMenuTarget) return
 
-    this.collapsibleItems(this.narrowThresholdValue)
+    const collapsing = this.collapsibleItems(this.narrowThresholdValue)
+    this.collapsedItems()
+      .filter(item => !collapsing.includes(item))
+      .forEach(item => this.restore(item))
+    collapsing
+      .reverse()
       .filter(item => !this.menuTarget.contains(item))
-      .forEach(item => this.menuTarget.appendChild(item))
+      .forEach(item => this.fold(item))
   }
 
   /**
@@ -184,16 +186,41 @@ export default class extends Controller {
    * stops being a mobile mode and becomes the valve for any width. Each move re-syncs before
    * measuring again because the ⋯ itself takes up room and a group left empty hides, giving
    * back its `gap`.
+   *
+   * The row is not expanded to measure it again: a move reconnects every controller inside the
+   * item, twice for each one that went back into the ⋯. What the ⋯ holds comes back highest
+   * first, and only while the row has the width it gave up on its way in — measured then, the
+   * one moment it was in the row. One that comes back on a stale width overflows the row and
+   * is the first collapsed again below.
    */
   collapseUntilItFits () {
     if (!this.hasMenuTarget) return
 
-    for (const item of this.collapsibleItems(this.thresholdValue).reverse()) {
-      if (!this.overflowing()) return
+    for (const item of this.collapsedItems()) {
+      if (this.priorityOf(item) < this.thresholdValue && !this.fitsBack(item)) break
 
-      this.menuTarget.appendChild(item)
+      this.restore(item)
       this.sync()
     }
+
+    for (const item of this.collapsibleItems(this.thresholdValue).reverse()) {
+      if (!this.overflowing()) return
+      if (!this.menuTarget.contains(item)) this.collapse(item)
+    }
+  }
+
+  collapse (item) {
+    const required = this.requiredWidth()
+
+    this.fold(item)
+    this.sync()
+    item.dataset.toolbarOverflowWidth = required - this.requiredWidth()
+  }
+
+  fitsBack (item) {
+    const width = Number(item.dataset.toolbarOverflowWidth) || 0
+
+    return this.requiredWidth() + width <= this.availableWidth() + 0.5
   }
 
   /**
@@ -224,29 +251,44 @@ export default class extends Controller {
   }
 
   expand () {
-    if (this.hasMenuTarget) {
-      this.itemTargets
-        .filter(item => this.menuTarget.contains(item))
-        .forEach(item => this.homeGroupFor(item)?.appendChild(item))
-    }
-
-    // Reordering by priority is what makes remembering the original position unnecessary.
-    this.groupTargets.forEach(group => this.sortByPriority(group))
+    if (this.hasMenuTarget) this.collapsedItems().forEach(item => this.restore(item))
   }
 
-  // Sorted from highest to lowest so that inside the ⋯ the reading order is the same as the
-  // toolbar's. It holds because the priorities descend following the row (see
-  // OVERFLOW_PRIORITIES); renumbering them without looking at the layout breaks this
-  // correspondence without anything failing.
+  restore (item) {
+    const home = this.homeGroupFor(item)
+    if (home) this.place(item, home, child => this.priorityOf(child) < this.priorityOf(item))
+  }
+
+  // Lowest priority first, and of two at the same priority the later in the row first, so
+  // before its equals: the ⋯ keeps the row's order, and what entered last leaves first, with
+  // the width it measured on the way in still true.
+  fold (item) {
+    this.place(item, this.menuTarget, child => this.priorityOf(child) <= this.priorityOf(item))
+  }
+
+  // Highest priority first, as `place` keeps the ⋯.
+  collapsedItems () {
+    return this.itemTargets.filter(item => this.menuTarget.contains(item))
+  }
+
   collapsibleItems (threshold) {
     return this.itemTargets
       .filter(item => this.priorityOf(item) < threshold)
       .sort((a, b) => this.priorityOf(b) - this.priorityOf(a))
   }
 
+  // Straight into its rank, highest priority first, so that the item moves once and no
+  // position has to be remembered. Inside the ⋯ that gives the toolbar's reading order
+  // because the priorities descend following the row (see OVERFLOW_PRIORITIES); renumbering
+  // them without looking at the layout breaks this correspondence without anything failing.
+  place (item, container, goesBefore) {
+    this.closeOpenDropdowns()
+    container.insertBefore(item, Array.from(container.children).find(goesBefore) ?? null)
+  }
+
   // Only what is out of place moves. Moving a node disconnects and reconnects every controller
-  // inside it, and this runs on every `apply()` and on `turbo:before-cache`: re-appending the
-  // whole group reconnected the filters' datepicker just as Turbo left the page (#1415).
+  // inside it, and this runs on every `apply()`: re-appending the whole group reconnected the
+  // filters' datepicker just as Turbo left the page (#1415).
   sortByPriority (group) {
     Array.from(group.children)
       .sort((a, b) => this.priorityOf(b) - this.priorityOf(a))
@@ -267,7 +309,8 @@ export default class extends Controller {
 
   /**
    * Close before moving. A dropdown keeps its state in the `dropdown-open` class, which SURVIVES
-   * the move — it would stay open inside the ⋯.
+   * the move — it would stay open inside the ⋯. Only before a move: a recalculation that moves
+   * nothing leaves open what the reader opened.
    */
   closeOpenDropdowns () {
     this.element.querySelectorAll('.dropdown-open').forEach(dropdown => {
