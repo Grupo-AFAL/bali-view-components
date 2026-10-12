@@ -53,9 +53,33 @@ class BaliChatComponentTest < ComponentTestCase
     refute_selector("[data-chat-target='messages'] form")
   end
 
+  # The other half is `followSubmit` in index.js: a send from the footer that went
+  # through brings the sender down to it.
+  def test_footer_wires_submit_end_to_follow_submit
+    render_inline(Bali::Chat::Component.new) do |chat|
+      chat.with_footer { "<form></form>".html_safe }
+    end
+    assert_selector(".bali-chat > .border-t[data-action='turbo:submit-end->chat#followSubmit'] form")
+  end
+
   def test_no_footer_wrapper_without_the_slot
     render_inline(Bali::Chat::Component.new)
     refute_selector(".border-t")
+  end
+
+  def test_header_slot_renders_above_the_scroll_region
+    render_inline(Bali::Chat::Component.new) do |chat|
+      chat.with_header { "<h2>Assistant</h2>".html_safe }
+      "conversation".html_safe
+    end
+    assert_selector(".bali-chat > .shrink-0.border-b:first-child h2", text: "Assistant")
+    refute_selector("[data-chat-target='messages'] h2")
+    assert_selector("[data-chat-target='messages']", text: "conversation")
+  end
+
+  def test_no_header_wrapper_without_the_slot
+    render_inline(Bali::Chat::Component.new)
+    refute_selector(".border-b")
   end
 end
 
@@ -119,8 +143,7 @@ class BaliChatMessageComponentTest < ComponentTestCase
     refute_selector(".chat-header time")
   end
 
-  # Guards the `before_render` that forces the block to run: the avatar is emitted
-  # before the bubble, so a lazily evaluated slot would be silently dropped.
+  # The avatar is emitted before the bubble, and set by the block that fills it.
   def test_avatar_slot_renders_in_the_chat_image_cell
     render_inline(Bali::Chat::Message::Component.new) do |message|
       message.with_avatar { '<span class="avatar">AL</span>'.html_safe }

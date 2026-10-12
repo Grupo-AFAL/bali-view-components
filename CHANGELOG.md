@@ -29,6 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   opina (`feedback_posts/comments/_comment`) y afal-apps (`td_flow/projects/user_stories/_comments`
   y `_comment`) pueden cambiar su versión a mano por el componente.
 
+- **`Bali::Chat` tiene un slot `header`** (#730), encima de los mensajes, con el mismo borde y
+  padding que el `footer`; lo de adentro lo arma la app. Reemplaza la cabecera hecha a mano que
+  afal-apps pone sobre el chat del portal.
+
+- **`Bali::Chat` lleva al fondo a quien envía** (#730). Un envío que entra desde un formulario del
+  `footer` (`turbo:submit-end` con `detail.success`) baja la conversación aunque se estuviera
+  leyendo arriba; uno rechazado no la mueve. La app no conecta nada.
+
 ### Changed
 
 - **Las clases de daisyUI 4 que quedaban fuera del FormBuilder desaparecen del marcado** (#903).

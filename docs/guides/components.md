@@ -4195,6 +4195,10 @@ components that compose, so a host that only wants bubbles never mounts the cont
 <%= turbo_stream_from @conversation %>
 
 <%= render Bali::Chat::Component.new(id: 'messages', class: 'h-[60vh]') do |chat| %>
+  <% chat.with_header do %>
+    <%= render 'chat_header', conversation: @conversation %>
+  <% end %>
+
   <% @messages.each do |message| %>
     <%= render Bali::Chat::Message::Component.new(
           id: dom_id(message),
@@ -4208,7 +4212,7 @@ components that compose, so a host that only wants bubbles never mounts the cont
     <% end %>
   <% end %>
 
-  <%= render Bali::Chat::TypingIndicator::Component.new %>
+  <%= render Bali::Chat::TypingIndicator::Component.new(class: 'order-last') %>
 
   <% chat.with_footer do %>
     <%= render 'form' %>
@@ -4222,6 +4226,9 @@ and the append is an ordinary Turbo Stream against the container's `id`:
 turbo_stream.append 'messages', partial: 'messages/message', locals: { message: }
 ```
 
+An appended message lands after the indicator in the DOM; `order-last` keeps the indicator
+drawn below it, since the region is a flex column.
+
 **`Bali::Chat::Component`** — the scroll region and the append target.
 
 - `id` - DOM id of the scrollable region; what a Turbo Stream appends into (default:
@@ -4233,7 +4240,13 @@ turbo_stream.append 'messages', partial: 'messages/message', locals: { message: 
 - `**options` - HTML attributes for the wrapper. **The height goes here**: the wrapper is a
   flex column with no size of its own, so `class: 'h-[60vh]'` (or a max-height, or a flex
   parent) is what makes the region scroll.
-- `with_footer` slot - The composer, rendered below the scroll region with a top border
+- `with_header` slot - Free-form content above the scroll region — a title, an icon, the
+  actions — in the footer's chrome turned over: a bottom border and the same padding. It
+  stays put while the messages scroll.
+- `with_footer` slot - The composer, rendered below the scroll region with a top border. A
+  form in it that submits successfully (`turbo:submit-end` with `detail.success`) brings the
+  sender to the bottom, wherever they were reading; a rejected one leaves them in place. The
+  host wires nothing.
 
 **The container follows a new message only when the reader was already at the bottom.**
 Scrolled up in the history, their position is left alone; back at the bottom, it follows
@@ -4279,9 +4292,10 @@ with itself:
 
 Removing it instead would destroy the very id the next stream targets, and every later
 replace would silently do nothing. From the page, the container's controller toggles it —
-the indicator registers itself as a `chat` target, so a composer can do
-`data: { action: 'turbo:submit-end->chat#showTyping' }`. `chat#showTyping` also scrolls
-down unconditionally: sending is participating, not reading.
+the indicator registers itself as a `chat` target for `chat#showTyping` and
+`chat#hideTyping`. Wired to `turbo:submit-end`, `showTyping` also spins for a send the server
+rejected; the response to the send, which knows whether the message got in, is the safer
+switch.
 
 #### Clipboard
 

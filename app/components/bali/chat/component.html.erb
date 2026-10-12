@@ -1,4 +1,7 @@
 <%= tag.div(**wrapper_attributes) do %>
+  <% if header? %>
+    <div class="shrink-0 border-b border-base-300 p-4"><%= header %></div>
+  <% end %>
   <%# `scroll->chat#trackPosition` has to sit on the element that scrolls: scroll
       events do not bubble, so the same action on the wrapper would never fire and
       the controller would think the reader never left the bottom. %>
@@ -7,6 +10,6 @@
     <%= content %>
   <% end %>
   <% if footer? %>
-    <div class="shrink-0 border-t border-base-300 p-4"><%= footer %></div>
+    <div class="shrink-0 border-t border-base-300 p-4" data-action="turbo:submit-end->chat#followSubmit"><%= footer %></div>
   <% end %>
 <% end %>

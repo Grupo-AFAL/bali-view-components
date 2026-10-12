@@ -186,6 +186,9 @@ describe('muted text contrast', () => {
     'chat/bubbles': [
       ['timestamp', '.chat-header time', 2]
     ],
+    'chat/header': [
+      ['header subtitle', `.bali-chat > :first-child ${GREY}`, 1]
+    ],
     // The default bubble; the primary one is measured on its own below.
     'chat/typing_indicator?show_label=true': [
       ['typing label', '#typing-visible .chat-bubble span.text-xs', 1]
