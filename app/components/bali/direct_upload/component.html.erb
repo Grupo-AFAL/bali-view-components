@@ -124,22 +124,21 @@
       </div>
       <div class="file-status flex items-center gap-2">
         <span class="percentage text-xs text-base-content/70" aria-hidden="true">0%</span>
+        <%# The three buttons are named after the file by index.js#updateFileUI, from
+            translations_json, before the row reaches the page. %>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-cancel"
-                data-action="direct-upload#cancel"
-                aria-label="<%= t('bali_view.direct_upload.actions.cancel') %>">
+                data-action="direct-upload#cancel">
           <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
         </button>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-retry hidden"
-                data-action="direct-upload#retry"
-                aria-label="<%= t('bali_view.direct_upload.actions.retry') %>">
+                data-action="direct-upload#retry">
           <%= render Bali::Icon::Component.new('refresh-cw', class: 'size-4') %>
         </button>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-remove hidden"
-                data-action="direct-upload#remove"
-                aria-label="<%= t('bali_view.direct_upload.actions.remove') %>">
+                data-action="direct-upload#remove">
           <%= render Bali::Icon::Component.new('trash-2', class: 'size-4') %>
         </button>
         <span class="file-success text-soft-success hidden" aria-hidden="true">

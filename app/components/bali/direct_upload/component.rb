@@ -125,8 +125,22 @@ module Bali
           direct_upload_accept_value: accept,
           direct_upload_auto_upload_value: auto_upload?,
           direct_upload_field_name_value: field_name,
-          direct_upload_remove_field_name_value: remove_field_name
+          direct_upload_remove_field_name_value: remove_field_name,
+          direct_upload_translations_value: translations_json
         }
+      end
+
+      # What index.js writes on each file's row, with the Rails placeholders left in: it
+      # fills in the file name and the progress, which only exist in the browser.
+      def translations_json
+        {
+          pending: t("bali_view.direct_upload.file_status.pending"),
+          pending_file: t("bali_view.direct_upload.file_status.pending_file"),
+          uploading_file: t("bali_view.direct_upload.file_status.uploading_file"),
+          cancel_file: t("bali_view.direct_upload.actions.cancel_file"),
+          retry_file: t("bali_view.direct_upload.actions.retry_file"),
+          remove_file: t("bali_view.direct_upload.actions.remove_file")
+        }.to_json
       end
 
       def direct_upload_url

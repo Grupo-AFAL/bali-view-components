@@ -149,6 +149,24 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     assert_selector('[data-direct-upload-auto-upload-value="false"]')
   end
 
+  # Translations: index.js fills in `%{filename}` and `%{progress}`, which only the
+  # browser knows, and reads every key below.
+
+  def test_translations_reach_the_controller_with_their_placeholders
+    I18n.with_locale(:es) { render_component }
+
+    assert_selector("[data-direct-upload-translations-value]")
+    translations = JSON.parse(page.find("[data-direct-upload-translations-value]")["data-direct-upload-translations-value"])
+    assert_equal({
+      "pending" => "Esperando...",
+      "pending_file" => "Esperando para subir %{filename}",
+      "uploading_file" => "Subiendo %{filename}: %{progress}%",
+      "cancel_file" => "Cancelar la subida de %{filename}",
+      "retry_file" => "Reintentar la subida de %{filename}",
+      "remove_file" => "Eliminar %{filename}"
+    }, translations)
+  end
+
   # Drop zone interactions
 
   def test_drop_zone_interactions_has_drag_and_drop_event_handlers

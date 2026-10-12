@@ -35,10 +35,13 @@ module Bali
           )
         end
 
-        def multiple
+        # Each file listed has a button to remove it, named in Bali's translation: switch
+        # `locale` to hear it.
+        # @param locale select { choices: [en, es] }
+        def multiple(locale: 'en')
           render_with_template(
             template: 'bali/form/file/previews/multiple',
-            locals: { model: form_record }
+            locals: { model: form_record, locale: locale }
           )
         end
 

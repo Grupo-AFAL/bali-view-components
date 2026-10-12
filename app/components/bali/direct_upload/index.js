@@ -35,7 +35,8 @@ export class DirectUploadController extends Controller {
     accept: { type: String, default: '*' },
     autoUpload: { type: Boolean, default: true },
     fieldName: String,
-    removeFieldName: String
+    removeFieldName: String,
+    translations: Object
   }
 
   // Track files: Map<id, { file, progress, status, signedId, error, xhr, element }>
@@ -447,7 +448,7 @@ export class DirectUploadController extends Controller {
     // Update progress and ARIA attributes
     progress.value = fileData.progress
     progress.setAttribute('aria-valuenow', fileData.progress)
-    progress.setAttribute('aria-label', `Uploading ${fileData.file.name}: ${fileData.progress}%`)
+    progress.setAttribute('aria-label', this.t('uploading_file', { filename: fileData.file.name, progress: fileData.progress }))
     percentage.textContent = `${fileData.progress}%`
 
     // Reset visibility
@@ -460,14 +461,14 @@ export class DirectUploadController extends Controller {
 
     // Update button aria-labels with filename
     const filename = fileData.file.name
-    cancelBtn.setAttribute('aria-label', `Cancel upload of ${filename}`)
-    retryBtn.setAttribute('aria-label', `Retry upload of ${filename}`)
-    removeBtn.setAttribute('aria-label', `Remove ${filename}`)
+    cancelBtn.setAttribute('aria-label', this.t('cancel_file', { filename }))
+    retryBtn.setAttribute('aria-label', this.t('retry_file', { filename }))
+    removeBtn.setAttribute('aria-label', this.t('remove_file', { filename }))
 
     switch (fileData.status) {
       case 'pending':
-        percentage.textContent = 'Waiting...'
-        progress.setAttribute('aria-label', `Waiting to upload ${filename}`)
+        percentage.textContent = this.t('pending')
+        progress.setAttribute('aria-label', this.t('pending_file', { filename }))
         break
 
       case 'uploading':
@@ -492,6 +493,15 @@ export class DirectUploadController extends Controller {
         removeBtn.classList.remove('hidden')
         break
     }
+  }
+
+  // component.rb#translations_json hands the sentences over with their Rails placeholders. The
+  // replacement is a function so a `$&` in a file name is not read as a pattern.
+  t (key, values = {}) {
+    return Object.entries(values).reduce(
+      (text, [name, value]) => text.replaceAll(`%{${name}}`, () => value),
+      this.translationsValue[key]
+    )
   }
 
   // ==================== Hidden Fields ====================
