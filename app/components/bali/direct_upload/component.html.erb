@@ -86,12 +86,13 @@
        role="list"
        aria-label="<%= t('bali_view.direct_upload.file_list.aria_label') %>"></div>
 
-  <%# Screen reader announcements (live region) %>
+  <%# Screen reader announcements (live region). `role="status"` is atomic by default, and read
+      whole the region would repeat every message still in it each time one is added. %>
   <div data-direct-upload-target="announcer"
        class="sr-only"
        role="status"
        aria-live="polite"
-       aria-atomic="true"></div>
+       aria-atomic="false"></div>
 
   <%# Hidden fields container (populated by JS with signed_ids) %>
   <div data-direct-upload-target="hiddenFields"></div>

@@ -108,6 +108,22 @@ describe('DirectUploadController', () => {
       spokenIn('No se pudo subir').should('deep.equal', ['No se pudo subir contrato.pdf'])
     })
 
+    // The dummy's field takes several files; each failure replacing the previous one in the live
+    // region would leave only the last name.
+    it('says every failure when several land together', () => {
+      cy.intercept('POST', '**/rails/active_storage/direct_uploads', { statusCode: 500 })
+      cy.get('[data-direct-upload-target="input"]').selectFile([
+        { contents: Cypress.Buffer.from('x'), fileName: 'acta.pdf', mimeType: 'application/pdf' },
+        { contents: Cypress.Buffer.from('x'), fileName: 'anexo.pdf', mimeType: 'application/pdf' }
+      ], { force: true })
+
+      row().find('.file-error:visible').should('have.length', 2)
+      spokenIn('No se pudo subir').then(said => {
+        expect(said.join(' ')).to.include('No se pudo subir acta.pdf')
+          .and.to.include('No se pudo subir anexo.pdf')
+      })
+    })
+
     // The dummy's field accepts `image/*,application/pdf`.
     it('says why a file was turned away', () => {
       pickFile('notas.txt', 'text/plain')

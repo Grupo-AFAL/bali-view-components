@@ -39,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - DirectUpload dice cada cosa una vez a un lector de pantalla. La espera del formulario va
     sólo en la alerta, que ya es `role="alert"`, y deja de repetirse en la región viva. El
     fallo de una subida va sólo en la región viva, con el nombre del archivo: el texto rojo de
-    la fila deja de ser `role="alert"`.
+    la fila deja de ser `role="alert"`. Con `multiple`, los fallos que llegan juntos se anuncian
+    todos; antes cada uno reemplazaba al anterior y sólo se oía el último.
   - Llaves de `bali_view.direct_upload`:
     - nuevas: `file_status.uploading_file`, `file_status.failed_file`,
       `status.marked_for_removal`, `errors.uploads_in_progress`, `actions.cancel_file` y

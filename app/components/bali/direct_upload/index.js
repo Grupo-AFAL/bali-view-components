@@ -553,16 +553,15 @@ export class DirectUploadController extends Controller {
 
   // ==================== Accessibility ====================
 
-  /**
-   * Announce a message to screen readers via live region
-   */
+  // One node per message: failures that land together would each overwrite the last if the
+  // region's text were replaced. A node leaves after a second, so the same message can be
+  // announced again.
   announce (message) {
-    if (this.hasAnnouncerTarget) {
-      this.announcerTarget.textContent = message
-      // Clear after announcement to allow repeated messages
-      setTimeout(() => {
-        this.announcerTarget.textContent = ''
-      }, 1000)
-    }
+    if (!this.hasAnnouncerTarget) return
+
+    const node = document.createElement('p')
+    node.textContent = message
+    this.announcerTarget.append(node)
+    setTimeout(() => node.remove(), 1000)
   }
 }
