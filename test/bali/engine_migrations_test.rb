@@ -73,6 +73,12 @@ class BaliEngineMigrationsTest < ActiveSupport::TestCase
     end
   end
 
+  # The guide and the spec tell a host to run `bali:install:migrations:archivals`: the feature
+  # name comes from the file name, so renaming the migration would break that command silently.
+  def test_archivals_installs_under_the_name_the_guide_documents
+    assert_includes Bali::EngineMigrations.all.keys, "archivals"
+  end
+
   private
 
   def in_destination
