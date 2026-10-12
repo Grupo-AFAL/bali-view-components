@@ -215,7 +215,7 @@ module Bali
       # The mark a required field's caption carries: an asterisk for the eye, hidden
       # from the reader, and a word for the reader. `required:` is a plain attribute
       # the builder forwards to the control, and on the families whose control cannot
-      # carry it — a hidden file input, SlimSelect's clipped `<select>` — the call
+      # carry it — SlimSelect's clipped `<select>`, a widget over a hidden field — the call
       # site's intent used to reach nothing the user could see; on the rest it showed
       # only once the browser complained. The native attribute already announces
       # "required" where it exists, so the hidden word is the only announcement
