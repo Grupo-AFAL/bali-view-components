@@ -43,5 +43,16 @@ describe('TabsController', () => {
       cy.wait('@loadTab3')
       cy.get('[role="tablist"] .tab:nth-child(3)').first().should('have.attr', 'data-content-loaded')
     })
+
+    // #1428
+    it('says the content failed to load in the language of the page', () => {
+      cy.intercept('GET', '/tab2*', { statusCode: 500, body: '' })
+      cy.visit('/bali/tabs/on_demand?locale=es')
+
+      cy.get('[role="tablist"] .tab:nth-child(2)').first().click()
+
+      cy.get('.tabs-content [role="tabpanel"]:nth-child(2) .alert-error span').first()
+        .should('have.text', 'No se pudo cargar el contenido')
+    })
   })
 })

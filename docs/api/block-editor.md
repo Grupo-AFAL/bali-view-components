@@ -893,9 +893,9 @@ Override the default icons, labels, and colors per entity type:
 
 | Type | Icon | Label | Color |
 |------|------|-------|-------|
-| `task` | &#x2610; | Task | `info` |
-| `project` | &#x25C8; | Project | `accent` |
-| `document` | &#x25E7; | Document | `success` |
+| `task` | &#x2610; | `bali_view.block_editor.entity_types.task` (Task / Tarea) | `info` |
+| `project` | &#x25C8; | `bali_view.block_editor.entity_types.project` (Project / Proyecto) | `accent` |
+| `document` | &#x25E7; | `bali_view.block_editor.entity_types.document` (Document / Documento) | `success` |
 | `default` | # | (none) | `secondary` |
 
 ### Entity Reference Data in Content

@@ -164,6 +164,8 @@ en:
     # Image grid
     image_grid:
       expand: "Expand image"
+      loading: "Loading"
+      load_failed: "Could not load image"
       empty_state:
         title: "No images yet"
         add_image: "Add image"
@@ -603,6 +605,12 @@ en:
       # The only translatable entry of the code-block language list; the rest are
       # proper names.
       plain_text: "Plain Text"
+      # The type label on an entity reference chip of these three types, unless
+      # `references_config:` names one.
+      entity_types:
+        task: "Task"
+        project: "Project"
+        document: "Document"
     document_page:
       toggle_toc: "Toggle table of contents"
       toggle_details: "Toggle details"
@@ -671,6 +679,7 @@ en:
       card_moved: "%{card} moved to %{column}, position %{position} of %{total}"
     tabs:
       navigation: "Section navigation"
+      load_failed: "Failed to load content"
     topbar:
       user_menu:
         trigger_label: "User menu for %{name}"

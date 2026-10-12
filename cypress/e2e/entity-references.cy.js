@@ -59,3 +59,14 @@ describe('BlockEditor: entity references', () => {
       .and('not.contain.text', 'Bali Component Library')
   })
 })
+
+// #1428 — `task`, `project` and `document` are the types the editor paints without any
+// `references_config:`, and their label is the one piece of the chip that is a word.
+describe('BlockEditor: the label of a default entity type', () => {
+  it('is in the language of the page', () => {
+    cy.visit('/bali/block_editor/default_entity_types?locale=es')
+
+    cy.get('.bn-entity-reference-label', { timeout: 20000 })
+      .should(($labels) => expect($labels.toArray().map((label) => label.textContent)).to.deep.equal(['Tarea', 'Proyecto', 'Documento']))
+  })
+})

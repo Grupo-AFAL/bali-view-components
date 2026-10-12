@@ -42,6 +42,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `data-controller="file-input"` escrito a mano sin `data-file-input-remove-text-value`
     sigue en inglés.
 
+- **ImageGrid, Tabs, BlockEditor y Gantt dejan de escribir inglés desde JavaScript en una página
+  en español (#1428).** El visor de ImageGrid decía «Loading» y «Could not load image»; un panel
+  de Tabs cuyo `src:` fallaba, «Failed to load content»; las referencias de tipo `task`,
+  `project` y `document` del BlockEditor sin `references_config:`, «Task», «Project» y
+  «Document»; y una edición del Gantt rechazada sin `errors` en la respuesta, «Error 500» en vez
+  del `change_failed` que la isla ya traía traducido. Ahora salen de las traducciones de Bali:
+  llaves nuevas `bali_view.image_grid.loading` y `.load_failed`, `bali_view.tabs.load_failed` y
+  `bali_view.block_editor.entity_types.*`. Un botón `image-expander` escrito a mano, sin
+  ImageGrid, toma los del `lang` de la página.
+  - **Anfitrión:** nada que hacer. Pasan al español las fotos de afal-apps (también las del
+    censo, cuyo botón es a mano bajo `<html lang="es">`) y de centinela-web, y el cronograma de
+    afal-apps. Ninguna de las siete apps usa Tabs con `src:` ni esos tres tipos de referencia, ni
+    sobrescribe `bali_view` en sus locales.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added

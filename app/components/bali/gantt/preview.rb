@@ -35,12 +35,15 @@ module Bali
       # PERSIST in the dummy database — re-seed to reset.
       #
       # The render call lives in the template because that is where route
-      # helpers belong; it is otherwise verbatim what a host writes.
-      def editable
+      # helpers belong; it is otherwise verbatim what a host writes. Switch
+      # `locale` to see the island, and what it says when an edit fails, in
+      # Spanish.
+      # @param locale select { choices: [en, es] }
+      def editable(locale: "en")
         project = Project.order(:id).first
         render_with_template(
           template: "bali/gantt/previews/editable",
-          locals: { project: project, gantt: project && ProjectGantt.new(project) }
+          locals: { project: project, gantt: project && ProjectGantt.new(project), locale: locale }
         )
       end
 

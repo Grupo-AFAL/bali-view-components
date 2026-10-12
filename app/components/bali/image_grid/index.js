@@ -4,8 +4,16 @@ import {
   enterTopLayer,
   leaveTopLayer
 } from '../../../assets/javascripts/bali/utils/top-layer.js'
+import { inLanguageOf } from '../../../assets/javascripts/bali/utils/language.js'
 
 const TRANSITION_MS = 200
+
+// What the lightbox says when its trigger carries no translations: a button a host renders by
+// hand, without image/component.rb#translations_json, reads them in the `lang` of its page.
+const TEXTS = {
+  en: { loading: 'Loading', load_failed: 'Could not load image' },
+  es: { loading: 'Cargando', load_failed: 'No se pudo cargar la imagen' }
+}
 
 /**
  * Opens an image in a fullscreen lightbox overlay when the trigger is clicked.
@@ -22,7 +30,11 @@ const TRANSITION_MS = 200
  *   </button>
  */
 export class ImageExpanderController extends Controller {
-  static values = { src: String }
+  static values = { src: String, translations: Object }
+
+  get texts () {
+    return { ...inLanguageOf(this.element, TEXTS), ...this.translationsValue }
+  }
 
   open (event) {
     event.preventDefault()
@@ -109,7 +121,7 @@ export class ImageExpanderController extends Controller {
       if (!spinner.parentNode) return
       const error = document.createElement('div')
       error.className = 'bali-image-expander-error'
-      error.textContent = 'Could not load image'
+      error.textContent = this.texts.load_failed
       spinner.replaceWith(error)
     }
     img.src = src
@@ -127,7 +139,7 @@ export class ImageExpanderController extends Controller {
     const spinner = document.createElement('div')
     spinner.className = 'bali-image-expander-spinner'
     spinner.setAttribute('role', 'status')
-    spinner.setAttribute('aria-label', 'Loading')
+    spinner.setAttribute('aria-label', this.texts.loading)
 
     const closeBtn = document.createElement('button')
     closeBtn.type = 'button'

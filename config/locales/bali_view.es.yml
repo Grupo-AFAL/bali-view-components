@@ -159,6 +159,8 @@ es:
     # Image grid
     image_grid:
       expand: "Ampliar imagen"
+      loading: "Cargando"
+      load_failed: "No se pudo cargar la imagen"
       empty_state:
         title: "Aún no hay imágenes"
         add_image: "Agregar imagen"
@@ -600,6 +602,10 @@ es:
       # La única entrada traducible de la lista de lenguajes de bloques de código;
       # el resto son nombres propios.
       plain_text: "Texto plano"
+      entity_types:
+        task: "Tarea"
+        project: "Proyecto"
+        document: "Documento"
     document_page:
       toggle_toc: "Alternar tabla de contenido"
       toggle_details: "Alternar detalles"
@@ -668,6 +674,7 @@ es:
       card_moved: "%{card} movida a %{column}, posición %{position} de %{total}"
     tabs:
       navigation: "Navegación de secciones"
+      load_failed: "No se pudo cargar el contenido"
     topbar:
       user_menu:
         trigger_label: "Menú de usuario de %{name}"

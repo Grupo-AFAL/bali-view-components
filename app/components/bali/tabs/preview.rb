@@ -86,14 +86,13 @@ module Bali
 
       # Tabs with on demand content
       # ---------------------------
-      # Set a hyperlink to the tab, to load its content on demand.
+      # Set a hyperlink to the tab, to load its content on demand. When the
+      # request fails the panel says so in Bali's translation: switch `locale`
+      # to see it in Spanish.
       # @param reload toggle
-      def on_demand_content(reload: false)
-        render(Tabs::Component.new(style: :border)) do |c|
-          c.with_tab(title: 'Tab 1', src: '/tab1', reload: reload, active: true)
-          c.with_tab(title: 'Tab 2', src: '/tab2', reload: reload)
-          c.with_tab(title: 'Tab 3', src: '/tab3', reload: reload)
-        end
+      # @param locale select { choices: [en, es] }
+      def on_demand_content(reload: false, locale: 'en')
+        render_with_template(locals: { reload: reload, locale: locale })
       end
 
       # Tabs with full page reload

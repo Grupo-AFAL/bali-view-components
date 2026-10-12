@@ -9,6 +9,8 @@ import { get } from '@rails/request.js'
 */
 export class TabsController extends Controller {
   static targets = ['tab', 'tabContent']
+  // component.rb#translations_json
+  static values = { translations: Object }
 
   connect () {
     if (!this.hasTabTarget) return
@@ -131,9 +133,10 @@ export class TabsController extends Controller {
       } else {
         tabContentDiv.innerHTML = `
           <div class="alert alert-error">
-            <span>Failed to load content</span>
+            <span></span>
           </div>
         `
+        tabContentDiv.querySelector('.alert-error span').textContent = this.translationsValue.load_failed
       }
     } catch (error) {
       // Ignore abort errors, they're expected when switching tabs rapidly

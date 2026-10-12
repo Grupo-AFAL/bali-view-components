@@ -222,6 +222,18 @@ class BaliImageGridImageComponentTest < ComponentTestCase
     assert_no_selector("button[data-image-expander-src-value]")
   end
 
+  def test_expandable_hands_the_lightbox_every_text_it_writes
+    I18n.with_locale(:es) do
+      render_inline(Bali::ImageGrid::Image::Component.new(expandable: true)) { '<img src="test.jpg">'.html_safe }
+    end
+    translations = JSON.parse(page.find("button")["data-image-expander-translations-value"])
+    reads = translation_keys_read_by("app/components/bali/image_grid/index.js", "this.texts")
+
+    assert_includes reads, "load_failed"
+    assert_empty reads.reject { |key| translations[key].present? }
+    assert_equal "No se pudo cargar la imagen", translations["load_failed"]
+  end
+
   def test_non_expandable_still_renders_figure
     render_inline(Bali::ImageGrid::Image::Component.new(expandable: false)) { '<img src="test.jpg">'.html_safe }
     assert_selector("figure")

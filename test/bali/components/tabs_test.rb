@@ -15,6 +15,18 @@ class BaliTabsComponentTest < ComponentTestCase
     assert_selector(".hidden p", text: "Tab 2 content")
   end
 
+  def test_panels_hand_the_controller_every_text_it_writes
+    I18n.with_locale(:es) do
+      render_inline(Bali::Tabs::Component.new) { |c| c.with_tab(title: "Tab 1", src: "/tab1", active: true) }
+    end
+    translations = JSON.parse(page.find('[data-controller="tabs"]')["data-tabs-translations-value"])
+    reads = translation_keys_read_by("app/components/bali/tabs/index.js", "this.translationsValue")
+
+    assert_includes reads, "load_failed"
+    assert_empty reads.reject { |key| translations[key].present? }
+    assert_equal "No se pudo cargar el contenido", translations["load_failed"]
+  end
+
   def test_basic_rendering_renders_tabs_with_tablist_role_for_accessibility
     render_inline(Bali::Tabs::Component.new) do |c|
       c.with_tab(title: "Tab 1", active: true) { "Content" }

@@ -452,4 +452,18 @@ describe('Gantt island', () => {
         .should('equal', 200)
     })
   })
+
+  // #1428 — a failure with no `errors` of its own (a 500, a proxy's HTML page) gets the island's
+  // translated `change_failed`, not a status code.
+  it('says an edit failed in the language of the page', () => {
+    cy.intercept('PATCH', '/admin/projects/*/schedule', { statusCode: 500, headers: { 'content-type': 'text/html' }, body: '<h1>500</h1>' }).as('patch')
+    cy.visit('/bali/gantt/editable?locale=es')
+    cy.get('.react-flow__node').should('have.length.greaterThan', 0)
+
+    dragNode('.react-flow__node', 80)
+    cy.wait('@patch')
+
+    // The toast leaves after 4 s, and a wrong text should be the failure, not a toast gone.
+    cy.get('.toast .alert-error', { timeout: 3000 }).should('have.text', 'No se pudo aplicar el cambio')
+  })
 })

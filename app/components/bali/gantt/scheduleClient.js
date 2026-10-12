@@ -55,12 +55,14 @@ async function settle (id, response) {
 
   if (response.ok) return response.json
 
-  let messages = [`Error ${response.statusCode}`]
+  // No `errors` of its own (a proxy's 500 page), no message: GanttFlow then says its translated
+  // `change_failed`.
+  let messages = []
   try {
     const body = await response.json
     if (body && body.errors) messages = body.errors
   } catch {
-    // non-JSON response; keep the status message.
+    // non-JSON response.
   }
   throw new ScheduleError(messages, response.statusCode)
 }
@@ -71,7 +73,7 @@ async function settle (id, response) {
 export async function fetchSchedule (scheduleUrl) {
   const response = await get(scheduleUrl, { responseKind: 'json' })
   if (response.ok) return response.json
-  throw new ScheduleError([`Error ${response.statusCode}`], response.statusCode)
+  throw new ScheduleError([], response.statusCode)
 }
 
 // PATCH move/resize: { item: { id, starts_on, duration_days } }.
