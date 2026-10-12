@@ -151,6 +151,10 @@ module Bali
       #   neither (`simple: false, advanced: false`).
       # @param icon [String] Icon name for the simple UI
       # @param step [Numeric] Step for the :number_range simple widget
+      # @param placeholder [String, Proc] Placeholder for the simple UI's :date and
+      #   :date_range widgets — the "Custom…" picker of a preset range included — which
+      #   otherwise repeat the caption. Zero-arity procs are resolved per-instance, like
+      #   `label:`.
       # @param placeholder_min [String] Min placeholder for :number_range
       # @param placeholder_max [String] Max placeholder for :number_range
       # @param auto_submit [Boolean] Filter as soon as this control changes, instead
@@ -190,8 +194,8 @@ module Bali
       def filter_attribute(key, type: :text, label: nil, aria_label: nil, options: [],
                            collection: nil, simple: false, advanced: true, input: nil,
                            predicate: :eq, blank: nil, default: nil, icon: nil, step: nil,
-                           placeholder_min: nil, placeholder_max: nil, auto_submit: false,
-                           presets: nil)
+                           placeholder: nil, placeholder_min: nil, placeholder_max: nil,
+                           auto_submit: false, presets: nil)
         # rubocop:enable Metrics/ParameterLists
         type = type.to_sym
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
@@ -214,6 +218,7 @@ module Bali
           default: default,
           icon: icon,
           step: step,
+          placeholder: placeholder,
           placeholder_min: placeholder_min,
           placeholder_max: placeholder_max,
           auto_submit: auto_submit,

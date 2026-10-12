@@ -13,9 +13,9 @@ module Bali
         end
       end
 
+      # Takes `time_field`'s time options as well: `time_24hr:`, `seconds:`, `min_time:`, …
       def datetime_field(method, options = {})
-        merged_wrapper_options = DATETIME_WRAPPER_OPTIONS.merge(options[:wrapper_options] || {})
-        date_field(method, options.merge(wrapper_options: merged_wrapper_options))
+        date_field(method, options.merge(wrapper_options: merged_time_options(DATETIME_WRAPPER_OPTIONS, options)))
       end
     end
   end

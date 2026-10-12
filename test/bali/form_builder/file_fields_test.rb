@@ -27,9 +27,12 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
     assert_html(result, "span.icon-component")
   end
 
-  def test_file_group_renders_with_hidden_class_on_the_input_hidden_but_accessible
+  # Inside the `.btn`, so daisyUI's `.btn:has(:focus-visible)` rings the button the user sees
+  # while the input has keyboard focus; never `hidden`, which takes it out of the Tab order (#1385).
+  def test_file_group_puts_the_input_inside_the_button_it_rings
     result = builder.file_group(:cover_photo)
-    assert_html(result, "input.hidden")
+    assert_html(result, 'label > span.btn.relative > input[type="file"].opacity-0')
+    refute_html(result, "input.hidden")
   end
 
   def test_file_group_renders_the_cta_button_with_proper_classes
@@ -73,9 +76,10 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
     assert_html(result, 'input#movie_cover_photo[name="movie[cover_photo]"]')
   end
 
-  def test_file_field_renders_with_hidden_class_hidden_but_accessible
+  def test_file_field_puts_the_input_inside_the_button_it_rings
     result = builder.file_field(:cover_photo)
-    assert_html(result, "input.hidden")
+    assert_html(result, 'label > span.btn.relative > input[type="file"].opacity-0')
+    refute_html(result, "input.hidden")
   end
 
   # customization options
@@ -94,7 +98,12 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
   def test_customization_options_hides_label_when_choose_file_text_is_false
     result = builder.file_field(:cover_photo, choose_file_text: false)
     assert_html(result, "span.btn.btn-soft span.icon-component")
-    refute_html(result, "span.btn.btn-soft > span:not(.icon-component)")
+    refute_html(result, "span.btn.btn-soft > span:not(.icon-component):not(.sr-only)")
+  end
+
+  def test_customization_options_keeps_the_controls_name_when_choose_file_text_is_false
+    result = builder.file_field(:cover_photo, choose_file_text: false)
+    assert_html(result, "label span.btn > span.sr-only", text: "Choose file")
   end
 
   def test_customization_options_accepts_custom_icon
@@ -136,15 +145,6 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
     assert_html(result, 'input[accept=".jpg,.png"]')
   end
 
-  # The input is `display: none`, so a `required` on it is one the browser validates but
-  # can never report: `reportValidity()` returns false with no bubble and the submit goes
-  # mute (#1125). The contract lives in required_option_test.rb; this pins the element.
-  def test_html_attributes_passthrough_drops_required_from_the_hidden_input
-    result = builder.file_field(:cover_photo, required: true)
-    assert_html(result, "input.hidden")
-    refute_html(result, "input[required]")
-  end
-
   def test_html_attributes_passthrough_accepts_custom_data_attributes
     result = builder.file_field(:cover_photo, data: { testid: "file-upload" })
     assert_html(result, 'input[data-testid="file-upload"]')
@@ -152,7 +152,7 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
 
   def test_html_attributes_passthrough_keeps_input_hidden_even_with_custom_class_option
     result = builder.file_field(:cover_photo, class: "custom-input")
-    assert_html(result, "input.hidden")
+    assert_html(result, "input.opacity-0.pointer-events-none")
   end
 
   # i18n
@@ -181,8 +181,9 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
 
   # constants
 
-  def test_constants_has_input_class_constant_hidden_for_accessibility
-    assert_equal "hidden", Bali::FormBuilder::FileFields::INPUT_CLASS
+  def test_constants_has_input_class_constant
+    assert_equal "absolute inset-0 opacity-0 pointer-events-none",
+                 Bali::FormBuilder::FileFields::INPUT_CLASS
   end
 
   def test_constants_has_wrapper_class_constant
@@ -198,7 +199,7 @@ class BaliFormBuilderFileFieldsTest < FormBuilderTestCase
   # appended at render time, and `DEFAULT_CTA_SIZE` is what a call site that says
   # nothing still gets.
   def test_constants_has_cta_class_constant
-    assert_equal "btn btn-soft btn-primary gap-2", Bali::FormBuilder::FileFields::CTA_CLASS
+    assert_equal "btn btn-soft btn-primary gap-2 relative", Bali::FormBuilder::FileFields::CTA_CLASS
     assert_equal "btn-sm", Bali::FormBuilder::FileFields::DEFAULT_CTA_SIZE
   end
 

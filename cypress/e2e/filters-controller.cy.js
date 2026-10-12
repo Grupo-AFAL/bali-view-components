@@ -196,6 +196,58 @@ describe('FiltersController', () => {
       })
     })
   })
+
+  // #1352 — the panel's form holds the groups and the quick search's form the search, and
+  // each submitted only its own: Apply dropped the search the pushed URL kept, so the table
+  // answered a query the address bar did not describe and a reload changed it.
+  context('the request it makes', () => {
+    const appOrigin = new URL(Cypress.config('baseUrl')).origin
+    const searchInput = '[data-filters-target="searchInput"]'
+    const searchButton = '[data-filters-target="searchForm"] button[type="submit"]'
+
+    // Registered after the visit, so the page's own document request is not the one caught.
+    const interceptListing = () => cy.intercept({ method: 'GET', pathname: '/admin/movies' }).as('listing')
+
+    it('applies the panel with the search the URL keeps', () => {
+      cy.visit(`${appOrigin}/admin/movies?group_by=genre&view=table`)
+      cy.get(searchInput).type('the')
+      openPanel()
+      cy.get(attribute).select('name')
+      cy.get(value).type('a')
+      interceptListing()
+
+      cy.get(applyButton).click()
+
+      cy.wait('@listing').then(({ request }) => {
+        const query = new URL(request.url).search
+        const params = new URLSearchParams(query)
+        expect(params.get('q[name_or_genre_or_studio_name_cont]')).to.equal('the')
+        expect(params.get('q[g][0][name_cont]')).to.equal('a')
+        expect(params.get('group_by')).to.equal('genre')
+        cy.location('search').should('equal', query)
+      })
+    })
+
+    // The search form's hidden fields hold the groups as last APPLIED, for a submit the
+    // controller does not intercept; the URL holds the panel as it is on screen.
+    it('searches with the groups the URL keeps', () => {
+      cy.visit(`${appOrigin}/admin/movies?q[g][0][m]=and&q[g][0][name_cont]=a`)
+      openPanel()
+      cy.get(value).clear().type('e')
+      cy.get(searchInput).type('the')
+      interceptListing()
+
+      cy.get(searchButton).click()
+
+      cy.wait('@listing').then(({ request }) => {
+        const query = new URL(request.url).search
+        const params = new URLSearchParams(query)
+        expect(params.get('q[g][0][name_cont]')).to.equal('e')
+        expect(params.get('q[name_or_genre_or_studio_name_cont]')).to.equal('the')
+        cy.location('search').should('equal', query)
+      })
+    })
+  })
 })
 
 // #1013 — the same family as the drawer's, in the panel: the `.ss-content` of a

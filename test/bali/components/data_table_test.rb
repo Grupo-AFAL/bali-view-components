@@ -1046,6 +1046,35 @@ class BaliDataTableComponentTest < ComponentTestCase
                     count: 1, visible: :all)
   end
 
+  # With no view switch nothing else absorbs the row's free space: measured on
+  # `data_table/with_toolbar_buttons` at 1280px, the host's button sat 635px short of the edge
+  # (#1390). The margin goes on the GROUP: the items are what the JS moves into the ⋯, whose
+  # `items-stretch` an auto margin would cancel.
+  def test_without_a_view_switch_the_host_group_takes_the_free_space
+    render_inline(component) do |c|
+      c.with_toolbar_button { '<button class="btn">Refresh</button>'.html_safe }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="host"].ml-auto',
+                    count: 1, visible: :all)
+    assert_no_selector('[data-toolbar-overflow-target="item"].ml-auto', visible: :all)
+  end
+
+  # Two auto margins split the free space between them, which would leave the host's buttons
+  # floating halfway to the view switch.
+  def test_with_a_view_switch_the_host_group_leaves_the_free_space_to_it
+    render_inline(component) do |c|
+      declare_views(c)
+      c.with_toolbar_button { '<button class="btn">Refresh</button>'.html_safe }
+      c.with_table { '<div class="table-component"></div>'.html_safe }
+    end
+
+    assert_selector('[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="right"].ml-auto',
+                    count: 1, visible: :all)
+    assert_no_selector('[data-toolbar-overflow-group="host"].ml-auto', visible: :all)
+  end
+
   def test_collapsible_controls_declare_their_priority_and_home_group
     render_collapsible_toolbar
 
