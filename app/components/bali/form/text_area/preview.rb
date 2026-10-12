@@ -81,6 +81,16 @@ module Bali
             locals: { model: form_record }
           )
         end
+
+        # @label Auto Grow When Hidden
+        # A field that connects with no box — here a closed Reveal — fits its pre-filled content
+        # the first time it is shown, with nothing typed (#1377).
+        def auto_grow_hidden
+          render_with_template(
+            template: 'bali/form/text_area/previews/auto_grow_hidden',
+            locals: { model: form_record }
+          )
+        end
       end
     end
   end

@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     con `class: "text-white!"`. Cambiarlo por `text_color: "#fff"` sólo quita el `!`: la res
     (`#B46E50`) y el pollo (`#E0640B`) siguen en blanco, bajo AA en texto chico. Sin forzar el
     color, esas dos salen en negro, sobre AA. Las otras tres son blancas de cualquier modo.
+
 - **`Card::Header` con `icon:` y `with_badge` deja el ícono junto al título.** `justify-between`
   repartía el espacio entre los tres hijos y, en una tarjeta ancha, el título quedaba a la mitad
   del renglón. Ícono y títulos son ahora un grupo, y el renglón hace `flex-wrap`: en pantalla
@@ -48,9 +49,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `justify-start!` del header y el `ml-auto` del Tag en `operations_board/show.html.erb`, con su
   comentario; afal-apps puede volver a `with_header` + `with_badge` en
   `cafeteria/reports/details/_day.html.erb` si ajusta la prueba que busca `h2.card-title ~`.
+
 - **`Avatar` deriva las iniciales sólo de palabras que empiezan con letra.** «Alberto Aprobador
   (demo)» daba «A(»; ahora «AA». Un nombre sin ninguna palabra así no lleva iniciales, como un
   `name:` vacío. `initials:` sigue ganando. Nada que hacer en las apps.
+
+- **DatePicker: las flechas de `manual: true` no disparaban `change`.** ◀ ▶ movían el día (o el
+  mes, o el año, según `period:`) sin avisar al input, así que un formulario con
+  `submit-on-change` sólo se enviaba al elegir en el calendario. Ahora cada clic dispara un
+  `change` y un `input`, como el calendario. Una flecha que cae en una fecha deshabilitada (un fin
+  de semana con `disable_weekends`, fuera de `min_date`/`max_date`) ya no vacía el campo: no hace
+  nada. afal-apps puede, si quiere, volver a las flechas de Bali en
+  `daycare/shared/_day_nav.html.erb`, que hoy son `Bali::Link` por esto
+  (`git grep -n "bali-view-components#1380"`).
+
+- **`datetime_field` y `datetime_group` ignoraban `time_24hr:`.** Sólo `time_field` traducía sus
+  opciones de hora a `data-datepicker-*`; en un `datetime_*` se descartaban sin aviso y el campo
+  salía en 12 horas, aunque la guía documenta `time_24hr: true`. Ahora toma las de `time_field`
+  del mismo mapa: `time_24hr`, `seconds`, `min_time` y `max_time`, y `default_date`, que
+  reemplaza el valor del registro, como en `time_field`. Ninguna llamada a `datetime_*` en
+  `origin/main` de la flota pasa alguna de las cinco. Quien use el rodeo
+  `wrapper_options: { "data-datepicker-time24hr-value": true }` en un `datetime_*` puede
+  cambiarlo por `time_24hr: true` (`git grep -n "time24hr-value"`).
+
+- **Textarea `auto_grow`: un campo oculto al conectarse no crecía al mostrarse.** Dentro de algo
+  con `display: none` —una pestaña inactiva, un Reveal cerrado— mide 0 y nada lo volvía a medir:
+  un campo pre-llenado abría con el alto de sus `rows`, con el resto del texto fuera, hasta que
+  alguien tecleaba. Ahora se ajusta la primera vez que tiene caja. Nada que hacer en la app.
 
 ## [v3.11.0] - 2026-10-08
 
