@@ -9,10 +9,20 @@ import { inLanguageOf } from '../../../assets/javascripts/bali/utils/language.js
 const TRANSITION_MS = 200
 
 // What the lightbox says when its trigger carries no translations: a button a host renders by
-// hand, without image/component.rb#translations_json, reads them in the `lang` of its page.
+// hand, without image/component.rb#translations_json, reads them in the `lang` of its page. They
+// are `bali_view.image_grid`'s from config/locales/bali_view.{en,es}.yml:
+// image_grid_test.rb fails when the two drift apart.
 const TEXTS = {
-  en: { loading: 'Loading', load_failed: 'Could not load image', close: 'Close' },
-  es: { loading: 'Cargando', load_failed: 'No se pudo cargar la imagen', close: 'Cerrar' }
+  en: {
+    loading: 'Loading',
+    load_failed: 'Could not load image',
+    close: 'Close'
+  },
+  es: {
+    loading: 'Cargando',
+    load_failed: 'No se pudo cargar la imagen',
+    close: 'Cerrar'
+  }
 }
 
 /**

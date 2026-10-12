@@ -19,6 +19,7 @@ class BaliTabsComponentTest < ComponentTestCase
     I18n.with_locale(:es) do
       render_inline(Bali::Tabs::Component.new) { |c| c.with_tab(title: "Tab 1", src: "/tab1", active: true) }
     end
+    assert_selector("[data-tabs-translations-value]")
     translations = JSON.parse(page.find('[data-controller="tabs"]')["data-tabs-translations-value"])
     reads = translation_keys_read_by("app/components/bali/tabs/index.js", "this.translationsValue")
 
