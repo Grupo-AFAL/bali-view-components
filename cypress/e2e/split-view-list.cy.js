@@ -76,6 +76,8 @@ describe('SplitView structured list', () => {
 
       scrollToBottom()
       rows().should('have.length', 10)
+      nextFrames()
+      cy.get('@fetch').then((fetch) => expect(pagesFetched(fetch), 'pages fetched for one scroll').to.have.length(1))
     })
 
     it('keeps going to the end of the list and then says so', () => {
