@@ -22,6 +22,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   y `drawing-maps` también: ninguna versión que Google sirve construye su `DrawingManager`. Nada
   que hacer en la app.
 
+- **`Avatar::Upload` e `ImageField` se usan con el teclado** (#1409). Su `<input type="file">`
+  estaba en `display: none`: Tab nunca llegaba y nada abría el selector sin ratón. Ahora queda
+  invisible sobre el botón de la cámara y sobre la imagen, como el de `file_group` desde #1385:
+  Tab lo alcanza, Enter o Espacio abren el selector y el control muestra el anillo de foco. Con
+  `Bali::FormBuilder` como builder por omisión, `Avatar::Upload` metía el `file_field` de Bali
+  —con su propio `<label>`— dentro del suyo; ahora usa el input de Rails. En `ImageField`, el
+  foco de teclado muestra lo mismo que el hover (velo, ícono y botón de borrar), y el botón de
+  borrar se alcanza con Tab y se activa con Enter. El botón de borrar sólo aparece cuando hay una
+  imagen que borrar: ya no sobre el placeholder, donde abajo de `md` se veía siempre. El grupo se
+  llama `group/image-field`: un `clear_button` propio se oculta con `opacity-0
+  pointer-events-none` y aparece con `group-hover/image-field:` y
+  `group-has-focus-visible/image-field:` (ejemplo en la preview `with_custom_clear_button`);
+  sin nombre, el hover sobre cualquier `.group` que lo contuviera velaba la imagen. Con
+  `Bali::FormBuilder`, `Avatar::Upload` muestra el error del campo bajo el avatar y el input
+  lleva `aria-invalid`. `Avatar::Upload` libera la URL `blob:` de la foto anterior al elegir
+  otra, e `ImageField` ya no la libera al desconectarse: con Atrás, Turbo restauraba la vista
+  previa rota con el archivo todavía en el input. Sólo afal-apps usa `Avatar::Upload`
+  (`daycare/children/_form`): ese formulario pinta `f.error_summary` arriba, y ahora el error de
+  la foto se ve también junto al campo, como ya pasa con cada `text_group` del formulario; el
+  avatar sigue centrado dentro de su `flex justify-center`, con mensaje o sin él. Ninguna app usa
+  `ImageField`, y nada apunta a esos inputs.
+
 ### Dependencies
 
 - **Con tailwindcss-rails, `@tailwindcss/typography` no va en `package.json`** (alerta de

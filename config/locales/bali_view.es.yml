@@ -378,6 +378,8 @@ es:
       confirm_cancel: Cancelar
     image_field:
       clear_image: Borrar imagen
+      input:
+        choose_image: Seleccionar imagen
     loader:
       loading: Cargando...
     frame:
