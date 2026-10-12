@@ -150,15 +150,17 @@ module Bali
 
       def build_wrapper_options(method, options)
         wrapper_class = class_names(WRAPPER_CLASS, "join" => options[:manual])
+        caller_options = dup_options(options[:wrapper_options] || {})
 
+        # `data:` is merged key by key: put in place of this one, it took the controller with it.
         wrapper_options = {
           class: wrapper_class,
           data: {
             controller: "datepicker",
             'datepicker-period-value': options[:period],
             'datepicker-locale-value': I18n.locale
-          }
-        }.merge(dup_options(options[:wrapper_options] || {}))
+          }.merge(caller_options[:data] || {})
+        }.merge(caller_options.except(:data))
 
         cv = controller_values(method, options).compact
         # The same attribute in `wrapper_options:` would render beside the option's, and a parser

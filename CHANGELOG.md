@@ -19,12 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   y unas cableadas a mano sobre un rango ya no hacen nada. Nada que hacer en las apps: ninguna usa
   `manual: true` en un campo de fecha.
 
-- **`date_field` y `date_group` respetan `default_date:`**, que descartaban sin aviso; `datetime_*`
-  y `time_*` ya lo hacían. Ninguna app lo pasa.
-
-- **`default_date:` sólo aplica a un campo sin valor**, en las tres familias. flatpickr lo lee antes
-  que el valor del input, así que en un `datetime_*` o `time_*` de un formulario de edición
-  reemplazaba la fecha guardada. Ninguna app lo pasa.
+- **`date_*` respeta `default_date:`, y en las tres familias sólo aplica a un campo sin valor.**
+  `date_field` y `date_group` lo descartaban sin aviso. En `datetime_*` y `time_*`, flatpickr lo
+  leía antes que el valor del input, así que en un formulario de edición reemplazaba la fecha
+  guardada. Ninguna app lo pasa.
 
 - **`mode: :range` como símbolo no pasaba el valor del rango al calendario** (`default_dates`);
   sólo la cadena `"range"` lo hacía. Las tres apps que usan rango escriben la cadena.
@@ -35,8 +33,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Una opción de fecha y el mismo `data-datepicker-*-value` en `wrapper_options:` pintaban el
   atributo dos veces** (`min_date:`, `time_24hr:`, …), y el navegador se quedaba con el primero,
   que en las opciones de hora era el de `wrapper_options`. Ahora sale una vez, con el valor de la
-  opción. afal-apps puede cambiar el rodeo `wrapper_options: { "data-datepicker-time24hr-value":
-  true }` de `marketing/pop_requests/fields/_recorded_date.html.erb` por `time_24hr: true`.
+  opción. Nada que hacer en las apps.
+
+- **`wrapper_options: { data: … }` en un campo de fecha reemplazaba el `data` del contenedor**, y
+  con él `data-controller="datepicker"`: el campo salía sin calendario. Ahora se suma, llave por
+  llave. Ninguna app pasa `data:` en `wrapper_options`.
 
 - **Textarea `auto_grow`: un `form.reset()` con el campo oculto lo dejaba al alto de sus `rows`**
   al volver a mostrarse, con el texto restaurado fuera de vista. Ahora se ajusta en cuanto vuelve
@@ -146,8 +147,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`datetime_field` y `datetime_group` ignoraban `time_24hr:`.** Sólo `time_field` traducía sus
   opciones de hora a `data-datepicker-*`; en un `datetime_*` se descartaban sin aviso y el campo
   salía en 12 horas, aunque la guía documenta `time_24hr: true`. Ahora toma las de `time_field`
-  del mismo mapa: `time_24hr`, `seconds`, `min_time`, `max_time` y `default_date`. Ninguna
-  llamada a `datetime_*` en `origin/main` de la flota pasa alguna de las cinco. Quien use el rodeo
+  del mismo mapa: `time_24hr`, `seconds`, `min_time` y `max_time`, y `default_date`, que
+  reemplaza el valor del registro, como en `time_field`. Ninguna llamada a `datetime_*` en
+  `origin/main` de la flota pasa alguna de las cinco. Quien use el rodeo
   `wrapper_options: { "data-datepicker-time24hr-value": true }` en un `datetime_*` puede
   cambiarlo por `time_24hr: true` (`git grep -n "time24hr-value"`).
 

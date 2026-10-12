@@ -160,6 +160,11 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     assert_html(result, 'div.custom-wrapper[data-controller="datepicker"]')
   end
 
+  def test_date_group_with_wrapper_options_data_keeps_the_datepicker_data
+    result = builder.date_group(:release_date, wrapper_options: { data: { foo: "bar" } })
+    assert_html(result, 'div[data-foo="bar"][data-controller="datepicker"][data-datepicker-locale-value="en"]')
+  end
+
   # #date_group typing (allow_input) and placeholder
 
   def test_date_group_by_default_does_not_render_the_allow_input_attribute

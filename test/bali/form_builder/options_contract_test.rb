@@ -63,14 +63,15 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     "step_number_field" => ->(b, o) { b.step_number_field(:name, **o.except(:delimited)) },
     "step_number_group" => ->(b, o) { b.step_number_group(:name, **o.except(:delimited)) },
     # And the date families refuse a pair: `manual:` arrows step one date, so they
-    # raise on `mode: "range"`. Dropping `mode` keeps the six in the sweep with
-    # their arrows; `date_fields_test` is what holds the refusal.
-    "date_field" => ->(b, o) { b.date_field(:name, **o.except(:mode)) },
-    "date_group" => ->(b, o) { b.date_group(:name, **o.except(:mode)) },
-    "datetime_field" => ->(b, o) { b.datetime_field(:name, **o.except(:mode)) },
-    "datetime_group" => ->(b, o) { b.datetime_group(:name, **o.except(:mode)) },
-    "time_field" => ->(b, o) { b.time_field(:name, **o.except(:mode)) },
-    "time_group" => ->(b, o) { b.time_group(:name, **o.except(:mode)) },
+    # raise on `mode: "range"`. Probing `mode` as "single" keeps the six in the
+    # sweep with every key and their arrows; `date_fields_test` is what holds the
+    # refusal.
+    "date_field" => ->(b, o) { b.date_field(:name, **o.merge(mode: "single")) },
+    "date_group" => ->(b, o) { b.date_group(:name, **o.merge(mode: "single")) },
+    "datetime_field" => ->(b, o) { b.datetime_field(:name, **o.merge(mode: "single")) },
+    "datetime_group" => ->(b, o) { b.datetime_group(:name, **o.merge(mode: "single")) },
+    "time_field" => ->(b, o) { b.time_field(:name, **o.merge(mode: "single")) },
+    "time_group" => ->(b, o) { b.time_group(:name, **o.merge(mode: "single")) },
     "range_field" => ->(b, o) { b.range_field(:name, **o) },
     "range_group" => ->(b, o) { b.range_group(:name, **o) },
     "boolean_field" => ->(b, o) { b.boolean_field(:name, **o) },
