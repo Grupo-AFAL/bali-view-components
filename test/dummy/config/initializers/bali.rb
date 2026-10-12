@@ -106,5 +106,5 @@ Bali.config do |config|
   config.archivables = { "Movie" => ->(_controller, id) { Movie.find_by(id: id) } }
   config.archivals_authorize = ->(_controller, _record, _action) { true }
   config.archivals_actor = ->(_controller) { User.demo }
-  config.archival_successors = ->(_controller, movie) { Movie.where.not(id: movie.id).order(:name) }
+  config.archivals_successors = ->(_controller, movie) { Movie.where.not(id: movie.id).order(:name) }
 end

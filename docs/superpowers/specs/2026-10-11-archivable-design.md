@@ -131,10 +131,10 @@ Bali.archivals_authorize = ->(_controller, _record, _action) { false }
 Bali.archivals_actor = ->(controller) { controller.try(:current_user) }
 
 # The successor candidates for this record: a relation, or nil for "no successor".
-Bali.archival_successors = ->(_controller, _record) { nil }
+Bali.archivals_successors = ->(_controller, _record) { nil }
 ```
 
-When `archival_successors` returns `nil`, the form offers neither a successor nor the reasons that
+When `archivals_successors` returns `nil`, the form offers neither a successor nor the reasons that
 require one — a model with no candidates can never reach a half-valid archival. A model that is
 whitelisted but does not include the concern is a `404`, as in content versions.
 

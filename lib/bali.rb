@@ -395,7 +395,7 @@ module Bali
   # the successor nor the reasons that require one, so no one can reach an archival that fails
   # on submit.
   # Example: ->(controller, document) { Document.published.where.not(id: document.id) }
-  mattr_accessor :archival_successors, default: ->(_controller, _record) { nil }
+  mattr_accessor :archivals_successors, default: ->(_controller, _record) { nil }
 
   # Concerns the host injects into every controller of this engine (#710).
   #
