@@ -377,11 +377,14 @@ with the record in the URL as `new.html.erb` does:
 The post still goes to the engine, so a validation failure comes back as the same layoutless
 `422` body. `new_archival_path` takes `return_to:` as a query parameter too.
 
-Where the person lands afterwards is `return_to` when it is a local path, else the record's own
-page (`main_app.polymorphic_path(record)`). Anything else in `return_to` (`//host`,
-`javascript:`) is dropped by both the form and the controller. With a local `return_to`, Cancel
-is a link to it: inside the drawer it only closes the drawer, on a page it navigates. Without
-one, Cancel is a button that only closes the drawer, so on a page it does nothing.
+Where the person lands afterwards is `return_to` when it is a path or URL of your own host, else
+the record's own page (`main_app.polymorphic_path(record)`). The controller reads it through
+Rails' `url_from`, which drops anything else (`//host`, `https://other.example`, `javascript:`),
+and passes the result to the form. The form trusts what it is given, as `link_to` does, so run a
+`return_to` that comes from a request through `url_from` yourself. With one, Cancel is a link to
+it: inside the drawer it only closes the drawer, on a page it navigates. Without one, Cancel is a
+button that only closes the drawer, so on a page it does nothing. Pass `return_to:` when the
+record has no route of its own: `polymorphic_path` would raise after the archival is committed.
 
 The HTTP side needs four settings, the first two default-deny: see
 [Archivals in Engines](engines.md#archivals-721). A malformed `archival` parameter answers

@@ -40,10 +40,10 @@ Postgres in GC.
 - **Note:** at most 500 characters (`Bali::Archival::NOTE_MAX_LENGTH`).
 - **Config entries (lib/bali.rb):** `Bali.archivables` (`{}`), `Bali.archivals_authorize`
   (`->(_controller, _record, _action) { false }`), `Bali.archivals_actor`
-  (`->(controller) { controller.try(:current_user) }`), `Bali.archival_successors`
+  (`->(controller) { controller.try(:current_user) }`), `Bali.archivals_successors`
   (`->(_controller, _record) { nil }`).
 - **Routes:** `GET /archivals/new`, `POST /archivals`, `POST /archivals/unarchive`; success is a
-  `303` to `return_to` when it starts with `/` and not `//`, else
+  `303` to `return_to` when Rails' `url_from` accepts it, else
   `main_app.polymorphic_path(record)`; invalid is `422`; `unarchive` on an irreversible model is
   `404`.
 - **Language:** everything in the repo is English — code, comments, test names, Cypress
@@ -76,7 +76,7 @@ Postgres in GC.
    (`test_archiving_an_archived_record_redirects_and_keeps_the_first_archival`).
 2. **A hostile `return_to`** (`//evil.example`, `https://evil.example`, `javascript:`). Expect the
    record's own page. Pinned in Task 6 (`test_return_to_is_followed_only_when_it_is_a_path_of_this_app`).
-3. **A `successor_id` the person was not offered** (outside `Bali.archival_successors`, or any id
+3. **A `successor_id` the person was not offered** (outside `Bali.archivals_successors`, or any id
    when there are no candidates). Expect it never stored; `422` when the reason needs one. Pinned
    in Task 6 (`test_a_successor_outside_the_candidates_is_never_stored` and
    `test_a_successor_id_is_never_stored_when_there_are_no_candidates`).
@@ -1353,7 +1353,7 @@ git commit -m "feat(archivable): Bali::ArchivalNotice, el aviso del registro dad
 - Produces: routes `bali.new_archival_path`, `bali.archivals_path`,
   `bali.unarchive_archivals_path` (all with `record_type:`, `record_id:`); config
   `Bali.archivables`, `Bali.archivals_authorize`, `Bali.archivals_actor`,
-  `Bali.archival_successors`; ivars `@record` and `@archival` after `create` (GC's bali-analytics
+  `Bali.archivals_successors`; ivars `@record` and `@archival` after `create` (GC's bali-analytics
   rule reads them, Task 14).
 
 - [ ] **Step 1: Write the failing tests**
@@ -1370,7 +1370,7 @@ require "test_helper"
 class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
   include ArchivableDeclaration
 
-  CONFIG = %i[archivables archivals_authorize archivals_actor archival_successors].freeze
+  CONFIG = %i[archivables archivals_authorize archivals_actor archivals_successors].freeze
 
   def setup
     studio = Tenant.create!(name: "Studio")
@@ -1383,7 +1383,7 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
     Bali.archivals_authorize = ->(_controller, _record, _action) { true }
     ana = @ana
     Bali.archivals_actor = ->(_controller) { ana }
-    Bali.archival_successors = ->(_controller, movie) { Movie.where.not(id: movie.id) }
+    Bali.archivals_successors = ->(_controller, movie) { Movie.where.not(id: movie.id) }
   end
 
   def teardown
@@ -1426,7 +1426,7 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
 
   def test_a_successor_outside_the_candidates_is_never_stored
     remake = @remake
-    Bali.archival_successors = ->(_controller, movie) { Movie.where.not(id: [ movie.id, remake.id ]) }
+    Bali.archivals_successors = ->(_controller, movie) { Movie.where.not(id: [ movie.id, remake.id ]) }
 
     post bali.archivals_path(record_params), params: { archival: { reason: "replaced", successor_id: @remake.id } }
 
@@ -1435,7 +1435,7 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_a_successor_id_is_never_stored_when_there_are_no_candidates
-    Bali.archival_successors = ->(*) { nil }
+    Bali.archivals_successors = ->(*) { nil }
 
     post bali.archivals_path(record_params), params: { archival: { reason: "replaced", successor_id: @remake.id } }
 
@@ -1593,7 +1593,7 @@ Expected: ERROR — `NoMethodError: undefined method 'archivables' for module Ba
   # the successor nor the reasons that require one, so no one can reach an archival that fails
   # on submit.
   # Example: ->(controller, document) { Document.published.where.not(id: document.id) }
-  mattr_accessor :archival_successors, default: ->(_controller, _record) { nil }
+  mattr_accessor :archivals_successors, default: ->(_controller, _record) { nil }
 ```
 
 - [ ] **Step 4: Add the routes** — `config/routes.rb`, after the `content_versions` resource:
@@ -1665,7 +1665,7 @@ module Bali
     end
 
     def set_successors
-      @successors = Bali.archival_successors.call(self, @record)
+      @successors = Bali.archivals_successors.call(self, @record)
     end
 
     def actor = Bali.archivals_actor.call(self)
@@ -1714,7 +1714,7 @@ end
   config.archivables = { "Movie" => ->(_controller, id) { Movie.find_by(id: id) } }
   config.archivals_authorize = ->(_controller, _record, _action) { true }
   config.archivals_actor = ->(_controller) { User.demo }
-  config.archival_successors = ->(_controller, movie) { Movie.where.not(id: movie.id).order(:name) }
+  config.archivals_successors = ->(_controller, movie) { Movie.where.not(id: movie.id).order(:name) }
 ```
 
 - [ ] **Step 7: Run the tests to verify they pass**
@@ -2018,7 +2018,7 @@ Add four rows to the table in "The real gate":
 | `Bali.archivables` | which models can be archived over HTTP | `{}` — every `record_type` is a 404 |
 | `Bali.archivals_authorize` | the form, archiving and reopening | falsy — 403 |
 | `Bali.archivals_actor` | who archives or reopens | `->(controller) { controller.try(:current_user) }` |
-| `Bali.archival_successors` | the records that may replace this one | `nil` — no successor offered |
+| `Bali.archivals_successors` | the records that may replace this one | `nil` — no successor offered |
 ```
 
 and a `## Archivals (#721)` section after "Content versions (#707)": the initializer with all
@@ -2697,7 +2697,7 @@ Bali.archivables = {
 }
 Bali.archivals_authorize = ->(controller, record, _action) { Pundit.policy!(controller.current_user, record).archive? }
 Bali.archivals_actor = ->(controller) { controller.current_user }
-Bali.archival_successors = lambda do |controller, document|
+Bali.archivals_successors = lambda do |controller, document|
   Pundit.policy_scope!(controller.current_user, Document).published.where.not(id: document.id).order(:title)
 end
 ```
@@ -2748,8 +2748,7 @@ es:
 
 ```ruby
   # `previously_new_record?` and not `archived?`: archiving an archived document redirects
-  # without writing, and the archival is present on that path too. What tells today's archival
-  # from yesterday's is that the row was just created. `@record` and `@archival` are the ivars
+  # without writing, and `@archival` is nil on that path. `@record` and `@archival` are the ivars
   # Bali::ArchivalsController leaves for track rules.
   c.track "bali/archivals#create",
           event: "documentos.documento_archivado",

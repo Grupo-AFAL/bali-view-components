@@ -4,8 +4,8 @@ module Bali
   # #721 — archive and reopen a host record. The record arrives in the query string
   # (`?record_type=Document&record_id=7`) and two default-deny layers stand before every action,
   # as in Bali::ContentVersionsController: `Bali.archivables` (404) and
-  # `Bali.archivals_authorize` (403). `@record` and `@archival` are read by hosts' bali-analytics
-  # track rules after `create`.
+  # `Bali.archivals_authorize` (403). A host's bali-analytics track rule reads `@record` and, after
+  # `create`, `@archival` (gobierno-corporativo's rule will; today it reads `@document`).
   class ArchivalsController < ApplicationController
     # The drawer inserts this body. Without the line Rails renders `layouts/bali/application`,
     # which links a `bali/application` stylesheet that no host ships.
@@ -15,9 +15,7 @@ module Bali
     before_action :authorize_archivals!
     before_action :set_successors, only: %i[new create]
 
-    def new
-      @archival = Bali::Archival.new(archivable: @record)
-    end
+    def new; end
 
     def create
       @archival = @record.archive!(by: actor, **archival_params)
@@ -50,7 +48,7 @@ module Bali
     end
 
     def set_successors
-      @successors = Bali.archival_successors.call(self, @record)
+      @successors = Bali.archivals_successors.call(self, @record)
     end
 
     def actor = Bali.archivals_actor.call(self)
@@ -62,8 +60,10 @@ module Bali
         successor: @successors&.find_by(id: permitted[:successor_id]) }
     end
 
-    def return_path
-      Bali::Archival.local_path(params[:return_to]) || main_app.polymorphic_path(@record)
-    end
+    # Rails' own guard against open redirects: a path or URL of this host, else nil.
+    def return_to = url_from(params[:return_to])
+    helper_method :return_to
+
+    def return_path = return_to || main_app.polymorphic_path(@record)
   end
 end

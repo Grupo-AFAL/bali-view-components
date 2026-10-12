@@ -63,16 +63,6 @@ class BaliArchivalFormComponentTest < ComponentTestCase
     assert_selector "a[href='/admin/movies'][data-action*='drawer#close']", text: "Cancel"
   end
 
-  def test_a_return_to_that_is_not_a_local_path_is_dropped
-    [ "javascript:alert(document.domain)", "//evil.example" ].each do |return_to|
-      render_form(return_to: return_to)
-
-      assert_no_selector "input[name=return_to]", visible: :all
-      assert_no_selector "a", text: "Cancel"
-      assert_selector "button[type=button][data-action*='drawer#close']", text: "Cancel"
-    end
-  end
-
   def test_cancel_is_a_drawer_button_without_return_to
     render_form
 

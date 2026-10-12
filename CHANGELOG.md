@@ -17,9 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   drawer (`bali.new_archival_path(record_type:, record_id:)`) y `Bali::ArchivalNotice` pinta el
   aviso en el registro dado de baja. Para adoptarlo: `bin/rails bali:install:migrations:archivals`
   y las cuatro entradas `Bali.archivables`, `archivals_authorize`, `archivals_actor` y
-  `archival_successors` del initializer — sin las dos primeras, todo responde 404 o 403. Un modelo
+  `archivals_successors` del initializer — sin las dos primeras, todo responde 404 o 403. Un modelo
   no puede incluir a la vez `Bali::Archivable` y un `Archivable` propio: afal-apps, opina,
-  costa-norte y centinela-web tienen uno y tendrían que elegir. Guía en
+  costa-norte y centinela-web tienen uno y tendrían que elegir. El `return_to` pasa por el
+  `url_from` de Rails: sólo se sigue una ruta o URL del propio host, y `ArchivalForm` confía en lo
+  que le pasan. Un registro sin ruta propia necesita `return_to:`. Guía en
   `docs/guides/engine-models.md` y `docs/guides/engines.md`.
 
 ### Changed

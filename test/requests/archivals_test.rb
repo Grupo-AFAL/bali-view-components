@@ -7,7 +7,10 @@ require "test_helper"
 class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
   include ArchivableDeclaration
 
-  CONFIG = %i[archivables archivals_authorize archivals_actor archival_successors].freeze
+  HOSTILE_RETURN_TO = [ "//evil.example", "/\\evil.example", "https://evil.example", "javascript:alert(1)",
+                        "/\t/evil.example" ].freeze
+
+  CONFIG = %i[archivables archivals_authorize archivals_actor archivals_successors].freeze
 
   def setup
     studio = Tenant.create!(name: "Studio")
@@ -20,7 +23,7 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
     Bali.archivals_authorize = ->(_controller, _record, _action) { true }
     ana = @ana
     Bali.archivals_actor = ->(_controller) { ana }
-    Bali.archival_successors = ->(_controller, movie) { Movie.where.not(id: movie.id) }
+    Bali.archivals_successors = ->(_controller, movie) { Movie.where.not(id: movie.id) }
   end
 
   def teardown
@@ -41,12 +44,14 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
     assert_select "input[name=return_to][value=?]", "/admin/movies"
   end
 
-  def test_new_drops_a_return_to_that_is_not_a_local_path
-    get bali.new_archival_path(record_params.merge(return_to: "javascript:alert(1)"))
+  def test_new_drops_a_return_to_that_leaves_the_site
+    HOSTILE_RETURN_TO.each do |given|
+      get bali.new_archival_path(record_params.merge(return_to: given))
 
-    assert_response :success
-    assert_select "input[name=return_to]", false
-    assert_select "a[href=?]", "javascript:alert(1)", false
+      assert_response :success, "return_to=#{given.inspect}"
+      assert_select "input[name=return_to]", false
+      assert_select "a", text: "Cancel", count: 0
+    end
   end
 
   def test_create_archives_as_the_actor_and_redirects_to_the_record
@@ -78,7 +83,7 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
 
   def test_a_successor_outside_the_candidates_is_never_stored
     remake = @remake
-    Bali.archival_successors = ->(_controller, movie) { Movie.where.not(id: [ movie.id, remake.id ]) }
+    Bali.archivals_successors = ->(_controller, movie) { Movie.where.not(id: [ movie.id, remake.id ]) }
 
     post bali.archivals_path(record_params), params: { archival: { reason: "replaced", successor_id: @remake.id } }
 
@@ -87,7 +92,7 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_a_successor_id_is_never_stored_when_there_are_no_candidates
-    Bali.archival_successors = ->(*) { nil }
+    Bali.archivals_successors = ->(*) { nil }
 
     post bali.archivals_path(record_params), params: { archival: { reason: "replaced", successor_id: @remake.id } }
 
@@ -95,17 +100,21 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
     refute @movie.reload.archived?
   end
 
-  def test_return_to_is_followed_only_when_it_is_a_path_of_this_app
-    {
-      "/admin/movies?page=2" => "/admin/movies?page=2",
-      "//evil.example/movies" => movie_path,
-      "https://evil.example/movies" => movie_path,
-      "javascript:alert(1)" => movie_path,
-      "/\\evil.example/movies" => movie_path,
-      "/\t/evil.example" => movie_path
-    }.each do |given, expected|
+  def test_return_to_is_followed_when_it_is_a_path_of_this_app
+    post bali.unarchive_archivals_path(record_params), params: { return_to: "/admin/movies?page=2" }
+
+    assert_redirected_to "/admin/movies?page=2"
+  end
+
+  def test_return_to_is_ignored_when_it_leaves_the_site
+    @movie.archive!(by: @ana)
+
+    HOSTILE_RETURN_TO.each do |given|
       post bali.unarchive_archivals_path(record_params), params: { return_to: given }
-      assert_redirected_to expected, "return_to=#{given}"
+      assert_redirected_to movie_path, "unarchive return_to=#{given.inspect}"
+
+      post bali.archivals_path(record_params), params: { return_to: given, archival: { reason: "other" } }
+      assert_redirected_to movie_path, "create return_to=#{given.inspect}"
     end
   end
 
@@ -196,8 +205,8 @@ class BaliArchivalsRequestTest < ActionDispatch::IntegrationTest
     assert_response :forbidden
   end
 
-  # bali-analytics track rules read these two ivars: gobierno-corporativo's
-  # `documentos.documento_archivado`. Renaming one switches that event off with no error.
+  # A host's bali-analytics track rule reads these two ivars (gobierno-corporativo's will; today its
+  # rule reads `@document`). Renaming one switches that event off with no error.
   def test_create_leaves_the_record_and_the_new_archival_where_track_rules_read_them
     post bali.archivals_path(record_params), params: { archival: { reason: "expired" } }
 

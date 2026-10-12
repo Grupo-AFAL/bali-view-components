@@ -27,16 +27,6 @@ module Bali
       record.try(:title).presence || record.try(:name).presence || "##{record.id}"
     end
 
-    # `value` when it is a path on this origin, else nil: a redirect or an href built from a
-    # request parameter must not leave the site (`//host`, `/\host`) or run script (`javascript:`).
-    # Browsers drop tab, CR and LF from a URL, so `/<tab>/host` would resolve as `//host`: any
-    # control character or whitespace is refused.
-    def self.local_path(value)
-      return unless value.is_a?(String) && value.start_with?("/") && !value.start_with?("//", "/\\")
-
-      value unless value.match?(/[[:cntrl:][:space:]]/)
-    end
-
     def reason_label
       archivable.class.archival_reason_label(reason) if reason.present?
     end

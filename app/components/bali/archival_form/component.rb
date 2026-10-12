@@ -6,14 +6,15 @@ module Bali
       # @param record [ActiveRecord::Base] the record to archive; includes Bali::Archivable
       # @param successors [ActiveRecord::Relation, nil] the records that may replace it
       # @param url [String] where the form posts
-      # @param return_to [String, nil] the path the engine redirects to afterwards; anything that is
-      #   not a local path (see Bali::Archival.local_path) is dropped
+      # @param return_to [String, nil] where the engine redirects to afterwards, and where Cancel
+      #   links. Trusted as given, like `link_to`: pass it through `url_from` when it comes from
+      #   a request.
       # @param archival [Bali::Archival, nil] an invalid archival to re-render with its errors
       def initialize(record:, successors:, url:, return_to: nil, archival: nil)
         @record = record
         @successors = successors
         @url = url
-        @return_to = Bali::Archival.local_path(return_to)
+        @return_to = return_to
         @archival = archival || Bali::Archival.new(archivable: record)
       end
 
@@ -27,7 +28,7 @@ module Bali
 
       # With no candidates, a reason that needs a successor could never be submitted valid.
       def reasons
-        return @record.archival_reasons unless @successors.blank?
+        return @record.archival_reasons if @successors.present?
 
         @record.archival_reasons - @record.archival_successor_required_for
       end

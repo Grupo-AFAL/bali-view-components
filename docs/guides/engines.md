@@ -56,7 +56,7 @@ inside each controller and respond `403 Forbidden` on their own:
 | `Bali.archivables` | which models can be archived over HTTP | `{}` — every `record_type` is a 404 |
 | `Bali.archivals_authorize` | the form, archiving and reopening | falsy — 403 |
 | `Bali.archivals_actor` | who archives or reopens | `->(controller) { controller.try(:current_user) }` |
-| `Bali.archival_successors` | the records that may replace this one | `nil` — no successor offered |
+| `Bali.archivals_successors` | the records that may replace this one | `nil` — no successor offered |
 
 New engine controllers follow the same doctrine: a whitelist plus an authorize lambda
 is the defense, and it works even for a request that carries no session at all. The
@@ -460,7 +460,7 @@ end
 
 Bali.archivals_actor = ->(controller) { controller.current_user }
 
-Bali.archival_successors = lambda do |controller, document|
+Bali.archivals_successors = lambda do |controller, document|
   Pundit.policy_scope!(controller.current_user, Document).not_archived.where.not(id: document.id)
 end
 ```
@@ -473,12 +473,12 @@ so a `nil` user never reaches your policy scope: that is a 404, not an error.
 `archivals_authorize` receives the action: `"new"`, `"create"` or `"unarchive"`, so the form,
 archiving and reopening can be gated separately. Falsy answers 403.
 
-`archival_successors` returns the relation of records that may replace this one, or `nil` for
+`archivals_successors` returns the relation of records that may replace this one, or `nil` for
 "no successor". With `nil` or an empty relation the form offers neither the successor field nor
 the reasons that require one, so nobody can reach an archival that fails on submit.
 
 A whitelisted model that does not include `Bali::Archivable` is a 404. Archiving answers `303`
-to `return_to` (a local path) or to the record's page; an invalid archival answers `422` and
+to `return_to` (a path or URL of your host, through Rails' `url_from`) or to the record's page; an invalid archival answers `422` and
 re-renders the form in the drawer; a malformed `archival` parameter answers `400`; reopening a
 model that is not reversible answers `404`.
 
