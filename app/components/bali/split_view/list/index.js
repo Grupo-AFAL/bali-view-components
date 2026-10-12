@@ -23,16 +23,12 @@ export class SplitViewListController extends Controller {
 
   connect () {
     this.loading = false
-    this.visible = false
     this.paginationTargets.forEach(element => { element.hidden = true })
     this.sentinelTarget.hidden = false
     this.showState('loader')
 
     this.observer = new IntersectionObserver(
-      (entries) => {
-        this.visible = entries.some(entry => entry.isIntersecting)
-        if (this.visible) this.loadNext()
-      },
+      (entries) => { if (entries.some(entry => entry.isIntersecting)) this.loadNext() },
       { root: this.hasScrollerTarget ? this.scrollerTarget : null, rootMargin: this.rootMarginValue }
     )
     this.observer.observe(this.sentinelTarget)
@@ -92,7 +88,15 @@ export class SplitViewListController extends Controller {
     // screen — a short page, or a pane taller than the rows it just received. The
     // observer only reports a CHANGE in intersection, so a sentinel that never
     // stopped intersecting never asks again and the list stalls one page in.
-    if (this.visible && this.nextUrlValue) this.loadNext()
+    //
+    // Observed afresh, the sentinel is reported where these rows leave it. The last
+    // report, read here instead, predates their layout and still said "in view", so
+    // every page fetched the next one too: fifteen rows on load in the preview,
+    // where ten already put the sentinel ~590px below the fold, past its 300px margin.
+    if (this.nextUrlValue) {
+      this.observer?.unobserve(this.sentinelTarget)
+      this.observer?.observe(this.sentinelTarget)
+    }
   }
 
   append (html) {

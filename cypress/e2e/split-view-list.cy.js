@@ -11,6 +11,8 @@ describe('SplitView structured list', () => {
   const scroller = () => cy.get('[data-split-view-list-target="scroller"]')
   const rows = () => cy.get('.split-view-item')
   const scrollToBottom = () => scroller().scrollTo('bottom', { ensureScrollable: false })
+  const app = path =>
+    `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
 
   context('progressive enhancement', () => {
     beforeEach(() => cy.visit('/bali/split_view/default'))
@@ -103,6 +105,39 @@ describe('SplitView structured list', () => {
     })
   })
 
+  context('fetching on its own', () => {
+    // The dummy's pane is 12rem below `lg`, which leaves page one's sentinel ~230px
+    // below the fold, inside the observer's 300px margin: page two is fetched on
+    // load. Page two pushes it ~650px down, out of the margin, and there the list
+    // stops. It used to fetch page three as well and settle at fifteen rows.
+    it('fetches only the pages that reach the sentinel', () => {
+      cy.viewport(1000, 660)
+      cy.visit(app('/split-view'), { onBeforeLoad: (win) => cy.spy(win, 'fetch').as('fetch') })
+      rows().should('have.length', 10)
+
+      // Two frames, so the observer has reported where page two left the sentinel.
+      cy.window().then((win) => new Cypress.Promise((resolve) => {
+        win.requestAnimationFrame(() => win.requestAnimationFrame(resolve))
+      }))
+      cy.get('@fetch').then((fetch) => {
+        const pages = fetch.getCalls().map((call) => String(call.args[0])).filter((url) => url.includes('page='))
+        expect(pages, 'pages fetched').to.have.length(1)
+        expect(pages[0]).to.include('page=2')
+      })
+    })
+
+    // A pane taller than the whole list: no page pushes the sentinel out of view,
+    // and an observer reports only a CHANGE in intersection, so each page that
+    // lands has to ask again or the list stalls where it is.
+    it('keeps fetching while the pages it gets leave the sentinel in view', () => {
+      cy.visit(app('/split-view'))
+      scroller().then(($scroller) => { $scroller[0].style.setProperty('--bali-split-master-max-h', 'none') })
+
+      rows().should('have.length', 20)
+      cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
+    })
+  })
+
   context('deep link to a record beyond the first page', () => {
     beforeEach(() => cy.visit('/bali/split_view/deep_link_beyond_the_first_page'))
 
@@ -124,32 +159,45 @@ describe('SplitView structured list', () => {
   // Against the dummy's own page rather than a preview: this is about Turbo's
   // history, and the preview is not a location the app routes to.
   context('across a back navigation', () => {
-    const app = path =>
-      `${Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')}${path}`
-
     // Measured, because the obvious guess is the wrong one: Turbo caches the
     // snapshot of the page it is leaving, and by then the appended rows are part
     // of it. Going back does NOT reset the list to page one.
     it('keeps the pages already appended, and does not append them twice', () => {
       cy.visit(app('/split-view'))
-      rows().should('have.length', 5)
       scrollToBottom()
-      rows().should('have.length', 10)
+      rows().should('have.length.at.least', 10)
 
-      rows().eq(7).click()
+      // Natively, in the task that counts the rows: Turbo snapshots the page at the
+      // click, and Cypress's own click first scrolls the row to the top of the pane,
+      // which brings the sentinel into its margin. Whether that page landed before
+      // the click decided what the snapshot held — 20 rows where this expected 10,
+      // twice in CI and once in 20 local runs.
+      let left, href
+      rows().then(($rows) => {
+        left = $rows.length
+        href = $rows[7].href
+        $rows[7].click()
+      })
       cy.get('.split-view-detail [data-testid="detail-title"]').should('be.visible')
+      // Settled: the click's promoted visit has cached this page and rewound the
+      // frame. A back that beats it has no snapshot to restore — 17 runs in 20
+      // with the click above and without this wait.
+      cy.get('.split-view-detail').should(($frame) => expect($frame).to.have.attr('data-split-view-src', href))
       cy.location('search').should('contain', 'selected=')
 
       cy.go('back')
       cy.location('search').should('eq', '')
-      rows().should('have.length', 10)
+      // The URL changes at the popstate and the restored page lands after it: until
+      // then, what is counted and scrolled below is the page being left.
+      cy.get('.split-view-detail [data-testid="detail-title"]').should('not.exist')
+      rows().should(($rows) => expect($rows, 'the rows the list was left with').to.have.length(left))
 
       // The restored markup carries the next page the controller had reached, not
       // the one the server first rendered — Stimulus reflects a changed value back
       // to its attribute, so the snapshot is honest about where the list got to.
       // If it were not, the next scroll would re-append a page already on screen.
       scrollToBottom()
-      rows().should('have.length', 15)
+      rows().should(($rows) => expect($rows, 'one page more').to.have.length(left + 5))
       cy.get('.split-view-item').then(($rows) => {
         const ids = [...$rows].map(row => row.id)
         expect(new Set(ids).size, 'row ids are unique').to.eq(ids.length)
@@ -231,21 +279,23 @@ describe('SplitView structured list', () => {
     // without the controller knowing anything about filters. Measured, because
     // "it should inherit them" is exactly the kind of thing that silently does not.
     it('carries the filter into the pages the sentinel fetches', () => {
-      cy.visit(app('/split-view?status=done'))
+      cy.visit(app('/split-view?status=done'), { onBeforeLoad: (win) => cy.spy(win, 'fetch').as('fetch') })
       cy.get('[data-testid="list-count"]').should('have.text', '17')
-      rows().should('have.length', 5)
 
-      cy.intercept('GET', '/split-view*').as('nextPage')
-      scrollToBottom()
-      cy.wait('@nextPage').its('request.url').should('include', 'status=done')
-      rows().should('have.length', 10)
-
-      // And the rows that arrived really are the filtered ones: 17 of 20 movies
+      // The rows that arrived really are the filtered ones: 17 of 20 movies
       // are `done`, so an unfiltered page 2 would overshoot the filtered total.
-      scrollToBottom()
-      scrollToBottom()
+      // A scroll asks for one page, so each waits for the rows of the one before.
+      ;[5, 10, 15].forEach((count) => {
+        rows().should('have.length.at.least', count)
+        scrollToBottom()
+      })
       rows().should('have.length', 17)
       cy.get('[data-split-view-list-target="end"]').should('not.have.attr', 'hidden')
+      cy.get('@fetch').then((fetch) => {
+        const pages = fetch.getCalls().map((call) => String(call.args[0])).filter((url) => url.includes('page='))
+        expect(pages, 'pages fetched').to.have.length(3)
+        pages.forEach((url) => expect(url).to.include('status=done'))
+      })
     })
 
     // The preview narrows its own page one but pages against the dummy's
