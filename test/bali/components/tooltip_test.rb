@@ -143,4 +143,25 @@ class BaliTooltipComponentTest < ComponentTestCase
     end
     assert_selector(".trigger button.btn.btn-primary", text: "Click me")
   end
+
+  # The controller makes the trigger the tab stop when the slot brings none of its own, and an
+  # icon gives that stop no name: Chromium exposed it as a generic named "".
+  def test_trigger_label_names_the_trigger
+    render_inline(Bali::Tooltip::Component.new(trigger_label: "More information")) do |c|
+      c.with_trigger { c.tag.span "?" }
+      c.tag.p "Help"
+    end
+
+    assert_selector('.trigger[role="img"][aria-label="More information"]')
+  end
+
+  def test_without_trigger_label_the_trigger_keeps_the_name_of_its_text
+    render_inline(Bali::Tooltip::Component.new) do |c|
+      c.with_trigger { c.tag.span "Draft" }
+      c.tag.p "Help"
+    end
+
+    assert_no_selector(".trigger[role]")
+    assert_no_selector(".trigger[aria-label]")
+  end
 end

@@ -28,7 +28,8 @@ module Bali
       # @param text [String, nil] Balloon text. Alternatively pass a content block.
       # @param icon [String, Symbol] Icon name (Bali::Icon pipeline)
       # @param placement [Symbol] :top, :bottom, :left or :right
-      # @param options [Hash] Passed through to Bali::Tooltip (append_to:, class:, data:, …)
+      # @param options [Hash] Passed through to Bali::Tooltip (append_to:, class:, data:, …).
+      #   `trigger_label:` names the icon, `bali_view.help_tip.label` ("More information") by default.
       def initialize(text = nil, icon: "info-circle", placement: :top, **options)
         @text = text
         @icon = icon
@@ -37,7 +38,7 @@ module Bali
       end
 
       def call
-        render(Bali::Tooltip::Component.new(placement: @placement, **@options)) do |tooltip|
+        render(Bali::Tooltip::Component.new(placement: @placement, trigger_label: t(".label"), **@options)) do |tooltip|
           tooltip.with_trigger do
             render(Bali::Icon::Component.new(@icon, class: ICON_CLASSES))
           end

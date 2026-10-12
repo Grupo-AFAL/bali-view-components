@@ -70,6 +70,15 @@
         window.parent.postMessage({ type: 'bali:feedback:capture-request' }, window.location.origin)
       })
 
+      // The line Opina's embed adds: Escape pressed in here never reaches the host page, so
+      // the embed asks for the close. `defaultPrevented` leaves to the embed an Escape that
+      // closed something of its own.
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !event.defaultPrevented) {
+          window.parent.postMessage({ type: 'bali:feedback:close-request' }, '*')
+        }
+      })
+
       // What Opina's embed does on connect. The real one runs it from a Stimulus
       // controller, so it happens on every screen however that screen arrived.
       function requestContext () {

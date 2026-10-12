@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   un `t(...)` que no debe congelarse al cargar la clase. Antes el proc llegaba tal cual al
   placeholder del `number_range`.
 
+- **`Bali::Tooltip` acepta `trigger_label:`**: nombra un disparador sin texto propio, como un
+  ícono, con `role="img"` y ese `aria-label`.
+
 ### Changed
 
 - **`slim_select_field`: el id del contenedor sigue al del select** (`<id del select>_select_div`).
@@ -142,6 +145,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Textarea `auto_grow`: un `form.reset()` con el campo oculto lo dejaba al alto de sus `rows`**
   al volver a mostrarse, con el texto restaurado fuera de vista. Ahora se ajusta en cuanto vuelve
   a tener caja. Nada que hacer en las apps.
+
+- **FeedbackWidget: Escape dentro del panel de Opina lo cierra, si Opina lo pide.** Con el foco
+  dentro del iframe, Escape no llega a la página (ni `keydown` ni el `cancel` del `<dialog>`),
+  así que el panel no se cerraba. El widget atiende ahora
+  `{ type: 'bali:feedback:close-request' }` desde su propio frame y el origen de Opina, y cierra
+  el drawer por el mismo camino que Escape. **opina** tiene que mandarlo en su embed
+  (Grupo-AFAL/opina#127):
+  `document.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.defaultPrevented) window.parent.postMessage({ type: 'bali:feedback:close-request' }, '*') })`.
+  Hasta entonces nada cambia.
+
+- **El lightbox de `image-expander` (ImageGrid) se queda con Escape y Tab.** Dentro de un Drawer
+  o Modal, Escape cerraba el lightbox y el panel en la misma pulsación; ahora cierra sólo el
+  lightbox y el foco vuelve a la miniatura, dentro del panel. Tab y Shift+Tab ya no salen al
+  `<body>`, al ✕ del panel ni a las miniaturas: se quedan en el botón de cerrar. En afal-apps
+  deja de ser cierto «la tecla Esc cierra además el drawer» de
+  `docs/src/content/docs/desarrollo/terminales/hallazgos-y-seguimiento.mdx`.
+
+- **Modal y Drawer: Tab desde el último control entra al iframe que va primero.** Se detenía en
+  el iframe sin nada enfocado adentro y hacía falta otro Tab; ahora cae en el primer control del
+  frame (Chromium). Nada que hacer en la app.
+
+- **Modal y Drawer se cierran antes de que Turbo guarde la página en su caché.** Una página que
+  se dejaba con el panel abierto volvía con Atrás con el panel pintado pero sin `showModal()`, y
+  la página de detrás seguía respondiendo al mouse y al teclado. Ahora vuelve cerrado. No se
+  cierran cuando la visita va a la misma ruta con `replace` (un refresh), en la navegación de un
+  frame promovida a visita (`Tabs` con su `turbo_action: :advance` dentro de un drawer) ni cuando
+  sólo cambia el fragmento de la URL. Y un panel que vuelve abierto de todos modos, como el de la
+  copia que toma un frame promovido, se abre otra vez con `showModal()`. Nada que hacer en la app.
+
+- **`HelpTip`: el ícono tiene nombre.** El controlador del tooltip lo vuelve parada de
+  tabulación, y se anunciaba como un genérico sin nombre. Ahora es `role="img"` con
+  `aria-label` «Más información» (`bali_view.help_tip.label`), y el texto del globo sigue siendo
+  su descripción; un `trigger_label:` pasado a HelpTip le da un nombre más preciso.
+  **En un campo con `tooltip:`** el ícono va dentro del `<label>`: se anuncia «Más información»,
+  imagen, con el texto de ayuda, y el nombre accesible del campo pasa de «Email» a «Email Más
+  información». `fill_in` y `find_field` de Capybara leen el texto del `<label>` y siguen
+  encontrando el campo; una prueba que lo busque por nombre accesible exacto (`getByLabel`)
+  tendría que ajustarse, y ninguna app tiene una.
 
 ### Dependencies
 

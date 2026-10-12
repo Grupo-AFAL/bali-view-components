@@ -135,8 +135,28 @@ export class ModalController extends Controller {
 
     document.addEventListener(eventName, this.setOptionsAndOpenModal)
     document.addEventListener('turbo:before-morph-element', this._keepOpenPanelThroughMorph)
+    document.addEventListener('turbo:before-cache', this._closeBeforeCache)
 
     this._promoteInitiallyOpenOverlay()
+  }
+
+  // A snapshot keeps the panel's `open` attribute and nothing of what `showModal()` did:
+  // restored, the panel was painted open over a page that was not inert.
+  //
+  // Only for a visit that replaces the page. A refresh fires this too, with the panel open,
+  // and a morph refresh then leaves the panel alone (`_keepOpenPanelThroughMorph`); so do a
+  // frame navigation promoted to a visit, which renders nothing, and a history entry with no
+  // visit behind it (an anchor). Closing there would close the panel the reader is still using.
+  //
+  // `currentVisit`, `willRender` and `isPageRefresh` are undocumented Turbo internals (the peer
+  // range is `>=8.0.0 <9`); the «Turbo cache» specs in `modal-controller.cy.js` are the tripwire.
+  _closeBeforeCache = () => {
+    if (!this._panelOpen) return
+
+    const visit = window.Turbo?.navigator?.currentVisit
+    if (!visit?.willRender || visit.isPageRefresh) return
+
+    this._closeModal()
   }
 
   // A page morph must not touch a panel that is currently open.
@@ -158,15 +178,17 @@ export class ModalController extends Controller {
   // Listens on `document`, not `this.element`: the panel and the controller element are
   // often different subtrees (the shared body-level overlay), and the event bubbles.
   _keepOpenPanelThroughMorph = event => {
-    if (!this.hasTemplateTarget) return
-    if (event.target !== this.templateTarget) return
-
-    const dialog = this.templateTarget
-    // The class as well as the attribute: in `_showOverlay`'s fallback, where `showModal()`
-    // was unavailable, the class is the only thing holding the panel open.
-    if (!dialog.open && !dialog.classList.contains(this.openClass)) return
+    if (!this._panelOpen || event.target !== this.templateTarget) return
 
     event.preventDefault()
+  }
+
+  // The class as well as the attribute: in `_showOverlay`'s fallback, where `showModal()`
+  // was unavailable, the class is the only thing holding the panel open.
+  get _panelOpen () {
+    if (!this.hasTemplateTarget) return false
+
+    return this.templateTarget.open || this.templateTarget.classList.contains(this.openClass)
   }
 
   // A panel rendered `active:` arrives with the open class already on it and no
@@ -210,6 +232,7 @@ export class ModalController extends Controller {
 
     document.removeEventListener(eventName, this.setOptionsAndOpenModal)
     document.removeEventListener('turbo:before-morph-element', this._keepOpenPanelThroughMorph)
+    document.removeEventListener('turbo:before-cache', this._closeBeforeCache)
   }
 
   templateTargetConnected () {
@@ -317,6 +340,12 @@ export class ModalController extends Controller {
     const dialog = this.templateTarget
     dialog.classList.add(this.openClass)
 
+    // A snapshot taken with the panel open, one `_closeBeforeCache` leaves alone, restores it
+    // with `open` and none of what `showModal()` did: painted, over a page that is not inert.
+    // The attribute goes so the line below can promote it; not `close()`, which queues a `close`
+    // event that would reach whoever listens (ToastContainer) after the panel is open again.
+    if (dialog.open && !dialog.matches(':modal')) dialog.removeAttribute('open')
+
     if (typeof dialog.showModal !== 'function' || dialog.open) return
 
     try {
@@ -402,8 +431,9 @@ export class ModalController extends Controller {
   //
   // `fixed`, out of the flow: in a daisyUI `.modal`, which is a grid, it took a row of its own
   // and moved the box's centre up from 364px to 182px in an 800px window. And a Turbo snapshot
-  // of a page left with the panel open carries the guard after the wrapper, so the restored
-  // page's controller adopts that one rather than add a second, dead one beside it. Not
+  // taken with the panel open — one `_closeBeforeCache` leaves alone, like the copy a frame
+  // navigation promoted to a visit takes as it starts — carries the guard after the wrapper, so
+  // the restored page's controller adopts that one rather than add a second, dead one. Not
   // `data-turbo-temporary`: Turbo strips those from the live page on every
   // `turbo:before-cache`, and a refresh morph of a page it has cached fires one with the
   // panel still open.
@@ -488,8 +518,14 @@ export class ModalController extends Controller {
       }
     } else {
       if (document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
+        // The same step the other way round: from the panel itself, which comes just before the
+        // frame, this keydown's own default steps into the frame, onto its first control.
+        if (first.localName === 'iframe') {
+          this.wrapperTarget.focus()
+        } else {
+          event.preventDefault()
+          first.focus()
+        }
       }
     }
   }
@@ -555,9 +591,14 @@ export class ModalController extends Controller {
   // A `<dialog>` answers a close request on its own, and that close knows nothing
   // about the open calendar or the unsaved form. `close()` cancels the keydown for
   // every Escape it sees, so in practice this only runs for a close request that
-  // never was a keydown we saw: a platform back gesture, or Escape pressed while
-  // the focus sits inside an <iframe> in the panel. Route it through the same
-  // guarded path rather than let the browser discard the form.
+  // never was a keydown we saw: a platform back gesture, or Escape pressed with the
+  // focus on `<body>`. Route it through the same guarded path rather than let the
+  // browser discard the form.
+  //
+  // Not Escape pressed inside an <iframe> in the panel: measured in Chromium and
+  // Firefox, same-origin and cross-origin, that keydown stays in the frame's document
+  // and this one sees neither the key nor a `cancel`. An embed has to ask for the close,
+  // as FeedbackWidget's does with `bali:feedback:close-request`.
   _onDialogCancel = event => {
     // Only the dialog's OWN close request. An `<input type="file">` whose OS
     // picker was dismissed fires `cancel` too, and unlike the dialog's, that
