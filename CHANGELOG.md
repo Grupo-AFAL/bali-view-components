@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **DatePicker con `manual: true`: las flechas.** El paso de mes o de año cae en el último día del
+  mes destino si ese mes es más corto: el 31 de enero ▶ daba el 3 de marzo y ahora da el 28 de
+  febrero; un año desde el 29 de febrero, el 28. Una flecha que cae en una fecha deshabilitada
+  (fin de semana con `disable_weekends`, `disabled_dates`) sigue a la siguiente habilitada en su
+  dirección: el viernes ▶ da el lunes, donde desde v3.12.0 no hacía nada. Si no hay ninguna en un
+  año —pasado `max_date`, por ejemplo— no hace nada. Un campo `mode: "range"` ya no dibuja
+  flechas: daban el paso sobre la primera fecha y el rango quedaba en un día. Nada que hacer en
+  las apps: ninguna usa `manual: true` en un campo de fecha.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added

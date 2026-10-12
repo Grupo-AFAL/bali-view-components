@@ -150,8 +150,10 @@ module Bali
         wrapper_options
       end
 
+      # The arrows step one date, `selectedDates[0]` in datepicker-controller.js#stepDate: on a
+      # range the first click replaced the selection with a single day.
       def build_date_input(clear_btn, method, options)
-        if options[:manual]
+        if options[:manual] && options[:mode].to_s != "range"
           input = text_field(method, options)
           safe_join([ previous_date_button, input, next_date_button, clear_btn ].compact)
         else

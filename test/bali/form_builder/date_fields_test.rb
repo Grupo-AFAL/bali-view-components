@@ -75,6 +75,15 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     assert_html(result, "button.btn.btn-ghost.join-item", count: 2)
   end
 
+  # The arrows step one date, so on a range the first click replaced the selection with a day.
+  def test_date_group_with_manual_mode_renders_no_arrows_on_a_range
+    result = builder.date_group(:release_date, manual: true, mode: "range")
+
+    assert_html(result, "input#movie_release_date")
+    refute_html(result, 'button[data-action="datepicker#previousDate"]')
+    refute_html(result, 'button[data-action="datepicker#nextDate"]')
+  end
+
   def test_date_group_with_min_date_option_passes_min_date_to_datepicker_controller
     result = builder.date_group(:release_date, min_date: "2024-01-01")
     assert_html(result, 'div[data-datepicker-min-date-value="2024-01-01"]')

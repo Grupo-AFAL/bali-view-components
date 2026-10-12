@@ -28,6 +28,9 @@ module Bali
           )
         end
 
+        # `manual: true` adds arrows that step the date by `period:` (`day`, `month` or `year`),
+        # on to the next enabled date when the step lands on a disabled one. A `mode: 'range'`
+        # field gets no arrows: they step one date.
         def with_controls
           render_with_template(
             template: 'bali/form/date/previews/with_controls',
