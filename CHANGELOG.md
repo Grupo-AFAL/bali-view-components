@@ -91,6 +91,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   búsqueda aplica también los cambios del panel que aún no se habían aplicado, como ya hacía esa
   URL al recargar. Nada que hacer en la app.
 
+- **Google Maps: tras un error de red, la siguiente llamada vuelve a pedir la API** (#1387).
+  `loadGoogleMapsApi` guardaba su primera respuesta toda la vida de la página, con el rechazo por
+  tiempo incluido, así que después de un fallo ningún mapa (`LocationsMap`, `drawing-maps`,
+  `geocoder-maps`, `autocomplete-address` ni el de una app) volvía sin recargar. Un script que no
+  carga (`onerror`, que no existía) se quita y la siguiente llamada lo pide de nuevo. El tiempo de
+  espera es ahora de cada llamada: un script lento que llega después se conserva y la siguiente
+  llamada lo usa, sin cargar una segunda copia de la API. Si el script no responde nunca, o
+  responde pero la API no termina de cargar (falla su `main.js`), cada llamada se rinde a los 10 s
+  y no se reintenta hasta recargar. El rechazo por tiempo dice ahora «Timed out loading the Google
+  Maps API». Nada que hacer en la app.
+
+- **`LocationsMap`: el mapa ya no mide 0 px de alto en el teléfono** (#1388). Ahora mide 450 px
+  de alto también por debajo de `md`; en escritorio no cambia. **Anfitrión:** centinela-web puede
+  borrar su `.location-map { min-height: 450px }` de `app/assets/tailwind/application.css`
+  (`git grep -n "location-map" -- '*.css'`).
+
 ## [v3.11.0] - 2026-10-08
 
 ### Changed
