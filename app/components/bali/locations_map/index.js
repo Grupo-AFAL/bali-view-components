@@ -29,17 +29,12 @@ export class LocationsMapController extends Controller {
     this.MarkerClusterer = clusterer.MarkerClusterer
 
     try {
-      const options = {
+      this.googleMaps = await GoogleMapsLoader({
         language: this.localeValue,
-        key: this.apiKeyValue
-      }
-      // The loader's TimeoutError is this call giving up, not the script: the map builds
-      // once it arrives.
-      this.googleMaps = await GoogleMapsLoader(options).catch(error => {
-        console.error(error)
-        if (error.name === 'TimeoutError') return GoogleMapsLoader({ ...options, timeout: 0 })
+        key: this.apiKeyValue,
+        // No deadline: a script that arrives late still builds.
+        timeout: 0
       })
-      if (!this.googleMaps) return
 
       this.googleMarkers = await this.googleMaps.importLibrary('marker')
       // Removed during the await, nothing would destroy it; moved, the other connect builds it.

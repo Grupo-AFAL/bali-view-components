@@ -18,27 +18,27 @@ export class DrawingMapsController extends Controller {
     confirmationMessageToClear: { type: String, default: 'Would you like to continue?' }
   }
 
+  // Not with the map: «Clear» and «Clear holes» sit beside it in the form and work before the
+  // script has arrived.
+  initialize () {
+    this.drawnPolygons = []
+  }
+
   async connect () {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
 
     const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
 
     try {
-      const options = {
+      this.googleMaps = await GoogleMapsLoader({
         libraries: ['geometry'],
         language: 'es',
-        key: this.data.get('key')
-      }
-      // The loader's TimeoutError is this call giving up, not the script: the map builds
-      // once it arrives.
-      this.googleMaps = await GoogleMapsLoader(options).catch(error => {
-        console.error(error)
-        if (error.name === 'TimeoutError') return GoogleMapsLoader({ ...options, timeout: 0 })
+        key: this.data.get('key'),
+        // No deadline: a script that arrives late still builds.
+        timeout: 0
       })
       // Removed during the await, nothing would destroy it; moved, the other connect builds it.
-      if (!this.googleMaps || this.map || !this.element.isConnected) return
-
-      this.drawnPolygons = []
+      if (this.map || !this.element.isConnected) return
 
       const polygonOptions = {
         fillColor: '#eaeaea',

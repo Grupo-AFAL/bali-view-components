@@ -31,19 +31,15 @@ export class GeocoderMapsController extends Controller {
     if (testMode) return
 
     try {
-      const options = {
+      this.googleMaps = await GoogleMapsLoader({
         libraries: ['places'],
         language: 'es',
-        key: this.data.get('key')
-      }
-      // The loader's TimeoutError is this call giving up, not the script: the map builds
-      // once it arrives.
-      this.googleMaps = await GoogleMapsLoader(options).catch(error => {
-        console.error(error)
-        if (error.name === 'TimeoutError') return GoogleMapsLoader({ ...options, timeout: 0 })
+        key: this.data.get('key'),
+        // No deadline: a script that arrives late still builds.
+        timeout: 0
       })
       // Removed during the await, nothing would destroy it; moved, the other connect builds it.
-      if (!this.googleMaps || this.map || !this.element.isConnected) return
+      if (this.map || !this.element.isConnected) return
 
       this.initializeMap()
       this.initializeAddressListeners()

@@ -55,12 +55,10 @@ export default function (options = {}) {
 
   // The timeout is the caller's, not the script's: a script still loading when its caller gives
   // up runs once it arrives, removed from the page or not (Chromium and Firefox, measured), so the
-  // next call waits for it rather than load a second copy of the API over it. The platform's
-  // `TimeoutError`, so a caller can tell it from a script that failed and wait on: the four map
-  // controllers do.
+  // next call waits for it rather than load a second copy of the API over it.
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(function () {
-      reject(new DOMException('Timed out loading the Google Maps API', 'TimeoutError'))
+      reject(new Error('Timed out loading the Google Maps API'))
     }, timeout)
 
     loaded.then(resolve, reject).finally(() => clearTimeout(timeoutId))

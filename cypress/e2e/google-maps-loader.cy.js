@@ -76,28 +76,49 @@ describe('Google Maps loader', () => {
 
   // A timeout is the caller giving up, not the script: it still runs once it arrives, and a new
   // one would load a second copy of the API over it.
-  describe('when the script outlives the timeout', () => {
+  describe('loadGoogleMapsApi when the script outlives the timeout', () => {
+    const settled = (promise) => promise.then(() => 'loaded', (error) => error.message)
+
+    beforeEach(() => {
+      cy.clock(Date.now(), ['setTimeout', 'clearTimeout'])
+      stubGoogleMaps({ delay: 2000 })
+      visit()
+
+      let first
+      cy.window().then((win) => { first = settled(win.loadGoogleMapsApi()) })
+      cy.get(SCRIPT)
+      cy.tick(10000)
+      cy.then(() => first).should('eq', 'Timed out loading the Google Maps API')
+    })
+
+    it('waits for it on the next call', () => {
+      cy.window().should((win) => expect(win.__fakeMaps, 'still loading').to.eq(undefined))
+
+      cy.window().then((win) => settled(win.loadGoogleMapsApi())).should('eq', 'loaded')
+      cy.get('@mapsApi.all').should('have.length', 1)
+      cy.get(SCRIPT).should('have.length', 1)
+    })
+
+    it('hands it to the next call once it has arrived', () => {
+      cy.window().its('__fakeMaps').should('exist')
+
+      cy.window().then((win) => settled(win.loadGoogleMapsApi())).should('eq', 'loaded')
+      cy.get('@mapsApi.all').should('have.length', 1)
+      cy.get(SCRIPT).should('have.length', 1)
+    })
+  })
+
+  // The maps ask with `timeout: 0`: before, one whose script came after the loader's 10 s stayed
+  // an empty box until something reconnected it.
+  describe('a map whose script arrives after the default timeout', () => {
     beforeEach(() => {
       cy.clock(Date.now(), ['setTimeout', 'clearTimeout'])
       stubGoogleMaps({ delay: 2000 })
       visitAndMountMap()
       cy.get(SCRIPT)
       cy.tick(10000)
-      gaveUp('Timed out loading the Google Maps API')
     })
 
-    it('waits for it on the next call', () => {
-      cy.window().should((win) => expect(win.__fakeMaps, 'still loading').to.eq(undefined))
-
-      reconnect()
-
-      mapBuilt()
-      cy.get('@mapsApi.all').should('have.length', 1)
-      cy.get(SCRIPT).should('have.length', 1)
-    })
-
-    // The map that gave up builds itself once the script arrives: before, it stayed an empty box
-    // until something reconnected it.
     it('builds the map once the script arrives', () => {
       mapBuilt()
       cy.window().its('__fakeMaps.registry.markers').should('have.length', 6)
@@ -111,16 +132,28 @@ describe('Google Maps loader', () => {
       cy.window().its('__fakeMaps').should('exist')
       cy.window().its('__fakeMaps.registry.maps').should('have.length', 0)
     })
+  })
 
-    it('hands it to the next call once it has arrived', () => {
-      cy.window().its('__fakeMaps').should('exist')
+  // `coordinates_polygon_group` renders «Clear» and «Clear holes» beside the map, clickable while
+  // the script is still loading.
+  it('lets drawing-maps clear before its map exists', () => {
+    stubGoogleMaps({ delay: 2000 })
+    visit()
+    mount(`
+      <div data-controller="drawing-maps" data-drawing-maps-key="">
+        <div data-drawing-maps-target="map"></div>
+        <input type="hidden" value='{"shells":[],"holes":[]}' data-drawing-maps-target="polygonField">
+        <button type="button" data-action="drawing-maps#clearHoles">Clear holes</button>
+        <button type="button" data-action="drawing-maps#clear">Clear</button>
+      </div>`)
+    cy.on('window:confirm', () => true)
+    cy.window().should((win) => expect(win.__fakeMaps, 'still loading').to.eq(undefined))
 
-      reconnect()
+    cy.contains('button', 'Clear holes').click()
+    cy.contains('button', /^Clear$/).click()
 
-      mapBuilt()
-      cy.get('@mapsApi.all').should('have.length', 1)
-      cy.get(SCRIPT).should('have.length', 1)
-    })
+    // Stimulus catches what an action throws and logs it.
+    cy.get('@consoleError').should('not.have.been.called')
   })
 
   // #1409 — The API loads once per page, with the options of the call that asked first.
