@@ -1,4 +1,10 @@
 en:
+  activerecord:
+    attributes:
+      bali/archival:
+        reason: "Reason"
+        successor_id: "Successor"
+        note: "Note"
   bali_view:
     filters:
       close_panel: "Close filters"
@@ -257,6 +263,16 @@ en:
     content_versions:
       restored_from: "Restored from v%{number}"
       unknown_author: "Unknown"
+
+    archivals:
+      new:
+        title: "Archive"
+      reasons:
+        replaced: "Replaced by another"
+        no_longer_applicable: "No longer applicable"
+        superseded: "Superseded by a new regulation"
+        expired: "Expired"
+        other: "Other reason"
 
     # Status
     status:

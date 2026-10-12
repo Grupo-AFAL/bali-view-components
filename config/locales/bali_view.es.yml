@@ -1,4 +1,10 @@
 es:
+  activerecord:
+    attributes:
+      bali/archival:
+        reason: "Motivo"
+        successor_id: "Sucesor"
+        note: "Nota"
   bali_view:
     filters:
       close_panel: "Cerrar filtros"
@@ -251,6 +257,16 @@ es:
     content_versions:
       restored_from: "Restaurado desde la v%{number}"
       unknown_author: "Desconocido"
+
+    archivals:
+      new:
+        title: "Dar de baja"
+      reasons:
+        replaced: "Reemplazado por otro"
+        no_longer_applicable: "Ya no aplica"
+        superseded: "Superado por nueva regulación"
+        expired: "Vigencia expirada"
+        other: "Otro motivo"
 
     # Status
     status:
