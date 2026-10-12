@@ -25,22 +25,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     en el `tracking` de costa-norte, que es `es-MX`.
   - `bin/rails g bali:install` deja de sugerir esa línea.
 
-- **FileInput y DirectUpload nombran cada archivo en el idioma de la página (#1409).** En una
-  página en español, el botón que quita un archivo de un `file_group`/`file_field` con
-  `multiple: true` se anunciaba «Remove contrato.pdf». Cada fila de `Bali::DirectUpload` decía
-  «Uploading…», «Cancel upload of…», «Retry upload of…», «Remove…» y «Waiting to upload…», y
-  mostraba «Waiting...». Ahora salen de las traducciones de Bali, por el mismo camino que el
-  resto de cada componente: el FormBuilder escribe `bali_view.file_input.remove` en el campo, y
-  DirectUpload pasa sus textos en `data-direct-upload-translations-value`. JavaScript sólo pone
-  el nombre del archivo y el porcentaje.
-  - Llaves nuevas en `bali_view.direct_upload`: `file_status.pending_file`,
-    `file_status.uploading_file`, `actions.cancel_file` y `actions.retry_file`. Se retiran
-    `actions.cancel` y `actions.retry`, que el JavaScript siempre sobrescribía.
-  - **Anfitrión:** nada que hacer. Pasan al español los `file_group` con `multiple: true` de
-    afal-apps, el campo de adjuntos de opina y el `DirectUpload` de evidencias de
-    gobierno-corporativo. Ninguna de las siete apps sobrescribe las llaves retiradas. Un
-    `data-controller="file-input"` escrito a mano sin `data-file-input-remove-text-value`
-    sigue en inglés.
+- **FileInput y DirectUpload hablan el idioma de la página (#1409).** En una página en español,
+  el botón que quita un archivo de un `file_group`/`file_field` con `multiple: true` se
+  anunciaba «Remove contrato.pdf». `Bali::DirectUpload` escribía en inglés todo lo que pinta
+  desde JavaScript: los nombres de cada fila («Uploading…», «Cancel upload of…», «Retry upload
+  of…», «Remove…»), el «Upload failed» de una subida que falla, la alerta (límite de archivos,
+  de tamaño, tipo no aceptado, subida en curso) y lo que anuncia a los lectores de pantalla.
+  Ahora todo sale de las traducciones de Bali, por el camino que cada componente ya tenía: el
+  FormBuilder escribe `bali_view.file_input.remove` en el campo, y DirectUpload pasa sus textos
+  en `data-direct-upload-translations-value`. JavaScript sólo pone el nombre del archivo, el
+  porcentaje y los límites.
+  - Llaves de `bali_view.direct_upload`:
+    - nuevas: `file_status.uploading_file`, `file_status.failed_file`,
+      `status.marked_for_removal`, `errors.uploads_in_progress`, `actions.cancel_file` y
+      `actions.retry_file`;
+    - cambian de texto `file_status.completed`, `file_status.error`, `errors.file_too_large` y
+      `errors.invalid_type`, que nadie leía;
+    - se retiran `file_status.pending`, `file_status.uploading`, `actions.cancel` y
+      `actions.retry`.
+  - **Anfitrión:** nada que hacer.
+    - Pasan al español los `file_group` con `multiple: true` de afal-apps, el campo de
+      adjuntos de opina y el `DirectUpload` de evidencias de gobierno-corporativo.
+    - Ninguna de las siete apps sobrescribe llaves de `direct_upload` ni de `file_input`.
+    - Un `data-controller="file-input"` escrito a mano sin `data-file-input-remove-text-value`
+      sigue en inglés.
+
+### Deprecated
+
+- **`auto_upload:` de `Bali::DirectUpload` y de `direct_upload_field`/`direct_upload_group`
+  (#1409).** Con `auto_upload: false` nada arrancaba la subida. El archivo se quedaba en
+  «Waiting...», y el formulario se negaba a enviarse mientras esperara («Please wait for 1
+  upload(s) to complete»). Ahora los archivos se suben siempre al elegirlos. La opción se
+  ignora, avisa por `Bali.deprecator` y se retira en 4.0.
+  - **Anfitrión:** gobierno-corporativo pasa `auto_upload: true` en
+    `app/views/evidences/_upload_form.html.erb`: hay que borrar esa línea. Ninguna de las siete
+    apps usa `false`.
 
 ## [v3.12.0] - 2026-10-11
 

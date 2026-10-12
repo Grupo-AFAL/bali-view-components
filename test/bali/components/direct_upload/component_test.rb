@@ -12,6 +12,15 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
     end
   end
 
+  def translations
+    assert_selector("[data-direct-upload-translations-value]")
+    JSON.parse(page.find("[data-direct-upload-translations-value]")["data-direct-upload-translations-value"])
+  end
+
+  def translation_keys_read_by_the_controller
+    Bali::Engine.root.join("app/components/bali/direct_upload/index.js").read.scan(/this\.t\('(\w+)'/).flatten.uniq
+  end
+
   # Default rendering
 
   def test_default_rendering_renders_container_with_direct_upload_controller
@@ -74,11 +83,6 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
   def test_stimulus_data_values_sets_accept_value_to_by_default
     render_component
     assert_selector('[data-direct-upload-accept-value="*"]')
-  end
-
-  def test_stimulus_data_values_sets_auto_upload_value_to_true_by_default
-    render_component
-    assert_selector('[data-direct-upload-auto-upload-value="true"]')
   end
 
   def test_stimulus_data_values_sets_field_name_value_based_on_form_object
@@ -144,27 +148,35 @@ class BaliDirectUploadComponentTest < ActionView::TestCase
 
   # Auto upload
 
-  def test_auto_upload_configuration_sets_auto_upload_value_to_false
-    render_component(auto_upload: false)
-    assert_selector('[data-direct-upload-auto-upload-value="false"]')
+  # `auto_upload: false` left every file waiting with nothing to start it, and the form
+  # guard refused the submit while any waited.
+  def test_auto_upload_is_deprecated_and_no_longer_reaches_the_controller
+    assert_deprecated(/DirectUpload\(auto_upload:\) is deprecated/, Bali.deprecator) do
+      render_component(auto_upload: false)
+    end
+    assert_no_selector("[data-direct-upload-auto-upload-value]")
   end
 
-  # Translations: index.js fills in `%{filename}` and `%{progress}`, which only the
-  # browser knows, and reads every key below.
+  def test_without_auto_upload_nothing_is_deprecated
+    assert_not_deprecated(Bali.deprecator) { render_component }
+  end
+
+  # Translations: index.js fills in the file name, the progress and the limits, which only
+  # the browser knows.
 
   def test_translations_reach_the_controller_with_their_placeholders
     I18n.with_locale(:es) { render_component }
 
-    assert_selector("[data-direct-upload-translations-value]")
-    translations = JSON.parse(page.find("[data-direct-upload-translations-value]")["data-direct-upload-translations-value"])
-    assert_equal({
-      "pending" => "Esperando...",
-      "pending_file" => "Esperando para subir %{filename}",
-      "uploading_file" => "Subiendo %{filename}: %{progress}%",
-      "cancel_file" => "Cancelar la subida de %{filename}",
-      "retry_file" => "Reintentar la subida de %{filename}",
-      "remove_file" => "Eliminar %{filename}"
-    }, translations)
+    assert_equal "Subiendo %{filename}: %{progress}%", translations["uploading_file"]
+    assert_equal "%{filename} excede el límite de %{max}MB", translations["file_too_large"]
+  end
+
+  # A key index.js reads and the JSON lacks throws in `t`; one the JSON carries and nobody
+  # reads is a translation to retire.
+  def test_translations_carry_exactly_the_keys_the_controller_reads
+    render_component
+
+    assert_equal translation_keys_read_by_the_controller.sort, translations.keys.sort
   end
 
   # Drop zone interactions
