@@ -127,8 +127,8 @@ describe('SortableList', () => {
       cy.get(holder).should('have.class', 'sortable-chosen').then(($item) => {
         $item[0].parentNode.insertBefore($item[0], $item[0].previousElementSibling)
       })
-      // Stimulus hears of the move from a MutationObserver, which fires after a task of the page's own.
-      cy.window().then((win) => new Cypress.Promise((resolve) => win.setTimeout(resolve)))
+      // Without it the disconnect may not have run by the pointerup (docs/reference/testing-traps.md).
+      cy.wait(0)
       cy.document().trigger('pointerup', press)
 
       cy.get(holder).should('not.have.class', 'sortable-chosen')

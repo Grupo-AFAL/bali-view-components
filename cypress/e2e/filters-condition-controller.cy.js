@@ -102,6 +102,36 @@ describe('ConditionController', () => {
     cy.get(`${container} [data-condition-target="rangeInput"]`).should('exist')
   })
 
+  // The keys the server paints the same widgets with (condition/component_test.rb): every text
+  // is replaced by its own key, so a builder that reads another one paints it.
+  it('builds each widget with the text of its own key', () => {
+    cy.visit('/bali/filters/all_field_types?popover=false')
+    cy.get('[data-controller="condition"]').then(($condition) => {
+      const translations = JSON.parse($condition.attr('data-condition-translations-value'))
+      for (const scope of ['placeholders', 'boolean']) {
+        for (const key in translations[scope]) translations[scope][key] = `${scope}.${key}`
+      }
+      $condition.attr('data-condition-translations-value', JSON.stringify(translations))
+    })
+    const widget = (attribute, op, selector) => {
+      cy.get('[data-condition-target="attribute"]').select(attribute)
+      operator().select(op)
+      return cy.get(`${container} ${selector}`)
+    }
+    const texts = (...expected) => ($els) => expect($els.toArray().map((el) => el.textContent.trim())).to.deep.eq(expected)
+    const input = 'input[data-condition-target="value"]'
+
+    widget('name', 'cont', input).should('have.attr', 'placeholder', 'placeholders.enter_value')
+    widget('age', 'eq', input).should('have.attr', 'placeholder', 'placeholders.number')
+    widget('birth_date', 'eq', input).should('have.attr', 'placeholder', 'placeholders.select_date')
+    widget('last_login', 'eq', input).should('have.attr', 'placeholder', 'placeholders.select_datetime')
+    widget('birth_date', 'between', '[data-condition-target="rangeInput"]')
+      .should('have.attr', 'placeholder', 'placeholders.select_date_range')
+    widget('status', 'eq', 'option[data-placeholder]').should(texts('placeholders.select'))
+    widget('status', 'in', '[data-multi-select-target="label"]').should(texts('placeholders.select_values'))
+    widget('is_active', 'eq', 'option').should(texts('boolean.any', 'boolean.yes', 'boolean.no'))
+  })
+
   context('on Apply', () => {
     // The form is read at the moment it is submitted, with the navigation cancelled: that
     // is the only place where what actually travels can be observed.

@@ -42,7 +42,7 @@ es:
       # Selected count for multi-select
       selected_count: "%{count} seleccionados"
 
-      # Placeholders (nested structure for JavaScript controller)
+      # Placeholders
       placeholders:
         enter_value: "Ingrese valor..."
         number: "0"
@@ -52,7 +52,7 @@ es:
         select: "Seleccionar..."
         select_values: "Seleccionar valores..."
 
-      # Boolean (nested structure for JavaScript controller)
+      # Boolean
       boolean:
         any: "Cualquiera"
         "yes": "Sí"

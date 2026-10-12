@@ -49,7 +49,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   es `inline-flex`, así que a la vista no cambia nada: 0 píxeles distintos en los previews de Tag
   y Tags, en `afal` y `afal-dark`. **Anfitrión:** una prueba que busque `div.badge` deja de
   encontrarlo; centinela-web tiene dos (`test/controllers/dashboard_controller_test.rb:135-136`),
-  que pasan a `span.badge`.
+  que pasan a `span.badge`. Un `<form>` dentro del bloque de un Tag (identity:
+  `admin/accounts/_roles_card`, `app_accesses/show`) se ve igual pero deja de ser HTML válido; va
+  junto al Tag, no dentro.
 
 - **Filters y SimpleFilters: ninguna URL que arman arrastra ya `saved_view`, `clear_*` ni `q[...]`
   de la query de `url:`.** «Aplicar» llevaba `saved_view`, `clear_filters` y `clear_search` (los
@@ -97,10 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SortableList destruye su instancia de SortableJS cuando la lista sale de la página (#1409).**
   SortableJS guarda cada lista en un arreglo suyo, así que cada visita de Turbo dejaba vivas las
   de la anterior con todo su DOM: 22 instancias tras diez visitas a `sortable_list/shared`, 20
-  sobre listas fuera de la página; ahora 2. Mientras se sostiene un elemento no la destruye:
-  `destroy()` termina el arrastre en curso en cualquier lista, que se queda a medio camino sin
-  `bali:sortable-list:end` ni PATCH, y una lista anidada se desconecta en cada paso del elemento
-  que la contiene. Nada que hacer en la app.
+  sobre listas fuera de la página; ahora 2. Mientras se sostiene un elemento la conserva, para no
+  soltarlo. Nada que hacer en la app.
 
 - **Un mapa de Google cuyo script llega después del timeout se construye al llegar (#1409).**
   LocationsMap, `geocoder-maps`, `drawing-maps` y `autocomplete-address` no se construían nunca
