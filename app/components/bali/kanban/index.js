@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { interpolate } from '../../../assets/javascripts/bali/utils/interpolate.js'
 
 const MAX_CARD_LABEL_LENGTH = 60
 
@@ -13,11 +14,12 @@ export class KanbanController extends Controller {
     if (!this.hasLiveRegionTarget || !detail?.item || !detail?.to) return
 
     const { item, to, newIndex } = detail
-    const message = this.announcementValue
-      .replace('%{card}', this.cardLabel(item))
-      .replace('%{column}', to.dataset.kanbanColumnTitle || '')
-      .replace('%{position}', newIndex + 1)
-      .replace('%{total}', to.children.length)
+    const message = interpolate(this.announcementValue, {
+      card: this.cardLabel(item),
+      column: to.dataset.kanbanColumnTitle || '',
+      position: newIndex + 1,
+      total: to.children.length
+    })
 
     // Writing the same string twice is not a change, and a live region only
     // announces changes — dropping a card back where it came from would go

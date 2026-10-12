@@ -57,6 +57,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Un `data-controller="file-input"` escrito a mano sin `data-file-input-remove-text-value`
       sigue en inglés.
 
+- **Un `$&` en el texto de la app ya no se lee como patrón (#1409).** Kanban (`%{card}`),
+  WidgetGrid (`%{widget}`), DocumentEditor (`%{number}`, `%{time}`) y el `translator` del Gantt
+  llenaban los placeholders de sus traducciones con `String#replace`. Esa función lee `$&`,
+  `$'` o `$$` en el valor como patrón, así que un widget titulado `Ventas $& 2026` se
+  anunciaba `«Ventas %{widget} 2026» se movió…`. Ahora todos usan `utils/interpolate.js`, como
+  FileInput, DirectUpload y BlockEditor.
+  - **Anfitrión:** nada que hacer.
+
 ### Deprecated
 
 - **`auto_upload:` de `Bali::DirectUpload` y de `direct_upload_field`/`direct_upload_group`

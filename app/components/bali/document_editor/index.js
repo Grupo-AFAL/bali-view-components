@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { confirmDialog } from '../../../assets/javascripts/bali/confirm/confirm_dialog.js'
+import { interpolate } from '../../../assets/javascripts/bali/utils/interpolate.js'
 
 /**
  * DocumentEditor Controller
@@ -316,8 +317,9 @@ export class DocumentEditorController extends Controller {
       if (this.hasPreviewBannerTarget) {
         this.previewBannerTarget.classList.remove('hidden')
         if (this.hasPreviewVersionLabelTarget) {
-          this.previewVersionLabelTarget.textContent = this.versionLabelValue
-            .replace('%{number}', versionNumber || version.version_number)
+          this.previewVersionLabelTarget.textContent = interpolate(this.versionLabelValue, {
+            number: versionNumber || version.version_number
+          })
         }
       }
     } catch (error) {
@@ -439,7 +441,7 @@ export class DocumentEditorController extends Controller {
   // substituted here and the sentence around it stays in the locale file.
   _savedStatus () {
     const time = new Date().toLocaleTimeString(this.localeValue || undefined)
-    return this.statusSavedValue.replace('%{time}', time)
+    return interpolate(this.statusSavedValue, { time })
   }
 
   // Both messages are already in the DOM, translated; only one is ever visible.
