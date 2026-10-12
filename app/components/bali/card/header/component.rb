@@ -39,7 +39,8 @@ module Bali
         end
 
         # An auto margin, not `justify-between`: alone on its line once the row
-        # wraps, the badge went to the start of it.
+        # wraps, the badge went to the start of it. `flex`, because a block box's
+        # line strut sat the badge 1.1 px below the title's centre.
         def render_badge
           tag.div(badge, class: "ml-auto flex") if badge?
         end

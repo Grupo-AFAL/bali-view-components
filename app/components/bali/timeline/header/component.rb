@@ -61,10 +61,8 @@ module Bali
         end
 
         def badge_style
-          return options[:style].presence if custom_color.blank?
-
-          [ "background-color: #{custom_color}; color: #{contrasting_text_color(custom_color)}", options[:style] ]
-            .compact_blank.join("; ")
+          colour = "background-color: #{custom_color}; color: #{contrasting_text_color(custom_color)}" if custom_color
+          [ colour, options[:style] ].compact_blank.join("; ").presence
         end
 
         def badge_options

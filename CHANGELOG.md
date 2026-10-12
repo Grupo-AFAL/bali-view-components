@@ -11,8 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Tag` rechaza un `style:` que no sea variante.** `style:` es `:outline`, `:soft` o `:dash`;
   un string de CSS (`style: "opacity: .5"`) se descartaba sin aviso y salía un badge liso. Ahora
-  levanta `ArgumentError` con las tres variantes, como un `color:` o un `size:` desconocidos. En
-  las siete apps todas las llamadas pasan una variante o `nil`; nada que hacer.
+  levanta `ArgumentError` con las tres variantes, como un `color:` o un `size:` desconocidos,
+  también si llega por `Tags#with_item` o `SplitView::List::Item#with_tag`. En las siete apps
+  todas las llamadas, esos slots y los mapas de `Tag.for` pasan una variante o `nil`; nada que
+  hacer.
 
 ### Fixed
 
@@ -35,6 +37,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `CommentThread` va oculto del lector de pantalla porque el nombre está impreso al lado, y aun
   así cargaba el rol y la etiqueta de una imagen, que nadie lee, y un `title` que repetía ese
   nombre en un tooltip. Ninguna app pasa `aria-hidden` a un Avatar.
+
+- **`Avatar` con `aria_label:` ya no se queda sin nombre.** Rails escribe esa forma tal cual,
+  `aria_label="…"`, que no nombra nada, y el Avatar la tomaba por una etiqueta y no ponía la
+  suya: quedaba un `role="img"` mudo. Ahora sólo cuentan `aria: { label: }` y `"aria-label":`.
+  Ninguna app pasa `aria_label:` a un Avatar.
 
 - **`Timeline::Header` con `custom_color:` conserva el `style:` de quien llama**, después del
   color; antes lo reemplazaba.

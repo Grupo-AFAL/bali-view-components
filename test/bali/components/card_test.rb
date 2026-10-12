@@ -190,14 +190,12 @@ class BaliCardComponentTest < ComponentTestCase
     assert_selector(".flex-wrap > :last-child > .badge", text: "Beta")
   end
 
-  # The row wraps so the badge drops below a long title. `justify-between` put a
-  # badge alone on its line at the start; an auto margin keeps it at the end of
-  # whichever line it is on.
-  def test_header_slot_keeps_the_badge_at_the_end_of_its_line_when_it_wraps
+  # Where the wrapped badge lands is measured in cypress/e2e/card-header-badge.cy.js.
+  def test_header_slot_wraps_the_badge_in_an_auto_margin_box
     render_inline(Bali::Card::Component.new) do |c|
       c.with_header(title: "Dashboard", class: "mb-4") { |header| header.with_badge { "Beta" } }
     end
-    assert_selector(".card-body > .flex.flex-wrap.mb-4 > .ml-auto:last-child", text: "Beta")
+    assert_selector(".card-body > .flex.flex-wrap.mb-4 > .ml-auto.flex:last-child", text: "Beta")
   end
 
   def test_header_slot_renders_header_with_icon_subtitle_and_badge

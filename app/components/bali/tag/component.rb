@@ -81,7 +81,7 @@ module Bali
         @size_class = variant_class(:size, size, SIZES, LEGACY_SIZES)
         @custom_color = Bali::Color.hex!(self.class, custom_color)
         @text_color = Bali::Color.hex!(self.class, text_color, param: :text_color)
-        @style_class = variant_class(:style, style, STYLES, {})
+        @style_class = variant_class(:style, style, STYLES)
         @rounded = rounded
         @options = options
       end
@@ -117,7 +117,7 @@ module Bali
       # names survived two majors past their removal note — `size: :small`
       # rendered a default-sized tag and nothing said so, and neither did a CSS
       # string in `style:`.
-      def variant_class(param, value, classes, legacy)
+      def variant_class(param, value, classes, legacy = {})
         return nil if value.nil?
 
         key = value.to_sym

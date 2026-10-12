@@ -84,7 +84,7 @@ module Bali
 
       def container_attributes
         attrs = @options.except(:class)
-        return attrs if @name.blank? || hidden?(attrs)
+        return attrs if @name.blank? || aria_hidden?(attrs)
 
         attrs[:title] = @name unless attrs.key?(:title)
         return attrs if image? || attrs.key?(:role)
@@ -177,10 +177,10 @@ module Bali
       end
 
       def labelled?(attrs)
-        attrs.key?(:"aria-label") || attrs.key?(:aria_label) || attrs.dig(:aria, :label).present?
+        attrs.key?(:"aria-label") || attrs.dig(:aria, :label).present?
       end
 
-      def hidden?(attrs)
+      def aria_hidden?(attrs)
         [ attrs[:"aria-hidden"], attrs.dig(:aria, :hidden) ].any? { |value| value.to_s == "true" }
       end
 
