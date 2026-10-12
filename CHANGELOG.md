@@ -54,9 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **ransack queda acotado a `>= 5.0.2, < 6.0` en el gemspec.** 5.0.2 cierra GHSA-vxc9-rm8f-p56j y
   GHSA-j3f8-w227-4hh8, que llegan por el `q[...]` de un `FilterForm`; 6.0 salió el 9/10 y no se ha
-  probado con Bali. **Anfitrión:** las siete apps ya están en 5.0.2 con `gem "ransack", "~> 5.0"`.
-  El `~> 5.0` deja de hacer falta para acotar la versión; la línea se queda donde la app usa
-  ransack directamente (los ransackers de gobierno-corporativo). ga-apps, en Bali 1.2.4 con
+  probado con Bali. **Anfitrión:** nada que hacer: las siete apps ya están en 5.0.2 y declaran
+  ransack porque lo usan directamente (`ransackable_attributes`). ga-apps, en Bali 1.2.4 con
   ransack 4.1.1 (`~> 4`), tendrá que pasar a 5.0.2 al subir de Bali.
 
 ## [v3.13.0] - 2026-10-12
@@ -422,8 +421,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **El badge de `Card::Header` que baja de renglón queda al final**, como el que cabe; solo en
   su renglón, `justify-between` lo dejaba al inicio. centinela-web ya puede quitar el `ml-auto`
-  del Tag en `operations_board/show.html.erb` (el `justify-start!` del header lo retiró al subir a
-  v3.12.0), y como el renglón ya no lleva `justify-between`, afal-apps cambia
+  del Tag en `operations_board/show.html.erb` y el comentario que lo explica (el `justify-start!`
+  del header lo retiró al subir a v3.12.0), y como el renglón ya no lleva `justify-between`, afal-apps cambia
   `.justify-between` por `.flex-wrap` en los dos selectores de
   `test/controllers/td_flow/reports_controller_test.rb`. El badge ahora va dentro de un
   `div.ml-auto.flex`, así que un selector de hijo directo del renglón del título deja de
