@@ -32,7 +32,6 @@ module Bali
 
       # Icon only
       # ---------------
-      # No `name:`: the glyph is the whole button and must sit at its centre.
       # @param responsive toggle
       def icon_only(responsive: true)
         render Bali::Button::Component.new(icon: 'x', variant: :ghost, responsive: responsive, 'aria-label': 'Close')
