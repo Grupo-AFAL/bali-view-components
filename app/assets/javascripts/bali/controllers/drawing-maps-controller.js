@@ -25,7 +25,7 @@ export class DrawingMapsController extends Controller {
 
     try {
       const options = {
-        libraries: ['drawing', 'geometry'],
+        libraries: ['geometry'],
         language: 'es',
         key: this.data.get('key')
       }

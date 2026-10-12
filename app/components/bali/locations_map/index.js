@@ -30,7 +30,6 @@ export class LocationsMapController extends Controller {
 
     try {
       const options = {
-        libraries: ['drawing'],
         language: this.localeValue,
         key: this.apiKeyValue
       }

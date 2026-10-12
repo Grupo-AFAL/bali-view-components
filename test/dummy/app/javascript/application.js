@@ -6,7 +6,8 @@ import * as ActiveStorage from '@rails/activestorage'
 // Bali Controllers - Core Bundle
 import {
   registerAllControllers,
-  registerAllComponents
+  registerAllComponents,
+  loadGoogleMapsApi
 } from 'bali'
 import { startIslandLoader } from 'bali/react-island'
 
@@ -18,6 +19,8 @@ const application = Application.start()
 application.debug = false
 window.Stimulus = application
 window.Turbo = Turbo
+// For google-maps-loader.cy.js, which calls the loader as a host app does.
+window.loadGoogleMapsApi = loadGoogleMapsApi
 
 // Start ActiveStorage
 ActiveStorage.start()
