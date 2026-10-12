@@ -22,7 +22,7 @@ PATH
       diff-lcs (>= 1.5, < 3.0)
       lucide-rails (>= 0.3.0, < 0.8)
       rails (>= 8.1, < 9.0)
-      ransack
+      ransack (>= 5.0.2, < 6.0)
       simple_command
       view_component (>= 4.0.0, < 5.0)
       view_component-contrib
