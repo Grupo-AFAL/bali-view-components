@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Google Maps: una llamada al loader después de la primera recibe las bibliotecas que pide**
+  (#1409). La API se carga una vez por página, con las opciones de la primera llamada, y
+  `loadGoogleMapsApi` ignoraba en silencio lo que pedían las siguientes: un `autocomplete-address`
+  en una página donde `LocationsMap` ya la había cargado fallaba con `Cannot read properties of
+  undefined (reading 'Autocomplete')`. Ahora cada llamada importa sus `libraries` con
+  `google.maps.importLibrary`, y una `key`, `language`, `region`, `v`, `channel` o `client`
+  distinta de la cargada, que no puede cambiar sin recargar, avisa en la consola una vez por
+  opción. Los parámetros de la URL del script van codificados, y `timeout: 0` ya no se vuelve
+  10 s. `LocationsMap` deja de pedir `drawing`, que no usa. Nada que hacer en la app. Sigue el
+  límite de un mapa cuya espera venció: no se construye si el script llega después, sólo el
+  siguiente que conecta.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added

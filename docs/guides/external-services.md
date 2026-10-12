@@ -126,6 +126,7 @@ Display clickable cards alongside the map that highlight when clicking markers:
 | `ApiProjectMapError` in console | Maps JavaScript API not enabled. Enable it in Google Cloud Console. |
 | `RefererNotAllowedMapError` | Domain not allowed. Add your domain to key restrictions. |
 | Map doesn't load | Check browser console for errors. Verify billing is enabled. |
+| Map stays empty, console says `Timed out loading the Google Maps API` | The Maps script took longer than 10 s and the map gave up waiting: it does not build if the script arrives later. The next map that connects, on a Turbo visit or after a reload, gets it. |
 
 ### Security Notes
 
