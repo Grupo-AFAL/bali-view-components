@@ -38,10 +38,11 @@ module Bali
         lg: "textarea-lg", xl: "textarea-xl"
       }.freeze
 
-      # daisyUI 5 dropped `label-text-alt`; `fieldset-label` is its successor for
-      # the messages under a control. Unlike `.label` — the other candidate — it
-      # is a block-level flex container with no `white-space: nowrap`, so a long
-      # validation message wraps instead of overflowing the fieldset.
+      # `fieldset-label` is daisyUI 5's class for the messages under a control
+      # (daisyUI 4's alt label class is gone). Unlike `.label` — the other
+      # candidate — it is a block-level flex container with no
+      # `white-space: nowrap`, so a long validation message wraps instead of
+      # overflowing the fieldset.
       #
       # The help's grey is not daisyUI's `/60`: bali/utilities.css lifts every
       # `.fieldset-label` to `/70`. On the page `text-error` read 2.75:1 on `afal` (AA
