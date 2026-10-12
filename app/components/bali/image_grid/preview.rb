@@ -47,12 +47,18 @@ module Bali
       #   <% end %>
       # <% end %>
       # ```
-      #
-      # What the lightbox says while it loads, or when the image fails, is Bali's
-      # translation: switch `locale` to see it in Spanish.
-      # @param locale select { choices: [en, es] }
-      def expandable(locale: 'en')
-        render_with_template(locals: { locale: locale })
+      def expandable
+        render(ImageGrid::Component.new(columns: 3, gap: :md, expandable: true)) do |c|
+          6.times do |i|
+            c.with_image(
+              aspect_ratio: :'3/2',
+              full_src: "https://placehold.co/1600x1067?text=Full+#{i + 1}"
+            ) do
+              tag.img(src: "https://placehold.co/480x320?text=Image+#{i + 1}",
+                      alt: "Sample image #{i + 1}")
+            end
+          end
+        end
       end
 
       # Expandable images inside a Drawer or a Modal

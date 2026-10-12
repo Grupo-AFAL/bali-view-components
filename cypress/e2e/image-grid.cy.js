@@ -93,13 +93,15 @@ describe('ImageGrid lightbox', () => {
 
     it('from ImageGrid', () => {
       cy.visit('/bali/image_grid/expandable?locale=es')
+      // The preview layout writes `lang` too; without it, only ImageGrid's translations speak Spanish.
+      cy.document().then((doc) => doc.documentElement.removeAttribute('lang'))
       openBroken()
 
       expectSpanish()
     })
 
     it('from a trigger with no translations', () => {
-      cy.document().then((doc) => { doc.documentElement.lang = 'es' })
+      cy.visit('/bali/image_grid/expandable?locale=es')
       thumbnails().first().invoke('removeAttr', 'data-image-expander-translations-value')
       openBroken()
 

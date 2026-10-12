@@ -118,14 +118,6 @@ module Bali
         )
       end
 
-      # @label Default Entity Types
-      # The three types the editor paints with no `references_config:`. Their
-      # label is Bali's translation: switch `locale` to see it in Spanish.
-      # @param locale select { choices: [en, es] }
-      def default_entity_types(locale: 'en')
-        render_with_template(locals: { locale: locale, content: default_entity_types_content })
-      end
-
       # Full-featured editor with all capabilities enabled.
       # Includes: rich text, code blocks, multi-column, tables,
       # mentions, entity references, comments, export, AI, and form integration.
@@ -311,17 +303,6 @@ module Bali
             { type: 'text', text: ' ', styles: {} }
           ]
         end
-      end
-
-      def default_entity_types_content
-        chips = { 'task' => 'Fix login bug', 'project' => 'Q4 Release', 'document' => 'Architecture Decision Record' }
-                .each_with_index.flat_map do |(type, name), index|
-                  [
-                    { type: 'entityReference', props: { entityType: type, entityId: (index + 1).to_s, entityName: name } },
-                    { type: 'text', text: ' ', styles: {} }
-                  ]
-                end
-        [ { type: 'paragraph', content: chips } ].to_json
       end
 
       def sample_users

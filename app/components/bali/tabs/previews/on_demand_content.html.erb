@@ -1,7 +1,0 @@
-<% I18n.with_locale(locale) do %>
-  <%= render(Bali::Tabs::Component.new(style: :border)) do |c| %>
-    <% c.with_tab(title: 'Tab 1', src: '/tab1', reload: reload, active: true) %>
-    <% c.with_tab(title: 'Tab 2', src: '/tab2', reload: reload) %>
-    <% c.with_tab(title: 'Tab 3', src: '/tab3', reload: reload) %>
-  <% end %>
-<% end %>

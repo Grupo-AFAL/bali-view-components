@@ -1,9 +1,0 @@
-<% I18n.with_locale(locale) do %>
-  <%= render(Bali::ImageGrid::Component.new(columns: 3, gap: :md, expandable: true)) do |c| %>
-    <% 6.times do |i| %>
-      <% c.with_image(aspect_ratio: :'3/2', full_src: "https://placehold.co/1600x1067?text=Full+#{i + 1}") do %>
-        <%= tag.img src: "https://placehold.co/480x320?text=Image+#{i + 1}", alt: "Sample image #{i + 1}" %>
-      <% end %>
-    <% end %>
-  <% end %>
-<% end %>
