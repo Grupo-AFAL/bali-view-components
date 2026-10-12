@@ -174,7 +174,7 @@ class BaliArchivableTest < ActiveSupport::TestCase
 
   def test_local_path_keeps_only_paths_on_this_origin
     assert_equal "/admin/movies?page=2", Bali::Archival.local_path("/admin/movies?page=2")
-    [ "//evil.example", "/\\evil.example", "https://evil.example", "javascript:alert(1)", "", nil ].each do |value|
+    [ "//evil.example", "/\\evil.example", "https://evil.example", "javascript:alert(1)", "/\t/evil.example", "/\n/evil.example", "/ /evil.example", "", nil ].each do |value|
       assert_nil Bali::Archival.local_path(value), value.inspect
     end
   end
