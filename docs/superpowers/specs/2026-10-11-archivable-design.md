@@ -154,7 +154,7 @@ Both components get Lookbook previews.
 
 ## 5. How GC adopts it
 
-Order: Bali first (PR and release `v3.12.0`), then GC (bump, adoption, deletion) — GC pins Bali by
+Order: Bali first (PR and release `v3.13.0`), then GC (bump, adoption, deletion) — GC pins Bali by
 tag.
 
 GC deletes:
