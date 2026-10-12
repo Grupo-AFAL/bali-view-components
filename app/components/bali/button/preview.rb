@@ -30,6 +30,13 @@ module Bali
         render Bali::Button::Component.new(name: 'Add Item', variant: :primary, icon: 'plus', responsive: responsive)
       end
 
+      # Icon only
+      # ---------------
+      # @param responsive toggle
+      def icon_only(responsive: true)
+        render Bali::Button::Component.new(icon: 'x', variant: :ghost, responsive: responsive, 'aria-label': 'Close')
+      end
+
       # @label Button Group
       # Shows buttons grouped together with consistent spacing
       def button_group

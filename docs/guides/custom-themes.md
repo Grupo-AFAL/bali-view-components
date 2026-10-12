@@ -135,8 +135,9 @@ git grep -n -E 'text-neutral([^-]|$)' -- app
 Every theme declares its own `color-scheme`. The browser paints scrollbars and native controls by
 it, and these read it to choose their light or dark face: `text-soft-error` and the text of an
 outline, dash or soft error button, the Gantt's error pill, Breadcrumb's links, the BlockEditor,
-the FeedbackWidget's panel and the Google maps of `LocationsMap`, `coordinates_polygon_group` and
-the `geocoder-maps` controller. An app rule that sets it on the root
+the FeedbackWidget's panel, the Google maps of `LocationsMap`, `coordinates_polygon_group` and
+the `geocoder-maps` controller, and the search box of `autocomplete-address`. An app rule that sets
+it on the root
 
 ```css
 :root { color-scheme: light; }

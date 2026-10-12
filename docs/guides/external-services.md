@@ -141,8 +141,9 @@ The address autocomplete form field also requires Google Maps APIs.
 
 ### Requirements
 
-- **Places API** (for autocomplete suggestions)
-- **Geocoding API** (for address details)
+- **Maps JavaScript API**, which loads the search box.
+- **Places API (New)**, for the suggestions and the place picked. It is listed apart
+  from the legacy **Places API**, which the field no longer uses.
 
 ### Setup
 
@@ -160,22 +161,17 @@ from a global, in that order.
 window.GOOGLE_MAPS_API_KEY = '...'
 ```
 
-Ensure both APIs are enabled:
+Enable both:
 
 1. Go to **APIs & Services → Library**
-2. Enable **Places API**
-3. Enable **Geocoding API**
-4. Add both to your API key restrictions
+2. Enable **Maps JavaScript API** and **Places API (New)**
+3. Add both to your API key restrictions
 
 ---
 
 ## CoordinatesPolygon (Form Field)
 
 The polygon drawing field for defining geographic boundaries.
-
-**Deprecated, removed in 4.0, with no replacement.** The map draws through
-`google.maps.drawing.DrawingManager`, which the Maps JavaScript API no longer offers as of
-version 3.65, so the field cannot draw a polygon; each call warns through `Bali.deprecator`.
 
 ### Requirements
 

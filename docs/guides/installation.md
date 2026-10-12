@@ -417,8 +417,8 @@ missing.
 | Tooltip, Dropdown, HoverCard | Tippy | `npm install tippy.js` |
 | QrScanner | qr-scanner | `npm install qr-scanner` |
 | Chart (`/charts` entry) | Chart.js | `npm install chart.js` |
-| LocationsMap | Google Maps marker clusterer | `npm install @googlemaps/markerclusterer` + the Maps script below |
-| AutocompleteAddress | Google Maps API | Add the script to your layout (below) |
+| LocationsMap | Google Maps marker clusterer | `npm install @googlemaps/markerclusterer` + the Maps key below |
+| AutocompleteAddress | Maps JavaScript API + Places API (New) | No script tag: a key with both enabled (below) |
 | TrixAttachments | Trix | Included with Rails (Action Text) |
 
 Timeago (`date-fns`), RecurrentEventRuleForm (`rrule`), DirectUpload (`@rails/activestorage`),

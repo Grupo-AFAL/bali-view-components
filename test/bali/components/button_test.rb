@@ -231,4 +231,15 @@ class BaliButtonComponentTest < ComponentTestCase
 
     assert_selector("button[data-action~='drawer#openLocal'][data-drawer-id='notes-drawer']")
   end
+
+  def test_icon_only_renders_no_empty_span
+    render_inline(Bali::Button::Component.new(icon: "plus"))
+    assert_selector("button svg")
+    assert_no_selector("button span.max-sm\\:hidden")
+  end
+
+  def test_icon_only_with_block_shows_the_block
+    render_inline(Bali::Button::Component.new(icon: "plus")) { "Label" }
+    assert_text("Label")
+  end
 end
