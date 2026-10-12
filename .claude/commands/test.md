@@ -147,7 +147,7 @@ end
 def test_sizes_supports_all_daisyui_sizes
   %i[xs sm md lg xl].each do |size|
     render_inline(Bali::Tag::Component.new(text: "Tag", size: size))
-    assert_selector("div.badge.badge-#{size}")
+    assert_selector("span.badge.badge-#{size}")
   end
 end
 ```

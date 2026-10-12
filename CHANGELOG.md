@@ -36,6 +36,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`Bali::Tag` sin `href:` es un `<span>`, no un `<div>`.** Dentro de un `<label>`, donde el
+  formulario de epics de opina pone sus fichas de proyecto, un `<div>` es HTML inválido. `.badge`
+  es `inline-flex`, así que a la vista no cambia nada: 0 píxeles distintos en los previews de Tag
+  y Tags, en `afal` y `afal-dark`. **Anfitrión:** una prueba que busque `div.badge` deja de
+  encontrarlo; centinela-web tiene dos (`test/controllers/dashboard_controller_test.rb:135-136`),
+  que pasan a `span.badge`.
+
 - **Filters y SimpleFilters: ninguna URL que arman arrastra ya `saved_view`, `clear_*` ni `q[...]`
   de la query de `url:`.** «Aplicar» llevaba `saved_view`, `clear_filters` y `clear_search` (los
   `q[...]` ya los quitaba). «Limpiar», la ✕ de la búsqueda, «Limpiar todo» de las etiquetas y
