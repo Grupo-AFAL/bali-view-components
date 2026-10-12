@@ -131,17 +131,23 @@ export class TabsController extends Controller {
         tabContentDiv.innerHTML = body
         tabElement.dataset.contentLoaded = true
       } else {
-        tabContentDiv.innerHTML = `
-          <div class="alert alert-error">
-            <span></span>
-          </div>
-        `
-        tabContentDiv.querySelector('.alert-error span').textContent = this.translationsValue.load_failed
+        this._showLoadFailed(tabContentDiv)
       }
     } catch (error) {
       // Ignore abort errors, they're expected when switching tabs rapidly
       if (error.name === 'AbortError') return
-      throw error
+      // A request the network dropped fails like a 500 does, instead of leaving the spinner.
+      this._showLoadFailed(tabContentDiv)
     }
+  }
+
+  _showLoadFailed (tabContentDiv) {
+    const alert = document.createElement('div')
+    alert.className = 'alert alert-error'
+    alert.setAttribute('role', 'alert')
+    const message = document.createElement('span')
+    message.textContent = this.translationsValue.load_failed
+    alert.append(message)
+    tabContentDiv.replaceChildren(alert)
   }
 }

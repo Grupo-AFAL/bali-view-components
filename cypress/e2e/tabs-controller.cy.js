@@ -45,14 +45,27 @@ describe('TabsController', () => {
     })
 
     // #1428
+    const failedPanel = () => cy.get('.tabs-content [role="tabpanel"]:nth-child(2) .alert-error').first()
+
     it('says the content failed to load in the language of the page', () => {
       cy.intercept('GET', '/tab2*', { statusCode: 500, body: '' })
       cy.visit('/bali/tabs/on_demand?locale=es')
 
       cy.get('[role="tablist"] .tab:nth-child(2)').first().click()
 
-      cy.get('.tabs-content [role="tabpanel"]:nth-child(2) .alert-error span').first()
-        .should('have.text', 'No se pudo cargar el contenido')
+      failedPanel().should('have.attr', 'role', 'alert').and('have.text', 'No se pudo cargar el contenido')
+    })
+
+    it('says so too when the request never gets an answer', () => {
+      // The controller used to rethrow the rejection and leave the spinner. Letting that through
+      // makes the panel, not the stray rejection, what fails.
+      cy.on('uncaught:exception', (error) => !error.message.includes('Failed to fetch'))
+      cy.intercept('GET', '/tab2*', { forceNetworkError: true })
+      cy.visit('/bali/tabs/on_demand?locale=es')
+
+      cy.get('[role="tablist"] .tab:nth-child(2)').first().click()
+
+      failedPanel().should('have.text', 'No se pudo cargar el contenido')
     })
   })
 })

@@ -30,7 +30,8 @@ function nextRequest () {
   return { id, controller }
 }
 
-// Server validation error (422): carries the messages in `errors`.
+// A failed edit. A 422 carries the server's `errors`; a 500 page or a request the network dropped
+// carries none, and GanttFlow says its translated `change_failed` instead.
 export class ScheduleError extends Error {
   constructor (messages, statusCode) {
     super(Array.isArray(messages) ? messages.join('. ') : String(messages))
