@@ -3,8 +3,8 @@
 require "bali/engine_migrations"
 
 # Per-feature migration installs (#1079). `bali:install:migrations` — defined by
-# Rails::Engine's own rake_tasks block, which runs before this file is loaded — copies the
-# five migrations the engine ships; these copy one. Rake keeps a task and a namespace of
+# Rails::Engine's own rake_tasks block, which runs before this file is loaded — copies
+# every migration the engine ships; these copy one. Rake keeps a task and a namespace of
 # the same name apart, so both spellings resolve.
 namespace :bali do
   namespace :install do

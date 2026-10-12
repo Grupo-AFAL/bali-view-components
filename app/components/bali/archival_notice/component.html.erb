@@ -1,0 +1,10 @@
+<%= render Bali::Alert::Component.new(color: :warning, icon: "archive", **options) do %>
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <p><%= summary %></p>
+    <% if unarchive_url %>
+      <%= form_with url: unarchive_url, method: :post do %>
+        <%= render Bali::Button::Component.new(name: t(".reopen"), type: :submit, size: :sm) %>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
