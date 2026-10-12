@@ -74,7 +74,7 @@ export class DatepickerController extends Controller {
       // this is necessary because `altInputClass` option does not inherit the original classes
       altInputClass: `input ${this.altInputClassValue}`,
       mode: this.modeValue,
-      disable: this.disableWeekendsValue ? [this.isWeekend] : this.disabledDatesValue,
+      disable: this.disableWeekendsValue ? [this.isWeekend, ...this.disabledDatesValue] : this.disabledDatesValue,
       allowInput: this.allowInputValue,
       static: this.staticValue,
       onOpen: [this.joinTopLayer],
@@ -230,15 +230,20 @@ export class DatepickerController extends Controller {
   }
 
   // `setDate` gets its `triggerChange`, which flatpickr defaults to false: without it the input
-  // gets no `change`, so a `submit-on-change` form never heard the arrows (#1380).
+  // gets no `change`, and a `submit-on-change` form never hears the arrows (#1380).
   //
-  // A step onto a disabled date (a weekend under `disable_weekends`, past `min_date`/`max_date`)
-  // is refused before it reaches `setDate`, which would drop it, empty the field and announce
-  // that: the form submitted `date=`. The step is taken on a copy so a refused one leaves the
-  // selection where it was: `selectedDates[0]` is flatpickr's own Date.
+  // `setDate` drops a disabled date and empties the field, which the `change` turns into a
+  // `date=` submit. So a step onto one (a weekend under `disable_weekends`, a `disabled_dates`
+  // entry) carries on to the next enabled date, a day at a time in the arrow's direction. Past
+  // `min_date`/`max_date` none is left that way: the search gives up a year out and the arrow
+  // does nothing. The step is taken on a copy so a refused one leaves the selection where it
+  // was: `selectedDates[0]` is flatpickr's own Date.
+  //
+  // A step moves one date, so a range is left as it is. The FormBuilder raises on `manual:` with
+  // `mode: "range"` (SharedDateUtils#date_field); this covers arrows wired by hand.
   stepDate (by) {
     const selected = this.flatpickr.selectedDates[0]
-    if (!selected) return
+    if (!selected || this.flatpickr.config.mode === 'range') return
 
     const date = new Date(selected)
 
@@ -247,21 +252,37 @@ export class DatepickerController extends Controller {
         date.setDate(date.getDate() + by)
         break
       case 'month':
-        date.setMonth(date.getMonth() + by)
+        addMonths(date, by)
         break
       case 'year':
-        date.setFullYear(date.getFullYear() + by)
+        addMonths(date, 12 * by)
         break
       default:
         return
     }
 
-    if (!this.flatpickr.isEnabled(date)) return
+    for (let skipped = 0; !this.flatpickr.isEnabled(date); skipped++) {
+      if (skipped === DatepickerController.SKIPPABLE_DAYS) return
+
+      date.setDate(date.getDate() + by)
+    }
 
     this.flatpickr.setDate(date, true)
   }
 
+  static SKIPPABLE_DAYS = 366
+
   isWeekend = date => {
     return date.getDay() === 0 || date.getDay() === 6
   }
+}
+
+// `setMonth` keeps the day and lets it overflow — January 31 plus a month is March 3 — so the day
+// is clamped to the last one of the target month. A year from February 29 needs the same.
+function addMonths (date, months) {
+  const day = date.getDate()
+
+  date.setDate(1)
+  date.setMonth(date.getMonth() + months)
+  date.setDate(Math.min(day, new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()))
 }

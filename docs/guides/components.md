@@ -4557,12 +4557,17 @@ makes it a first-class popover attribute with no new API.
 ) %>
 ```
 
+`filter_form:` is the panel's applied state: its groups and the combinator between them.
+`filter_groups:` and `combinator:`, when passed, win over it. Inside a `DataTable`,
+`with_filters_panel` passes all of this on its own.
+
 **Features:**
 - Multiple filter groups with AND/OR combinators. Conditions inside a group narrow
   (AND) unless the user switches a row to OR — the seed used to be OR, so a second
   condition widened the listing instead of narrowing it (#1121); a group that arrives in
-  the URL with `m=or` keeps it. Groups combine with AND. Whatever the groups' combinator,
-  the panel is ANDed with the quick search and the rest of `q` (#1345).
+  the URL with `m=or` keeps it. Groups combine with AND unless the toggle between them says
+  OR (`q[m]=or`). Whatever the groups' combinator, the panel is ANDed with the quick search
+  and the rest of `q` (#1345).
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
 - Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted
@@ -4753,7 +4758,7 @@ filter_attribute :created_at, type: :date, input: :date_range, simple: true, adv
 It takes a zero-arity proc like `label:`, for an I18n lookup that must not be frozen at
 class-load time, and instance-level `simple_filters:` hashes take the same key. It also fills
 the "Custom…" picker of a `presets:` range. No other widget reads it: `number_range` has
-`placeholder_min:`/`placeholder_max:`, and a select shows its `blank:`.
+`placeholder_min:`/`placeholder_max:`, which take a proc too, and a select shows its `blank:`.
 
 #### Quick search (`search:`)
 
@@ -4901,7 +4906,7 @@ The component renders its own `Bali::Card`, so do not wrap it in another one.
 
 #### ImageField
 
-Image preview with an optional file input overlay for uploading/replacing an image, plus a hover clear button.
+Image preview with an optional file input overlay for uploading/replacing an image, plus a clear button. Hover and keyboard focus reveal the same things: the overlay, its icon and the clear button. The clear button shows only while there is an image to clear, never over the bare placeholder. Clearing hides it, and when the clear button had focus, focus moves to the input.
 
 ```erb
 <%= form_with(model: @user) do |f| %>
@@ -4913,11 +4918,19 @@ Image preview with an optional file input overlay for uploading/replacing an ima
 
 **Options:**
 - `src` - URL of the current image; falls back to the placeholder when nil (default: nil)
-- `placeholder_url` - Image shown when there is no `src` or after clearing (default: `https://placehold.jp/128x128.png`)
+- `placeholder_url` - Image shown when there is no `src` or after clearing (default: an inline SVG `data:` URI, so rendering requests nothing)
 - `size` - One of `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
 - `**options` - Additional HTML attributes for the container (e.g. `class`)
 
 **Slots:** `input` (file input, takes `form:` and `method:`), `clear_button` (override the default clear button).
+
+A custom `clear_button` hides with `opacity-0 pointer-events-none` and reveals with
+`group-hover/image-field:` and `group-has-focus-visible/image-field:`, never with `hidden`.
+Revealed from `display: none` by `group-has-focus-visible/image-field:`, the button is gone again
+by the time Tab reaches it: the input has already blurred. The group is named so a host card
+that is a `.group` itself does not reveal it. Whether there is anything to clear is the
+component's to decide, for a custom button too. The `with_custom_clear_button` preview has the
+classes.
 
 #### RichTextEditor
 

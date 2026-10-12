@@ -93,6 +93,19 @@ class BaliFiltersAppliedTagsComponentTest < ComponentTestCase
     assert_link("Clear all")
   end
 
+  # Clear all went to `url:` as it came, `saved_view` and `q[...]` included: the view was
+  # re-applied over the clearing, and a filter written into `url:` survived it. What the hidden
+  # fields DO carry, it keeps.
+  def test_clear_all_leaves_out_what_the_panels_hidden_fields_leave_out
+    render_inline(Bali::Filters::AppliedTags::Component.new(
+      filter_groups: @filter_groups, available_attributes: @available_attributes,
+      url: "/users?q%5Bname_cont%5D=x&clear_search=true&saved_view=3&per=25",
+      preserved_params: { view: "grid" }
+    ))
+
+    assert_link("Clear all", href: "/users?clear_filters=true&per=25&view=grid")
+  end
+
   def test_with_active_filters_does_not_render_clear_all_link_with_single_filter
     single_filter = [
       {

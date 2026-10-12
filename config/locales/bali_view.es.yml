@@ -9,7 +9,6 @@ es:
       search_placeholder: "Buscar..."
       search: "Buscar..."
       select_field: "Seleccionar campo..."
-      select_value: "Seleccionar..."
       select_values: "Seleccionar valores..."
       enter_value: "Ingrese valor..."
       remove_condition: "Eliminar condición"
@@ -380,6 +379,8 @@ es:
       confirm_cancel: Cancelar
     image_field:
       clear_image: Borrar imagen
+      input:
+        choose_image: Seleccionar imagen
     loader:
       loading: Cargando...
     frame:

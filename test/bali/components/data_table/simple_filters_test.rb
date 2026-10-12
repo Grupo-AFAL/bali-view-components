@@ -50,7 +50,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
   # Same semantics as Filters::Component (shared PreservedParams module): the browser drops the
   # action's query on a GET submit, so a host passing a `url:` with params of its own (a scope
   # like `status=historico`) lost them on every submit of the simple row. The Clear link already
-  # kept them (clear_href); the submit did not.
+  # kept them (clear_filters_url); the submit did not.
   def test_reemits_non_filter_query_params_from_url_as_hidden_fields
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test?status=historico&page=2", filters: @filters
@@ -69,6 +69,16 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_no_selector("input[type=hidden][name=clear_search]", visible: :all)
     assert_no_selector("input[type=hidden][name=saved_view]", visible: :all)
     assert_selector("form input[type=hidden][name=page][value='2']", visible: :all)
+  end
+
+  # Clear went to `url:` as it came, `saved_view` and `q[...]` included: the view was re-applied
+  # over the clearing, and a filter written into `url:` survived it.
+  def test_the_clear_link_leaves_out_what_the_hidden_fields_leave_out
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test?q%5Bstatus_eq%5D=active&clear_search=true&saved_view=5&page=2", filters: @filters, show_clear: true
+    ))
+
+    assert_link(href: "/test?clear_filters=true&page=2")
   end
 
   # Deduplication rule inherited from Filters: on a key collision the explicit hash wins over the
@@ -105,7 +115,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
   # `clear_filters` is NOT cosmetic: it is the only param that deletes the filter cache on the
   # server (`Rails.cache.delete(cache_key)`). Without it the link navigates to the bare URL, which
   # with persistence on is indistinguishable from "no filter arrived" — and the listing restores
-  # what the user has just cleared. The other two clearing routes (AppliedTags#clear_all_url and
+  # what the user has just cleared. The other two clearing routes (AppliedTags' Clear all and
   # the JS clearFiltersAndClose) do send it; this one had been left out, and these tests pinned
   # the bare URL as if it were the contract.
   def test_shows_clear_button_when_show_clear_is_true

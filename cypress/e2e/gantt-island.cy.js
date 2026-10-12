@@ -1,4 +1,5 @@
 import { cdp, frameAt } from '../support/accessibility_tree'
+import { allowResizeObserverLoop } from '../support/resize_observer_loop'
 import { drag } from '../support/tap'
 
 // Gantt island (#705): mounts GanttFlow through the COMPLETE circuit of a host —
@@ -251,6 +252,8 @@ describe('Gantt island', () => {
     cy.get('.react-flow__node').should('have.length.greaterThan', 0)
 
     cy.get('div[title="Drag to resize the table"]').then(([splitter]) => {
+      // Both CI failures fired during the drag back, not at mount: allowed from here on.
+      allowResizeObserverLoop()
       const table = splitter.previousElementSibling
       const start = table.getBoundingClientRect().width
       const { left, top } = splitter.getBoundingClientRect()
