@@ -222,6 +222,11 @@ es:
         add: "Agregar"
       submit:
         cancel: "Cancelar"
+      dictation:
+        dictate: "Dictar"
+        # Reemplaza al micrófono cuando el navegador lo niega de raíz: permiso denegado, servicio
+        # bloqueado, idioma que no tiene. No dice cuál de los tres: a quien lo lee no le sirve.
+        unavailable: "El dictado no está disponible en este navegador."
       file:
         choose_file: "Seleccionar archivo"
         no_file_selected: "Ningún archivo seleccionado"

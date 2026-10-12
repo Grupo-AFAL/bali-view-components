@@ -73,6 +73,7 @@ export {
   RadioButtonsGroupController,
   RadioToggleController,
   SlimSelectController,
+  SpeechInputController,
   StepNumberInputController,
   SubmitButtonController,
   SubmitOnChangeController,

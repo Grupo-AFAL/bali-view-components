@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`dictation:` en `text_area_group`: un micrófono que escribe en el campo lo que la persona
+  dice** (#1450). Lo hace el reconocimiento de voz **del navegador** (Web Speech API): ningún
+  audio llega al servidor y no hay servicio de transcripción de por medio.
+  `dictation: { lang: "en-US" }` dice en qué idioma se habla; por omisión `es-MX`. Trae el
+  controlador `speech-input`, utilizable a mano como cualquier otro.
+
+  El botón se renderiza `hidden` y el controlador lo revela sólo donde el navegador tiene
+  reconocimiento, así que en Firefox el campo queda exactamente como estaba. Se detiene solo al
+  enviar el formulario, cuando alguien escribe en el campo, y cuando el navegador se niega de
+  raíz —permiso denegado, servicio bloqueado, idioma que no tiene—; ahí el micrófono se retira y
+  una línea con `role="status"` lo dice.
+
+  **El audio sale.** El reconocimiento es del navegador, y los que lo tienen mandan lo dicho a
+  **su** proveedor: Google en Chrome, Microsoft en Edge, Apple en Safari. Sale del perímetro del
+  anfitrión. Por eso la opción nace apagada y la guía lo dice con todas sus letras: encenderla es
+  una decisión de quien conoce sus datos, no de la biblioteca.
+
+  **Anfitrión:** nada que hacer; sin `dictation:` no cambia un solo atributo. De paso, el
+  `.control` ya no pisa un `controller:` que el call site hubiera declarado en `control_data:` —
+  antes el contador lo sobrescribía sin decir nada—, porque el dictado y el contador comparten
+  esa caja.
+
 ## [v3.14.0] - 2026-10-12
 
 ### Added

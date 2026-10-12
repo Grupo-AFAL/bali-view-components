@@ -137,6 +137,83 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
     refute_html(result, '[data-textarea-target="counter"]')
   end
 
+  # Dictation (#1450). The whole point of the option is that the call site stops hand-wiring six
+  # attributes across three elements: forgetting one of them is not visible when you try it.
+
+  def test_text_area_with_dictation_puts_the_controller_on_the_control_box
+    result = builder.text_area(:synopsis, dictation: true)
+    assert_html(result, 'div.control[data-controller~="speech-input"]')
+  end
+
+  def test_text_area_with_dictation_makes_the_textarea_its_subject
+    result = builder.text_area(:synopsis, dictation: true)
+    assert_html(result, 'textarea[data-speech-input-target="input"]')
+  end
+
+  # Half the feature: without it the next result rebuilds the field from what was there when the
+  # mic went on, and eats the correction just typed.
+  def test_text_area_with_dictation_stops_the_mic_on_a_keystroke
+    result = builder.text_area(:synopsis, dictation: true)
+    assert_html(result, 'textarea[data-action~="input->speech-input#typed"]')
+  end
+
+  # Born hidden, and NOT rendered absent: `speech-input` reveals it only where the browser has
+  # recognition, so the markup cannot promise what the browser cannot do.
+  # `visible: :all` on both: they are rendered `hidden`, and Capybara's default scope would not
+  # find them — which is the assertion, so it is spelled out rather than worked around.
+  def test_text_area_with_dictation_renders_the_button_hidden
+    result = builder.text_area(:synopsis, dictation: true)
+    assert_html(result, 'button[type="button"][hidden][data-speech-input-target="button"]', visible: :all)
+    assert_html(result, 'button[data-action="speech-input#toggle"][aria-pressed="false"]', visible: :all)
+    refute_html(result, "button[data-speech-input-target]")
+  end
+
+  def test_text_area_with_dictation_renders_the_status_line_hidden
+    result = builder.text_area(:synopsis, dictation: true)
+    assert_html(result, 'p[role="status"][hidden][data-speech-input-target="status"]', visible: :all)
+    refute_html(result, 'p[data-speech-input-target="status"]')
+  end
+
+  def test_text_area_with_dictation_leaves_room_for_the_button_under_the_last_line
+    result = builder.text_area(:synopsis, dictation: true)
+    assert_html(result, "div.control.relative")
+    assert_html(result, "textarea.pb-12")
+  end
+
+  def test_text_area_with_dictation_hash_carries_the_language
+    result = builder.text_area(:synopsis, dictation: { lang: "en-US" })
+    assert_html(result, 'div[data-speech-input-lang-value="en-US"]')
+  end
+
+  # No language is not the empty string: the controller's own default answers for it.
+  def test_text_area_with_dictation_true_leaves_the_language_to_the_controller
+    result = builder.text_area(:synopsis, dictation: true)
+    refute_html(result, "div[data-speech-input-lang-value]")
+  end
+
+  def test_text_area_without_dictation_carries_no_trace_of_it
+    result = builder.text_area(:synopsis, auto_grow: true)
+    refute_html(result, '[data-controller~="speech-input"]')
+    refute_html(result, "[data-speech-input-target]")
+    refute_html(result, "textarea.pb-12")
+  end
+
+  # The two share the control box, and neither may evict the other: before #1450 the counter
+  # wrote `controller:` flat, so whatever was already there went silently.
+  def test_text_area_with_dictation_and_auto_grow_carries_both_controllers
+    result = builder.text_area(:synopsis, char_counter: { max: 200 }, auto_grow: true, dictation: true)
+    assert_html(result, 'div[data-controller~="textarea"][data-controller~="speech-input"]')
+    assert_html(result, 'textarea[data-textarea-target="input"][data-speech-input-target="input"]')
+    assert_html(result, 'textarea[data-action~="input->textarea#onInput"]')
+    assert_html(result, 'textarea[data-action~="input->speech-input#typed"]')
+  end
+
+  # `dictation:` is Bali's, not an attribute: Rails forwards whatever it does not recognise.
+  def test_text_area_does_not_forward_dictation_onto_the_element
+    result = builder.text_area(:synopsis, dictation: true)
+    refute_html(result, "textarea[dictation]")
+  end
+
   def test_text_area_with_both_char_counter_and_auto_grow_wraps_textarea_in_stimulus_controller_div
     result = builder.text_area(:synopsis, char_counter: { max: 200 }, auto_grow: true)
     assert_html(result, 'div[data-controller="textarea"]')

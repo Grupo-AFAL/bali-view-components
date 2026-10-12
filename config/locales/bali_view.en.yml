@@ -228,6 +228,9 @@ en:
         add: "Add"
       submit:
         cancel: "Cancel"
+      dictation:
+        dictate: "Dictate"
+        unavailable: "Dictation is not available in this browser."
       file:
         choose_file: "Choose file"
         no_file_selected: "No file selected"

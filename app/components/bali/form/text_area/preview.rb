@@ -62,6 +62,17 @@ module Bali
           )
         end
 
+        # @label Dictation
+        # The mic writes into the field through the browser's own speech recognition (#1450).
+        # The button only shows up where the browser has it, and the audio goes to the BROWSER's
+        # vendor -- which is why `dictation:` is off unless a host asks for it.
+        def dictation
+          render_with_template(
+            template: 'bali/form/text_area/previews/dictation',
+            locals: { model: form_record }
+          )
+        end
+
         # @label Auto Grow Example
         # Textarea that automatically expands as you type.
         def auto_grow_example

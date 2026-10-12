@@ -620,6 +620,34 @@ Both actions and the guard are live in the `bali/submit_on_change/default` previ
 If your app carries a local `auto_submit_controller.js`, this controller replaces
 it — see [Do you have a local copy?](#do-you-have-a-local-copy)
 
+## `speech-input`
+
+Dictation into a form control, through the browser's OWN speech recognition.
+`f.text_area_group(:body, dictation: true)` builds it (`dictation: { lang: "en-US" }`
+to say which language is being spoken); by hand:
+
+```html
+<div data-controller="speech-input" data-speech-input-lang-value="es-MX">
+  <textarea data-speech-input-target="input"
+            data-action="input->speech-input#typed"></textarea>
+  <button type="button" hidden
+          data-speech-input-target="button"
+          data-action="speech-input#toggle">🎤</button>
+  <p role="status" hidden data-speech-input-target="status">Dictation is not available…</p>
+</div>
+```
+
+The button is written `hidden` and the controller reveals it, so a browser with no
+recognition renders a field with no trace of a feature it cannot offer. It stops on
+its own when the form is submitted, when the person writes into the field, and when
+the browser refuses for good (permission denied, the service blocked, a language the
+engine does not have) — and then the status line replaces the mic.
+
+**The audio leaves.** The recognition is the browser's, and the browsers that have it
+send what is said to THEIR vendor: Google in Chrome, Microsoft in Edge, Apple in
+Safari. That is why `dictation:` is off unless a host asks for it, and why it is worth
+saying out loud to whoever will be talking into it.
+
 ## `textarea`
 
 Optional character counter and auto-grow for a textarea.

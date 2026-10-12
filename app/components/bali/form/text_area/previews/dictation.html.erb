@@ -1,0 +1,18 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_area_group :text,
+      rows: 3,
+      auto_grow: true,
+      dictation: true,
+      input_id: 'dictated',
+      placeholder: 'Tap the mic and talk.',
+      help: 'The mic appears only where the browser has speech recognition.' %>
+
+  <%# A language of its own, and no auto-grow: the two options are independent. %>
+  <%= form.text_area_group :text,
+      rows: 2,
+      dictation: { lang: 'en-US' },
+      input_id: 'dictated_in_english',
+      help: 'Same control, dictated in English, with a fixed height.' %>
+
+  <%= form.submit_field 'Send' %>
+<% end %>

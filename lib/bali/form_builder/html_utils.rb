@@ -59,6 +59,10 @@ module Bali
       # app/assets/javascripts/bali/controllers/textarea-controller.js#updateCounter, which takes it
       # off past the maximum.
       COUNTER_CLASS = "text-base-content/70 text-end w-full"
+      # Bottom-right of the control box, out of the text's way. `btn-ghost` is the resting look;
+      # `speech-input` swaps it for `btn-error` while the mic is open.
+      DICTATION_BUTTON_CLASS = "btn btn-ghost btn-sm btn-square absolute bottom-2 right-2"
+      DICTATION_STATUS_CLASS = "fieldset-label"
 
       # `number_with_commas` keeps its old name — it is the value hosts already
       # pass — but it no longer means "commas". Both separators are read from the
@@ -89,7 +93,7 @@ module Bali
       # data, the caption a checkbox or a toggle renders beside itself. All of
       # them are read before the input is rendered.
       HELPER_OPTIONS = %i[
-        pattern_type symbol char_counter auto_grow attachments select_class
+        pattern_type symbol char_counter auto_grow dictation attachments select_class
         choose_file_text non_selected_text file_class icon delimited
         subtract_data add_data button_class text
       ].freeze
@@ -515,6 +519,7 @@ module Bali
         )
 
         counter_attributes(attributes) if stimulus_counter?(options)
+        dictation_attributes(attributes) if dictation?(options)
         apply_input_name_options(options, attributes)
 
         merge_aria_attributes(attributes, method, options)
@@ -604,7 +609,7 @@ module Bali
         #
         # Whichever of the two comes out outermost is the box around the control,
         # and so the one `control_class:` and `control_data:` name — see `control_box`.
-        join_is_the_box = addons && !char_counter?(options)
+        join_is_the_box = addons && !char_counter?(options) && !dictation?(options)
         box = join_is_the_box ? options : {}
         control = if addons
           field_with_addons(field, left: left_addon, right: right_addon, box: box)
@@ -614,7 +619,10 @@ module Bali
 
         return control + messages if join_is_the_box
 
-        control_box(safe_join([ control, counter_element(options) ].compact), options) + messages
+        control_box(
+          safe_join([ control, dictation_elements(options), counter_element(options) ].compact),
+          options
+        ) + messages
       end
 
       # The box around the control, and the one element `control_class:` and
@@ -634,7 +642,7 @@ module Bali
       def control_box(content, options, base: "control")
         content_tag(
           :div, content,
-          class: @template.token_list(base, options[:control_class]),
+          class: @template.token_list(base, dictation_control_class(options), options[:control_class]),
           data: control_data(options)
         )
       end
@@ -770,16 +778,33 @@ module Bali
       # sit on an element that contains both the control and the counter, and the
       # control div is the only one that does.
       def control_data(options)
-        return options[:control_data] unless stimulus_counter?(options)
+        return options[:control_data] unless control_carries_a_controller?(options)
 
-        counter = options[:char_counter]
-        max_length = counter.is_a?(Hash) ? counter[:max] : 0
+        data = options[:control_data] || {}
+        controllers = []
 
-        (options[:control_data] || {}).merge(
-          controller: "textarea",
-          'textarea-max-length-value': max_length,
-          'textarea-auto-grow-value': options[:auto_grow].present?
-        )
+        if stimulus_counter?(options)
+          counter = options[:char_counter]
+          data = data.merge('textarea-max-length-value': counter.is_a?(Hash) ? counter[:max] : 0,
+                            'textarea-auto-grow-value': options[:auto_grow].present?)
+          controllers << "textarea"
+        end
+
+        if dictation?(options)
+          data = data.merge('speech-input-lang-value': dictation_lang(options))
+          controllers << "speech-input"
+        end
+
+        # Joined and not overwritten: two of Bali's own already share this box, and a call site
+        # that declared its own `control_data: { controller: }` used to lose it without a word.
+        data.merge(controller: @template.token_list(data[:controller], *controllers))
+      end
+
+      # Does the `.control` div carry a Stimulus controller of Bali's own? Both the counter and
+      # the dictation need an element that contains the control AND what they render beside it,
+      # and the control div is the only one that does.
+      def control_carries_a_controller?(options)
+        stimulus_counter?(options) || dictation?(options)
       end
 
       # The pair of attributes that make a control the counter's subject. Both
@@ -805,6 +830,59 @@ module Bali
 
       def char_counter?(options)
         options[:char_counter].present?
+      end
+
+      # `dictation: true`, or `dictation: { lang: "en-US" }` to say which language is being
+      # spoken. Off unless asked for: the browser's recognition sends the audio to the BROWSER's
+      # vendor, which is a decision only the host can make. See the controller's own note.
+      def dictation?(options)
+        options[:dictation].present?
+      end
+
+      def dictation_lang(options)
+        options[:dictation].is_a?(Hash) ? options[:dictation][:lang] : nil
+      end
+
+      # What makes a control the dictation's subject. The keystroke action is half the feature
+      # and not a nicety: without it the next result rebuilds the field from what was there when
+      # the mic went on, and eats whatever was just corrected by hand.
+      def dictation_attributes(attributes)
+        attributes[:data] = attributes[:data].dup if attributes[:data].is_a?(Hash)
+
+        prepend_action(
+          prepend_data_attribute(attributes, :'speech-input-target', "input"),
+          "input->speech-input#typed"
+        )
+      end
+
+      # The mic and the line that replaces it when the browser refuses. Both inside the control
+      # box, which is the element carrying the controller.
+      #
+      # The button is `hidden` from the server: `speech-input` reveals it only where the browser
+      # has recognition, so a browser without it renders a field with no trace of a feature it
+      # cannot offer. Absolutely positioned at the bottom-right of the box, which is why the
+      # control gets room on that side — see `dictation_control_class`.
+      def dictation_elements(options)
+        return unless dictation?(options)
+
+        label = I18n.t("bali_view.form_builder.dictation.dictate")
+        safe_join([
+          content_tag(:button, dictation_icon, type: "button", hidden: true,
+                                               class: DICTATION_BUTTON_CLASS, title: label,
+                                               aria: { label: label, pressed: "false" },
+                                               data: { 'speech-input-target': "button",
+                                                       action: "speech-input#toggle" }),
+          content_tag(:p, I18n.t("bali_view.form_builder.dictation.unavailable"),
+                      class: DICTATION_STATUS_CLASS, role: "status", hidden: true,
+                      data: { 'speech-input-target': "status" })
+        ])
+      end
+
+      def dictation_icon = @template.render(Bali::Icon::Component.new("mic", size: :small))
+
+      # Room for the mic at the bottom-right, so a dictated line does not run under it.
+      def dictation_control_class(options)
+        "relative" if dictation?(options)
       end
 
       # Auto-grow is a textarea's own option and does not imply a counter, but it
@@ -877,7 +955,10 @@ module Bali
       end
 
       def textarea_base_class(options)
-        [ TEXTAREA_BASE_CLASS, size_variant(options, TEXTAREA_SIZES) ].compact.join(" ")
+        # `pb-12` and not `pr-12`: the mic sits at the bottom-right, and a textarea's last line is
+        # what would run under it. Padding on the right would hold every line short instead.
+        [ TEXTAREA_BASE_CLASS, size_variant(options, TEXTAREA_SIZES),
+          ("pb-12" if dictation?(options)) ].compact.join(" ")
       end
 
       # The control's own class list: Bali's base, then the caller's `class:`,

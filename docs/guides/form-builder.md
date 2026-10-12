@@ -326,6 +326,11 @@ Slider input with optional tick marks.
 
 **Options:**
 - `char_counter` - A live character count — see below
+- `dictation` - A mic that writes what the person says into the field, through the
+  browser's own speech recognition. `dictation: { lang: "en-US" }` names the language
+  being spoken; the default is `es-MX`. Off unless asked for, and worth reading the
+  privacy note in the controllers guide before turning it on: the audio goes to the
+  browser's vendor
 - `auto_grow` - Grow the box to fit its content, between the height of the field
   empty and whatever `max-height` CSS applies to it (`input_class: "max-h-48"`,
   a percentage, a `calc()`), past which it scrolls. Textarea only: an `<input>`
