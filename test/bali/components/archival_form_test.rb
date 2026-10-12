@@ -48,6 +48,28 @@ class BaliArchivalFormComponentTest < ComponentTestCase
     end
   end
 
+  def test_without_a_successor_reason_the_successor_is_not_offered_even_with_candidates
+    with_archivable(successor_required_for: []) do
+      render_form
+    end
+
+    assert_no_selector "select[name='archival[successor_id]']"
+    assert_selector "input[name='archival[reason]']", count: 5
+  end
+
+  def test_cancel_returns_to_return_to_and_still_closes_the_drawer
+    render_form(return_to: "/admin/movies")
+
+    assert_selector "a[href='/admin/movies'][data-action*='drawer#close']", text: "Cancel"
+  end
+
+  def test_cancel_is_a_drawer_button_without_return_to
+    render_form
+
+    assert_selector "button[type=button][data-action*='drawer#close']", text: "Cancel"
+    assert_no_selector "a", text: "Cancel"
+  end
+
   def test_return_to_travels_with_the_form
     render_form(return_to: "/admin/movies")
 
