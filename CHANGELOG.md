@@ -44,6 +44,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   avatar sigue centrado dentro de su `flex justify-center`, con mensaje o sin él. Ninguna app usa
   `ImageField`, y nada apunta a esos inputs.
 
+- **SplitView: la lista con infinite scroll pide una página por vez.** Cada vez que el sentinel
+  pedía una página llegaban dos. Una página que no llena el panel sigue pidiendo la siguiente.
+  Afecta a los inbox de gobierno-corporativo (`inbox/show`) y afal-apps (`td_flow/inboxes/show`);
+  no tienen nada que cambiar.
+
 ### Dependencies
 
 - **Con tailwindcss-rails, `@tailwindcss/typography` no va en `package.json`** (alerta de
