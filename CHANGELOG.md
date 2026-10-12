@@ -50,17 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Un `data-controller="file-input"` escrito a mano sin `data-file-input-remove-text-value`
       sigue en inglés.
 
-### Deprecated
-
-- **`auto_upload:` de `Bali::DirectUpload` y de `direct_upload_field`/`direct_upload_group`
-  (#1409).** Con `auto_upload: false` nada arrancaba la subida. El archivo se quedaba en
-  «Waiting...», y el formulario se negaba a enviarse mientras esperara («Please wait for 1
-  upload(s) to complete»). Ahora los archivos se suben siempre al elegirlos. La opción se
-  ignora, avisa por `Bali.deprecator` y se retira en 4.0.
-  - **Anfitrión:** gobierno-corporativo pasa `auto_upload: true` en
-    `app/views/evidences/_upload_form.html.erb`: hay que borrar esa línea. Ninguna de las siete
-    apps usa `false`.
-
 - **ImageGrid, Tabs, BlockEditor y Gantt dejan de escribir inglés desde JavaScript en una página
   en español (#1428).** El visor de ImageGrid decía «Loading» y «Could not load image», y su
   botón de cerrar se anunciaba con el nombre del disparador («Ampliar imagen»); un panel de Tabs
@@ -71,12 +60,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de las traducciones de Bali: llaves nuevas `bali_view.image_grid.loading`, `.load_failed` y
   `.close`, `bali_view.tabs.load_failed` y `bali_view.block_editor.entity_types.*`. Un botón
   `image-expander` escrito a mano, sin ImageGrid, toma los del `lang` de la página.
-  - Tabs deja de escribir su `data-controller` y sus valores en el hash `data:` que recibe: dos
-    Tabs con el mismo hash pintaban `tabs tabs` y un JSON de traducciones repetido e inválido.
+  - Tabs deja de escribir su `data-controller` en el hash `data:` que recibe. En Bali publicado,
+    dos Tabs con el mismo hash sólo pintaban `data-controller="tabs tabs"`. Con el valor de
+    traducciones nuevo también se habría repetido el JSON, que ya no se puede leer, y por eso se
+    corrige aquí.
   - **Anfitrión:** nada que hacer. Pasan al español las fotos de afal-apps (también las del
     censo, cuyo botón es a mano bajo `<html lang="es">`) y de centinela-web, y el cronograma de
     afal-apps. Ninguna de las siete apps usa Tabs con `src:` ni esos tres tipos de referencia, ni
     sobrescribe `bali_view` en sus locales.
+
+### Deprecated
+
+- **`auto_upload:` de `Bali::DirectUpload` y de `direct_upload_field`/`direct_upload_group`
+  (#1409).** Con `auto_upload: false` nada arrancaba la subida. El archivo se quedaba en
+  «Waiting...», y el formulario se negaba a enviarse mientras esperara («Please wait for 1
+  upload(s) to complete»). Ahora los archivos se suben siempre al elegirlos. La opción se
+  ignora, avisa por `Bali.deprecator` y se retira en 4.0.
+  - **Anfitrión:** gobierno-corporativo pasa `auto_upload: true` en
+    `app/views/evidences/_upload_form.html.erb`: hay que borrar esa línea. Ninguna de las siete
+    apps usa `false`.
 
 ## [v3.12.0] - 2026-10-11
 
