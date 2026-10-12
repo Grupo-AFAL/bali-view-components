@@ -258,6 +258,9 @@ es:
       restored_from: "Restaurado desde la v%{number}"
       unknown_author: "Desconocido"
 
+    archival_form:
+      submit: "Dar de baja"
+
     archivals:
       new:
         title: "Dar de baja"

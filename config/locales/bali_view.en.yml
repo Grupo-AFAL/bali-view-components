@@ -264,6 +264,9 @@ en:
       restored_from: "Restored from v%{number}"
       unknown_author: "Unknown"
 
+    archival_form:
+      submit: "Archive"
+
     archivals:
       new:
         title: "Archive"

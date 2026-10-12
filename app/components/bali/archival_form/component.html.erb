@@ -1,0 +1,22 @@
+<%= form_with model: archival, scope: :archival, url: url, method: :post,
+              builder: Bali::FormBuilder,
+              data: { controller: "radio-toggle",
+                      radio_toggle_current_value: archival.reason,
+                      radio_toggle_disable_hidden_value: true } do |form| %>
+  <%= hidden_field_tag :return_to, return_to if return_to.present? %>
+
+  <%= form.radio_group :reason, reason_options,
+        html: { data: { action: "radio-toggle#change" } } %>
+
+  <% if successor_field? %>
+    <fieldset data-radio-toggle-target="element" data-radio-toggle-value="<%= successor_reasons %>">
+      <%= form.select_group :successor_id, successor_options, include_blank: true %>
+    </fieldset>
+  <% end %>
+
+  <%= form.text_area_group :note, maxlength: Bali::Archival::NOTE_MAX_LENGTH %>
+
+  <%# The engine serves this form as a drawer body. Rendered on a page, `drawer#submit` finds no
+      panel and degrades to a plain submit (#984). %>
+  <%= form.submit_group t(".submit"), drawer: true %>
+<% end %>
