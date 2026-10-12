@@ -114,10 +114,10 @@ data row to the header. If your stored content has tables, this is a reason to u
 than a cost of it.
 
 **Your build needs Node >= 22.** `@blocknote/core` depends on `lib0` `1.0.0-rc.22`, whose
-`engines.node` is `">=22"`. On Node 20 the install itself fails — `Found incompatible module` —
-so you find out at `yarn install`, not in production. Bump your CI and your Dockerfile before
-bumping the package. This applies only if you render the BlockEditor; nothing else in Bali
-raises the Node floor.
+`engines.node` is `">=22"`, and Yarn 4 does not check it: on Node 20, `yarn install` adds
+`lib0` with no error and no warning, so the install will not tell you. Bump your CI and your
+Dockerfile before bumping the package. This applies only if you render the BlockEditor;
+nothing else in Bali raises the Node floor.
 
 ### `Bali.deprecator`
 

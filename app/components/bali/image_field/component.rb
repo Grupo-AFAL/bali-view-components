@@ -53,10 +53,14 @@ module Bali
 
       attr_reader :src, :placeholder_url, :options
 
+      def image?
+        src != placeholder_url
+      end
+
       def container_classes
         class_names(
           "image-field-component",
-          "group relative w-fit",
+          "group/image-field relative w-fit",
           options[:class]
         )
       end
@@ -94,13 +98,19 @@ module Bali
         }
       end
 
+      # Invisible rather than `hidden`, like the input (`FileFields::INPUT_CLASS`). Revealed from
+      # `display: none` by the input's focus, the button lost the Tab in Chrome: the input blurs
+      # first, the group stops matching, and the button is gone before focus lands on it.
       def clear_button_classes
         class_names(
           "clear-image-button",
           "btn btn-circle btn-sm btn-ghost",
           "absolute -top-2 -right-2",
-          "bg-base-200 text-base-content opacity-80",
-          "hidden group-hover:flex max-md:flex"
+          "bg-base-200 text-base-content",
+          "opacity-0 pointer-events-none",
+          "group-hover/image-field:opacity-80 group-hover/image-field:pointer-events-auto",
+          "group-has-focus-visible/image-field:opacity-80",
+          "max-md:opacity-80 max-md:pointer-events-auto"
         )
       end
     end
