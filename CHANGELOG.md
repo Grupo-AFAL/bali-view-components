@@ -26,6 +26,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   prueba de pagos de afal-apps. El de un filtro `slim_select` de SimpleFilters pasa de
   `q[<llave>]_select_div` a `simple-filter-q-<llave>_select_div`; nadie lo lee.
 
+### Deprecated
+
+- **`auto_upload:` de `Bali::DirectUpload` y de `direct_upload_field`/`direct_upload_group`
+  (#1409).** Con `auto_upload: false` nada arrancaba la subida. El archivo se quedaba en
+  «Waiting...», y el formulario se negaba a enviarse mientras esperara («Please wait for 1
+  upload(s) to complete»). Ahora los archivos se suben siempre al elegirlos. La opción se
+  ignora, avisa por `Bali.deprecator` y se retira en 4.0.
+  - **Anfitrión:** gobierno-corporativo pasa `auto_upload: true` en
+    `app/views/evidences/_upload_form.html.erb`: hay que borrar esa línea. Ninguna de las siete
+    apps usa `false`.
+
 ### Removed
 
 - **La llave `bali_view.filters.select_value`.** La opción en blanco del valor select la leía en
@@ -210,6 +221,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   información». `fill_in` y `find_field` de Capybara leen el texto del `<label>` y siguen
   encontrando el campo; una prueba que lo busque por nombre accesible exacto (`getByLabel`)
   tendría que ajustarse, y ninguna app tiene una.
+
+- **Los botones del diálogo de confirmación siguen el idioma de la página (#1409).** Un
+  `data-turbo-confirm` sin `data-bali-confirm-accept`/`-cancel`, y el aviso de cambios sin
+  guardar al cerrar un Modal o un Drawer, mostraban «OK»/«Cancel» en una página en español
+  salvo que la app llamara a `installConfirmDialog` con sus textos. Ahora muestran
+  «Aceptar»/«Cancelar» bajo `<html lang="es">` (o `es-MX`) y «OK»/«Cancel» con otro `lang` o
+  sin él, leído cada vez que el diálogo se abre. Los textos de `installConfirmDialog({
+  acceptText, cancelText })` siguen ganando en cualquier idioma, y un `data-bali-confirm-*`
+  del disparador, sobre ambos.
+  - **Anfitrión:** identity y opina pasan al español sin tocar nada. afal-apps,
+    gobierno-corporativo, costa-norte, centinela-web y garita pueden borrar de
+    `app/javascript/controllers/index.js` la línea `installConfirmDialog({ acceptText:
+    "Aceptar", cancelText: "Cancelar" })` y ese símbolo del `import` (`git grep -n
+    installConfirmDialog -- app`): sus layouts declaran `<html lang="es">`, o `I18n.locale`
+    en el `tracking` de costa-norte, que es `es-MX`. Ninguna prueba de las siete afirma
+    «OK»/«Cancel».
+  - `bin/rails g bali:install` deja de sugerir esa línea.
+
+- **FileInput y DirectUpload hablan el idioma de la página (#1409).** En una página en español,
+  el botón que quita un archivo de un `file_group`/`file_field` con `multiple: true` se
+  anunciaba «Remove contrato.pdf». `Bali::DirectUpload` escribía en inglés todo lo que pinta
+  desde JavaScript: los nombres de cada fila («Uploading…», «Cancel upload of…», «Retry upload
+  of…», «Remove…»), el «Upload failed» de una subida que falla, la alerta (límite de archivos,
+  de tamaño, tipo no aceptado, subida en curso) y lo que anuncia a los lectores de pantalla.
+  Ahora todo sale de las traducciones de Bali, por el camino que cada componente ya tenía: el
+  FormBuilder escribe `bali_view.file_input.remove` en el campo, y DirectUpload pasa sus textos
+  en `data-direct-upload-translations-value`. JavaScript sólo pone el nombre del archivo, el
+  porcentaje y los límites.
+  - DirectUpload dice cada cosa una vez a un lector de pantalla. La espera del formulario va
+    sólo en la alerta, que ya es `role="alert"`, y deja de repetirse en la región viva. El
+    fallo de una subida va sólo en la región viva, con el nombre del archivo: el texto rojo de
+    la fila deja de ser `role="alert"`. Con `multiple`, los fallos que llegan juntos se anuncian
+    todos; antes cada uno reemplazaba al anterior y sólo se oía el último.
+  - Llaves de `bali_view.direct_upload`:
+    - nuevas: `file_status.uploading_file`, `file_status.failed_file`,
+      `status.marked_for_removal`, `errors.uploads_in_progress`, `actions.cancel_file` y
+      `actions.retry_file`;
+    - cambian de texto `file_status.completed`, `file_status.error`, `errors.file_too_large` y
+      `errors.invalid_type`, que nadie leía;
+    - se retiran `file_status.pending`, `file_status.uploading`, `actions.cancel` y
+      `actions.retry`.
+  - **Anfitrión:** nada que hacer.
+    - Pasan al español los `file_group` con `multiple: true` de afal-apps, el campo de
+      adjuntos de opina y el `DirectUpload` de evidencias de gobierno-corporativo.
+    - Ninguna de las siete apps sobrescribe llaves de `direct_upload` ni de `file_input`, y
+      ninguna prueba suya afirma estos textos en inglés.
+    - Un `data-controller="file-input"` escrito a mano sin `data-file-input-remove-text-value`
+      sigue en inglés.
+
+- **Un `$&` en el texto de la app ya no se lee como patrón (#1409).** Kanban (`%{card}`),
+  WidgetGrid (`%{widget}`), DocumentEditor (`%{number}`, `%{time}`) y el `translator` del Gantt
+  llenaban los placeholders de sus traducciones con `String#replace`. Esa función lee `$&`,
+  `$'` o `$$` en el valor como patrón, así que un widget titulado `Ventas $& 2026` se
+  anunciaba `«Ventas %{widget} 2026» se movió…`. Ahora todos usan `utils/interpolate.js`, como
+  FileInput, DirectUpload y BlockEditor.
+  - **Anfitrión:** nada que hacer.
 
 ### Dependencies
 

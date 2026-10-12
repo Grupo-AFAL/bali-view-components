@@ -86,12 +86,13 @@
        role="list"
        aria-label="<%= t('bali_view.direct_upload.file_list.aria_label') %>"></div>
 
-  <%# Screen reader announcements (live region) %>
+  <%# Screen reader announcements (live region). `role="status"` is atomic by default, and read
+      whole the region would repeat every message still in it each time one is added. %>
   <div data-direct-upload-target="announcer"
        class="sr-only"
        role="status"
        aria-live="polite"
-       aria-atomic="true"></div>
+       aria-atomic="false"></div>
 
   <%# Hidden fields container (populated by JS with signed_ids) %>
   <div data-direct-upload-target="hiddenFields"></div>
@@ -120,26 +121,26 @@
                     aria-valuemax="100"
                     aria-valuenow="0"></progress>
         </div>
-        <div class="file-error text-soft-error text-xs mt-1 hidden" role="alert"></div>
+        <%# Not an alert: index.js#handleError announces the failure once, with the file's name. %>
+        <div class="file-error text-soft-error text-xs mt-1 hidden"></div>
       </div>
       <div class="file-status flex items-center gap-2">
         <span class="percentage text-xs text-base-content/70" aria-hidden="true">0%</span>
+        <%# The three buttons are named after the file by index.js#updateFileUI, from
+            translations_json, in the same task that appends the row. %>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-cancel"
-                data-action="direct-upload#cancel"
-                aria-label="<%= t('bali_view.direct_upload.actions.cancel') %>">
+                data-action="direct-upload#cancel">
           <%= render Bali::Icon::Component.new('x', class: 'size-4') %>
         </button>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-retry hidden"
-                data-action="direct-upload#retry"
-                aria-label="<%= t('bali_view.direct_upload.actions.retry') %>">
+                data-action="direct-upload#retry">
           <%= render Bali::Icon::Component.new('refresh-cw', class: 'size-4') %>
         </button>
         <button type="button"
                 class="btn btn-ghost btn-xs btn-circle file-remove hidden"
-                data-action="direct-upload#remove"
-                aria-label="<%= t('bali_view.direct_upload.actions.remove') %>">
+                data-action="direct-upload#remove">
           <%= render Bali::Icon::Component.new('trash-2', class: 'size-4') %>
         </button>
         <span class="file-success text-soft-success hidden" aria-hidden="true">

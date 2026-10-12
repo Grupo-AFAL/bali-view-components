@@ -181,19 +181,21 @@ en:
       file_list:
         aria_label: "Files to upload"
       file_status:
-        pending: "Waiting..."
-        uploading: "Uploading..."
-        completed: "Uploaded"
-        error: "Failed"
+        uploading_file: "Uploading %{filename}: %{progress}%"
+        completed: "%{filename} uploaded successfully"
+        error: "Upload failed"
+        failed_file: "Failed to upload %{filename}"
       status:
         uploaded: "Already uploaded"
+        marked_for_removal: "%{filename} marked for removal"
       errors:
+        uploads_in_progress: "Please wait for %{count} upload(s) to complete"
         too_many_files: "Maximum %{max} files allowed"
-        file_too_large: "File exceeds %{max}MB limit"
-        invalid_type: "File type not accepted"
+        file_too_large: "%{filename} exceeds %{max}MB limit"
+        invalid_type: "%{filename}: File type not accepted"
       actions:
-        cancel: "Cancel"
-        retry: "Retry"
+        cancel_file: "Cancel upload of %{filename}"
+        retry_file: "Retry upload of %{filename}"
         remove: "Remove"
         dismiss: "Dismiss error"
         remove_file: "Remove %{filename}"

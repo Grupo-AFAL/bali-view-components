@@ -403,9 +403,8 @@ module Bali
 
     # [symbol, specifier] — what a fully wired Stimulus index has.
     #
-    # No `installConfirmDialog`: `registerAll` already installs it. The five
-    # applications that call it anyway pass Spanish button labels, which is a
-    # localisation choice no generator can make for an app it has not read.
+    # No `installConfirmDialog`: `registerAll` already installs it, with button
+    # labels in the page's `lang`.
     def javascript_wiring
       wiring = [
         [ "registerAll", "bali-view-components" ],
@@ -728,8 +727,6 @@ module Bali
       else
         say "      #{package_manager} add -D @tailwindcss/typography"
       end
-      say "  · Localised confirm buttons (registerAll already installs the dialog itself):"
-      say '      installConfirmDialog({ acceptText: "Aceptar", cancelText: "Cancelar" })'
       say "  · Optional peers, per component you render — the build works without them and"
       say "    each one says so in the console when its component runs. Charts first:"
       say "      #{package_manager} add chart.js       # Bali::Chart, registered above"

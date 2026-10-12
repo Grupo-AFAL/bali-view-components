@@ -1,5 +1,6 @@
 import { Controller } from '@hotwired/stimulus'
 import { patch } from '@rails/request.js'
+import { interpolate } from '../../../assets/javascripts/bali/utils/interpolate.js'
 
 // Turns grid gestures into a persisted layout: drag or arrow keys to reorder,
 // the remove button to drop a card, a glyph to resize.
@@ -87,11 +88,11 @@ export class WidgetGridController extends Controller {
   // "quedan 3 widgets" — and the component resolves i18n at `initialize`, where
   // the count cannot be known.
   removalText (label, remaining) {
-    if (remaining === 0) return this.removedLastTextValue.replace('%{widget}', label)
+    if (remaining === 0) return interpolate(this.removedLastTextValue, { widget: label })
 
     const template = remaining === 1 ? this.removedOneTextValue : this.removedOtherTextValue
 
-    return template.replace('%{widget}', label).replace('%{total}', remaining)
+    return interpolate(template, { widget: label, total: remaining })
   }
 
   // The size is swapped locally first so the card resizes under the cursor. The
@@ -113,11 +114,10 @@ export class WidgetGridController extends Controller {
     // card changed shape, and a host that answers with a turbo-stream gets the
     // right card back. A host that keeps answering 204 is unaffected.
     this.resizedKey = card.dataset.widgetKey
-    this.announce(
-      this.resizedTextValue
-        .replace('%{widget}', card.dataset.widgetTitle)
-        .replace('%{size}', button.getAttribute('aria-label'))
-    )
+    this.announce(interpolate(this.resizedTextValue, {
+      widget: card.dataset.widgetTitle,
+      size: button.getAttribute('aria-label')
+    }))
 
     this.persist()
   }
@@ -221,12 +221,11 @@ export class WidgetGridController extends Controller {
 
     // Focus follows the card, not the index — the DOM move blurs the button.
     this.focusHandle(card)
-    this.announce(
-      this.movedTextValue
-        .replace('%{widget}', card.dataset.widgetTitle)
-        .replace('%{position}', to + 1)
-        .replace('%{total}', cards.length)
-    )
+    this.announce(interpolate(this.movedTextValue, {
+      widget: card.dataset.widgetTitle,
+      position: to + 1,
+      total: cards.length
+    }))
     this.persist()
   }
 

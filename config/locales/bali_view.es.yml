@@ -176,19 +176,21 @@ es:
       file_list:
         aria_label: "Archivos para subir"
       file_status:
-        pending: "Esperando..."
-        uploading: "Subiendo..."
-        completed: "Subido"
-        error: "Error"
+        uploading_file: "Subiendo %{filename}: %{progress}%"
+        completed: "%{filename} se subió correctamente"
+        error: "No se pudo subir"
+        failed_file: "No se pudo subir %{filename}"
       status:
         uploaded: "Ya subido"
+        marked_for_removal: "%{filename} marcado para quitar"
       errors:
+        uploads_in_progress: "Espera a que termine la subida de %{count} archivo(s)"
         too_many_files: "Máximo %{max} archivos permitidos"
-        file_too_large: "El archivo excede el límite de %{max}MB"
-        invalid_type: "Tipo de archivo no aceptado"
+        file_too_large: "%{filename} excede el límite de %{max}MB"
+        invalid_type: "%{filename}: tipo de archivo no aceptado"
       actions:
-        cancel: "Cancelar"
-        retry: "Reintentar"
+        cancel_file: "Cancelar la subida de %{filename}"
+        retry_file: "Reintentar la subida de %{filename}"
         remove: "Eliminar"
         dismiss: "Cerrar error"
         remove_file: "Eliminar %{filename}"

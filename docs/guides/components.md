@@ -4032,6 +4032,12 @@ delete items). Auto-installed via `registerAll` — no per-app code needed.
       } %>
 ```
 
+A button the trigger leaves unlabelled reads **Aceptar**/**Cancelar** under
+`<html lang="es">` (or any `es-*`) and **OK**/**Cancel** under any other
+`lang`, or none — taken each time the dialog opens, so a Turbo visit that
+changes the language is followed. `installConfirmDialog({ acceptText,
+cancelText })` replaces them in every language.
+
 Opt out globally with `window.BALI_DISABLE_CONFIRM_DIALOG = true` before
 `registerAll` runs.
 
@@ -4986,7 +4992,8 @@ Uploads files from the browser directly to cloud storage (S3, GCS, Azure) via Ac
 - `max_file_size` - Maximum file size in megabytes (default: 10)
 - `accept` - Accepted file types, MIME types or extensions (default: `"*"`)
 - `drop_zone` - Show the drag & drop area (default: true)
-- `auto_upload` - Upload files immediately on selection (default: true)
+
+Files upload as soon as they are chosen. `auto_upload:` is deprecated and removed in 4.0.
 
 Requires Active Storage and CORS configuration on the bucket — see the [DirectUpload setup guide](direct-upload-setup.md). Client-side validation is UX only; always validate on the server.
 

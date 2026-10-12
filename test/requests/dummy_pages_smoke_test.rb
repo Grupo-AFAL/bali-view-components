@@ -34,7 +34,11 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
     # contract. The page it lands on, `modal_redirect#landing`, IS swept.
     "modal_redirect#go" => "redirects by design; it is the fixture for the modal Back-path spec",
     # Same fixture, redirecting to `/login`, which IS swept.
-    "modal_redirect#expired" => "redirects by design; the modal-history spec's swap to a page with no shared modal"
+    "modal_redirect#expired" => "redirects by design; the modal-history spec's swap to a page with no shared modal",
+    # ViewComponent's page for each preview, `/rails/view_components/*path`, served by the
+    # dummy's subclass (`component_previews_controller.rb`). Lookbook copies its own
+    # `preview_controller` into ViewComponent's config, so the subclass cannot be Lookbook's alone.
+    "component_previews#previews" => "ViewComponent's page for each preview; previews are viewed in Lookbook"
   }.freeze
 
   # Deprecations the dummy fires on purpose, keyed by the leading text of the entry the

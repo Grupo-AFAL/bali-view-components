@@ -183,10 +183,8 @@ class BaliInstallGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  # `registerAll` already installs the confirm dialog — the issue asked for a
-  # second call and it would be a no-op. The five apps that DO call
-  # `installConfirmDialog` pass Spanish button labels, which is a localisation
-  # choice no generator can make for them.
+  # `registerAll` already installs the confirm dialog, with button labels in the
+  # page's `lang` — the issue asked for a second call and it would be a no-op.
   def test_registers_the_controllers_without_reinstalling_the_confirm_dialog
     host_app
     run_generator

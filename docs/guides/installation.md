@@ -37,7 +37,7 @@ eighth way. The list it prints: the daisyUI `themes:` block, `@custom-variant da
 theme import, `@plugin "@tailwindcss/typography"` (yours, not Bali's — Bali only ships the
 patch that keeps `prose-invert` working under daisyUI; tailwindcss-rails' binary embeds the
 plugin, so only an app whose Tailwind comes from npm (cssbundling-rails, Vite) adds the
-package), `installConfirmDialog` with localised labels, and
+package), and
 `bin/rails bali:install:migrations:<feature>`.
 
 **Running it twice writes nothing twice, and so does running it on an app that was wired by
