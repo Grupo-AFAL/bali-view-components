@@ -288,4 +288,10 @@ class BaliLinkComponentTest < ComponentTestCase
       Bali::Link::Component.new(name: "x", href: "/x", drawer: { local: true })
     end
   end
+
+  def test_icon_only_renders_no_empty_span
+    render_inline(Bali::Link::Component.new(icon: "plus", href: "#", variant: :primary))
+    assert_selector("a svg")
+    assert_no_selector("a span.max-sm\\:hidden")
+  end
 end
