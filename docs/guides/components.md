@@ -3021,9 +3021,11 @@ Renders an icon by name, resolving Lucide icons first (1,600+ available), then k
 **Options:**
 - `name` - Icon name: Bali name, Lucide name, or kept brand/regional icon (required, positional)
 - `tag_name` - Wrapper HTML tag (default: `:span`)
-- `size` - `:small`, `:medium`, `:large`, or an integer in pixels (default: nil, renders at 16px).
-  A size utility in `class:` (`size-5`, `w-5 h-5`) sizes the icon too, and wins over `size:`
-- `**options` - Additional HTML attributes (e.g. `class`)
+- `size` - `:small`, `:medium`, `:large`, or an integer in pixels (default: nil, renders at 16px);
+  any other key raises `ArgumentError`. A size utility in `class:` (`size-5`, `w-5 h-5`) sizes the
+  icon too, and wins over `size:`
+- `**options` - Additional HTML attributes (e.g. `class`). A display utility in `class:`
+  (`hidden`, `inline-block`) applies
 
 #### InfoLevel
 
