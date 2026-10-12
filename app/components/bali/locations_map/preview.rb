@@ -34,10 +34,10 @@ module Bali
       # @param zoom number
       # @param clustered toggle
       # @param locale select { choices: [en, es] }
-      def default(zoom: 12, clustered: false, locale: 'en')
+      def default(zoom: 12, clustered: false, locale: 'en') # applied to the request by the dummy's ComponentPreviewsController
         render_with_template(
           template: 'bali/locations_map/previews/default',
-          locals: { zoom: zoom, clustered: clustered, locale: locale, locations: Bali::LocationsMap::Preview::LOCATIONS }
+          locals: { zoom: zoom, clustered: clustered, locations: Bali::LocationsMap::Preview::LOCATIONS }
         )
       end
 

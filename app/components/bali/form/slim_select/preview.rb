@@ -65,10 +65,10 @@ module Bali
         # Multi-select with tags for selected values. What SlimSelect reads out — the tags'
         # remove buttons, the clear button, the count of results — follows `locale`.
         # @param locale select { choices: [en, es] }
-        def multiple(locale: 'en')
+        def multiple(locale: 'en') # applied to the request by the dummy's ComponentPreviewsController
           render_with_template(
             template: 'bali/form/slim_select/previews/multiple',
-            locals: { model: form_record, options: OPTIONS, locale: locale }
+            locals: { model: form_record, options: OPTIONS }
           )
         end
 
@@ -76,22 +76,22 @@ module Bali
         # Past 20 values SlimSelect replaces the chips with one count, `max_values_message:`.
         # Its default is Bali's translation: switch `locale` to see it.
         # @param locale select { choices: [en, es] }
-        def many_selected(locale: 'en')
+        def many_selected(locale: 'en') # applied to the request by the dummy's ComponentPreviewsController
           rooms = (1..27).map { |n| ["Room #{n}", n] }
 
           render_with_template(
             template: 'bali/form/slim_select/previews/many_selected',
-            locals: { model: form_record, options: rooms, locale: locale }
+            locals: { model: form_record, options: rooms }
           )
         end
 
         # @label Addable
         # Allows users to add new options that don't exist in the list
         # @param locale select { choices: [en, es] }
-        def addable(locale: 'en')
+        def addable(locale: 'en') # applied to the request by the dummy's ComponentPreviewsController
           render_with_template(
             template: 'bali/form/slim_select/previews/addable',
-            locals: { model: form_record, options: OPTIONS, locale: locale }
+            locals: { model: form_record, options: OPTIONS }
           )
         end
 

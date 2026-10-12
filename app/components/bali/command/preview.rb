@@ -10,16 +10,16 @@ module Bali
       # trigger says whichever of the two this machine actually has.
       # The footer is Bali's translation: switch `locale` to see it.
       # @param locale select { choices: [en, es] }
-      def default(locale: "en")
-        render_with_template(template: "bali/command/previews/default", locals: { locale: locale })
+      def default(locale: "en") # applied to the request by the dummy's ComponentPreviewsController
+        render_with_template(template: "bali/command/previews/default")
       end
 
       # @label Compact density
       # Tighter rows for power users / dense workspaces. Its one action row is
       # the only result on open, so the footer counts it in the singular.
       # @param locale select { choices: [en, es] }
-      def compact(locale: "en")
-        render_with_template(template: "bali/command/previews/compact", locals: { locale: locale })
+      def compact(locale: "en") # applied to the request by the dummy's ComponentPreviewsController
+        render_with_template(template: "bali/command/previews/compact")
       end
 
       # @label Custom trigger
