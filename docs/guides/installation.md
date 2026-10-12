@@ -77,9 +77,9 @@ without node_modules; the other two are printed.
 
 **`bin/rails g bali:install` and `bin/rails bali:install:migrations` share a prefix and are
 different things.** The second is the rake namespace the Rails engine API generates: one task
-that copies every engine migration into your app, plus six that copy one each
-(`:saved_views`, `:content_versions`, `:entity_references`, `:acknowledgments`,
-`:block_editor_comments`, `:dashboard_widgets`). The generator copies no migrations on
+that copies every engine migration into your app, plus one per feature that copies just that
+one (`:saved_views`, `:content_versions`, `:entity_references`, `:acknowledgments`,
+`:block_editor_comments`, `:dashboard_widgets`, `:archivals`; `bin/rails -T bali` lists them). The generator copies no migrations on
 purpose: the engine's tables belong to the features that use them, only three of the seven
 applications mount the engine at all, and installing tables for the other four would be
 writing schema nobody asked for. Forgetting the `g` is not silent either — `bin/rails

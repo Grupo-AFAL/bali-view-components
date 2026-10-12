@@ -53,6 +53,10 @@ inside each controller and respond `403 Forbidden` on their own:
 | `Bali.block_editor_commentables` | what may carry comment threads | `{}` — everything 404s |
 | `Bali.block_editor_comments_user` | who authors a comment | `->(controller) { controller.try(:current_user)&.id&.to_s }` |
 | `Bali.block_editor_comments_authorize` | reaching the comments at all | user id present, else 403 |
+| `Bali.archivables` | which models can be archived over HTTP | `{}` — every `record_type` is a 404 |
+| `Bali.archivals_authorize` | the form, archiving and reopening | falsy — 403 |
+| `Bali.archivals_actor` | who archives or reopens | `->(controller) { controller.try(:current_user) }` |
+| `Bali.archival_successors` | the records that may replace this one | `nil` — no successor offered |
 
 New engine controllers follow the same doctrine: a whitelist plus an authorize lambda
 is the defense, and it works even for a request that carries no session at all. The
@@ -170,8 +174,8 @@ bin/rails bali:install:migrations:entity_references
 bin/rails db:migrate
 ```
 
-Ask for the feature by name. The plain `bali:install:migrations` copies **all five**
-migrations the engine ships, and the four you did not ask for become four dead tables in
+Ask for the feature by name. The plain `bali:install:migrations` copies
+every migration the engine ships, and the ones you did not ask for become dead tables in
 your `schema.rb` — see [Engine models](engine-models.md#installing-one-feature-at-a-time).
 
 ### 2. Declare your referenceable types
@@ -424,6 +428,60 @@ change-log foreign keys, which this generic table does not model.
 Adopt the engine's table when the history is plain content history. The dummy app's own
 `Document` is the worked example: it had exactly this pair of methods (without the row
 lock, which was the bug) and now includes the concern instead.
+
+## Archivals (#721)
+
+`bali_archivals` is one polymorphic table for taking any host record out of circulation.
+`Bali::ArchivalsController` serves the form (as a drawer body), archiving and reopening. The
+model side — the concern, the reasons and their labels, the trigger and the notice — is in
+[Engine models](engine-models.md#archivable-bali_archivals).
+
+Install the table by name:
+
+```bash
+bin/rails bali:install:migrations:archivals
+bin/rails db:migrate
+```
+
+Four settings, the first two default-deny:
+
+```ruby
+# config/initializers/bali.rb
+Bali.archivables = {
+  'Document' => lambda do |controller, id|
+    user = controller.current_user
+    Pundit.policy_scope!(user, Document).find_by(id: id) if user
+  end
+}
+
+Bali.archivals_authorize = lambda do |controller, record, _action|
+  Pundit.policy!(controller.current_user, record).archive?
+end
+
+Bali.archivals_actor = ->(controller) { controller.current_user }
+
+Bali.archival_successors = lambda do |controller, document|
+  Pundit.policy_scope!(controller.current_user, Document).where.not(id: document.id)
+end
+```
+
+`archivables` is the whitelist of `record_type` to resolver, empty by default, so every
+`record_type` answers 404 and the parameter is never a `constantize`. The engine's controllers
+do not include Pundit, so call it by its module. The resolver returns `nil` without a session
+because `current_user` is `nil` there and a policy scope cannot take it: that is a 404, not an
+error.
+
+`archivals_authorize` receives the action: `"new"`, `"create"` or `"unarchive"`, so the form,
+archiving and reopening can be gated separately. Falsy answers 403.
+
+`archival_successors` returns the relation of records that may replace this one, or `nil` for
+"no successor". With `nil` or an empty relation the form offers neither the successor field nor
+the reasons that require one, so nobody can reach an archival that fails on submit.
+
+A whitelisted model that does not include `Bali::Archivable` is a 404. Archiving answers `303`
+to `return_to` (a local path) or to the record's page; an invalid archival answers `422` and
+re-renders the form in the drawer; a malformed `archival` parameter answers `400`; reopening a
+model that is not reversible answers `404`.
 
 ## Block Editor comments (#706)
 

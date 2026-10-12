@@ -35,9 +35,8 @@ Every engine model follows the same four steps, so learning one teaches you the 
 
 The features on this page are unrelated to each other, and an app usually adopts one of
 them. Rails' plain `bali:install:migrations` does not know that: it copies **every**
-migration an engine ships, so asking for saved views also hands you content versions,
-entity references, acknowledgments, block editor comments and dashboard widgets — five
-tables you never asked for, permanently in the `db/schema.rb` every one of your PRs
+migration an engine ships, so asking for saved views also hands you every other
+feature's table — tables you never asked for, permanently in the `db/schema.rb` every one of your PRs
 reviews (#1079).
 
 So name the feature. One task per table, listed by `bin/rails -T bali`:
@@ -49,6 +48,7 @@ bin/rails bali:install:migrations:entity_references
 bin/rails bali:install:migrations:acknowledgments
 bin/rails bali:install:migrations:block_editor_comments
 bin/rails bali:install:migrations:dashboard_widgets
+bin/rails bali:install:migrations:archivals
 ```
 
 Each copies exactly one migration, through the same copier the umbrella task uses: it
@@ -56,7 +56,7 @@ renumbers to the moment of the copy, keeps the `.bali.rb` suffix, and leaves a m
 you already installed alone. Run one now and the next one months later — that is the
 point.
 
-`bali:install:migrations` still copies all six, for an app that really does want
+`bali:install:migrations` still copies every migration, for an app that really does want
 everything. It now prints the per-feature list before it starts.
 
 ---
@@ -272,6 +272,129 @@ back BlockEditor's comments sidebar — enable it with `comments:` in the editor
 Shipped (#708): `Bali::EntityReference` plus the `Bali::EntityReferenceable` concern,
 with the `create_bali_entity_references` migration. It records which entities a document
 mentions, so back-references ("mentioned in…") can be listed from either side.
+
+---
+
+## Archivable (`bali_archivals`)
+
+Takes a host record out of circulation, with who did it, why, and what replaced it. One
+polymorphic table serves every model, so a document, a policy and a contract share it.
+
+Install the table:
+
+```bash
+bin/rails bali:install:migrations:archivals
+bin/rails db:migrate
+```
+
+Opt a model in:
+
+```ruby
+class Document < ApplicationRecord
+  include Bali::Archivable
+  archivable reasons: Bali::Archivable::DEFAULT_REASONS,   # replaced no_longer_applicable superseded expired other
+             successor_required_for: %i[replaced],
+             reversible: false
+end
+```
+
+`archivable` is optional: `include Bali::Archivable` alone takes the five default reasons, none
+of them needing a successor, and makes the model irreversible.
+
+| Method | Does | Raises |
+|---|---|---|
+| `archive!(by:, reason:, note:, successor:)` | Creates the current archival; returns it | `AlreadyArchived` when one exists, including a concurrent archive; `ActiveRecord::RecordInvalid` for an unknown `reason`, a missing required successor, a successor that is the record itself, or a `note` over 500 characters |
+| `unarchive!(by:)` | Stamps `unarchived_at` and `unarchived_by` on the current archival; the row stays as history | `NotReversible` on a model without `reversible: true` (checked first); `NotArchived` when nothing is archived, including a concurrent reopen |
+| `archived?` | Whether a current archival exists | |
+| `archival` | The current archival, or `nil` | |
+| `archivals` | Every archival, newest first | |
+| `Document.archived` | Records with a current archival | |
+| `Document.not_archived` | Records without one | |
+
+All the errors live under `Bali::Archivable`.
+
+### Reasons and their labels
+
+A reason is a string key from the model's list. Its label is looked up as
+`activerecord.archival_reasons.<model>.<reason>` first, then
+`bali_view.archivals.reasons.<reason>`, which ships in English and Spanish for the five defaults:
+
+```yaml
+# config/locales/es.yml
+es:
+  activerecord:
+    archival_reasons:
+      document:
+        replaced: "Sustituido por otro documento"
+        expired: "Vencido"
+```
+
+A custom reason (`archivable reasons: %w[withdrawn]`) needs only the model key; it does not need
+an entry under `bali_view` and does not raise under `raise_on_missing_translations`.
+
+### What replaced this
+
+The concern adds no association for the successor. `Bali::Archival.where(successor: record)`
+gives the archivals `record` replaced; to navigate from the successor, declare it on your model:
+
+```ruby
+has_many :predecessor_archivals, class_name: "Bali::Archival", as: :successor
+has_many :predecessor_documents, through: :predecessor_archivals,
+                                 source: :archivable, source_type: "Document"
+```
+
+### The trigger and the notice
+
+The engine serves the form; your view links to it and shows the notice:
+
+```erb
+<%= render Bali::Link::Component.new(
+      name: t('.archive'),
+      href: bali.new_archival_path(record_type: 'Document', record_id: @document.id),
+      drawer: true) %>
+
+<%= render Bali::ArchivalNotice::Component.new(
+      record: @document,
+      successor_url: (document_path(@document.archival.successor) if @document.archival&.successor)) %>
+```
+
+The notice renders nothing for a record that is not archived. Pass `unarchive_url:` (for
+example `bali.unarchive_archivals_path(record_type: 'Document', record_id: @document.id)`) to
+add a "Reopen" button; do it only for a reversible model and a person who may reopen.
+
+The form is a drawer body, served without a layout: the engine's controllers do not inherit
+your `ApplicationController` and cannot render your layout. To show it on a page of your own,
+render `Bali::ArchivalForm::Component` yourself.
+
+Where the person lands afterwards is `return_to` when it is a local path, else the record's own
+page (`main_app.polymorphic_path(record)`). Anything else in `return_to` (`//host`,
+`javascript:`) is dropped by both the form and the controller. With a local `return_to`, Cancel
+is a link to it: inside the drawer it only closes the drawer, on a page it navigates. Without
+one, Cancel is a button that only closes the drawer.
+
+The HTTP side needs four settings, all default-deny: see
+[Archivals in Engines](engines.md#archivals-721). A malformed `archival` parameter answers
+`400`; a validation failure answers `422` and re-renders the form in the drawer.
+
+### One `Archivable` per model
+
+`Bali::Archivable` is namespaced, so it never resolves to an `Archivable` of your own, but one
+model cannot include both: they define the same `archive!` and `archived?`. Four fleet apps
+have an `Archivable` already (an `archived_at` flag): afal-apps, opina, costa-norte and
+centinela-web (measured on each `origin/main`). Gobierno-corporativo has one too, and replaces
+it with this one.
+
+### Porting the table from gobierno-corporativo
+
+| gobierno-corporativo | Bali | What to do |
+|---|---|---|
+| `document_id` | `archivable` polymorphic | `archivable_type = 'Document'` |
+| `user_id` (`belongs_to :user`) | `archived_by` polymorphic | `archived_by_type = 'User'` |
+| `obsolescence_reason` (the key) | `reason` | Renamed; blank becomes NULL |
+| `reason` (the free text) | `note` | Renamed — the two used to read as the same thing |
+| `successor_document_id` | `successor` polymorphic | `successor_type = 'Document'` when present |
+| `OBSOLESCENCE_REASONS` | `Bali::Archivable::DEFAULT_REASONS` | Same five keys |
+| one row per document, forever | `unarchived_at` / `unarchived_by` | Unused while the model is irreversible |
 
 ---
 
