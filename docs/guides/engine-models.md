@@ -364,10 +364,18 @@ example `bali.unarchive_archivals_path(record_type: 'Document', record_id: @docu
 add a "Reopen" button; do it only for a reversible model and a person who may reopen.
 
 The form is a drawer body, served without a layout: the drawer inserts it, and the engine's own
-layout links a stylesheet no host ships. To show it on a page of your own, render
-`Bali::ArchivalForm::Component.new(record:, successors:, url: bali.archivals_path, return_to:)`
-yourself. The post still goes to the engine, so a validation failure comes back as the same
-layoutless `422` body. `new_archival_path` takes `return_to:` as a query parameter too.
+layout links a stylesheet no host ships. To show it on a page of your own, render it yourself,
+with the record in the URL as `new.html.erb` does:
+
+```erb
+<%= render Bali::ArchivalForm::Component.new(
+      record: @document, successors: Document.not_archived.excluding(@document),
+      return_to: documents_path,
+      url: bali.archivals_path(record_type: 'Document', record_id: @document.id)) %>
+```
+
+The post still goes to the engine, so a validation failure comes back as the same layoutless
+`422` body. `new_archival_path` takes `return_to:` as a query parameter too.
 
 Where the person lands afterwards is `return_to` when it is a local path, else the record's own
 page (`main_app.polymorphic_path(record)`). Anything else in `return_to` (`//host`,
@@ -384,8 +392,7 @@ The HTTP side needs four settings, the first two default-deny: see
 `Bali::Archivable` is namespaced, so it never resolves to an `Archivable` of your own, but one
 model cannot include both: they define the same `archive!` and `archived?`. Four fleet apps
 have an `Archivable` already (an `archived_at` flag): afal-apps, opina, costa-norte and
-centinela-web. Gobierno-corporativo has one too, and replaces
-it with this one.
+centinela-web. Gobierno-corporativo has one too, and replaces it with this one.
 
 ### Porting the table from gobierno-corporativo
 
