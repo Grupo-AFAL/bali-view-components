@@ -40,8 +40,17 @@ export class SortableListController extends Controller {
     })
   }
 
+  // SortableJS's destroy() ends a drag in progress in ANY list: it runs a drop that clears
+  // the state all instances share, and that drag stops where it is, never announced nor
+  // persisted. A list nested in the dragged item disconnects on every move, so while an item
+  // is held the instance stays, and the connect that follows reuses it. A list that leaves
+  // for good while an item is held keeps its instance: the price of that guard.
   disconnect () {
     this.element.removeEventListener('keydown', this.onKeydown)
+    if (!this.sortable || this.sortable.constructor.dragged) return
+
+    this.sortable.destroy()
+    this.sortable = null
   }
 
   // Keyboard alternative to the drag (#1028, WCAG 2.1.1): each direct item

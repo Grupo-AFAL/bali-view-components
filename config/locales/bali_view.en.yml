@@ -9,8 +9,6 @@ en:
       search_placeholder: "Search..."
       search: "Search..."
       select_field: "Select field..."
-      select_values: "Select values..."
-      enter_value: "Enter value..."
       remove_condition: "Remove condition"
       remove_filter: "Remove filter"
       incomplete_condition: "No value chosen, so this condition is ignored"
@@ -29,16 +27,6 @@ en:
       persistence_disabled: "Filters are not saved. Click to enable."
       persistence_label: "Remember filters"
 
-      # Date/time placeholders
-      select_date: "Select date..."
-      select_datetime: "Select date & time..."
-      select_date_range: "Select date range..."
-
-      # Boolean values
-      any: "Any"
-      "yes": "Yes"
-      "no": "No"
-
       # Group combinators
       combinators:
         and: "AND"
@@ -54,7 +42,7 @@ en:
       # Selected count for multi-select
       selected_count: "%{count} selected"
 
-      # Placeholders (nested structure for JavaScript controller)
+      # Placeholders
       placeholders:
         enter_value: "Enter value..."
         number: "0"
@@ -64,7 +52,7 @@ en:
         select: "Select..."
         select_values: "Select values..."
 
-      # Boolean (nested structure for JavaScript controller)
+      # Boolean
       boolean:
         any: "Any"
         "yes": "Yes"

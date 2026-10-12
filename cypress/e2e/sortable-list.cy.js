@@ -78,6 +78,63 @@ describe('SortableList', () => {
     })
   })
 
+  // A pointerdown is enough to make SortableJS hold an item (`.sortable-chosen`): the native
+  // drag that follows is what Cypress cannot start (see below).
+  describe('disconnect (#1409)', () => {
+    const sortableOf = (list) => list.ownerDocument.defaultView.Stimulus
+      .getControllerForElementAndIdentifier(list, 'sortable-list')?.sortable
+    const press = { button: 0, pointerType: 'mouse', eventConstructor: 'PointerEvent' }
+
+    beforeEach(() => {
+      cy.get('.sortable-list-component').should(($lists) => {
+        $lists.each((_, list) => expect(sortableOf(list)).to.exist)
+      })
+    })
+
+    it('destroys its Sortable when the list leaves the page', () => {
+      cy.get('.sortable-list-component').then(($list) => {
+        const Sortable = sortableOf($list[0]).constructor
+        $list[0].remove()
+        cy.wrap($list[0]).should((list) => expect(Sortable.get(list)).to.equal(null))
+      })
+    })
+
+    it('builds a new one when the list comes back', () => {
+      cy.get('.sortable-list-component').then(($list) => {
+        const list = $list[0]
+        const parent = list.parentNode
+        const Sortable = sortableOf(list).constructor
+        list.remove()
+        cy.wrap(list).should((l) => expect(Sortable.get(l)).to.equal(null)).then(() => parent.append(list))
+        cy.wrap(list).should((l) => {
+          expect(Sortable.get(l)).to.be.an('object')
+          expect(sortableOf(l)).to.equal(Sortable.get(l))
+        })
+      })
+    })
+
+    // SortableJS moves the item it drags, and a list nested in that item disconnects and
+    // connects again on every move: destroying it then would let go of the item.
+    it('keeps holding an item whose nested list moves with it', () => {
+      const root = '[data-sortable-list-list-id-value="root"]'
+      const holder = `${root} > .sortable-item:has([data-sortable-list-list-id-value="item-5"])`
+      cy.visit('/bali/sortable_list/nested')
+      cy.get('.sortable-list-component').should('have.length', 2).and(($lists) => {
+        $lists.each((_, list) => expect(sortableOf(list)).to.exist)
+      })
+
+      cy.get(`${holder} > p`).trigger('pointerdown', press)
+      cy.get(holder).should('have.class', 'sortable-chosen').then(($item) => {
+        $item[0].parentNode.insertBefore($item[0], $item[0].previousElementSibling)
+      })
+      // Without it the disconnect may not have run by the pointerup (docs/reference/testing-traps.md).
+      cy.wait(0)
+      cy.document().trigger('pointerup', press)
+
+      cy.get(holder).should('not.have.class', 'sortable-chosen')
+    })
+  })
+
   // The MOUSE path deliberately has no test here: on desktop SortableJS uses the
   // native HTML5 drag, and neither the mousedown/mousemove sequence nor synthetic
   // dragstart/dragover/drop (with real DataTransfer and DragEvent) start it under

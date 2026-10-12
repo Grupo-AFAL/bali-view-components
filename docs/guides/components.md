@@ -2308,7 +2308,7 @@ Labels and status indicators.
 
 **Options:**
 - `text` - Label; falls back to the block content when omitted (default: nil)
-- `href` - Renders an `<a>` instead of a `<div>` (default: nil)
+- `href` - Renders an `<a>` instead of a `<span>` (default: nil)
 - `color` - `:neutral`, `:primary`, `:secondary`, `:accent`, `:ghost`, `:info`, `:success`, `:warning`, `:error` (default: nil, daisyUI's own)
 - `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: nil, which renders like `:md`)
 - `style` - `:outline`, `:soft`, `:dash` (default: nil)

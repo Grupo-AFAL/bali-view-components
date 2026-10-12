@@ -63,8 +63,7 @@ module Bali
         def value_label(value, attr_config)
           # Handle boolean type
           if attr_config[:type].to_sym == :boolean
-            return value.to_s == "true" ? I18n.t("bali_view.filters.yes") : I18n.t(
-                                                   "bali_view.filters.no")
+            return I18n.t(value.to_s == "true" ? "bali_view.filters.boolean.yes" : "bali_view.filters.boolean.no")
           end
 
           return value unless attr_config[:type].to_sym == :select

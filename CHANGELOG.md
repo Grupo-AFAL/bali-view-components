@@ -48,17 +48,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   limpiar, que ahora sale de `PreservedParams#clear_filters_url`. Ninguna de las siete apps lo
   llama.
 
-### Fixed
+- **Las llaves `enter_value`, `select_date`, `select_datetime`, `select_date_range`,
+  `select_values`, `any`, `yes` y `no` de `bali_view.filters`.** Cada una repetía el texto de su
+  gemela en `placeholders.*` o `boolean.*`: el widget de valor que pinta el servidor y las
+  etiquetas aplicadas leían éstas, y `condition_controller.js` aquéllas, así que una app que
+  sobrescribiera una veía el cambio sólo hasta cambiar de campo. Ahora todos leen
+  `placeholders.*` y `boolean.*`; el `0` del campo numérico, escrito a mano en el ERB, también
+  sale de `placeholders.number`. Ninguna de las siete apps sobrescribe las llaves borradas.
 
-- **Un control movido o quitado de la página mientras carga su dependencia ya no deja una
-  instancia montada (#1409).** Tooltip, HoverCard, Dropdown con `popover: true`, Carousel,
-  SortableList, RichTextEditor, QrScanner, LocationsMap y `geocoder-maps`, `drawing-maps` y
-  `autocomplete-address` montaban después del `await` de su `connect()` aunque el elemento ya no
-  estuviera en la página, y uno movido en ese lapso montaba dos veces: dos tarjetas por hover en
-  un HoverCard. A QrScanner le faltaba sólo el movimiento (la remoción ya la cubría su
-  `this.active`) y a Tooltip sólo la remoción (el movimiento lo cubría desde #1392); a los demás,
-  las dos. SortableList, los mapas y `autocomplete-address`, cuyo `disconnect()` nunca destruyó
-  su instancia, ahora la reutilizan al reconectarse en vez de apilar otra.
+### Fixed
 
 - **Un mapa de Google cuyo script llega después del timeout se construye al llegar (#1409).**
   LocationsMap, `geocoder-maps`, `drawing-maps` y `autocomplete-address` no se construían nunca
@@ -298,6 +296,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     censo, cuyo botón es a mano bajo `<html lang="es">`) y de centinela-web, y el cronograma de
     afal-apps. Ninguna de las siete apps usa Tabs con `src:` ni esos tres tipos de referencia, ni
     sobrescribe `bali_view` en sus locales.
+
+- **`Bali::Tag` sin `href:` es un `<span>`, no un `<div>`.** Dentro de un `<label>`, donde el
+  formulario de epics de opina pone sus fichas de proyecto, un `<div>` es HTML inválido. `.badge`
+  es `inline-flex`, así que a la vista no cambia nada: 0 píxeles distintos en los previews de Tag
+  y Tags, en `afal` y `afal-dark`. **Anfitrión:** una prueba que busque `div.badge` deja de
+  encontrarlo; centinela-web tiene dos (`test/controllers/dashboard_controller_test.rb:135-136`),
+  que pasan a `span.badge`. Un `<form>` dentro del bloque de un Tag (identity:
+  `admin/accounts/_roles_card`, `app_accesses/show`) se ve igual pero deja de ser HTML válido; va
+  junto al Tag, no dentro.
+
+- **Un control movido o quitado de la página mientras carga su dependencia ya no deja una
+  instancia montada (#1409).** Tooltip, HoverCard, Dropdown con `popover: true`, Carousel,
+  SortableList, RichTextEditor, QrScanner, LocationsMap y `geocoder-maps`, `drawing-maps` y
+  `autocomplete-address` montaban después del `await` de su `connect()` aunque el elemento ya no
+  estuviera en la página, y uno movido en ese lapso montaba dos veces: dos tarjetas por hover en
+  un HoverCard. A QrScanner le faltaba sólo el movimiento (la remoción ya la cubría su
+  `this.active`) y a Tooltip sólo la remoción (el movimiento lo cubría desde #1392); a los demás,
+  las dos. Los mapas y `autocomplete-address`, cuyo `disconnect()` nunca destruyó su instancia,
+  ahora la reutilizan al reconectarse en vez de apilar otra.
+
+- **SortableList destruye su instancia de SortableJS cuando la lista sale de la página (#1409).**
+  SortableJS guarda cada lista en un arreglo suyo, así que cada visita de Turbo dejaba vivas las
+  de la anterior con todo su DOM: 22 instancias tras diez visitas a `sortable_list/shared`, 20
+  sobre listas fuera de la página; ahora 2. Mientras se sostiene un elemento la conserva, para no
+  soltarlo. Nada que hacer en la app.
 
 ### Dependencies
 

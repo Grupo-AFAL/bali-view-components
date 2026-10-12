@@ -46,6 +46,18 @@ module ComponentTestHelpers
     reads.uniq
   end
 
+  # Swaps each text under `bali_view.filters.<scope>` for its own key ("boolean.yes"), so a
+  # test can tell which key a reader followed, and stores back exactly what was there:
+  # `I18n.backend.reload!` would also discard whatever other tests stored (numeric_fields_test.rb).
+  def with_filter_texts_marked(*scopes)
+    store = ->(texts) { I18n.backend.store_translations(:en, bali_view: { filters: texts }) }
+    previous = scopes.index_with { |scope| I18n.t("bali_view.filters.#{scope}", locale: :en) }
+    store.call(previous.to_h { |scope, texts| [ scope, texts.to_h { |key, _| [ key, "#{scope}.#{key}" ] } ] })
+    yield
+  ensure
+    store.call(previous) if previous
+  end
+
   def silence_deprecations(&block)
     Bali.deprecator.silence(&block)
   end
