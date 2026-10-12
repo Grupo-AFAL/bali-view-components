@@ -342,8 +342,9 @@ export class ModalController extends Controller {
 
     // A snapshot taken with the panel open, one `_closeBeforeCache` leaves alone, restores it
     // with `open` and none of what `showModal()` did: painted, over a page that is not inert.
-    // Closed here so the line below can promote it.
-    if (dialog.open && !dialog.matches(':modal')) dialog.close()
+    // The attribute goes so the line below can promote it; not `close()`, which queues a `close`
+    // event that would reach whoever listens (ToastContainer) after the panel is open again.
+    if (dialog.open && !dialog.matches(':modal')) dialog.removeAttribute('open')
 
     if (typeof dialog.showModal !== 'function' || dialog.open) return
 
