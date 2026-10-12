@@ -50,7 +50,9 @@ Gem::Specification.new do |spec|
   # Raise the cap only after revalidating LucideMapping against the new set.
   spec.add_dependency "lucide-rails", ">= 0.3.0", "< 0.8"
   spec.add_dependency "rails", ">= 8.1", "< 9.0"
-  spec.add_dependency "ransack"
+  # 5.0.2 closes GHSA-vxc9-rm8f-p56j and GHSA-j3f8-w227-4hh8 (both reachable through a
+  # FilterForm's `q[...]`); 6.0 shipped 2026-10-09 and has not been run against this suite.
+  spec.add_dependency "ransack", ">= 5.0.2", "< 6.0"
   spec.add_dependency "simple_command"
 
   spec.add_dependency "view_component", [ ">= 4.0.0", "< 5.0" ]
