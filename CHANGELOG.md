@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `name:` y con `responsive: true` (el valor por omisión) el span vacío ocupaba su `gap` y corría
   el glyph 3 px a la izquierda del centro en escritorio. Ahora no se dibuja, y un `Button` de
   sólo ícono con bloque ya muestra el bloque, también en móvil dentro del `max-sm:btn-square`
-  (un texto largo ensancha ahí el cuadrado). Los hosts que pasaban `responsive: false` sólo
-  para esquivarlo (identity, dos ✕) pueden quitarlo; nada más cambia.
+  (un texto largo ensancha ahí el cuadrado). identity#476 (la subida a v3.13.0)
+  agrega `responsive: false` a dos ✕ para esquivarlo y puede quitarlo con este release. En los
+  siete hosts, 42 llamadas llevan `icon:` sin `name:` y ninguna lleva bloque: nada más cambia.
 
 ## [v3.13.0] - 2026-10-12
 

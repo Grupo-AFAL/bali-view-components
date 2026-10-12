@@ -239,7 +239,7 @@ class BaliButtonComponentTest < ComponentTestCase
   end
 
   def test_icon_only_with_block_shows_the_block
-    render_inline(Bali::Button::Component.new(icon: "plus")) { "Hola" }
-    assert_text("Hola")
+    render_inline(Bali::Button::Component.new(icon: "plus")) { "Label" }
+    assert_text("Label")
   end
 end
