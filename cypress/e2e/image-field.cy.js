@@ -9,9 +9,8 @@ describe('ImageField', () => {
   const NON_TEXT = 3
   const output = () => cy.get('[data-image-field-target="output"]')
   const input = () => cy.get('[data-image-field-target="input"]')
-  // The input is invisible over the overlay and the clear button only shows on hover
-  // (`hidden group-hover:flex`), and a Cypress hover is not a real one — the click is
-  // what is being tested.
+  // The input is invisible over the overlay and the clear button until hover or keyboard
+  // focus, and a Cypress hover is not a real one — the click is what is being tested.
   const force = { force: true }
 
   beforeEach(() => {
@@ -92,5 +91,21 @@ describe('ImageField', () => {
           .to.be.at.least(NON_TEXT)
       })
     })
+  })
+
+  // The clear button was `display: none` until hover, so Tab went past it.
+  it('reaches the clear button by Tab and clears with Enter', () => {
+    cy.press(Cypress.Keyboard.Keys.TAB)
+    input().selectFile('cypress/fixtures/sample-image.png', force)
+    output().invoke('attr', 'src').should('match', /^blob:/)
+
+    cy.press(Cypress.Keyboard.Keys.TAB)
+    cy.document().should((doc) => {
+      expect(doc.activeElement.matches('[data-action="image-field#clear"]'), 'focus on the clear button').to.equal(true)
+    })
+    cy.focused().type('{enter}')
+
+    output().invoke('attr', 'src').should('match', /^data:image\/svg/)
+    input().should('have.value', '')
   })
 })

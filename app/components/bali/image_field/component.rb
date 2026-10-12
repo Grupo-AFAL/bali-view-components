@@ -94,13 +94,18 @@ module Bali
         }
       end
 
+      # Invisible rather than `hidden`, like the input (`FileFields::INPUT_CLASS`). Revealed from
+      # `display: none` by the input's focus, the button lost the Tab in Chrome: the input blurs
+      # first, the group stops matching, and the button is gone before focus lands on it.
       def clear_button_classes
         class_names(
           "clear-image-button",
           "btn btn-circle btn-sm btn-ghost",
           "absolute -top-2 -right-2",
-          "bg-base-200 text-base-content opacity-80",
-          "hidden group-hover:flex max-md:flex"
+          "bg-base-200 text-base-content",
+          "opacity-0 pointer-events-none",
+          "group-hover:opacity-80 group-hover:pointer-events-auto group-has-focus-visible:opacity-80",
+          "max-md:opacity-80 max-md:pointer-events-auto"
         )
       end
     end

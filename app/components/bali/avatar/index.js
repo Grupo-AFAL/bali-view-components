@@ -18,7 +18,10 @@ export class AvatarController extends Controller {
   showImage () {
     const file = this.inputTarget.files[0]
     if (file) {
-      this.outputTarget.src = URL.createObjectURL(file)
+      if (this.blobUrl) URL.revokeObjectURL(this.blobUrl)
+
+      this.blobUrl = URL.createObjectURL(file)
+      this.outputTarget.src = this.blobUrl
       this.outputTarget.style.objectFit = 'cover'
     }
   }

@@ -14,9 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   invisible sobre el botón de la cámara y sobre la imagen, como el de `file_group` desde #1385:
   Tab lo alcanza, Enter o Espacio abren el selector y el control muestra el anillo de foco. Con
   `Bali::FormBuilder` como builder por omisión, `Avatar::Upload` metía el `file_field` de Bali
-  —con su propio `<label>`— dentro del suyo; ahora usa el input de Rails. Nada que hacer en las
-  apps: sólo afal-apps usa `Avatar::Upload` (`daycare/children/_form`), ninguna usa `ImageField`,
-  y nada apunta a esos inputs.
+  —con su propio `<label>`— dentro del suyo; ahora usa el input de Rails. En `ImageField`, el
+  foco de teclado muestra lo mismo que el hover (velo, ícono y botón de borrar), y el botón de
+  borrar se alcanza con Tab y se activa con Enter; un `clear_button` propio debe ocultarse con
+  `opacity-0 pointer-events-none`, no con `hidden` (ejemplo en la preview
+  `with_custom_clear_button`). `Avatar::Upload` libera la URL `blob:` de la foto anterior al
+  elegir otra. Nada que hacer en las apps: sólo afal-apps usa `Avatar::Upload`
+  (`daycare/children/_form`), ninguna usa `ImageField`, y nada apunta a esos inputs.
 
 ## [v3.12.0] - 2026-10-11
 

@@ -31,12 +31,16 @@ module Bali
 
         attr_reader :formats, :options
 
+        # What hover reveals, keyboard focus reveals too. `has-focus-visible`, not
+        # `focus-within`: a click on the overlay focuses the input as well, and `focus-within`
+        # left the image just picked tinted and blurred after the pointer had gone.
         def container_classes
           class_names(
             "image-input-container",
             "absolute inset-0 flex justify-center items-center cursor-pointer",
             "rounded-lg",
             "group-hover:bg-base-content/20 group-hover:backdrop-blur-sm",
+            "group-has-focus-visible:bg-base-content/20 group-has-focus-visible:backdrop-blur-sm",
             "max-md:bg-base-content/20 max-md:backdrop-blur-sm",
             "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary"
           )
@@ -45,7 +49,7 @@ module Bali
         def icon_wrapper_classes
           class_names(
             "hidden",
-            "group-hover:flex max-md:flex"
+            "group-hover:flex group-has-focus-visible:flex max-md:flex"
           )
         end
 

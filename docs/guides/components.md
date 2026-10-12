@@ -4897,7 +4897,7 @@ The component renders its own `Bali::Card`, so do not wrap it in another one.
 
 #### ImageField
 
-Image preview with an optional file input overlay for uploading/replacing an image, plus a hover clear button.
+Image preview with an optional file input overlay for uploading/replacing an image, plus a clear button. Hover and keyboard focus reveal the same things: the overlay, its icon and the clear button.
 
 ```erb
 <%= form_with(model: @user) do |f| %>
@@ -4909,11 +4909,16 @@ Image preview with an optional file input overlay for uploading/replacing an ima
 
 **Options:**
 - `src` - URL of the current image; falls back to the placeholder when nil (default: nil)
-- `placeholder_url` - Image shown when there is no `src` or after clearing (default: `https://placehold.jp/128x128.png`)
+- `placeholder_url` - Image shown when there is no `src` or after clearing (default: an inline SVG `data:` URI, so rendering requests nothing)
 - `size` - One of `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
 - `**options` - Additional HTML attributes for the container (e.g. `class`)
 
 **Slots:** `input` (file input, takes `form:` and `method:`), `clear_button` (override the default clear button).
+
+A custom `clear_button` hides with `opacity-0 pointer-events-none` and reveals with `group-hover:`
+and `group-has-focus-visible:`, never with `hidden`. Revealed from `display: none` by
+`group-has-focus-visible:`, the button is gone again by the time Tab reaches it: the input has
+already blurred. The `with_custom_clear_button` preview has the classes.
 
 #### RichTextEditor
 

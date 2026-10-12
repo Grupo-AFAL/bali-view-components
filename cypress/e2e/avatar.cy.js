@@ -12,7 +12,11 @@ describe('Avatar upload', () => {
   const input = () => cy.get('[data-avatar-target="input"]')
 
   beforeEach(() => {
-    cy.visit('/bali/avatar/with_upload')
+    cy.visit('/bali/avatar/with_upload', {
+      onBeforeLoad (win) {
+        cy.spy(win.URL, 'revokeObjectURL').as('revoke')
+      }
+    })
   })
 
   it('starts from the saved image', () => {
@@ -26,6 +30,17 @@ describe('Avatar upload', () => {
     picture().invoke('attr', 'src').should('match', /^blob:/)
     // A portrait or landscape photo in a circular frame is distorted without it.
     picture().should('have.css', 'object-fit', 'cover')
+  })
+
+  it('releases the previous blob when a second file is chosen', () => {
+    input().selectFile('cypress/fixtures/sample-image.png', { force: true })
+
+    picture().invoke('attr', 'src').then((firstBlob) => {
+      input().selectFile('cypress/fixtures/sample-image.png', { force: true })
+
+      picture().invoke('attr', 'src').should('not.eq', firstBlob)
+      cy.get('@revoke').should('have.been.calledOnceWith', firstBlob)
+    })
   })
 
   it('leaves the file on the input for the form to submit', () => {
