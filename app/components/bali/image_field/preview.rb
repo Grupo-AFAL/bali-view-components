@@ -20,7 +20,8 @@ module Bali
 
       # With file input
       # Add the `input` slot to enable image uploads.
-      # The component shows a hover overlay with camera icon and a clear button.
+      # Hover or keyboard focus shows an overlay with a camera icon, and a clear button once
+      # there is an image to clear.
       def with_input
         render_with_template(template: 'bali/image_field/previews/with_input')
       end

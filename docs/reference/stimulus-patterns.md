@@ -116,7 +116,7 @@ only in the bundle (and only fetched) when the component is actually on the page
 ```javascript
 async connect () {
   const { default: Sortable } = await import('sortablejs')
-  if (!this.element.isConnected) return
+  if (this.sortable || !this.element.isConnected) return
 
   this.sortable = new Sortable(this.element, { … })
 }
@@ -126,8 +126,12 @@ Anything that can run before that import resolves (a keyboard path, an early eve
 guards with `this.sortable?.…`. Which peer belongs to which component is mapped in
 `docs/guides/installation.md`.
 
-The `isConnected` line is there because `disconnect()` can land during the `await` with nothing
-to destroy yet, as in `chart/index.js:69` and `datepicker-controller.js` (#1415).
+That line goes after the last `await` before anything is built, because `disconnect()` can land
+during the `await` with nothing to destroy yet. Removed, the element would get an instance nobody
+destroys (`chart/index.js:69`, `datepicker-controller.js`, #1415). Moved, Stimulus disconnects and
+connects it again, both connects resume past the `await`, and the second built another instance
+on top of the first: two cards per hover on a HoverCard (#1392 measured it on the tooltip). A
+`disconnect()` that destroys the instance sets it back to `null`, so the next connect builds again.
 
 ## Events
 

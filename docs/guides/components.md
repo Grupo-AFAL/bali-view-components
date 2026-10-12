@@ -2311,7 +2311,7 @@ Labels and status indicators.
 
 **Options:**
 - `text` - Label; falls back to the block content when omitted (default: nil)
-- `href` - Renders an `<a>` instead of a `<div>` (default: nil)
+- `href` - Renders an `<a>` instead of a `<span>` (default: nil)
 - `color` - `:neutral`, `:primary`, `:secondary`, `:accent`, `:ghost`, `:info`, `:success`, `:warning`, `:error` (default: nil, daisyUI's own)
 - `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: nil, which renders like `:md`)
 - `style` - `:outline`, `:soft`, `:dash` (default: nil)
@@ -2733,19 +2733,22 @@ the row has one keyboard: Tab reaches a trigger without opening it, a click, Ent
 walk the checkboxes. They are CSS dropdowns, not `popover:` ones: like the `⋯`, an ancestor of
 the toolbar with `overflow` (a drawer, a card with `overflow-hidden`) clips their panels.
 
-**Narrow viewports.** Below `sm` (640px) the toolbar folds its secondary controls into a
-`⋯` menu and unfolds them on the way back. The nodes are **moved**, never duplicated: two
-copies of the column selector would be two Stimulus controllers driving one table. Survival
-order lives in `OVERFLOW_PRIORITIES` — search/filters stay in the row; group by, columns,
-saved views, the persistence bookmark and host `toolbar_buttons` collapse; and the view
-switch collapses only below `sm` (`NARROW_OVERFLOW_THRESHOLD`), first in the `⋯`, so on a
-phone the search has the row to itself. Three consequences worth knowing:
+**When the row does not fit.** The toolbar measures its row and folds secondary controls
+into a `⋯` menu, lowest priority first, until the row fits, and unfolds them when there is
+room again; below `sm` (640px) it folds every collapsible control without measuring. The
+nodes are **moved**, never duplicated: two copies of the column selector would be two
+Stimulus controllers driving one table. Survival order lives in `OVERFLOW_PRIORITIES` —
+search/filters stay in the row; group by, columns, saved views, the persistence bookmark and
+host `toolbar_buttons` collapse; and the view switch collapses only below `sm`
+(`NARROW_OVERFLOW_THRESHOLD`), first in the `⋯`, so on a phone the search has the row to
+itself. Three consequences worth knowing:
 
 - **The order inside a group** is defined by `OVERFLOW_PRIORITIES`, not by the template:
-  expanding re-sorts each group by descending priority, which is what lets the controller be
-  stateless across Turbo reconnects. **The order of the groups** is the template's. The
-  numbers descend in reading order, so the `⋯` lists the collapsed controls in the same
-  order the row does — except the view switch, last in the row and first in the phone's `⋯`.
+  each control goes back to its place by descending priority, which is what lets the
+  controller be stateless across Turbo reconnects. **The order of the groups** is the
+  template's. The numbers descend in reading order, so the `⋯` lists the collapsed controls
+  in the same order the row does — except the view switch, last in the row and first in the
+  phone's `⋯`.
 - The separator is not a control: it carries no priority and is not an `item`, so it can
   never travel into the `⋯`. The controller only hides it — when a collapse empties either
   of the two groups it flanks, and by CSS (`max-sm:hidden`) when the bundle has not loaded.
@@ -3857,6 +3860,8 @@ what opens it.
   AppLayout's own `<main>` under `viewport_locked` is one. Pass `:parent` to keep the balloon
   inside the trigger's subtree. Inside an open modal/drawer the balloon goes to the top-layer
   host regardless, so it never paints under an overlay.
+- `trigger_label` - accessible name for a trigger with no text of its own, such as an icon: the
+  trigger becomes `role="img"` with that `aria-label`. A trigger with text is named by it.
 
 **Keyboard.** The default trigger is `focusin` rather than tippy's `focus` because the
 element tippy watches is the wrapper around the slot, and a `focus` on the caller's own
@@ -3895,8 +3900,10 @@ hand-rolled Tooltip + Icon pair per call site.
 - `placement` - `:top` (default), `:bottom`, `:left`, `:right`
 - Everything else passes through to `Bali::Tooltip` (`append_to:`, `class:`, `data:`, …)
 
-The trigger is keyboard-reachable out of the box, and the balloon inherits Tooltip's
-`:body` portal default, so it escapes clipping ancestors without per-call opt-ins.
+The trigger is keyboard-reachable out of the box and named "More information"
+(`bali_view.help_tip.label`), with the balloon's text as its description once open; pass
+`trigger_label:` for a more specific name. The balloon inherits Tooltip's `:body` portal
+default, so it escapes clipping ancestors without per-call opt-ins.
 
 #### Kanban
 
@@ -4034,6 +4041,12 @@ delete items). Auto-installed via `registerAll` — no per-app code needed.
         bali_confirm_accept: "Close it"
       } %>
 ```
+
+A button the trigger leaves unlabelled reads **Aceptar**/**Cancelar** under
+`<html lang="es">` (or any `es-*`) and **OK**/**Cancel** under any other
+`lang`, or none — taken each time the dialog opens, so a Turbo visit that
+changes the language is followed. `installConfirmDialog({ acceptText,
+cancelText })` replaces them in every language.
 
 Opt out globally with `window.BALI_DISABLE_CONFIRM_DIALOG = true` before
 `registerAll` runs.
@@ -4563,12 +4576,17 @@ makes it a first-class popover attribute with no new API.
 ) %>
 ```
 
+`filter_form:` is the panel's applied state: its groups and the combinator between them.
+`filter_groups:` and `combinator:`, when passed, win over it. Inside a `DataTable`,
+`with_filters_panel` passes all of this on its own.
+
 **Features:**
 - Multiple filter groups with AND/OR combinators. Conditions inside a group narrow
   (AND) unless the user switches a row to OR — the seed used to be OR, so a second
   condition widened the listing instead of narrowing it (#1121); a group that arrives in
-  the URL with `m=or` keeps it. Groups combine with AND. Whatever the groups' combinator,
-  the panel is ANDed with the quick search and the rest of `q` (#1345).
+  the URL with `m=or` keeps it. Groups combine with AND unless the toggle between them says
+  OR (`q[m]=or`). Whatever the groups' combinator, the panel is ANDed with the quick search
+  and the rest of `q` (#1345).
 - Type-specific operators (text, number, date, select, boolean)
 - Quick search with clear button (x) for easy clearing
 - Filter persistence with bookmark toggle. Inside a `DataTable` the bookmark is painted
@@ -4759,7 +4777,7 @@ filter_attribute :created_at, type: :date, input: :date_range, simple: true, adv
 It takes a zero-arity proc like `label:`, for an I18n lookup that must not be frozen at
 class-load time, and instance-level `simple_filters:` hashes take the same key. It also fills
 the "Custom…" picker of a `presets:` range. No other widget reads it: `number_range` has
-`placeholder_min:`/`placeholder_max:`, and a select shows its `blank:`.
+`placeholder_min:`/`placeholder_max:`, which take a proc too, and a select shows its `blank:`.
 
 #### Quick search (`search:`)
 
@@ -4907,7 +4925,7 @@ The component renders its own `Bali::Card`, so do not wrap it in another one.
 
 #### ImageField
 
-Image preview with an optional file input overlay for uploading/replacing an image, plus a hover clear button.
+Image preview with an optional file input overlay for uploading/replacing an image, plus a clear button. Hover and keyboard focus reveal the same things: the overlay, its icon and the clear button. The clear button shows only while there is an image to clear, never over the bare placeholder. Clearing hides it, and when the clear button had focus, focus moves to the input.
 
 ```erb
 <%= form_with(model: @user) do |f| %>
@@ -4919,11 +4937,19 @@ Image preview with an optional file input overlay for uploading/replacing an ima
 
 **Options:**
 - `src` - URL of the current image; falls back to the placeholder when nil (default: nil)
-- `placeholder_url` - Image shown when there is no `src` or after clearing (default: `https://placehold.jp/128x128.png`)
+- `placeholder_url` - Image shown when there is no `src` or after clearing (default: an inline SVG `data:` URI, so rendering requests nothing)
 - `size` - One of `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
 - `**options` - Additional HTML attributes for the container (e.g. `class`)
 
 **Slots:** `input` (file input, takes `form:` and `method:`), `clear_button` (override the default clear button).
+
+A custom `clear_button` hides with `opacity-0 pointer-events-none` and reveals with
+`group-hover/image-field:` and `group-has-focus-visible/image-field:`, never with `hidden`.
+Revealed from `display: none` by `group-has-focus-visible/image-field:`, the button is gone again
+by the time Tab reaches it: the input has already blurred. The group is named so a host card
+that is a `.group` itself does not reveal it. Whether there is anything to clear is the
+component's to decide, for a custom button too. The `with_custom_clear_button` preview has the
+classes.
 
 #### RichTextEditor
 
@@ -4976,7 +5002,8 @@ Uploads files from the browser directly to cloud storage (S3, GCS, Azure) via Ac
 - `max_file_size` - Maximum file size in megabytes (default: 10)
 - `accept` - Accepted file types, MIME types or extensions (default: `"*"`)
 - `drop_zone` - Show the drag & drop area (default: true)
-- `auto_upload` - Upload files immediately on selection (default: true)
+
+Files upload as soon as they are chosen. `auto_upload:` is deprecated and removed in 4.0.
 
 Requires Active Storage and CORS configuration on the bucket — see the [DirectUpload setup guide](direct-upload-setup.md). Client-side validation is UX only; always validate on the server.
 
@@ -5127,6 +5154,11 @@ written to the server's access log, offered in the `Referer` of anything the emb
 and kept in browser history. The widget sends it to the frame with `postMessage` once it
 has loaded, as `{ type: 'bali:feedback:token', token }`, addressed to the Opina origin and
 never to `*`. The Opina instance has to listen for that message; see the migration guide.
+
+Escape pressed inside the embed never reaches the page, so it cannot close the panel by
+itself. The embed asks for it with `{ type: 'bali:feedback:close-request' }` posted to its
+parent, and the widget closes the drawer the way Escape on the page does. Like every message
+from the embed, it is only accepted from the widget's own frame and the Opina origin.
 
 What the URL does carry is `color_scheme`, so the embed can follow the host's theme:
 `dark` when `<html>` declares `color-scheme: dark` (or `only dark`) at the moment the panel

@@ -75,6 +75,14 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     assert_html(result, "button.btn.btn-ghost.join-item", count: 2)
   end
 
+  def test_date_group_with_manual_mode_raises_on_a_range
+    [ "range", :range ].each do |mode|
+      error = assert_raises(ArgumentError) { builder.date_group(:release_date, manual: true, mode: mode) }
+
+      assert_match(/manual: steps a single date/, error.message)
+    end
+  end
+
   def test_date_group_with_min_date_option_passes_min_date_to_datepicker_controller
     result = builder.date_group(:release_date, min_date: "2024-01-01")
     assert_html(result, 'div[data-datepicker-min-date-value="2024-01-01"]')
@@ -100,6 +108,48 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     assert_html(result, "div[data-datepicker-default-dates-value]")
   end
 
+  def test_date_group_with_a_symbol_range_mode_passes_default_dates_to_datepicker_controller
+    result = builder.date_group(:release_date, mode: :range, value: %w[2024-01-01 2024-01-31])
+    assert_html(result, %(div[data-datepicker-default-dates-value='["2024-01-01","2024-01-31"]']))
+  end
+
+  # Both spellings would render, and a parser keeps the first.
+  def test_an_option_replaces_the_same_attribute_written_in_wrapper_options
+    result = builder.date_field(:release_date, min_date: "2026-01-01",
+                                               wrapper_options: { "data-datepicker-min-date-value": "2025-01-01" })
+    assert_html(result, '.fieldset[data-datepicker-min-date-value="2026-01-01"]')
+    assert_equal 1, result.scan("data-datepicker-min-date-value").size
+
+    result = builder.datetime_field(:release_date, time_24hr: true,
+                                                   wrapper_options: { "data-datepicker-time24hr-value": false })
+    assert_html(result, '.fieldset[data-datepicker-time24hr-value="true"]')
+    assert_equal 1, result.scan("data-datepicker-time24hr-value").size
+  end
+
+  # Counted in the markup: two writers of the same key render the attribute twice, and a parser
+  # keeps the first one without a word.
+  def test_every_date_family_passes_default_date_to_datepicker_controller_once
+    %i[date_field datetime_field time_field].each do |helper|
+      result = builder.public_send(helper, :release_date, default_date: "2026-01-01")
+
+      assert_html(result, '.fieldset[data-datepicker-default-date-value="2026-01-01"]')
+      assert_equal 1, result.scan("data-datepicker-default-date-value").size, helper
+    end
+  end
+
+  # flatpickr reads `defaultDate` before the input's value, so a default on a field that holds a
+  # date would replace it: on an edit form, the saved one.
+  def test_every_date_family_keeps_a_saved_date_over_default_date
+    saved = movie_form_builder(Movie.new(release_date: Date.new(2026, 3, 9)))
+
+    %i[date_field datetime_field time_field].each do |helper|
+      result = saved.public_send(helper, :release_date, default_date: "2026-01-01")
+
+      assert_html(result, 'input[name="movie[release_date]"][value]')
+      refute_html(result, "[data-datepicker-default-date-value]")
+    end
+  end
+
   def test_date_group_with_period_option_passes_period_to_datepicker_controller
     result = builder.date_group(:release_date, period: "day")
     assert_html(result, 'div[data-datepicker-period-value="day"]')
@@ -108,6 +158,11 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
   def test_date_group_with_custom_wrapper_options_merges_custom_wrapper_options
     result = builder.date_group(:release_date, wrapper_options: { class: "custom-wrapper" })
     assert_html(result, 'div.custom-wrapper[data-controller="datepicker"]')
+  end
+
+  def test_date_group_with_wrapper_options_data_keeps_the_datepicker_data
+    result = builder.date_group(:release_date, wrapper_options: { data: { foo: "bar" } })
+    assert_html(result, 'div[data-foo="bar"][data-controller="datepicker"][data-datepicker-locale-value="en"]')
   end
 
   # #date_group typing (allow_input) and placeholder

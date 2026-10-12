@@ -87,7 +87,7 @@ class BaliImageFieldComponentTest < ComponentTestCase
 
   def test_styling_classes_applies_base_component_classes
     render_inline(component)
-    assert_selector(".image-field-component.group.relative.w-fit")
+    assert_selector(".image-field-component.relative.w-fit", class: "group/image-field")
   end
 
   def test_options_passthrough_passes_extra_options_to_container
@@ -136,11 +136,30 @@ class BaliImageFieldInputComponentTest < ComponentTestCase
     assert_selector("label.absolute.inset-0.flex.cursor-pointer")
   end
 
-  def test_basic_rendering_hides_the_file_input_visually
+  # Invisible over the overlay, never `hidden`, which takes it out of the Tab order (#1409). The
+  # ring it draws is cypress/e2e/image-field.cy.js's.
+  def test_basic_rendering_puts_the_input_invisible_over_the_overlay
     helper.form_with(url: "/") do |form|
       render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
     end
-    assert_selector('input[type="file"].hidden')
+    assert_selector('label.image-input-container > input[type="file"]',
+                    class: Bali::FormBuilder::FileFields::INPUT_CLASS.split)
+    assert_no_selector('input[type="file"].hidden')
+  end
+
+  # The overlay's only content is an icon, so without this the input reaches Tab with no name.
+  def test_basic_rendering_names_the_input
+    helper.form_with(url: "/") do |form|
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar))
+    end
+    assert_selector('label > input[type="file"][aria-label="Choose image"]')
+  end
+
+  def test_basic_rendering_keeps_the_callers_aria_beside_the_name
+    helper.form_with(url: "/") do |form|
+      render_inline(Bali::ImageField::Input::Component.new(form: form, method: :avatar, aria: { describedby: "hint" }))
+    end
+    assert_selector('input[type="file"][aria-label="Choose image"][aria-describedby="hint"]')
   end
 
   def test_file_formats_accepts_default_formats
@@ -199,7 +218,7 @@ class BaliImageFieldWithInputSlotTest < ComponentTestCase
 
   def test_with_input_slot_renders_default_clear_button_using_bali_button
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Component.new) do |c|
+    render_inline(Bali::ImageField::Component.new(src: "/photo.png")) do |c|
       c.with_input(form: form, method: :avatar)
     end
     end
@@ -210,7 +229,7 @@ class BaliImageFieldWithInputSlotTest < ComponentTestCase
 
   def test_with_custom_clear_button_renders_custom_clear_button_when_provided
     helper.form_with(url: "/") do |form|
-    render_inline(Bali::ImageField::Component.new) do |c|
+    render_inline(Bali::ImageField::Component.new(src: "/photo.png")) do |c|
       c.with_input(form: form, method: :avatar)
     c.with_clear_button do
       '<button class="custom-clear">Clear</button>'.html_safe
@@ -219,6 +238,21 @@ class BaliImageFieldWithInputSlotTest < ComponentTestCase
     end
     assert_selector(".custom-clear")
     assert_text("Clear")
+  end
+
+  # Over the bare placeholder there is nothing to clear.
+  def test_with_input_slot_hides_the_clear_button_over_the_placeholder
+    helper.form_with(url: "/") do |form|
+      render_inline(Bali::ImageField::Component.new) { |c| c.with_input(form: form, method: :avatar) }
+    end
+    assert_selector('[data-image-field-target="clear"][hidden] .clear-image-button', visible: :all)
+  end
+
+  def test_with_input_slot_offers_the_clear_button_over_an_image
+    helper.form_with(url: "/") do |form|
+      render_inline(Bali::ImageField::Component.new(src: "/photo.png")) { |c| c.with_input(form: form, method: :avatar) }
+    end
+    assert_selector('[data-image-field-target="clear"]:not([hidden]) .clear-image-button')
   end
 
   def test_without_input_slot_does_not_render_placeholder_input_or_clear_button

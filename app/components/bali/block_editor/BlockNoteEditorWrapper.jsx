@@ -300,7 +300,8 @@ export default function BlockNoteEditorWrapper ({
   const { getEntityReferenceItems } = useEntityReferences(editor, {
     referencesUrl,
     referencesResolveUrl,
-    referencesConfig
+    referencesConfig,
+    typeLabels: translations.entity_types
   })
   const { handleChange, flush } = useContentSync(editor, outputElement, format, ready)
 

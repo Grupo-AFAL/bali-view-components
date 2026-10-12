@@ -18,7 +18,7 @@ describe('Google maps follow the color scheme of the page', () => {
   const visitIn = (theme, path) => {
     cy.intercept({ method: 'GET', pathname: `/lookbook/preview${path.split('?')[0]}` }, (req) => {
       req.continue((res) => {
-        res.body = res.body.replace(/<html data-theme="[^"]*"/, `<html data-theme="${theme}"`)
+        res.body = res.body.replace(/(<html\b[^>]*\bdata-theme=")[^"]*"/, `$1${theme}"`)
       })
     })
     cy.visit(path)

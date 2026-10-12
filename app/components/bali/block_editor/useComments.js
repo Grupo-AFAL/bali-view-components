@@ -2,6 +2,7 @@ import { useMemo, useEffect, useRef } from 'react'
 import { CommentsExtension } from '@blocknote/core/comments'
 import { InMemoryThreadStore } from './InMemoryThreadStore'
 import { RESTThreadStore } from './RESTThreadStore'
+import { interpolate } from '../../../assets/javascripts/bali/utils/interpolate.js'
 
 // Omit the key entirely when unset so RESTThreadStore's own default (5000 ms)
 // stays the single source of that number. `0` is meaningful -- it turns polling
@@ -54,7 +55,7 @@ export function useComments ({
   return useMemo(() => {
     if (!commentsUser?.id) return null
 
-    const nameFor = (id) => userFallback.replaceAll('%{id}', id)
+    const nameFor = (id) => interpolate(userFallback, { id })
     const placeholderUser = (id) => ({
       id: String(id), username: nameFor(id), avatarUrl: ''
     })

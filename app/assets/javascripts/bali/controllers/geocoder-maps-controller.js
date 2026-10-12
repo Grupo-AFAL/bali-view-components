@@ -34,8 +34,13 @@ export class GeocoderMapsController extends Controller {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['places'],
         language: 'es',
-        key: this.data.get('key')
+        key: this.data.get('key'),
+        // No deadline: a script that arrives late still builds.
+        timeout: 0
       })
+      // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+      if (this.map || !this.element.isConnected) return
+
       this.initializeMap()
       this.initializeAddressListeners()
       this.initializeAddress()

@@ -78,7 +78,14 @@ module Bali
       end
 
       def container_attributes
-        navigation? ? options : prepend_controller(options, "tabs")
+        return options if navigation?
+
+        prepend_values(prepend_controller(detach_data(options), "tabs"), "tabs", translations: translations_json)
+      end
+
+      # What tabs/index.js writes into a panel whose `src:` failed to load.
+      def translations_json
+        { load_failed: I18n.t("bali_view.tabs.load_failed") }.to_json
       end
 
       def tabs_classes

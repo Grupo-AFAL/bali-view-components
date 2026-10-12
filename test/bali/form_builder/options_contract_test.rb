@@ -53,12 +53,6 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     "text_area_group" => ->(b, o) { b.text_area_group(:name, **o) },
     "file_field" => ->(b, o) { b.file_field(:name, **o) },
     "file_group" => ->(b, o) { b.file_group(:name, **o) },
-    "date_field" => ->(b, o) { b.date_field(:name, **o) },
-    "date_group" => ->(b, o) { b.date_group(:name, **o) },
-    "datetime_field" => ->(b, o) { b.datetime_field(:name, **o) },
-    "datetime_group" => ->(b, o) { b.datetime_group(:name, **o) },
-    "time_field" => ->(b, o) { b.time_field(:name, **o) },
-    "time_group" => ->(b, o) { b.time_group(:name, **o) },
     "search_group" => ->(b, o) { b.search_group(:name, **o) },
     "currency_group" => ->(b, o) { b.currency_group(:name, **o) },
     "percentage_group" => ->(b, o) { b.percentage_group(:name, **o) },
@@ -68,6 +62,16 @@ class BaliFormBuilderOptionsContractTest < FormBuilderTestCase
     # every other key; `step_number_fields_test` is what holds the refusal.
     "step_number_field" => ->(b, o) { b.step_number_field(:name, **o.except(:delimited)) },
     "step_number_group" => ->(b, o) { b.step_number_group(:name, **o.except(:delimited)) },
+    # And the date families refuse a pair: `manual:` arrows step one date, so they
+    # raise on `mode: "range"`. Probing `mode` as "single" keeps the six in the
+    # sweep with every key and their arrows; `date_fields_test` is what holds the
+    # refusal.
+    "date_field" => ->(b, o) { b.date_field(:name, **o.merge(mode: "single")) },
+    "date_group" => ->(b, o) { b.date_group(:name, **o.merge(mode: "single")) },
+    "datetime_field" => ->(b, o) { b.datetime_field(:name, **o.merge(mode: "single")) },
+    "datetime_group" => ->(b, o) { b.datetime_group(:name, **o.merge(mode: "single")) },
+    "time_field" => ->(b, o) { b.time_field(:name, **o.merge(mode: "single")) },
+    "time_group" => ->(b, o) { b.time_group(:name, **o.merge(mode: "single")) },
     "range_field" => ->(b, o) { b.range_field(:name, **o) },
     "range_group" => ->(b, o) { b.range_group(:name, **o) },
     "boolean_field" => ->(b, o) { b.boolean_field(:name, **o) },

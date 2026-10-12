@@ -15,10 +15,19 @@ import { Controller } from '@hotwired/stimulus'
 export class AvatarController extends Controller {
   static targets = ['output', 'input']
 
+  // The page Turbo restores for Back still shows the last controller's blob: this one owns it.
+  connect () {
+    if (this.outputTarget.src.startsWith('blob:')) this.blobUrl = this.outputTarget.src
+  }
+
   showImage () {
     const file = this.inputTarget.files[0]
     if (file) {
-      this.outputTarget.src = URL.createObjectURL(file)
+      // Only the previous one, never on `disconnect`: Turbo's snapshot for Back still shows it.
+      if (this.blobUrl) URL.revokeObjectURL(this.blobUrl)
+
+      this.blobUrl = URL.createObjectURL(file)
+      this.outputTarget.src = this.blobUrl
       this.outputTarget.style.objectFit = 'cover'
     }
   }

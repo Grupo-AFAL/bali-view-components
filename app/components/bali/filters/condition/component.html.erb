@@ -74,7 +74,7 @@
                  data-action="click->multi-select#toggle keydown.enter->multi-select#toggle:prevent keydown.space->multi-select#toggle:prevent"
                  data-multi-select-target="trigger">
               <span class="flex-1 truncate text-left" data-multi-select-target="label">
-                <%= t('bali_view.filters.select_values') %>
+                <%= t('bali_view.filters.placeholders.select_values') %>
               </span>
             </div>
             <%# condition_controller.js#buildMultiSelectInput builds this same widget, attribute for
@@ -101,9 +101,11 @@
           </div>
         <% else %>
           <%# Single searchable select for "is" / "is not" (SlimSelect).
-              slim-select-sm matches the select-sm height of the field/operator selects. %>
+              slim-select-sm matches the select-sm height of the field/operator selects.
+              condition_controller.js#buildSelectInput builds this same widget: change both. %>
           <div class="w-full slim-select-sm" data-controller="slim-select"
-               data-slim-select-placeholder-value="<%= t('bali_view.filters.select_value') %>"
+               data-slim-select-allow-deselect-option-value="true"
+               data-slim-select-placeholder-value="<%= t('bali_view.filters.placeholders.select') %>"
                data-slim-select-search-placeholder-value="<%= t('bali_view.filters.search') %>"
                data-slim-select-no-results-text-value="<%= t('bali_view.form_builder.slim_select.no_results') %>"
                data-slim-select-deselect-text-value="<%= t('bali_view.form_builder.slim_select.deselect') %>"
@@ -114,8 +116,11 @@
                     aria-label="<%= value_aria_label %>"
                     data-slim-select-target="select"
                     data-condition-target="value">
-              <option value="">
-                <%= t('bali_view.filters.select_value') %>
+              <%# Marked as Bali::FormBuilder::SlimSelectFields#build_select marks a blank, or
+                  SlimSelect offers it as a value and counts it among the results. Emptying the
+                  value is the deselect button's job, which is why the wrapper allows it. %>
+              <option value="" data-placeholder="true">
+                <%= t('bali_view.filters.placeholders.select') %>
               </option>
               <% attribute_options.each do |opt| %>
                 <% opt_label, opt_value = opt.is_a?(Array) ? opt : [opt, opt] %>
@@ -151,7 +156,7 @@
           <div class="w-full" data-condition-target="value">
             <input type="text"
                    class="input input-sm w-full"
-                   placeholder="<%= t('bali_view.filters.select_date_range') %>"
+                   placeholder="<%= t('bali_view.filters.placeholders.select_date_range') %>"
                    aria-label="<%= value_aria_label %>"
                    data-controller="datepicker"
                    data-datepicker-locale-value="<%= I18n.locale %>"
@@ -177,7 +182,7 @@
                  class="input input-sm w-full"
                  name="<%= field_name %>"
                  value="<%= value %>"
-                 placeholder="<%= t('bali_view.filters.select_date') %>"
+                 placeholder="<%= t('bali_view.filters.placeholders.select_date') %>"
                  aria-label="<%= value_aria_label %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
@@ -191,7 +196,7 @@
                  class="input input-sm w-full"
                  name="<%= field_name %>"
                  value="<%= value %>"
-                 placeholder="<%= t('bali_view.filters.select_datetime') %>"
+                 placeholder="<%= t('bali_view.filters.placeholders.select_datetime') %>"
                  aria-label="<%= value_aria_label %>"
                  data-controller="datepicker"
                  data-datepicker-locale-value="<%= I18n.locale %>"
@@ -208,7 +213,7 @@
                name="<%= field_name %>"
                value="<%= value %>"
                step="any"
-               placeholder="0"
+               placeholder="<%= t('bali_view.filters.placeholders.number') %>"
                aria-label="<%= value_aria_label %>"
                data-condition-target="value">
 
@@ -217,7 +222,7 @@
                class="input input-sm w-full"
                name="<%= field_name %>"
                value="<%= value %>"
-               placeholder="<%= t('bali_view.filters.enter_value') %>"
+               placeholder="<%= t('bali_view.filters.placeholders.enter_value') %>"
                aria-label="<%= value_aria_label %>"
                data-condition-target="value">
       <% end %>

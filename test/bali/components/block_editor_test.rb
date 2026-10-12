@@ -519,7 +519,7 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     render_inline(Bali::BlockEditor::Component.new)
 
     assert_equal(
-      %w[load_failed plain_text table_of_contents upload_failed upload_not_configured
+      %w[entity_types load_failed plain_text table_of_contents upload_failed upload_not_configured
          upload_too_large user_fallback],
       react_translations.keys.sort
     )
@@ -532,6 +532,20 @@ class BaliBlockEditorComponentTest < ComponentTestCase
     assert_equal "Tabla de contenido", react_translations["table_of_contents"]
     assert_equal "La carga de archivos no está configurada", react_translations["upload_not_configured"]
     assert_equal "Texto plano", react_translations["plain_text"]
+  end
+
+  # inlineContent.jsx paints a type label for each of its default types from `entity_types`.
+  def test_translations_carry_every_text_the_wrapper_reads_and_a_label_per_default_type
+    I18n.with_locale(:es) { render_inline(Bali::BlockEditor::Component.new) }
+    reads = translation_keys_read_by("app/components/bali/block_editor/BlockNoteEditorWrapper.jsx", "translations")
+    default_types = Bali::Engine.root.join("app/components/bali/block_editor/inlineContent.jsx").read
+                                .scan(/^  (\w+): \{ icon:/).flatten - %w[default]
+
+    assert_includes reads, "entity_types"
+    assert_empty reads.reject { |key| react_translations[key].present? }
+    assert_includes default_types, "task"
+    assert_empty default_types.reject { |type| react_translations.dig("entity_types", type).present? }
+    assert_equal "Tarea", react_translations.dig("entity_types", "task")
   end
 
   # The file size, the HTTP status and the unresolved user id only exist in the

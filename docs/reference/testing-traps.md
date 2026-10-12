@@ -67,6 +67,11 @@ goes here.
   caching, so the browser keeps running the old bundle and the spec tests the code from before.
 - **`.scrollIntoView()` ignores `scroll-margin`.** Cypress computes its own offsets. Call the
   native method inside a `then` and measure in the same block.
+- **A DOM change made in a `then` may not reach the page's MutationObservers before the next
+  command runs.** Stimulus connects and disconnects from one: a node moved in a `then` and a
+  `pointerup` triggered by the next command reached SortableJS before the disconnect, and the
+  test passed with the code it covers taken out, 3 runs of 3 (#1409). A `cy.wait(0)` in between
+  was enough to catch it, 3 of 3; so is a `should` that retries on what the disconnect changes.
 - **A `hover:` utility needs a real pointer and `(hover: hover)`.** `.trigger('mouseover')`
   dispatches the event but never makes the element match `:hover`. And Tailwind 4 wraps every
   `hover:` utility in `@media (hover: hover)`, which headless Chrome without a mouse reports as

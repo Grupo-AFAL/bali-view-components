@@ -93,6 +93,19 @@ class BaliFiltersAppliedTagsComponentTest < ComponentTestCase
     assert_link("Clear all")
   end
 
+  # Clear all went to `url:` as it came, `saved_view` and `q[...]` included: the view was
+  # re-applied over the clearing, and a filter written into `url:` survived it. What the hidden
+  # fields DO carry, it keeps.
+  def test_clear_all_leaves_out_what_the_panels_hidden_fields_leave_out
+    render_inline(Bali::Filters::AppliedTags::Component.new(
+      filter_groups: @filter_groups, available_attributes: @available_attributes,
+      url: "/users?q%5Bname_cont%5D=x&clear_search=true&saved_view=3&per=25",
+      preserved_params: { view: "grid" }
+    ))
+
+    assert_link("Clear all", href: "/users?clear_filters=true&per=25&view=grid")
+  end
+
   def test_with_active_filters_does_not_render_clear_all_link_with_single_filter
     single_filter = [
       {
@@ -127,6 +140,23 @@ class BaliFiltersAppliedTagsComponentTest < ComponentTestCase
       filter_groups: filter_groups, available_attributes: @available_attributes, url: "/users"
     ))
     assert_text("Yes")
+  end
+
+  # The tag names a boolean value with the text the condition's select offers for it.
+  def test_value_labels_for_boolean_type_read_the_condition_select_keys
+    filter_groups = [
+      {
+        combinator: "or", conditions: [ { attribute: "verified", operator: "eq", value: "true" },
+                                        { attribute: "verified", operator: "eq", value: "false" } ]
+      }
+    ]
+    with_filter_texts_marked(:boolean) do
+      render_inline(Bali::Filters::AppliedTags::Component.new(
+        filter_groups: filter_groups, available_attributes: @available_attributes, url: "/users"
+      ))
+    end
+    assert_text("boolean.yes")
+    assert_text("boolean.no")
   end
 
   def test_any_filters_returns_true_when_filters_have_values

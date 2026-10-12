@@ -22,6 +22,27 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector('[data-controller="filters"]')
   end
 
+  # The guide's standalone Filters keeps its view state through `preserved_params:`; the
+  # applied tags' Clear all dropped it while the panel's own Clear kept it.
+  def test_the_applied_tags_clear_all_keeps_the_panels_preserved_params
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, filter_groups: two_applied_groups,
+      preserved_params: { group_by: "status", view: "grid" }
+    ), &:with_applied_tags)
+
+    assert_link("Clear all", href: "/users?clear_filters=true&group_by=status&view=grid")
+  end
+
+  # filters_controller.js builds the divider between groups from these, with no fallback of its own.
+  def test_translations_carry_every_text_the_controller_reads
+    render_inline(Bali::Filters::Component.new(url: "/users", available_attributes: @available_attributes))
+    translations = JSON.parse(page.find('[data-controller="filters"]')["data-filters-translations-value"])
+    reads = translation_paths_read_by("app/components/bali/filters/controllers/filters_controller.js")
+
+    assert_includes reads, %w[combinators and]
+    assert_empty reads.reject { |path| translations.dig(*path).present? }
+  end
+
   def test_rendering_renders_a_filter_group_by_default
     render_inline(Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes
@@ -405,6 +426,46 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="or"]', visible: :all
   end
 
+  # Outside a DataTable nothing handed the panel its state: given groups but no `combinator:`, it
+  # painted AND over groups the state combined with OR, and Apply sent `q[m]=and`. `filter_form:`
+  # is that state; the explicit arguments win over it.
+
+  def test_a_filter_form_alone_supplies_the_groups_and_the_combinator
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ], value: "" },
+      filter_form: applied_filter_form
+    ))
+
+    assert_selector '[data-filters-target="form"] input[name="q[g][0][name_cont]"][value="Alien"]', visible: :all
+    assert_selector '[data-filters-target="form"] input[name="q[g][1][genre_cont]"][value="Drama"]', visible: :all
+    assert_selector '[data-filters-target="form"] input[name="q[m]"][value="or"]', visible: :all
+    assert_selector '[data-combinator="or"][aria-pressed="true"]', visible: :all
+    assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="or"]', visible: :all
+  end
+
+  def test_explicit_groups_and_combinator_win_over_the_filter_form
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ], value: "" },
+      filter_form: applied_filter_form, filter_groups: two_applied_groups, combinator: :and
+    ))
+
+    assert_selector '[data-filters-target="form"] input[name="q[g][0][name_cont]"][value="a"]', visible: :all
+    assert_no_selector 'input[value="Alien"]', visible: :all
+    assert_selector '[data-filters-target="form"] input[name="q[m]"][value="and"]', visible: :all
+    assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="and"]', visible: :all
+  end
+
+  def test_with_neither_it_paints_and_without_re_emitting_it
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, search: { fields: [ :name ], value: "" },
+      filter_groups: two_applied_groups
+    ))
+
+    assert_selector '[data-filters-target="form"] input[name="q[m]"][value="and"]', visible: :all
+    assert_selector '[data-combinator="and"][aria-pressed="true"]', visible: :all
+    assert_no_selector '[data-filters-target="searchForm"] input[name="q[m]"]', visible: :all
+  end
+
   def test_a_between_with_both_ends_blank_emits_no_phantom_group
     # The popover serialises its empty inputs, and a between {start:"",end:""} is a Hash (present?) —
     # it counted as a condition and emitted a group carrying nothing but the combinators.
@@ -525,5 +586,20 @@ class BaliFiltersComponentTest < ComponentTestCase
     end
 
     assert_includes error.message, ":field_name"
+  end
+
+  private
+
+  def applied_filter_form
+    Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: {
+      m: "or", g: { "0" => { m: "and", name_cont: "Alien" }, "1" => { m: "and", genre_cont: "Drama" } }
+    }))
+  end
+
+  def two_applied_groups
+    [
+      { combinator: "and", conditions: [ { attribute: "name", operator: "cont", value: "a" } ] },
+      { combinator: "and", conditions: [ { attribute: "status", operator: "eq", value: "active" } ] }
+    ]
   end
 end

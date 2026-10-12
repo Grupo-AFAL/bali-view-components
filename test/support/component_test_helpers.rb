@@ -34,6 +34,30 @@ module ComponentTestHelpers
     captured.first
   end
 
+  # The keys a Stimulus controller reads off `this.t` — `this.t.a.b`, and `const { b } = this.t.a`
+  # — the ones its `translations` value has to carry now that the controllers keep no
+  # fallbacks of their own: a key missing from the JSON paints "undefined".
+  def translation_paths_read_by(controller_path)
+    source = Bali::Engine.root.join(controller_path).read
+    reads = source.scan(/this\.t\.(\w+)(?:\.(\w+))?/).map(&:compact)
+    reads += source.scan(/const \{ ([^}]+) \} = this\.t\.(\w+)/).flat_map do |names, key|
+      names.split(",").map { |name| [ key, name.split(":").first.strip ] }
+    end
+    reads.uniq
+  end
+
+  # Swaps each text under `bali_view.filters.<scope>` for its own key ("boolean.yes"), so a
+  # test can tell which key a reader followed, and stores back exactly what was there:
+  # `I18n.backend.reload!` would also discard whatever other tests stored (numeric_fields_test.rb).
+  def with_filter_texts_marked(*scopes)
+    store = ->(texts) { I18n.backend.store_translations(:en, bali_view: { filters: texts }) }
+    previous = scopes.index_with { |scope| I18n.t("bali_view.filters.#{scope}", locale: :en) }
+    store.call(previous.to_h { |scope, texts| [ scope, texts.to_h { |key, _| [ key, "#{scope}.#{key}" ] } ] })
+    yield
+  ensure
+    store.call(previous) if previous
+  end
+
   def silence_deprecations(&block)
     Bali.deprecator.silence(&block)
   end
@@ -44,5 +68,11 @@ module ComponentTestHelpers
     yield
   ensure
     Bali.deprecator.behavior = previous
+  end
+
+  # The keys the JS file at `path` reads off `receiver` (`this.texts.loading`), which the
+  # translations its component renders have to carry: a key missing there paints "undefined".
+  def translation_keys_read_by(path, receiver)
+    Bali::Engine.root.join(path).read.scan(/(?<![\w$.])#{Regexp.escape(receiver)}\.(\w+)/).flatten.uniq
   end
 end

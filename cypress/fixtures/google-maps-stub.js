@@ -12,7 +12,7 @@
 // nothing here asserts anything, it only makes the controller's side effects
 // observable.
 (function () {
-  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [], polygons: [] }
+  const registry = { maps: [], markers: [], infoWindows: [], clusterers: [], polygons: [], autocompletes: [] }
 
   class ListenerHost {
     constructor () {
@@ -189,6 +189,30 @@
     }
   }
 
+  class FakeAutocomplete extends ListenerHost {
+    constructor (input, options) {
+      super()
+      this.input = input
+      this.options = options
+      registry.autocompletes.push(this)
+    }
+  }
+
+  // What the script's `libraries=` and a later importLibrary put on google.maps; a name the API
+  // does not know is rejected, as the real one rejects it.
+  const libraries = {
+    marker: { AdvancedMarkerElement: FakeAdvancedMarkerElement, PinElement: FakePinElement },
+    places: { Autocomplete: FakeAutocomplete },
+    geometry: {}
+  }
+
+  const importLibrary = (name) => {
+    if (!libraries[name]) return Promise.reject(new Error(`The library ${name} is unknown.`))
+
+    window.google.maps[name] = libraries[name]
+    return Promise.resolve(libraries[name])
+  }
+
   window.google = {
     maps: {
       Map: FakeMap,
@@ -199,8 +223,6 @@
       Marker: FakeMarker,
       Animation: { DROP: 'DROP' },
       Polygon: FakePolygon,
-      // No `drawing` library: the API dropped DrawingManager in 3.65, and
-      // drawing-maps fails to build it inside its `try`, as it does against Google.
       // Nothing here fires: the polygon's edits are not under test.
       event: {
         trigger () {},
@@ -208,13 +230,12 @@
           return { remove () {} }
         }
       },
-      importLibrary: () =>
-        Promise.resolve({
-          AdvancedMarkerElement: FakeAdvancedMarkerElement,
-          PinElement: FakePinElement
-        })
+      importLibrary
     }
   }
+
+  const requested = new URL(window.document.currentScript.src).searchParams.get('libraries')
+  requested?.split(',').forEach((name) => { window.google.maps[name] = libraries[name] })
 
   window.__fakeMaps = {
     registry,

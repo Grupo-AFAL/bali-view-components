@@ -57,7 +57,7 @@ More than one hit means you have it. The fix is to force a single copy in your `
 
 then `yarn install` and rebuild. Re-check after every `@blocknote/*` upgrade: `resolutions` keeps the tree deduped but the pinned floor has to move with the editor.
 
-> **Node >= 22 is required to install this.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, which declares `engines.node: ">=22"`. On Node 20, `yarn install` stops with `error lib0@1.0.0-rc.22: The engine "node" is incompatible with this module` and `Found incompatible module` -- an install-time failure, not a runtime one, so you will see it immediately rather than in production. This repository's own CI moved from Node 20 to 22 for exactly this reason. `lib0` is the only package in the tree that asks for 22.
+> **Node >= 22 is required.** `@blocknote/core` 0.52 depends on `lib0` `1.0.0-rc.22`, which declares `engines.node: ">=22"`. Yarn 4 does not check it: on Node 20, `yarn install` adds `lib0` with no error and no warning, so the install will not tell you. This repository's own CI runs Node 22 for this reason. `lib0` is the only package in the tree that asks for 22.
 
 ### Step 2 -- esbuild flags
 
@@ -866,17 +866,16 @@ end
 
 ### Custom Entity Type Configuration
 
-Override the default icons, labels, and colors per entity type:
+Override the default icons, labels, and colors per entity type, or declare your own. A key you
+leave out keeps its default, so `task` below keeps its icon and its translated label:
 
 ```erb
 <%= render Bali::BlockEditor::Component.new(
   references_url: '/api/entity_references',
   references_resolve_url: '/api/entity_references/resolve',
   references_config: {
-    task:     { icon: "\u2610", label: 'Task',     color: 'info' },
-    project:  { icon: "\u25C8", label: 'Project',  color: 'accent' },
-    document: { icon: "\u25E7", label: 'Document', color: 'success' },
-    invoice:  { icon: '$',      label: 'Invoice',  color: 'warning' }
+    task:    { color: 'error' },
+    invoice: { icon: '$', label: t('invoices.reference_label'), color: 'warning' }
   }
 ) %>
 ```
@@ -886,16 +885,16 @@ Override the default icons, labels, and colors per entity type:
 | Key | Type | Description |
 |-----|------|-------------|
 | `icon` | `String` | Unicode character or emoji displayed in the chip |
-| `label` | `String` | Type label for grouping in the suggestion menu |
+| `label` | `String` | Type label on the chip, and the group it falls under in the suggestion menu |
 | `color` | `String` | DaisyUI semantic color name (`info`, `accent`, `success`, `warning`, `error`, `secondary`, `primary`, `neutral`) or a CSS color value (`#ff0000`, `rgb(...)`, `var(--my-color)`). The chip's tint is that colour at 15% (25% under the pointer when the chip links somewhere); its name, type label and icon are the colour mixed 40% into `base-content`, like `text-soft-*`, so they follow light and dark |
 
 **Default configuration:**
 
 | Type | Icon | Label | Color |
 |------|------|-------|-------|
-| `task` | &#x2610; | Task | `info` |
-| `project` | &#x25C8; | Project | `accent` |
-| `document` | &#x25E7; | Document | `success` |
+| `task` | &#x2610; | `bali_view.block_editor.entity_types.task` (Task / Tarea) | `info` |
+| `project` | &#x25C8; | `bali_view.block_editor.entity_types.project` (Project / Proyecto) | `accent` |
+| `document` | &#x25E7; | `bali_view.block_editor.entity_types.document` (Document / Documento) | `success` |
 | `default` | # | (none) | `secondary` |
 
 ### Entity Reference Data in Content
@@ -1280,11 +1279,6 @@ An editor with all capabilities enabled:
   # Entity references
   references_url: '/api/entity_references',
   references_resolve_url: '/api/entity_references/resolve',
-  references_config: {
-    task:     { icon: "\u2610", label: 'Task',     color: 'info' },
-    project:  { icon: "\u25C8", label: 'Project',  color: 'accent' },
-    document: { icon: "\u25E7", label: 'Document', color: 'success' }
-  },
 
   # Multi-column layouts (XL package)
   multi_column: true,
