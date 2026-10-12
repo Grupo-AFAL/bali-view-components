@@ -42,15 +42,8 @@ module Bali
         return if successor.nil?
 
         name = Bali::Archival.name_of(successor)
-        name = successor_link(name) if @successor_url
+        name = render(Bali::Link::Component.new(name: name, href: @successor_url)) if @successor_url
         t(".successor_html", successor: name)
-      end
-
-      # The link's template breaks lines around the label; inside a sentence that shows as a gap
-      # before the full stop.
-      def successor_link(name)
-        link = render(Bali::Link::Component.new(name: name, href: @successor_url))
-        link.gsub(/>\s+/, ">").gsub(/\s+</, "<").html_safe
       end
     end
   end

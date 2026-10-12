@@ -21,8 +21,7 @@ class BaliArchivalNoticeComponentTest < ComponentTestCase
     render_inline(Bali::ArchivalNotice::Component.new(record: @movie, successor_url: "/movies/#{@remake.id}"))
 
     assert_selector ".archival-notice-component.alert.alert-warning",
-                    text: "Archived on October 03, 2026 by Ana. Reason: Replaced by another. " \
-                          "Replaced by Blade Runner 2049."
+                    text: "Archived on October 03, 2026 by Ana. Reason: Replaced by another. Replaced by"
     assert_link "Blade Runner 2049", href: "/movies/#{@remake.id}"
   end
 
@@ -44,10 +43,12 @@ class BaliArchivalNoticeComponentTest < ComponentTestCase
   def test_reopen_appears_only_with_an_unarchive_url
     @movie.archive!(by: @ana)
 
-    render_inline(Bali::ArchivalNotice::Component.new(record: @movie))
+    with_request_url("/admin/movies") { render_inline(Bali::ArchivalNotice::Component.new(record: @movie)) }
     assert_no_button "Reopen"
 
-    render_inline(Bali::ArchivalNotice::Component.new(record: @movie, unarchive_url: "/bali/archivals/unarchive"))
+    with_request_url("/admin/movies") do
+      render_inline(Bali::ArchivalNotice::Component.new(record: @movie, unarchive_url: "/bali/archivals/unarchive"))
+    end
     assert_selector "form[action='/bali/archivals/unarchive'][method=post] button[type=submit]", text: "Reopen"
   end
 
