@@ -1,3 +1,5 @@
+import { shiftTab } from '../support/keys'
+
 // #1041 — ImageGrid had no E2E spec. With `expandable: true` each thumbnail
 // opens a lightbox that exists nowhere in the markup: the controller builds the
 // overlay, moves it to the top layer, loads the full-size image and takes over
@@ -125,15 +127,6 @@ describe('ImageGrid lightbox', () => {
   // the browser's keyboard path: a synthetic Escape is no close request for a `<dialog>`, and
   // a synthetic Tab moves nothing. `cy.press` takes no modifiers.
   describe('keys while it is open', () => {
-    const shiftTab = () => {
-      const key = { key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9, modifiers: 8 }
-      const send = (type) => Cypress.automation('remote:debugger:protocol', {
-        command: 'Input.dispatchKeyEvent',
-        params: { type, ...key }
-      })
-
-      return cy.then(() => send('rawKeyDown').then(() => send('keyUp')))
-    }
     // `is-open` lands on the next frame, the way a reader sees it open.
     const openIt = () => {
       thumbnails().first().click()

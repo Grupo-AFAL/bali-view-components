@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Tooltip` acepta `trigger_label:`**: nombra un disparador sin texto propio, como un
+  ícono, con `role="img"` y ese `aria-label`.
+
 ### Fixed
 
 - **FeedbackWidget: Escape dentro del panel de Opina lo cierra, si Opina lo pide.** Con el foco
@@ -31,14 +36,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Modal y Drawer se cierran antes de que Turbo guarde la página en su caché.** Una página que
   se dejaba con el panel abierto volvía con Atrás con el panel pintado pero sin `showModal()`, y
   la página de detrás seguía respondiendo al mouse y al teclado. Ahora vuelve cerrado. No se
-  cierran en un refresh, que hace morph alrededor del panel, en la navegación de un frame
-  promovida a visita ni cuando sólo cambia el fragmento de la URL. Nada que hacer en la app.
+  cierran cuando la visita va a la misma ruta con `replace` (un refresh), en la navegación de un
+  frame promovida a visita (`Tabs` con su `turbo_action: :advance` dentro de un drawer) ni cuando
+  sólo cambia el fragmento de la URL. Y un panel que vuelve abierto de todos modos, como el de la
+  copia que toma un frame promovido, se abre otra vez con `showModal()`. Nada que hacer en la app.
 
 - **`HelpTip`: el ícono tiene nombre.** El controlador del tooltip lo vuelve parada de
   tabulación, y se anunciaba como un genérico sin nombre. Ahora es `role="img"` con
   `aria-label` «Más información» (`bali_view.help_tip.label`), y el texto del globo sigue siendo
-  su descripción. `Bali::Tooltip` acepta `trigger_label:` para nombrar así un disparador sin
-  texto, y HelpTip lo deja pasar para un nombre más preciso.
+  su descripción; un `trigger_label:` pasado a HelpTip le da un nombre más preciso.
   **En un campo con `tooltip:`** el ícono va dentro del `<label>`: se anuncia «Más información»,
   imagen, con el texto de ayuda, y el nombre accesible del campo pasa de «Email» a «Email Más
   información». `fill_in` y `find_field` de Capybara leen el texto del `<label>` y siguen

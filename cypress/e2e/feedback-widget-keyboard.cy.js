@@ -1,3 +1,5 @@
+import { shiftTab } from '../support/keys'
+
 // The panel is a Drawer whose only content is Opina's frame, and the Drawer's Tab trap left the
 // frame out of what Tab can land on: with the ✕ as both ends of the trap, Tab and Shift+Tab
 // from it came back to it, and Opina's form could not be reached from the keyboard.
@@ -29,15 +31,6 @@ describe('FeedbackWidget panel from the keyboard', () => {
   // keydown cannot take it: these go through its keyboard path (CDP). `cy.press` takes no
   // modifiers.
   const lastControl = 'request-capture'
-  const shiftTab = () => {
-    const key = { key: 'Tab', code: 'Tab', windowsVirtualKeyCode: 9, nativeVirtualKeyCode: 9, modifiers: 8 }
-    const send = (type) => Cypress.automation('remote:debugger:protocol', {
-      command: 'Input.dispatchKeyEvent',
-      params: { type, ...key }
-    })
-
-    return cy.then(() => send('rawKeyDown').then(() => send('keyUp')))
-  }
 
   it('goes from the ✕ with Shift+Tab straight to the last control in the frame', () => {
     cy.get(close).focus()

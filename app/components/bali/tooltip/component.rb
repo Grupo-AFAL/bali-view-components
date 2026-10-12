@@ -64,7 +64,7 @@ module Bali
         class_names("trigger", "cursor-pointer")
       end
 
-      def trigger_name
+      def trigger_attributes
         return {} if @trigger_label.blank?
 
         { role: "img", "aria-label": @trigger_label }

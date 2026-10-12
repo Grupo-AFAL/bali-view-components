@@ -147,11 +147,11 @@ export class ModalController extends Controller {
   // and a morph refresh then leaves the panel alone (`_keepOpenPanelThroughMorph`); so do a
   // frame navigation promoted to a visit, which renders nothing, and a history entry with no
   // visit behind it (an anchor). Closing there would close the panel the reader is still using.
+  //
+  // `currentVisit`, `willRender` and `isPageRefresh` are undocumented Turbo internals (the peer
+  // range is `>=8.0.0 <9`); the «Turbo cache» specs in `modal-controller.cy.js` are the tripwire.
   _closeBeforeCache = () => {
-    if (!this.hasTemplateTarget) return
-
-    const dialog = this.templateTarget
-    if (!dialog.open && !dialog.classList.contains(this.openClass)) return
+    if (!this._panelOpen) return
 
     const visit = window.Turbo?.navigator?.currentVisit
     if (!visit?.willRender || visit.isPageRefresh) return
@@ -178,15 +178,17 @@ export class ModalController extends Controller {
   // Listens on `document`, not `this.element`: the panel and the controller element are
   // often different subtrees (the shared body-level overlay), and the event bubbles.
   _keepOpenPanelThroughMorph = event => {
-    if (!this.hasTemplateTarget) return
-    if (event.target !== this.templateTarget) return
-
-    const dialog = this.templateTarget
-    // The class as well as the attribute: in `_showOverlay`'s fallback, where `showModal()`
-    // was unavailable, the class is the only thing holding the panel open.
-    if (!dialog.open && !dialog.classList.contains(this.openClass)) return
+    if (!this._panelOpen || event.target !== this.templateTarget) return
 
     event.preventDefault()
+  }
+
+  // The class as well as the attribute: in `_showOverlay`'s fallback, where `showModal()`
+  // was unavailable, the class is the only thing holding the panel open.
+  get _panelOpen () {
+    if (!this.hasTemplateTarget) return false
+
+    return this.templateTarget.open || this.templateTarget.classList.contains(this.openClass)
   }
 
   // A panel rendered `active:` arrives with the open class already on it and no
@@ -337,6 +339,11 @@ export class ModalController extends Controller {
 
     const dialog = this.templateTarget
     dialog.classList.add(this.openClass)
+
+    // A snapshot taken with the panel open, one `_closeBeforeCache` leaves alone, restores it
+    // with `open` and none of what `showModal()` did: painted, over a page that is not inert.
+    // Closed here so the line below can promote it.
+    if (dialog.open && !dialog.matches(':modal')) dialog.close()
 
     if (typeof dialog.showModal !== 'function' || dialog.open) return
 

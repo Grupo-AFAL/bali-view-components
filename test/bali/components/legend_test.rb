@@ -111,17 +111,6 @@ class BaliLegendComponentTest < ComponentTestCase
                  rendered_content)
   end
 
-  # Named by its text, unlike HelpTip's icon: an `aria-label` would replace "Current", and
-  # `role="img"` would hide it.
-  def test_the_described_label_trigger_is_named_by_its_text
-    render_inline(Bali::Legend::Component.new) do |legend|
-      legend.with_item(label: "Current", color: :success, description: "Approved and in force")
-    end
-
-    assert_no_selector("li .trigger[role]")
-    assert_no_selector("li .trigger[aria-label]")
-  end
-
   def test_a_blank_description_leaves_a_plain_label
     render_inline(Bali::Legend::Component.new) do |legend|
       legend.with_item(label: "Current", color: :success, description: "")

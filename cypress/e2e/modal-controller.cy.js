@@ -406,6 +406,24 @@ describe('ModalController', () => {
         expect($frame[0].contentDocument.activeElement.id, 'inside the frame').to.equal('in-frame')
       })
     })
+
+    // What a snapshot of an open panel restores: `open`, the open class and the guard after
+    // the wrapper, and no `showModal()` behind any of it — the page around it was not inert.
+    it('promotes a panel restored open, keeping the guard it came with', () => {
+      cy.visit('/bali/button/default')
+      cy.document().then((doc) => {
+        doc.body.insertAdjacentHTML('beforeend',
+          '<dialog id="restored" class="modal modal-open" open data-controller="modal" data-modal-target="template">' +
+          '<div class="modal-box" data-modal-target="wrapper" tabindex="-1"><div data-modal-target="content">' +
+          '<button type="button">Only</button></div></div>' +
+          '<span data-bali-focus-guard class="fixed" tabindex="0"></span></dialog>')
+      })
+
+      cy.get('#restored').should(($dialog) => {
+        expect($dialog[0].matches(':modal'), ':modal').to.equal(true)
+        expect($dialog.children(guards), 'guards').to.have.length(1)
+      })
+    })
   })
 
   // A snapshot keeps the panel's `open` attribute and none of what `showModal()` did: restored,
@@ -473,6 +491,32 @@ describe('ModalController', () => {
       cy.window().should(win => {
         expect(win.__beforeCache, 'turbo:before-cache').to.be.greaterThan(0)
         expect(mainDrawer(win).matches(':modal'), ':modal after the refresh').to.equal(true)
+      })
+    })
+
+    // A link in a `<turbo-frame>` that advances the URL — `Bali::Tabs`' default `turbo_action`
+    // inside a drawer — renders only the frame, and promotes the navigation to a visit that
+    // renders nothing (`willRender: false`). That visit caches the page with the panel open.
+    it('keeps the panel open when a frame inside it advances the URL', () => {
+      cy.intercept('GET', '/frame-in-the-panel*', {
+        headers: { 'content-type': 'text/html' },
+        body: '<html><head></head><body><turbo-frame id="in-the-panel">' +
+          '<p id="frame-loaded">Loaded</p></turbo-frame></body></html>'
+      })
+      openTheDrawer()
+      countBeforeCache()
+      cy.get('#main-drawer [data-drawer-target="content"]').then(($content) => {
+        $content[0].insertAdjacentHTML('beforeend', '<turbo-frame id="in-the-panel">' +
+          '<a id="advance" href="/frame-in-the-panel" data-turbo-action="advance">Next</a></turbo-frame>')
+      })
+
+      cy.get('#advance').click()
+
+      cy.get('#frame-loaded').should('exist')
+      cy.location('pathname').should('eq', '/frame-in-the-panel')
+      cy.window().should(win => {
+        expect(win.__beforeCache, 'turbo:before-cache').to.be.greaterThan(0)
+        expect(mainDrawer(win).matches(':modal'), ':modal after the frame advanced').to.equal(true)
       })
     })
 
