@@ -58,8 +58,8 @@ describe('DataTable toolbar overflow', () => {
   })
 
   it('restores the toolbar ordered by priority after a round trip', () => {
-    // `expand()` reorders instead of remembering the original position: that is what makes the
-    // controller stateless across a Turbo reconnect. It is also the only real test of the row's
+    // `place()` puts each item at its rank instead of remembering the original position: that is
+    // what makes the controller stateless across a Turbo reconnect. It is also the only real test of the row's
     // order: the served HTML looks right even when the browser reorders it wrong.
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/complete')
@@ -252,6 +252,75 @@ describe('DataTable toolbar overflow', () => {
 
     cy.get(filtersItem).should('exist')
     cy.get(overflow).should('not.exist')
+  })
+})
+
+// `with_toolbar_button` emits one item per button, all at the same priority. Of two equals the
+// later in the row folds first, so it goes in front of its equal in the ⋯ and behind it on the
+// way back: the ⋯ reads in the row's order, and the one that folded last comes back first, with
+// the width it measured on its way in still true. Appended after its equal, the second button
+// read backwards in the ⋯, came back first on a width measured before the ⋯ existed, and
+// folded again at once.
+describe('DataTable toolbar overflow with two host buttons at the same priority', () => {
+  const toolbar = '[data-controller~="toolbar-overflow"]'
+  const menu = '[data-toolbar-overflow-target="menu"]'
+  const host = '[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="host"]'
+  const overflowDropdown = '[data-toolbar-overflow-target="overflow"] > .dropdown'
+  const url = '/bali/data_table/with_toolbar_buttons'
+
+  // `.should` with a callback, so the read is retried until the controller's rAF has run.
+  const expectLabels = (container, expected) =>
+    cy.get(`${container} > [data-toolbar-overflow-target="item"]`).should(($items) => {
+      expect([...$items].map((item) => item.innerText.trim().split('\n')[0])).to.deep.equal(expected)
+    })
+
+  // The row's width is the toolbar's own, so the boundary is measured rather than guessed from
+  // a viewport and a font.
+  const setWidth = (width) => cy.get(toolbar).then(([element]) => { element.style.width = width })
+  const naturalWidth = (element) => {
+    const inline = element.style.width
+    element.style.width = 'max-content'
+    const width = element.getBoundingClientRect().width
+    element.style.width = inline
+    return width
+  }
+
+  it('lists them in the row\'s order in the phone\'s ⋯', () => {
+    cy.viewport(375, 667)
+    cy.visit(url)
+
+    expectLabels(menu, ['Columns', 'Import', 'Export'])
+  })
+
+  it('folds them in the row\'s order, leaves the ⋯ open at the boundary and brings them back in order', () => {
+    cy.viewport(1440, 800)
+    cy.visit(url)
+    expectLabels(host, ['Import', 'Export'])
+
+    let full
+    cy.get(toolbar).then(([element]) => { full = naturalWidth(element) })
+    cy.then(() => setWidth(`${full - 1}px`))
+    expectLabels(menu, ['Export'])
+
+    // One pixel short of what the row needs with Export folded: Import folds too, and the row
+    // sits exactly at the boundary where Import would come back.
+    cy.get(`${menu} > [data-toolbar-overflow-target="item"]`).then(([exportItem]) => {
+      setWidth(`${full - Number(exportItem.dataset.toolbarOverflowWidth) - 1}px`)
+    })
+    expectLabels(menu, ['Import', 'Export'])
+
+    cy.get(`${overflowDropdown} > [role="button"]`).click()
+    cy.get(overflowDropdown).should('have.class', 'dropdown-open')
+
+    cy.get(toolbar).then(([element]) => {
+      const { Stimulus } = element.ownerDocument.defaultView
+      Stimulus.getControllerForElementAndIdentifier(element, 'toolbar-overflow').apply(false)
+    })
+    cy.get(overflowDropdown).should('have.class', 'dropdown-open')
+    expectLabels(menu, ['Import', 'Export'])
+
+    setWidth('')
+    expectLabels(host, ['Import', 'Export'])
   })
 })
 

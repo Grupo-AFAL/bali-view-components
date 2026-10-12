@@ -176,8 +176,9 @@ export default class extends Controller {
       .filter(item => !collapsing.includes(item))
       .forEach(item => this.restore(item))
     collapsing
+      .reverse()
       .filter(item => !this.menuTarget.contains(item))
-      .forEach(item => this.place(item, this.menuTarget))
+      .forEach(item => this.fold(item))
   }
 
   /**
@@ -211,7 +212,7 @@ export default class extends Controller {
   collapse (item) {
     const required = this.requiredWidth()
 
-    this.place(item, this.menuTarget)
+    this.fold(item)
     this.sync()
     item.dataset.toolbarOverflowWidth = Math.round(required - this.requiredWidth())
   }
@@ -255,7 +256,14 @@ export default class extends Controller {
 
   restore (item) {
     const home = this.homeGroupFor(item)
-    if (home) this.place(item, home)
+    if (home) this.place(item, home, child => this.priorityOf(child) < this.priorityOf(item))
+  }
+
+  // Lowest priority first, and of two at the same priority the later in the row first, so
+  // before its equals: the ⋯ keeps the row's order, and what entered last leaves first, with
+  // the width it measured on the way in still true.
+  fold (item) {
+    this.place(item, this.menuTarget, child => this.priorityOf(child) <= this.priorityOf(item))
   }
 
   // Highest priority first, as `place` keeps the ⋯.
@@ -273,13 +281,9 @@ export default class extends Controller {
   // position has to be remembered. Inside the ⋯ that gives the toolbar's reading order
   // because the priorities descend following the row (see OVERFLOW_PRIORITIES); renumbering
   // them without looking at the layout breaks this correspondence without anything failing.
-  place (item, container) {
+  place (item, container, goesBefore) {
     this.closeOpenDropdowns()
-
-    const next = Array.from(container.children)
-      .find(child => this.priorityOf(child) < this.priorityOf(item))
-
-    container.insertBefore(item, next ?? null)
+    container.insertBefore(item, Array.from(container.children).find(goesBefore) ?? null)
   }
 
   // Only what is out of place moves. Moving a node disconnects and reconnects every controller
