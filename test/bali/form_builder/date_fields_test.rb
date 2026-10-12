@@ -109,6 +109,17 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     assert_html(result, "div[data-datepicker-default-dates-value]")
   end
 
+  # Counted in the markup: two writers of the same key render the attribute twice, and a parser
+  # keeps the first one without a word.
+  def test_every_date_family_passes_default_date_to_datepicker_controller_once
+    %i[date_field datetime_field time_field].each do |helper|
+      result = builder.public_send(helper, :release_date, default_date: "2026-01-01")
+
+      assert_html(result, '.fieldset[data-datepicker-default-date-value="2026-01-01"]')
+      assert_equal 1, result.scan("data-datepicker-default-date-value").size, helper
+    end
+  end
+
   def test_date_group_with_period_option_passes_period_to_datepicker_controller
     result = builder.date_group(:release_date, period: "day")
     assert_html(result, 'div[data-datepicker-period-value="day"]')

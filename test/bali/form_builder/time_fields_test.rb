@@ -21,7 +21,6 @@ class BaliFormBuilderTimeFieldsTest < FormBuilderTestCase
       {
         seconds: "data-datepicker-enable-seconds-value",
         time_24hr: "data-datepicker-time24hr-value",
-        default_date: "data-datepicker-default-date-value",
         min_time: "data-datepicker-min-time-value",
         max_time: "data-datepicker-max-time-value"
       },

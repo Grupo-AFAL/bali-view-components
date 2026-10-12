@@ -64,6 +64,7 @@ module Bali
           alt_input: options[:alt_input],
           allow_input: options[:allow_input],
           alt_format: options[:alt_format],
+          default_date: options[:default_date].presence,
           disabled_dates: (options[:disabled_dates] || []).to_json
         }
 

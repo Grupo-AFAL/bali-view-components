@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   flechas: daban el paso sobre la primera fecha y el rango quedaba en un día. Nada que hacer en
   las apps: ninguna usa `manual: true` en un campo de fecha.
 
+- **`date_field` y `date_group` respetan `default_date:`**, que descartaban sin aviso; `datetime_*`
+  y `time_*` ya lo hacían. Como en esos dos, reemplaza el valor del registro. Ninguna app lo pasa.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added
