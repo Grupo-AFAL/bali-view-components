@@ -37,8 +37,7 @@ jobs:
         uses: actions/setup-node@v7
         with:
           # 22, not 20: @blocknote/core 0.52 depends on lib0 1.0.0-rc.22, whose
-          # engines.node is ">=22". On Node 20 installing test/dummy aborts with
-          # "Found incompatible module" before the server ever boots.
+          # engines.node is ">=22", and Yarn 4 installs it on Node 20 without a warning.
           node-version: '22'
           cache: 'yarn'
           cache-dependency-path: |

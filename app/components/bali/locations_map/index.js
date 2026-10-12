@@ -30,7 +30,6 @@ export class LocationsMapController extends Controller {
 
     try {
       this.googleMaps = await GoogleMapsLoader({
-        libraries: ['drawing'],
         language: this.localeValue,
         key: this.apiKeyValue
       })

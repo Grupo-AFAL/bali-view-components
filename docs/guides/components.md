@@ -4902,7 +4902,7 @@ The component renders its own `Bali::Card`, so do not wrap it in another one.
 
 #### ImageField
 
-Image preview with an optional file input overlay for uploading/replacing an image, plus a hover clear button.
+Image preview with an optional file input overlay for uploading/replacing an image, plus a clear button. Hover and keyboard focus reveal the same things: the overlay, its icon and the clear button. The clear button shows only while there is an image to clear, never over the bare placeholder. Clearing hides it, and when the clear button had focus, focus moves to the input.
 
 ```erb
 <%= form_with(model: @user) do |f| %>
@@ -4914,11 +4914,19 @@ Image preview with an optional file input overlay for uploading/replacing an ima
 
 **Options:**
 - `src` - URL of the current image; falls back to the placeholder when nil (default: nil)
-- `placeholder_url` - Image shown when there is no `src` or after clearing (default: `https://placehold.jp/128x128.png`)
+- `placeholder_url` - Image shown when there is no `src` or after clearing (default: an inline SVG `data:` URI, so rendering requests nothing)
 - `size` - One of `:xs`, `:sm`, `:md`, `:lg`, `:xl` (default: `:md`)
 - `**options` - Additional HTML attributes for the container (e.g. `class`)
 
 **Slots:** `input` (file input, takes `form:` and `method:`), `clear_button` (override the default clear button).
+
+A custom `clear_button` hides with `opacity-0 pointer-events-none` and reveals with
+`group-hover/image-field:` and `group-has-focus-visible/image-field:`, never with `hidden`.
+Revealed from `display: none` by `group-has-focus-visible/image-field:`, the button is gone again
+by the time Tab reaches it: the input has already blurred. The group is named so a host card
+that is a `.group` itself does not reveal it. Whether there is anything to clear is the
+component's to decide, for a custom button too. The `with_custom_clear_button` preview has the
+classes.
 
 #### RichTextEditor
 
