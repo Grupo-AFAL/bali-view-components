@@ -94,6 +94,15 @@ class BaliCardComponentTest < ComponentTestCase
     assert_selector("h2.card-title", text: "Settings")
   end
 
+  # A `size-6` class sized only the wrapper: Icon's own `*:h-4 *:w-4` kept the
+  # glyph at 16 px inside it.
+  def test_header_slot_draws_the_icon_at_24_px
+    render_inline(Bali::Card::Component.new) do |c|
+      c.with_header(title: "Settings", icon: "settings")
+    end
+    assert_selector('span.icon-component[style*="--bali-icon-size: 24px"] > svg[width="24"][height="24"]')
+  end
+
   # #1148 — `icon_class:` is the only way to paint the header icon on its own:
   # a class on the header tints the `<h2>` with it, because the Lucide SVG
   # inherits `currentColor` from the wrapper.
@@ -101,7 +110,7 @@ class BaliCardComponentTest < ComponentTestCase
     render_inline(Bali::Card::Component.new) do |c|
       c.with_header(title: "Needs your approval", icon: "triangle-alert", icon_class: "text-warning")
     end
-    assert_selector("span.icon-component.size-6.shrink-0.text-warning")
+    assert_selector("span.icon-component.shrink-0.text-warning")
     assert_no_selector("h2.card-title.text-warning")
     assert_no_selector("[icon_class]")
   end
@@ -142,7 +151,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_equal(
       "icon-component inline-flex items-center justify-center " \
-      "*:inline-block *:h-4 *:w-4 *:overflow-visible size-6 shrink-0",
+      "*:inline-block *:overflow-visible shrink-0",
       page.find("span.icon-component")[:class]
     )
   end

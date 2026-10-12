@@ -46,7 +46,7 @@ module Bali
         def render_icon
           return unless @icon
 
-          render Bali::Icon::Component.new(@icon, class: class_names("size-6 shrink-0", @icon_class))
+          render Bali::Icon::Component.new(@icon, size: 24, class: class_names("shrink-0", @icon_class))
         end
 
         def render_titles
