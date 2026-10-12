@@ -91,8 +91,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   estuviera en la página, y uno movido en ese lapso montaba dos veces: dos tarjetas por hover en
   un HoverCard. A QrScanner le faltaba sólo el movimiento (la remoción ya la cubría su
   `this.active`) y a Tooltip sólo la remoción (el movimiento lo cubría desde #1392); a los demás,
-  las dos. SortableList, los mapas y `autocomplete-address`, cuyo `disconnect()` nunca destruyó
-  su instancia, ahora la reutilizan al reconectarse en vez de apilar otra.
+  las dos. Los mapas y `autocomplete-address`, cuyo `disconnect()` nunca destruyó su instancia,
+  ahora la reutilizan al reconectarse en vez de apilar otra.
+
+- **SortableList destruye su instancia de SortableJS cuando la lista sale de la página (#1409).**
+  SortableJS guarda cada lista en un arreglo suyo, así que cada visita de Turbo dejaba vivas las
+  de la anterior con todo su DOM: 22 instancias tras diez visitas a `sortable_list/shared`, 20
+  sobre listas fuera de la página; ahora 2. Mientras se sostiene un elemento no la destruye:
+  `destroy()` termina el arrastre en curso en cualquier lista, que se queda a medio camino sin
+  `bali:sortable-list:end` ni PATCH, y una lista anidada se desconecta en cada paso del elemento
+  que la contiene. Nada que hacer en la app.
 
 - **Un mapa de Google cuyo script llega después del timeout se construye al llegar (#1409).**
   LocationsMap, `geocoder-maps`, `drawing-maps` y `autocomplete-address` no se construían nunca
