@@ -192,9 +192,9 @@ class BaliRecurrentEventRuleFormComponentTest < ComponentTestCase
     assert_selector('select.select.select-bordered[name="freq"]')
   end
 
-  def test_daisyui_classes_applies_input_bordered_to_number_inputs
+  def test_daisyui_classes_applies_input_class_to_number_inputs
     render_inline(component)
-    assert_selector('input.input.input-bordered[type="number"]')
+    assert_selector('input.input[type="number"]')
   end
 
   def test_daisyui_classes_applies_radio_class_to_radio_buttons

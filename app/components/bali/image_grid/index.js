@@ -41,8 +41,8 @@ export class ImageExpanderController extends Controller {
 
     // A thumbnail inside a modal overlay would otherwise expand into a lightbox
     // that the overlay covers and renders inert. See utils/top-layer.js. The
-    // lightbox is `position: fixed; inset: 0`, so only the move and the top layer
-    // matter here — there are no offsets to keep correct.
+    // lightbox is `position: fixed; inset: 0`, so there are no offsets to keep
+    // correct; what the popover's UA rules change is settled in index.css.
     const host = topLayerHost(this.element)
     if (!host || !enterTopLayer(this.overlay, host)) {
       document.body.appendChild(this.overlay)

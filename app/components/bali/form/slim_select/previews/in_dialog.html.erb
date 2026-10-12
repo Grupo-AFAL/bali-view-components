@@ -1,0 +1,27 @@
+<div class="flex justify-center items-center gap-4 min-h-[250px] p-8">
+  <%= render Bali::Button::Component.new(name: 'Open modal', variant: :primary,
+                                         modal: { id: 'slim-select-modal', local: true }) %>
+  <%= render Bali::Button::Component.new(name: 'Open drawer', variant: :primary,
+                                         drawer: { id: 'slim-select-drawer', local: true }) %>
+</div>
+
+<%= render Bali::Modal::Component.new(id: 'slim-select-modal', active: false, shared: false) do |m| %>
+  <% m.with_header(title: 'Modal') %>
+  <% m.with_body do %>
+    <%= form_with(model: model, url: '/', namespace: 'modal', builder: Bali::FormBuilder) do |form| %>
+      <%= form.slim_select_group :select, options, label: 'Local options' %>
+      <%= form.slim_select_group :name, options, label: 'Remote search',
+                                 ajax_param_name: 'q', ajax_value_name: 'id', ajax_text_name: 'full_name',
+                                 ajax_url: '/users.json' %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%= render Bali::Drawer::Component.new(drawer_id: 'slim-select-drawer', shared: false, title: 'Drawer') do %>
+  <%= form_with(model: model, url: '/', namespace: 'drawer', builder: Bali::FormBuilder) do |form| %>
+    <%= form.slim_select_group :select, options, label: 'Local options' %>
+    <%= form.slim_select_group :name, options, label: 'Remote search',
+                               ajax_param_name: 'q', ajax_value_name: 'id', ajax_text_name: 'full_name',
+                               ajax_url: '/users.json' %>
+  <% end %>
+<% end %>

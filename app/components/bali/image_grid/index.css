@@ -4,8 +4,11 @@
   to { transform: rotate(360deg); }
 }
 
+/* `w-auto h-auto` are not redundant beside `inset-0`. Inside a Drawer or Modal the overlay is a
+ * popover (utils/top-layer.js), and the UA's `[popover] { width/height: fit-content }` shrank it
+ * to the photo: 544×544 at (0,0) in a 1280×800 window (#1391). */
 .bali-image-expander-overlay {
-  @apply fixed inset-0 z-[var(--bali-z-modal)] flex items-center justify-center;
+  @apply fixed inset-0 w-auto h-auto z-[var(--bali-z-modal)] flex items-center justify-center;
   @apply bg-black/80 p-4 cursor-zoom-out;
   @apply opacity-0 transition-opacity duration-200 ease-out;
 

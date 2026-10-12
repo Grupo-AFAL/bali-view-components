@@ -24,7 +24,7 @@ module Bali
 
       def time_field(method, options = {})
         merged_options = options.merge(
-          wrapper_options: merged_time_options(options),
+          wrapper_options: merged_time_options(TIME_WRAPPER_OPTIONS, options),
           value: formatted_time_value(method, options[:value])
         )
 
@@ -33,8 +33,9 @@ module Bali
 
       private
 
-      def merged_time_options(options)
-        base_options = TIME_WRAPPER_OPTIONS.merge(options[:wrapper_options] || {})
+      # DatetimeFields builds its wrapper here too, from its own base.
+      def merged_time_options(base, options)
+        base_options = base.merge(options[:wrapper_options] || {})
 
         OPTION_TO_DATA_ATTRIBUTE.each_with_object(base_options.dup) do |(key, attr), result|
           result[attr] = options[key] if options[key].present?

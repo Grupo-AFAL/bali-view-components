@@ -84,4 +84,38 @@ describe('ImageGrid lightbox', () => {
     cy.get('[data-controller="image-expander"]').should('not.exist')
     cy.get('figure').should('have.length.greaterThan', 0)
   })
+
+  // #1391 — inside a Drawer or Modal the lightbox is a popover, and the browser's
+  // `[popover] { width/height: fit-content }` beat its `inset-0`: a box the size of
+  // the photo in the top-left corner.
+  describe('covering the window', () => {
+    // The viewport without its scrollbar, which is what `inset: 0` covers.
+    const expectWholeWindow = ($overlay) => {
+      const { clientWidth, clientHeight } = $overlay[0].ownerDocument.documentElement
+      const { x, y, width, height } = $overlay[0].getBoundingClientRect()
+
+      expect({ x, y, width, height }).to.deep.equal({ x: 0, y: 0, width: clientWidth, height: clientHeight })
+    }
+
+    it('from a page', () => {
+      thumbnails().first().click()
+
+      overlay().should(expectWholeWindow)
+    })
+
+    ;['drawer', 'modal'].forEach((panel) => {
+      it(`from a ${panel}`, () => {
+        cy.visit(`/bali/image_grid/in_overlay?overlay=${panel}`)
+
+        thumbnails().first().click()
+
+        // The popover path, or this measures the page case again.
+        overlay().should(($overlay) => {
+          expect($overlay[0].parentElement.tagName, 'parent').to.equal('DIALOG')
+          expect($overlay[0].matches(':popover-open'), ':popover-open').to.equal(true)
+        })
+        overlay().should(expectWholeWindow)
+      })
+    })
+  })
 })
