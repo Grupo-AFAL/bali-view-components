@@ -24,6 +24,14 @@ class BaliIconComponentTest < ComponentTestCase
     end
   end
 
+  def test_sizes_unknown_key_raises_and_lists_the_valid_ones
+    error = assert_raises(ArgumentError) do
+      Bali::Icon::Component.new("snowflake", size: :sm)
+    end
+    assert_includes error.message, "unknown size :sm"
+    assert_includes error.message, "Valid: :small, :medium, :large, or pixels as a number."
+  end
+
   # #1424: an inline `width`/`height` would outrank a caller's `size-*` class.
   # That the class wins is measured in cypress/e2e/icon-size.cy.js.
   def test_sizes_numeric_size_sets_only_the_size_variable
