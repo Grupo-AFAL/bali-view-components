@@ -81,7 +81,7 @@ module Bali
         @size_class = variant_class(:size, size, SIZES, LEGACY_SIZES)
         @custom_color = Bali::Color.hex!(self.class, custom_color)
         @text_color = Bali::Color.hex!(self.class, text_color, param: :text_color)
-        @style = style&.to_sym
+        @style_class = variant_class(:style, style, STYLES)
         @rounded = rounded
         @options = options
       end
@@ -105,18 +105,19 @@ module Bali
           BASE_CLASSES,
           @color_class,
           @size_class,
-          STYLES[@style],
+          @style_class,
           @rounded && "rounded-full",
           @options[:class]
         )
       end
 
-      # The size half of what Bali::Color does for colours: nil is how an
+      # What Bali::Color does for colours, for size and style: nil is how an
       # optional variant is spelled and stays a no-op, anything else has to be a
       # key. Dropping the variant when the value is not one is how the Bulma
       # names survived two majors past their removal note — `size: :small`
-      # rendered a default-sized tag and nothing said so.
-      def variant_class(param, value, classes, legacy)
+      # rendered a default-sized tag and nothing said so, and neither did a CSS
+      # string in `style:`.
+      def variant_class(param, value, classes, legacy = {})
         return nil if value.nil?
 
         key = value.to_sym
@@ -153,7 +154,7 @@ module Bali
       def html_attributes
         attrs = @options.except(:class)
         attrs[:href] = href if href.present?
-        attrs[:style] = custom_styles if custom_styles.present?
+        attrs[:style] = custom_styles
         attrs
       end
     end

@@ -508,6 +508,18 @@ class BaliTimelineHeaderComponentTest < ComponentTestCase
     assert_includes(error.message, "unknown color :outline")
   end
 
+  def test_custom_color_keeps_the_callers_style
+    render_inline(
+      Bali::Timeline::Header::Component.new(text: "Brand", custom_color: "#7c3aed", style: "min-width: 8rem")
+    )
+    assert_selector(".badge[style='background-color: #7c3aed; color: #fff; min-width: 8rem']", text: "Brand")
+  end
+
+  def test_without_custom_color_the_callers_style_is_the_whole_style
+    render_inline(Bali::Timeline::Header::Component.new(text: "Start", style: "min-width: 8rem"))
+    assert_selector(".badge[style='min-width: 8rem']", text: "Start")
+  end
+
   def test_deprecated_tag_class_still_sets_the_badge_classes_and_warns
     captured = []
     previous = Bali.deprecator.behavior

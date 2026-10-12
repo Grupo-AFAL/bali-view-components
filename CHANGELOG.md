@@ -32,6 +32,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wrapper ya no lleva `*:h-4 *:w-4` ni `size-N`, y `size:` escribe sólo `--bali-icon-size`: el
   golden de StatCard se regeneró por eso, con los mismos píxeles.
 
+- **`Tag` rechaza un `style:` que no sea variante.** `style:` es `:outline`, `:soft` o `:dash`;
+  un string de CSS (`style: "opacity: .5"`) se descartaba sin aviso y salía un badge liso. Ahora
+  levanta `ArgumentError` con las tres variantes, como un `color:` o un `size:` desconocidos,
+  también si llega por `Tags#with_item` o `SplitView::List::Item#with_tag`. En las siete apps
+  todas las llamadas, esos slots y los mapas de `Tag.for` pasan una variante o `nil`; nada que
+  hacer.
+
+### Fixed
+
+- **El ícono de `Card::Header` se dibuja a 24 px.** La caja medía 24 px, pero el `*:h-4 *:w-4`
+  de `Icon` dejaba el glifo en 16 px adentro: 16 px de glifo a título en vez de los 12 del
+  `gap-3`. Ahora usa `size: 24`; el título no se mueve. Se ve más grande en los headers con
+  `icon:` de afal-apps, costa-norte, centinela-web y garita; nada que hacer.
+
+- **El badge de `Card::Header` que baja de renglón queda al final**, como el que cabe; solo en
+  su renglón, `justify-between` lo dejaba al inicio. centinela-web ya puede quitar el
+  `justify-start!` del header y el `ml-auto` del Tag en `operations_board/show.html.erb`, como
+  decía v3.12.0, y como el renglón ya no lleva `justify-between`, afal-apps cambia
+  `.justify-between` por `.flex-wrap` en los dos selectores de
+  `test/controllers/td_flow/reports_controller_test.rb`.
+
+- **`Avatar` conserva el acento de una inicial descompuesta.** Con el nombre en NFD («A» +
+  U+0301) la inicial era «A»; ahora es «Á», igual que en NFC.
+
+- **`Avatar` con `aria-hidden` ya no lleva `role="img"`, `aria-label` ni `title`.** El de
+  `CommentThread` va oculto del lector de pantalla porque el nombre está impreso al lado, y aun
+  así cargaba el rol y la etiqueta de una imagen, que nadie lee, y un `title` que repetía ese
+  nombre en un tooltip. Ninguna app pasa `aria-hidden` a un Avatar.
+
+- **`Avatar` con `aria_label:` ya no se queda sin nombre.** Rails escribe esa forma tal cual,
+  `aria_label="…"`, que no nombra nada, y el Avatar la tomaba por una etiqueta y no ponía la
+  suya: quedaba un `role="img"` mudo. Ahora sólo cuentan `aria: { label: }` y `"aria-label":`.
+  Ninguna app pasa `aria_label:` a un Avatar.
+
+- **`Timeline::Header` con `custom_color:` conserva el `style:` de quien llama**, después del
+  color; antes lo reemplazaba.
+
+- **El error de `custom_color:` nombra las cuatro formas que acepta** (`#rgb`, `#rgba`,
+  `#rrggbb`, `#rrggbbaa`); sólo decía las dos sin alfa.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added

@@ -191,6 +191,13 @@ class BaliColorTest < ComponentTestCase
     end
   end
 
+  def test_hex_rejection_names_the_four_forms_it_accepts
+    %w[#fff #ffff #ffffff #ffffffff].each { |hex| assert_equal(hex, Bali::Color.hex!("Bali::Tag::Component", hex)) }
+
+    error = assert_raises(ArgumentError) { Bali::Color.hex!("Bali::Tag::Component", "red") }
+    assert_includes(error.message, "(#rgb, #rgba, #rrggbb or #rrggbbaa)")
+  end
+
   private
 
   def gantt_var_color

@@ -94,6 +94,15 @@ class BaliCardComponentTest < ComponentTestCase
     assert_selector("h2.card-title", text: "Settings")
   end
 
+  # A `size-6` class sized only the wrapper: Icon's own `*:h-4 *:w-4` kept the
+  # glyph at 16 px inside it.
+  def test_header_slot_draws_the_icon_at_24_px
+    render_inline(Bali::Card::Component.new) do |c|
+      c.with_header(title: "Settings", icon: "settings")
+    end
+    assert_selector('span.icon-component[style*="--bali-icon-size: 24px"] > svg[width="24"][height="24"]')
+  end
+
   # #1148 — `icon_class:` is the only way to paint the header icon on its own:
   # a class on the header tints the `<h2>` with it, because the Lucide SVG
   # inherits `currentColor` from the wrapper.
@@ -101,7 +110,7 @@ class BaliCardComponentTest < ComponentTestCase
     render_inline(Bali::Card::Component.new) do |c|
       c.with_header(title: "Needs your approval", icon: "triangle-alert", icon_class: "text-warning")
     end
-    assert_selector("span.icon-component.size-6.shrink-0.text-warning")
+    assert_selector("span.icon-component.shrink-0.text-warning")
     assert_no_selector("h2.card-title.text-warning")
     assert_no_selector("[icon_class]")
   end
@@ -142,7 +151,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_equal(
       "icon-component inline-flex items-center justify-center " \
-      "*:inline-block *:overflow-visible size-6 shrink-0",
+      "*:inline-block *:overflow-visible shrink-0",
       page.find("span.icon-component")[:class]
     )
   end
@@ -153,17 +162,18 @@ class BaliCardComponentTest < ComponentTestCase
       header.with_badge { "NEW" }
     end
     end
-    assert_selector(".card-body > .flex.items-center.gap-3.justify-between")
+    assert_selector(".card-body > .flex.items-center.gap-3")
     assert_selector("h2.card-title", text: "Notifications")
     assert_text("NEW")
   end
 
-  def test_header_slot_does_not_add_justify_between_without_badge
+  def test_header_slot_without_badge_renders_the_heading_alone
     render_inline(Bali::Card::Component.new) do |c|
       c.with_header(title: "No Badge")
     end
-    assert_selector(".card-body > .flex.items-center.gap-3")
-    assert_no_selector(".justify-between")
+    row = page.find(".card-body > .flex.items-center.gap-3")
+    assert_equal(1, row.all(:xpath, "./*").size)
+    assert_no_selector(".ml-auto")
   end
 
   # #1372: `justify-between` spread three children and left the title halfway
@@ -174,17 +184,18 @@ class BaliCardComponentTest < ComponentTestCase
         header.with_badge { '<span class="badge">Beta</span>'.html_safe }
       end
     end
-    row = page.find(".card-body > .justify-between")
+    row = page.find(".card-body > .flex.flex-wrap")
     assert_equal(2, row.all(:xpath, "./*").size)
-    assert_selector(".justify-between > .flex.items-center.gap-3.min-w-0 > span.icon-component + div > h2.card-title", text: "Dashboard")
-    assert_selector(".justify-between > .badge:last-child", text: "Beta")
+    assert_selector(".flex-wrap > .flex.items-center.gap-3.min-w-0 > span.icon-component + div > h2.card-title", text: "Dashboard")
+    assert_selector(".flex-wrap > :last-child > .badge", text: "Beta")
   end
 
-  def test_header_slot_row_wraps_so_the_badge_drops_below_a_long_title
+  # Where the wrapped badge lands is measured in cypress/e2e/card-header-badge.cy.js.
+  def test_header_slot_wraps_the_badge_in_an_auto_margin_box
     render_inline(Bali::Card::Component.new) do |c|
-      c.with_header(title: "Dashboard") { |header| header.with_badge { "Beta" } }
+      c.with_header(title: "Dashboard", class: "mb-4") { |header| header.with_badge { "Beta" } }
     end
-    assert_selector(".card-body > .flex.flex-wrap.justify-between")
+    assert_selector(".card-body > .flex.flex-wrap.mb-4 > .ml-auto.flex:last-child", text: "Beta")
   end
 
   def test_header_slot_renders_header_with_icon_subtitle_and_badge

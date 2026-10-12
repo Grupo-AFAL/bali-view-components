@@ -100,6 +100,7 @@ class BaliCommentThreadCommentComponentTest < ComponentTestCase
     render_comment { "Looks good" }
 
     assert_selector(".avatar[aria-hidden='true']", text: "AL")
+    assert_no_selector(".avatar[role], .avatar[aria-label], .avatar[title]")
     assert_selector("li", text: "Ana García López")
   end
 

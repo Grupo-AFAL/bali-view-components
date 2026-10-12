@@ -83,7 +83,7 @@ module Bali
 
         hint = " Semantic names belong in `color:`." if param == :custom_color
         raise ArgumentError,
-              "#{component}: #{param} #{value.inspect} is not a hex colour (#rgb or #rrggbb).#{hint}"
+              "#{component}: #{param} #{value.inspect} is not a hex colour (#rgb, #rgba, #rrggbb or #rrggbbaa).#{hint}"
       end
 
       def hex?(value)

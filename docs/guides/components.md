@@ -482,11 +482,11 @@ Content container with optional header, image, and actions.
 
 **Slots:**
 - `with_header(title:, subtitle:, icon:, icon_class:, **html_options)` - The full header row:
-  an optional Lucide icon, the `<h2 class="card-title">`, an optional subtitle and a
-  `with_badge` slot. The badge sits at the far end of the row, and wraps below the title when
-  the two do not fit side by side. `icon_class` paints the icon **alone** — a class on the
-  header would tint the title with it too, because the SVG inherits `currentColor` from the
-  wrapper.
+  an optional Lucide icon at 24 px, the `<h2 class="card-title">`, an optional subtitle and a
+  `with_badge` slot. The badge sits at the far end of the row, and wraps below the title —
+  still at the far end — when the two do not fit side by side. `icon_class` paints the icon
+  **alone** — a class on the header would tint the title with it too, because the SVG inherits
+  `currentColor` from the wrapper.
 - `with_title(text, **html_options)` - A bare `<h2 class="card-title">`, for a text-only title.
 - `with_image(src:, href:, alt:, figure_class:)`, `with_action(href:, class:)`.
 
@@ -2281,7 +2281,8 @@ User avatar display: an image when there is one, derived initials when there is 
 
 **Initials rule:** first letter of the *first* and the *last* word that starts with a letter —
 "Ana García López" → AL, "María de la Luz" → ML, "Alberto Aprobador (demo)" → AA; a single such
-word yields one letter, and a name with none renders no initials. Unicode-aware upcase.
+word yields one letter, and a name with none renders no initials. The letter is the first
+grapheme, so a decomposed "Á" ("A" plus U+0301) keeps its accent; Unicode-aware upcase.
 
 **Deterministic color:** the name is hashed (`Bali::Utils::ColorCalculator#deterministic_color`)
 into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style — the same
@@ -2293,6 +2294,8 @@ the static neutral background.
 
 **Accessibility:** with `name:`, an initials avatar gets `role="img"`, `aria-label` and `title`
 with the full name; an image avatar uses the name as `alt` (explicit `alt:` wins) plus `title`.
+An avatar passed `aria: { hidden: true }` — the name is printed beside it, as in
+`CommentThread` — gets none of the three.
 
 #### Tag (Badge)
 
@@ -2326,7 +2329,8 @@ resolving the label through i18n. An unmapped value raises unless `default:` is 
 full recipe — and when to reach for `Status.for` instead — is in the
 [enum badges guide](enum-badges.md).
 
-An unknown `color:` or `size:` raises `ArgumentError` naming the valid values. The Bulma
+An unknown `color:`, `size:` or `style:` raises `ArgumentError` naming the valid values —
+a CSS string in `style:` too, since `style:` is the variant. The Bulma
 names v2 accepted (`:danger`, `:small`, `light: true`, …) are gone; the error names their
 replacement, and the full table is in the [migration guide](migration-v2-to-v3.md).
 

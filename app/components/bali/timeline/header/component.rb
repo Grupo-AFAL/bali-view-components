@@ -61,15 +61,12 @@ module Bali
         end
 
         def badge_style
-          return options[:style] if custom_color.blank?
-
-          "background-color: #{custom_color}; color: #{contrasting_text_color(custom_color)}"
+          colour = "background-color: #{custom_color}; color: #{contrasting_text_color(custom_color)}" if custom_color
+          [ colour, options[:style] ].compact_blank.join("; ").presence
         end
 
         def badge_options
-          attrs = options.except(:class, :style).merge(class: badge_classes)
-          attrs[:style] = badge_style if badge_style.present?
-          attrs
+          options.except(:class).merge(class: badge_classes, style: badge_style)
         end
 
         def warn_deprecated_tag_class

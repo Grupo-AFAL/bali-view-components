@@ -142,6 +142,14 @@ class BaliAvatarComponentTest < ComponentTestCase
     assert_text("ÁN")
   end
 
+  # Decomposed, "Á" is "A" plus U+0301, and the first code point alone is "A".
+  def test_initials_keep_the_accent_whether_the_name_is_composed_or_decomposed
+    %i[nfc nfd].each do |form|
+      initials = Bali::Avatar::Component.new(name: "ángel ñúñez".unicode_normalize(form)).initials
+      assert_equal("ÁÑ", initials.unicode_normalize(:nfc), form)
+    end
+  end
+
   # #1393: the demo users' "(demo)" suffix gave "A(".
   def test_initials_skip_words_that_do_not_start_with_a_letter
     {
@@ -246,6 +254,36 @@ class BaliAvatarComponentTest < ComponentTestCase
   def test_accessibility_explicit_alt_wins_over_name_for_the_image
     render_inline(Bali::Avatar::Component.new(src: "/avatar.png", name: "Ana García", alt: "Profile"))
     assert_selector('img[alt="Profile"]')
+  end
+
+  def test_accessibility_an_explicit_aria_label_wins_over_the_name
+    [ { aria: { label: "Profile" } }, { "aria-label": "Profile" } ].each do |label|
+      render_inline(Bali::Avatar::Component.new(name: "Ana García", **label))
+      assert_selector('.avatar[role="img"][aria-label="Profile"]')
+    end
+  end
+
+  # Rails writes `aria_label:` as a literal `aria_label="…"` attribute, which names nothing.
+  def test_accessibility_an_underscored_aria_label_does_not_take_the_name_away
+    render_inline(Bali::Avatar::Component.new(name: "Ana García", aria_label: "Profile"))
+    assert_selector('.avatar[role="img"][aria-label="Ana García"]')
+  end
+
+  # A name beside the avatar already says who it is (CommentThread), and a node
+  # with `aria-hidden` cannot be an image anyway.
+  def test_accessibility_an_avatar_hidden_from_assistive_tech_gets_no_role_label_or_title
+    [ { aria: { hidden: true } }, { "aria-hidden": "true" } ].each do |hidden|
+      render_inline(Bali::Avatar::Component.new(name: "Ana García", **hidden))
+      assert_selector('.avatar[aria-hidden="true"]', text: "AG")
+      assert_no_selector(".avatar[role]")
+      assert_no_selector(".avatar[aria-label]")
+      assert_no_selector(".avatar[title]")
+    end
+  end
+
+  def test_accessibility_aria_hidden_false_keeps_the_name
+    render_inline(Bali::Avatar::Component.new(name: "Ana García", "aria-hidden": false))
+    assert_selector('.avatar[role="img"][aria-label="Ana García"][title="Ana García"]')
   end
 
   def test_accessibility_without_name_no_role_aria_label_or_title_is_added
