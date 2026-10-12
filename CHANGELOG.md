@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Dependencies
+
+- **`@tailwindcss/typography` sale de la dummy, y con él `postcss-selector-parser` 6.0.10
+  (alerta de dependabot #254: complejidad cuadrática que agota el CPU, corregida en 7.1.6).**
+  typography 0.5.20, la última, fija esa versión exacta. Pero el `tailwindcss` standalone de
+  tailwindcss-rails trae el plugin embebido y nunca lee el de `node_modules`: con esa copia
+  reemplazada por una que lanza un error, el CSS de la dummy sale idéntico byte a byte. Nada
+  cambia para los anfitriones.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added
