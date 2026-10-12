@@ -1,0 +1,26 @@
+<%# cypress/e2e/icon-size.cy.js measures each icon by its id. %>
+<div class="grid grid-cols-[3rem_1fr] items-center gap-x-4 gap-y-3">
+  <%= render Bali::Icon::Component.new('user', id: 'icon-default') %>
+  <code class="text-sm">Icon::Component.new('user')</code>
+
+  <%= render Bali::Icon::Component.new('user', id: 'icon-size-class', class: 'size-6') %>
+  <code class="text-sm">class: 'size-6'</code>
+
+  <%= render Bali::Icon::Component.new('chevron-right', id: 'icon-small-class', class: 'size-3.5') %>
+  <code class="text-sm">class: 'size-3.5'</code>
+
+  <%= render Bali::Icon::Component.new('user', id: 'icon-width-height', class: 'w-5 h-5') %>
+  <code class="text-sm">class: 'w-5 h-5'</code>
+
+  <%= render Bali::Icon::Component.new('user', id: 'icon-named', size: :medium) %>
+  <code class="text-sm">size: :medium</code>
+
+  <%= render Bali::Icon::Component.new('user', id: 'icon-numeric', size: 24) %>
+  <code class="text-sm">size: 24</code>
+
+  <%= render Bali::Icon::Component.new('user', id: 'icon-numeric-and-class', size: 24, class: 'size-8') %>
+  <code class="text-sm">size: 24, class: 'size-8'</code>
+
+  <%= render Bali::Icon::Component.new('whatsapp', id: 'icon-kept', class: 'size-10') %>
+  <code class="text-sm">'whatsapp', class: 'size-10'</code>
+</div>

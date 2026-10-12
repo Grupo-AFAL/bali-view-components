@@ -49,13 +49,20 @@ a {
   @apply rounded-full;
 }
 
-/* Icon component — numeric sizes propagate to direct children (legacy and
-   kept SVGs that do not get explicit width/height from the Lucide gem).
-   The `[style*=...]` guard limits the cascade to wrappers that actually
-   set the variable, so named-size icons keep their `*:h-N *:w-N` classes. */
-.icon-component[style*="--bali-icon-size"] > * {
-  width: var(--bali-icon-size);
-  height: var(--bali-icon-size);
+/* Icon. The default and the `size:` option live here, at zero specificity, so a
+   size utility or component rule on the wrapper beats both and the glyph follows.
+   Written on the wrapper as `*:h-4 *:w-4`, the default sat in @layer utilities and
+   held every glyph at 16px whatever the caller wrote (#1424).
+   `inherit`, not `100%`: on a wrapper made `inline`, a percentage resolves against
+   the line's container — a 24px icon measured 1248px wide. */
+:where(.icon-component) {
+  width: var(--bali-icon-size, 1rem);
+  height: var(--bali-icon-size, 1rem);
+}
+
+:where(.icon-component) > * {
+  width: inherit;
+  height: inherit;
 }
 
 /* The notification animations that used to live here — `.slideInRight` and

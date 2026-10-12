@@ -39,6 +39,14 @@ module Bali
         render Icon::Component.new(name, class: color)
       end
 
+      # Sizing
+      # ------
+      # A size utility in `class:` sizes the glyph, not only its box, and wins over
+      # `size:`. With neither, the icon is 16px.
+      def sizing
+        render_with_template(template: 'bali/icon/previews/sizing')
+      end
+
       # Lucide-mapped icons
       # -------------------
       # These icons use old Bali names but render using Lucide icons.

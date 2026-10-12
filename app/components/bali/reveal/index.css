@@ -47,7 +47,7 @@
  * before `.h-3.5` and lost, `.h-6` came after and won. Measured on
  * /lookbook/preview/bali/reveal/compact, on the icon's box: 14px by default,
  * and with `icon_class: "h-2"` 8px after this move against 14px before it. The
- * glyph itself is 16px whatever this says — Icon sizes its own children. */
+ * glyph follows the box since #1424. */
 .trigger-icon {
   @apply h-3.5;
 }

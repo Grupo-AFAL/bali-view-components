@@ -142,7 +142,7 @@ class BaliCardComponentTest < ComponentTestCase
     end
     assert_equal(
       "icon-component inline-flex items-center justify-center " \
-      "*:inline-block *:h-4 *:w-4 *:overflow-visible size-6 shrink-0",
+      "*:inline-block *:overflow-visible size-6 shrink-0",
       page.find("span.icon-component")[:class]
     )
   end

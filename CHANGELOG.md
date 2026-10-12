@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Una clase de tamaño en `Bali::Icon` dimensiona el ícono, no sólo su caja (#1424).**
+  `Icon::Component.new(name, class: "size-6")`, o `w-5 h-5`, dejaba el glyph en 16 px: el
+  `*:h-4 *:w-4` del wrapper le ganaba a la clase. El tamaño por defecto y el de `size:` viven
+  ahora en `bali/general.css` con especificidad cero, así que la clase gana y el glyph la sigue.
+  Con `size:` y una clase a la vez gana la clase; antes ganaba el `width` en línea de un `size:`
+  numérico. Sin clase, `size:` y el default se ven igual que antes.
+
+  En Bali cambia lo que se ve donde se había escrito otro tamaño. Pasan a 14 px el ícono de cada
+  fila de Command, los chevrons del SideMenu y el de Reveal. El MenuSwitch pasa a 24 y la subida
+  de DirectUpload a 40. Pasan a 20 los demás íconos de DirectUpload, Topbar::IconAction,
+  BooleanIcon, el ⋯ de IndexPage y ShowPage, el título y la ✕ del panel de Filters y el marcador
+  de persistencia.
+  Pasan a 12 TrendIndicator, el enlace de Widget::Card, el chevron de Group by, el lápiz y el bote
+  de las vistas guardadas, el «guardado» y el aviso de condición incompleta de Filters. La ✕ de las
+  etiquetas de Filters pasa a 10 y el ícono de Card::Header a 24, como en #1426. Cada fila de una
+  tabla con un BooleanIcon crece 2 px.
+
+  **Anfitrión:** sus llamadas con una clase de tamaño distinta de 4 pasan a verse de ese tamaño:
+  afal-apps 3, gobierno-corporativo 2, identity 11, costa-norte 1 y centinela-web 6. Para
+  conservar los 16 px de antes, la clase pasa a `size-4`. opina y garita no tienen ninguna. El
+  wrapper ya no lleva `*:h-4 *:w-4` ni `size-N`, y `size:` escribe sólo `--bali-icon-size`: el
+  golden de StatCard se regeneró por eso, con los mismos píxeles.
+
 ## [v3.12.0] - 2026-10-11
 
 ### Added

@@ -97,7 +97,7 @@ class BaliLegendComponentTest < ComponentTestCase
       legend.with_item(label: "Office", custom_color: "#7C3AED", icon: "building")
     end
 
-    assert_selector("li span.icon-component[style='color: #{Bali::Color.soft('#7C3AED')}']")
+    assert_selector("li span.icon-component[style*='color: #{Bali::Color.soft('#7C3AED')}']")
   end
 
   def test_a_description_makes_the_label_its_tooltip_trigger
