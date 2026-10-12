@@ -22,6 +22,17 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_selector('[data-controller="filters"]')
   end
 
+  # The guide's standalone Filters keeps its view state through `preserved_params:`; the
+  # applied tags' Clear all dropped it while the panel's own Clear kept it.
+  def test_the_applied_tags_clear_all_keeps_the_panels_preserved_params
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: @available_attributes, filter_groups: two_applied_groups,
+      preserved_params: { group_by: "status", view: "grid" }
+    ), &:with_applied_tags)
+
+    assert_link("Clear all", href: "/users?clear_filters=true&group_by=status&view=grid")
+  end
+
   # filters_controller.js builds the divider between groups from these, with no fallback of its own.
   def test_translations_carry_every_text_the_controller_reads
     render_inline(Bali::Filters::Component.new(url: "/users", available_attributes: @available_attributes))

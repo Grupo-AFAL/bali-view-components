@@ -136,7 +136,7 @@ Bali.deprecator.silence { ... }                              # or scope one exce
 | Removed | Replacement |
 |---|---|
 | `Bali::Clipboard::SucessContent` | `Bali::Clipboard::SuccessContent` (the alias existed only for the typo) |
-| `Bali::Utils::Url#add_query_params` | `#add_query_param(url, name, value)`, one name at a time |
+| `Bali::Utils::Url#add_query_params` | nothing — `Bali::Utils::Url` itself was removed after v3.12, once Bali stopped calling it |
 | `Bali::Icon::DefaultIcons` | nothing — see [The icon fallback is gone](#the-icon-fallback-is-gone) |
 | `Bali::GanttChart::*` (component and sub-components) | nothing in v3 — see [The Gantt chart is gone](#the-gantt-chart-is-gone) |
 | The `bali-view-components/gantt` npm entry | nothing — remove the import |
@@ -160,9 +160,9 @@ filter_attribute :status, type: :select, input: :slim_select,
 `collection:` becomes `options:`, and the old `type:` (the widget) becomes `input:`, with
 `type:` now naming the *data* type that drives the advanced UI's operators. Dropping
 `advanced: false` is what puts the attribute in both UIs from one line — the reason the DSL
-is going away. `#add_query_param` also stopped duplicating a param already present in the
-URL (**#653**); if you were compensating for that by stripping the param first, you can
-stop.
+is going away. `#add_query_params` duplicated a param already present in the URL (**#653**)
+and is gone with the rest of `Bali::Utils::Url`; if you were compensating for that by
+stripping the param first, you can stop.
 
 ### What v2 deprecated, v3 removed
 

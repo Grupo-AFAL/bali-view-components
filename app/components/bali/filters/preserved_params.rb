@@ -2,14 +2,15 @@
 
 module Bali
   module Filters
-    # Shared semantics for what a filter form carries through its GET submit.
+    # What of a listing's state survives a filter submit or a Clear link, with ONE semantic:
+    # the query parsed from `url:` minus EXCLUDED_PARAMS, plus the explicit
+    # `preserved_params:` hash, deduplicated with explicit winning.
     #
-    # A GET submit replaces the action's query string with the form's fields, so
-    # anything living in the listing URL (a host scope, `page`, `sort`) is lost
-    # unless it is re-emitted as hidden fields. Both `Filters::Component` and
-    # `DataTable::SimpleFilters::Component` include this module so the two forms
-    # preserve params with ONE semantic: query params parsed from `url:` plus the
-    # explicit `preserved_params:` hash, deduplicated with explicit winning.
+    # A GET submit replaces the action's query string with the form's fields, so anything
+    # living in the listing URL (a host scope, `page`, `sort`) is lost unless it is re-emitted
+    # as hidden fields: `Filters::Component` and `DataTable::SimpleFilters::Component` paint
+    # them in their forms. `Filters::AppliedTags::Component` is no form; it builds its Clear all
+    # link from the same pairs.
     #
     # Includers must set `@url` and `@preserved_params` in their initializer.
     module PreservedParams

@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `placeholders.select`. Una app que sobrescribía `select_value` lleva su texto a esa llave
   (ninguna de las siete lo hace).
 
+- **`Bali::Utils::Url`** y su `#add_query_param`: el último que lo llamaba era el enlace de
+  limpiar, que ahora sale de `PreservedParams#clear_filters_url`. Ninguna de las siete apps lo
+  llama.
+
 ### Fixed
 
 - **Filters y SimpleFilters: ninguna URL que arman arrastra ya `saved_view`, `clear_*` ni `q[...]`
@@ -40,8 +44,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que la ✕ de la búsqueda borrara también los filtros. Ahora todas parten de los campos ocultos,
   que filtra una sola lista (`PreservedParams::EXCLUDED_PARAMS`); los dos enlaces de limpiar,
   de `clear_filters_url`, que reemplaza a `AppliedTags#clear_all_url` y a
-  `SimpleFilters#clear_href` (ninguna app los llama). Sólo afecta a un anfitrión cuyo `url:`
-  trae esa query.
+  `SimpleFilters#clear_href` (ninguna app los llama). «Limpiar todo» de las etiquetas lleva
+  además los `preserved_params:` del `Filters` (`group_by`, `view`), como ya los llevaba su
+  «Limpiar». **Anfitrión:** sólo cambia una app cuyo `url:` trae esa query; las cuatro `url:` de
+  opina son rutas sin query, así que su «Limpiar» no cambia. El comentario de opina en
+  `shared/_filter_bar.html.erb`, que describe un «Limpiar» al listado pelado que descarta
+  `preserved_params`, ya no se cumplía desde v3.1.1 y queda obsoleto al subir.
 
 - **`Filters` acepta `filter_form:` y conserva el OR entre grupos.** Dibujado fuera de un DataTable
   sin `combinator:`, sobre un estado `q[m]=or`, el panel pintaba AND y «Aplicar» enviaba

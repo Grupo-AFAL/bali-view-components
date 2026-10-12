@@ -15,6 +15,7 @@ module Bali
           filter_groups: @filter_groups,
           available_attributes: @available_attributes,
           url: @url,
+          preserved_params: @preserved_params,
           **options
         )
       end

@@ -8,11 +8,13 @@ module Bali
 
         attr_reader :filter_groups, :available_attributes, :url
 
-        def initialize(filter_groups:, available_attributes:, url:, **options)
+        # @param preserved_params [Hash] The panel's own, so Clear all keeps the view's state as
+        #   the panel's Clear does. `Filters::Component#with_applied_tags` passes them.
+        def initialize(filter_groups:, available_attributes:, url:, preserved_params: {}, **options)
           @filter_groups = filter_groups || []
           @available_attributes = available_attributes
           @url = url
-          @preserved_params = {}
+          @preserved_params = preserved_params || {}
           @options = options
         end
 
