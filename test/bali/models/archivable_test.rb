@@ -39,6 +39,18 @@ class BaliArchivableTest < ActiveSupport::TestCase
     @movie.archive!(by: @ana)
 
     assert_raises(Bali::Archivable::AlreadyArchived) { stale.archive!(by: @ana) }
+    assert_equal 1, @movie.archivals.count
+  end
+
+  # Two requests that both read the current archival before either reopens it.
+  def test_a_concurrent_reopening_raises_not_archived
+    stale = Movie.find(@movie.id)
+    @movie.archive!(by: @ana)
+    assert stale.archived?
+    @movie.unarchive!(by: @ana)
+
+    assert_raises(Bali::Archivable::NotArchived) { stale.unarchive!(by: User.create!(name: "Luis")) }
+    assert_equal @ana, @movie.archivals.first.unarchived_by
   end
 
   def test_a_reason_outside_the_models_list_is_invalid
@@ -134,6 +146,21 @@ class BaliArchivableTest < ActiveSupport::TestCase
     I18n.backend.store_translations(:en, activerecord: { archival_reasons: { movie: { expired: "Out of rights" } } })
     assert_equal "Out of rights", archival.reason_label
   ensure
+    I18n.backend.reload!
+  end
+
+  # Hosts run with `raise_on_missing_translations`: a reason only the model labels must not
+  # make the lookup of Bali's own key raise.
+  def test_reason_label_of_a_custom_reason_raises_nothing_when_missing_translations_raise
+    handler = I18n.exception_handler
+    I18n.exception_handler = ->(exception, *) { raise exception }
+    I18n.backend.store_translations(:en, activerecord: { archival_reasons: { movie: { revoked: "Revoked by board" } } })
+
+    with_archivable(reasons: %w[revoked]) do
+      assert_equal "Revoked by board", @movie.archive!(reason: :revoked).reason_label
+    end
+  ensure
+    I18n.exception_handler = handler
     I18n.backend.reload!
   end
 

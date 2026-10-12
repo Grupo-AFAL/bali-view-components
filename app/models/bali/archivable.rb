@@ -49,11 +49,9 @@ module Bali
       def not_archived = where(current_archivals.arel.exists.not)
 
       # A host relabels a reason for one model under `activerecord.archival_reasons.<model>`.
-      # The fallback is looked up first, not passed as a Symbol default: I18n would apply the
-      # model's `scope:` to it too.
       def archival_reason_label(reason)
-        I18n.t(reason, scope: [ :activerecord, :archival_reasons, model_name.i18n_key ],
-                       default: I18n.t("bali_view.archivals.reasons.#{reason}"))
+        I18n.t(:"activerecord.archival_reasons.#{model_name.i18n_key}.#{reason}",
+               default: :"bali_view.archivals.reasons.#{reason}")
       end
 
       private
@@ -70,8 +68,9 @@ module Bali
     def archive!(by: nil, reason: nil, note: nil, successor: nil)
       raise AlreadyArchived if archived?
 
-      archivals.create!(archived_by: by, reason: reason, note: note, successor: successor)
-               .tap { reset_archival }
+      transaction(requires_new: true) do
+        archivals.create!(archived_by: by, reason: reason, note: note, successor: successor)
+      end.tap { reset_archival }
     rescue ActiveRecord::RecordNotUnique
       raise AlreadyArchived
     end
@@ -81,7 +80,11 @@ module Bali
       raise NotArchived unless archived?
 
       archival.tap do |current|
-        current.update!(unarchived_at: Time.current, unarchived_by: by)
+        current.with_lock do
+          raise NotArchived if current.unarchived_at?
+
+          current.update!(unarchived_at: Time.current, unarchived_by: by)
+        end
         reset_archival
       end
     end
