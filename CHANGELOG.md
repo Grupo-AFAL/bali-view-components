@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.14.0] - 2026-10-12
+
 ### Added
 
 - **Archivable: dar de baja un registro del host con el engine (#721, sub-proyecto 1).** Un modelo
