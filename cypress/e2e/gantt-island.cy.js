@@ -1,4 +1,5 @@
 import { cdp, frameAt } from '../support/accessibility_tree'
+import { allowResizeObserverLoop } from '../support/resize_observer_loop'
 import { drag } from '../support/tap'
 
 // Gantt island (#705): mounts GanttFlow through the COMPLETE circuit of a host —
@@ -246,6 +247,7 @@ describe('Gantt island', () => {
   // A phone's table opens at 60% of the board, under the 260 px the splitter held as its floor:
   // the first move widened a 215 px table to 260, and it could not be dragged back.
   it('drags a phone board\'s table narrower than it opened', () => {
+    allowResizeObserverLoop()
     cy.viewport(390, 844)
     cy.visit('/bali/gantt/default')
     cy.get('.react-flow__node').should('have.length.greaterThan', 0)
