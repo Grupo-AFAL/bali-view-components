@@ -1507,6 +1507,18 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     assert_equal("Pick a day", form.simple_filters_config.first[:placeholder])
   end
 
+  # The range's two halves take a proc as `placeholder:` does, for the same I18n lookup.
+  def test_filter_attribute_resolves_the_number_range_placeholders
+    form_class = Class.new(Bali::FilterForm) do
+      filter_attribute :budget, type: :number, input: :number_range, simple: true, advanced: false,
+                       label: "Budget", placeholder_min: -> { "From" }, placeholder_max: -> { "To" }
+    end
+
+    config = form_class.new(Movie.all, params({})).simple_filters_config.first
+
+    assert_equal([ "From", "To" ], config.values_at(:placeholder_min, :placeholder_max))
+  end
+
   # The sentinel CANNOT be the absence of the key: `simple_filter` delegates to
   # `filter_attribute`, which always stores `explicit_label:`, so `defined_simple_filters` hands
   # the `:label` key back set even when nobody wrote it. With `key?` as the condition, EVERY

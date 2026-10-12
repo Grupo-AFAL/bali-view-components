@@ -17,7 +17,6 @@ module Bali
       #   ])
       #
       class Component < ApplicationViewComponent
-        include Utils::Url
         include Bali::Filters::PreservedParams
         include Bali::Filters::Persistable
 
@@ -380,29 +379,6 @@ module Bali
 
         def clear_button_text
           I18n.t("bali_view.simple_filters.clear")
-        end
-
-        # Navigating to the bare URL does NOT clear: to the server it is indistinguishable
-        # from "no filter came in", and with persistence on that is exactly the case that
-        # RESTORES what was saved — the user cleared and the listing handed the filter back.
-        # `clear_filters` is the only thing that triggers the cache deletion (`FilterForm`:
-        # `Rails.cache.delete`). The other two clearing routes already sent it
-        # (`AppliedTags#clear_all_url` and the JS's `clearFiltersAndClose`); this one had
-        # been left out.
-        #
-        # It is ADDED to the query string instead of replacing it: the listing's `url:` can
-        # carry the host's own params (`request.fullpath`, a scope), and losing them on
-        # clear would send the user to another view.
-        #
-        # And it drags along the SAME pairs the submit emits as hidden fields
-        # (`preserved_query_params`): clearing removes the filters, not the view's state.
-        # Without this the link threw away the grouping, the display mode and the host's
-        # `preserved_params:` that the submit next to it had just preserved — the panel
-        # already did it this way (`clearFiltersAndClose` re-reads the hidden fields).
-        def clear_href
-          preserved_query_params.reduce(add_query_param(@url, :clear_filters, true)) do |url, (name, value)|
-            add_query_param(url, name, value)
-          end
         end
 
         def before_render

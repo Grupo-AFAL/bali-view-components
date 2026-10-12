@@ -63,7 +63,8 @@ export class DropdownController extends Controller {
     if (!this.menu || !this.hasTriggerTarget) return
 
     const tippyModule = await import('tippy.js').catch(optionalPeer('tippy.js'))
-    if (!tippyModule) return
+    // Removed during the await, nothing would destroy it; moved, the other connect builds it.
+    if (!tippyModule || this.tippy || !this.element.isConnected) return
     const { default: tippy } = tippyModule
 
     // The menu leaves `this.element` from here on, so the handlers bound on the wrapper

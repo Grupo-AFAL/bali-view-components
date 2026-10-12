@@ -18,7 +18,7 @@ Reference documentation is maintained in `docs/` for use by both Claude Code and
 
 For the component inventory, list `app/components/bali/` and consult `docs/guides/components.md` — do not rely on a memorized catalog.
 
-Three project skills load on demand: `lookbook-previews` (writing/editing preview files), `filterform-datatable` (FilterForm + DataTable + Filters integration) and `performance-profiling`.
+Two project skills load on demand: `filterform-datatable` (FilterForm + DataTable + Filters integration) and `performance-profiling`. Preview files follow `docs/reference/component-patterns.md` § Previews.
 
 ## Development Commands
 

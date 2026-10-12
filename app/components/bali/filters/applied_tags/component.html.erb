@@ -39,7 +39,7 @@
     <% end %>
 
     <% if applied_filters.size > 1 %>
-      <%= link_to clear_all_url,
+      <%= link_to clear_filters_url,
             class: 'link link-hover text-sm text-soft-error ml-2',
             data: { turbo_action: 'replace' } do %>
         <%= t('bali_view.filters.clear_all') %>

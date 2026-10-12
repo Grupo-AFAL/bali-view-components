@@ -358,7 +358,9 @@
   width: fit-content;
   height: auto;
   padding: 0 var(--ss-spacing-m);
-  opacity: 0.5;
+  /* A control, so 3:1 (WCAG 1.4.11). At 0.5 it measured 3.05:1 on `afal`, the lowest of the six
+     themes; at 0.55 the lowest is 3.52:1, still `afal`. */
+  opacity: 0.55;
   transition: opacity var(--ss-animation-timing) ease;
 
   &:hover {

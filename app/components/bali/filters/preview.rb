@@ -8,11 +8,12 @@ module Bali
       # @param apply_mode select { choices: [batch, live] } "Batch applies on submit, live applies immediately"
       # @param combinator select { choices: [and, or] } "How filter groups are combined"
       # @param max_groups number "Maximum number of filter groups"
+      # @param url text "The listing URL the panel submits to, query string included"
       # Basic filters with common attribute types.
       # Supports text, number, date, boolean, and select fields.
-      def default(popover: true, apply_mode: :batch, combinator: :and, max_groups: 10)
+      def default(popover: true, apply_mode: :batch, combinator: :and, max_groups: 10, url: '/preview')
         render Filters::Component.new(
-          url: '/preview',
+          url: url,
           available_attributes: sample_attributes,
           popover: popover,
           apply_mode: apply_mode.to_sym,

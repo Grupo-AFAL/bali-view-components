@@ -58,8 +58,8 @@ describe('DataTable toolbar overflow', () => {
   })
 
   it('restores the toolbar ordered by priority after a round trip', () => {
-    // `expand()` reorders instead of remembering the original position: that is what makes the
-    // controller stateless across a Turbo reconnect. It is also the only real test of the row's
+    // `place()` puts each item at its rank instead of remembering the original position: that is
+    // what makes the controller stateless across a Turbo reconnect. It is also the only real test of the row's
     // order: the served HTML looks right even when the browser reorders it wrong.
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/complete')
@@ -137,6 +137,25 @@ describe('DataTable toolbar overflow', () => {
     cy.get(`${menu} .dropdown-open`).should('not.exist')
   })
 
+  // A recalculation fires on any resize of the row or a control —a font that loads, a widget
+  // that mounts— and closed whatever dropdown the reader had open even when nothing moved.
+  it('leaves an open dropdown open when the row is measured again and nothing moves', () => {
+    cy.viewport(1440, 800)
+    cy.visit('/bali/data_table/complete')
+
+    cy.get(`${groupByItem} [data-dropdown-target="trigger"]`)
+      .focus()
+      .trigger('keydown', { key: 'ArrowDown' })
+    cy.get(`${groupByItem} .dropdown-open`).should('have.length', 1)
+
+    cy.get('[data-controller~="toolbar-overflow"]').then(($toolbar) => {
+      const { Stimulus } = $toolbar[0].ownerDocument.defaultView
+      Stimulus.getControllerForElementAndIdentifier($toolbar[0], 'toolbar-overflow').apply(false)
+    })
+
+    cy.get(`${groupByItem} .dropdown-open`).should('have.length', 1)
+  })
+
   it('keeps keyboard focus on the toolbar when the breakpoint is crossed', () => {
     // A 400% zoom leaves the viewport at 320px CSS: crossing the threshold cannot cost a keyboard
     // user their position. The collapse moves the node, so without restoring focus it falls to
@@ -175,12 +194,133 @@ describe('DataTable toolbar overflow', () => {
     cy.focused().closest('[data-toolbar-overflow-target="item"]').should('have.length', 1)
   })
 
+  // The measured collapse sacrifices the lowest priority first, and appending each one left the
+  // ⋯ reading the toolbar backwards above the breakpoint.
+  it('lists the ⋯ in the toolbar\'s order when the row is measured', () => {
+    cy.viewport(800, 800)
+    cy.visit('/bali/data_table/complete')
+
+    cy.get(`${menu} > [data-toolbar-overflow-target="item"]`).should(($items) => {
+      const priorities = [...$items].map((el) => Number(el.dataset.toolbarOverflowPriority))
+      expect(priorities).to.have.length.at.least(2)
+      expect(priorities).to.deep.equal([...priorities].sort((a, b) => b - a))
+    })
+  })
+
+  // A move reconnects every controller inside the item, and expanding the row to measure it
+  // again moved each control that stays in the ⋯ out and back in.
+  it('reconnects nothing that stays in the ⋯ when the row is measured again', () => {
+    cy.viewport(800, 800)
+    cy.visit('/bali/data_table/complete')
+    cy.get(`${menu} [data-controller]`).should('have.length.at.least', 1)
+
+    const connects = []
+
+    cy.get('[data-controller~="toolbar-overflow"]').then(($toolbar) => {
+      const toolbar = $toolbar[0]
+      const { Stimulus } = toolbar.ownerDocument.defaultView
+      let wrapped = 0
+
+      toolbar.querySelectorAll(`${menu} [data-controller]`).forEach((element) => {
+        element.dataset.controller.split(' ').forEach((identifier) => {
+          const controller = Stimulus.getControllerForElementAndIdentifier(element, identifier)
+          if (!controller) return
+
+          const connect = controller.connect.bind(controller)
+          controller.connect = () => {
+            connects.push(identifier)
+            return connect()
+          }
+          wrapped += 1
+        })
+      })
+      expect(wrapped, 'controllers watched inside the ⋯').to.be.greaterThan(0)
+
+      Stimulus.getControllerForElementAndIdentifier(toolbar, 'toolbar-overflow').apply(false)
+
+      // Stimulus reconnects from a MutationObserver, which Cypress's own observer runs ahead
+      // of: a retrying assertion saw the array still empty and passed. A task later it is not.
+      return new Cypress.Promise((resolve) => setTimeout(resolve))
+    }).then(() => {
+      expect(connects, 'controllers reconnected').to.deep.equal([])
+    })
+  })
+
   it('does not render the ⋯ when there is nothing to collapse', () => {
     cy.viewport(375, 667)
     cy.visit('/bali/data_table/default')
 
     cy.get(filtersItem).should('exist')
     cy.get(overflow).should('not.exist')
+  })
+})
+
+// `with_toolbar_button` emits one item per button, all at the same priority. Of two equals the
+// later in the row folds first, so it goes in front of its equal in the ⋯ and behind it on the
+// way back: the ⋯ reads in the row's order, and the one that folded last comes back first, with
+// the width it measured on its way in still true. Appended after its equal, the second button
+// read backwards in the ⋯, came back first on a width measured before the ⋯ existed, and
+// folded again at once.
+describe('DataTable toolbar overflow with two host buttons at the same priority', () => {
+  const toolbar = '[data-controller~="toolbar-overflow"]'
+  const menu = '[data-toolbar-overflow-target="menu"]'
+  const host = '[data-toolbar-overflow-target="group"][data-toolbar-overflow-group="host"]'
+  const overflowDropdown = '[data-toolbar-overflow-target="overflow"] > .dropdown'
+  const url = '/bali/data_table/with_toolbar_buttons'
+
+  // `.should` with a callback, so the read is retried until the controller's rAF has run.
+  const expectLabels = (container, expected) =>
+    cy.get(`${container} > [data-toolbar-overflow-target="item"]`).should(($items) => {
+      expect([...$items].map((item) => item.innerText.trim().split('\n')[0])).to.deep.equal(expected)
+    })
+
+  // The row's width is the toolbar's own, so the boundary is measured rather than guessed from
+  // a viewport and a font.
+  const setWidth = (width) => cy.get(toolbar).then(([element]) => { element.style.width = width })
+  const naturalWidth = (element) => {
+    const inline = element.style.width
+    element.style.width = 'max-content'
+    const width = element.getBoundingClientRect().width
+    element.style.width = inline
+    return width
+  }
+
+  it('lists them in the row\'s order in the phone\'s ⋯', () => {
+    cy.viewport(375, 667)
+    cy.visit(url)
+
+    expectLabels(menu, ['Columns', 'Import', 'Export'])
+  })
+
+  it('folds them in the row\'s order, leaves the ⋯ open at the boundary and brings them back in order', () => {
+    cy.viewport(1440, 800)
+    cy.visit(url)
+    expectLabels(host, ['Import', 'Export'])
+
+    let full
+    cy.get(toolbar).then(([element]) => { full = naturalWidth(element) })
+    cy.then(() => setWidth(`${full - 1}px`))
+    expectLabels(menu, ['Export'])
+
+    // One pixel short of what the row needs with Export folded: Import folds too, and the row
+    // sits exactly at the boundary where Import would come back.
+    cy.get(`${menu} > [data-toolbar-overflow-target="item"]`).then(([exportItem]) => {
+      setWidth(`${full - Number(exportItem.dataset.toolbarOverflowWidth) - 1}px`)
+    })
+    expectLabels(menu, ['Import', 'Export'])
+
+    cy.get(`${overflowDropdown} > [role="button"]`).click()
+    cy.get(overflowDropdown).should('have.class', 'dropdown-open')
+
+    cy.get(toolbar).then(([element]) => {
+      const { Stimulus } = element.ownerDocument.defaultView
+      Stimulus.getControllerForElementAndIdentifier(element, 'toolbar-overflow').apply(false)
+    })
+    cy.get(overflowDropdown).should('have.class', 'dropdown-open')
+    expectLabels(menu, ['Import', 'Export'])
+
+    setWidth('')
+    expectLabels(host, ['Import', 'Export'])
   })
 })
 

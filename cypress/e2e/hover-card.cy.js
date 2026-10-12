@@ -178,6 +178,41 @@ describe('HoverCard', () => {
     })
   })
 
+  // Moved while `connect()` awaits tippy, the component is disconnected and connected again, and
+  // both connects resume: each built a card on the trigger, two per hover.
+  describe('moved while tippy loads', () => {
+    beforeEach(() => {
+      cy.visit('/bali/hover_card/default')
+      trigger().should(($trigger) => expect($trigger[0]._tippy, 'tippy built').to.be.an('object'))
+    })
+
+    it('shows one card per hover', () => {
+      cy.get('[data-controller~="hovercard"]').then(($component) => {
+        const component = $component[0]
+        const controller = component.ownerDocument.defaultView.Stimulus
+          .getControllerForElementAndIdentifier(component, 'hovercard')
+        const connect = controller.connect.bind(controller)
+        const move = () => component.parentNode.insertBefore(component, component.nextSibling)
+
+        return new Cypress.Promise((resolve) => {
+          controller.connect = () => {
+            delete controller.connect
+            const connecting = connect()
+            move()
+            connecting.then(resolve)
+            return connecting
+          }
+          move()
+        })
+      })
+
+      trigger().trigger('mouseenter')
+
+      card().should('be.visible')
+      card().should('have.length', 1)
+    })
+  })
+
   describe('opened by click', () => {
     beforeEach(() => {
       cy.visit('/bali/hover_card/default?open_on_click=true')

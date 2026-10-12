@@ -181,8 +181,10 @@ end
   and a request test that renders the previews over HTTP
   (`test/requests/topbar_previews_test.rb` is the model) turns a broken preview into
   a red build.
-- The full annotation reference (params, `@!group` URL collapsing, preview-context
-  limits) lives in the `lookbook-previews` skill.
+- The annotations (`@label`, `@param`, `@!group`, `@hidden`, `@display`) are
+  Lookbook's own: https://lookbook.build/guide/previews/annotations. The `/component`
+  command's preview template (`.claude/commands/component.md`) shows a playground and
+  groups written the way this repo writes them.
 
 ## Tests
 

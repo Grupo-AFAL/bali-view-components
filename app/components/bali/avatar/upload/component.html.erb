@@ -1,16 +1,15 @@
-<%= tag.div class: 'relative inline-block', data: { controller: 'avatar' } do %>
-  <%= render Bali::Avatar::Component.new(**avatar_options) do |avatar| %>
-    <% avatar.with_picture(image_url: @src || '', data: { avatar_target: 'output' }) %>
-  <% end %>
+<%= tag.div class: 'inline-flex flex-col items-center gap-1', data: { controller: 'avatar' } do %>
+  <%= tag.div class: 'relative' do %>
+    <%= render Bali::Avatar::Component.new(**avatar_options) do |avatar| %>
+      <% avatar.with_picture(image_url: @src || '', data: { avatar_target: 'output' }) %>
+    <% end %>
 
-  <%= tag.div class: button_classes do %>
-    <%= tag.label class: label_classes, aria: { label: t('.upload_image') } do %>
-      <%= render Bali::Icon::Component.new('camera', size: :sm) %>
-      <div class="hidden">
-        <%= @form.file_field @method,
-              accept: accepted_formats,
-              data: { avatar_target: 'input', action: 'change->avatar#showImage' } %>
-      </div>
+    <%= tag.div class: button_classes do %>
+      <%= tag.label class: label_classes do %>
+        <%= raw_file_field %>
+        <%= render Bali::Icon::Component.new('camera', size: :sm) %>
+      <% end %>
     <% end %>
   <% end %>
+  <%= error_message %>
 <% end %>
