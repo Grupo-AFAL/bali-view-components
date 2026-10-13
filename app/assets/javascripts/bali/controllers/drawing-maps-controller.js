@@ -139,14 +139,20 @@ export class DrawingMapsController extends Controller {
     this.sketch = null
   }
 
-  // By depth: inside one shape it is a hole, and inside a hole a shell again, as an island in a lake
-  // is a polygon of its own in GeoJSON.
+  // The opposite of the smallest shape around it: a hole in a shell, and in a hole a shell again, as
+  // an island in a lake is a polygon of its own in GeoJSON. Not by counting containers, which would
+  // make a shell of a shape inside two shells that overlap.
   isHole = (vertices) => {
+    const { poly, spherical } = this.googleMaps.geometry
     const containers = this.drawnPolygons.filter((drawnPolygon) => {
-      return vertices.every((vertex) => this.googleMaps.geometry.poly.containsLocation(vertex, drawnPolygon))
+      return vertices.every((vertex) => poly.containsLocation(vertex, drawnPolygon))
     })
+    if (containers.length === 0) return false
 
-    return containers.length % 2 === 1
+    const smallest = containers.reduce((smaller, polygon) => {
+      return spherical.computeArea(polygon.getPath()) < spherical.computeArea(smaller.getPath()) ? polygon : smaller
+    })
+    return !smallest.metadata.hole
   }
 
   addPolygon = (paths, hole) => {

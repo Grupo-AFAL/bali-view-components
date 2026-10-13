@@ -7,6 +7,7 @@ describe('drawing-maps', () => {
   const FIELD = '[data-drawing-maps-target="polygonField"]'
   const SHELL = [{ lat: 32.53, lng: -117.04 }, { lat: 32.53, lng: -117 }, { lat: 32.51, lng: -117 }, { lat: 32.51, lng: -117.04 }]
   const HOLE = [{ lat: 32.525, lng: -117.03 }, { lat: 32.525, lng: -117.01 }, { lat: 32.515, lng: -117.02 }]
+  const square = (south, west, north, east) => [{ lat: north, lng: west }, { lat: north, lng: east }, { lat: south, lng: east }, { lat: south, lng: west }]
 
   const mount = (value = { shells: [], holes: [] }, attributes = '') => {
     cy.visit('/bali/empty_state/default')
@@ -69,10 +70,7 @@ describe('drawing-maps', () => {
     fakeMaps(({ registry }) => expect(registry.polygons[1].options.fillColor).to.eq('red'))
   })
 
-  // #1443 — Any shape inside another was a hole, so an island in a lake was stored as a second
-  // lake. By depth: a shell, a hole in it, a shell in the hole, a hole in that one.
   it('alternates shell and hole with each shape drawn inside the last', () => {
-    const square = (south, west, north, east) => [{ lat: north, lng: west }, { lat: north, lng: east }, { lat: south, lng: east }, { lat: south, lng: west }]
     const LAKE = square(32.514, -117.032, 32.526, -117.008)
     const ISLAND = square(32.517, -117.026, 32.523, -117.014)
     const POND = square(32.519, -117.022, 32.521, -117.018)
@@ -90,6 +88,16 @@ describe('drawing-maps', () => {
     fakeMaps(({ registry }) => {
       expect(registry.polygons.map((polygon) => polygon.options.fillColor)).to.deep.eq(['#eaeaea', 'red', '#eaeaea', 'red'])
     })
+  })
+
+  it('draws a hole where two shells overlap', () => {
+    const NEIGHBOUR = square(32.5, -117.02, 32.52, -116.98)
+    const OVERLAP = square(32.512, -117.015, 32.518, -117.005)
+    mount({ shells: [SHELL, NEIGHBOUR], holes: [] })
+
+    draw(OVERLAP)
+
+    expectStored({ shells: [SHELL, NEIGHBOUR], holes: [OVERLAP] })
   })
 
   // Assigned as a property after the polygon is built, the colour never reaches the map (3.66).
