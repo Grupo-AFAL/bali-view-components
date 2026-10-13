@@ -70,15 +70,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.control` ya no pisa un `controller:` que el call site hubiera declarado en `control_data:` —
   antes el contador lo sobrescribía sin decir nada—, porque el dictado y el contador comparten
   esa caja.
-
 ### Dependencies
 
-- **`bali-rubocop` sube a v0.2.0** (reemplaza a #1411). Sólo afecta a quien desarrolla Bali: el
-  gem va en `development, :test` y no llega a las apps. La versión nueva también revisa los
-  comentarios de `db/migrate/*.rb`, así que se tradujeron al inglés; el SQL de las migraciones no
-  cambió. `Gemfile.lock` se actualizó sólo en `bali-rubocop`: el lock de #1411 arrastraba
-  `json` 3.0.2, que no es compatible con `ActiveSupport::JSON.decode` de Rails 8.1 y tumbaba el
-  `db:schema:load` de CI.
+- **`bali-rubocop` sube a v0.2.0** (reemplaza a #1411). Sólo afecta a quien desarrolla Bali:
+  el gem va en `development, :test` y no llega a las apps. Los comentarios de las migraciones
+  del engine (`db/migrate/*.rb`) pasan al inglés; sólo comentarios, el esquema no cambia.
 
 ## [v3.14.1] - 2026-10-13
 
@@ -164,7 +160,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (un texto largo ensancha ahí el cuadrado). identity#476 (la subida a v3.13.0)
   agrega `responsive: false` a dos ✕ para esquivarlo y puede quitarlo con este release. En los
   siete hosts, 42 llamadas llevan `icon:` sin `name:` y ninguna lleva bloque: nada más cambia.
-
 
 ### Dependencies
 
@@ -564,7 +559,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **El error de `custom_color:` nombra las cuatro formas que acepta** (`#rgb`, `#rgba`,
   `#rrggbb`, `#rrggbbaa`); sólo decía las dos sin alfa.
 
-
 ### Dependencies
 
 - **Con tailwindcss-rails, `@tailwindcss/typography` no va en `package.json`** (alerta de
@@ -878,7 +872,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `slim-select-sm-content`: en una página con un select compacto (Filters, SimpleFilters) y otro
   normal, la lista del normal abría compacta y la del compacto a tamaño normal (medido en
   `form/sizes/comparison`). Ahora la toma de su propia instancia. Nada que hacer en la app.
-
 
 ### Dependencies
 
@@ -2443,7 +2436,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   probar lo que nombra, con las reglas que `stimulus-patterns.md` tenía aparte. Para quien
   trabaja en el repo; nada que hacer en un anfitrión.
 
-
 ### Dependencies
 
 - **`@babel/eslint-parser` 7.28.6 → 7.29.9** (sólo desarrollo; PR de dependabot #1215). Es el
@@ -2503,7 +2495,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   contra el scope del componente, así que va la llave completa; en táctil un tap sobre un
   día con `day_url` navega y el hover no abre, así que el destino debe alcanzar los eventos;
   y en contenedores angostos conviene `:sm`.
-
 
 ### Dependencies
 
@@ -3544,7 +3535,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ellos son «el valor no es atributo del modelo». Los otros 8 son grupos multi-control, que
   `input_name:` no resuelve porque no es un problema de nombre sino de forma.
 
-
 ### Dependencies
 
 - **Cypress 16.0.0 → 16.1.0** (solo desarrollo; PR de dependabot #1179). Sin cambios que rompan.
@@ -4141,7 +4131,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Symbol o un String, y el mensaje nombra el valor tal como se escribió (`""` ya no aparece
   como `:""`).
 
-
 ### Dependencies
 
 - **Cypress 15.21.1 → 16.0.0** (solo desarrollo). Consolida el PR de dependabot #1133. Lo que
@@ -4258,7 +4247,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `input:` and `auto_submit:` already have. The second half is checked separately because it
   fails separately: a grouping can have a perfect `GROUP BY` and still have no way to read a
   row's band, which is when it asks for `value:`.
-
 
 ### Dependencies
 
@@ -6219,7 +6207,6 @@ changes, each with its blast radius measured. From v2, read
   helper does not emit yet (`sortable`, `remove_duplicates`), wired by hand the way host apps
   do today; the add/remove specs run against the existing `default`/`empty` previews.
 
-
 ### Dependencies
 
 - Updated daisyUI to 5.7.16 in the dummy app. The package's peer range (`>=5.7.0`) is unchanged.
@@ -7826,7 +7813,6 @@ channels work is in [Release channels](docs/guides/release-channels.md).
 - **Drawer & Modal Components** - Adjusted z-index values and positioning to improve layering behavior
 - **SlimSelect** - Fixed `slim_select_field` to deep merge data attributes instead of overwriting
 
-
 ### Dependencies
 
 - **ViewComponent** - Upgraded from 3.x to 4.2.0
@@ -7932,7 +7918,6 @@ channels work is in [Release channels](docs/guides/release-channels.md).
   - Extracted `SearchConfiguration` concern for search DSL and methods
   - Extracted `FilterGroupParser` concern for Ransack grouping parsing
   - Fixed search persistence bug where clearing search text didn't clear persisted value
-
 
 ### Dependencies
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# B2 — saved views for the DataTable: the DEFAULT storage the engine ships (an app
+# Saved views for the DataTable: the DEFAULT storage the engine ships (an app
 # installs it with `bin/rails bali:install:migrations`). `owner` is polymorphic ON PURPOSE:
 # today the owner is the user, but phase 2 (team/role views) changes the owner, not the
 # schema. `storage_id` is the same key the FilterForm's filter persistence already uses,

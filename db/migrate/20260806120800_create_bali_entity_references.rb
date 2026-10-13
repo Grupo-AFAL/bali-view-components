@@ -12,11 +12,13 @@ class CreateBaliEntityReferences < ActiveRecord::Migration[7.0]
   def change
     create_table :bali_entity_references do |t|
       # The `references` default indexes would be redundant: the unique one below covers the
-      # [record_type, record_id] prefix and the lookup one covers [referenceable_type, referenceable_id].
+      # [record_type, record_id] prefix and the lookup one covers
+      # [referenceable_type, referenceable_id].
       t.references :record, polymorphic: true, null: false, index: false
       t.references :referenceable, polymorphic: true, null: false, index: false
       # The referred record's name AT THE TIME it was written: it lets references be listed
-      # without resolving each type, and it is all that remains when the referred record disappears.
+      # without resolving each type, and it is all that remains when the referred record
+      # disappears.
       t.string :reference_text
 
       t.timestamps

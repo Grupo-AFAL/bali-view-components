@@ -7,8 +7,8 @@
 #
 # `author` is polymorphic and OPTIONAL, `author_name` is required and denormalized:
 # the JSON that `document_editor/index.js` consumes serves `author_name` (contract frozen
-# in the v3.0 betas), and the FK enables "my versions"/auditing without a future migration.
-# A host with no user model —or with string ids, like the BlockEditor comments—
+# in the v3.0 betas), and the author pair enables "my versions"/auditing without a future migration.
+# A host with no user model, or with string ids like the BlockEditor comments,
 # leaves `author` nil and keeps working.
 class CreateBaliContentVersions < ActiveRecord::Migration[7.0]
   def change
@@ -16,8 +16,7 @@ class CreateBaliContentVersions < ActiveRecord::Migration[7.0]
       # The unique index below covers the [record_type, record_id] prefix; the references
       # default index would be redundant.
       t.references :record, polymorphic: true, null: false, index: false
-      # jsonb only exists on Postgres; the engine's dummy (and any sqlite host) uses
-      # json. Same criterion as the saved_views migration.
+      # jsonb only exists on Postgres; the engine's dummy (and any sqlite host) uses json.
       if connection.adapter_name.match?(/postg/i)
         t.jsonb :content
         t.jsonb :metadata, null: false, default: {}

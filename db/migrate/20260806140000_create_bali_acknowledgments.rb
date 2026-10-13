@@ -6,7 +6,8 @@
 # without Bali knowing any of those classes.
 #
 # A polymorphic `user` is the difference from gobierno-corporativo, where it is a bigint FK
-# to `users`. Migrating from there means populating `user_type = 'User'` — see docs/guides/engine-models.md.
+# to `users`. Migrating from there means populating `user_type = 'User'` — see
+# docs/guides/engine-models.md.
 class CreateBaliAcknowledgments < ActiveRecord::Migration[7.0]
   def change
     create_table :bali_acknowledgments do |t|
@@ -28,7 +29,8 @@ class CreateBaliAcknowledgments < ActiveRecord::Migration[7.0]
     end
 
     # One signature per person and per thing signed. Re-confirming updates that row, it does
-    # not create another — the concern makes it explicit and this index makes it impossible to skip.
+    # not create another — the concern makes it explicit and this index makes it impossible
+    # to skip.
     add_index :bali_acknowledgments,
               %i[acknowledgeable_type acknowledgeable_id user_type user_id],
               unique: true, name: "index_bali_acknowledgments_uniqueness"
