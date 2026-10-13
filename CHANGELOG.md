@@ -70,6 +70,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.control` ya no pisa un `controller:` que el call site hubiera declarado en `control_data:` —
   antes el contador lo sobrescribía sin decir nada—, porque el dictado y el contador comparten
   esa caja.
+
+### Dependencies
+
+- **La dummy sube daisyUI 5.7.47 → 5.7.50.** Son tres parches de modo de contraste forzado
+  (`@media (forced-colors: active)`) en `checkbox` indeterminado, `divider`, `loading`,
+  mega menu, `progress`, `radial-progress`, `rating` y `timeline`. El CSS compilado sólo gana
+  esas reglas; ninguna declaración fuera de `forced-colors` ni de `print` cambia, así que no se
+  ve distinto y los archivos sin capa de Bali no necesitan ajuste. El piso del paquete
+  (`>=5.7.0 <6`) no cambia. **Anfitrión:** nada que hacer; quien quiera alinearse,
+  `yarn upgrade daisyui@5.7.50`.
+
 ## [v3.14.1] - 2026-10-13
 
 ### Fixed
