@@ -69,6 +69,29 @@ describe('drawing-maps', () => {
     fakeMaps(({ registry }) => expect(registry.polygons[1].options.fillColor).to.eq('red'))
   })
 
+  // #1443 — Any shape inside another was a hole, so an island in a lake was stored as a second
+  // lake. By depth: a shell, a hole in it, a shell in the hole, a hole in that one.
+  it('alternates shell and hole with each shape drawn inside the last', () => {
+    const square = (south, west, north, east) => [{ lat: north, lng: west }, { lat: north, lng: east }, { lat: south, lng: east }, { lat: south, lng: west }]
+    const LAKE = square(32.514, -117.032, 32.526, -117.008)
+    const ISLAND = square(32.517, -117.026, 32.523, -117.014)
+    const POND = square(32.519, -117.022, 32.521, -117.018)
+    mount()
+
+    draw(SHELL)
+    expectStored({ shells: [SHELL], holes: [] })
+    draw(LAKE)
+    expectStored({ shells: [SHELL], holes: [LAKE] })
+    draw(ISLAND)
+    expectStored({ shells: [SHELL, ISLAND], holes: [LAKE] })
+    draw(POND)
+    expectStored({ shells: [SHELL, ISLAND], holes: [LAKE, POND] })
+
+    fakeMaps(({ registry }) => {
+      expect(registry.polygons.map((polygon) => polygon.options.fillColor)).to.deep.eq(['#eaeaea', 'red', '#eaeaea', 'red'])
+    })
+  })
+
   // Assigned as a property after the polygon is built, the colour never reaches the map (3.66).
   it('paints a stored hole as one', () => {
     mount({ shells: [SHELL], holes: [HOLE] })

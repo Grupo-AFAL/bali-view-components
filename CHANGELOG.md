@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ningún layout: al subir de 1.2.4, su `autocomplete-address` pasaría del español al inglés
     hasta que lo agregue.
 
+- **`drawing-maps`: una figura dibujada dentro de un hueco es una isla** (#1443). Antes, toda
+  figura dentro de otra se guardaba como hueco, también la que quedaba dentro de un hueco. Ahora
+  cuenta la profundidad: dentro de un shell es hueco, dentro de un hueco es shell otra vez y se
+  pinta como tal, y dentro de esa isla, hueco; como en GeoJSON, donde la isla es un polígono
+  aparte. El formato `{ shells, holes }` no cambia, ni las figuras ya guardadas. Ninguna de las
+  ocho apps dibuja con él: ga-apps sólo fija `bali/drawing-maps` en su importmap.
+
 ### Deprecated
 
 - **`Bali.google_maps_key` y `Bali.google_maps_key=`** (#1443). Siguen leyendo y fijando la

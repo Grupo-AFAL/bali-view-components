@@ -137,10 +137,14 @@ export class DrawingMapsController extends Controller {
     this.sketch = null
   }
 
+  // By depth: inside one shape it is a hole, and inside a hole a shell again, as an island in a lake
+  // is a polygon of its own in GeoJSON.
   isHole = (vertices) => {
-    return this.drawnPolygons.some((drawnPolygon) => {
+    const containers = this.drawnPolygons.filter((drawnPolygon) => {
       return vertices.every((vertex) => this.googleMaps.geometry.poly.containsLocation(vertex, drawnPolygon))
     })
+
+    return containers.length % 2 === 1
   }
 
   addPolygon = (paths, hole) => {
