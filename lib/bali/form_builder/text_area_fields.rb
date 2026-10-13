@@ -38,7 +38,7 @@ module Bali
       def text_area_field(method, options = {})
         field_opts = textarea_field_options(method, options)
 
-        field_helper(method, rails_text_area(method, field_opts), options)
+        field_helper(method, rails_text_area(method, field_opts), options, dictation_supported: true)
       end
     end
   end

@@ -27,6 +27,14 @@ module Bali
         )
       end
 
+      # @label Composer
+      # The row a conversation is written in. Dictation is ON here, which is the component's
+      # default: a composer is where speaking instead of typing earns its place. The mic shows
+      # up only where the browser has recognition, and `dictation: false` drops it.
+      def composer
+        render_with_template(template: "bali/chat/previews/composer")
+      end
+
       # @label Header
       # The `header` slot sits above the conversation, in the same chrome as the
       # footer turned upside down: a bottom border and the same padding. What goes

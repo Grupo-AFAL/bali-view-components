@@ -81,6 +81,64 @@ class BaliChatComponentTest < ComponentTestCase
     render_inline(Bali::Chat::Component.new)
     refute_selector(".border-b")
   end
+
+  # "One chat, with its mic": a url is all it takes, and the container renders the form, the
+  # field, the mic and send. Three components to assemble was the thing to remove.
+  def test_a_url_brings_the_composer_with_its_mic
+    render_inline(Bali::Chat::Component.new(url: "/messages"))
+    assert_selector("form[action='/messages'] textarea[name='message[content]']")
+    assert_selector("form [data-controller~='speech-input']")
+    assert_selector("[data-speech-input-target='button']", visible: :all)
+    assert_selector("form button[type='submit']")
+  end
+
+  # A read-only transcript is still a chat. Without a url nothing is added, which is also what
+  # keeps every host rendering one before this change rendering the same thing.
+  def test_without_a_url_there_is_no_footer_at_all
+    render_inline(Bali::Chat::Component.new)
+    assert_no_selector("form")
+    assert_no_selector(".border-t")
+  end
+
+  # The escape hatch, and what both source apps use: one of them stacks a coverage banner, an
+  # actions frame and a rate-limit hint around its row.
+  def test_a_footer_of_the_hosts_own_replaces_the_composer
+    render_inline(Bali::Chat::Component.new(url: "/messages")) do |chat|
+      chat.with_footer { '<p id="mine">My own row</p>'.html_safe }
+    end
+    assert_selector("#mine")
+    assert_no_selector("form")
+  end
+
+  def test_composer_options_travel_through
+    render_inline(Bali::Chat::Component.new(
+                    url: "/messages",
+                    composer: { name: "msg", placeholder: "Di algo", dictation: false }
+                  ))
+    assert_selector("textarea[name='msg'][placeholder='Di algo']")
+    assert_no_selector("[data-controller~='speech-input']")
+  end
+
+  def test_form_options_travel_through
+    render_inline(Bali::Chat::Component.new(url: "/messages",
+                                            form_options: { method: :patch, id: "composer-form" }))
+    assert_selector("form#composer-form input[name='_method'][value='patch']", visible: :all)
+  end
+
+  # More things in the row, without the host having to know the composer exists.
+  def test_composer_actions_render_in_the_row
+    render_inline(Bali::Chat::Component.new(url: "/messages")) do |chat|
+      chat.with_composer_action { '<button id="attach" type="button">Attach</button>'.html_safe }
+    end
+    assert_selector("#attach ~ button[type='submit']")
+  end
+
+  # The composer sits inside the footer that carries the follow-the-send action; one outside it
+  # would scroll nobody.
+  def test_the_composer_sits_inside_the_follow_on_submit_region
+    render_inline(Bali::Chat::Component.new(url: "/messages"))
+    assert_selector("[data-action='turbo:submit-end->chat#followSubmit'] form textarea")
+  end
 end
 
 class BaliChatMessageComponentTest < ComponentTestCase
@@ -238,5 +296,127 @@ class BaliChatTypingIndicatorComponentTest < ComponentTestCase
     end
     assert_selector(".chat-image .avatar")
     assert_selector(".loading-dots")
+  end
+end
+
+# The row every caller used to hand-roll, this repo's own preview included. Dictation is ON here
+# and opt-in on the field helper: a composer is where speaking earns its place. The default is
+# worth pinning, because flipping it sends audio out of a host that never asked for it.
+class BaliChatComposerComponentTest < ComponentTestCase
+  def test_renders_the_field_with_the_name_it_was_given
+    render_inline(Bali::Chat::Composer::Component.new(name: "message[content]"))
+    assert_selector('textarea[name="message[content]"]')
+  end
+
+  # The field's look lives in `index.css` under `@layer components` and NOT as utilities here,
+  # so a host's `field_options: { class: }` beats it instead of racing it on emission order.
+  # The class is the hook; what it declares is the stylesheet's business.
+  def test_the_fields_look_is_a_class_and_not_a_pile_of_utilities
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector("textarea.textarea.bali-chat-composer-field")
+    assert_no_selector("textarea.max-h-48")
+    assert_no_selector("textarea.field-sizing-content")
+  end
+
+  # A placeholder is not a label: it disappears the moment someone types, and the composer has
+  # no visible caption to point at.
+  def test_the_field_carries_an_accessible_name
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector("textarea[aria-label]")
+
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", label: "Escribe aquí"))
+    assert_selector('textarea[aria-label="Escribe aquí"]')
+  end
+
+  # `prepend_controller` writes INSIDE `data`, and a `dup` copies the first level only: a host
+  # reusing one options hash across two composers got `speech-input speech-input` on the second.
+  def test_it_does_not_write_into_the_callers_own_options
+    shared = { data: { turbo: false } }
+    render_inline(Bali::Chat::Composer::Component.new(name: "a", **shared))
+    render_inline(Bali::Chat::Composer::Component.new(name: "b", **shared))
+
+    assert_equal({ data: { turbo: false } }, shared)
+    assert_selector('[data-controller~="speech-input"]')
+    assert_selector('[data-controller~="chat-composer"]')
+  end
+
+  def test_renders_a_submit_button
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('button[type="submit"]', text: "Send")
+  end
+
+  def test_dictation_is_on_without_asking_for_it
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('[data-controller~="speech-input"]')
+    assert_selector('textarea[data-speech-input-target="input"]')
+    assert_selector('textarea[data-action~="input->speech-input#typed"]')
+  end
+
+  # Hidden from the server; `speech-input` reveals it only where the browser can hear.
+  def test_renders_the_mic_hidden
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('button[type="button"][hidden][data-speech-input-target="button"]', visible: :all)
+    assert_selector('button[aria-pressed="false"][data-action="speech-input#toggle"]', visible: :all)
+  end
+
+  # The controller has to contain the status line too, and the line cannot sit in the row: a
+  # paragraph among the controls would shove them sideways the moment the browser refuses.
+  def test_the_status_line_is_inside_the_controller_and_outside_the_row
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('[data-controller~="speech-input"] > p[role="status"][hidden]', visible: :all)
+    assert_no_selector('.flex.items-end p[role="status"]', visible: :all)
+  end
+
+  # Turbo dispatches `turbo:submit-end` ON the form, and events travel up: a `data-action` on
+  # this element, which is inside the form, would never see it. The controller subscribes itself,
+  # so what is pinned here is the controller and the value, not an action that cannot fire.
+  def test_the_composer_carries_the_controller_that_clears_it_and_sends_on_enter
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('[data-controller~="chat-composer"][data-chat-composer-submit-on-enter-value="true"]')
+    assert_selector('textarea[data-chat-composer-target="field"]')
+    assert_selector('textarea[data-action~="keydown.enter->chat-composer#enter"]')
+    assert_no_selector("[data-action*='chat-composer#submitEnd']")
+  end
+
+  def test_submit_on_enter_false_leaves_enter_alone
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", submit_on_enter: false))
+    assert_selector('[data-chat-composer-submit-on-enter-value="false"]')
+  end
+
+  def test_dictation_false_leaves_no_trace_of_it
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", dictation: false))
+    assert_no_selector('[data-controller~="speech-input"]')
+    assert_no_selector("[data-speech-input-target]", visible: :all)
+    assert_no_selector('[role="status"]', visible: :all)
+  end
+
+  def test_dictation_hash_carries_the_language
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", dictation: { lang: "en-US" }))
+    assert_selector('[data-speech-input-lang-value="en-US"]')
+  end
+
+  # No language is not an empty one: the controller's own default answers for it.
+  def test_dictation_true_leaves_the_language_to_the_controller
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_no_selector("[data-speech-input-lang-value]")
+  end
+
+  def test_actions_render_before_send
+    render_inline(Bali::Chat::Composer::Component.new(name: "message")) do |composer|
+      composer.with_action { "<button id=\"attach\" type=\"button\">Attach</button>".html_safe }
+    end
+    assert_selector('#attach ~ button[type="submit"]')
+  end
+
+  def test_field_options_reach_the_textarea_without_losing_balis_own_classes
+    render_inline(Bali::Chat::Composer::Component.new(
+                    name: "message", field_options: { required: true, id: "composer", class: "h-24" }
+                  ))
+    assert_selector("textarea#composer[required].h-24.textarea.bali-chat-composer-field")
+  end
+
+  def test_the_hosts_classes_land_on_the_wrapper
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", class: "mt-4"))
+    assert_selector("div.bali-chat-composer.mt-4")
   end
 end

@@ -107,8 +107,11 @@ describe('ChatController', () => {
   context('when the reader sends from the footer', () => {
     // What Turbo dispatches on the form once the server has answered. The message
     // itself arrives afterwards, through the same append the tests above use.
-    const submitEnd = success => cy.get('.bali-chat > .border-t input').first().then($input => {
-      $input[0].dispatchEvent(new CustomEvent('turbo:submit-end', { bubbles: true, detail: { success } }))
+    // Whatever control the footer happens to hold: the event bubbles to the container, and
+    // which element it starts from is not what this is about. It was `input` while the preview
+    // hand-rolled its row with `text_field_tag`; `Chat::Composer` renders a `<textarea>`.
+    const submitEnd = success => cy.get('.bali-chat > .border-t :is(input, textarea)').first().then($control => {
+      $control[0].dispatchEvent(new CustomEvent('turbo:submit-end', { bubbles: true, detail: { success } }))
     })
 
     beforeEach(() => {

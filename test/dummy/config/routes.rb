@@ -9,6 +9,12 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # Marketing / Landing
+  # A POST that answers an empty Turbo Stream. The chat preview's composer sends here so that
+  # pressing Send exercises the real path —the reset, the follow-the-send scroll— without
+  # leaving the page: a preview that navigates away is not showing you the component, and a
+  # preview that reloads quietly takes the teeth out of every test that checks what survives.
+  post "/lookbook/noop", to: proc { [ 200, { "Content-Type" => "text/vnd.turbo-stream.html" }, [ "" ] ] }
+
   root "dashboard#index"
   get "landing", to: "pages#landing"
   get "showcase", to: "pages#showcase"

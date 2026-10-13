@@ -1,0 +1,23 @@
+/* Chat Composer field
+ * Four declarations, and every one of them is a default a caller has a reason to
+ * beat: a shorter cap for a one-line composer, a fixed height, the resize handle
+ * back, a different overflow. `field-sizing` is not one of those, but it belongs
+ * with them — it is what replaces the `auto_grow` controller writing an inline
+ * height, which is what used to survive a `form.reset()` and leave the box grown
+ * and empty (#1371).
+ *
+ * Written as `max-h-48 w-full resize-none` in the template's class attribute they
+ * would land in @layer utilities next to the host's own `field_options: { class: }`,
+ * at the same specificity, and inside one layer only emission order breaks the tie.
+ * Tailwind emits each family ascending by value, so a host's `max-h-24` would lose
+ * to `max-h-48` and a host's `max-h-96` would win — the same call site working or
+ * not depending on which number it picked. In @layer components every host utility
+ * beats them, at any value and with no `!`. Same measurement as reveal/index.css
+ * (#1148). */
+.bali-chat-composer-field {
+  width: 100%;
+  resize: none;
+  field-sizing: content;
+  max-height: calc(var(--spacing) * 48);
+  overflow-y: auto;
+}

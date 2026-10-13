@@ -1,0 +1,32 @@
+<div class="space-y-6">
+  <div>
+    <p class="mb-2 text-sm text-base-content/70">Default: dictation on.</p>
+    <%= form_with url: '/', id: 'composer-form' do %>
+      <%= render Bali::Chat::Composer::Component.new(
+            name: 'message[content]',
+            field_options: { id: 'composer-field', 'aria-label': 'Write a message' }) %>
+    <% end %>
+  </div>
+
+  <div>
+    <p class="mb-2 text-sm text-base-content/70">Dictated in English, with an extra action.</p>
+    <%= form_with url: '/' do %>
+      <%= render Bali::Chat::Composer::Component.new(
+            name: 'message[content]', dictation: { lang: 'en-US' },
+            field_options: { id: 'composer-field-en', 'aria-label': 'Write a message' }) do |composer| %>
+        <% composer.with_action do %>
+          <%= render Bali::Button::Component.new(name: 'Attach', variant: :ghost, icon: 'paperclip') %>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div>
+    <p class="mb-2 text-sm text-base-content/70">`dictation: false`: no mic, no status line.</p>
+    <%= form_with url: '/' do %>
+      <%= render Bali::Chat::Composer::Component.new(
+            name: 'message[content]', dictation: false,
+            field_options: { id: 'composer-field-mute', 'aria-label': 'Write a message' }) %>
+    <% end %>
+  </div>
+</div>

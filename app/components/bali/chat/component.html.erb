@@ -9,7 +9,17 @@
               data: { chat_target: "messages", action: "scroll->chat#trackPosition" }) do %>
     <%= content %>
   <% end %>
-  <% if footer? %>
-    <div class="shrink-0 border-t border-base-300 p-4" data-action="turbo:submit-end->chat#followSubmit"><%= footer %></div>
+  <% if footer? || own_composer? %>
+    <div class="shrink-0 border-t border-base-300 p-4" data-action="turbo:submit-end->chat#followSubmit">
+      <% if footer? %>
+        <%= footer %>
+      <% else %>
+        <%= form_with(**composer_form_options) do %>
+          <%= render composer_component do |row| %>
+            <% composer_actions.each { |action| row.with_action { action.to_s } } %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
   <% end %>
 <% end %>

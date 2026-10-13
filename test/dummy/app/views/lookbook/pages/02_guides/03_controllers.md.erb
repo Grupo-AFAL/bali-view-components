@@ -638,6 +638,69 @@ Both actions and the guard are live in the `bali/submit_on_change/default` previ
 If your app carries a local `auto_submit_controller.js`, this controller replaces
 it — see [Do you have a local copy?](#do-you-have-a-local-copy)
 
+## `chat-composer`
+
+The two things a chat composer does that a plain form does not: clear itself once a
+message went through, and send on Enter. `Chat::Composer::Component` wires it.
+
+```html
+<div data-controller="chat-composer"
+     data-action="turbo:submit-end->chat-composer#submitEnd">
+  <textarea data-chat-composer-target="field"
+            data-action="keydown.enter->chat-composer#enter"></textarea>
+  <button type="submit">Send</button>
+</div>
+```
+
+It clears only when the server accepted the message (`event.detail.success`): a send
+the rate limit or a validation turned down leaves the text where it is, to be sent
+again. Enter submits and Shift+Enter writes a newline — and an Enter that commits an
+IME candidate does neither, which is what `isComposing` is for.
+`submit_on_enter: false` on the component, or
+`data-chat-composer-submit-on-enter-value="false"` by hand, leaves Enter alone.
+
+The listener for the clear goes on the FORM and not on this element: Turbo dispatches
+`turbo:submit-end` on the form, and events travel up — a `data-action` inside it never
+sees one.
+
+## `speech-input`
+
+Dictation into a form control, through the browser's OWN speech recognition.
+`f.text_area_group(:body, dictation: true)` builds it — **a textarea's option only**, and
+asking any other family for it warns through `Bali.deprecator` and renders nothing.
+`dictation: { lang: "en-US" }` says which language is being spoken; without it the page's
+own `<html lang>` decides. By hand:
+
+```html
+<div data-controller="speech-input">
+  <textarea data-speech-input-target="input"
+            data-action="input->speech-input#typed"></textarea>
+  <button type="button" hidden
+          data-speech-input-target="button"
+          data-action="speech-input#toggle">🎤</button>
+  <p role="status" hidden data-speech-input-target="status">Dictation is not available…</p>
+</div>
+```
+
+The button is written `hidden` and the controller reveals it, so a browser with no
+recognition renders a field with no trace of a feature it cannot offer. It stops on
+its own when the form is submitted, when the person writes into the field, and when
+the browser refuses for good (permission denied, the service blocked, a language the
+engine does not have) — and then the status line replaces the mic.
+
+Tapping the mic again keeps the last phrase — `stop()` is the call that hands over the
+audio the engine is still holding. It is thrown away (`abort()`) only when the field has
+already moved on: someone typed over it, or the form was submitted.
+
+A failure does not retire the mic. The status line says the dictation did not happen and
+the button stays, because `not-allowed` is also what Chrome reports when the permission
+prompt is dismissed without choosing, and `network` can be one bad second.
+
+**The audio leaves.** The page never receives it, but the BROWSER sends it to its own
+vendor to transcribe: Google in Chrome, Microsoft in Edge, Apple in Safari. That is why
+`dictation:` is off unless a host asks for it — `Chat::Composer` is the one exception —
+and why it is worth saying out loud to whoever will be talking into it.
+
 ## `textarea`
 
 Optional character counter and auto-grow for a textarea.
