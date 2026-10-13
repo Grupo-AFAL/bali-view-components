@@ -9,8 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- **`page` en filtros y en exportaciones: dos listas, una intención cada una.** `Filters::PreservedParams` conserva `page` al enviar un filtro y `DataTable::ToolbarHref::TRANSIENT_PARAMS` lo descarta al cambiar de vista o exportar; cada archivo nombra ahora al otro. Sin cambio de comportamiento.
-- **Instalación: Vite ya no se presenta como soportado por el generador para el CSS.** `bin/rails g bali:install` detecta tailwindcss-rails y cssbundling-rails; con `@tailwindcss/vite` no escribe el punto de entrada de Tailwind y sugiere instalar tailwindcss-rails. La guía lo dice ahora y un host con Vite añade a mano las tres líneas del Paso 3. La parte de JavaScript sí funciona con Vite. Sin cambios de código.
+- **Instalación: el generador no detecta Vite.** `bin/rails g bali:install` reconoce tailwindcss-rails, cssbundling-rails y las rutas de `app/javascript/`; en un host con Vite no escribe ni el CSS ni el JavaScript y sugiere jsbundling y tailwindcss-rails. La guía ya no lo presenta como soportado: un host con Vite cablea los Pasos 3 y 4 a mano, importando `bali-view-components/tailwind/engine.css`. Sin cambios de código.
 
 ## [v3.14.0] - 2026-10-12
 

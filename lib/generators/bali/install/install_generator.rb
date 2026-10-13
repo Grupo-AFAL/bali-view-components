@@ -36,7 +36,8 @@ module Bali
   # question: measured in Chromium, the unresolved specifier fails the whole
   # module, `eagerLoadControllersFrom` never runs, and the host loses every
   # controller of its own — Bali's absence would have been the small half of it.
-  # So the JavaScript half is written only for the esbuild/jsbundling/Vite layout
+  # So the JavaScript half is written only for the esbuild/jsbundling layout (Vite's default
+  # `app/frontend/entrypoints/` is not looked at)
   # (`#no_bundler_here`), and said otherwise. The CSS half asks the same question of
   # npm: two of its three lines resolve through node_modules, so an app with no
   # package.json gets the engine bridge, which does not, and is told the rest.

@@ -20,8 +20,7 @@ module Bali
       # switching view or grouping goes back to the first page, and because an export that
       # takes `page` along exports ONE page instead of the set.
       #
-      # `Filters::PreservedParams` keeps `page` on purpose (a filter submit stays on its page);
-      # this list is for links that navigate to the first page or export the set.
+      # `Filters::PreservedParams` keeps `page` on purpose.
       #
       # TWIN IN JS: `export_links_controller.js` drops exactly this list when re-syncing the ⋯
       # hrefs from `window.location`. Moving a param here without moving it there leaves the
