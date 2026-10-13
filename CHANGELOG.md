@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   placeholder al borde derecho; lo mismo le pasaba a la caja de respuesta de un panel de hilos
   (`comments_container_id:`) puesto en una Card. Fuera de una Card no cambia nada. Nada que
   hacer en la app.
+- **La X de cerrar de `Bali::Alert` toma el color del texto del aviso** (#1456), y con ella la
+  de `Toast` y la de todo lo que se arma sobre Alert. Tomaba el `base-content` del tema: en los
+  temas oscuros, una X clara sobre un aviso sólido de color claro (1.37:1 a 2.67:1). El hover no
+  cambia. Nada que hacer en la app.
 
 ### Documentation
 
