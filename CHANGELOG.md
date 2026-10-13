@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **Instalación: Vite ya no se presenta como soportado por el generador para el CSS.** `bin/rails g bali:install` detecta tailwindcss-rails y cssbundling-rails; con `@tailwindcss/vite` no escribe el punto de entrada de Tailwind y sugiere instalar tailwindcss-rails. La guía lo dice ahora y un host con Vite añade a mano las tres líneas del Paso 3. La parte de JavaScript sí funciona con Vite. Sin cambios de código.
+
 ## [v3.14.0] - 2026-10-12
 
 ### Added
