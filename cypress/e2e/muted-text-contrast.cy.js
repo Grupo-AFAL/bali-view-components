@@ -223,13 +223,6 @@ describe('muted text contrast', () => {
     // The two colours that are a theme's own pair are measured below, on Bali's themes.
     'footer/default?color=neutral': FOOTER,
     'footer/default?color=base': FOOTER,
-    // The `·` between the footer's figures is decoration and keeps a colour of its own.
-    'gantt/default': [
-      ['monospaced figure', '.bali-gantt .font-mono', 53],
-      ['caps label', '.bali-gantt .uppercase', 13],
-      ['legend label', '.bali-gantt .font-sans', 5],
-      ['search placeholder', '.bali-gantt input[placeholder]', 1, '::placeholder']
-    ],
     '/dashboard_widgets/edit': [
       ['picker note', 'form p.text-sm', 1]
     ]
@@ -441,6 +434,26 @@ describe('muted text contrast', () => {
   OPENED.forEach(({ page, opened, stub, open, targets }) => {
     it(`reads the muted text of ${page} at AA with ${opened} on every theme`, () => {
       guard({ page, stub, open, targets, floor: AA })
+    })
+  })
+
+  // The Gantt's time axis starts 42 days before the day its schedule is laid out around, and the
+  // browser's clock can push its end further, so the month bands among its caps labels follow
+  // the date: 13 on 12/10/2026, 12 the day after (#1458). The preview takes the day and the clock
+  // is held on it, mid-way through the 13/10–25/10 run that draws 12. The `·` between the
+  // footer's figures is decoration and keeps a colour of its own.
+  it('reads the muted text of gantt/default at AA on every theme', () => {
+    const day = '2026-10-19'
+    guard({
+      page: `gantt/default?today=${day}`,
+      stub: () => cy.clock(Date.parse(`${day}T12:00:00Z`), ['Date']),
+      targets: [
+        ['monospaced figure', '.bali-gantt .font-mono', 53],
+        ['caps label', '.bali-gantt .uppercase', 12],
+        ['legend label', '.bali-gantt .font-sans', 5],
+        ['search placeholder', '.bali-gantt input[placeholder]', 1, '::placeholder']
+      ],
+      floor: AA
     })
   })
 

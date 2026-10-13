@@ -20,9 +20,13 @@ module Bali
       # `zoom:` is the one piece of geometry the server still decides: `:auto`
       # resolves against the window so the island opens at the right density
       # instead of rescaling the board the moment it mounts.
+      #
+      # `?today=2026-10-12` lays the schedule out around that day instead of the
+      # current one, so what the time axis draws stays the same from one day to
+      # the next.
       # @param zoom select { choices: [auto, day, week, month] }
-      def default(zoom: :auto)
-        island(data: sample_data, zoom: zoom)
+      def default(zoom: :auto, today: nil)
+        island(data: sample_data(today ? Date.iso8601(today) : Date.current), zoom: zoom)
       end
 
       # @label Editable (dummy endpoints)
@@ -95,8 +99,7 @@ module Bali
         }
       end
 
-      def sample_data
-        today = Date.current
+      def sample_data(today)
         {
           groups: [
             { id: 1, name: "Discovery", status: "complete",
