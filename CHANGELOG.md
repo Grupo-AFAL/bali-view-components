@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **BlockEditor dentro de una `Bali::Card`: el placeholder sale a la izquierda** (#1455). La
+  regla `.card-body p { flex-grow: 1 }` de daisyUI estiraba el párrafo vacío y empujaba el
+  placeholder al borde derecho; lo mismo le pasaba a la caja de respuesta de un panel de hilos
+  (`comments_container_id:`) puesto en una Card. Fuera de una Card no cambia nada. Nada que
+  hacer en la app.
+
 ### Documentation
 
 - **Instalación: el generador no detecta Vite.** `bin/rails g bali:install` reconoce tailwindcss-rails, cssbundling-rails y las rutas de `app/javascript/`; en un host con Vite, con el diseño por omisión de vite_rails, no escribe ni el CSS ni el JavaScript y sugiere jsbundling y tailwindcss-rails. La guía ya no lo presenta como soportado: un host con Vite cablea los Pasos 3 y 4 a mano, importando `bali-view-components/tailwind/engine.css`. Sin cambios de código.

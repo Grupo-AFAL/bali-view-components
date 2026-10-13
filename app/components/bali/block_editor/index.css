@@ -243,6 +243,17 @@
   padding-top: 0;
 }
 
+/* daisyUI's `.card-body p { flex-grow: 1 }` reaches the `<p>` of a paragraph, list or check
+   item, a flex item of its `.bn-block-content`. Inside a Card the empty one grew across the
+   block and pushed the placeholder, the `::after` that follows it, 483.5px into a 582px block.
+   A threads sidebar portaled out of the editor (see the palette above) has the same placeholder
+   in its reply box. 0 is the initial value, which BlockNote never changes. Not `flex: none`:
+   the shrink is what wraps a long paragraph. */
+.block-editor-component .bn-inline-content,
+.bn-threads-sidebar .bn-inline-content {
+  flex-grow: 0;
+}
+
 /* Editor body: white background, remove default padding */
 .block-editor-component .bn-editor {
   background-color: var(--color-base-100);

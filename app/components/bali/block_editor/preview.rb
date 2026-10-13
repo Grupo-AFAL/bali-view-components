@@ -59,6 +59,28 @@ module Bali
         )
       end
 
+      # @label In a Card
+      # daisyUI's `.card-body p { flex-grow: 1 }` also reaches the editor's paragraphs,
+      # which are flex items of their block. Click the empty editor: its placeholder has
+      # to start at the left edge, not after a paragraph stretched across the card. The
+      # second editor holds the blocks drawn in a `<p>`, plus a heading and a code block,
+      # which that rule does not reach.
+      def in_card
+        render_with_template(locals: {
+          content: [
+            paragraph('A paragraph long enough to wrap inside the card. ' * 6),
+            { type: 'heading', props: { level: 2 },
+              content: [ { type: 'text', text: 'A heading', styles: {} } ] },
+            { type: 'bulletListItem', content: [ { type: 'text', text: 'A bullet item', styles: {} } ] },
+            { type: 'numberedListItem', content: [ { type: 'text', text: 'A numbered item', styles: {} } ] },
+            { type: 'checkListItem', props: { checked: false },
+              content: [ { type: 'text', text: 'A check list item', styles: {} } ] },
+            { type: 'codeBlock', props: { language: 'javascript' },
+              content: [ { type: 'text', text: "console.log('A code block')", styles: {} } ] }
+          ]
+        })
+      end
+
       # @label Mentions (Static)
       # Type `@` to mention someone from a static list.
       # Pass `mentions:` with an array of strings or
