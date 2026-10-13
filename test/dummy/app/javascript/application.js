@@ -8,7 +8,8 @@ import {
   registerAllControllers,
   registerAllComponents,
   installConfirmDialog,
-  loadGoogleMapsApi
+  loadGoogleMapsApi,
+  googleMapsConfig
 } from 'bali'
 import { startIslandLoader } from 'bali/react-island'
 
@@ -23,8 +24,9 @@ window.Turbo = Turbo
 // The dialog's labels live inside this bundle, so confirm-dialog.cy.js sets them through here,
 // as a host's index.js does.
 window.installConfirmDialog = installConfirmDialog
-// For google-maps-loader.cy.js, which calls the loader as a host app does.
+// For google-maps-loader.cy.js and google-maps-config.cy.js, which call them as a host app does.
 window.loadGoogleMapsApi = loadGoogleMapsApi
+window.googleMapsConfig = googleMapsConfig
 
 // Start ActiveStorage
 ActiveStorage.start()

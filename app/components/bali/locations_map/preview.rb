@@ -23,9 +23,14 @@ module Bali
       #
       # ## Setup Required
       # This component requires a Google Maps JavaScript API key, read from
-      # `Bali.google_maps_key`:
+      # `Bali.google_maps.api_key`:
       # ```ruby
-      # Bali.google_maps_key = Rails.application.credentials.dig(:google, :maps_key)
+      # Bali.google_maps.api_key = Rails.application.credentials.dig(:google, :maps_key)
+      # ```
+      # and handed to every map on the page, with `Bali.google_maps.map_id`, from the layout's
+      # `<head>`:
+      # ```erb
+      # <%= google_maps_meta_tags %>
       # ```
       # With nothing configured it falls back to the `GOOGLE_MAPS_KEY`
       # environment variable. Without either, the component still renders and
@@ -33,7 +38,8 @@ module Bali
       # console, not by a server-side error.
       # See [External Services Guide](/docs/guides/external-services.md) for setup instructions.
       #
-      # The map's labels are in the request's locale: switch `locale` to see them in Spanish.
+      # The map's labels are in the language of the `<html lang>`, which the dummy writes from
+      # the request's locale: switch `locale` to see them in Spanish.
       #
       # @param zoom number
       # @param clustered toggle

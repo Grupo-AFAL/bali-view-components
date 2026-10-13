@@ -23,13 +23,14 @@ export class DrawingMapsController extends Controller {
   async connect () {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
 
-    const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
+    const { default: GoogleMapsLoader, googleMapsConfig } = await import('../utils/google-maps-loader.js')
+    const { key, language } = googleMapsConfig({ key: this.data.get('key') })
 
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['geometry'],
-        language: 'es',
-        key: this.data.get('key'),
+        key,
+        language,
         // No deadline: a script that arrives late still builds.
         timeout: 0
       })

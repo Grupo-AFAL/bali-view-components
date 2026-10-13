@@ -58,7 +58,9 @@ module Bali
           "drawing-maps-confirmation-message-to-clear-value",
           I18n.t("bali_view.form_builder.coordinates_polygon.confirm")
         )
-        prepend_data_attribute(opts, "drawing-maps-key", Bali.google_maps_key.to_s)
+        # The key `google_maps_meta_tags` puts in the <head>, written here too so a layout without
+        # that helper still loads the map.
+        prepend_data_attribute(opts, "drawing-maps-key", Bali.google_maps.api_key.to_s)
       end
 
       def clear_buttons

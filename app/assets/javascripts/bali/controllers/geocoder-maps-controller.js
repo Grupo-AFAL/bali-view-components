@@ -33,16 +33,19 @@ export class GeocoderMapsController extends Controller {
     // On the element, not on each field: a field put in later geocodes too.
     this.element.addEventListener('change', this.geocodeAddress)
 
-    const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
+    const { default: GoogleMapsLoader, googleMapsConfig } = await import('../utils/google-maps-loader.js')
 
     const testMode = this.data.get('testMode') === 'true'
     if (testMode) return
 
+    const { key, language, mapId } = googleMapsConfig({ key: this.data.get('key') })
+    this.mapId = mapId
+
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['marker'],
-        language: 'es',
-        key: this.data.get('key'),
+        key,
+        language,
         // No deadline: a script that arrives late still builds.
         timeout: 0
       })
@@ -67,8 +70,7 @@ export class GeocoderMapsController extends Controller {
     this.map = new this.googleMaps.Map(this.mapTarget, {
       center,
       zoom,
-      // An AdvancedMarkerElement draws nothing on a map built without one.
-      mapId: Date.now().toString(),
+      mapId: this.mapId,
       colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT
     })
   }
