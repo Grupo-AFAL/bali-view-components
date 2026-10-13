@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **El check `cypress` ya no depende de la fecha** (#1458). `muted-text-contrast.cy.js` fijaba
+  en 13 las etiquetas en mayúsculas del Gantt, pero cuántas bandas de mes dibuja el eje cambia
+  con el día: desde el 13/10/2026 el spec fallaba en cualquier PR. Ahora visita el preview en un
+  día fijo, con el parámetro nuevo `gantt/default?today=` (sin control en Lookbook), y con el
+  reloj del navegador parado en ese día. Los componentes no cambian. Nada que hacer en la app.
+
 ### Documentation
 
 - **Instalación: el generador no detecta Vite.** `bin/rails g bali:install` reconoce tailwindcss-rails, cssbundling-rails y las rutas de `app/javascript/`; en un host con Vite, con el diseño por omisión de vite_rails, no escribe ni el CSS ni el JavaScript y sugiere jsbundling y tailwindcss-rails. La guía ya no lo presenta como soportado: un host con Vite cablea los Pasos 3 y 4 a mano, importando `bali-view-components/tailwind/engine.css`. Sin cambios de código.
