@@ -7,7 +7,7 @@ This guide covers complete setup of Bali ViewComponents in your Rails applicatio
 - Rails 8.1+ (the gemspec requires `>= 8.1, < 9.0`)
 - Ruby 4.0+
 - Node.js 22+ and npm/yarn
-- Tailwind CSS v4 (via tailwindcss-rails or Vite)
+- Tailwind CSS v4 (via tailwindcss-rails or cssbundling-rails; Vite: wire it by hand, see below)
 - daisyUI 5.7+
 
 ---
@@ -59,8 +59,12 @@ pin and the gem version and lets you move it:
           the JavaScript and the Ruby are the same release
 ```
 
-**Scope: esbuild and jsbundling**, which is what all seven use. A Vite application gets the
-same four files. An importmap application gets Steps 3 and 5 and **keeps its Stimulus index
+**Scope: esbuild and jsbundling**, which is what all seven use. The generator does not detect
+Vite: it looks for tailwindcss-rails or a `build:css` script, and for `app/javascript/application.js`
+or `app/javascript/controllers/index.js`, whereas vite_rails defaults to
+`app/frontend/entrypoints/`. A Vite host writes Steps 3 and 4 by hand, importing Bali's CSS through
+the npm bridge (`@import "bali-view-components/tailwind/engine.css";`, see the note under Step 3);
+none of the seven applications does. An importmap application gets Steps 3 and 5 and **keeps its Stimulus index
 exactly as it is** — the generator asks whether anything here resolves a bare specifier
 (`package.json`? `config/importmap.rb`? what shape is the index?), not whether
 `app/javascript/controllers/index.js` exists, because a bare `rails new` has that file and
@@ -303,9 +307,9 @@ See [DaisyUI Themes](https://daisyui.com/docs/themes/) for all available themes.
 
 ## Step 4: JavaScript Setup
 
-Bali needs a JavaScript bundler: esbuild (through jsbundling-rails) or Vite. That is what all
-seven applications in the fleet use, what `bin/rails g bali:install` writes, and the only thing
-that resolves what Bali imports.
+Bali needs a JavaScript bundler, the only thing that resolves what Bali imports. The fleet's
+seven applications use esbuild (through jsbundling-rails), which is what `bin/rails g bali:install`
+writes for. Vite resolves the same imports, but you wire it by hand.
 
 ### Import maps: not supported, and there is nothing to pin
 
