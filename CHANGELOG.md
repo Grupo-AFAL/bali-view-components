@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.control` ya no pisa un `controller:` que el call site hubiera declarado en `control_data:` —
   antes el contador lo sobrescribía sin decir nada—, porque el dictado y el contador comparten
   esa caja.
+
 ### Dependencies
 
 - **`bali-rubocop` sube a v0.2.0** (reemplaza a #1411). Sólo afecta a quien desarrolla Bali:

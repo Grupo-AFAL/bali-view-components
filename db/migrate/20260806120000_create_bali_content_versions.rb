@@ -7,7 +7,8 @@
 #
 # `author` is polymorphic and OPTIONAL, `author_name` is required and denormalized:
 # the JSON that `document_editor/index.js` consumes serves `author_name` (contract frozen
-# in the v3.0 betas), and the author pair enables "my versions"/auditing without a future migration.
+# in the v3.0 betas), and the author pair enables "my versions"/auditing without a future
+# migration.
 # A host with no user model, or with string ids like the BlockEditor comments,
 # leaves `author` nil and keeps working.
 class CreateBaliContentVersions < ActiveRecord::Migration[7.0]
