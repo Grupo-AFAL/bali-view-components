@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- **Instalación: el generador no detecta Vite.** `bin/rails g bali:install` reconoce tailwindcss-rails, cssbundling-rails y las rutas de `app/javascript/`; en un host con Vite no escribe ni el CSS ni el JavaScript y sugiere jsbundling y tailwindcss-rails. La guía ya no lo presenta como soportado: un host con Vite cablea los Pasos 3 y 4 a mano, importando `bali-view-components/tailwind/engine.css`. Sin cambios de código.
+- **Instalación: el generador no detecta Vite.** `bin/rails g bali:install` reconoce tailwindcss-rails, cssbundling-rails y las rutas de `app/javascript/`; en un host con Vite, con el diseño por omisión de vite_rails, no escribe ni el CSS ni el JavaScript y sugiere jsbundling y tailwindcss-rails. La guía ya no lo presenta como soportado: un host con Vite cablea los Pasos 3 y 4 a mano, importando `bali-view-components/tailwind/engine.css`. Sin cambios de código.
 
 ## [v3.14.0] - 2026-10-12
 
