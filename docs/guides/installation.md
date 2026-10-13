@@ -61,7 +61,7 @@ pin and the gem version and lets you move it:
 
 **Scope: esbuild and jsbundling**, which is what all seven use. The generator does not detect
 Vite: it looks for tailwindcss-rails or a `build:css` script, and for `app/javascript/application.js`
-or `app/javascript/controllers/index.js`, whereas vite_rails puts its entry point in
+or `app/javascript/controllers/index.js`, whereas vite_rails defaults to
 `app/frontend/entrypoints/`. A Vite host writes Steps 3 and 4 by hand, importing Bali's CSS through
 the npm bridge (`@import "bali-view-components/tailwind/engine.css";`, see the note under Step 3);
 none of the seven applications does. An importmap application gets Steps 3 and 5 and **keeps its Stimulus index
