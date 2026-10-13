@@ -15,15 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   estilo. `<%= google_maps_meta_tags %>` en el `<head>` del layout los entrega a LocationsMap,
   `coordinates_polygon_group` y los controladores `autocomplete-address`, `geocoder-maps` y
   `drawing-maps`, que los leen con `googleMapsConfig()`; un controlador propio del host la
-  importa de `bali-view-components`. Sin map ID, cada mapa inventa uno, como antes. Una llave
-  escrita en el elemento sigue ganando, así que el markup que ya la pasa no cambia, y
-  LocationsMap y `coordinates_polygon_group` la siguen escribiendo en el suyo: cargan aunque el
-  layout no tenga el helper.
-  - **Anfitrión:** agregar `<%= google_maps_meta_tags %>` al `<head>` del layout. En
-    centinela-web, `layouts/application.html.erb`; ahí su `coordinates_picker_controller.js`
-    puede cambiar `loadGoogleMapsApi({ key: this.apiKeyValue, language: 'es' })` y su
+  importa de `bali-view-components`. Sin map ID, cada mapa inventa uno, como ya hacían
+  LocationsMap y `geocoder-maps`; `drawing-maps` no usaba ninguno y ahora también lo recibe, para
+  que un estilo de Cloud cubra todos los mapas. Una llave escrita en el elemento sigue ganando,
+  así que el markup que ya la pasa no cambia, y LocationsMap y `coordinates_polygon_group` la
+  siguen escribiendo en el suyo: cargan aunque el layout no tenga el helper.
+  - **Anfitrión:** el helper es opcional. Hoy sólo hace falta para fijar un `map_id`, o para que
+    un controlador escrito a mano tome la llave sin pasarla en un atributo. En centinela-web, lo
+    único obligatorio son sus dos lecturas de `Bali.google_maps_key` (ver *Deprecated*). Si
+    agrega el helper a `layouts/application.html.erb`, su `coordinates_picker_controller.js`
+    puede cambiar `loadGoogleMapsApi({ key: this.apiKeyValue, language: 'es' })` y
     `mapId: Date.now().toString()` por lo que devuelve `googleMapsConfig()`, y
-    `shared/_coordinates_picker.html.erb` dejar de pasar la llave. El map ID es opcional.
+    `shared/_coordinates_picker.html.erb` puede dejar de pasar la llave.
 
 ### Changed
 

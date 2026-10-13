@@ -24,7 +24,8 @@ export class DrawingMapsController extends Controller {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
 
     const { default: GoogleMapsLoader, googleMapsConfig } = await import('../utils/google-maps-loader.js')
-    const { key, language } = googleMapsConfig({ key: this.data.get('key') })
+    const { key, language, mapId } = googleMapsConfig({ key: this.data.get('key') })
+    this.mapId = mapId
 
     try {
       this.googleMaps = await GoogleMapsLoader({
@@ -64,6 +65,7 @@ export class DrawingMapsController extends Controller {
     this.map = new this.googleMaps.Map(this.mapTarget, {
       center,
       zoom,
+      mapId: this.mapId,
       colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT,
       // While drawing, a click on a place's icon adds a vertex instead of opening the place.
       clickableIcons: !this.editableValue,

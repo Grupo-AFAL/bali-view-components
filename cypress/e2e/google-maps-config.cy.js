@@ -1,9 +1,7 @@
 import { stubGoogleMaps } from '../support/google_maps'
 
-// #1443 — The four map controllers took the key from three different places, three of them loaded
-// the API in Spanish whatever the page, and LocationsMap in the request's locale. All four read
-// googleMapsConfig() now: the key and map ID `google_maps_meta_tags` puts in the <head>, and the
-// language of the <html>.
+// The four map controllers read googleMapsConfig(): the key and map ID `google_maps_meta_tags` puts
+// in the <head>, and the language of the <html>.
 describe('Google Maps configuration', () => {
   const PAGE = '<meta name="bali-google-maps-key" content="page-key"><meta name="bali-google-maps-map-id" content="page-map-id">'
 
@@ -40,16 +38,21 @@ describe('Google Maps configuration', () => {
     cy.document().then((doc) => {
       if (lang) doc.documentElement.lang = lang
       else doc.documentElement.removeAttribute('lang')
+      // The dummy's layout writes its own when the shell exports GOOGLE_MAPS_KEY.
+      doc.head.querySelectorAll('meta[name^="bali-google-maps"]').forEach((meta) => meta.remove())
       doc.head.insertAdjacentHTML('beforeend', head)
     })
   }
 
   const mount = (markup) => cy.get('body').then(([body]) => body.insertAdjacentHTML('beforeend', markup))
 
-  // As the component renders in English, with no key configured in the dummy.
+  // As the component renders in English, without the key it writes on itself when the shell
+  // exports GOOGLE_MAPS_KEY.
   const mountLocationsMap = () =>
     cy.request('/bali/locations_map/default').then(({ body }) => {
-      mount(new DOMParser().parseFromString(body, 'text/html').querySelector('[data-controller="locations-map"]').outerHTML)
+      const component = new DOMParser().parseFromString(body, 'text/html').querySelector('[data-controller="locations-map"]')
+      component.removeAttribute('data-locations-map-api-key-value')
+      mount(component.outerHTML)
     })
 
   const loadedWith = (expected) =>
@@ -100,14 +103,18 @@ describe('Google Maps configuration', () => {
     loadedWith({ key: 'page-key', language: 'en' })
   })
 
-  it('builds the maps with markers on the map ID of the page', () => {
+  it('builds every map on the map ID of the page', () => {
     visit()
     mountLocationsMap()
-    mapsBuilt((maps) => expect(maps[0].options.mapId).to.eq('page-map-id'))
+    mapsBuilt((maps) => expect(maps[0].options.mapId, 'locations-map').to.eq('page-map-id'))
 
     visit()
     mount(MARKUP['geocoder-maps']())
-    mapsBuilt((maps) => expect(maps[0].options.mapId).to.eq('page-map-id'))
+    mapsBuilt((maps) => expect(maps[0].options.mapId, 'geocoder-maps').to.eq('page-map-id'))
+
+    visit()
+    mount(MARKUP['drawing-maps']())
+    mapsBuilt((maps) => expect(maps[0].options.mapId, 'drawing-maps').to.eq('page-map-id'))
   })
 
   it('makes a map ID up when the page has none', () => {
@@ -117,8 +124,6 @@ describe('Google Maps configuration', () => {
     mapsBuilt((maps) => expect(maps[0].options.mapId).to.match(/^\d+$/))
   })
 
-  // On an English page LocationsMap asked for `en` and autocomplete-address for `es`, and the
-  // loader warned that the second was ignored.
   it('loads two maps on one page in one language, with no warning', () => {
     visit({ lang: 'en' })
     mountLocationsMap()

@@ -187,9 +187,9 @@ an island, as in GeoJSON. `f.coordinates_polygon_group` renders it; by hand:
 
 The field value must parse as JSON: `{"shells": [...], "holes": [...]}` (a legacy
 bare array of points is still read as one shell). `editable: false` renders the
-polygons and draws nothing. The key comes from `google_maps_meta_tags` and the language
-from the `<html lang>`; a key in `data-drawing-maps-key`, a plain data attribute and not
-a Stimulus value, wins over the page's.
+polygons and draws nothing. The key and the map ID come from `google_maps_meta_tags` and
+the language from the `<html lang>`; a key in `data-drawing-maps-key`, a plain data
+attribute and not a Stimulus value, wins over the page's.
 
 ## `dynamic-fields`
 

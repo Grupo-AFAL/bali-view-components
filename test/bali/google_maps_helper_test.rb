@@ -14,7 +14,8 @@ class GoogleMapsHelperTest < ActionView::TestCase
   def teardown
     Bali.google_maps.api_key = nil
     Bali.google_maps.map_id = nil
-    ENV["GOOGLE_MAPS_KEY"] = @previous_env if @previous_env
+    ENV["GOOGLE_MAPS_KEY"] = @previous_env
+    ENV.delete("GOOGLE_MAPS_KEY") if @previous_env.nil?
     super
   end
 
