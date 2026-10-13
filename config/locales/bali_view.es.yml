@@ -139,6 +139,9 @@ es:
     # Chat conversacional
     chat:
       composer:
+        # The field's accessible name: a chat composer has no visible caption, and a
+        # placeholder is not a label.
+        label: "Escribe un mensaje"
         send: "Enviar"
         placeholder: "Escribe un mensaje…"
       typing_indicator:

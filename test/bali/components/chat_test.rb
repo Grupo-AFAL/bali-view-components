@@ -305,8 +305,39 @@ end
 class BaliChatComposerComponentTest < ComponentTestCase
   def test_renders_the_field_with_the_name_it_was_given
     render_inline(Bali::Chat::Composer::Component.new(name: "message[content]"))
-    assert_selector('textarea[name="message[content]"][rows="2"]')
-    assert_selector("textarea.field-sizing-content.max-h-48")
+    assert_selector('textarea[name="message[content]"]')
+  end
+
+  # The field's look lives in `index.css` under `@layer components` and NOT as utilities here,
+  # so a host's `field_options: { class: }` beats it instead of racing it on emission order.
+  # The class is the hook; what it declares is the stylesheet's business.
+  def test_the_fields_look_is_a_class_and_not_a_pile_of_utilities
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector("textarea.textarea.bali-chat-composer-field")
+    assert_no_selector("textarea.max-h-48")
+    assert_no_selector("textarea.field-sizing-content")
+  end
+
+  # A placeholder is not a label: it disappears the moment someone types, and the composer has
+  # no visible caption to point at.
+  def test_the_field_carries_an_accessible_name
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector("textarea[aria-label]")
+
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", label: "Escribe aquí"))
+    assert_selector('textarea[aria-label="Escribe aquí"]')
+  end
+
+  # `prepend_controller` writes INSIDE `data`, and a `dup` copies the first level only: a host
+  # reusing one options hash across two composers got `speech-input speech-input` on the second.
+  def test_it_does_not_write_into_the_callers_own_options
+    shared = { data: { turbo: false } }
+    render_inline(Bali::Chat::Composer::Component.new(name: "a", **shared))
+    render_inline(Bali::Chat::Composer::Component.new(name: "b", **shared))
+
+    assert_equal({ data: { turbo: false } }, shared)
+    assert_selector('[data-controller~="speech-input"]')
+    assert_selector('[data-controller~="chat-composer"]')
   end
 
   def test_renders_a_submit_button
@@ -365,7 +396,7 @@ class BaliChatComposerComponentTest < ComponentTestCase
     render_inline(Bali::Chat::Composer::Component.new(
                     name: "message", field_options: { required: true, id: "composer", class: "h-24" }
                   ))
-    assert_selector("textarea#composer[required].h-24.textarea.field-sizing-content")
+    assert_selector("textarea#composer[required].h-24.textarea.bali-chat-composer-field")
   end
 
   def test_the_hosts_classes_land_on_the_wrapper

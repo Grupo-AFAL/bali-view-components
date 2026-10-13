@@ -174,10 +174,53 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
     refute_html(result, 'p[data-speech-input-target="status"]')
   end
 
-  def test_text_area_with_dictation_leaves_room_for_the_button_under_the_last_line
+  # The mic hangs off the FIELD's box and not off the `.control`: with a counter the `.control`
+  # also holds the `<p class="text-end">` underneath, and a mic anchored there lands on the
+  # `12 / 200`.
+  def test_text_area_with_dictation_hangs_the_button_off_the_field_and_not_the_control_box
     result = builder.text_area(:synopsis, dictation: true)
-    assert_html(result, "div.control.relative")
-    assert_html(result, "textarea.pb-12")
+    assert_html(result, "div.control > div.bali-dictation-field.relative > textarea.pb-12")
+    refute_html(result, "div.control.relative")
+  end
+
+  def test_text_area_with_dictation_and_a_counter_keeps_the_count_out_from_under_the_mic
+    result = builder.text_area(:synopsis, dictation: true, char_counter: { max: 200 })
+    # The counter is a sibling of the mic's box, not inside it.
+    assert_html(result, 'div.control > div.bali-dictation-field + p[data-textarea-target="counter"]',
+                visible: :all)
+    refute_html(result, '.bali-dictation-field [data-textarea-target="counter"]', visible: :all)
+  end
+
+  # Two of Bali's own controllers share the `.control` box now, so the counter stopped writing
+  # `controller:` flat. A call site that declared its own used to lose it without a word, and
+  # nothing covered that — the CHANGELOG claims the fix, so here is what holds it.
+  def test_control_data_keeps_a_controller_the_call_site_declared
+    result = builder.text_area(:synopsis, auto_grow: true, dictation: true,
+                                          control_data: { controller: "mine" })
+
+    assert_html(result, 'div.control[data-controller~="mine"]')
+    assert_html(result, 'div.control[data-controller~="textarea"]')
+    assert_html(result, 'div.control[data-controller~="speech-input"]')
+  end
+
+  def test_control_data_keeps_a_controller_the_call_site_declared_without_dictation
+    result = builder.text_area(:synopsis, char_counter: { max: 10 },
+                                          control_data: { controller: "mine" })
+
+    assert_html(result, 'div.control[data-controller~="mine"]')
+    assert_html(result, 'div.control[data-controller~="textarea"]')
+  end
+
+  # `dictation:` is the textarea's. Every other family gives its control no `speech-input`
+  # target, so a mic there would be wired to nothing — it is rejected, loudly, not half-applied.
+  def test_dictation_is_rejected_on_a_family_that_cannot_wire_it
+    result = nil
+    assert_deprecated(/dictation.*textarea/m, Bali.deprecator) do
+      result = builder.text_field(:name, dictation: true)
+    end
+    refute_html(result, "[data-speech-input-target]", visible: :all)
+    refute_html(result, '[data-controller~="speech-input"]')
+    refute_html(result, "input[dictation]")
   end
 
   def test_text_area_with_dictation_hash_carries_the_language
@@ -191,10 +234,13 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
     refute_html(result, "div[data-speech-input-lang-value]")
   end
 
+  # `visible: :all` on the targets: the mic and the status line are rendered `hidden`, so
+  # Capybara's default scope would not find them even if they HAD leaked in.
   def test_text_area_without_dictation_carries_no_trace_of_it
     result = builder.text_area(:synopsis, auto_grow: true)
     refute_html(result, '[data-controller~="speech-input"]')
-    refute_html(result, "[data-speech-input-target]")
+    refute_html(result, "[data-speech-input-target]", visible: :all)
+    refute_html(result, ".bali-dictation-field", visible: :all)
     refute_html(result, "textarea.pb-12")
   end
 

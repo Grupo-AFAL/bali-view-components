@@ -59,10 +59,6 @@ module Bali
       # app/assets/javascripts/bali/controllers/textarea-controller.js#updateCounter, which takes it
       # off past the maximum.
       COUNTER_CLASS = "text-base-content/70 text-end w-full"
-      # Bottom-right of the control box, out of the text's way. `btn-ghost` is the resting look;
-      # `speech-input` swaps it for `btn-error` while the mic is open.
-      DICTATION_BUTTON_CLASS = "btn btn-ghost btn-sm btn-square absolute bottom-2 right-2"
-      DICTATION_STATUS_CLASS = "fieldset-label"
 
       # `number_with_commas` keeps its old name — it is the value hosts already
       # pass — but it no longer means "commas". Both separators are read from the
@@ -595,7 +591,13 @@ module Bali
         options[:multiple] || options["multiple"]
       end
 
-      def field_helper(method, field, options = {})
+      # `dictation_supported:` is the textarea's alone: it is the only family whose
+      # `*_field_options` gives the control the `speech-input` target. Any other one would render
+      # a mic wired to nothing, so the option is REJECTED there rather than half-applied — the
+      # same answer `auto_grow` gives an `<input>` (#723), said out loud because here the markup
+      # would otherwise look like a working feature.
+      def field_helper(method, field, options = {}, dictation_supported: false)
+        warn_unsupported_dictation(options) if dictation?(options) && !dictation_supported
         warn_mistaken_options(options)
         messages = error_and_help(method, options)
 
@@ -609,7 +611,8 @@ module Bali
         #
         # Whichever of the two comes out outermost is the box around the control,
         # and so the one `control_class:` and `control_data:` name — see `control_box`.
-        join_is_the_box = addons && !char_counter?(options) && !dictation?(options)
+        dictating = dictation_supported && dictation?(options)
+        join_is_the_box = addons && !char_counter?(options) && !dictating
         box = join_is_the_box ? options : {}
         control = if addons
           field_with_addons(field, left: left_addon, right: right_addon, box: box)
@@ -619,8 +622,12 @@ module Bali
 
         return control + messages if join_is_the_box
 
+        # The mic hangs off the CONTROL and not off the control box: with a counter, the box
+        # also holds the `<p class="text-end">` underneath, and a mic anchored to the box lands
+        # on top of the `12 / 200`.
+        control = dictation_box(control) if dictating
         control_box(
-          safe_join([ control, dictation_elements(options), counter_element(options) ].compact),
+          safe_join([ control, counter_element(options) ].compact),
           options
         ) + messages
       end
@@ -642,7 +649,7 @@ module Bali
       def control_box(content, options, base: "control")
         content_tag(
           :div, content,
-          class: @template.token_list(base, dictation_control_class(options), options[:control_class]),
+          class: @template.token_list(base, options[:control_class]),
           data: control_data(options)
         )
       end
@@ -791,7 +798,8 @@ module Bali
         end
 
         if dictation?(options)
-          data = data.merge('speech-input-lang-value': dictation_lang(options))
+          lang = dictation_lang(options)
+          data = data.merge('speech-input-lang-value': lang) if lang
           controllers << "speech-input"
         end
 
@@ -855,34 +863,30 @@ module Bali
         )
       end
 
-      # The mic and the line that replaces it when the browser refuses. Both inside the control
-      # box, which is the element carrying the controller.
+      # The control, the mic and the status line in a box of their own, so the mic hangs off the
+      # FIELD's corner. With a counter the `.control` also holds the `<p class="text-end">`
+      # underneath, and a mic anchored to the `.control` lands on top of the `12 / 200`.
       #
-      # The button is `hidden` from the server: `speech-input` reveals it only where the browser
-      # has recognition, so a browser without it renders a field with no trace of a feature it
-      # cannot offer. Absolutely positioned at the bottom-right of the box, which is why the
-      # control gets room on that side — see `dictation_control_class`.
-      def dictation_elements(options)
-        return unless dictation?(options)
-
-        label = I18n.t("bali_view.form_builder.dictation.dictate")
-        safe_join([
-          content_tag(:button, dictation_icon, type: "button", hidden: true,
-                                               class: DICTATION_BUTTON_CLASS, title: label,
-                                               aria: { label: label, pressed: "false" },
-                                               data: { 'speech-input-target': "button",
-                                                       action: "speech-input#toggle" }),
-          content_tag(:p, I18n.t("bali_view.form_builder.dictation.unavailable"),
-                      class: DICTATION_STATUS_CLASS, role: "status", hidden: true,
-                      data: { 'speech-input-target': "status" })
-        ])
+      # `pb-12` on the field is what keeps its last line from running under the mic — `pb` and
+      # not `pr`, because the mic is at the bottom and padding on the right would hold every
+      # line short to protect one.
+      def dictation_box(control)
+        content_tag(:div, class: "bali-dictation-field relative") do
+          control + @template.render(
+            Bali::Dictation::Component.new(button_class: "btn-sm absolute bottom-2 right-2")
+          )
+        end
       end
 
-      def dictation_icon = @template.render(Bali::Icon::Component.new("mic", size: :small))
-
-      # Room for the mic at the bottom-right, so a dictated line does not run under it.
-      def dictation_control_class(options)
-        "relative" if dictation?(options)
+      # A family that cannot wire the control as the dictation's subject must not paint a mic.
+      def warn_unsupported_dictation(options)
+        Bali.deprecator.warn(
+          "Bali::FormBuilder: `dictation:` is a textarea's option and was ignored — " \
+          "the families that render an `<input>` or a widget give their control no " \
+          "`speech-input` target, so the mic would never be wired to anything."
+        )
+        options.delete(:dictation)
+        options.delete("dictation")
       end
 
       # Auto-grow is a textarea's own option and does not imply a counter, but it

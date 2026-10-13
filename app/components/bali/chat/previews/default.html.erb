@@ -16,14 +16,19 @@
 %>
 
 <div class="p-6 bg-base-200 min-h-[560px]">
-  <%# `url:` back to this very preview, and with GET: a preview that navigates away the moment
-    you press Send is not showing you the component, it is showing Lookbook's home page. %>
-<%= render Bali::Chat::Component.new(
-      id: 'chat-messages', threshold: threshold, class: 'h-[60vh]',
-      url: request.path, form_options: { method: :get },
-      composer: { name: 'message',
-                  field_options: { 'aria-label': 'Write a message' },
-                  submit_options: { data: { action: 'click->chat#showTyping' } } }) do |chat| %>
+  <%# `url:` is what brings the composer. It posts to a dummy route that answers a Turbo Stream
+      with nothing in it, so Send exercises the real path — the reset, the follow-the-send
+      scroll — WITHOUT leaving the preview. Pointing it at `/lookbook` sent you to Lookbook's
+      home page, and pointing it back here with GET reloaded the page, which quietly took the
+      teeth out of chat-controller.cy.js: everything it checks survives a reload. %>
+  <%= render Bali::Chat::Component.new(
+        id: 'chat-messages',
+        threshold: threshold,
+        class: 'h-[480px] max-w-2xl mx-auto rounded-box border border-base-300 bg-base-100',
+        url: '/lookbook/noop',
+        composer: { name: 'message',
+                    submit_options: { data: { action: 'click->chat#showTyping' } } }
+      ) do |chat| %>
 
     <% conversation.each do |role, body, minutes| %>
       <% assistant = role == 'assistant' %>

@@ -4335,12 +4335,17 @@ Stimulus hangs off the form stay the host's.
 
 - `name` - `name` of the field (`'message[content]'`)
 - `placeholder`, `submit` - the two bits of copy; translated by default
-- `rows` - starting height, and the floor the field returns to (default: `2`)
+- `label` - the field's accessible name; translated by default. A placeholder is not a
+  label: it disappears the moment someone types
 - `dictation` - **on by default.** `false` drops the mic; `{ lang: 'en-US' }` says which
   language is being spoken (default `es-MX`)
 - `field_options`, `submit_options` - straight onto the `<textarea>` and the send button,
   for a `required`, an `id`, or a `data-action` of the host's own
 - `with_action` - anything else that belongs in the row, between the field and send
+
+It also clears itself once a message went through — and only then, so a send the server
+turned down leaves the text to be sent again — and sends on Enter, with Shift+Enter for a
+newline. Both come from the `chat-composer` controller.
 
 **Dictation is on here and opt-in everywhere else.** A composer is where speaking instead of
 typing earns its place, so this is the one control in the library that starts with it. The

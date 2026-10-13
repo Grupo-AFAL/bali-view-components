@@ -72,6 +72,7 @@ export {
   PrintController,
   RadioButtonsGroupController,
   RadioToggleController,
+  ChatComposerController,
   SlimSelectController,
   SpeechInputController,
   StepNumberInputController,

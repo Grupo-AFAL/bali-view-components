@@ -7,13 +7,7 @@
     <%= tag.textarea(nil, name: name, **field_attributes) %>
 
     <% if dictation? %>
-      <%# Written hidden and revealed by `speech-input` only where the browser has
-          recognition: the markup never promises what the browser cannot do. %>
-      <%= tag.button(type: "button", hidden: true, class: "btn btn-ghost btn-square shrink-0",
-                     title: dictate_label, aria: { label: dictate_label, pressed: "false" },
-                     data: { 'speech-input-target': "button", action: "speech-input#toggle" }) do %>
-        <%= render Bali::Icon::Component.new("mic") %>
-      <% end %>
+      <%= render Bali::Dictation::Component.new(part: :button) %>
     <% end %>
 
     <% actions.each do |action| %>
@@ -23,8 +17,10 @@
     <%= tag.button(submit_label, **submit_attributes) %>
   <% end %>
 
+  <%# The mic and its status line, the same pair the FormBuilder's `dictation:` renders — one
+      component, because the two copies had already drifted apart in button size, icon size and
+      the status line's margin. The mic goes in the row; the status line below it. %>
   <% if dictation? %>
-    <%= tag.p(unavailable_label, class: "fieldset-label mt-2", role: "status", hidden: true,
-              data: { 'speech-input-target': "status" }) %>
+    <%= render Bali::Dictation::Component.new(part: :status, status_class: "mt-2") %>
   <% end %>
 <% end %>

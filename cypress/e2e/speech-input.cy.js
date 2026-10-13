@@ -31,9 +31,11 @@ describe('Dictation', () => {
             interimResults: false,
             started: 0,
             stopped: 0,
+            aborted: 0,
             addEventListener (name, handler) { (listeners[name] ||= []).push(handler) },
             start () { self.started += 1 },
             stop () { self.stopped += 1 },
+            abort () { self.aborted += 1 },
             emit (name, event) { (listeners[name] || []).forEach(handler => handler(event)) },
             // `results` is array-like in the real API, and the controller walks it with
             // `Array.from`: a plain array is the same thing to it.
@@ -55,12 +57,16 @@ describe('Dictation', () => {
       mic().should('be.visible').and('have.attr', 'aria-pressed', 'false')
     })
 
-    it('starts the session with the language the field asked for', () => {
+    // #1451 review: no language is set unless the field asked for one. Without `lang` the API
+    // falls back to the page's own `<html lang>`, which is right far more often than any single
+    // default this library could pick for every host — the old `es-MX` had an English host
+    // dictating in Spanish.
+    it('starts the session and leaves the language to the page', () => {
       mic().click()
 
       engine().should(speech => {
         expect(speech.started).to.equal(1)
-        expect(speech.lang).to.equal('es-MX')
+        expect(speech.lang, 'no lang means the page decides').to.equal(null)
         expect(speech.continuous, 'pauses must not end the session').to.equal(true)
         expect(speech.interimResults).to.equal(true)
       })
@@ -121,31 +127,63 @@ describe('Dictation', () => {
       engine().then(speech => speech.say('dictado'))
       field().type(' corregido a mano')
 
-      engine().should(speech => expect(speech.stopped).to.equal(1))
+      engine().should(speech => expect(speech.aborted).to.equal(1))
       field().should('have.value', 'dictado corregido a mano')
     })
 
     // A mic left open over a composer that has already been sent. The controller listens for its
     // own form's submit: a `data-action` is one more thing a call site can forget, and forgetting
     // it is not visible.
-    it('stops when the form is submitted', () => {
+    // #1451 review: this used to pass with or without the submit listener. The preview POSTs to
+    // a route the dummy only answers on GET, so Turbo painted the 404, the controller
+    // disconnected, and `disconnect()` ended the session anyway. The submission is cancelled
+    // here so the page stays put and the listener is the only thing that can do it.
+    it('stops when the form is submitted, without leaving the page', () => {
+      cy.get('form').first().then($form => {
+        $form[0].addEventListener('submit', event => event.preventDefault())
+      })
       mic().click()
-      cy.get('button[type="submit"]').click()
+      cy.get('button[type="submit"]').first().click()
 
-      engine().should(speech => expect(speech.stopped).to.equal(1))
+      engine().should(speech => expect(speech.aborted).to.equal(1))
+      mic().should('have.attr', 'aria-pressed', 'false')
+      cy.location('pathname').should('eq', '/lookbook/preview/bali/form/text_area/dictation')
     })
 
-    // A stopped session still delivers its last result afterwards; acting on it would write over
-    // a field the person has moved on from.
-    it('ignores what a session delivers after it was stopped', () => {
-      mic().click()
-      field().should('have.value', '')
-      engine().then(speech => {
-        speech.emit('end')
-        speech.say('llegó tarde')
+    // #1451 review. The two ways a session ends are NOT the same, and the old test pinned the
+    // wrong one for both. In the Web Speech API `stop()` is the call that hands over the audio
+    // the engine is still holding; `abort()` is the one that throws it away.
+    context('ending the session', () => {
+      it('keeps the last phrase when the mic is tapped again', () => {
+        mic().click()
+        engine().then(speech => speech.say('primera'))
+        mic().click()
+
+        engine().should(speech => {
+          expect(speech.stopped, 'tapping the mic must not discard the audio').to.equal(1)
+          expect(speech.aborted).to.equal(0)
+        })
+        // What `stop()` delivers afterwards still belongs to the person who said it.
+        engine().then(speech => {
+          speech.say('primera y la última frase')
+          speech.emit('end')
+        })
+
+        field().should('have.value', 'primera y la última frase')
+        mic().should('have.attr', 'aria-pressed', 'false')
       })
 
-      field().should('have.value', '')
+      it('throws the last phrase away when the person typed over it', () => {
+        mic().click()
+        engine().then(speech => speech.say('dictado'))
+        field().type(' corregido')
+
+        engine().should(speech => expect(speech.aborted).to.equal(1))
+        // Anything still in the engine would rebuild the field from `base` and eat the
+        // correction, so after an abort it is ignored.
+        engine().then(speech => speech.say('dictado de más'))
+        field().should('have.value', 'dictado corregido')
+      })
     })
 
     context('when it fails', () => {
@@ -157,14 +195,19 @@ describe('Dictation', () => {
         status().should('not.be.visible')
       })
 
-      // Permission refused, the service blocked, a language the engine does not have: the same
-      // answer on every try. A mic that stays there promises something it cannot do.
-      it('retires the mic and says so when the error will repeat', () => {
+      // #1451 review. The mic is NOT retired: `not-allowed` is also what Chrome reports when the
+      // permission prompt is dismissed without choosing, and `network` can be one bad second —
+      // taking the button away for either would need a reload to undo. The line says what
+      // happened, and the one control that can retry stays.
+      it('says what happened and keeps the mic for another try', () => {
         mic().click()
         engine().then(speech => speech.emit('error', { error: 'not-allowed' }))
 
-        mic().should('not.be.visible')
         status().should('be.visible').and('have.attr', 'role', 'status')
+        mic().should('be.visible').and('have.attr', 'aria-pressed', 'false')
+
+        mic().click()
+        status().should('not.be.visible')
       })
     })
   })
@@ -182,9 +225,11 @@ describe('Dictation', () => {
             const self = {
               lang: null,
               stopped: 0,
+              aborted: 0,
               addEventListener (name, handler) { (listeners[name] ||= []).push(handler) },
               start () {},
               stop () { self.stopped += 1 },
+              abort () { self.aborted += 1 },
               emit (name, event) { (listeners[name] || []).forEach(handler => handler(event)) },
               say (...phrases) {
                 self.emit('result', { results: phrases.map(phrase => [{ transcript: phrase }]) })
@@ -205,11 +250,15 @@ describe('Dictation', () => {
       composer().should('have.value', 'dictado en el chat')
     })
 
-    it('stops when the composer form is submitted', () => {
+    it('stops when the composer form is submitted, without leaving the page', () => {
+      cy.get('#composer-form').then($form => {
+        $form[0].addEventListener('submit', event => event.preventDefault())
+      })
       cy.get('#composer-form [data-speech-input-target="button"]').click()
       cy.get('#composer-form button[type="submit"]').click()
 
-      cy.window().should(win => expect(win.__speech.stopped).to.equal(1))
+      cy.window().should(win => expect(win.__speech.aborted).to.equal(1))
+      cy.location('pathname').should('eq', '/lookbook/preview/bali/chat/composer')
     })
 
     it('renders no mic at all with `dictation: false`', () => {

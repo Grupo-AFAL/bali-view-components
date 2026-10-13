@@ -36,39 +36,46 @@ module Bali
         # rendered between the field and send.
         renders_many :actions
 
-        # Dictation into a textarea that grows: the two options are written for each
-        # other, and growing is the browser's (`field-sizing`) rather than a controller
-        # writing an inline height, which is what `auto_grow` had to undo on a reset.
-        FIELD_CLASS = "textarea w-full resize-none field-sizing-content max-h-48 overflow-y-auto"
+        # Only what identifies the control. Its look — the growth, the cap, the resize handle —
+        # is in `index.css` under `@layer components`, so a host's `field_options: { class: }`
+        # beats it: two utilities for the same property both land in `@layer utilities` and the
+        # winner there is whichever Tailwind emitted last, not whoever wrote theirs last.
+        FIELD_CLASS = "textarea bali-chat-composer-field"
 
         # @param name [String] `name` of the field — `'message[content]'`, or whatever the
         #   action reads.
+        # @param label [String, nil] The field's accessible name. A placeholder is NOT a label
+        #   (see `docs/guides/accessibility.md`): it disappears the moment someone types and some
+        #   screen readers never announce it. Translated by default; `aria-label` because a chat
+        #   composer carries no visible caption.
         # @param placeholder [String, nil] Placeholder for the field.
         # @param submit [String, nil] Label for the send button; the translation by default.
-        # @param rows [Integer] Starting height, and the floor it returns to.
         # @param dictation [Boolean, Hash] `false` to drop the mic, or `{ lang: 'en-US' }`
         #   to say which language is being spoken. See the note above before turning it on
         #   anywhere the conversation is confidential.
         # @param field_options [Hash] Straight onto the `<textarea>` — `required`, `id`,
-        #   `maxlength`, a `data` of the host's own.
+        #   `maxlength`, `rows`, a `data` of the host's own.
         # @param submit_options [Hash] Straight onto the send button. A composer's send is where
         #   a host hangs its own Stimulus (`chat#showTyping`, a confirm) or its own class, so it
         #   takes attributes rather than being sealed.
-        def initialize(name:, placeholder: nil, submit: nil, rows: 2, dictation: true,
+        def initialize(name:, label: nil, placeholder: nil, submit: nil, dictation: true,
                        field_options: {}, submit_options: {}, **options)
           @name = name
+          @label = label
           @placeholder = placeholder
           @submit = submit
-          @rows = rows
           @dictation = dictation
           @field_options = field_options
           @submit_options = submit_options
-          @options = options
+          # `detach_data` and not `dup`: `dup` copies the first level only, and
+          # `prepend_controller` writes INSIDE `data`. A host that reuses one options hash across
+          # two composers would end up with `speech-input speech-input` on the second.
+          @options = detach_data(options)
         end
 
         private
 
-        attr_reader :name, :placeholder, :submit, :rows, :dictation, :field_options,
+        attr_reader :name, :label, :placeholder, :submit, :dictation, :field_options,
                     :submit_options, :options
 
         def dictation? = dictation.present?
@@ -77,14 +84,16 @@ module Bali
 
         def submit_label = submit || I18n.t("bali_view.chat.composer.send")
 
-        def dictate_label = t("bali_view.form_builder.dictation.dictate")
-
-        def unavailable_label = t("bali_view.form_builder.dictation.unavailable")
+        def field_label = label || I18n.t("bali_view.chat.composer.label")
 
         # The outer element: the host's classes and, when there is dictation, the controller
         # that has to contain the field, the mic and the status line alike.
         def wrapper_attributes
           attrs = prepend_class_name(options.dup, "bali-chat-composer")
+          # Clearing after a successful send and sending on Enter: two things every chat needs
+          # and a plain form does not do. See `chat-composer-controller.js`.
+          attrs = prepend_controller(attrs, "chat-composer")
+          attrs = prepend_action(attrs, "turbo:submit-end->chat-composer#submitEnd")
           return attrs unless dictation?
 
           attrs = prepend_controller(attrs, "speech-input")
@@ -100,9 +109,11 @@ module Bali
 
         def field_attributes
           attrs = field_options.deep_dup
-          attrs[:rows] = rows
           attrs[:placeholder] = placeholder || I18n.t("bali_view.chat.composer.placeholder")
+          attrs[:aria] = { label: field_label }.merge(attrs[:aria] || {})
           attrs[:class] = class_names(FIELD_CLASS, attrs[:class])
+          attrs = prepend_data_attribute(attrs, :'chat-composer-target', "field")
+          attrs = prepend_action(attrs, "keydown.enter->chat-composer#enter")
           return attrs unless dictation?
 
           attrs = prepend_data_attribute(attrs, :'speech-input-target', "input")
