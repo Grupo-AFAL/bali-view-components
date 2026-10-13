@@ -53,6 +53,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.control` ya no pisa un `controller:` que el call site hubiera declarado en `control_data:` —
   antes el contador lo sobrescribía sin decir nada—, porque el dictado y el contador comparten
   esa caja.
+## [v3.14.1] - 2026-10-13
+
+### Fixed
+
+- **BlockEditor dentro de una `Bali::Card`: el placeholder sale a la izquierda** (#1455). La
+  regla `.card-body p { flex-grow: 1 }` de daisyUI estiraba el párrafo vacío y empujaba el
+  placeholder al borde derecho; lo mismo le pasaba a la caja de respuesta de un panel de hilos
+  (`comments_container_id:`) puesto en una Card. Fuera de una Card no cambia nada. Nada que
+  hacer en la app.
+- **La X de cerrar de `Bali::Alert` toma el color del texto del aviso** (#1456), y con ella la
+  de `Toast` y la de todo lo que se arma sobre Alert. Tomaba el `base-content` del tema: en los
+  temas oscuros, una X clara sobre un aviso sólido de color claro (1.37:1 a 2.67:1). El hover no
+  cambia. Nada que hacer en la app.
+- **El check `cypress` ya no depende de la fecha** (#1458). `muted-text-contrast.cy.js` fijaba
+  en 13 las etiquetas en mayúsculas del Gantt, pero cuántas bandas de mes dibuja el eje cambia
+  con el día: desde el 13/10/2026 el spec fallaba en cualquier PR. Ahora visita el preview en un
+  día fijo, con el parámetro nuevo `gantt/default?today=` (sin control en Lookbook), y con el
+  reloj del navegador parado en ese día. Los componentes no cambian. Nada que hacer en la app.
+
+### Documentation
+
+- **Instalación: el generador no detecta Vite.** `bin/rails g bali:install` reconoce tailwindcss-rails, cssbundling-rails y las rutas de `app/javascript/`; en un host con Vite, con el diseño por omisión de vite_rails, no escribe ni el CSS ni el JavaScript y sugiere jsbundling y tailwindcss-rails. La guía ya no lo presenta como soportado: un host con Vite cablea los Pasos 3 y 4 a mano, importando `bali-view-components/tailwind/engine.css`. Sin cambios de código.
 
 ## [v3.14.0] - 2026-10-12
 

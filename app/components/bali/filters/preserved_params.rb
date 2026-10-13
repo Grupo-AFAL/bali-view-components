@@ -16,7 +16,9 @@ module Bali
     module PreservedParams
       # `saved_view` is NOT preserved: re-sending it makes the server re-apply the view's
       # payload, silently trampling the filters or the search the user has just typed.
-      # (`page` does travel: preserving it is deliberate Bali behaviour.)
+      # `page` is NOT excluded, and that is the opposite of `DataTable::ToolbarHref::TRANSIENT_PARAMS`,
+      # which drops it: a filter submit keeps the reader on their page, an export must take the
+      # whole set.
       # filters_controller.js builds on these hidden fields, not on `url:`'s query, for the URL it
       # pushes and the ones Clear and the search's × visit.
       EXCLUDED_PARAMS = %w[q clear_filters clear_search saved_view].freeze

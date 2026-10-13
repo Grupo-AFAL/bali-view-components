@@ -17,3 +17,14 @@
 .alert-dash > .icon-component {
   color: var(--alert-color, currentColor);
 }
+
+/* daisyUI paints a resting `.btn-ghost` in `var(--btn-rest-fg, var(--btn-color,
+ * var(--color-base-content)))`, so the close X took base-content, not the alert's text: over a
+ * solid alert on the dark themes it measured 1.37–2.67:1 (#1456). daisyUI sets `--btn-rest-fg`
+ * only on `.btn-neutral`, so this layer is enough. Not an unlayered `color: inherit`: it would
+ * also outrank the hover, which daisyUI paints in `--btn-fg` over a base-200 disc, where a dark
+ * text colour vanishes (1.24:1 on `dark`).
+ */
+.alert-component .alert-dismiss {
+  --btn-rest-fg: currentColor;
+}
