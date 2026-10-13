@@ -627,7 +627,7 @@ module Bali
         # on top of the `12 / 200`.
         control = dictation_box(control) if dictating
         control_box(
-          safe_join([ control, counter_element(options) ].compact),
+          safe_join([ control, dictation_status(dictating), counter_element(options) ].compact),
           options
         ) + messages
       end
@@ -873,9 +873,20 @@ module Bali
       def dictation_box(control)
         content_tag(:div, class: "bali-dictation-field relative") do
           control + @template.render(
-            Bali::Dictation::Component.new(button_class: "btn-sm absolute bottom-2 right-2")
+            Bali::Dictation::Component.new(part: :button,
+                                           button_class: "btn-sm absolute bottom-2 right-2")
           )
         end
+      end
+
+      # A SIBLING of the box above and not a child of it, like the counter: inside, showing the
+      # line grows the box, and the mic — anchored to its bottom — rides down with it onto the
+      # field's border. Measured after an error: the button went from 137–169 to 155–187 over a
+      # field ending at 177.
+      def dictation_status(dictating)
+        return unless dictating
+
+        @template.render(Bali::Dictation::Component.new(part: :status))
       end
 
       # A family that cannot wire the control as the dictation's subject must not paint a mic.

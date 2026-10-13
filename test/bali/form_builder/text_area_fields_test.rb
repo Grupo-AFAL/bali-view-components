@@ -183,10 +183,21 @@ class BaliFormBuilderTextAreaFieldsTest < FormBuilderTestCase
     refute_html(result, "div.control.relative")
   end
 
+  # The status line is a SIBLING of the mic's box, like the counter. Inside it, showing the line
+  # grows the box and the mic — anchored to its bottom — rides down onto the field's border:
+  # measured, the button went from 137–169 to 155–187 over a field ending at 177.
+  def test_the_status_line_is_a_sibling_of_the_mics_box_and_not_inside_it
+    result = builder.text_area(:synopsis, dictation: true)
+    assert_html(result, 'div.control > div.bali-dictation-field + p[data-speech-input-target="status"]',
+                visible: :all)
+    refute_html(result, '.bali-dictation-field [data-speech-input-target="status"]', visible: :all)
+  end
+
   def test_text_area_with_dictation_and_a_counter_keeps_the_count_out_from_under_the_mic
     result = builder.text_area(:synopsis, dictation: true, char_counter: { max: 200 })
     # The counter is a sibling of the mic's box, not inside it.
-    assert_html(result, 'div.control > div.bali-dictation-field + p[data-textarea-target="counter"]',
+    # `~` and not `+`: the status line sits between them, also as a sibling of the box.
+    assert_html(result, 'div.control > div.bali-dictation-field ~ p[data-textarea-target="counter"]',
                 visible: :all)
     refute_html(result, '.bali-dictation-field [data-textarea-target="counter"]', visible: :all)
   end

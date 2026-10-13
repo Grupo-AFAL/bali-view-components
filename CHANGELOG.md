@@ -63,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Trae además lo que cada app reimplementaba: **se limpia tras un envío exitoso** —y sólo
   exitoso, para no tirar lo que habría que volver a escribir— y **Enter envía**, Shift+Enter
   escribe un renglón. Lo segundo dejó de salir gratis al pasar de `<input>` a `<textarea>`.
-  El controlador es `chat-composer`, y `submit_on_enter: false` deja a Enter en paz.
+  El controlador es `chat-composer`, y `submit_on_enter: false` deja a Enter en paz. El campo
+  vuelve a tener el cursor después de enviar.
 
   **Anfitrión:** nada que hacer; sin `dictation:` no cambia un solo atributo. De paso, el
   `.control` ya no pisa un `controller:` que el call site hubiera declarado en `control_data:` —

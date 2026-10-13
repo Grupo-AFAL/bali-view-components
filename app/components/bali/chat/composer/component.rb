@@ -5,15 +5,9 @@ module Bali
     module Composer
       # The row a conversation is written in: the field, the mic, and send.
       #
-      # It was the one piece of the chat every caller still hand-rolled. Both apps the
-      # container came from write the same row, and so did this repo's own preview, under
-      # a comment that said as much: "a chat composer is one unlabelled field in a row".
-      # Three copies of a row is a component.
-      #
-      # It renders the ROW and not the form: the form's url, its method and whatever
-      # Stimulus a host hangs off it (a reset after a successful submit, a confirm, a
-      # rate-limit guard) are the host's, and a component that owned them would need an
-      # escape hatch for each.
+      # It renders the ROW and not the form: the form's url, its method and whatever Stimulus a
+      # host hangs off it (a confirm, a rate-limit guard) are the host's. `Chat::Component` with
+      # a `url:` renders both and is the shorter way in.
       #
       #   <% chat.with_footer do %>
       #     <%= form_with url: messages_path do %>
@@ -55,16 +49,19 @@ module Bali
         #   anywhere the conversation is confidential.
         # @param field_options [Hash] Straight onto the `<textarea>` — `required`, `id`,
         #   `maxlength`, `rows`, a `data` of the host's own.
+        # @param submit_on_enter [Boolean] `false` leaves Enter alone, for a composer where a
+        #   message is several paragraphs and sending by accident costs more than a second click.
         # @param submit_options [Hash] Straight onto the send button. A composer's send is where
         #   a host hangs its own Stimulus (`chat#showTyping`, a confirm) or its own class, so it
         #   takes attributes rather than being sealed.
         def initialize(name:, label: nil, placeholder: nil, submit: nil, dictation: true,
-                       field_options: {}, submit_options: {}, **options)
+                       submit_on_enter: true, field_options: {}, submit_options: {}, **options)
           @name = name
           @label = label
           @placeholder = placeholder
           @submit = submit
           @dictation = dictation
+          @submit_on_enter = submit_on_enter
           @field_options = field_options
           @submit_options = submit_options
           # `detach_data` and not `dup`: `dup` copies the first level only, and
@@ -75,8 +72,8 @@ module Bali
 
         private
 
-        attr_reader :name, :label, :placeholder, :submit, :dictation, :field_options,
-                    :submit_options, :options
+        attr_reader :name, :label, :placeholder, :submit, :dictation, :submit_on_enter,
+                    :field_options, :submit_options, :options
 
         def dictation? = dictation.present?
 
@@ -90,10 +87,11 @@ module Bali
         # that has to contain the field, the mic and the status line alike.
         def wrapper_attributes
           attrs = prepend_class_name(options.dup, "bali-chat-composer")
-          # Clearing after a successful send and sending on Enter: two things every chat needs
-          # and a plain form does not do. See `chat-composer-controller.js`.
+          # Clearing after a successful send and sending on Enter. No `data-action` for the
+          # first: Turbo dispatches `turbo:submit-end` on the FORM, which is this element's
+          # ancestor, and events do not travel down — the controller subscribes to it itself.
           attrs = prepend_controller(attrs, "chat-composer")
-          attrs = prepend_action(attrs, "turbo:submit-end->chat-composer#submitEnd")
+          attrs = prepend_values(attrs, "chat-composer", submit_on_enter: submit_on_enter)
           return attrs unless dictation?
 
           attrs = prepend_controller(attrs, "speech-input")

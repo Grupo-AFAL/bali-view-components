@@ -4338,7 +4338,9 @@ Stimulus hangs off the form stay the host's.
 - `label` - the field's accessible name; translated by default. A placeholder is not a
   label: it disappears the moment someone types
 - `dictation` - **on by default.** `false` drops the mic; `{ lang: 'en-US' }` says which
-  language is being spoken (default `es-MX`)
+  language is being spoken — without it the page's own `<html lang>` decides
+- `submit_on_enter` - `false` leaves Enter alone, for a composer where a message runs to
+  several paragraphs
 - `field_options`, `submit_options` - straight onto the `<textarea>` and the send button,
   for a `required`, an `id`, or a `data-action` of the host's own
 - `with_action` - anything else that belongs in the row, between the field and send

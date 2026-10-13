@@ -57,10 +57,8 @@ describe('Dictation', () => {
       mic().should('be.visible').and('have.attr', 'aria-pressed', 'false')
     })
 
-    // #1451 review: no language is set unless the field asked for one. Without `lang` the API
-    // falls back to the page's own `<html lang>`, which is right far more often than any single
-    // default this library could pick for every host — the old `es-MX` had an English host
-    // dictating in Spanish.
+    // No language is set unless the field asked for one: without `lang` the API falls back to
+    // the page's own `<html lang>`, which beats any single default for every host.
     it('starts the session and leaves the language to the page', () => {
       mic().click()
 
@@ -134,10 +132,9 @@ describe('Dictation', () => {
     // A mic left open over a composer that has already been sent. The controller listens for its
     // own form's submit: a `data-action` is one more thing a call site can forget, and forgetting
     // it is not visible.
-    // #1451 review: this used to pass with or without the submit listener. The preview POSTs to
-    // a route the dummy only answers on GET, so Turbo painted the 404, the controller
-    // disconnected, and `disconnect()` ended the session anyway. The submission is cancelled
-    // here so the page stays put and the listener is the only thing that can do it.
+    // The submission is cancelled so the page stays put: let it navigate and the controller
+    // disconnects, and `disconnect()` ends the session whether the submit listener exists or
+    // not — which is a test that cannot fail.
     it('stops when the form is submitted, without leaving the page', () => {
       cy.get('form').first().then($form => {
         $form[0].addEventListener('submit', event => event.preventDefault())
@@ -150,9 +147,8 @@ describe('Dictation', () => {
       cy.location('pathname').should('eq', '/lookbook/preview/bali/form/text_area/dictation')
     })
 
-    // #1451 review. The two ways a session ends are NOT the same, and the old test pinned the
-    // wrong one for both. In the Web Speech API `stop()` is the call that hands over the audio
-    // the engine is still holding; `abort()` is the one that throws it away.
+    // The two ways a session ends are NOT the same: in the Web Speech API `stop()` hands over
+    // the audio the engine is still holding, and `abort()` throws it away.
     context('ending the session', () => {
       it('keeps the last phrase when the mic is tapped again', () => {
         mic().click()
@@ -195,10 +191,9 @@ describe('Dictation', () => {
         status().should('not.be.visible')
       })
 
-      // #1451 review. The mic is NOT retired: `not-allowed` is also what Chrome reports when the
-      // permission prompt is dismissed without choosing, and `network` can be one bad second —
-      // taking the button away for either would need a reload to undo. The line says what
-      // happened, and the one control that can retry stays.
+      // The mic is NOT retired: `not-allowed` is also what Chrome reports when the permission
+      // prompt is dismissed without choosing, and `network` can be one bad second. Taking the
+      // button away for either would need a reload to undo.
       it('says what happened and keeps the mic for another try', () => {
         mic().click()
         engine().then(speech => speech.emit('error', { error: 'not-allowed' }))

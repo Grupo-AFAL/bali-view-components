@@ -230,9 +230,10 @@ es:
         cancel: "Cancelar"
       dictation:
         dictate: "Dictar"
-        # Reemplaza al micrófono cuando el navegador lo niega de raíz: permiso denegado, servicio
-        # bloqueado, idioma que no tiene. No dice cuál de los tres: a quien lo lee no le sirve.
-        unavailable: "El dictado no está disponible en este navegador."
+        # Shown when a dictation did not happen — a refused permission, a blocked service, one
+        # bad second of network. It does not say which: the mic stays, and trying again is the
+        # only thing the reader can do about any of them.
+        unavailable: "No se pudo dictar. Inténtalo de nuevo."
       file:
         choose_file: "Seleccionar archivo"
         no_file_selected: "Ningún archivo seleccionado"

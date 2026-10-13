@@ -656,7 +656,12 @@ It clears only when the server accepted the message (`event.detail.success`): a 
 the rate limit or a validation turned down leaves the text where it is, to be sent
 again. Enter submits and Shift+Enter writes a newline — and an Enter that commits an
 IME candidate does neither, which is what `isComposing` is for.
-`data-chat-composer-submit-on-enter-value="false"` leaves Enter alone.
+`submit_on_enter: false` on the component, or
+`data-chat-composer-submit-on-enter-value="false"` by hand, leaves Enter alone.
+
+The listener for the clear goes on the FORM and not on this element: Turbo dispatches
+`turbo:submit-end` on the form, and events travel up — a `data-action` inside it never
+sees one.
 
 ## `speech-input`
 

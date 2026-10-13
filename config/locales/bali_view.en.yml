@@ -236,7 +236,7 @@ en:
         cancel: "Cancel"
       dictation:
         dictate: "Dictate"
-        unavailable: "Dictation is not available in this browser."
+        unavailable: "Dictation did not work. Try again."
       file:
         choose_file: "Choose file"
         no_file_selected: "No file selected"

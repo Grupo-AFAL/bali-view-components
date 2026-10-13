@@ -14,8 +14,8 @@
       input_id: 'dictated_in_english',
       help: 'Same control, dictated in English, with a fixed height.' %>
 
-  <%# With a counter: the mic hangs off the FIELD's box, not the `.control`, so it does not land
-      on top of the `12 / 200` that lives underneath (#1451 review). %>
+  <%# With a counter: the mic hangs off the FIELD's box and the status line is a sibling of it,
+      so neither lands on the `12 / 200` nor pushes the mic onto the field's border. %>
   <%= form.text_area_group :text,
       rows: 2,
       dictation: true,

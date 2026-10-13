@@ -367,6 +367,22 @@ class BaliChatComposerComponentTest < ComponentTestCase
     assert_no_selector('.flex.items-end p[role="status"]', visible: :all)
   end
 
+  # Turbo dispatches `turbo:submit-end` ON the form, and events travel up: a `data-action` on
+  # this element, which is inside the form, would never see it. The controller subscribes itself,
+  # so what is pinned here is the controller and the value, not an action that cannot fire.
+  def test_the_composer_carries_the_controller_that_clears_it_and_sends_on_enter
+    render_inline(Bali::Chat::Composer::Component.new(name: "message"))
+    assert_selector('[data-controller~="chat-composer"][data-chat-composer-submit-on-enter-value="true"]')
+    assert_selector('textarea[data-chat-composer-target="field"]')
+    assert_selector('textarea[data-action~="keydown.enter->chat-composer#enter"]')
+    assert_no_selector("[data-action*='chat-composer#submitEnd']")
+  end
+
+  def test_submit_on_enter_false_leaves_enter_alone
+    render_inline(Bali::Chat::Composer::Component.new(name: "message", submit_on_enter: false))
+    assert_selector('[data-chat-composer-submit-on-enter-value="false"]')
+  end
+
   def test_dictation_false_leaves_no_trace_of_it
     render_inline(Bali::Chat::Composer::Component.new(name: "message", dictation: false))
     assert_no_selector('[data-controller~="speech-input"]')

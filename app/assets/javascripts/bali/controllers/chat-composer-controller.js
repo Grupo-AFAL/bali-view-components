@@ -13,21 +13,31 @@ export class ChatComposerController extends Controller {
   static targets = ['field']
   static values = { submitOnEnter: { type: Boolean, default: true } }
 
-  // `turbo:submit-end` fires whether the server accepted the message or not, and the
-  // event carries the verdict. Clearing unconditionally throws away what the person
-  // would have to type again — a rate limit, a validation, a 500 — which is exactly
-  // the complaint that got `reset-form` written in the first place.
+  // Turbo dispatches `turbo:submit-end` ON the form, and events travel up. A
+  // `data-action` on this element — which sits INSIDE the form — never sees it, so the
+  // listener goes on the form itself, the same way `speech-input` reaches `submit`.
+  connect () {
+    this.form = this.element.closest('form')
+    this.onSubmitEnd = event => this.submitEnd(event)
+    this.form?.addEventListener('turbo:submit-end', this.onSubmitEnd)
+  }
+
+  disconnect () {
+    this.form?.removeEventListener('turbo:submit-end', this.onSubmitEnd)
+  }
+
+  // It fires whether the server accepted the message or not, and the event carries the
+  // verdict. Clearing unconditionally throws away what the person would have to type
+  // again — a rate limit, a validation, a 500.
   submitEnd (event) {
     if (!event.detail?.success) return
 
-    this.element.closest('form')?.reset()
+    this.form.reset()
     // The reset does not fire `input`, so anything sizing itself off the value has to
     // be told. `textarea`'s auto-grow listens for this; so does a character counter.
     this.fieldTarget.dispatchEvent(new Event('input', { bubbles: true }))
-    // No `focus()` here. Putting the caret back in the field after a send reads like an
-    // obvious courtesy, and it does not work: measured in Chrome 150, the focus lands on
-    // `<body>` whether it is taken in this handler or a task later. Rather than ship a line
-    // that looks like it does something, it is left out until someone finds out why.
+    // Back in the field: writing the next message is the only thing anyone does from here.
+    this.fieldTarget.focus()
   }
 
   // Enter sends, Shift+Enter writes a newline — what every chat does, and what the
@@ -35,13 +45,10 @@ export class ChatComposerController extends Controller {
   // IME commits a candidate with Enter, and submitting there would send half a word
   // in Japanese, Chinese or Korean.
   enter (event) {
-    if (!this.submitOnEnterValue) return
+    if (!this.submitOnEnterValue || !this.form) return
     if (event.shiftKey || event.isComposing) return
 
-    const form = this.element.closest('form')
-    if (!form) return
-
     event.preventDefault()
-    form.requestSubmit()
+    this.form.requestSubmit()
   }
 }

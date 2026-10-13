@@ -3,15 +3,12 @@
 module Bali
   module Dictation
     # The mic and the line that says the dictation did not happen — the two pieces the
-    # `speech-input` controller drives, written ONCE.
+    # `speech-input` controller drives. Rendered by the FormBuilder's `dictation:` option and by
+    # `Chat::Composer::Component`.
     #
-    # Two callers render them: the FormBuilder's `dictation:` option and
-    # `Chat::Composer::Component`. They used to carry a copy each, and the copies had already
-    # drifted apart in the button size, the icon size and the status line's margin.
-    #
-    # Both go inside the element carrying the controller. WHERE inside is the caller's: the
-    # form field hangs the mic off the corner of its own box, the composer puts it in the row
-    # next to send. Hence `button_class:`.
+    # Both go inside the element carrying the controller. WHERE inside is the caller's: the form
+    # field hangs the mic off the corner of its own box, the composer puts it in the row next to
+    # send. Hence `button_class:` and `part:`.
     class Component < ApplicationViewComponent
       PARTS = %i[all button status].freeze
 
