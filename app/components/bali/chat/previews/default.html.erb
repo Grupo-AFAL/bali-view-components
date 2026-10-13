@@ -16,9 +16,11 @@
 %>
 
 <div class="p-6 bg-base-200 min-h-[560px]">
-  <%= render Bali::Chat::Component.new(
+  <%# `url:` back to this very preview, and with GET: a preview that navigates away the moment
+    you press Send is not showing you the component, it is showing Lookbook's home page. %>
+<%= render Bali::Chat::Component.new(
       id: 'chat-messages', threshold: threshold, class: 'h-[60vh]',
-      url: '/lookbook',
+      url: request.path, form_options: { method: :get },
       composer: { name: 'message',
                   field_options: { 'aria-label': 'Write a message' },
                   submit_options: { data: { action: 'click->chat#showTyping' } } }) do |chat| %>
@@ -50,12 +52,17 @@
     <% end %>
 
     <%# No footer to assemble: the `url:` above is what brought the form, the field, the mic
-        and send. `with_composer_action` is for anything else that belongs in the row. %>
-    <% chat.with_composer_action do %>
-      <%= render Bali::Button::Component.new(
-            name: 'Stop typing', variant: :ghost, size: :sm,
-            data: { action: 'click->chat#hideTyping' }
-          ) %>
+        and send. `with_composer_action` is for anything else that belongs in the ROW, which
+        «Stop typing» is not — it drives the typing indicator and belongs to this preview, not
+        to the component, so it sits in the header where it reads as what it is. %>
+    <% chat.with_header do %>
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-sm font-semibold">Board assistant</span>
+        <%= render Bali::Button::Component.new(
+              name: 'Stop typing', variant: :ghost, size: :sm,
+              data: { action: 'click->chat#hideTyping' }
+            ) %>
+      </div>
     <% end %>
   <% end %>
 </div>
