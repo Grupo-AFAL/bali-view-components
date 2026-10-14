@@ -92,6 +92,10 @@ describe('ShowPage height: :full', () => {
     cy.get('.app-layout-body-container').then(($container) => {
       expect(rect($container).width, 'container width')
         .to.be.closeTo(parseFloat(getComputedStyle($container[0]).maxWidth), 1)
+      cy.get('main').then(($main) => {
+        expect(rect($container).left - rect($main).left, 'centred')
+          .to.be.closeTo(rect($main).right - rect($container).right, 1)
+      })
     })
     expectBodyToReachTheBottom()
   })

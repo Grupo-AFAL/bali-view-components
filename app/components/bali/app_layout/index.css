@@ -203,10 +203,9 @@
    infinite-scroll sentinel — permanently visible — fetches every page at once.
    Measured in afal-apps' inbox with 87 items: a 7537px container inside a
    1061px `<main>`. Basis `0%` sizes the container purely by grow — exactly the
-   leftover space — and `min-height: 0` lets it hand that bound down. The
-   dummy's reference page missed this for a whole beta because its page ONE was
-   shorter than the viewport; it now paginates large enough to reproduce (see
-   `SplitViewsController::FULL_PER_PAGE`).
+   leftover space — and `min-height: 0` lets it hand that bound down.
+   `SplitViewsController::FULL_PER_PAGE` keeps the dummy's first page taller
+   than the pane so this reproduces there; shrink it and it stops.
 
    `width: 100%` because a flex item with auto margins does not stretch:
    `body_container: :contained` and `:narrow` carry `mx-auto`, and the container
