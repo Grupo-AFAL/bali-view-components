@@ -2448,9 +2448,10 @@ processor in the host: `image_processing` plus libvips (`:vips`, the default) or
 page renders, each `<img>` broken and showing its filename.
 `config.active_storage.variant_processor = :disabled` serves the original file instead: fine
 for PNG, JPEG, GIF or WebP, but a TIFF, HEIC or PSD, which `variable?` also admits, is one
-Chrome and Firefox do not draw. Anything that is not
-variable is a chip capped at 16rem with its name truncated — an SVG too, which Active Storage
-serves as `application/octet-stream` and an `<img>` does not draw.
+Chrome and Firefox do not draw.
+
+Anything that is not variable is a chip capped at 16rem with its name truncated — an SVG too,
+which Active Storage serves as `application/octet-stream` and an `<img>` does not draw.
 
 The `badge` lambda runs in the host's view, so it can render a partial that a stream replaces
 on its own later:

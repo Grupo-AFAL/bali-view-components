@@ -19,7 +19,7 @@ module Bali
       # spreadsheet with a name long enough to truncate and an SVG (which Active Storage cannot
       # resize) as chips that download them. One more file was attached and never saved, as
       # after a failed validation: it is left out. The empty text waits hidden in the list until
-      # the stream that removes the last file leaves it alone.
+      # a stream removes the last file and leaves it alone in the list.
       #
       # `remove_path:` is the host's DELETE route per attachment, or nil for one the visitor
       # may not remove.
