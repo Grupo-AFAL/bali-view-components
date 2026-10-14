@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.15.0] - 2026-10-13
+
 ### Added
 
 - **`dictation:` en `text_area_group`: un micrófono que escribe en el campo lo que la persona
