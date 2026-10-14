@@ -39,10 +39,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cuyo único `date_range` (`microsoft_graph_call_logs_filter_form.rb:24`) no usa `presets:`, borra
   `app/assets/tailwind/application.css:178`. Quien deba bajar el mínimo escribe `min-w-0!`.
 
+- **SlimSelect: una búsqueda remota que falla lo dice en la lista** (#1452). Un 4xx o 5xx, una
+  respuesta que no es una lista JSON o un corte de red dejaban «Buscando...» puesto para siempre
+  y un rechazo sin manejar en la consola, o «Sin resultados» si el cuerpo del error era una
+  lista. Ahora la lista muestra «No se pudo completar la búsqueda. Intenta de nuevo.» (en `en`,
+  «Search failed. Please try again.») y la causa va a la consola con `console.error`. El texto es
+  la opción nueva `ajax_error_text:` de `slim_select_group` y `slim_select_field`, con su llave
+  `bali_view.form_builder.slim_select.ajax_error`; un SlimSelect escrito a mano la toma del
+  `lang` de la página o de `data-slim-select-ajax-error-text-value`. Un lector de pantalla lee
+  ahora ese aviso y el de escribir al menos 2 caracteres, en vez de quedarse en «Buscando...», y
+  los dos pasan del rojo `error` (2.75:1 en `afal`) a `text-soft-error`. De las apps en v3 sólo
+  gobierno-corporativo usa `ajax_url:` (14 llamadas). Nada que hacer en la app.
+
 - **`SplitView height: :full` con `body_container: :contained` o `:narrow` ya no se encoge a su
   contenido** (#1449). El `mx-auto` del contenedor del cuerpo le impedía estirarse en la columna
   flex de `<main>`; ahora toma el ancho de su `max-w-*`, como en flujo normal. Ninguna app usa
   hoy esa combinación.
+
+### Dependencies
+
+- **`rubocop` 1.92 y `json` 3.1** (#1468). Quien desarrolla Bali ya no está atado a `json` 2: `rubocop`
+  1.86 lo acotaba a `~> 2.3` y por eso no podía entrar `json` 3 al `Gemfile.lock`. Suben con
+  él `rubocop-ast` 1.50, `rubocop-rails` 2.38 y `rubocop-performance` 1.27; no hubo que corregir
+  código. Este lock es sólo el desarrollo de Bali: un host no cambia hasta que él mismo pase a
+  `json` 3 y, entonces, un `Hash` con la misma clave como símbolo y como string que llegue a Bali
+  (`data:`, opciones de `Chart`, `Gantt` o `Carousel`) lanza `JSON::GeneratorError` al serializarse.
 
 ## [v3.15.0] - 2026-10-13
 
