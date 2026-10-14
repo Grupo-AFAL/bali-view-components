@@ -146,7 +146,7 @@ module Bali
       # @param predicate [Symbol] Fixed Ransack predicate for the simple UI
       #   (default :eq; the advanced UI lets the user pick the operator)
       # @param blank [String, Proc] Blank option text for the simple UI
-      # @param default [String, Boolean, Hash, Proc] The value this listing opens on.
+      # @param default [String, Boolean, Array, Hash, Proc] The value this listing opens on.
       #   It preselects the simple control, and it is what
       #   {Bali::FilterForm::DefaultFilters.default_filter_params} emits so that
       #   `Bali::Filterable#redirect_to_default_filters` can put it in the URL — which
@@ -246,6 +246,13 @@ module Bali
         subclass.instance_variable_set(:@filter_attributes, filter_attributes.dup)
       end
 
+      # Whether a simple filter's control submits a list (`q[x_in][]`): the pills, and a
+      # `multiple:` slim_select. The DSL's guard, the param permit and the `default:` params
+      # all ask here, because a param permitted as a list drops a scalar.
+      def list_input?(input, multiple)
+        input == :toggle_group || (input == :slim_select && multiple.present?)
+      end
+
       private
 
       # Validate an explicit simple `input:` or derive it from the data type.
@@ -308,7 +315,7 @@ module Bali
       # takes: on `_eq` the form drops it as no filter (#1351), so the row would render a
       # control that never filters.
       def validate_list_input(key, widget, predicate, multiple)
-        return unless widget == :toggle_group || multiple
+        return unless list_input?(widget, multiple)
         return if Ransack::Predicate.named(predicate.to_s)&.wants_array
 
         sender = multiple ? "multiple: true" : "input: :toggle_group"

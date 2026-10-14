@@ -243,7 +243,7 @@ module Bali
           type, predicate = resolve_filter_type_and_predicate(filter)
           key = simple_filter_key(filter[:attribute], predicate)
 
-          if type == :toggle_group || (type == :slim_select && filter[:multiple])
+          if self.class.list_input?(type, filter[:multiple])
             keys << { key => [] }
           elsif type == :number_range
             keys << "#{filter[:attribute]}_gteq"

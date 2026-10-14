@@ -963,7 +963,7 @@
   height: 0.625rem;
 }
 
-/* A `multiple` (SimpleFilters' `multiple: true`) unpins the 32px once it holds a pill, as
+/* An `sm` `multiple` unpins the 32px once it holds a pill, as
    the default size did in #841: pinned, four values in a 224px box put row 1 at -11px and
    row 2 ending at 43px, both cut. The pills shrink to daisyUI's badge-sm height so a single
    row still measures 32px (20 + 5 + 5 + 2px border) and stays level with the row's other

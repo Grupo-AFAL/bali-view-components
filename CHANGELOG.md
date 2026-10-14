@@ -24,7 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   De paso, todo `slim_select` `size: :sm` con `multiple` ya no recorta la segunda fila de
   chips: crece con ellos, y sus chips bajan a 20 px de alto y 12 px de letra. El único en las
   apps es la «Matriz de integrantes» de gobierno-corporativo
-  (`governing_bodies/member_matrices/_filters.html.erb`), que hoy esconde chips.
+  (`governing_bodies/member_matrices/_filters.html.erb`), que hoy esconde chips; en su fila
+  `items-end`, las etiquetas de los controles más bajos y el botón Filtrar bajan al borde
+  inferior de la caja más alta.
+
+### Fixed
+
+- **Un `toggle_group` con `default:` escalar ya filtra** (#1440). Salía como `q[x_in]=v`, el
+  permit lo tiraba y el listado abría completo con la pastilla marcada; ahora sale como lista.
 
 ## [v3.15.0] - 2026-10-13
 
