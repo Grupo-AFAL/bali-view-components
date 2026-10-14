@@ -123,6 +123,16 @@ module Bali
           date_range?(filter) && filter[:presets].present?
         end
 
+        # `min-w-52` is 13 rem: the longest range text measured (DejaVu Sans, ` to `) needs
+        # 184 px. A picker with `presets:` shares its row with the select, so it keeps the cap.
+        def filter_wrapper_classes(filter)
+          return "" if toggle_group?(filter) || radio_group?(filter)
+          return "w-auto" if number_range?(filter)
+          return "w-auto min-w-52" if date_range?(filter) && !presets?(filter)
+
+          "w-auto sm:max-w-56"
+        end
+
         def boolean?(filter)
           filter_type(filter) == :boolean
         end

@@ -403,6 +403,26 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("input[name='q[created_at]']")
   end
 
+  # #1461: the picker's intrinsic width is a fixed number of characters, narrower than the
+  # longest range text in a wide font, so the wrapper keeps a floor instead of the generic cap.
+  def test_a_date_range_filter_keeps_a_width_floor_for_the_range_text
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test", filters: [ { attribute: :created_at, label: "Created between", type: :date_range } ]
+    ))
+
+    assert_selector("div.min-w-52 > div > .flatpickr[data-datepicker-mode-value='range']")
+  end
+
+  def test_a_date_range_filter_with_presets_keeps_the_generic_cap
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(
+      url: "/test",
+      filters: [ { attribute: :created_at, label: "Created between", type: :date_range, presets: %i[today] } ]
+    ))
+
+    assert_selector("div.sm\\:max-w-56 > div[data-controller='time-period-field']")
+    assert_no_selector(".min-w-52")
+  end
+
   # #1400: declared on the FilterForm, the placeholder reaches both date controls that read it —
   # the bare picker and the "Custom…" one behind a preset select — instead of the caption.
   def test_a_placeholder_declared_on_the_filter_form_reaches_the_date_pickers
