@@ -35,6 +35,29 @@ class BaliFilterFormDefaultFiltersTest < ActiveSupport::TestCase
     assert_equal({ "name_cont" => "godfather" }, form.default_filter_params)
   end
 
+  # #1440. A list control's param is permitted only as a list: a scalar default went out as
+  # `q[genre_in]=Drama`, was dropped, and the row painted the chip over every row.
+  def test_a_list_control_gets_its_scalar_default_as_a_list
+    form = Class.new(Bali::FilterForm) do
+      filter_attribute :genre, type: :select, simple: true, multiple: true, predicate: :in,
+                               default: "Drama", options: [ %w[Drama Drama] ]
+      filter_attribute :kind, type: :select, simple: true, input: :toggle_group, predicate: :in,
+                              default: "public", options: [ %w[Public public] ]
+    end
+
+    assert_equal({ "genre_in" => [ "Drama" ], "kind_in" => [ "public" ] }, form.default_filter_params)
+  end
+
+  # A native select on `_in` sends one value, and its param is permitted as one.
+  def test_a_single_select_on_a_list_predicate_keeps_a_scalar_default
+    form = Class.new(Bali::FilterForm) do
+      filter_attribute :genre, type: :select, simple: true, predicate: :in, default: "Drama",
+                               options: [ %w[Drama Drama] ]
+    end
+
+    assert_equal({ "genre_in" => "Drama" }, form.default_filter_params)
+  end
+
   # An attribute that only lives in the advanced popover has no control of its own to sit
   # in, so it becomes a condition of the panel's first group — a pill the user can remove.
   def test_an_advanced_default_becomes_a_condition_of_the_first_group

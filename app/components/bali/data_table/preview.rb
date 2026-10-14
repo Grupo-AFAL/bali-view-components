@@ -405,7 +405,7 @@ module Bali
       # @label With Simple Filters (Studios)
       # Simple inline dropdown filters - a lightweight alternative to the full Filters component.
       # Shows all available filter types:
-      # - **Country**: `type: :slim_select` — searchable dropdown
+      # - **Country**: `type: :slim_select, multiple: true` — searchable, several values as chips
       # - **Status**: `type: :toggle_group` — multi-select segmented buttons
       # - **Size**: `type: :radio_group` — single-select segmented buttons
       # - **Indie**: `type: :boolean` — toggle switch
@@ -418,8 +418,8 @@ module Bali
       # @param size select { choices: ["", small, medium, large, enterprise] }
       def with_simple_filters(q: {}, page: 1, search: "", country: "", status: "", size: "")
         q_with_filters = q.to_h.dup
-        q_with_filters["country_eq"] = country if country.present?
-        q_with_filters["status_eq"] = status if status.present?
+        q_with_filters["country_in"] = [ country ] if country.present?
+        q_with_filters["status_in"] = [ status ] if status.present?
         q_with_filters["size_eq"] = size if size.present?
         q_with_filters["name_cont"] = search if search.present?
 

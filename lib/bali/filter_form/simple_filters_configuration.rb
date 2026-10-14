@@ -48,6 +48,7 @@ module Bali
               aria_label: attr[:aria_label],
               default: attr[:default],
               type: attr[:input],
+              multiple: attr[:multiple],
               # date_range filters have no single predicate (range handled via where clause)
               predicate: attr[:input] == :date_range ? nil : attr[:predicate],
               icon: attr[:icon],
@@ -132,6 +133,7 @@ module Bali
             aria_label: resolve_definition_value(filter[:aria_label]),
             default: filter[:default],
             type: type,
+            multiple: filter[:multiple],
             predicate: predicate,
             icon: filter[:icon],
             placeholder: resolve_definition_value(filter[:placeholder]),
@@ -241,7 +243,7 @@ module Bali
           type, predicate = resolve_filter_type_and_predicate(filter)
           key = simple_filter_key(filter[:attribute], predicate)
 
-          if type == :toggle_group
+          if self.class.list_input?(type, filter[:multiple])
             keys << { key => [] }
           elsif type == :number_range
             keys << "#{filter[:attribute]}_gteq"

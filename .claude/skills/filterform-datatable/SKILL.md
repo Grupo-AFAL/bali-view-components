@@ -248,11 +248,12 @@ It is **opt-in per filter and off by default**, so no existing row changes behav
 button stays for the filters that did not opt in. The row mounts `submit-on-change` only when
 at least one filter asked for it, and only that filter's controls get the action.
 
-Only `:toggle_group` and `:radio_group` accept it (`AUTO_SUBMIT_INPUTS` in
+Only `:toggle_group`, `:radio_group` and `:select` accept it (`AUTO_SUBMIT_INPUTS` in
 `lib/bali/filter_form.rb` — it lives on the singleton class next to `SIMPLE_INPUTS`, so it is
 not reachable as `Bali::FilterForm::AUTO_SUBMIT_INPUTS`).
 Anything else **raises at class-definition time**: one click is the whole interaction on a
-pill, whereas a date or number range would submit between the two halves of its value. The
+pill, and a native select fires `change` only when its menu closes on a choice (#996), whereas
+a date or number range would submit between the two halves of its value. The
 instance-level `simple_filters:` hashes take the same key and are filtered by the component
 instead of raising, since they never go through the DSL's validation.
 
@@ -339,7 +340,8 @@ FilterForm is organized into focused concerns for maintainability:
   characters everywhere else. Anything else never reaches Ransack: a flat attribute falls back
   to its `default`, and a simple filter's control paints empty rather than its `default:`. A
   `toggle_group` declared in the DSL needs a list predicate (`predicate: :in`) or the class
-  raises; an instance-level `simple_filters:` hash without one filters nothing.
+  raises; an instance-level `simple_filters:` hash without one filters nothing. So does a
+  `multiple: true` select (#1440: a `slim_select` with chips, `predicate: :in` or `:not_in`).
 - **`groupings` is the state as it arrived, normalized but not gated; `filter_groups` is what
   is applied.** The gate runs lazily, after the host's `initialize`, because a host's
   `available_attributes` may need state set after `super` — and it runs it once more, so

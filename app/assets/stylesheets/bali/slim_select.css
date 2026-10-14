@@ -50,18 +50,23 @@
 }
 
 /* =============================================================================
-   About the !important in this file (32 of them, audited for #693)
+   About the !important in this file (30 of them, audited for #693)
    -----------------------------------------------------------------------------
    Two groups, both kept:
 
    A. Overrides of daisyUI's `.select` — the visually-hidden native select
-      below, the arrow `background-image`, `padding`, `height`, `appearance`
-      and the `::before/::after` suppression near the bottom of the file.
+      below, the arrow `background-image`, `padding`, `appearance` and the
+      `::before/::after` suppression near the bottom of the file.
       SlimSelect copies the native select's class list onto its own nodes, so
       these elements really do carry `.select`. Being unlayered already beats
       daisyUI, but not a host's own unlayered `.select` rule imported after
       Bali — and the failure mode there is the raw native select becoming
       visible next to the widget. Cheap insurance, kept.
+
+      The `height: 2rem` pin on `.slim-select-sm` went in #1440: the layered
+      `.select` loses anyway, `.slim-select-sm .ss-main` (0,2,0) already beat
+      `.ss-main { height: auto }`, and the pin cut a multiple's second row of
+      chips — the default size grows with them since #841.
 
    B. Intra-file ordering: `.ss-hide`, and the `transform` on
       `.ss-content.ss-dir-above/below`. These fight `.ss-main { @apply flex }`
@@ -182,9 +187,8 @@
 
      The 6px of block padding restores the breathing room the fixed 40px used to give
      a single row (26px pill + 6 + 6 + 2px border = 40px, unchanged). On a
-     fixed-height, centre-aligned box it is inert, so `.slim-select-sm` — still
-     pinned to 32px further down, and never a multiple — measures identical either
-     way. */
+     fixed-height, centre-aligned box it is inert, so `.slim-select-sm` — pinned to
+     32px further down until it holds a pill — measures identical either way. */
   height: auto;
   border-radius: 4px;
   outline: none;
@@ -960,6 +964,25 @@
   height: 0.625rem;
 }
 
+/* An `sm` `multiple` unpins the 32px once it holds a pill, as
+   the default size did in #841: pinned, four values in a 224px box put row 1 at -11px and
+   row 2 ending at 43px, both cut. The pills shrink to daisyUI's badge-sm height so a single
+   row still measures 32px (20 + 5 + 5 + 2px border) and stays level with the row's other
+   controls. */
+.slim-select-sm .ss-main:has(.ss-value) {
+  height: auto;
+  padding-block: 5px;
+}
+
+.slim-select-sm .ss-main .ss-values .ss-value {
+  height: 1.25rem;
+}
+
+.slim-select-sm .ss-main .ss-values .ss-value .ss-value-text {
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
 /* Compact dropdown content for small variant.
    Targets both: content inside wrapper (.slim-select-sm .ss-content)
    and content outside wrapper (.slim-select-sm-content) via JS class propagation */
@@ -1029,13 +1052,6 @@ div.ss-main.select-bordered {
   background-image: none !important;
   background-position: unset !important;
   padding-right: var(--ss-spacing-l) !important;
-}
-
-/* Override DaisyUI select height for small variant */
-.slim-select-sm .ss-main.select,
-.slim-select-sm .ss-main.select-bordered {
-  height: 2rem !important;
-  min-height: 2rem !important;
 }
 
 /* ss-content should have NO padding from DaisyUI select classes */

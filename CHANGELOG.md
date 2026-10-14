@@ -31,6 +31,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   responde 500. Y con `remove_path:` no va dentro de un formulario: cada botón es un
   `<form>` y cerraría el de afuera.
 
+- **SimpleFilters: un filtro de varios valores con chips (`multiple: true`)** (#1440). Para
+  listas que no caben en las pastillas de `toggle_group` (sucursales, empresas):
+  `filter_attribute :branch, type: :select, simple: true, multiple: true, predicate: :in` se
+  pinta como `slim_select` múltiple, manda `q[branch_in][]` y vuelve con cada valor elegido como
+  chip; el caché de filtros, las vistas guardadas y «seleccionar los N» lo conservan. Como
+  `toggle_group`, pide un predicado de lista (`:in` o `:not_in`) y truena al definir la clase si
+  no lo tiene. En un hash `simple_filters:` de instancia se escribe `type: :slim_select,
+  multiple: true, predicate: :in`. Un filtro sin `multiple:` se pinta igual que antes; quien
+  quiera usarlo sólo tiene que declararlo. **Pasar un filtro existente a `multiple:` cambia su
+  llave de `branch_eq` a `branch_in`**: las vistas guardadas, el caché y los marcadores con
+  `branch_eq` dejan de aplicarlo sin avisar.
+
+  De paso, todo `slim_select` `size: :sm` con `multiple` ya no recorta la segunda fila de
+  chips: crece con ellos, y sus chips bajan a 20 px de alto y 12 px de letra. El único en las
+  apps es la «Matriz de integrantes» de gobierno-corporativo
+  (`governing_bodies/member_matrices/_filters.html.erb`), que hoy esconde chips; en su fila
+  `items-end`, las etiquetas de los controles más bajos y el botón Filtrar bajan al borde
+  inferior de la caja más alta.
+
 ### Fixed
 
 - **`submit-on-change` con `action`/`method` ya no se detiene en un campo `required` vacío**
@@ -65,6 +84,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   contenido** (#1449). El `mx-auto` del contenedor del cuerpo le impedía estirarse en la columna
   flex de `<main>`; ahora toma el ancho de su `max-w-*`, como en flujo normal. Ninguna app usa
   hoy esa combinación.
+
+- **Un `toggle_group` con `default:` escalar ya filtra** (#1440). Salía como `q[x_in]=v`, el
+  permit lo tiraba y el listado abría completo con la pastilla marcada; ahora sale como lista.
 
 ### Dependencies
 

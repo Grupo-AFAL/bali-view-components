@@ -104,6 +104,19 @@ module Bali
           filter_type(filter) == :slim_select
         end
 
+        # No `[]` from `filter_field_name`, unlike the pills: Rails appends it to a `multiple`
+        # select's name itself — and to the hidden blank that lets an emptied control still
+        # reach the server — so adding it here sends `q[x_in][][]`.
+        def multiple?(filter)
+          slim_select?(filter) && filter[:multiple].present?
+        end
+
+        # Below `sm` an iconed select shrinks to 64px and leaves the icon to say what it
+        # filters. Not a multiple: its chips are the value, and at 64px each took a row.
+        def slim_select_phone_width(filter)
+          "max-sm:w-16" if filter[:icon] && !multiple?(filter)
+        end
+
         def date?(filter)
           filter_type(filter) == :date
         end

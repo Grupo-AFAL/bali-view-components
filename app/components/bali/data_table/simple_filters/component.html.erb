@@ -229,13 +229,17 @@
                 selected: (filter[:value] || filter[:default]),
                 size: :sm,
                 content_width: SLIM_SELECT_CONTENT_WIDTH,
+                # Picking several values is several clicks: a list that closes on each one
+                # has to be reopened, and searched again, for the next.
+                close_on_select: !multiple?(filter),
                 # `icon_addon` and not the bare icon: the addon drops straight into a `join`,
                 # and a 16px <span> does not stretch under `align-items: stretch`, so this
                 # icon floated at mid-height while the other five filters, which do use the
                 # helper, lined up with their control.
                 addon_left: icon_addon(filter[:icon]),
-                html: { id: filter_control_id(filter), class: "w-full #{'max-sm:w-16' if filter[:icon]}",
-                        select_class: ('max-sm:w-16' if filter[:icon]), **slim_select_aria(filter) }
+                html: { id: filter_control_id(filter), class: "w-full #{slim_select_phone_width(filter)}",
+                        multiple: multiple?(filter),
+                        select_class: slim_select_phone_width(filter), **slim_select_aria(filter) }
               ) %>
         <% else %>
           <div class="<%= 'join' if filter[:icon] %>">
