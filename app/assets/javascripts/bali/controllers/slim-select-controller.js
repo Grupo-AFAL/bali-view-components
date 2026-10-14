@@ -298,7 +298,7 @@ export class SlimSelectController extends Controller {
   // SlimSelect reads out "Searching..." when a remote search starts and nothing when it ends in
   // an error: `renderError` paints the reason in the list and leaves the live region alone
   // (4.5.0, 4.6.0), so a screen reader stays on "Searching..." — after a failed search, and
-  // after a term too short to search for. `announce` arrived in 3.6.
+  // after a term too short to search for.
   announceErrors () {
     const render = this.select.render
     const renderError = render.renderError.bind(render)
@@ -435,7 +435,8 @@ export class SlimSelectController extends Controller {
       })
 
       return [{ label: this.texts.resultsText, options }]
-    } catch {
+    } catch (error) {
+      console.error('[SlimSelect] Remote search failed:', error)
       // SlimSelect paints whatever the search rejects with where the results go, an error's
       // `message` included: let through, the user would read "Failed to fetch".
       throw this.texts.ajaxErrorText

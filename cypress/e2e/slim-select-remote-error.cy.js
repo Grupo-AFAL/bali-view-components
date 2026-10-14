@@ -38,14 +38,19 @@ describe('SlimSelect remote search', () => {
     })
   })
 
-  // Read while the request is built, so it throws before there is a request to fail.
+  // Read while the request is built, so it throws before there is a request to fail. The user
+  // reads "Search failed"; the developer needs the cause, in the console.
   it('says the search failed when a dependent field\'s selector is not valid', () => {
-    cy.visit('/bali/form/slim_select/remote_dependent')
+    cy.visit('/bali/form/slim_select/remote_dependent', {
+      onBeforeLoad: win => cy.spy(win.console, 'error').as('consoleError')
+    })
     cy.get('[data-controller="slim-select"]')
       .invoke('attr', 'data-slim-select-ajax-param-selectors-value', '{"family":"[name=a[b]]"}')
     search('jo')
 
     expectMessage('Search failed. Please try again.')
+    cy.get('@consoleError').should('have.been.calledWithMatch', '[SlimSelect] Remote search failed:',
+      Cypress.sinon.match.has('message', Cypress.sinon.match(/is not a valid selector/)))
   })
 
   it('says the search failed in the page language', () => {
