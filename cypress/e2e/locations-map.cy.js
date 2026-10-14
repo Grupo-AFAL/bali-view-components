@@ -165,8 +165,9 @@ describe('LocationsMap', () => {
     })
   })
 
-  describe('locale', () => {
-    it('loads the map in the locale Ruby rendered the page in', () => {
+  describe('language', () => {
+    // The dummy's layout writes the request's locale on the <html>, which is what the map reads.
+    it('loads the map in the language of the <html>', () => {
       viewport()
       stubGoogleMaps()
       cy.visit('/bali/locations_map/default?locale=es')

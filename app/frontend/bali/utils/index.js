@@ -39,5 +39,6 @@ export * from '../../../assets/javascripts/bali/utils/color-scheme'
 // Stimulus mixins
 export { default as useClickOutside } from '../../../assets/javascripts/bali/utils/use-click-outside'
 
-// Google Maps loader (for maps-related components)
-export { default as loadGoogleMapsApi } from '../../../assets/javascripts/bali/utils/google-maps-loader'
+// Google Maps loader (for maps-related components), and what the page hands every map: the key
+// and map ID of `google_maps_meta_tags` and the language of the <html>
+export { default as loadGoogleMapsApi, googleMapsConfig } from '../../../assets/javascripts/bali/utils/google-maps-loader'

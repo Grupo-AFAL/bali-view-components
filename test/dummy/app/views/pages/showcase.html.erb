@@ -825,7 +825,7 @@
   <% end %>
 </section>
 
-<%# LocationsMap Demo (requires Bali.google_maps_key) %>
+<%# LocationsMap Demo (requires Bali.google_maps.api_key) %>
 <section class="mb-12">
   <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
     <%= render Bali::Icon::Component.new('map-pin', class: 'text-primary') %>
@@ -834,7 +834,7 @@
   <p class="text-base-content/70 mb-4"><%= t('showcase.locations_map_desc') %></p>
 
   <%= render Bali::Card::Component.new(style: :bordered) do %>
-    <% if Bali.google_maps_key.present? %>
+    <% if Bali.google_maps.api_key.present? %>
       <%= render Bali::LocationsMap::Component.new(
         center_latitude: 37.7749,
         center_longitude: -122.4194,

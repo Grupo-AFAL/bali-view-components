@@ -46,16 +46,16 @@ module Bali
         prepend_values(opts, "locations-map", controller_values)
       end
 
-      # Read as the `static values` of index.js.
+      # Read as the `static values` of index.js. The key is the one `google_maps_meta_tags` puts in
+      # the <head>, written here too so a layout without that helper still loads the map.
       def controller_values
         {
-          api_key: Bali.google_maps_key,
+          api_key: Bali.google_maps.api_key,
           enable_clustering: clustered,
           fit_to_locations: fit_to_locations,
           zoom: zoom,
           center_latitude: center_latitude,
-          center_longitude: center_longitude,
-          locale: I18n.locale
+          center_longitude: center_longitude
         }
       end
 
