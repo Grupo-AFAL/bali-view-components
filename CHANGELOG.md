@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.16.0] - 2026-10-13
+
 ### Added
 
 - **`Bali::ShowPage` toma `height: :full`: el cuerpo llena lo que el encabezado deja de la
