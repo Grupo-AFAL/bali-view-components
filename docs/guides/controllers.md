@@ -605,7 +605,9 @@ filter forms. Two actions, so a select and a search box can share one controller
   your app relies on that submit.
 - `action` / `method` submit somewhere other than the form's own target, via a
   hidden submitter with `formaction`/`formmethod` (the form's normal submit button
-  keeps its own destination).
+  keeps its own destination). That submitter skips browser validation, so a `required`
+  field still empty does not stop the re-render; a form without `action`/`method`
+  submits itself and validates as usual.
 
 ```html
 <form action="/movies" data-controller="submit-on-change"
