@@ -1,0 +1,7 @@
+/* Attachments Component
+ * The list's layout, which the host's `class:` has to be able to beat: as utilities on the
+ * template they would share @layer utilities with the host's and win or lose by emission
+ * order; here in @layer components every host utility wins. */
+.attachments-component {
+  @apply flex flex-wrap items-center gap-2;
+}

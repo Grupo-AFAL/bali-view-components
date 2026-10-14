@@ -1,0 +1,8 @@
+<% statuses = { "minutes.pdf" => [ "Read", :success ], "diagram.svg" => [ "No text", :warning ] } %>
+<%= render Bali::Attachments::Component.new(
+      attachments: files,
+      badge: ->(attachment) do
+        text, color = statuses.fetch(attachment.filename.to_s, [ "Reading…", :neutral ])
+        render Bali::Tag::Component.new(text: text, color: color, style: :soft, size: :xs)
+      end
+    ) %>

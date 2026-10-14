@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Attachments::Component`: la lista de archivos adjuntos de un registro** (#1454). Una
+  imagen que Active Storage sabe redimensionar sale como miniatura que abre el archivo, y lo
+  demás como un chip con su nombre, truncado, que lo descarga. Cada renglón lleva
+  `id="<%= dom_id(attachment) %>"`, así que el borrado responde con
+  `turbo_stream.remove attachment`. Sólo pinta los adjuntos guardados: tras una
+  validación fallida el registro trae el archivo nuevo sin guardar, y pedirle su URL truena con
+  `Cannot get a signed_id for a new record`. `remove_path:` y `badge:` son lambdas por adjunto
+  —la ruta de borrado, o `nil` donde la política del anfitrión no lo permite, y lo que va junto
+  al archivo—; `empty_text:` es el texto de la lista vacía, que sin él no se pinta.
+
+  **Anfitrión:** nada, mientras no lo use. La miniatura es un *variant* de Active Storage, así
+  que necesita `image_processing` —las seis apps del grupo que tienen adjuntos ya lo declaran—
+  o `config.active_storage.variant_processor = :disabled` para servir el original.
+
 ## [v3.15.0] - 2026-10-13
 
 ### Added

@@ -150,6 +150,11 @@ es:
     comment_thread:
       empty: "Aún no hay comentarios."
 
+    attachments:
+      download: "Descargar %{filename}"
+      remove: "Quitar %{filename}"
+      remove_confirm: "¿Quitar «%{filename}»?"
+
     # Modal
     modal:
       close: "Cerrar modal"

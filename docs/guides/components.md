@@ -2413,6 +2413,43 @@ The `empty_state` slot renders inside a dashed-border centered box instead of
 the grid when there are no images; it is ignored when images are present.
 i18n keys `bali_view.image_grid.empty_state.{title,add_image}` ship in en/es.
 
+#### Attachments
+
+The files attached to a record: an image as a thumbnail that opens it, anything else as a
+chip with its name that downloads it, and a remove button where the host allows one.
+
+```erb
+<%= render Bali::Attachments::Component.new(
+      attachments: @defect.files,
+      remove_path: ->(attachment) { attachment_path(attachment) if policy(@defect).update? },
+      empty_text: t('.no_files')) %>
+```
+
+**Options:**
+- `attachments` - `record.files`, or any list of `ActiveStorage::Attachment`. Only the saved ones render: after a failed validation the record carries its new upload unsaved, and asking that attachment for a URL raises `Cannot get a signed_id for a new record` (required)
+- `remove_path` - `->(attachment) { path }`: the DELETE route for that attachment, or `nil` to leave it without a remove button. Who may delete is the host's policy, and the route its controller (default: nil, no remove buttons)
+- `badge` - `->(attachment) { html }`, drawn beside each file: a status tag, a button of the host's own (default: nil)
+- `empty_text` - What the list says while it holds no file. Without it an empty list renders nothing (default: nil)
+- `**options` - HTML attributes for the `<ul>`
+
+Each item is `<li id="<%= dom_id(attachment) %>">`, so the destroy action answers with
+`turbo_stream.remove attachment`. The empty text is an item that shows only while it is alone
+in the list, so the stream that removes the last file brings it up with nothing else to send.
+
+A file Active Storage can resize (`variable?`) is a thumbnail drawn from a 256px variant, which
+needs `image_processing` in the host, or `config.active_storage.variant_processor = :disabled`
+to serve the original. Anything else is a chip capped at 16rem with its name truncated — an SVG
+too, which Active Storage serves as `application/octet-stream` and an `<img>` does not draw.
+
+The `badge` lambda runs in the host's view, so it can render a partial that a stream replaces
+on its own later:
+
+```erb
+<%= render Bali::Attachments::Component.new(
+      attachments: initiative.context_documents,
+      badge: ->(document) { render 'documents/read_status', document: }) %>
+```
+
 #### BooleanIcon
 
 Displays a boolean as a coloured icon plus an `sr-only` name — a green check for true, a red cross for false, and a neutral dash for nil. Useful in table cells and lists.
