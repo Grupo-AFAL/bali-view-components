@@ -413,6 +413,35 @@ module Bali
           )
         end
 
+        # @label Multiple (chips)
+        # `multiple: true` lets a `slim_select` hold several values, shown as chips — the
+        # multi-value filter for a list too long for `toggle_group` pills. It sends a list
+        # (`q[country_in][]`), so it takes a list predicate, `:in` or `:not_in`. In the
+        # `filter_attribute` DSL, `type: :select, multiple: true` picks the `slim_select`
+        # on its own.
+        #
+        # @param countries select { choices: [USA, UK, France, Germany, Japan, India], multi: true }
+        def multiple(countries: [])
+          filters = [
+            {
+              attribute: :country,
+              collection: %w[USA UK France Germany Japan India].map { |country| [ country, country ] },
+              blank: 'All countries',
+              label: 'Countries',
+              type: :slim_select,
+              multiple: true,
+              predicate: :in,
+              value: countries.presence
+            }
+          ]
+
+          render Bali::DataTable::SimpleFilters::Component.new(
+            url: '/lookbook',
+            filters: filters,
+            show_clear: countries.present?
+          )
+        end
+
         # @label Uncaptioned (label: false)
         # `label: false` drops the caption over the control — for a row that is already
         # self-explanatory, or one too narrow for a two-line filter. The control still has

@@ -182,9 +182,8 @@
 
      The 6px of block padding restores the breathing room the fixed 40px used to give
      a single row (26px pill + 6 + 6 + 2px border = 40px, unchanged). On a
-     fixed-height, centre-aligned box it is inert, so `.slim-select-sm` — still
-     pinned to 32px further down, and never a multiple — measures identical either
-     way. */
+     fixed-height, centre-aligned box it is inert, so `.slim-select-sm` — pinned to
+     32px further down until it holds a pill — measures identical either way. */
   height: auto;
   border-radius: 4px;
   outline: none;
@@ -959,6 +958,25 @@
   height: 0.625rem;
 }
 
+/* A `multiple` (SimpleFilters' `multiple: true`) unpins the 32px once it holds a pill, as
+   the default size did in #841: pinned, four values in a 224px box put row 1 at -11px and
+   row 2 ending at 43px, both cut. The pills shrink to daisyUI's badge-sm height so a single
+   row still measures 32px (20 + 5 + 5 + 2px border) and stays level with the row's other
+   controls. */
+.slim-select-sm .ss-main:has(.ss-value) {
+  height: auto;
+  padding-block: 5px;
+}
+
+.slim-select-sm .ss-main .ss-values .ss-value {
+  height: 1.25rem;
+}
+
+.slim-select-sm .ss-main .ss-values .ss-value .ss-value-text {
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
 /* Compact dropdown content for small variant.
    Targets both: content inside wrapper (.slim-select-sm .ss-content)
    and content outside wrapper (.slim-select-sm-content) via JS class propagation */
@@ -1028,13 +1046,6 @@ div.ss-main.select-bordered {
   background-image: none !important;
   background-position: unset !important;
   padding-right: var(--ss-spacing-l) !important;
-}
-
-/* Override DaisyUI select height for small variant */
-.slim-select-sm .ss-main.select,
-.slim-select-sm .ss-main.select-bordered {
-  height: 2rem !important;
-  min-height: 2rem !important;
 }
 
 /* ss-content should have NO padding from DaisyUI select classes */

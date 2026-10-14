@@ -78,13 +78,13 @@ describe('Filter persistence covers the simple filters', () => {
     cy.visit(`${listing}?q[name_cont]=a`)
     cy.get('input[name="q[name_cont]"]').should('have.value', 'a')
 
-    cy.visit(`${listing}?q[country_eq]=USA`)
+    cy.visit(`${listing}?q[country_in][]=USA`)
     // The direct proof: the old search showed up in the box, and nobody wrote it into the URL.
     cy.get('input[name="q[name_cont]"]').should('have.value', '')
 
     total().then(withPersistence => {
       cy.clearCookie('bali_persist_admin_studios')
-      cy.visit(`${listing}?q[country_eq]=USA`)
+      cy.visit(`${listing}?q[country_in][]=USA`)
       total().should('eq', withPersistence)
     })
   })
@@ -102,6 +102,48 @@ describe('Filter persistence covers the simple filters', () => {
       cy.get('input[name="q[name_cont]"]').should('have.value', '')
       cy.get('input[name="q[size_eq]"][value="large"]').should('be.checked')
       total().should('be.greaterThan', searchedAndFiltered)
+    })
+  })
+
+  // #1440 — a `multiple:` filter sends a LIST, and what comes back has to be the whole list: the
+  // chips after the submit and after a return to a clean URL. Removing every chip still sends
+  // the hidden blank, so the cache stores "no filter" instead of restoring the chips.
+  describe('a multiple filter', () => {
+    const country = '#simple-filter-q-country_in_select_div'
+    const chips = () => cy.get(`${country} .ss-value-text`).then($chips => [...$chips].map(chip => chip.textContent.trim()))
+
+    it('comes back with every chip, from the submit and from the cache, and leaves with them', () => {
+      cy.visit(listing)
+
+      total().then(everything => {
+        cy.get(`${country} .ss-main`).click()
+        cy.contains('.ss-content.ss-open .ss-option', /^USA$/).click()
+        cy.contains('.ss-content.ss-open .ss-option', /^Japan$/).click()
+        submitFiltersAndWaitFor('q%5Bcountry_in%5D%5B%5D=USA&q%5Bcountry_in%5D%5B%5D=Japan')
+
+        total().then(filtered => {
+          expect(filtered, 'the filter has to narrow').to.be.lessThan(everything)
+          chips().should('deep.equal', ['USA', 'Japan'])
+
+          cy.visit(listing)
+          cy.location('search').should('eq', '')
+          total().should('eq', filtered)
+          chips().should('deep.equal', ['USA', 'Japan'])
+
+          // A removed chip stays in the DOM while it animates out: wait for it to go before the
+          // next click, or `.first()` lands on the chip already leaving.
+          cy.get(`${country} .ss-value-delete`).first().click()
+          cy.get(`${country} .ss-value`).should('have.length', 1)
+          cy.get(`${country} .ss-value-delete`).first().click()
+          cy.get(`${country} .ss-value`).should('not.exist')
+          submitFiltersAndWaitFor('q%5Bcountry_in%5D%5B%5D=&')
+          total().should('eq', everything)
+
+          cy.visit(listing)
+          total().should('eq', everything)
+          cy.get(`${country} .ss-value`).should('not.exist')
+        })
+      })
     })
   })
 })

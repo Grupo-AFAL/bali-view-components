@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **SimpleFilters: un filtro de varios valores con chips (`multiple: true`)** (#1440). Para
+  listas que no caben en las pastillas de `toggle_group` (sucursales, empresas):
+  `filter_attribute :branch, type: :select, simple: true, multiple: true, predicate: :in` se
+  pinta como `slim_select` múltiple, manda `q[branch_in][]` y vuelve con cada valor elegido como
+  chip; el caché de filtros, las vistas guardadas y «seleccionar los N» lo conservan. Como
+  `toggle_group`, pide un predicado de lista (`:in` o `:not_in`) y truena al definir la clase si
+  no lo tiene. En un hash `simple_filters:` de instancia se escribe `type: :slim_select,
+  multiple: true, predicate: :in`. Un filtro sin `multiple:` se pinta igual que antes; quien
+  quiera usarlo sólo tiene que declararlo. De paso, un `slim_select` `size: :sm` con
+  `multiple` ya no recorta la segunda fila de chips.
+
 ## [v3.15.0] - 2026-10-13
 
 ### Added

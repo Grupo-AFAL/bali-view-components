@@ -228,6 +228,40 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("option[selected]", text: "Inactive")
   end
 
+  # #1440. The hidden blank is what an emptied control still sends: without it removing every
+  # chip sends nothing, and with persistence on the cache restores what was just removed.
+  def test_a_multiple_slim_select_sends_a_list_and_comes_back_with_every_value_selected
+    render_country_filter(multiple: true, predicate: :in, value: %w[USA Japan],
+                          collection: [ %w[USA USA], %w[Japan Japan], %w[UK UK] ])
+
+    assert_selector("select#simple-filter-q-country_in[multiple][name='q[country_in][]']")
+    assert_equal(%w[USA Japan], page.all("option[selected]").map(&:value))
+    assert_selector("input[type=hidden][name='q[country_in][]'][value='']", visible: :all)
+  end
+
+  def test_a_multiple_slim_select_stays_open_while_values_are_picked
+    render_country_filter(multiple: true, predicate: :in)
+
+    assert_selector("[data-slim-select-close-on-select-value='false']")
+  end
+
+  def test_an_iconed_multiple_slim_select_keeps_its_width_on_a_phone
+    render_country_filter(multiple: true, predicate: :in, icon: "globe")
+
+    assert_selector("select[multiple]")
+    assert_no_selector(".max-sm\\:w-16")
+  end
+
+  # Measured byte for byte against origin/main in #1440; this is the contract that comparison
+  # protects.
+  def test_a_slim_select_without_multiple_stays_single_valued
+    render_country_filter(icon: "globe", value: "USA")
+
+    assert_selector("select.max-sm\\:w-16[name='q[country_eq]']:not([multiple])")
+    assert_no_selector("input[type=hidden][name^='q[country']", visible: :all)
+    assert_no_selector("[data-slim-select-close-on-select-value]")
+  end
+
   def test_renders_multiple_filters
     multi_filters = [
       {
@@ -865,6 +899,13 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
 
     assert_selector("label[for='simple-filter-q-created_at']", text: "Created")
     assert_selector("select#simple-filter-q-created_at", visible: :all)
+  end
+
+  private
+
+  def render_country_filter(**options)
+    filter = { attribute: :country, type: :slim_select, label: "Country", collection: [ %w[USA USA] ] }
+    render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [ filter.merge(options) ]))
   end
 end
 

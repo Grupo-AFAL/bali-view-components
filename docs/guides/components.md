@@ -4818,6 +4818,30 @@ class-load time, and instance-level `simple_filters:` hashes take the same key. 
 the "Custom…" picker of a `presets:` range. No other widget reads it: `number_range` has
 `placeholder_min:`/`placeholder_max:`, which take a proc too, and a select shows its `blank:`.
 
+#### Several values in one filter (`multiple:`)
+
+For a list too long for `toggle_group`'s pills — a hundred branches, a dozen companies —
+`multiple: true` turns a select filter into a `slim_select` that holds several values as chips:
+
+```ruby
+filter_attribute :branch, type: :select, simple: true, advanced: false,
+  options: -> { Branch.order(:name).pluck(:name, :code) }, blank: 'All branches',
+  multiple: true, predicate: :in
+```
+
+It submits `q[branch_in][]`, which reaches Ransack as the list it is, and the row comes back
+with every chosen value as a chip. Like `toggle_group` it sends a list, so it needs a list
+predicate — `:in`, or `:not_in` to leave those values out — and raises when the class is
+defined without one. With no `input:` it picks the `slim_select` itself; on any other widget,
+or without `simple: true`, it raises (the advanced panel's "is any of" already takes a list).
+It does not take `auto_submit:`: the list stays open while values are picked.
+
+An instance-level `simple_filters:` hash names the widget instead:
+`{ attribute: :branch, type: :slim_select, multiple: true, predicate: :in, collection: [...] }`.
+
+The list travels wherever a single value does: the filter cache, a saved view, the hidden
+fields of "select all N" in bulk actions, and a `default:`, which takes an Array.
+
 #### Quick search (`search:`)
 
 Both filter surfaces — the `Filters` panel and `DataTable`'s `SimpleFilters` — take the same

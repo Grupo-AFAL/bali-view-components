@@ -139,6 +139,10 @@ module Bali
       #   inline SimpleFilters row)
       # @param input [Symbol] SimpleFilters widget when it differs from the one
       #   derived from type (e.g. type: :select, input: :slim_select)
+      # @param multiple [Boolean] Let the simple UI's `slim_select` hold several values,
+      #   shown as chips and sent as a list (`q[branch_in][]`). It picks `:slim_select`
+      #   when `input:` is omitted, and like `:toggle_group` it needs a list predicate
+      #   (`predicate: :in` or `:not_in`).
       # @param predicate [Symbol] Fixed Ransack predicate for the simple UI
       #   (default :eq; the advanced UI lets the user pick the operator)
       # @param blank [String, Proc] Blank option text for the simple UI
@@ -184,6 +188,10 @@ module Bali
       #   filter_attribute :priority, type: :select, simple: true, advanced: false,
       #     options: [['High', 'high'], ['Low', 'low']], input: :toggle_group, predicate: :in
       #
+      # @example Several values from a long list, as chips
+      #   filter_attribute :branch, type: :select, simple: true, advanced: false,
+      #     options: -> { Branch.pluck(:name, :code) }, multiple: true, predicate: :in
+      #
       # @example Pills that filter on click
       #   filter_attribute :status, type: :select, simple: true, advanced: false,
       #     options: [['Draft', 'draft'], ['Published', 'published']],
@@ -195,15 +203,17 @@ module Bali
       # rubocop:disable Metrics/ParameterLists
       def filter_attribute(key, type: :text, label: nil, aria_label: nil, options: [],
                            collection: nil, simple: false, advanced: true, input: nil,
-                           predicate: :eq, blank: nil, default: nil, icon: nil, step: nil,
-                           placeholder: nil, placeholder_min: nil, placeholder_max: nil,
-                           auto_submit: false, presets: nil)
+                           multiple: false, predicate: :eq, blank: nil, default: nil,
+                           icon: nil, step: nil, placeholder: nil, placeholder_min: nil,
+                           placeholder_max: nil, auto_submit: false, presets: nil)
         # rubocop:enable Metrics/ParameterLists
         type = type.to_sym
+        input ||= :slim_select if multiple
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
         validate_auto_submit(key, resolved_input, auto_submit)
         validate_default(key, default, simple, advanced)
-        validate_list_input(key, resolved_input, predicate)
+        validate_multiple(key, resolved_input, multiple, simple)
+        validate_list_input(key, resolved_input, predicate, multiple)
 
         filter_attributes << {
           key: key.to_sym,
@@ -215,6 +225,7 @@ module Bali
           simple: simple,
           advanced: advanced,
           input: resolved_input,
+          multiple: multiple,
           predicate: predicate&.to_sym,
           blank: blank,
           default: default,
@@ -282,13 +293,26 @@ module Bali
               "this one is #{widget ? ":#{widget}" : 'not a simple filter'}"
       end
 
-      # A `toggle_group` sends a list, which only a list predicate takes: on `_eq` the form
-      # drops it as no filter (#1351), so the row would render pills that never filter.
-      def validate_list_input(key, widget, predicate)
-        return unless widget == :toggle_group
+      # Same contract as `auto_submit:`. The advanced panel needs no `multiple:`: its
+      # "is any of" operator already takes a list.
+      def validate_multiple(key, widget, multiple, simple)
+        return unless multiple
+        return if simple && widget == :slim_select
+
+        raise ArgumentError,
+              "filter_attribute #{key}: multiple: true only applies to the simple row's " \
+              ":slim_select; this one is #{simple ? ":#{widget}" : 'not a simple filter'}"
+      end
+
+      # A `toggle_group` or a `multiple:` select sends a list, which only a list predicate
+      # takes: on `_eq` the form drops it as no filter (#1351), so the row would render a
+      # control that never filters.
+      def validate_list_input(key, widget, predicate, multiple)
+        return unless widget == :toggle_group || multiple
         return if Ransack::Predicate.named(predicate.to_s)&.wants_array
 
-        raise ArgumentError, "filter_attribute #{key}: input: :toggle_group sends a list, which " \
+        sender = multiple ? "multiple: true" : "input: :toggle_group"
+        raise ArgumentError, "filter_attribute #{key}: #{sender} sends a list, which " \
                              "predicate: :#{predicate || :eq} does not take; declare predicate: :in"
       end
     end
