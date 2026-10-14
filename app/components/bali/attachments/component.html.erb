@@ -5,16 +5,21 @@
   <% items.each do |attachment| %>
     <li id="<%= dom_id(attachment) %>" class="flex min-w-0 items-center gap-1">
       <% if attachment.variable? %>
+        <%# The 16rem cap sits on the link so the thumbnail keeps `max-width: 100%` and narrows
+            with the row; on the image it pins a wide picture at 16rem. %>
         <%= link_to rails_blob_path(attachment), target: "_blank", rel: "noopener",
-                                                 title: attachment.filename do %>
+                                                 title: attachment.filename, class: "max-w-64" do %>
           <%= image_tag attachment.variant(THUMBNAIL), alt: attachment.filename,
-                                                      class: "max-h-32 max-w-64 rounded-box border border-base-300" %>
+                                                      class: "max-h-32 rounded-box border border-base-300" %>
         <% end %>
       <% else %>
+        <%# daisyUI's `.btn` is `flex-shrink: 0` and a flex item's minimum width is its unwrapped
+            name, up to the 16rem cap: without `min-w-0 shrink` a narrow row pushes the badge past
+            the page's edge. %>
         <%= render Bali::Link::Component.new(href: rails_blob_path(attachment, disposition: "attachment"),
                                              style: :outline, size: :xs, icon: "paperclip", responsive: false,
                                              title: t(".download", filename: attachment.filename),
-                                             class: "max-w-[16rem]") do %>
+                                             class: "max-w-[16rem] min-w-0 shrink") do %>
           <span class="truncate"><%= attachment.filename %></span>
         <% end %>
       <% end %>

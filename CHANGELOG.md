@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.16.2] - 2026-10-14
+
+### Fixed
+
+- **`Bali::Attachments`: en un renglón angosto, el archivo cede espacio a lo que lleva al lado**
+  (desde v3.16.0). Un chip de nombre largo o una miniatura ancha se quedaban en sus 16rem y
+  empujaban la etiqueta de `badge:` o el botón de quitar fuera de la página. Cambia sólo donde el
+  renglón no alcanzaba: ahí el chip se encoge y trunca el nombre, y la miniatura se achica. Nada que
+  hacer en la app.
+
 ## [v3.16.1] - 2026-10-13
 
 ### Fixed
