@@ -11,10 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`rubocop` 1.92 y `json` 3.1** (#1468). Quien desarrolla Bali ya no está atado a `json` 2: `rubocop`
   1.86 lo acotaba a `~> 2.3` y por eso no podía entrar `json` 3 al `Gemfile.lock`. Suben con
-  él `rubocop-ast` 1.50, `rubocop-rails` 2.38 y `rubocop-performance` 1.27; los cops nuevos no
-  levantan ninguna ofensa. Los hosts no cambian: `json` no está en el gemspec y todo esto es de
-  desarrollo. Con `json` 3, un `Hash` con la misma clave como símbolo y como string (`{ a: 1, "a" => 2 }`)
-  ya no se serializa: `to_json` lanza `JSON::GeneratorError`. Ningún `to_json` de Bali arma uno.
+  él `rubocop-ast` 1.50, `rubocop-rails` 2.38 y `rubocop-performance` 1.27; no hubo que corregir
+  código. Este lock es sólo el desarrollo de Bali: un host no cambia hasta que él mismo pase a
+  `json` 3 y, entonces, un `Hash` con la misma clave como símbolo y como string que llegue a Bali
+  (`data:`, opciones de `Chart`, `Gantt` o `Carousel`) lanza `JSON::GeneratorError` al serializarse.
 
 ## [v3.15.0] - 2026-10-13
 
