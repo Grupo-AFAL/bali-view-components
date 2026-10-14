@@ -1339,7 +1339,7 @@ __metadata:
     ai: "npm:^6.0.5"
     bali-view-components: "link:../.."
     chart.js: "npm:^4.5.1"
-    daisyui: "npm:5.7.47"
+    daisyui: "npm:5.7.50"
     date-fns: "npm:^4.4.0"
     docx: "npm:^9.9.0"
     esbuild: "npm:^0.28.2"
@@ -1572,10 +1572,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"daisyui@npm:5.7.47":
-  version: 5.7.47
-  resolution: "daisyui@npm:5.7.47"
-  checksum: 10c0/1533b3a4b8c21444888ee72d01ad73a3b4500444de50216c940829e89ad9626e2a352c45b1d7aed8d79e5623c3f0c2abbe796bb47b56dd1cdc5b84438e902920
+"daisyui@npm:5.7.50":
+  version: 5.7.50
+  resolution: "daisyui@npm:5.7.50"
+  checksum: 10c0/5c8f0466c34c8850acdd9671e4b1721f2187ef869d5735aa3270ac3309414f22d5295b86fc8f23237af1b394a664768f661bf5cf4c899d8fc9a13c6763bef7b5
   languageName: node
   linkType: hard
 

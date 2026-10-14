@@ -126,6 +126,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `data-autocomplete-address-api-key-value`, que sigue funcionando. La llave sale ahora de
   `google_maps_meta_tags` o de ese atributo.
 
+### Fixed
+
+- **`Rate`: las estrellas se ven con colores forzados** (#1465). Con `forced-colors: active`
+  (alto contraste de Windows) conservaban el color de la paleta, o desaparecían, según la versión
+  de daisyUI; ahora se pintan en `CanvasText` y la vacía, a 50 % de opacidad, se distingue de la
+  llena con el contraste que pide WCAG 1.4.11.
+  Sin colores forzados no cambia nada. No requiere acción.
+
 ### Dependencies
 
 - **Rails sube a 8.1.4** (reemplaza a #1411, que fallaba con `json` 3). Sólo cambian las gemas de
@@ -143,6 +151,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`bali-rubocop` sube a v0.2.0** (reemplaza a #1411). Sólo afecta a quien desarrolla Bali:
   el gem va en `development, :test` y no llega a las apps. Los comentarios de las migraciones
   del engine (`db/migrate/*.rb`) pasan al inglés; sólo comentarios, el esquema no cambia.
+
+- **La dummy sube daisyUI 5.7.47 → 5.7.50.** Son tres parches de modo de contraste forzado
+  (`@media (forced-colors: active)`) en `checkbox` indeterminado, `divider`, `loading`,
+  mega menu, `progress`, `radial-progress`, `rating` y `timeline`. El CSS compilado sólo gana
+  esas reglas; ninguna declaración fuera de `forced-colors` ni de `print` cambia, así que fuera del
+  modo de contraste forzado no se ve distinto y los archivos sin capa de Bali no necesitan ajuste.
+  Dentro de él mejoran `Rate` (las estrellas pasan de invisibles a visibles) y `Gauge` (aparece el
+  arco), medido con `emulateMedia({ forcedColors: 'active' })`. El piso del paquete
+  (`>=5.7.0 <6`) no cambia. **Anfitrión:** nada que hacer; quien quiera alinearse,
+  `yarn up daisyui@5.7.50`.
 
 ## [v3.14.1] - 2026-10-13
 

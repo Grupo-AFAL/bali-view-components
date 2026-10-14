@@ -35,6 +35,18 @@ module Bali
         info: "bg-info"
       }.freeze
 
+      # Under forced colours daisyUI 5.7.50 paints `.rating *` in CanvasText, but
+      # `bg-warning` is a utility and beats that rule, so the palette's yellow
+      # would stay. Opting out and painting CanvasText here leaves filled and
+      # empty apart by opacity alone: daisyUI's .2 measured 1.61:1 against
+      # Canvas in `afal` and 1.66:1 in `afal-dark` (WCAG 1.4.11 asks 3:1), so
+      # only the empty stars are raised to .5.
+      FORCED_COLORS_CLASSES = %w[
+        forced-colors:forced-color-adjust-none
+        forced-colors:bg-[CanvasText]
+        forced-colors:not-checked:not-has-[~:checked]:opacity-50
+      ].join(" ").freeze
+
       attr_reader :value, :scale, :size, :color, :form, :method
 
       # rubocop:disable Metrics/ParameterLists
@@ -84,7 +96,8 @@ module Bali
       def star_classes
         class_names(
           "mask mask-star-2",
-          COLORS[color]
+          COLORS[color],
+          FORCED_COLORS_CLASSES
         )
       end
 

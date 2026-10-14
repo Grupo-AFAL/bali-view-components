@@ -153,4 +153,16 @@ class BaliRateComponentTest < ComponentTestCase
     render_inline(Bali::Rate::Component.new(value: 3, readonly: true, data: { testid: "rating" }))
     assert_selector('div.rating[data-testid="rating"]')
   end
+
+  # forced colours
+
+  def test_forced_colors_paints_every_star_in_canvastext
+    render_inline(Bali::Rate::Component.new(value: 3, readonly: true))
+    assert_selector("input.forced-colors\\:forced-color-adjust-none.forced-colors\\:bg-\\[CanvasText\\]", count: 5)
+  end
+
+  def test_every_star_carries_the_forced_colors_empty_star_rule
+    render_inline(Bali::Rate::Component.new(value: 3, readonly: true))
+    assert_selector("input.forced-colors\\:not-checked\\:not-has-\\[\\~\\:checked\\]\\:opacity-50", count: 5)
+  end
 end
