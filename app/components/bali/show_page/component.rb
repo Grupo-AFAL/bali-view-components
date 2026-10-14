@@ -2,9 +2,7 @@
 
 module Bali
   module ShowPage
-    # Everything but `height:` (title, subtitle, breadcrumbs, back, max_width, sidebar_width,
-    # context, and the nav, title_tags, body, sidebar and actions slots) lives in
-    # PageComponents::Shared.
+    # Everything but `height:` lives in PageComponents::Shared.
     class Component < ApplicationViewComponent
       include PageComponents::Shared
 

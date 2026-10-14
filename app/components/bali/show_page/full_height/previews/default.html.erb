@@ -14,7 +14,7 @@
     ['assistant', 'That is the gap worth closing first. Shall we go through the last three red items?', 12]
   ]
 %>
-<%= render Bali::AppLayout::Component.new(viewport_locked: viewport_locked) do |layout| %>
+<%= render Bali::AppLayout::Component.new(viewport_locked: viewport_locked, body_container: body_container) do |layout| %>
   <% layout.with_body do %>
     <%= render Bali::ShowPage::Component.new(
           title: title,

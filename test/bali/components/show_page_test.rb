@@ -128,8 +128,6 @@ class BaliShowPageComponentTest < ComponentTestCase
     assert_selector(".show-page-component--full > .show-page-body--full.mt-6", text: "Movie details")
   end
 
-  # In the flex column `:full` makes, the header's `mb-4` and the body's `mt-6` stop
-  # collapsing and add up to 40px; the header gives its margin up so the gap stays 24.
   def test_height_full_drops_the_header_margin_a_flex_column_would_not_collapse
     render_inline(Bali::ShowPage::Component.new(title: "The Matrix", height: :full,
                                                 breadcrumbs: [ { name: "Movies" } ])) do |page|

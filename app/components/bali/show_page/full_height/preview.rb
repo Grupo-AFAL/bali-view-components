@@ -16,11 +16,14 @@ module Bali
         # off and there is no bounded ancestor to fill. Inert below `lg`.
         # @param height select { choices: [full, content] }
         # @param viewport_locked toggle
+        # @param body_container select { choices: [wide, contained, narrow, full] }
         # @param title text
-        def default(height: :full, viewport_locked: true, title: "Discovery interview")
+        def default(height: :full, viewport_locked: true, body_container: :wide,
+                    title: "Discovery interview")
           render_with_template(
             template: "bali/show_page/full_height/previews/default",
-            locals: { height: height.to_sym, viewport_locked: viewport_locked, title: title }
+            locals: { height: height.to_sym, viewport_locked: viewport_locked,
+                      body_container: body_container.to_sym, title: title }
           )
         end
       end

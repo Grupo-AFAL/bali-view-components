@@ -83,6 +83,36 @@ describe('ShowPage height: :full', () => {
     cy.get('.app-layout-body-container').should('have.css', 'flex-grow', '0')
   })
 
+  // A flex item with auto margins does not stretch: `:contained` centers the container with
+  // `mx-auto`, and before `width: 100%` it shrank to its content.
+  it('keeps a contained body container as wide as its max-width', () => {
+    cy.viewport(1440, 800)
+    cy.visit(`${PREVIEW}?body_container=contained`)
+
+    cy.get('.app-layout-body-container').then(($container) => {
+      expect(rect($container).width, 'container width')
+        .to.be.closeTo(parseFloat(getComputedStyle($container[0]).maxWidth), 1)
+    })
+    expectBodyToReachTheBottom()
+  })
+
+  // The AppLayout pair is shared with SplitView (app_layout/index.css), so relaxing its `>`
+  // shows up here as well as in split-view-full-height.cy.js.
+  it('stops applying when the page is not a direct child', () => {
+    cy.visit(PREVIEW)
+    cy.get('main').should('have.css', 'display', 'flex')
+
+    cy.document().then((doc) => {
+      const page = doc.querySelector('.show-page-component')
+      const wrapper = doc.createElement('div')
+      page.parentElement.appendChild(wrapper)
+      wrapper.appendChild(page)
+    })
+
+    cy.get('main').should('have.css', 'display', 'block')
+    cy.get('.app-layout-body-container').should('have.css', 'flex-grow', '0')
+  })
+
   it('fills nothing without a bounded ancestor', () => {
     cy.visit(`${PREVIEW}?viewport_locked=false`)
     cy.get('body').should('not.have.class', 'app-layout--viewport-locked')
