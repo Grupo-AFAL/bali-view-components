@@ -244,6 +244,16 @@ describe('a colour over a tint of itself, and its soft colour on the page', () =
     }, [
       ['next page error', '.split-view-sentinel-error', 1]
     ]],
+    // A failed remote search paints its message where the results go (#1452), as the prompt for
+    // a second character does.
+    ['form/slim_select/remote', () => {
+      cy.intercept('GET', '/users.json*', { statusCode: 500, body: '' })
+      cy.get('.ss-main').click()
+      cy.get('.ss-content.ss-open .ss-search input').type('jo')
+      cy.get('.ss-content.ss-open .ss-error').should('have.text', 'Search failed. Please try again.')
+    }, [
+      ['failed remote search', '.ss-content.ss-open .ss-error', 1]
+    ]],
     ['react_island/load_error', null, [
       ['load error fallback', '[data-bali-island-error]', 2]
     ]],
