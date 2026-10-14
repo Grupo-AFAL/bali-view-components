@@ -17,6 +17,7 @@ const TEXTS = {
     searchingText: 'Searching...',
     resultsText: 'Results',
     ajaxPlaceholder: 'Type 2 chars to search...',
+    ajaxErrorText: 'Search failed. Please try again.',
     maxValuesMessage: '{number} selected',
     addableText: 'Press "Enter" to add {value}',
     deselectText: 'Clear',
@@ -30,6 +31,7 @@ const TEXTS = {
     searchingText: 'Buscando...',
     resultsText: 'Resultados',
     ajaxPlaceholder: 'Escribe al menos 2 caracteres para buscar...',
+    ajaxErrorText: 'No se pudo completar la búsqueda. Intenta de nuevo.',
     maxValuesMessage: '{number} seleccionados',
     addableText: 'Presiona "Enter" para agregar {value}',
     deselectText: 'Borrar selección',
@@ -72,6 +74,7 @@ export class SlimSelectController extends Controller {
     ajaxParamSelectors: Object,
     placeholder: String,
     ajaxPlaceholder: String,
+    ajaxErrorText: String,
     afterChangeFetchUrl: String,
     afterChangeFetchMethod: { type: String, default: 'get' },
     contentWidth: String
@@ -387,36 +390,38 @@ export class SlimSelectController extends Controller {
     // `ajaxPlaceholder` where the options were. The catalog is what 4.0–4.3 restored on their
     // own; 3.x never asks.
     if (search === '') return Promise.resolve(catalog)
+    if (search.length < 2) return Promise.reject(this.texts.ajaxPlaceholder)
 
-    return new Promise((resolve, reject) => {
-      if (search.length < 2) {
-        return reject(this.texts.ajaxPlaceholder)
-      }
-
-      get(this.ajaxUrlValue, {
-        query: {
-          ...this.ajaxExtraParamsValue,
-          ...this.dependentParams(),
-          // The term goes LAST on purpose: an extra parameter named the same as
-          // `ajaxParamName` is a call site mistake, and being left with no search is the
-          // worst way to find out.
-          [this.ajaxParamNameValue]: search
-        },
-        responseKind: 'json'
-      })
-        .then(response => response.json)
-        .then(data => {
-          const options = data.map(record => {
-            return {
-              text: record[this.ajaxTextNameValue],
-              value: record[this.ajaxValueNameValue],
-              html: record.html
-            }
-          })
-
-          resolve([{ label: this.texts.resultsText, options }])
-        })
+    return get(this.ajaxUrlValue, {
+      query: {
+        ...this.ajaxExtraParamsValue,
+        ...this.dependentParams(),
+        // The term goes LAST on purpose: an extra parameter named the same as
+        // `ajaxParamName` is a call site mistake, and being left with no search is the
+        // worst way to find out.
+        [this.ajaxParamNameValue]: search
+      },
+      responseKind: 'json'
     })
+      .then(response => {
+        // An error whose body still parses as a list would otherwise read as "No results".
+        if (!response.ok) throw new Error(response.statusCode)
+        return response.json
+      })
+      .then(data => {
+        const options = data.map(record => {
+          return {
+            text: record[this.ajaxTextNameValue],
+            value: record[this.ajaxValueNameValue],
+            html: record.html
+          }
+        })
+
+        return [{ label: this.texts.resultsText, options }]
+      })
+      // SlimSelect paints whatever the search rejects with where the results go, an error's
+      // `message` included: let through, the user would read "Failed to fetch".
+      .catch(() => Promise.reject(this.texts.ajaxErrorText))
   }
 
   /**

@@ -491,6 +491,7 @@ for one field.
 | `searching_text` | `searching` | Searching... |
 | `results_text` | `results` | Results |
 | `ajax_placeholder` | `ajax_placeholder` | Type 2 chars to search... |
+| `ajax_error_text` | `ajax_error` | Search failed. Please try again. |
 | `select_all_text` | `select_all` | Select all |
 | `deselect_all_text` | `deselect_all` | Deselect all |
 | `max_values_message` | `max_values_message` | {number} selected |
@@ -529,6 +530,9 @@ builder renders itself, and the controller has no value for them.
   page renders
 - `ajax_param_selectors` - Hash of `param => CSS selector`, read **on every search**: the
   scope that lives in another field
+
+The endpoint answers with a JSON array. Any other answer — an error status, a body that is
+not a JSON array, or no answer at all — shows `ajax_error_text` in the list instead of results.
 
 The search fires at two characters and sends the term under `ajax_param_name`. Anything
 else it should carry goes through the last two options, and the difference between them is
