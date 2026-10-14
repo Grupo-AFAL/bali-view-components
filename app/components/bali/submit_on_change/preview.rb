@@ -39,7 +39,7 @@ module Bali
           template: "bali/submit_on_change/previews/required",
           locals: {
             model: form_record,
-            redirect: true
+            with_action: true
           }
         )
       end
@@ -50,7 +50,7 @@ module Bali
       def validated
         render_with_template(
           template: "bali/submit_on_change/previews/required",
-          locals: { model: form_record, redirect: false }
+          locals: { model: form_record, with_action: false }
         )
       end
     end

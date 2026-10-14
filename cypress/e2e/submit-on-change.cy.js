@@ -74,11 +74,12 @@ describe('SubmitOnChangeController with a required field empty', () => {
   it('still validates when the form submits itself', () => {
     cy.intercept('GET', '**/bali/submit_on_change/validated?*').as('submit')
     cy.visit('/bali/submit_on_change/validated')
+    cy.window().then(w => cy.spy(w.HTMLFormElement.prototype, 'requestSubmit').as('requestSubmit'))
 
     pickComedy()
 
-    cy.get('#form_record_text:invalid').should('exist')
-    cy.wait(500)
+    // The change reached requestSubmit, and validation alone stopped the request
+    cy.get('@requestSubmit').should('have.been.calledOnce')
     cy.get('@submit.all').should('have.length', 0)
     cy.location('search').should('eq', '')
   })

@@ -2,7 +2,7 @@
     point of the page: the query string below is the record of what was sent. %>
 <% model.assign_attributes(params.fetch(:form_record, {}).permit(:select, :text)) %>
 <% controller_data = { controller: 'submit-on-change' } %>
-<% controller_data.merge!(submit_on_change_action_value: request.path, submit_on_change_method_value: 'get') if redirect %>
+<% controller_data.merge!(submit_on_change_action_value: request.path, submit_on_change_method_value: 'get') if with_action %>
 <%= form_with(model: model, url: request.path, method: :get, builder: Bali::FormBuilder,
               data: controller_data) do |form| %>
   <div class="flex flex-wrap gap-4 items-end">
