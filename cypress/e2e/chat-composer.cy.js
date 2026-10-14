@@ -55,6 +55,21 @@ describe('Chat composer', () => {
     field().should($f => expect($f[0].getBoundingClientRect().height).to.equal(empty))
   })
 
+  // daisyUI's `.textarea` caps its width at 20rem from a layer the composer's
+  // `@layer components` sheet cannot beat, so the field stopped at 320 px and left the rest of
+  // the row empty.
+  it('takes the width the buttons leave in the row', () => {
+    field().should($f => {
+      const row = $f[0].parentElement
+      const others = [...row.children].filter(el => el !== $f[0] && el.offsetParent !== null)
+      const taken = others.reduce((sum, el) => sum + el.getBoundingClientRect().width, 0)
+      const gaps = parseFloat(getComputedStyle(row).columnGap) * others.length
+      const free = row.getBoundingClientRect().width - taken - gaps
+
+      expect($f[0].getBoundingClientRect().width).to.be.closeTo(free, 1)
+    })
+  })
+
   it('puts the caret back in the field', () => {
     field().type('otro mensaje')
     send().click()

@@ -1,12 +1,18 @@
 /* Chat Composer field
- * Four declarations, and every one of them is a default a caller has a reason to
- * beat: a shorter cap for a one-line composer, a fixed height, the resize handle
- * back, a different overflow. `field-sizing` is not one of those, but it belongs
- * with them — it is what replaces the `auto_grow` controller writing an inline
- * height, which is what used to survive a `form.reset()` and leave the box grown
- * and empty (#1371).
+ * Every declaration but `field-sizing` is a default a caller has a reason to beat:
+ * a field that doesn't fill the row (`flex-none w-64`), a shorter cap for a one-line
+ * composer, the resize handle back, a different overflow. `field-sizing` belongs with
+ * them anyway — it is what replaces the `auto_grow` controller writing an inline
+ * height, which is what used to survive a `form.reset()` and leave the box grown and
+ * empty (#1371).
  *
- * Written as `max-h-48 w-full resize-none` in the template's class attribute they
+ * The width goes through `flex`, not `width`: daisyUI's `.textarea` sets
+ * `width: clamp(3rem, 20rem, 100%)` from inside @layer utilities, which outranks this
+ * layer at any specificity, so a `width: 100%` here left the field at 320 px in a
+ * 1248 px row. daisyUI sets neither `flex-grow` nor `flex-basis`, and a zero basis
+ * makes its width moot in the row.
+ *
+ * Written as `max-h-48 flex-1 resize-none` in the template's class attribute they
  * would land in @layer utilities next to the host's own `field_options: { class: }`,
  * at the same specificity, and inside one layer only emission order breaks the tie.
  * Tailwind emits each family ascending by value, so a host's `max-h-24` would lose
@@ -15,7 +21,7 @@
  * beats them, at any value and with no `!`. Same measurement as reveal/index.css
  * (#1148). */
 .bali-chat-composer-field {
-  width: 100%;
+  flex: 1 1 0%;
   resize: none;
   field-sizing: content;
   max-height: calc(var(--spacing) * 48);
