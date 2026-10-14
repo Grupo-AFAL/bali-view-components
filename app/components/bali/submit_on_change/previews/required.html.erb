@@ -1,0 +1,23 @@
+<%# The select changes while `Name` is still empty. Whether that submits is the whole
+    point of the page: the query string below is the record of what was sent. %>
+<% model.assign_attributes(params.fetch(:form_record, {}).permit(:select, :text)) %>
+<% controller_data = { controller: 'submit-on-change' } %>
+<% controller_data.merge!(submit_on_change_action_value: request.path, submit_on_change_method_value: 'get') if with_action %>
+<%= form_with(model: model, url: request.path, method: :get, builder: Bali::FormBuilder,
+              data: controller_data) do |form| %>
+  <div class="flex flex-wrap gap-4 items-end">
+    <div class="w-64">
+      <%= form.select_group :select, [['Drama', 1], ['Comedy', 2]], label: 'Genre',
+            html: { data: { action: 'submit-on-change#submit' } } %>
+    </div>
+
+    <div class="w-64">
+      <%= form.text_group :text, label: 'Name', required: true %>
+    </div>
+  </div>
+<% end %>
+
+<p class="mt-6 text-sm" data-testid="query">
+  Query string:
+  <code><%= request.query_string.presence || '(empty)' %></code>
+</p>
