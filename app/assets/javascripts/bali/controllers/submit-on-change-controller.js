@@ -99,6 +99,9 @@ export class SubmitOnChangeController extends Controller {
     const input = document.createElement('input')
     input.type = 'submit'
     input.className = 'hidden'
+    // requestSubmit(submitter) validates unless the submitter opts out, and a form being
+    // re-rendered is half filled by definition
+    input.formNoValidate = true
     input.setAttribute('formaction', this.formAction)
     input.setAttribute('formmethod', this.formMethod)
     return input

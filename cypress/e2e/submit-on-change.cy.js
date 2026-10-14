@@ -55,3 +55,31 @@ describe('SubmitOnChangeController', () => {
     cy.get('@submit.all').should('have.length', 1)
   })
 })
+
+// A `required` field still empty must not block the re-render that `action`/`method` set up,
+// and must keep blocking the form's own submit. The submitter that carries `formaction` is the
+// only one the controller creates, so it is the only path that skips validation.
+describe('SubmitOnChangeController with a required field empty', () => {
+  const pickComedy = () => cy.get('#form_record_select').select('Comedy')
+
+  it('re-renders through action/method without validating', () => {
+    cy.intercept('GET', '**/bali/submit_on_change/refresh?*').as('refresh')
+    cy.visit('/bali/submit_on_change/refresh')
+
+    pickComedy()
+
+    cy.wait('@refresh').its('request.url').should('include', 'form_record%5Bselect%5D=2')
+  })
+
+  it('still validates when the form submits itself', () => {
+    cy.intercept('GET', '**/bali/submit_on_change/validated?*').as('submit')
+    cy.visit('/bali/submit_on_change/validated')
+
+    pickComedy()
+
+    cy.get('#form_record_text:invalid').should('exist')
+    cy.wait(500)
+    cy.get('@submit.all').should('have.length', 0)
+    cy.location('search').should('eq', '')
+  })
+})

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`submit-on-change` con `action`/`method` ya no se detiene en un campo `required` vacío**
+  (#1439). El submitter oculto que crea el controlador llevaba la validación del navegador, así
+  que un formulario a medio llenar no se volvía a pintar. Ahora ese submitter lleva
+  `formnovalidate`; el envío propio del formulario (sin `action`/`method`) valida igual que
+  antes. Las apps que lo evitaban con `novalidate: true` en el `form_with` pueden quitarlo, si
+  ya no lo necesitan para otra cosa.
+
 ## [v3.15.0] - 2026-10-13
 
 ### Added
