@@ -201,6 +201,7 @@ export class SlimSelectController extends Controller {
 
       this.forwardAccessibility()
       this.leavePlaceholderOutOfResults()
+      this.announceErrors()
       this.joinTopLayerOnOpen()
     } catch (error) {
       console.error('[SlimSelect] Failed to initialize:', error)
@@ -294,6 +295,20 @@ export class SlimSelectController extends Controller {
     if (optionsIn(data).some(option => option.placeholder)) render.renderOptions(data)
   }
 
+  // SlimSelect reads out "Searching..." when a remote search starts and nothing when it ends in
+  // an error: `renderError` paints the reason in the list and leaves the live region alone
+  // (4.5.0, 4.6.0), so a screen reader stays on "Searching..." — after a failed search, and
+  // after a term too short to search for. `announce` arrived in 3.6.
+  announceErrors () {
+    const render = this.select.render
+    const renderError = render.renderError.bind(render)
+
+    render.renderError = message => {
+      renderError(message)
+      render.announce?.(message)
+    }
+  }
+
   // SlimSelect portals `.ss-content` to <body>, which a modal overlay both covers
   // and renders inert — see utils/top-layer.js for the hit-test that measured it.
   //
@@ -385,43 +400,46 @@ export class SlimSelectController extends Controller {
     }
   }
 
-  search = (search, currentData, catalog) => {
+  // Async, so that what throws while the request is still being built — an
+  // `ajax_param_selectors` that is not a valid selector, an `ajax_extra_params` that is not
+  // JSON — rejects too: SlimSelect has already put up "Searching..." before it calls this.
+  search = async (search, currentData, catalog) => {
     // From 4.4 emptying the search box reaches this callback as well, and rejecting it shows
     // `ajaxPlaceholder` where the options were. The catalog is what 4.0–4.3 restored on their
     // own; 3.x never asks.
-    if (search === '') return Promise.resolve(catalog)
-    if (search.length < 2) return Promise.reject(this.texts.ajaxPlaceholder)
+    if (search === '') return catalog
+    if (search.length < 2) throw this.texts.ajaxPlaceholder
 
-    return get(this.ajaxUrlValue, {
-      query: {
-        ...this.ajaxExtraParamsValue,
-        ...this.dependentParams(),
-        // The term goes LAST on purpose: an extra parameter named the same as
-        // `ajaxParamName` is a call site mistake, and being left with no search is the
-        // worst way to find out.
-        [this.ajaxParamNameValue]: search
-      },
-      responseKind: 'json'
-    })
-      .then(response => {
-        // An error whose body still parses as a list would otherwise read as "No results".
-        if (!response.ok) throw new Error(response.statusCode)
-        return response.json
+    try {
+      const response = await get(this.ajaxUrlValue, {
+        query: {
+          ...this.ajaxExtraParamsValue,
+          ...this.dependentParams(),
+          // The term goes LAST on purpose: an extra parameter named the same as
+          // `ajaxParamName` is a call site mistake, and being left with no search is the
+          // worst way to find out.
+          [this.ajaxParamNameValue]: search
+        },
+        responseKind: 'json'
       })
-      .then(data => {
-        const options = data.map(record => {
-          return {
-            text: record[this.ajaxTextNameValue],
-            value: record[this.ajaxValueNameValue],
-            html: record.html
-          }
-        })
+      // An error whose body still parses as a list would otherwise read as "No results".
+      if (!response.ok) throw new Error(response.statusCode)
 
-        return [{ label: this.texts.resultsText, options }]
+      const data = await response.json
+      const options = data.map(record => {
+        return {
+          text: record[this.ajaxTextNameValue],
+          value: record[this.ajaxValueNameValue],
+          html: record.html
+        }
       })
+
+      return [{ label: this.texts.resultsText, options }]
+    } catch {
       // SlimSelect paints whatever the search rejects with where the results go, an error's
       // `message` included: let through, the user would read "Failed to fetch".
-      .catch(() => Promise.reject(this.texts.ajaxErrorText))
+      throw this.texts.ajaxErrorText
+    }
   }
 
   /**

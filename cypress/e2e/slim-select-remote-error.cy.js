@@ -1,12 +1,21 @@
-// #1452 — a remote search that fails says so where its results would be. Before, the
-// controller's promise never settled: SlimSelect's "Searching..." stayed up for good and the
-// rejection went out unhandled. Cypress fails a test on an unhandled rejection, so every
-// failing search below also guards the console.
+// #1452 — a remote search that fails says so where its results would be, and reads it out.
+// Cypress fails a test on an unhandled rejection, so every failing search below also guards the
+// console.
 const search = term => {
   cy.get('.ss-main').click()
   cy.get('.ss-content.ss-open .ss-search input').type(term)
 }
 const list = () => cy.get('.ss-content.ss-open .ss-list')
+
+// The message in the list and in SlimSelect's live region (`.ss-status`), which still says
+// "Searching..." if the message is only painted.
+const expectMessage = text => {
+  cy.get('.ss-content.ss-open').should($content => {
+    expect($content.find('.ss-searching'), 'searching row').to.have.length(0)
+    expect($content.find('.ss-list .ss-error').text(), 'in the list').to.equal(text)
+    expect($content.find('.ss-status').text(), 'read out').to.equal(text)
+  })
+}
 
 describe('SlimSelect remote search', () => {
   const failures = {
@@ -25,11 +34,18 @@ describe('SlimSelect remote search', () => {
       search('jo')
       cy.wait('@remoteSearch')
 
-      list().should($list => {
-        expect($list.find('.ss-searching'), 'searching row').to.have.length(0)
-        expect($list.find('.ss-error').text()).to.equal('Search failed. Please try again.')
-      })
+      expectMessage('Search failed. Please try again.')
     })
+  })
+
+  // Read while the request is built, so it throws before there is a request to fail.
+  it('says the search failed when a dependent field\'s selector is not valid', () => {
+    cy.visit('/bali/form/slim_select/remote_dependent')
+    cy.get('[data-controller="slim-select"]')
+      .invoke('attr', 'data-slim-select-ajax-param-selectors-value', '{"family":"[name=a[b]]"}')
+    search('jo')
+
+    expectMessage('Search failed. Please try again.')
   })
 
   it('says the search failed in the page language', () => {
@@ -38,7 +54,7 @@ describe('SlimSelect remote search', () => {
     search('jo')
     cy.wait('@remoteSearch')
 
-    list().find('.ss-error').should('have.text', 'No se pudo completar la búsqueda. Intenta de nuevo.')
+    expectMessage('No se pudo completar la búsqueda. Intenta de nuevo.')
   })
 
   it('lists what a search that succeeds finds', () => {
@@ -60,7 +76,7 @@ describe('SlimSelect remote search', () => {
     cy.visit('/bali/form/slim_select/remote')
     search('j')
 
-    list().find('.ss-error').should('have.text', 'Start typing to get results...')
+    expectMessage('Start typing to get results...')
     cy.wait(500)
     cy.get('@remoteSearch.all').should('have.length', 0)
   })

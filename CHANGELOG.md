@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **SlimSelect: una búsqueda remota que falla lo dice en la lista** (#1452). Un 4xx o 5xx, una
   respuesta que no es una lista JSON o un corte de red dejaban «Buscando...» puesto para siempre
-  y un rechazo sin manejar en la consola. Ahora la lista muestra «No se pudo completar la
+  y un rechazo sin manejar en la consola, o «Sin resultados» si el cuerpo del error era una
+  lista. Ahora la lista muestra «No se pudo completar la
   búsqueda. Intenta de nuevo.» (en `en`, «Search failed. Please try again.»): la opción nueva
   `ajax_error_text:` de `slim_select_group` y `slim_select_field`, con su llave
   `bali_view.form_builder.slim_select.ajax_error`; un SlimSelect escrito a mano la toma del
