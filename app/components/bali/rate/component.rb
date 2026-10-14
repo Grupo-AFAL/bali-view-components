@@ -35,7 +35,7 @@ module Bali
         info: "bg-info"
       }.freeze
 
-      # Under forced colours daisyUI paints `.rating *` in CanvasText, but
+      # Under forced colours daisyUI 5.7.50 paints `.rating *` in CanvasText, but
       # `bg-warning` is a utility and beats that rule, so the palette's yellow
       # would stay. Opting out and painting CanvasText here leaves filled and
       # empty apart by opacity alone: daisyUI's .2 measured 1.61:1 against

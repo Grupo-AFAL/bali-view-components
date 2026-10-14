@@ -130,7 +130,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Rate`: las estrellas se ven con colores forzados** (#1465). Con `forced-colors: active`
   (alto contraste de Windows) conservaban el color de la paleta, o desaparecían, según la versión
-  de daisyUI; ahora se pintan en `CanvasText` y la llena se distingue de la vacía por la opacidad (la vacía a 50 %: 4,06:1 contra Canvas en `afal`, 5,32:1 en `afal-dark`).
+  de daisyUI; ahora se pintan en `CanvasText` y la vacía, a 50 % de opacidad, se distingue de la
+  llena con el contraste que pide WCAG 1.4.11.
   Sin colores forzados no cambia nada. No requiere acción.
 
 ### Dependencies
