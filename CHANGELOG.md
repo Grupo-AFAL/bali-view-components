@@ -14,9 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Chat::Composer`: el campo ocupa el ancho que dejan los botones** (desde v3.15.0). El
   `.textarea` de daisyUI fija `width: clamp(3rem, 20rem, 100%)` desde `@layer utilities`, que le
   gana a cualquier ancho del compositor en `@layer components`: en escritorio el campo se quedaba
-  en 320 px y el resto del renglón vacío (944 px de renglón en gobierno-corporativo). Ahora crece
-  con `flex`, que daisyUI no declara. En el teléfono no cambia. Lo mismo para el compositor de
-  `Chat::Component` con `url:`. Nada que hacer en la app: ninguna lo usa todavía en `main`.
+  en 320 px y el resto del renglón vacío. Ahora crece con `flex-grow`, que daisyUI no declara. En
+  el teléfono no cambia. Lo mismo para el compositor de `Chat::Component` con `url:`. Un campo
+  que no deba llenar el renglón lleva `field_options: { class: "flex-none w-64" }`. Nada que
+  hacer en la app: ninguna lo usa todavía en `main`.
 
 ## [v3.16.0] - 2026-10-13
 
