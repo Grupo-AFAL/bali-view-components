@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`DataTable::SimpleFilters`: el filtro `date_range` ya no recorta el rango elegido** (#1461).
+  Con una fuente ancha, «03/10/2026 a 07/10/2026» no cabía en el input del selector. Su contenedor
+  ahora mide al menos 13 rem (`min-w-52`), con lo que caben el rango más largo y el separador en
+  inglés (` to `). Los filtros con `presets:` no cambian.
+  **Anfitrión:** gobierno-corporativo puede borrar su regla
+  `.sm\:max-w-56:has(> div > .flatpickr[data-datepicker-mode-value="range"])`.
+
 ## [v3.15.0] - 2026-10-13
 
 ### Added
