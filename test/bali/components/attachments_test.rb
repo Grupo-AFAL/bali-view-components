@@ -14,19 +14,23 @@ class BaliAttachmentsComponentTest < ComponentTestCase
   # new record": the form meant to come back as a 422 becomes an error page.
   def test_an_unsaved_attachment_is_left_out
     pdf = attach("minutes.pdf", "application/pdf")
-    pending = Workout.new.files.attach(io: StringIO.new("%PDF-1.4"), filename: "pending.pdf",
-                                       content_type: "application/pdf").first
 
-    render_inline(Bali::Attachments::Component.new(attachments: [ pdf, pending ]))
+    render_inline(Bali::Attachments::Component.new(attachments: [ pdf, unsaved("pending.pdf") ]))
 
     assert_selector("li", text: "minutes.pdf")
     assert_no_text("pending.pdf")
   end
 
-  def test_nothing_renders_without_a_saved_attachment
-    render_inline(Bali::Attachments::Component.new(attachments: @workout.files))
+  def test_with_empty_text_false_nothing_renders_without_a_saved_attachment
+    render_inline(Bali::Attachments::Component.new(attachments: [ unsaved("pending.pdf") ], empty_text: false))
 
     assert_no_selector(".attachments-component")
+  end
+
+  def test_an_empty_list_says_so_with_the_text_from_the_locale_files
+    render_inline(Bali::Attachments::Component.new(attachments: @workout.files))
+
+    assert_selector("ul.attachments-component > li.attachments-empty", text: "No attachments", visible: :all)
   end
 
   # The id is what the host's `turbo_stream.remove attachment` targets.
@@ -138,6 +142,10 @@ class BaliAttachmentsComponentTest < ComponentTestCase
   def attach(filename, content_type, io: StringIO.new("%PDF-1.4"))
     @workout.files.attach(io: io, filename: filename, content_type: content_type, identify: false)
     @workout.files.reload.find { |attachment| attachment.filename.to_s == filename }
+  end
+
+  def unsaved(filename)
+    Workout.new.files.attach(io: StringIO.new("%PDF-1.4"), filename: filename, content_type: "application/pdf").first
   end
 
   def dom_id_for(attachment)

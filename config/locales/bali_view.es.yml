@@ -154,6 +154,7 @@ es:
       download: "Descargar %{filename}"
       remove: "Quitar %{filename}"
       remove_confirm: "¿Quitar «%{filename}»?"
+      empty: "Sin archivos adjuntos"
 
     # Modal
     modal:

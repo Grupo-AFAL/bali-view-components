@@ -8,7 +8,7 @@
         <%= link_to rails_blob_path(attachment), target: "_blank", rel: "noopener",
                                                  title: attachment.filename do %>
           <%= image_tag attachment.variant(THUMBNAIL), alt: attachment.filename,
-                                                      class: "max-h-32 rounded-box border border-base-300" %>
+                                                      class: "max-h-32 max-w-64 rounded-box border border-base-300" %>
         <% end %>
       <% else %>
         <%= render Bali::Link::Component.new(href: rails_blob_path(attachment, disposition: "attachment"),

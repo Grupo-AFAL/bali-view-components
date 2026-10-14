@@ -2421,25 +2421,36 @@ chip with its name that downloads it, and a remove button where the host allows 
 ```erb
 <%= render Bali::Attachments::Component.new(
       attachments: @defect.files,
-      remove_path: ->(attachment) { attachment_path(attachment) if policy(@defect).update? },
-      empty_text: t('.no_files')) %>
+      remove_path: ->(attachment) { attachment_path(attachment) if policy(@defect).update? }) %>
 ```
 
 **Options:**
 - `attachments` - `record.files`, or any list of `ActiveStorage::Attachment`. Only the saved ones render: after a failed validation the record carries its new upload unsaved, and asking that attachment for a URL raises `Cannot get a signed_id for a new record` (required)
 - `remove_path` - `->(attachment) { path }`: the DELETE route for that attachment, or `nil` to leave it without a remove button. Who may delete is the host's policy, and the route its controller (default: nil, no remove buttons)
-- `badge` - `->(attachment) { html }`, drawn beside each file: a status tag, a button of the host's own (default: nil)
-- `empty_text` - What the list says while it holds no file. Without it an empty list renders nothing (default: nil)
+- `badge` - `->(attachment) { html }`, drawn beside each file (default: nil)
+- `empty_text` - What the list says while it holds no file; `false` renders nothing for an empty list (default: `bali_view.attachments.empty`, "No attachments")
 - `**options` - HTML attributes for the `<ul>`
 
 Each item is `<li id="<%= dom_id(attachment) %>">`, so the destroy action answers with
 `turbo_stream.remove attachment`. The empty text is an item that shows only while it is alone
 in the list, so the stream that removes the last file brings it up with nothing else to send.
 
-A file Active Storage can resize (`variable?`) is a thumbnail drawn from a 256px variant, which
-needs `image_processing` in the host, or `config.active_storage.variant_processor = :disabled`
-to serve the original. Anything else is a chip capped at 16rem with its name truncated — an SVG
-too, which Active Storage serves as `application/octet-stream` and an `<img>` does not draw.
+**Not inside a form with `remove_path:`.** Each remove button is a `button_to`, which is a
+`<form>` of its own, and HTML has no nested forms: the browser drops the first button's `<form>`
+tag, so that button submits the outer form, and its `</form>` closes the outer one, leaving
+every field and the submit button after the list outside it. Inside a form, leave
+`remove_path:` out and put the list outside the form when it needs the buttons.
+
+A file Active Storage can resize (`variable?`) is a thumbnail drawn from a variant of at most
+512×256, so it stays sharp on a 2x screen in its 256×128 box. That needs a working variant
+processor in the host: `image_processing` plus libvips (`:vips`, the default) or ImageMagick
+(`:mini_magick`). Without one Rails warns at boot and every thumbnail request answers 500 — the
+page renders, each `<img>` broken and showing its filename.
+`config.active_storage.variant_processor = :disabled` serves the original file instead: fine
+for PNG, JPEG, GIF or WebP, but a TIFF, HEIC or PSD, which `variable?` also admits, is one
+Chrome and Firefox do not draw. Anything that is not
+variable is a chip capped at 16rem with its name truncated — an SVG too, which Active Storage
+serves as `application/octet-stream` and an `<img>` does not draw.
 
 The `badge` lambda runs in the host's view, so it can render a partial that a stream replaces
 on its own later:

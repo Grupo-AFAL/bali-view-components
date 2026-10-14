@@ -15,7 +15,7 @@ describe('Attachments', () => {
     items().then($items => [...$items].forEach(item => remove(item.id)))
 
     items().should('not.exist')
-    emptyText().should('be.visible').and('contain.text', 'No attachments yet')
+    emptyText().should('be.visible').and('contain.text', 'No attachments')
   })
 
   it('truncates a long name inside a chip no wider than 16rem, at phone width', () => {

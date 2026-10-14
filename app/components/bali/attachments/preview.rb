@@ -4,7 +4,8 @@ module Bali
   module Attachments
     class Preview < ApplicationViewComponentPreview
       SAMPLE_FILES = [
-        { filename: "defect-screenshot.png", content_type: "image/png" },
+        { filename: "defect-screenshot.jpg", content_type: "image/jpeg", image: "screenshot.jpg" },
+        { filename: "avatar.png", content_type: "image/png", image: "avatar.png" },
         { filename: "minutes.pdf", content_type: "application/pdf", body: "%PDF-1.4\n%%EOF\n" },
         { filename: "Q3 budget reconciliation for the northern region, final version approved by " \
                     "the finance committee.xlsx",
@@ -14,21 +15,20 @@ module Bali
       ].freeze
 
       # @label Default
-      # An image as a thumbnail that opens it; a PDF, a spreadsheet with a name long enough to
-      # truncate and an SVG (which Active Storage cannot resize) as chips that download them.
-      # A fifth file was attached and never saved, as after a failed validation: it is left out.
+      # A landscape screenshot and a square image as thumbnails that open them; a PDF, a
+      # spreadsheet with a name long enough to truncate and an SVG (which Active Storage cannot
+      # resize) as chips that download them. One more file was attached and never saved, as
+      # after a failed validation: it is left out. The empty text waits hidden in the list until
+      # the stream that removes the last file leaves it alone.
       #
       # `remove_path:` is the host's DELETE route per attachment, or nil for one the visitor
-      # may not remove. `empty_text:` waits hidden in the list until the stream that removes
-      # the last file leaves it alone.
+      # may not remove.
       #
       # @param removable toggle "Remove button on each file"
-      # @param empty_text text
-      def default(removable: true, empty_text: "No attachments yet")
+      def default(removable: true)
         render Bali::Attachments::Component.new(
           attachments: [ *Bali::Attachments::Preview.sample_files, Bali::Attachments::Preview.unsaved_file ],
-          remove_path: (->(_attachment) { "/lookbook" } if removable),
-          empty_text: empty_text
+          remove_path: (->(_attachment) { "/lookbook" } if removable)
         )
       end
 
@@ -40,12 +40,13 @@ module Bali
       end
 
       # @label Empty
-      # With `empty_text:` the text is an item of the list, shown while it is alone, so the
-      # stream that removes the last file brings it up. Without it an empty list renders nothing.
+      # The empty text is an item of the list, shown while it is alone, so the stream that
+      # removes the last file brings it up. It comes from the locale files unless `empty_text:`
+      # says otherwise; `false` renders nothing for an empty list.
       #
-      # @param empty_text text
-      def empty(empty_text: "No attachments yet")
-        render Bali::Attachments::Component.new(attachments: [], empty_text: empty_text)
+      # @param empty_text text "Leave blank for the text from the locale files"
+      def empty(empty_text: "")
+        render Bali::Attachments::Component.new(attachments: [], empty_text: empty_text.presence)
       end
 
       # An attachment renders only once it is saved, so the sample files are stored on the
@@ -57,7 +58,7 @@ module Bali
       end
 
       def self.sample_upload(file)
-        body = file[:body] || Rails.root.join("app/assets/images/avatar.png").binread
+        body = file[:body] || Rails.root.join("app/assets/images", file[:image]).binread
         { io: StringIO.new(body), filename: file[:filename], content_type: file[:content_type] }
       end
 
