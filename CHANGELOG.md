@@ -9,6 +9,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`dictation:` en `text_area_group`: un micrófono que escribe en el campo lo que la persona
+  dice** (#1450). Lo hace el reconocimiento de voz **del navegador** (Web Speech API): la app no
+  recibe el audio ni necesita un servicio de transcripción propio — pero el navegador **sí lo
+  manda a su proveedor**; ver el párrafo de privacidad. `dictation: { lang: "en-US" }` dice en
+  qué idioma se habla; sin él lo decide el `<html lang>` de la página. Trae el controlador
+  `speech-input`, utilizable a mano como cualquier otro.
+
+  El botón se renderiza `hidden` y el controlador lo revela sólo donde el navegador tiene
+  reconocimiento **y el campo acepta escritura**, así que en Firefox, o sobre un campo
+  `readonly`, queda exactamente como estaba. Se detiene solo al enviar el formulario y cuando
+  alguien escribe en el campo; si el navegador falla, una línea con `role="status"` lo dice y el
+  micrófono **se queda**, porque `not-allowed` es también lo que reporta Chrome cuando se cierra
+  el diálogo de permiso sin elegir, y retirarlo obligaría a recargar para reintentar.
+
+  Tocar el micrófono otra vez **conserva la última frase**: en la Web Speech API `stop()` es la
+  llamada que entrega el audio ya capturado y `abort()` la que lo tira. Se aborta sólo cuando el
+  campo ya cambió de manos —alguien tecleó encima o envió—, donde lo que quedara en el motor
+  pisaría lo que hay.
+
+  **El audio sale.** El reconocimiento es del navegador, y los que lo tienen mandan lo dicho a
+  **su** proveedor: Google en Chrome, Microsoft en Edge, Apple en Safari. Sale del perímetro del
+  anfitrión. Por eso en el FormBuilder la opción **nace apagada** y la guía lo dice con todas sus
+  letras: encenderla es una decisión de quien conoce sus datos, no de la biblioteca. La única
+  excepción es `Chat::Composer`, que la trae encendida; está dicho en su propia entrada.
+
+  **Anfitrión:** `dictation:` sólo lo honra `text_area_group`. Pedírselo a otra familia avisa por
+  `Bali.deprecator` y no pinta nada, en vez de dejar un micrófono cableado a nada.
+
+- **`Chat::Component` con `url:` trae el compositor y el micrófono: agregar un chat a una
+  pantalla es UN componente, no tres** (#1450). Antes el contenedor era sólo la región de
+  mensajes y el formulario lo armaba cada quien en la ranura del pie — por eso el dictado no
+  tenía dónde vivir. Con `url:` el chat renderiza el formulario, el campo, el micrófono y
+  enviar; `composer:` lleva las opciones del renglón, `form_options:` las del formulario y
+  `with_composer_action` agrega botones entre el campo y enviar. Sin `url:` nada cambia: una
+  transcripción de sólo lectura sigue siendo un chat, y es también lo que deja intacto a quien
+  ya renderizaba uno. **`with_footer` sigue siendo la escotilla** y reemplaza al compositor, que
+  es lo que necesitan las dos apps de las que salió el contenedor: una apila banner de
+  cobertura, marco de acciones y leyenda de límite alrededor de su renglón.
+
+- **`Bali::Chat::Composer::Component`: el renglón donde se escribe una conversación, con
+  micrófono incluido** (#1450). Campo, micrófono y enviar. Era la única pieza del chat que cada
+  quien seguía escribiendo a mano: las dos apps de las que salió el contenedor escriben el mismo
+  renglón, y el preview de este repo también, bajo un comentario que lo decía. Renderiza el
+  **renglón y no el formulario**: la url, el método y el Stimulus que el anfitrión le cuelgue
+  siguen siendo suyos. Con `with_action` se le agregan botones entre el campo y enviar, y
+  `field_options:` / `submit_options:` llegan tal cual al `<textarea>` y al botón.
+
+  **Aquí el dictado viene encendido**, y es la única excepción de la biblioteca: un compositor es
+  justo donde hablar en vez de teclear se gana el lugar. `dictation: false` lo quita, y un
+  anfitrión cuyas conversaciones lleven datos que no deben salir debe hacer exactamente eso.
+
+  Trae además lo que cada app reimplementaba: **se limpia tras un envío exitoso** —y sólo
+  exitoso, para no tirar lo que habría que volver a escribir— y **Enter envía**, Shift+Enter
+  escribe un renglón. Lo segundo dejó de salir gratis al pasar de `<input>` a `<textarea>`.
+  El controlador es `chat-composer`, y `submit_on_enter: false` deja a Enter en paz. El campo
+  vuelve a tener el cursor después de enviar.
+
+  **Anfitrión:** nada que hacer; sin `dictation:` no cambia un solo atributo. De paso, el
+  `.control` ya no pisa un `controller:` que el call site hubiera declarado en `control_data:` —
+  antes el contador lo sobrescribía sin decir nada—, porque el dictado y el contador comparten
+  esa caja.
+
 - **`Bali.google_maps` y `google_maps_meta_tags`: una sola configuración para los mapas**
   (#1443). `Bali.google_maps.api_key` es la llave, con `GOOGLE_MAPS_KEY` de respaldo como
   hasta ahora, y `Bali.google_maps.map_id` un map ID registrado en Google Cloud, que trae su

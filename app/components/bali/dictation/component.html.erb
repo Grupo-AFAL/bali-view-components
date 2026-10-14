@@ -1,0 +1,17 @@
+<% if button? %>
+<%# Born `hidden`, and revealed by `speech-input` only where the browser has recognition and the
+    field takes input: the markup never promises what the browser cannot do. %>
+<%= render Bali::Button::Component.new(
+      type: "button", variant: :ghost, icon: "mic", responsive: false, hidden: true,
+      class: class_names("btn-square shrink-0", button_class),
+      title: label, aria: { label: label, pressed: "false" },
+      data: { 'speech-input-target': "button", action: "speech-input#toggle" }) %>
+<% end %>
+
+<% if status? %>
+<%# `role="status"` and not `alert`: it is the answer to something the person just did. It ships
+    with its text already in place, so a reader that misses the reveal still finds it on the way
+    through — which is also why the mic is never retired with it. %>
+<%= tag.p(unavailable, class: status_classes, role: "status", hidden: true,
+          data: { 'speech-input-target': "status" }) %>
+<% end %>

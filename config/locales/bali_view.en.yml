@@ -143,6 +143,12 @@ en:
 
     # Conversational chat
     chat:
+      composer:
+        # The field's accessible name: a chat composer has no visible caption, and a
+        # placeholder is not a label.
+        label: "Write a message"
+        send: "Send"
+        placeholder: "Write a message…"
       typing_indicator:
         label: "Typing…"
 
@@ -228,6 +234,9 @@ en:
         add: "Add"
       submit:
         cancel: "Cancel"
+      dictation:
+        dictate: "Dictate"
+        unavailable: "Dictation did not work. Try again."
       file:
         choose_file: "Choose file"
         no_file_selected: "No file selected"

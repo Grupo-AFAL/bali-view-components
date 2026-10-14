@@ -39,6 +39,7 @@
 
 /* Disclosure Components */
 @import "../../../components/bali/reveal/index.css" layer(components);
+@import "../../../components/bali/chat/composer/index.css" layer(components);
 
 /* Form Components */
 @import "../../../components/bali/button/index.css" layer(components);

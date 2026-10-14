@@ -4277,10 +4277,14 @@ components that compose, so a host that only wants bubbles never mounts the cont
 
   <%= render Bali::Chat::TypingIndicator::Component.new(class: 'order-last') %>
 
-  <% chat.with_footer do %>
-    <%= render 'form' %>
-  <% end %>
 <% end %>
+```
+
+A `url:` is all a chat needs to be writable: it brings the form, the field, the mic and send,
+so adding a chat to a screen is one component and not three.
+
+```erb
+<%= render Bali::Chat::Component.new(id: 'messages', url: messages_path, class: 'h-[60vh]') %>
 ```
 
 and the append is an ordinary Turbo Stream against the container's `id`:
@@ -4292,12 +4296,20 @@ turbo_stream.append 'messages', partial: 'messages/message', locals: { message: 
 An appended message lands after the indicator in the DOM; `order-last` keeps the indicator
 drawn below it, since the region is a flex column.
 
-**`Bali::Chat::Component`** — the scroll region and the append target.
+**`Bali::Chat::Component`** — the scroll region, the append target, and the composer.
 
 - `id` - DOM id of the scrollable region; what a Turbo Stream appends into (default:
   `'chat-messages'`). One per chat on the page.
 - `threshold` - Pixels short of the bottom that still count as "at the bottom"
   (default: `64`)
+- `url` - Where a message is posted. **This is what brings the composer** — the form, the
+  field, the mic and send. Leave it out for a read-only transcript
+- `composer` - Options for the row: `name:` (default `'message[content]'`), `placeholder:`,
+  `submit:`, `rows:`, `dictation:`, `field_options:`, `submit_options:`
+- `form_options` - Onto the `form_with` the composer sits in
+- `with_composer_action` - Anything else that belongs in the row, between the field and send
+- `with_footer` - The escape hatch: a footer of the host's own **replaces** the composer, for
+  a screen that stacks its own chrome around the row
 - `messages_class` - Extra classes for the scrollable region — its padding and the gap
   between messages
 - `**options` - HTML attributes for the wrapper. **The height goes here**: the wrapper is a
@@ -4316,6 +4328,33 @@ Scrolled up in the history, their position is left alone; back at the bottom, it
 again. That decision is taken from the position recorded by the last real `scroll` event,
 because an append grows `scrollHeight` while `scrollTop` stays put — measuring after the
 fact reads "at the bottom" as "scrolled up by exactly the new message".
+
+**`Bali::Chat::Composer::Component`** — the row a conversation is written in: the field,
+the mic and send. It renders the ROW and not the form: the url, the method and whatever
+Stimulus hangs off the form stay the host's.
+
+- `name` - `name` of the field (`'message[content]'`)
+- `placeholder`, `submit` - the two bits of copy; translated by default
+- `label` - the field's accessible name; translated by default. A placeholder is not a
+  label: it disappears the moment someone types
+- `dictation` - **on by default.** `false` drops the mic; `{ lang: 'en-US' }` says which
+  language is being spoken — without it the page's own `<html lang>` decides
+- `submit_on_enter` - `false` leaves Enter alone, for a composer where a message runs to
+  several paragraphs
+- `field_options`, `submit_options` - straight onto the `<textarea>` and the send button,
+  for a `required`, an `id`, or a `data-action` of the host's own
+- `with_action` - anything else that belongs in the row, between the field and send
+
+It also clears itself once a message went through — and only then, so a send the server
+turned down leaves the text to be sent again — and sends on Enter, with Shift+Enter for a
+newline. Both come from the `chat-composer` controller.
+
+**Dictation is on here and opt-in everywhere else.** A composer is where speaking instead of
+typing earns its place, so this is the one control in the library that starts with it. The
+recognition is the browser's, and the browsers that have it send the audio to **their** vendor
+— Google in Chrome, Microsoft in Edge, Apple in Safari. A host whose conversations carry data
+that may not leave passes `dictation: false`. The mic shows up only where the browser has
+recognition, so there is nothing to feature-detect at the call site.
 
 **`Bali::Chat::Message::Component`** — one bubble, over daisyUI's `chat` grid.
 

@@ -138,6 +138,12 @@ es:
 
     # Chat conversacional
     chat:
+      composer:
+        # The field's accessible name: a chat composer has no visible caption, and a
+        # placeholder is not a label.
+        label: "Escribe un mensaje"
+        send: "Enviar"
+        placeholder: "Escribe un mensaje…"
       typing_indicator:
         label: "Escribiendo…"
 
@@ -222,6 +228,12 @@ es:
         add: "Agregar"
       submit:
         cancel: "Cancelar"
+      dictation:
+        dictate: "Dictar"
+        # Shown when a dictation did not happen — a refused permission, a blocked service, one
+        # bad second of network. It does not say which: the mic stays, and trying again is the
+        # only thing the reader can do about any of them.
+        unavailable: "No se pudo dictar. Inténtalo de nuevo."
       file:
         choose_file: "Seleccionar archivo"
         no_file_selected: "Ningún archivo seleccionado"

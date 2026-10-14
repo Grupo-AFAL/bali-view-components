@@ -1,0 +1,26 @@
+<%# Two elements and not one: the controller has to contain the field, the mic AND the status
+    line, and the status line cannot live in the row — a paragraph among the controls would
+    shove them sideways the moment it appears. So the outer carries the controller and the
+    host's classes, and the row inside is the flex. %>
+<%= tag.div(**wrapper_attributes) do %>
+  <%= tag.div(class: "flex items-end gap-2") do %>
+    <%= tag.textarea(nil, name: name, **field_attributes) %>
+
+    <% if dictation? %>
+      <%= render Bali::Dictation::Component.new(part: :button) %>
+    <% end %>
+
+    <% actions.each do |action| %>
+      <%= action %>
+    <% end %>
+
+    <%= tag.button(submit_label, **submit_attributes) %>
+  <% end %>
+
+  <%# The mic and its status line, the same pair the FormBuilder's `dictation:` renders — one
+      component, because the two copies had already drifted apart in button size, icon size and
+      the status line's margin. The mic goes in the row; the status line below it. %>
+  <% if dictation? %>
+    <%= render Bali::Dictation::Component.new(part: :status, status_class: "mt-2") %>
+  <% end %>
+<% end %>

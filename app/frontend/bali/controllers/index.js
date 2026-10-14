@@ -29,7 +29,9 @@ import { NumberFormatController } from '../../../assets/javascripts/bali/control
 import { PrintController } from '../../../assets/javascripts/bali/controllers/print-controller'
 import { RadioButtonsGroupController } from '../../../assets/javascripts/bali/controllers/radio-buttons-group-controller'
 import { RadioToggleController } from '../../../assets/javascripts/bali/controllers/radio-toggle-controller'
+import { ChatComposerController } from '../../../assets/javascripts/bali/controllers/chat-composer-controller'
 import { SlimSelectController } from '../../../assets/javascripts/bali/controllers/slim-select-controller'
+import { SpeechInputController } from '../../../assets/javascripts/bali/controllers/speech-input-controller'
 import { StepNumberInputController } from '../../../assets/javascripts/bali/controllers/step-number-input-controller'
 import { SubmitButtonController } from '../../../assets/javascripts/bali/controllers/submit-button-controller'
 import { SubmitOnChangeController } from '../../../assets/javascripts/bali/controllers/submit-on-change-controller'
@@ -56,7 +58,9 @@ export {
   PrintController,
   RadioButtonsGroupController,
   RadioToggleController,
+  ChatComposerController,
   SlimSelectController,
+  SpeechInputController,
   StepNumberInputController,
   SubmitButtonController,
   SubmitOnChangeController,
@@ -94,7 +98,9 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   print: PrintController,
   'radio-buttons-group': RadioButtonsGroupController,
   'radio-toggle': RadioToggleController,
+  'chat-composer': ChatComposerController,
   'slim-select': SlimSelectController,
+  'speech-input': SpeechInputController,
   'step-number-input': StepNumberInputController,
   'submit-button': SubmitButtonController,
   'submit-on-change': SubmitOnChangeController,
