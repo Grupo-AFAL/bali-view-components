@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`submit-on-change` con `action`/`method` ya no se detiene en un campo `required` vacío**
+  (#1439). El submitter oculto que crea el controlador llevaba la validación del navegador, así
+  que un formulario a medio llenar no se volvía a pintar. Ahora ese submitter lleva
+  `formnovalidate`; el envío propio del formulario (sin `action`/`method`) valida igual que
+  antes. Las apps que lo evitaban con `html: { novalidate: true }` en el `form_with` pueden quitarlo, si
+  ya no lo necesitan para otra cosa.
+
 - **`DataTable::SimpleFilters`: el filtro `date_range` ya no recorta el rango elegido** (#1461).
   Con una fuente ancha, «03/10/2026 a 07/10/2026» no cabía en el input del selector. Su contenedor
   ahora mide al menos 13 rem (`min-w-52`), suficiente para el rango más largo medido, con el

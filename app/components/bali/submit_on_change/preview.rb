@@ -29,6 +29,30 @@ module Bali
           locals: { model: form_record, options: Bali::SubmitOnChange::Preview::OPTIONS }
         )
       end
+
+      # @label Refresh with a required field empty
+      # `action`/`method` are set, so the change submits through the hidden submitter to
+      # `action` without validating: the form is half filled, which is when it is
+      # re-rendered. The select GETs `?form_record[select]=...` although `Name` is empty.
+      def refresh
+        render_with_template(
+          template: "bali/submit_on_change/previews/required",
+          locals: {
+            model: form_record,
+            with_action: true
+          }
+        )
+      end
+
+      # @label Plain submit with a required field empty
+      # Neither `action` nor `method`: the form submits itself, so the browser validates
+      # first and the empty `Name` stops the request.
+      def validated
+        render_with_template(
+          template: "bali/submit_on_change/previews/required",
+          locals: { model: form_record, with_action: false }
+        )
+      end
     end
   end
 end
