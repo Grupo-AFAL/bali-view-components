@@ -17,8 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `toggle_group`, pide un predicado de lista (`:in` o `:not_in`) y truena al definir la clase si
   no lo tiene. En un hash `simple_filters:` de instancia se escribe `type: :slim_select,
   multiple: true, predicate: :in`. Un filtro sin `multiple:` se pinta igual que antes; quien
-  quiera usarlo sólo tiene que declararlo. De paso, un `slim_select` `size: :sm` con
-  `multiple` ya no recorta la segunda fila de chips.
+  quiera usarlo sólo tiene que declararlo. **Pasar un filtro existente a `multiple:` cambia su
+  llave de `branch_eq` a `branch_in`**: las vistas guardadas, el caché y los marcadores con
+  `branch_eq` dejan de aplicarlo sin avisar.
+
+  De paso, todo `slim_select` `size: :sm` con `multiple` ya no recorta la segunda fila de
+  chips: crece con ellos, y sus chips bajan a 20 px de alto y 12 px de letra. El único en las
+  apps es la «Matriz de integrantes» de gobierno-corporativo
+  (`governing_bodies/member_matrices/_filters.html.erb`), que hoy esconde chips.
 
 ## [v3.15.0] - 2026-10-13
 

@@ -252,8 +252,6 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_no_selector(".max-sm\\:w-16")
   end
 
-  # Measured byte for byte against origin/main in #1440; this is the contract that comparison
-  # protects.
   def test_a_slim_select_without_multiple_stays_single_valued
     render_country_filter(icon: "globe", value: "USA")
 

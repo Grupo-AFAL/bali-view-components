@@ -74,6 +74,12 @@ module Bali
           when :date_range
             { attr[:key].to_s => value }
           else
+            # The controls whose param `simple_filters_permitted_keys` permits only as a list.
+            # A scalar `default: "MX"` there went out as `q[branch_in]=MX`, the permit dropped
+            # it, and the row painted the chip over an unfiltered listing. Keyed on the
+            # control, not the predicate: a native select on `_in` sends one value, and gets
+            # one.
+            value = Array.wrap(value) if attr[:input] == :toggle_group || attr[:multiple]
             { "#{attr[:key]}_#{attr[:predicate]}" => value }
           end
         end

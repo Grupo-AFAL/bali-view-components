@@ -4842,6 +4842,10 @@ An instance-level `simple_filters:` hash names the widget instead:
 The list travels wherever a single value does: the filter cache, a saved view, the hidden
 fields of "select all N" in bulk actions, and a `default:`, which takes an Array.
 
+Moving an existing filter to `multiple:` changes its key from `branch_eq` to `branch_in`: a
+saved view, the filter cache or a bookmark that still says `branch_eq` stops applying it,
+silently.
+
 #### Quick search (`search:`)
 
 Both filter surfaces — the `Filters` panel and `DataTable`'s `SimpleFilters` — take the same
