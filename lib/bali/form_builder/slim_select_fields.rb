@@ -40,6 +40,7 @@ module Bali
         searching_text: :searching,
         results_text: :results,
         ajax_placeholder: :ajax_placeholder,
+        ajax_error_text: :ajax_error,
         max_values_message: :max_values_message,
         addable_text: :addable,
         deselect_text: :deselect,
@@ -288,6 +289,7 @@ module Bali
           slim_select_ajax_extra_params_value: options[:ajax_extra_params],
           slim_select_ajax_param_selectors_value: options[:ajax_param_selectors],
           slim_select_ajax_placeholder_value: options[:ajax_placeholder],
+          slim_select_ajax_error_text_value: options[:ajax_error_text],
           slim_select_after_change_fetch_url_value: options[:after_change_fetch_url],
           slim_select_after_change_fetch_method_value: options[:after_change_fetch_method],
           slim_select_content_width_value: options[:content_width]

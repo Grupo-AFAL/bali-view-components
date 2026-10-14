@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::ShowPage` toma `height: :full`: el cuerpo llena lo que el encabezado deja de la
+  pantalla** (#1449), para un cuerpo que es un solo panel que llega hasta abajo, como un chat.
+  Es la receta de `SplitView height: :full` (#979) llevada hasta el cuerpo: `height: 100%` y una
+  cadena flex, nada medido, así que pide `AppLayout viewport_locked: true`, con cualquier
+  `body_container`, y la página directo en `layout.with_body`; sin ancestro acotado no llena nada,
+  y debajo de `lg` no hace nada. El panel toma el alto con `h-full`; con `sidebar` el panel no
+  llena: un `h-full` dentro de una columna no tiene contra qué resolverse. Sin `height:`, el
+  marcado es el de antes.
+
+  afal-apps puede borrar el bloque `.tdflow-interview` de `app/assets/tailwind/application.css`
+  y pasar `height: :full` a la `ShowPage` de la entrevista; el `div` del cuerpo funciona tal cual.
+
+- **`Bali::Attachments::Component`: la lista de archivos adjuntos de un registro** (#1454) —
+  miniatura para las imágenes, chip que descarga para lo demás, botón de quitar opcional por
+  adjunto (`remove_path:`), un `dom_id` en cada renglón para el `turbo_stream.remove` y sólo los
+  adjuntos ya guardados.
+
+  **Anfitrión:** nada, mientras no lo use. Para usarlo, la miniatura es un *variant* de Active
+  Storage y necesita `image_processing` con libvips (o ImageMagick); sin eso cada miniatura
+  responde 500. Y con `remove_path:` no va dentro de un formulario: cada botón es un
+  `<form>` y cerraría el de afuera.
+
 - **SimpleFilters: un filtro de varios valores con chips (`multiple: true`)** (#1440). Para
   listas que no caben en las pastillas de `toggle_group` (sucursales, empresas):
   `filter_attribute :branch, type: :select, simple: true, multiple: true, predicate: :in` se
@@ -30,8 +52,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`submit-on-change` con `action`/`method` ya no se detiene en un campo `required` vacío**
+  (#1439). El submitter oculto que crea el controlador llevaba la validación del navegador, así
+  que un formulario a medio llenar no se volvía a pintar. Ahora ese submitter lleva
+  `formnovalidate`; el envío propio del formulario (sin `action`/`method`) valida igual que
+  antes. Las apps que lo evitaban con `html: { novalidate: true }` en el `form_with` pueden quitarlo, si
+  ya no lo necesitan para otra cosa.
+
+- **`DataTable::SimpleFilters`: el filtro `date_range` ya no recorta el rango elegido** (#1461).
+  Con una fuente ancha, «03/10/2026 a 07/10/2026» no cabía en el input del selector. Su contenedor
+  ahora mide al menos 13 rem (`min-w-52`), suficiente para el rango más largo medido, con el
+  separador en español (` a `) y en inglés (` to `). Un filtro con `presets:` no cambia.
+  **Anfitrión:** si el filtro no usa `presets:`, se puede borrar la regla
+  `.sm\:max-w-56:has(> div > .flatpickr[data-datepicker-mode-value="range"])`; gobierno-corporativo,
+  cuyo único `date_range` (`microsoft_graph_call_logs_filter_form.rb:24`) no usa `presets:`, borra
+  `app/assets/tailwind/application.css:178`. Quien deba bajar el mínimo escribe `min-w-0!`.
+
+- **SlimSelect: una búsqueda remota que falla lo dice en la lista** (#1452). Un 4xx o 5xx, una
+  respuesta que no es una lista JSON o un corte de red dejaban «Buscando...» puesto para siempre
+  y un rechazo sin manejar en la consola, o «Sin resultados» si el cuerpo del error era una
+  lista. Ahora la lista muestra «No se pudo completar la búsqueda. Intenta de nuevo.» (en `en`,
+  «Search failed. Please try again.») y la causa va a la consola con `console.error`. El texto es
+  la opción nueva `ajax_error_text:` de `slim_select_group` y `slim_select_field`, con su llave
+  `bali_view.form_builder.slim_select.ajax_error`; un SlimSelect escrito a mano la toma del
+  `lang` de la página o de `data-slim-select-ajax-error-text-value`. Un lector de pantalla lee
+  ahora ese aviso y el de escribir al menos 2 caracteres, en vez de quedarse en «Buscando...», y
+  los dos pasan del rojo `error` (2.75:1 en `afal`) a `text-soft-error`. De las apps en v3 sólo
+  gobierno-corporativo usa `ajax_url:` (14 llamadas). Nada que hacer en la app.
+
+- **`SplitView height: :full` con `body_container: :contained` o `:narrow` ya no se encoge a su
+  contenido** (#1449). El `mx-auto` del contenedor del cuerpo le impedía estirarse en la columna
+  flex de `<main>`; ahora toma el ancho de su `max-w-*`, como en flujo normal. Ninguna app usa
+  hoy esa combinación.
+
 - **Un `toggle_group` con `default:` escalar ya filtra** (#1440). Salía como `q[x_in]=v`, el
   permit lo tiraba y el listado abría completo con la pastilla marcada; ahora sale como lista.
+
+### Dependencies
+
+- **`rubocop` 1.92 y `json` 3.1** (#1468). Quien desarrolla Bali ya no está atado a `json` 2: `rubocop`
+  1.86 lo acotaba a `~> 2.3` y por eso no podía entrar `json` 3 al `Gemfile.lock`. Suben con
+  él `rubocop-ast` 1.50, `rubocop-rails` 2.38 y `rubocop-performance` 1.27; no hubo que corregir
+  código. Este lock es sólo el desarrollo de Bali: un host no cambia hasta que él mismo pase a
+  `json` 3 y, entonces, un `Hash` con la misma clave como símbolo y como string que llegue a Bali
+  (`data:`, opciones de `Chart`, `Gantt` o `Carousel`) lanza `JSON::GeneratorError` al serializarse.
 
 ## [v3.15.0] - 2026-10-13
 

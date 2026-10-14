@@ -39,6 +39,11 @@ module Dummy
     # Don't generate system test files.
     config.generators.system_tests = nil
 
+    # No image_processing here, and without it every variant URL answers 500 (`new` on a nil
+    # transformer): Bali::Attachments' thumbnails are variants. `:disabled` serves the
+    # original file as its variant.
+    config.active_storage.variant_processor = :disabled
+
     # ViewComponents
     config.autoload_paths << Rails.root.parent.parent.join("app/components")
     # ViewComponent 4.x uses namespaced preview configuration

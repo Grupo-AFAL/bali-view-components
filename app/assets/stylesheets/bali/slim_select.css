@@ -633,10 +633,11 @@
     }
   }
 
-  /* Error message */
+  /* Whatever the remote search rejects with (SlimSelect's `renderError`): a failed search and
+     the `ajaxPlaceholder` hint alike. Not `error` as text, which read 2.75:1 on `afal`. */
   .ss-error {
     padding: var(--ss-spacing-l);
-    color: var(--ss-error-color);
+    @apply text-soft-error;
     font-size: 0.875rem;
   }
 

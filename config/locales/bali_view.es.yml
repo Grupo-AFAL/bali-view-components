@@ -150,6 +150,12 @@ es:
     comment_thread:
       empty: "Aún no hay comentarios."
 
+    attachments:
+      download: "Descargar %{filename}"
+      remove: "Quitar %{filename}"
+      remove_confirm: "¿Quitar «%{filename}»?"
+      empty: "Sin archivos adjuntos"
+
     # Modal
     modal:
       close: "Cerrar modal"
@@ -249,6 +255,7 @@ es:
         searching: "Buscando..."
         results: "Resultados"
         ajax_placeholder: "Escribe al menos 2 caracteres para buscar..."
+        ajax_error: "No se pudo completar la búsqueda. Intenta de nuevo."
         # SlimSelect fills in `{number}`, `{value}` and `{count}` itself. Written as
         # Rails' `%{number}`, the count comes out as "%27 seleccionados".
         max_values_message: "{number} seleccionados"

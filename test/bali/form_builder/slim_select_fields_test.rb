@@ -431,6 +431,13 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
+  def test_slim_select_field_ajax_error_text_default_is_translated
+    I18n.with_locale(:es) do
+      result = builder.slim_select_field(:status, Movie.statuses.to_a, ajax_url: "/api/search")
+      assert_html(result, 'div[data-slim-select-ajax-error-text-value="No se pudo completar la búsqueda. Intenta de nuevo."]')
+    end
+  end
+
   def test_slim_select_field_stimulus_data_values_sets_add_items_value
     result = builder.slim_select_field(:status, Movie.statuses.to_a, add_items: true)
     assert_html(result, 'div[data-slim-select-add-items-value="true"]')
@@ -525,6 +532,12 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     result = builder.slim_select_field(:status, Movie.statuses.to_a,
                                        ajax_placeholder: "Loading...")
     assert_html(result, 'div[data-slim-select-ajax-placeholder-value="Loading..."]')
+  end
+
+  def test_slim_select_field_ajax_options_sets_ajax_error_text_value
+    result = builder.slim_select_field(:status, Movie.statuses.to_a,
+                                       ajax_error_text: "Could not load users")
+    assert_html(result, 'div[data-slim-select-ajax-error-text-value="Could not load users"]')
   end
 
   # after_change_fetch options

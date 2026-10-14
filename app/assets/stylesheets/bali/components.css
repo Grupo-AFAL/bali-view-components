@@ -21,6 +21,7 @@
 /* Data Display Components */
 @import "../../../components/bali/calendar/index.css" layer(components);
 @import "../../../components/bali/chart/index.css" layer(components);
+@import "../../../components/bali/attachments/index.css" layer(components);
 @import "../../../components/bali/comment_thread/index.css" layer(components);
 @import "../../../components/bali/gantt/index.css" layer(components);
 @import "../../../components/bali/widget/index.css" layer(components);
@@ -54,6 +55,7 @@
 @import "../../../components/bali/drawer/index.css" layer(components);
 @import "../../../components/bali/image_grid/index.css" layer(components);
 @import "../../../components/bali/modal/index.css" layer(components);
+@import "../../../components/bali/show_page/index.css" layer(components);
 @import "../../../components/bali/split_view/index.css" layer(components);
 
 /* Feedback Components. The toast *stack* is layered; the toast itself is not, and

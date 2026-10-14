@@ -2413,6 +2413,55 @@ The `empty_state` slot renders inside a dashed-border centered box instead of
 the grid when there are no images; it is ignored when images are present.
 i18n keys `bali_view.image_grid.empty_state.{title,add_image}` ship in en/es.
 
+#### Attachments
+
+The files attached to a record: an image as a thumbnail that opens it, anything else as a
+chip with its name that downloads it, and a remove button where the host allows one.
+
+```erb
+<%= render Bali::Attachments::Component.new(
+      attachments: @defect.files,
+      remove_path: ->(attachment) { attachment_path(attachment) if policy(@defect).update? }) %>
+```
+
+**Options:**
+- `attachments` - `record.files`, or any list of `ActiveStorage::Attachment`. Only the saved ones render: after a failed validation the record carries its new upload unsaved, and asking that attachment for a URL raises `Cannot get a signed_id for a new record` (required)
+- `remove_path` - `->(attachment) { path }`: the DELETE route for that attachment, or `nil` to leave it without a remove button. Who may delete is the host's policy, and the route its controller (default: nil, no remove buttons)
+- `badge` - `->(attachment) { html }`, drawn beside each file (default: nil)
+- `empty_text` - What the list says while it holds no file; `false` renders nothing for an empty list (default: `bali_view.attachments.empty`, "No attachments")
+- `**options` - HTML attributes for the `<ul>`
+
+Each item is `<li id="<%= dom_id(attachment) %>">`, so the destroy action answers with
+`turbo_stream.remove attachment`. The empty text is an item that shows only while it is alone
+in the list, so the stream that removes the last file brings it up with nothing else to send.
+
+**Not inside a form with `remove_path:`.** Each remove button is a `button_to`, which is a
+`<form>` of its own, and HTML has no nested forms: the browser drops the first button's `<form>`
+tag, so that button submits the outer form, and its `</form>` closes the outer one, leaving
+every field and the submit button after the list outside it. Inside a form, leave
+`remove_path:` out and put the list outside the form when it needs the buttons.
+
+A file Active Storage can resize (`variable?`) is a thumbnail drawn from a variant of at most
+512×256, so it stays sharp on a 2x screen in its 256×128 box. That needs a working variant
+processor in the host: `image_processing` plus libvips (`:vips`, the default) or ImageMagick
+(`:mini_magick`). Without one Rails warns at boot and every thumbnail request answers 500 — the
+page renders, each `<img>` broken and showing its filename.
+`config.active_storage.variant_processor = :disabled` serves the original file instead: fine
+for PNG, JPEG, GIF or WebP, but a TIFF, HEIC or PSD, which `variable?` also admits, is one
+Chrome and Firefox do not draw.
+
+Anything that is not variable is a chip capped at 16rem with its name truncated — an SVG too,
+which Active Storage serves as `application/octet-stream` and an `<img>` does not draw.
+
+The `badge` lambda runs in the host's view, so it can render a partial that a stream replaces
+on its own later:
+
+```erb
+<%= render Bali::Attachments::Component.new(
+      attachments: initiative.context_documents,
+      badge: ->(document) { render 'documents/read_status', document: }) %>
+```
+
 #### BooleanIcon
 
 Displays a boolean as a coloured icon plus an `sr-only` name — a green check for true, a red cross for false, and a neutral dash for nil. Useful in table cells and lists.
@@ -5513,7 +5562,18 @@ Record detail page with breadcrumbs, title with tags, actions, and an optional t
 <% end %>
 ```
 
-Nothing beyond [the shared surface](#the-shared-surface).
+**On top of [the shared surface](#the-shared-surface):**
+- `height` - `:content` (default) lets the body grow with its content and the page scroll.
+  `:full` makes the body fill what the header leaves of the screen, for a body that is one
+  panel reaching the bottom of it, such as a chat. It is the recipe of
+  [SplitView's `height: :full`](master-detail.md#filling-the-screen-height-full):
+  `height: 100%` and a flex chain, no measured offset. So it needs
+  `Bali::AppLayout::Component.new(viewport_locked: true)`, with the page rendered straight into
+  `layout.with_body` and no wrapper in between; with no bounded ancestor it fills nothing. The
+  body becomes a flex column of definite height, so the panel takes it with `h-full`. The
+  `sidebar` grid is not part of the chain: with a sidebar the body fills and its two columns
+  keep their content height. Inert below `lg`; an unknown value raises `ArgumentError`. The
+  `bali/show_page/full_height/default` scenario in Lookbook is the whole pairing.
 
 #### FormPage
 
