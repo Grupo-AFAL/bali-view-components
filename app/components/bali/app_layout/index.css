@@ -180,3 +180,52 @@
     padding-left: var(--bali-side-menu-collapsed-width);
   }
 }
+
+/* ── `height: :full` (SplitView, ShowPage) ────────────────────────────────
+   Both components resolve `height: 100%` against the body container, which is
+   `height: auto` — it wraps its content. So under a locked viewport the
+   container stopped at the component's own height and the component with it:
+   measured on SplitView at 629px inside a 1086px `<main>`, i.e. filling nothing
+   while claiming to fill everything.
+
+   These two rules close that gap, and they live here, once, because both
+   components need them: #979's follow-up already had to change the container's
+   flex, and with a copy in each component's sheet a fix like that reaches one
+   of them and not the other. The `:has()` is what keeps them off every other
+   locked page: a layout with ordinary content is byte-for-byte what it was.
+
+   `flex: 1 1 0%` and not `flex: 1 0 auto`. The first shipped version used
+   `1 0 auto` — "grow to fill the screen, never shrink below the content" — but
+   basis `auto` makes the container's hypothetical size its CONTENT size, and
+   shrink `0` means it never comes back down: with a list taller than the
+   viewport (a real inbox's normal state) the container never clamps, the page
+   scrolls as a whole, each pane's own scroll never engages, and SplitView's
+   infinite-scroll sentinel — permanently visible — fetches every page at once.
+   Measured in afal-apps' inbox with 87 items: a 7537px container inside a
+   1061px `<main>`. Basis `0%` sizes the container purely by grow — exactly the
+   leftover space — and `min-height: 0` lets it hand that bound down.
+   `SplitViewsController::FULL_PER_PAGE` keeps the dummy's first page taller
+   than the pane so this reproduces there; shrink it and it stops.
+
+   `width: 100%` because a flex item with auto margins does not stretch:
+   `body_container: :contained` and `:narrow` carry `mx-auto`, and the container
+   shrank to its content. Measured at 1440: a `:contained` SplitView 480px wide
+   instead of 1232, a ShowPage 89px. Under the `max-w-*` it is the width the
+   container has in block flow.
+
+   The component has to be a DIRECT child of the body container. A wrapper in
+   between is a link in the chain with `height: auto`, and the fill dies there —
+   give that wrapper `h-full min-h-0` if you need one. */
+@media (width >= 64rem) {
+  .app-layout--viewport-locked
+    main:has(> .app-layout-body-container > :is(.split-view-component--full, .show-page-component--full)) {
+    @apply flex flex-col;
+  }
+
+  .app-layout--viewport-locked
+    .app-layout-body-container:has(> :is(.split-view-component--full, .show-page-component--full)) {
+    flex: 1 1 0%;
+    min-height: 0;
+    width: 100%;
+  }
+}

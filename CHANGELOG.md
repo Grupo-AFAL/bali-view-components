@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::ShowPage` toma `height: :full`: el cuerpo llena lo que el encabezado deja de la
+  pantalla** (#1449), para un cuerpo que es un solo panel que llega hasta abajo, como un chat.
+  Es la receta de `SplitView height: :full` (#979) llevada hasta el cuerpo: `height: 100%` y una
+  cadena flex, nada medido, así que pide `AppLayout viewport_locked: true`, con cualquier
+  `body_container`, y la página directo en `layout.with_body`; sin ancestro acotado no llena nada,
+  y debajo de `lg` no hace nada. El panel toma el alto con `h-full`; con `sidebar` el panel no
+  llena: un `h-full` dentro de una columna no tiene contra qué resolverse. Sin `height:`, el
+  marcado es el de antes.
+
+  afal-apps puede borrar el bloque `.tdflow-interview` de `app/assets/tailwind/application.css`
+  y pasar `height: :full` a la `ShowPage` de la entrevista; el `div` del cuerpo funciona tal cual.
+
 ### Fixed
 
 - **`submit-on-change` con `action`/`method` ya no se detiene en un campo `required` vacío**
@@ -36,6 +50,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ahora ese aviso y el de escribir al menos 2 caracteres, en vez de quedarse en «Buscando...», y
   los dos pasan del rojo `error` (2.75:1 en `afal`) a `text-soft-error`. De las apps en v3 sólo
   gobierno-corporativo usa `ajax_url:` (14 llamadas). Nada que hacer en la app.
+
+- **`SplitView height: :full` con `body_container: :contained` o `:narrow` ya no se encoge a su
+  contenido** (#1449). El `mx-auto` del contenedor del cuerpo le impedía estirarse en la columna
+  flex de `<main>`; ahora toma el ancho de su `max-w-*`, como en flujo normal. Ninguna app usa
+  hoy esa combinación.
 
 ### Dependencies
 

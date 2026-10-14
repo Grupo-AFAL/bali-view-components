@@ -1,0 +1,15 @@
+/* ── height: :full ────────────────────────────────────────────────────────
+   SplitView's recipe (split_view/index.css) carried down to the body:
+   `height: 100%` and a flex chain with `min-height: 0` on every link, no
+   measured offset, so with no bounded ancestor it fills nothing. Only from `lg`
+   up. The two links above the page, AppLayout's `<main>` and body container,
+   are in app_layout/index.css, shared with SplitView. */
+@media (width >= 64rem) {
+  .show-page-component--full {
+    @apply flex flex-col h-full min-h-0;
+  }
+
+  .show-page-component--full > .show-page-body--full {
+    @apply flex flex-col flex-1 min-h-0;
+  }
+}
