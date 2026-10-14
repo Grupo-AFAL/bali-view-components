@@ -1,34 +1,36 @@
 # frozen_string_literal: true
 
-# #709 — el registro de "leí y confirmo esto". Es un LIBRO DE FIRMAS genérico: tanto el
-# firmante (`user`) como lo firmado (`acknowledgeable`) son polimórficos, así que un host
-# firma documentos con `User`, convenios con `Member` o pasos de un flujo con lo que sea,
-# sin que Bali conozca ninguna de esas clases.
+# #709 — the record of "I have read and confirm this". It is a GENERIC SIGNATURE BOOK: both
+# the signer (`user`) and the thing signed (`acknowledgeable`) are polymorphic, so a host
+# signs documents with `User`, agreements with `Member` or workflow steps with whatever,
+# without Bali knowing any of those classes.
 #
-# `user` polimórfico es la diferencia con gobierno-corporativo, donde es un FK bigint a
-# `users`. Migrar desde ahí es poblar `user_type = 'User'` — ver docs/guides/engine-models.md.
+# A polymorphic `user` is the difference from gobierno-corporativo, where it is a bigint FK
+# to `users`. Migrating from there means populating `user_type = 'User'` — see
+# docs/guides/engine-models.md.
 class CreateBaliAcknowledgments < ActiveRecord::Migration[7.0]
   def change
     create_table :bali_acknowledgments do |t|
-      # El índice único de abajo cubre el prefijo [acknowledgeable_type, acknowledgeable_id];
-      # el índice default del references sería redundante.
+      # The unique index below covers the [acknowledgeable_type, acknowledgeable_id] prefix;
+      # the references default index would be redundant.
       t.references :acknowledgeable, polymorphic: true, null: false, index: false
       t.references :user, polymorphic: true, null: false, index: true
       t.datetime :acknowledged_at, null: false
-      # `version_label` y no `version_number`: es la etiqueta que el host le enseña a la
-      # gente ("2.0"), no el entero correlativo de `bali_content_versions`. Compartir el
-      # nombre haría que dos cosas distintas parecieran la misma.
+      # `version_label` and not `version_number`: it is the label the host shows
+      # people ("2.0"), not the sequential integer of `bali_content_versions`. Sharing
+      # the name would make two different things look like the same one.
       t.string :version_label
-      # A propósito SIN foreign key: instalar el libro de firmas no puede obligar a
-      # instalar el historial de contenido (#707). Cuando ambos están, el concern lo llena
-      # solo; cuando no, se queda en nil y no pasa nada.
+      # Deliberately NO foreign key: installing the signature book must not force
+      # installing the content history (#707). When both are present, the concern fills it
+      # in by itself; when not, it stays nil and nothing happens.
       t.bigint :content_version_id
 
       t.timestamps
     end
 
-    # Una firma por persona y por cosa firmada. Re-confirmar actualiza esa fila, no crea
-    # otra — el concern lo hace explícito y este índice lo vuelve imposible de saltarse.
+    # One signature per person and per thing signed. Re-confirming updates that row, it does
+    # not create another — the concern makes it explicit and this index makes it impossible
+    # to skip.
     add_index :bali_acknowledgments,
               %i[acknowledgeable_type acknowledgeable_id user_type user_id],
               unique: true, name: "index_bali_acknowledgments_uniqueness"

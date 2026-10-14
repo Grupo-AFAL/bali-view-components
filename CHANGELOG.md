@@ -126,6 +126,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `data-autocomplete-address-api-key-value`, que sigue funcionando. La llave sale ahora de
   `google_maps_meta_tags` o de ese atributo.
 
+### Dependencies
+
+- **`bali-rubocop` sube a v0.2.0** (reemplaza a #1411). Sólo afecta a quien desarrolla Bali:
+  el gem va en `development, :test` y no llega a las apps. Los comentarios de las migraciones
+  del engine (`db/migrate/*.rb`) pasan al inglés; sólo comentarios, el esquema no cambia.
+
 ## [v3.14.1] - 2026-10-13
 
 ### Fixed
