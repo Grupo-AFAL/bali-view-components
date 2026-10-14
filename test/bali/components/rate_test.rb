@@ -160,4 +160,9 @@ class BaliRateComponentTest < ComponentTestCase
     render_inline(Bali::Rate::Component.new(value: 3, readonly: true))
     assert_selector("input.forced-colors\\:forced-color-adjust-none.forced-colors\\:bg-\\[CanvasText\\]", count: 5)
   end
+
+  def test_forced_colors_raises_only_the_empty_stars
+    render_inline(Bali::Rate::Component.new(value: 3, readonly: true))
+    assert_selector("input.forced-colors\\:not-checked\\:not-has-\\[\\~\\:checked\\]\\:opacity-50", count: 5)
+  end
 end

@@ -35,13 +35,17 @@ module Bali
         info: "bg-info"
       }.freeze
 
-      # Forced colours repaint `background-color` as Canvas, which hides every
-      # mask star; opting out and painting CanvasText keeps filled and empty
-      # apart by daisyUI's opacity alone, not by the palette's yellow. Here and
-      # not in a sheet: `bg-warning` is a utility, which no rule in
-      # @layer components can beat.
-      FORCED_COLORS_CLASSES =
-        "forced-colors:forced-color-adjust-none forced-colors:bg-[CanvasText]"
+      # Under forced colours daisyUI paints `.rating *` in CanvasText, but
+      # `bg-warning` is a utility and beats that rule, so the palette's yellow
+      # would stay. Opting out and painting CanvasText here leaves filled and
+      # empty apart by opacity alone: daisyUI's .2 measured 1.61:1 against
+      # Canvas in `afal` and 1.66:1 in `afal-dark` (WCAG 1.4.11 asks 3:1), so
+      # only the empty stars are raised to .5.
+      FORCED_COLORS_CLASSES = %w[
+        forced-colors:forced-color-adjust-none
+        forced-colors:bg-[CanvasText]
+        forced-colors:not-checked:not-has-[~:checked]:opacity-50
+      ].join(" ").freeze
 
       attr_reader :value, :scale, :size, :color, :form, :method
 

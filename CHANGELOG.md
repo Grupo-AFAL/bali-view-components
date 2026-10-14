@@ -90,13 +90,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `mapId: Date.now().toString()` por lo que devuelve `googleMapsConfig()`, y
     `shared/_coordinates_picker.html.erb` puede dejar de pasar la llave.
 
-### Fixed
-
-- **`Rate`: las estrellas se ven con colores forzados** (#1465). Con `forced-colors: active`
-  (alto contraste de Windows) conservaban el color de la paleta, o desaparecían, según la versión
-  de daisyUI; ahora se pintan en `CanvasText` y la llena se distingue de la vacía por la opacidad.
-  Sin colores forzados no cambia nada. No requiere acción.
-
 ### Changed
 
 - **Los mapas cargan en el idioma del `<html lang>`** (#1443). `autocomplete-address`,
@@ -132,6 +125,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#1443). Ninguna de las ocho apps lo asigna: ga-apps pasa la llave en
   `data-autocomplete-address-api-key-value`, que sigue funcionando. La llave sale ahora de
   `google_maps_meta_tags` o de ese atributo.
+
+### Fixed
+
+- **`Rate`: las estrellas se ven con colores forzados** (#1465). Con `forced-colors: active`
+  (alto contraste de Windows) conservaban el color de la paleta, o desaparecían, según la versión
+  de daisyUI; ahora se pintan en `CanvasText` y la llena se distingue de la vacía por la opacidad (la vacía a 50 %: 4,06:1 contra Canvas en `afal`, 5,32:1 en `afal-dark`).
+  Sin colores forzados no cambia nada. No requiere acción.
 
 ### Dependencies
 
