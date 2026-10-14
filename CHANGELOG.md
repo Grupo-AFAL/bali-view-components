@@ -71,6 +71,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   antes el contador lo sobrescribía sin decir nada—, porque el dictado y el contador comparten
   esa caja.
 
+- **`Bali.google_maps` y `google_maps_meta_tags`: una sola configuración para los mapas**
+  (#1443). `Bali.google_maps.api_key` es la llave, con `GOOGLE_MAPS_KEY` de respaldo como
+  hasta ahora, y `Bali.google_maps.map_id` un map ID registrado en Google Cloud, que trae su
+  estilo. `<%= google_maps_meta_tags %>` en el `<head>` del layout los entrega a LocationsMap,
+  `coordinates_polygon_group` y los controladores `autocomplete-address`, `geocoder-maps` y
+  `drawing-maps`, que los leen con `googleMapsConfig()`; un controlador propio del host la
+  importa de `bali-view-components`. Sin map ID, cada mapa inventa uno, como ya hacían
+  LocationsMap y `geocoder-maps`; `drawing-maps` no usaba ninguno y ahora también lo recibe, para
+  que un estilo de Cloud cubra todos los mapas. Una llave escrita en el elemento sigue ganando,
+  así que el markup que ya la pasa no cambia, y LocationsMap y `coordinates_polygon_group` la
+  siguen escribiendo en el suyo: cargan aunque el layout no tenga el helper.
+  - **Anfitrión:** el helper es opcional. Hoy sólo hace falta para fijar un `map_id`, o para que
+    un controlador escrito a mano tome la llave sin pasarla en un atributo. En centinela-web, lo
+    único obligatorio son sus dos lecturas de `Bali.google_maps_key` (ver *Deprecated*). Si
+    agrega el helper a `layouts/application.html.erb`, su `coordinates_picker_controller.js`
+    puede cambiar `loadGoogleMapsApi({ key: this.apiKeyValue, language: 'es' })` y
+    `mapId: Date.now().toString()` por lo que devuelve `googleMapsConfig()`, y
+    `shared/_coordinates_picker.html.erb` puede dejar de pasar la llave.
+
+### Changed
+
+- **Los mapas cargan en el idioma del `<html lang>`** (#1443). `autocomplete-address`,
+  `geocoder-maps` y `drawing-maps` cargaban la API de Maps con `language: 'es'` fijo, y
+  LocationsMap con `I18n.locale`. Como la API se carga una vez por página, junto a un
+  LocationsMap en inglés ganaba el primero que se conectaba, y la consola avisaba que el idioma
+  del otro se ignoraba. Ahora los cuatro leen el `lang` del `<html>` tal cual (con `es-MX`
+  Google usa sus textos para Latinoamérica) y, sin `lang`, cargan en inglés. LocationsMap ya no
+  escribe `data-locations-map-locale-value`.
+  - **Anfitrión:** el `<html>` del layout debe llevar `lang`. centinela-web lo tiene
+    (`lang="es"`) y nunca cambia de locale: sus mapas siguen en español. ga-apps no lo tiene en
+    ningún layout: al subir de 1.2.4, su `autocomplete-address` pasaría del español al inglés
+    hasta que lo agregue.
+
+- **`drawing-maps`: una figura dibujada dentro de un hueco es una isla** (#1443). Antes, toda
+  figura dentro de otra se guardaba como hueco, también la que quedaba dentro de un hueco. Ahora
+  la figura nueva es lo contrario de la más chica que la contiene: dentro de un shell es hueco,
+  dentro de un hueco es shell otra vez y se pinta como tal, y dentro de esa isla, hueco; como en
+  GeoJSON, donde la isla es un polígono aparte. Dentro de dos shells que se traslapan sigue
+  siendo hueco. El formato `{ shells, holes }` no cambia, ni las figuras ya guardadas. Ninguna de
+  las ocho apps dibuja con él: ga-apps sólo fija `bali/drawing-maps` en su importmap.
+
+### Deprecated
+
+- **`Bali.google_maps_key` y `Bali.google_maps_key=`** (#1443). Siguen leyendo y fijando la
+  llave, avisan por `Bali.deprecator` y se retiran en 4.0. Usar `Bali.google_maps.api_key`.
+  - **Anfitrión:** centinela-web lo lee dos veces en `shared/_coordinates_picker.html.erb`.
+    Ninguna otra app lo usa.
+
+### Removed
+
+- **`window.GOOGLE_MAPS_API_KEY`**, el último respaldo de la llave en `autocomplete-address`
+  (#1443). Ninguna de las ocho apps lo asigna: ga-apps pasa la llave en
+  `data-autocomplete-address-api-key-value`, que sigue funcionando. La llave sale ahora de
+  `google_maps_meta_tags` o de ese atributo.
+
 ### Dependencies
 
 - **`bali-rubocop` sube a v0.2.0** (reemplaza a #1411). Sólo afecta a quien desarrolla Bali:

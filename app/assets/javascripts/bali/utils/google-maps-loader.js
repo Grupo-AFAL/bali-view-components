@@ -65,6 +65,20 @@ export default function (options = {}) {
   })
 }
 
+// What every map on the page loads with: the key and map ID `google_maps_meta_tags`
+// (app/helpers/bali/google_maps_helper.rb) puts in the <head>, and the language of the <html>.
+// A key written on the controller's element wins over the page's.
+export function googleMapsConfig ({ key } = {}) {
+  return {
+    key: key || document.querySelector('meta[name="bali-google-maps-key"]')?.content,
+    // The page's and not the nearest `lang`, because the API loads once per page. Whole, not cut
+    // to its primary subtag as inLanguageOf does: Google words es-MX apart from es (3.66).
+    language: document.documentElement.lang || 'en',
+    // An AdvancedMarkerElement draws nothing on a map built without a map ID.
+    mapId: document.querySelector('meta[name="bali-google-maps-map-id"]')?.content || Date.now().toString()
+  }
+}
+
 function warnAboutIgnoredOptions (options) {
   optionsKeys.forEach(key => {
     if (!options[key] || options[key] === apiOptions[key] || warnedKeys.has(key)) return

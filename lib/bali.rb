@@ -14,6 +14,7 @@ require "bali/types/time_value"
 require "bali/types/month_value"
 require "bali/types/date_range_value"
 require "bali/utils"
+require "bali/google_maps"
 require "bali/html_element_helper"
 require "bali/path_helper"
 require "bali/form_helper"
@@ -99,23 +100,19 @@ module Bali
     !Rails.env.production?
   end
 
-  # Google Maps JavaScript API key, read by LocationsMap and by the form
-  # builder's coordinates polygon field. Both used to call
-  # `ENV.fetch("GOOGLE_MAPS_KEY")` on their own, which made the environment the
-  # only place the key could come from — an application that keeps credentials
-  # in `Rails.application.credentials` or in a secrets manager had to export an
-  # environment variable just to satisfy this gem.
-  #
-  # The environment variable is still read, so nothing an app already does
-  # stops working, but it is now the fallback rather than the source: an
-  # explicit `Bali.google_maps_key = ...` wins.
-  mattr_writer :google_maps_key, default: nil
+  # The key and map ID of every Google map in the app. See Bali::GoogleMaps.
+  mattr_reader :google_maps, default: Bali::GoogleMaps.new
 
-  # Resolved per call, not memoised: `config/initializers` runs before an
-  # application's own credential loading in more setups than not, and a value
-  # frozen at boot would be the empty string forever in every one of them.
+  # @deprecated Removed in 4.0. Use `Bali.google_maps.api_key`.
   def self.google_maps_key
-    @@google_maps_key.presence || ENV["GOOGLE_MAPS_KEY"].presence
+    deprecator.warn("Bali.google_maps_key is deprecated. Use Bali.google_maps.api_key.")
+    google_maps.api_key
+  end
+
+  # @deprecated Removed in 4.0. Use `Bali.google_maps.api_key=`.
+  def self.google_maps_key=(key)
+    deprecator.warn("Bali.google_maps_key= is deprecated. Use Bali.google_maps.api_key=.")
+    google_maps.api_key = key
   end
 
   # The daisyUI themes the host paints with: `{ light: "afal", dark: "afal-dark" }`.

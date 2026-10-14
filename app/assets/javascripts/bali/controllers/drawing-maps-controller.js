@@ -23,13 +23,15 @@ export class DrawingMapsController extends Controller {
   async connect () {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
 
-    const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
+    const { default: GoogleMapsLoader, googleMapsConfig } = await import('../utils/google-maps-loader.js')
+    const { key, language, mapId } = googleMapsConfig({ key: this.data.get('key') })
+    this.mapId = mapId
 
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['geometry'],
-        language: 'es',
-        key: this.data.get('key'),
+        key,
+        language,
         // No deadline: a script that arrives late still builds.
         timeout: 0
       })
@@ -63,6 +65,7 @@ export class DrawingMapsController extends Controller {
     this.map = new this.googleMaps.Map(this.mapTarget, {
       center,
       zoom,
+      mapId: this.mapId,
       colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT,
       // While drawing, a click on a place's icon adds a vertex instead of opening the place.
       clickableIcons: !this.editableValue,
@@ -136,10 +139,20 @@ export class DrawingMapsController extends Controller {
     this.sketch = null
   }
 
+  // The opposite of the smallest shape around it: a hole in a shell, and in a hole a shell again, as
+  // an island in a lake is a polygon of its own in GeoJSON. Not by counting containers, which would
+  // make a shell of a shape inside two shells that overlap.
   isHole = (vertices) => {
-    return this.drawnPolygons.some((drawnPolygon) => {
-      return vertices.every((vertex) => this.googleMaps.geometry.poly.containsLocation(vertex, drawnPolygon))
+    const { poly, spherical } = this.googleMaps.geometry
+    const containers = this.drawnPolygons.filter((drawnPolygon) => {
+      return vertices.every((vertex) => poly.containsLocation(vertex, drawnPolygon))
     })
+    if (containers.length === 0) return false
+
+    const smallest = containers.reduce((smaller, polygon) => {
+      return spherical.computeArea(polygon.getPath()) < spherical.computeArea(smaller.getPath()) ? polygon : smaller
+    })
+    return !smallest.metadata.hole
   }
 
   addPolygon = (paths, hole) => {

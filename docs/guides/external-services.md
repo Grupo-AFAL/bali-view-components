@@ -29,17 +29,19 @@ The `Bali::LocationsMap::Component` displays an interactive Google Map with loca
 
 #### 2. Configure the Key
 
-Bali reads the key from `Bali.google_maps_key`, so it can come from wherever the
+Bali reads the key from `Bali.google_maps.api_key`, so it can come from wherever the
 application already keeps its credentials:
 
 ```ruby
 # config/initializers/bali.rb
 Bali.config do |config|
-  config.google_maps_key = Rails.application.credentials.dig(:google, :maps_key)
+  config.google_maps.api_key = Rails.application.credentials.dig(:google, :maps_key)
+  # Optional: a map ID registered in Google Cloud, for its map style.
+  config.google_maps.map_id = Rails.application.credentials.dig(:google, :map_id)
 end
 ```
 
-With nothing configured it falls back to the `GOOGLE_MAPS_KEY` environment
+With no `api_key` it falls back to the `GOOGLE_MAPS_KEY` environment
 variable, which is all v2 ever read — an application that already exports it
 needs no initializer:
 
@@ -55,7 +57,44 @@ For Rails applications using `dotenv`:
 gem 'dotenv-rails', groups: [:development, :test]
 ```
 
-#### 3. Use the Component
+`Bali.google_maps_key` still reads and sets the key, with a deprecation warning, and
+goes in 4.0.
+
+#### 3. Hand It to the Page
+
+Every Google map on the page — LocationsMap, `coordinates_polygon_group`, and the
+`autocomplete-address`, `geocoder-maps` and `drawing-maps` controllers — reads its key and
+map ID from two `<meta>` tags in the layout's `<head>`, and its language from the
+`<html lang>`:
+
+```erb
+<html lang="<%= I18n.locale %>">
+  <head>
+    <%= google_maps_meta_tags %>
+```
+
+- **Language.** The Maps API loads once per page, so every map on it is in the language
+  of the `<html>`, whatever `lang` an element closer to the map declares. The tag is
+  passed whole: `es-MX` gets Google's Latin American wording. With no `lang`, English.
+- **Map ID.** Without one, each map makes one up, which is enough for its markers but
+  carries no Cloud style.
+- **A key on the element wins** over the page's: `data-locations-map-api-key-value`,
+  `data-drawing-maps-key`, `data-geocoder-maps-key` and
+  `data-autocomplete-address-api-key-value`. LocationsMap and `coordinates_polygon_group`
+  still write the key on their element, so they load without the helper; the map ID
+  reaches them only through it.
+
+A controller of the app's own reads the same configuration:
+
+```js
+import { googleMapsConfig, loadGoogleMapsApi } from 'bali-view-components'
+
+const { key, language, mapId } = googleMapsConfig()
+const maps = await loadGoogleMapsApi({ key, language })
+new maps.Map(element, { center, zoom: 15, mapId })
+```
+
+#### 4. Use the Component
 
 ```erb
 <%= render Bali::LocationsMap::Component.new(
@@ -122,7 +161,8 @@ Display clickable cards alongside the map that highlight when clicking markers:
 
 | Issue | Solution |
 |-------|----------|
-| "For development purposes only" watermark | API key missing or invalid. Check `Bali.google_maps_key` resolves to it. |
+| "For development purposes only" watermark | API key missing or invalid. Check `Bali.google_maps.api_key` resolves to it and `google_maps_meta_tags` is in the `<head>`. |
+| Map controls in the wrong language | The map follows the `<html lang>`. Set it on the layout's `<html>`. |
 | `ApiProjectMapError` in console | Maps JavaScript API not enabled. Enable it in Google Cloud Console. |
 | `RefererNotAllowedMapError` | Domain not allowed. Add your domain to key restrictions. |
 | Map doesn't load | Check browser console for errors. Verify billing is enabled. |
@@ -147,19 +187,9 @@ The address autocomplete form field also requires Google Maps APIs.
 
 ### Setup
 
-This one does **not** read `Bali.google_maps_key`: the field is wired by hand in
-the host's markup, and the Stimulus controller takes its key from the element or
-from a global, in that order.
-
-```erb
-<div data-controller="autocomplete-address"
-     data-autocomplete-address-api-key-value="<%= Bali.google_maps_key %>">
-```
-
-```js
-// or, once per page
-window.GOOGLE_MAPS_API_KEY = '...'
-```
+The field is wired by hand in the host's markup, and takes its key from
+`google_maps_meta_tags` like every other map ([Hand It to the Page](#3-hand-it-to-the-page)).
+A `data-autocomplete-address-api-key-value` on the element wins over it.
 
 Enable both:
 
@@ -179,4 +209,5 @@ Same as LocationsMap - requires **Maps JavaScript API**.
 
 ### Setup
 
-Uses the same `GOOGLE_MAPS_KEY` environment variable.
+Uses the same configuration, `Bali.google_maps`, and loads in the language of the
+`<html lang>`.

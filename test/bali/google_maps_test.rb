@@ -2,70 +2,77 @@
 
 require "test_helper"
 
-# `LocationsMap` and the form builder's coordinates polygon field each read
-# `ENV.fetch("GOOGLE_MAPS_KEY")` on their own until v3, which made the
-# environment the only place the key could come from. The setting is what lets
-# an application keep it wherever it keeps the rest of its credentials; the
-# environment variable stays as the fallback, so nothing an app already does
-# stops working.
-class BaliGoogleMapsKeyTest < ActiveSupport::TestCase
+class BaliGoogleMapsTest < ActiveSupport::TestCase
   setup do
-    @previous_setting = Bali.google_maps_key
     @previous_env = ENV.fetch("GOOGLE_MAPS_KEY", nil)
   end
 
   teardown do
-    Bali.google_maps_key = @previous_setting
+    Bali.google_maps.api_key = nil
+    Bali.google_maps.map_id = nil
     ENV["GOOGLE_MAPS_KEY"] = @previous_env
     ENV.delete("GOOGLE_MAPS_KEY") if @previous_env.nil?
   end
 
-  def test_it_is_nil_with_neither_a_setting_nor_an_environment_variable
-    Bali.google_maps_key = nil
+  def test_the_key_is_nil_with_neither_a_setting_nor_an_environment_variable
     ENV.delete("GOOGLE_MAPS_KEY")
 
-    assert_nil Bali.google_maps_key
+    assert_nil Bali.google_maps.api_key
   end
 
-  def test_it_falls_back_to_the_environment_variable
-    Bali.google_maps_key = nil
+  def test_the_key_falls_back_to_the_environment_variable
     ENV["GOOGLE_MAPS_KEY"] = "from-env"
 
-    assert_equal "from-env", Bali.google_maps_key
+    assert_equal "from-env", Bali.google_maps.api_key
   end
 
-  def test_an_explicit_setting_wins_over_the_environment_variable
+  def test_an_explicit_key_wins_over_the_environment_variable
     ENV["GOOGLE_MAPS_KEY"] = "from-env"
-    Bali.google_maps_key = "from-config"
+    Bali.google_maps.api_key = "from-config"
 
-    assert_equal "from-config", Bali.google_maps_key
+    assert_equal "from-config", Bali.google_maps.api_key
   end
 
-  # Why the reader resolves per call instead of memoising: an initializer runs
-  # before an application's own credential loading in more setups than not, and
-  # a value frozen at boot would be the empty string forever in every one.
   def test_the_environment_variable_is_read_at_call_time
-    Bali.google_maps_key = nil
     ENV.delete("GOOGLE_MAPS_KEY")
 
-    assert_nil Bali.google_maps_key
+    assert_nil Bali.google_maps.api_key
 
     ENV["GOOGLE_MAPS_KEY"] = "set-later"
 
-    assert_equal "set-later", Bali.google_maps_key
+    assert_equal "set-later", Bali.google_maps.api_key
   end
 
   def test_a_blank_environment_variable_is_not_a_key
-    Bali.google_maps_key = nil
     ENV["GOOGLE_MAPS_KEY"] = ""
 
-    assert_nil Bali.google_maps_key
+    assert_nil Bali.google_maps.api_key
   end
 
-  def test_the_locations_map_component_reads_the_setting
-    Bali.google_maps_key = "map-key"
+  def test_a_blank_map_id_is_none
+    Bali.google_maps.map_id = ""
 
-    html = render_component(Bali::LocationsMap::Component.new)
+    assert_nil Bali.google_maps.map_id
+  end
+
+  def test_the_old_reader_warns_and_reads_the_key
+    Bali.google_maps.api_key = "map-key"
+
+    key = assert_deprecated(/Bali.google_maps.api_key/, Bali.deprecator) { Bali.google_maps_key }
+
+    assert_equal "map-key", key
+  end
+
+  def test_the_old_writer_warns_and_sets_the_key
+    assert_deprecated(/Bali.google_maps.api_key=/, Bali.deprecator) { Bali.google_maps_key = "map-key" }
+
+    assert_equal "map-key", Bali.google_maps.api_key
+  end
+
+  def test_the_locations_map_component_writes_the_key_without_warning
+    Bali.google_maps.api_key = "map-key"
+
+    html = assert_not_deprecated(Bali.deprecator) { render_component(Bali::LocationsMap::Component.new) }
 
     assert_includes html, 'data-locations-map-api-key-value="map-key"'
   end
@@ -75,7 +82,6 @@ class BaliGoogleMapsKeyTest < ActiveSupport::TestCase
   # here would make a missing key indistinguishable from a working page in any
   # check that only looks for errors.
   def test_the_locations_map_component_still_renders_without_a_key
-    Bali.google_maps_key = nil
     ENV.delete("GOOGLE_MAPS_KEY")
 
     html = render_component(Bali::LocationsMap::Component.new)
@@ -85,10 +91,10 @@ class BaliGoogleMapsKeyTest < ActiveSupport::TestCase
     assert_not_includes html, "locations-map-api-key-value"
   end
 
-  def test_the_coordinates_polygon_field_reads_the_setting
-    Bali.google_maps_key = "polygon-key"
+  def test_the_coordinates_polygon_field_writes_the_key_without_warning
+    Bali.google_maps.api_key = "polygon-key"
 
-    html = builder.coordinates_polygon_field(:name).to_s
+    html = assert_not_deprecated(Bali.deprecator) { builder.coordinates_polygon_field(:name).to_s }
 
     assert_includes html, 'data-drawing-maps-key="polygon-key"'
   end

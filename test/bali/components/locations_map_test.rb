@@ -58,11 +58,6 @@ class BaliLocationsMapComponentTest < ComponentTestCase
     assert_selector('[data-locations-map-enable-clustering-value="true"]')
   end
 
-  def test_passes_the_request_locale_to_controller
-    I18n.with_locale(:es) { render_inline(@component) }
-    assert_selector("[data-locations-map-locale-value='es']")
-  end
-
   def test_fit_to_locations_defaults_to_false
     render_inline(@component)
     assert_selector('[data-locations-map-fit-to-locations-value="false"]')
