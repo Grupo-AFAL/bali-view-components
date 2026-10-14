@@ -27,4 +27,20 @@ describe('Attachments', () => {
       expect(name.scrollWidth, 'the name overflows its box').to.be.greaterThan(name.clientWidth)
     })
   })
+
+  // daisyUI's `.btn` does not shrink, so a 16rem chip plus a badge outgrew a narrow row and
+  // pushed the badge past the page's edge.
+  it('keeps a badge inside the row when the chip has to give up width', () => {
+    cy.viewport(320, 800)
+    cy.visit('/bali/attachments/with_badge')
+
+    cy.contains('.attachments-component > li', 'Q3 budget').should(($row) => {
+      const list = $row[0].parentElement.getBoundingClientRect()
+      const badge = $row[0].lastElementChild.getBoundingClientRect()
+      expect(badge.right).to.be.at.most(list.right)
+    })
+    cy.document().its('documentElement').should(root => {
+      expect(root.scrollWidth).to.equal(root.clientWidth)
+    })
+  })
 })

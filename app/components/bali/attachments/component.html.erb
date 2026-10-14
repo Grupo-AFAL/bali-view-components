@@ -11,10 +11,11 @@
                                                       class: "max-h-32 max-w-64 rounded-box border border-base-300" %>
         <% end %>
       <% else %>
+        <%# `shrink`: daisyUI's `.btn` is `flex-shrink: 0`, which pushed a badge past a narrow row. %>
         <%= render Bali::Link::Component.new(href: rails_blob_path(attachment, disposition: "attachment"),
                                              style: :outline, size: :xs, icon: "paperclip", responsive: false,
                                              title: t(".download", filename: attachment.filename),
-                                             class: "max-w-[16rem]") do %>
+                                             class: "max-w-[16rem] min-w-0 shrink") do %>
           <span class="truncate"><%= attachment.filename %></span>
         <% end %>
       <% end %>

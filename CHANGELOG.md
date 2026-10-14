@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.16.2] - 2026-10-14
+
+### Fixed
+
+- **`Bali::Attachments` con `badge:`: el chip de un nombre largo cede espacio y la etiqueta se queda
+  en el renglón** (desde v3.16.0). El `.btn` de daisyUI no se encoge, así que en un renglón angosto
+  el chip se quedaba en sus 16rem y empujaba la etiqueta fuera de la página: 18 px de scroll
+  horizontal a 320 px en el preview, lo mismo en una tarjeta de afal-apps a 375. Ahora el chip se
+  encoge y trunca el nombre. Sin `badge:`, o con renglones anchos, no cambia nada. Nada que hacer en
+  la app.
+
 ## [v3.16.1] - 2026-10-13
 
 ### Fixed
