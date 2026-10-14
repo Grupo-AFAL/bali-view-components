@@ -35,6 +35,14 @@ module Bali
         info: "bg-info"
       }.freeze
 
+      # Forced colours repaint `background-color` as Canvas, which hides every
+      # mask star; opting out and painting CanvasText keeps filled and empty
+      # apart by daisyUI's opacity alone, not by the palette's yellow. Here and
+      # not in a sheet: `bg-warning` is a utility, which no rule in
+      # @layer components can beat.
+      FORCED_COLORS_CLASSES =
+        "forced-colors:forced-color-adjust-none forced-colors:bg-[CanvasText]"
+
       attr_reader :value, :scale, :size, :color, :form, :method
 
       # rubocop:disable Metrics/ParameterLists
@@ -84,7 +92,8 @@ module Bali
       def star_classes
         class_names(
           "mask mask-star-2",
-          COLORS[color]
+          COLORS[color],
+          FORCED_COLORS_CLASSES
         )
       end
 
