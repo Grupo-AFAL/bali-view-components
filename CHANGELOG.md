@@ -128,6 +128,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 
+- **Rails sube a 8.1.4** (reemplaza a #1411, que fallaba con `json` 3). Sólo cambian las gemas de
+  Rails en `Gemfile.lock`; el gemspec no cambia. 8.1.4 hace que `ActiveSupport::JSON.decode`
+  llame a `JSON.parse(json, **options)`, que `json` 3.x acepta; con 8.1.3.1 la llamada era
+  posicional y `json` 3.0.2 la rechaza. **`json` se queda en 2.21.2 por ahora:** `rubocop` 1.86.0
+  lo acota a `~> 2.3`, así que `json` 3 llega con la subida de `rubocop`, no antes.
+  **Quien desarrolla Bali:** 8.1.4 deja de ordenar alfabéticamente las columnas en `schema.rb`
+  (vuelve al orden de creación) y `test/dummy/db/schema.rb` se regeneró así; si una app anfitriona
+  commitea su `schema.rb`, el primer `db:migrate` con 8.1.4 reordenará sus columnas — es sólo un
+  cambio de orden, la base no cambia. Además corrige `collection_radio_buttons` y
+  `collection_check_boxes` cuando un valor de la colección es `nil` (el `for` del label ya
+  coincide con el `id` del input).
+
 - **`bali-rubocop` sube a v0.2.0** (reemplaza a #1411). Sólo afecta a quien desarrolla Bali:
   el gem va en `development, :test` y no llega a las apps. Los comentarios de las migraciones
   del engine (`db/migrate/*.rb`) pasan al inglés; sólo comentarios, el esquema no cambia.
