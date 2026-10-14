@@ -66,9 +66,10 @@ Stream after a user action.
 ## `autocomplete-address`
 
 Google Places autocomplete: the user picks an address and the controller distributes
-its components across the other targets. Loads the Google Maps JS API on demand; the
-key comes from the `apiKey` value or `window.GOOGLE_MAPS_API_KEY`, and needs the
-**Places API (New)** enabled.
+its components across the other targets. Loads the Google Maps JS API on demand, with
+the key of `google_maps_meta_tags` in the layout's `<head>` and the language of the
+`<html lang>`; an `apiKey` value wins over that key. The key needs the **Places API (New)**
+enabled.
 
 The search box is Google's `<gmp-place-autocomplete>`, which draws its own input: the
 controller puts it right after the `input` target with that input's `id`, `name`,
@@ -79,8 +80,7 @@ stops a submit: a disabled control is not validated. A disabled or read-only inp
 gets no box and stays as it is.
 
 ```html
-<div data-controller="autocomplete-address"
-     data-autocomplete-address-api-key-value="YOUR_KEY">
+<div data-controller="autocomplete-address">
   <input type="text" data-autocomplete-address-target="input" placeholder="Search address">
 
   <input type="text" data-autocomplete-address-target="street">
@@ -165,12 +165,13 @@ overlay cannot cover it; `static` and an `appendTo` target opt out of that.
 
 Google Map with polygon drawing: shapes the user draws (including holes) are
 serialized as JSON into the `polygonField` target on every edit. Each click on the map
-adds a vertex, and a click on the first vertex closes the shape; a shape drawn inside
-another is stored as a hole and painted red. `f.coordinates_polygon_group` renders it;
-by hand:
+adds a vertex, and a click on the first vertex closes the shape. A new shape is the
+opposite of the smallest one around it: inside a shell it is stored as a hole and painted
+red, and inside a hole it is a shell again, an island, as in GeoJSON.
+`f.coordinates_polygon_group` renders it; by hand:
 
 ```html
-<div data-controller="drawing-maps" data-drawing-maps-key="YOUR_KEY"
+<div data-controller="drawing-maps"
      data-drawing-maps-latitude-value="32.51" data-drawing-maps-longitude-value="-117.0">
   <div data-drawing-maps-target="map" class="h-96"></div>
   <input type="hidden" name="zone[polygon]" value='{"shells":[],"holes":[]}'
@@ -182,8 +183,9 @@ by hand:
 
 The field value must parse as JSON: `{"shells": [...], "holes": [...]}` (a legacy
 bare array of points is still read as one shell). `editable: false` renders the
-polygons and draws nothing. Note the API key is a plain data attribute
-(`data-drawing-maps-key`), not a Stimulus value.
+polygons and draws nothing. The key and the map ID come from `google_maps_meta_tags` and
+the language from the `<html lang>`; a key in `data-drawing-maps-key`, a plain data
+attribute and not a Stimulus value, wins over the page's.
 
 ## `dynamic-fields`
 
@@ -297,8 +299,7 @@ Map, filling the `latitude`/`longitude` targets. With `draggable-marker`, draggi
 the marker updates them again.
 
 ```html
-<div data-controller="geocoder-maps" data-geocoder-maps-key="YOUR_KEY"
-     data-geocoder-maps-draggable-marker-value="true">
+<div data-controller="geocoder-maps" data-geocoder-maps-draggable-marker-value="true">
   <div data-geocoder-maps-target="map" class="h-96"></div>
 
   <input type="text" data-geocoder-maps-target="route">
@@ -315,9 +316,10 @@ Each address field re-geocodes on `change`, and the key needs the **Geocoding AP
 enabled. An address Google cannot find is reported with an alert in the language of
 the nearest `lang` (English or Spanish). Heads-up: the geocoding query is biased
 to Baja California, Mexico — the city falls back to Tijuana when `locality` is
-empty, and the map centers there by default. The API key is a plain data attribute
-(`data-geocoder-maps-key`). `data-geocoder-maps-test-mode="true"` skips the Google
-Maps load entirely (for tests).
+empty, and the map centers there by default. The key and the map ID come from
+`google_maps_meta_tags` and the language from the `<html lang>`; a key in
+`data-geocoder-maps-key`, a plain data attribute, wins over the page's.
+`data-geocoder-maps-test-mode="true"` skips the Google Maps load entirely (for tests).
 
 ## `input-on-change`
 

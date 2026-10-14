@@ -3684,7 +3684,7 @@ Enforce it on the server, and show it with `f.error_summary` on the re-render:
 grep -rnE "slim_select_(group|field).*required" app/
 ```
 
-## The Google Maps key comes from `Bali.google_maps_key`
+## The Google Maps key comes from `Bali.google_maps`
 
 `LocationsMap` and the form builder's `coordinates_polygon` field each called
 `ENV.fetch("GOOGLE_MAPS_KEY")` on their own, which made the environment the only place
@@ -3695,7 +3695,7 @@ variable purely to satisfy this gem.
 ```ruby
 # config/initializers/bali.rb
 Bali.config do |config|
-  config.google_maps_key = Rails.application.credentials.dig(:google, :maps_key)
+  config.google_maps.api_key = Rails.application.credentials.dig(:google, :maps_key)
 end
 ```
 
@@ -3703,11 +3703,10 @@ end
 than the source, and it is resolved per call rather than frozen at boot — so an app that
 only exports `GOOGLE_MAPS_KEY` behaves exactly as it did.
 
-The `autocomplete-address` Stimulus controller is the exception, and it always was: it is
-wired by hand in the host's markup and reads its key from
-`data-autocomplete-address-api-key-value` or from `window.GOOGLE_MAPS_API_KEY`. It never
-read the environment variable, whatever `docs/guides/external-services.md` used to say.
-Pass `Bali.google_maps_key` into the data attribute to have one source again.
+The `autocomplete-address` Stimulus controller, wired by hand in the host's markup, never
+read the environment variable, whatever `docs/guides/external-services.md` used to say. It
+now reads the key, as every map controller does, from `<%= google_maps_meta_tags %>` in the
+layout's `<head>` — see [External Services](external-services.md).
 
 ## Checklist
 

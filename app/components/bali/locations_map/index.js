@@ -14,7 +14,6 @@ export class LocationsMapController extends Controller {
     zoom: { type: Number, default: 12 },
     centerLatitude: { type: Number, default: TIJUANA_LAT },
     centerLongitude: { type: Number, default: TIJUANA_LNG },
-    locale: { type: String, default: 'en' },
     apiKey: { type: String, default: '' },
     minWindowWidth: { type: Number, default: 768 }
   }
@@ -22,16 +21,19 @@ export class LocationsMapController extends Controller {
   async connect () {
     this.themeObserver = observeHostColorScheme(this.rebuildMap)
 
-    const { default: GoogleMapsLoader } = await import('../../../assets/javascripts/bali/utils/google-maps-loader.js')
+    const { default: GoogleMapsLoader, googleMapsConfig } = await import('../../../assets/javascripts/bali/utils/google-maps-loader.js')
     const clusterer = await import('@googlemaps/markerclusterer')
       .catch(optionalPeer('@googlemaps/markerclusterer'))
     if (!clusterer) return
     this.MarkerClusterer = clusterer.MarkerClusterer
 
+    const { key, language, mapId } = googleMapsConfig({ key: this.apiKeyValue })
+    this.mapId = mapId
+
     try {
       this.googleMaps = await GoogleMapsLoader({
-        language: this.localeValue,
-        key: this.apiKeyValue,
+        key,
+        language,
         // No deadline: a script that arrives late still builds.
         timeout: 0
       })
@@ -81,7 +83,7 @@ export class LocationsMapController extends Controller {
     this.map = new this.googleMaps.Map(this.mapTarget, {
       center,
       zoom,
-      mapId: Date.now().toString(),
+      mapId: this.mapId,
       colorScheme: hostColorScheme() === 'dark' ? DARK : LIGHT
     })
   }

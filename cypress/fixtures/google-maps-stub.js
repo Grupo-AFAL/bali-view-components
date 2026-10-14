@@ -284,6 +284,17 @@
     return inside
   }
 
+  // The shoelace formula over degrees: not square metres, as `google.maps.geometry.spherical.computeArea`
+  // returns, but it orders shapes by size the same way.
+  const computeArea = (path) => {
+    const vertices = (path.getArray ? path.getArray() : path).map(toLatLng)
+
+    return Math.abs(vertices.reduce((sum, a, i) => {
+      const b = vertices[(i + 1) % vertices.length]
+      return sum + a.lng() * b.lat() - b.lng() * a.lat()
+    }, 0)) / 2
+  }
+
   class FakeLatLngBounds {
     constructor () {
       this.points = []
@@ -381,7 +392,7 @@
   const libraries = {
     marker: { AdvancedMarkerElement: FakeAdvancedMarkerElement, PinElement: FakePinElement },
     places: { Autocomplete: FakeAutocomplete, PlaceAutocompleteElement: FakePlaceAutocompleteElement },
-    geometry: { poly: { containsLocation } },
+    geometry: { poly: { containsLocation }, spherical: { computeArea } },
     geocoding: { Geocoder: FakeGeocoder }
   }
 

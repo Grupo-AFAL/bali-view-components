@@ -30,13 +30,14 @@ export class AutocompleteAddressController extends Controller {
     // beside the one the next connect builds.
     document.addEventListener('turbo:before-cache', this.teardown)
 
-    const { default: GoogleMapsLoader } = await import('../utils/google-maps-loader.js')
+    const { default: GoogleMapsLoader, googleMapsConfig } = await import('../utils/google-maps-loader.js')
+    const { key, language } = googleMapsConfig({ key: this.apiKeyValue })
 
     try {
       this.googleMaps = await GoogleMapsLoader({
         libraries: ['places'],
-        language: 'es',
-        key: this.apiKeyValue || window.GOOGLE_MAPS_API_KEY,
+        key,
+        language,
         // No deadline: a script that arrives late still builds.
         timeout: 0
       })
