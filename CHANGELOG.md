@@ -136,6 +136,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Dependencies
 
+- **Rails 8.1.4 en el desarrollo de Bali.** Sólo cambian las gemas de Rails en `Gemfile.lock`.
+  El gemspec sigue pidiendo `rails >= 8.1`, así que cada app toma su Rails de su propio lock.
+  **Quien desarrolla Bali:** 8.1.4 vuelca las columnas de `schema.rb` en orden de creación y
+  `test/dummy/db/schema.rb` se regeneró así. Una base cargada con el archivo anterior vuelve a
+  volcarlas en orden alfabético con `db:migrate`, y `DummySchemaTest` falla. Para evitarlo, corre
+  `bin/rails db:schema:load` en `test/dummy`. `json` 3 llega cuando suba `rubocop` (#1468): la versión
+  1.86.0 lo acota a `~> 2.3`.
+
 - **`bali-rubocop` sube a v0.2.0** (reemplaza a #1411). Sólo afecta a quien desarrolla Bali:
   el gem va en `development, :test` y no llega a las apps. Los comentarios de las migraciones
   del engine (`db/migrate/*.rb`) pasan al inglés; sólo comentarios, el esquema no cambia.
