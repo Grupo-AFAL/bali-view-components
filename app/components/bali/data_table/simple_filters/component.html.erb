@@ -43,7 +43,7 @@
     <% end %>
 
     <% @filters.each do |filter| %>
-      <div class="<%= (toggle_group?(filter) || radio_group?(filter)) ? '' : (number_range?(filter) ? 'w-auto' : (date_range?(filter) && !presets?(filter) ? 'w-auto min-w-52' : 'w-auto sm:max-w-56')) %> shrink-0">
+      <div class="<%= filter_wrapper_classes(filter) %> shrink-0">
         <%# Boolean filters already render their own inline label, so skip the caption there.
             The caption used to be a `<label>` with no `for`, which names nothing: it is a
             `<label for>` where there is a single control to point at, and a `<span>` naming a
