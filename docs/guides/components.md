@@ -5485,7 +5485,18 @@ Record detail page with breadcrumbs, title with tags, actions, and an optional t
 <% end %>
 ```
 
-Nothing beyond [the shared surface](#the-shared-surface).
+**On top of [the shared surface](#the-shared-surface):**
+- `height` - `:content` (default) lets the body grow with its content and the page scroll.
+  `:full` makes the body fill what the header leaves of the screen, for a body that is one
+  panel reaching the bottom of it, such as a chat. It is the recipe of
+  [SplitView's `height: :full`](master-detail.md#filling-the-screen-height-full):
+  `height: 100%` and a flex chain, no measured offset. So it needs
+  `Bali::AppLayout::Component.new(viewport_locked: true)`, with the page rendered straight into
+  `layout.with_body` and no wrapper in between; with no bounded ancestor it fills nothing. The
+  body becomes a flex column of definite height, so the panel takes it with `h-full`. The
+  `sidebar` grid is not part of the chain: with a sidebar the body fills and its two columns
+  keep their content height. Inert below `lg`; an unknown value raises `ArgumentError`. The
+  `bali/show_page/full_height/default` scenario in Lookbook is the whole pairing.
 
 #### FormPage
 

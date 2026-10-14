@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::ShowPage` toma `height: :full`: el cuerpo llena lo que el encabezado deja de la
+  pantalla** (#1449), para un cuerpo que es un solo panel que llega hasta abajo, como un chat.
+  Es la receta de `SplitView height: :full` (#979) llevada hasta el cuerpo: `height: 100%` y una
+  cadena flex, nada medido, así que pide `AppLayout viewport_locked: true` con la página directo
+  en `layout.with_body`; sin ancestro acotado no llena nada, y debajo de `lg` no hace nada. El
+  panel toma el alto con `h-full`. Con `sidebar`, el cuerpo llena pero sus dos columnas
+  conservan su alto. Sin `height:`, el marcado es el de antes.
+
+  afal-apps puede borrar el bloque `.tdflow-interview` de `app/assets/tailwind/application.css`
+  y pasar `height: :full` a la `ShowPage` de la entrevista; el `div` del cuerpo funciona tal cual.
+
 ## [v3.15.0] - 2026-10-13
 
 ### Added

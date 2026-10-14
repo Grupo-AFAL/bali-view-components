@@ -280,7 +280,8 @@ module Bali
         @export_options.nil? || @export_options[:params].nil?
       end
 
-      def breadcrumb_spacer_class
+      # `mt-1` spaces the header from the breadcrumbs. ShowPage extends it for `height: :full`.
+      def page_header_class
         "mt-1" if render_breadcrumbs?
       end
 
@@ -329,7 +330,7 @@ module Bali
           heading: heading,
           subtitle: subtitle,
           back: back,
-          class: breadcrumb_spacer_class
+          class: page_header_class
         )) do |header|
           title_tags.each { |title_tag| header.with_title_tag { title_tag.to_s } }
           page_header_actions
@@ -345,7 +346,12 @@ module Bali
       def render_body
         return unless page_body?
 
-        helpers.tag.div(render_body_with_sidebar, class: BODY_SPACING_CLASS)
+        helpers.tag.div(render_body_with_sidebar, class: page_body_class)
+      end
+
+      # ShowPage extends it for `height: :full`.
+      def page_body_class
+        BODY_SPACING_CLASS
       end
 
       # ShowPage and FormPage painted the SAME grid with the same six classes; the only real

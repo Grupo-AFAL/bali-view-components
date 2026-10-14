@@ -1,0 +1,30 @@
+/* ── height: :full ────────────────────────────────────────────────────────
+   SplitView's recipe (split_view/index.css), carried down to the body:
+   `height: 100%` and a flex chain with `min-height: 0` on every link, no
+   measured offset. With no bounded ancestor it fills nothing and the page lays
+   out as in normal flow, because the header's `mb-4`, which a flex column would
+   add to the body's `mt-6`, is dropped in component.rb. Only from `lg` up. */
+@media (width >= 64rem) {
+  .show-page-component--full {
+    @apply flex flex-col h-full min-h-0;
+  }
+
+  .show-page-component--full > .show-page-body--full {
+    @apply flex flex-col flex-1 min-h-0;
+  }
+
+  /* AppLayout's `<main>` and body container wrap their content, so the page
+     would stop at its own height. The `:has()` keeps these off every other
+     locked page, and the page has to be a direct child of the container. Basis
+     `0%` and not `auto`: split_view/index.css has the measurement (#979). */
+  .app-layout--viewport-locked
+    main:has(> .app-layout-body-container > .show-page-component--full) {
+    @apply flex flex-col;
+  }
+
+  .app-layout--viewport-locked
+    .app-layout-body-container:has(> .show-page-component--full) {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+}

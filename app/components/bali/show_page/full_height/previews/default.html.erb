@@ -1,0 +1,50 @@
+<%
+  now = Time.zone.parse('2026-10-13 10:00')
+  conversation = [
+    ['assistant', 'Thanks for making the time. Let us start with how your team reports progress today.', 0],
+    ['user',      'Every Friday each lead fills in a spreadsheet, and I merge them by hand on Monday.', 1],
+    ['assistant', 'How long does the merge take you?', 2],
+    ['user',      'Two hours on a good week. More when someone renames a column.', 3],
+    ['assistant', 'Who reads the merged report?', 4],
+    ['user',      'The steering committee, on Tuesday morning. They mostly look at the red rows.', 6],
+    ['assistant', 'So the decision they make is about the items at risk, not the whole list?', 7],
+    ['user',      'Exactly. Everything else is context they rarely open.', 8],
+    ['assistant', 'What happens when an item turns red between Monday and Tuesday?', 9],
+    ['user',      'Someone sends an email, and half the committee never sees it.', 11],
+    ['assistant', 'That is the gap worth closing first. Shall we go through the last three red items?', 12]
+  ]
+%>
+<%= render Bali::AppLayout::Component.new(viewport_locked: viewport_locked) do |layout| %>
+  <% layout.with_body do %>
+    <%= render Bali::ShowPage::Component.new(
+          title: title,
+          subtitle: 'Discovery · In progress',
+          breadcrumbs: [{ name: 'Initiatives', href: '/lookbook' }, { name: 'Interview' }],
+          back: { href: '/lookbook' },
+          height: height
+        ) do |page| %>
+      <% page.with_body do %>
+        <%# `h-full` resolves against the body, which `:full` makes a box of definite height. %>
+        <%= render Bali::Chat::Component.new(
+              id: 'interview-messages',
+              class: 'h-full rounded-box border border-base-300 bg-base-100',
+              url: '/lookbook/noop',
+              composer: { name: 'message' }
+            ) do %>
+          <% conversation.each do |role, body, minutes| %>
+            <% assistant = role == 'assistant' %>
+            <%= render Bali::Chat::Message::Component.new(
+                  position: assistant ? :start : :end,
+                  color: assistant ? nil : :primary,
+                  author: assistant ? 'Interviewer' : 'Ana García',
+                  timestamp: now + minutes.minutes,
+                  bubble_class: 'max-w-[82%]'
+                ) do %>
+              <%= body %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
