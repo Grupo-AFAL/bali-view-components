@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`submit-on-change` con `action`/`method` ya no se detiene en un campo `required` vacío**
+  (#1439). El submitter oculto que crea el controlador llevaba la validación del navegador, así
+  que un formulario a medio llenar no se volvía a pintar. Ahora ese submitter lleva
+  `formnovalidate`; el envío propio del formulario (sin `action`/`method`) valida igual que
+  antes. Las apps que lo evitaban con `html: { novalidate: true }` en el `form_with` pueden quitarlo, si
+  ya no lo necesitan para otra cosa.
+
+- **`DataTable::SimpleFilters`: el filtro `date_range` ya no recorta el rango elegido** (#1461).
+  Con una fuente ancha, «03/10/2026 a 07/10/2026» no cabía en el input del selector. Su contenedor
+  ahora mide al menos 13 rem (`min-w-52`), suficiente para el rango más largo medido, con el
+  separador en español (` a `) y en inglés (` to `). Un filtro con `presets:` no cambia.
+  **Anfitrión:** si el filtro no usa `presets:`, se puede borrar la regla
+  `.sm\:max-w-56:has(> div > .flatpickr[data-datepicker-mode-value="range"])`; gobierno-corporativo,
+  cuyo único `date_range` (`microsoft_graph_call_logs_filter_form.rb:24`) no usa `presets:`, borra
+  `app/assets/tailwind/application.css:178`. Quien deba bajar el mínimo escribe `min-w-0!`.
+
 ### Dependencies
 
 - **`rubocop` 1.92 y `json` 3.1** (#1468). Quien desarrolla Bali ya no está atado a `json` 2: `rubocop`
