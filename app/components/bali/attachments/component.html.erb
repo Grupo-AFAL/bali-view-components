@@ -1,0 +1,31 @@
+<%= tag.ul(**options) do %>
+  <% if empty_text.present? %>
+    <li class="attachments-empty hidden only:block text-sm text-base-content/70"><%= empty_text %></li>
+  <% end %>
+  <% items.each do |attachment| %>
+    <li id="<%= dom_id(attachment) %>" class="flex min-w-0 items-center gap-1">
+      <% if attachment.variable? %>
+        <%= link_to rails_blob_path(attachment), target: "_blank", rel: "noopener",
+                                                 title: attachment.filename do %>
+          <%= image_tag attachment.variant(THUMBNAIL), alt: attachment.filename,
+                                                      class: "max-h-32 max-w-64 rounded-box border border-base-300" %>
+        <% end %>
+      <% else %>
+        <%= render Bali::Link::Component.new(href: rails_blob_path(attachment, disposition: "attachment"),
+                                             style: :outline, size: :xs, icon: "paperclip", responsive: false,
+                                             title: t(".download", filename: attachment.filename),
+                                             class: "max-w-[16rem]") do %>
+          <span class="truncate"><%= attachment.filename %></span>
+        <% end %>
+      <% end %>
+      <%= badge(attachment) %>
+      <% if (path = remove_path(attachment)) %>
+        <%= render Bali::DeleteLink::Component.new(href: path, icon: true, size: :xs, class: "btn-square",
+                                                   title: t(".remove", filename: attachment.filename),
+                                                   confirm: t(".remove_confirm", filename: attachment.filename)) do %>
+          <span class="sr-only"><%= t(".remove", filename: attachment.filename) %></span>
+        <% end %>
+      <% end %>
+    </li>
+  <% end %>
+<% end %>

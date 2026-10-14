@@ -155,6 +155,12 @@ en:
     comment_thread:
       empty: "No comments yet."
 
+    attachments:
+      download: "Download %{filename}"
+      remove: "Remove %{filename}"
+      remove_confirm: "Remove \"%{filename}\"?"
+      empty: "No attachments"
+
     # Modal
     modal:
       close: "Close modal"

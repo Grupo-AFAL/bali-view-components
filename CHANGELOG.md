@@ -21,6 +21,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   afal-apps puede borrar el bloque `.tdflow-interview` de `app/assets/tailwind/application.css`
   y pasar `height: :full` a la `ShowPage` de la entrevista; el `div` del cuerpo funciona tal cual.
 
+- **`Bali::Attachments::Component`: la lista de archivos adjuntos de un registro** (#1454) —
+  miniatura para las imágenes, chip que descarga para lo demás, botón de quitar opcional por
+  adjunto (`remove_path:`), un `dom_id` en cada renglón para el `turbo_stream.remove` y sólo los
+  adjuntos ya guardados.
+
+  **Anfitrión:** nada, mientras no lo use. Para usarlo, la miniatura es un *variant* de Active
+  Storage y necesita `image_processing` con libvips (o ImageMagick); sin eso cada miniatura
+  responde 500. Y con `remove_path:` no va dentro de un formulario: cada botón es un
+  `<form>` y cerraría el de afuera.
+
 ### Fixed
 
 - **`submit-on-change` con `action`/`method` ya no se detiene en un campo `required` vacío**

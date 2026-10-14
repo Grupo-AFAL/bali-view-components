@@ -135,7 +135,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 `Breadcrumb`, `Command`, `Dropdown`, `Navbar`, `Pagination`, `PaginationFooter`, `SideMenu`, `Stepper`, `Tabs`, `ViewSwitch`
 
 ### Data Display
-`Avatar`, `BooleanIcon`, `Chart`, `CommentThread`, `DataTable`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `QrCode`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
+`Attachments`, `Avatar`, `BooleanIcon`, `Chart`, `CommentThread`, `DataTable`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `QrCode`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
 
 ### Interactive
 `ActionsDropdown`, `BulkActions`, `Button`, `Carousel`, `Clipboard`, `ConfirmDialog`, `DeleteLink`, `Filters`, `HoverCard`, `Kanban`, `Link`, `Reveal`, `SortableList`, `Tooltip`
@@ -289,6 +289,7 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | ActionsDropdown | ✓ | ✓ | ✓ |
 | Alert | ✓ | ✓ | ✓ |
 | AppLayout | ✓ | ✓ | ✓ |
+| Attachments | ✓ | ✓ | ✓ |
 | Avatar | ✓ | ✓ | ✓ |
 | BlockEditor | ✓ | ✓ | ✓ |
 | BooleanIcon | ✓ | ✓ | ✓ |
