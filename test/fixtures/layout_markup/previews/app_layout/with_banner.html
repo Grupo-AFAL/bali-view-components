@@ -1,0 +1,308 @@
+<body class="app-layout flex flex-col min-h-screen bg-base-200 app-layout--has-fixed-sidebar app-layout--has-sidebar" data-controller="app-layout">
+    <a href="#main-content" class="bali-skip-link">Skip to main content</a>
+
+    <div class="app-layout-banner" data-app-layout-target="banner">
+    <div class="bg-warning text-warning-content px-4 py-2 text-sm flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: eye --></svg></span>
+        <span>You are viewing as <strong>John Doe</strong> (john@example.com)</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" type="button">
+
+    Stop Impersonating
+
+  
+</button>
+    </div>
+
+      <div role="status" class="alert alert-component alert-info rounded-none" data-controller="alert">
+    <span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: clipboard-check --></svg></span>
+    <div>
+        Three documents are waiting for your review before Friday.
+</div>
+    <button class="btn btn-ghost btn-sm btn-circle ml-auto alert-dismiss" data-action="alert#dismiss" aria-label="Close alert" type="button">
+    <span class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: x --></svg></span>
+
+    
+
+  
+</button>
+</div></div>
+
+
+  <div class="app-layout-main flex flex-1 min-h-0">
+        <nav id="side-menu" class="side-menu-component side-menu-component--fixed" data-controller="side-menu" data-side-menu-collapsible-value="true" data-side-menu-fixed-value="true" aria-label="Sidebar" inert="inert">
+    <div class="side-menu-expanded flex bali-chrome-height items-center gap-2 py-3 px-2.5 border-b border-base-300">
+        <span class="side-menu-brand text-xl font-semibold grow items-center gap-2 min-w-0">
+          MovieDB
+        </span>
+      <button type="button"
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+              aria-controls="side-menu"
+              aria-expanded="true"
+              data-action="side-menu#toggleCollapse"
+              class="menu-item p-2 shrink-0 max-lg:hidden">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: panel-left-close --></svg></span>
+      </button>
+        <button type="button"
+                title="Close sidebar"
+                aria-label="Close sidebar"
+                data-action="side-menu#close"
+                class="menu-item p-2 shrink-0 lg:hidden">
+          <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: x --></svg></span>
+        </button>
+    </div>
+    <div class="side-menu-collapsed hidden bali-chrome-height items-center px-1 border-b border-base-300">
+      <button type="button"
+              title="Expand sidebar"
+              aria-label="Expand sidebar"
+              aria-controls="side-menu"
+              aria-expanded="false"
+              data-action="side-menu#toggleCollapse"
+              class="collapse-toggle menu-item justify-center w-full">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: panel-left-open --></svg></span>
+      </button>
+    </div>
+
+
+  <div class="sidebar-menu custom-scrollbar grow overflow-auto">
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Main</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>  <a href="/admin" class="menu-item group active side-menu-expanded" aria-current="page">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layout-dashboard --></svg></span>
+    <span class="grow">Dashboard</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/admin" class="menu-item active" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layout-dashboard --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Dashboard
+  </template>
+</span>
+</li>
+    <li>  <a href="/admin/movies" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: film --></svg></span>
+    <span class="grow">Movies</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/admin/movies" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: film --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Movies
+  </template>
+</span>
+</li>
+    <li>  <a href="/admin/studios" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: building-2 --></svg></span>
+    <span class="grow">Studios</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/admin/studios" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: building-2 --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Studios
+  </template>
+</span>
+</li>
+</ul>
+
+  </div>
+
+    <ul class="side-menu-bottom-section border-t border-base-200 shrink-0 space-y-0.5 py-2">
+        <li>  <a href="#" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-user --></svg></span>
+    <span class="grow">Ana García</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="#" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-user --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Ana García
+  </template>
+</span>
+</li>
+    </ul>
+</nav>
+  <div class="side-menu-overlay"
+       aria-hidden="true"
+       data-controller="side-menu-trigger"
+       data-side-menu-trigger-menu-id-value="side-menu"
+       data-action="click->side-menu-trigger#close"></div>
+
+
+
+    <div class="app-layout-content flex-1 min-w-0 flex flex-col">
+        <header class="app-layout-topbar app-layout-topbar--default-mobile flex items-center gap-2 px-4 py-2 bg-base-100 border-b border-base-300 lg:hidden">
+          <button type="button" data-controller="side-menu-trigger" data-action="click-&gt;side-menu-trigger#toggle" data-side-menu-trigger-menu-id-value="side-menu" class="btn btn-ghost btn-sm" aria-controls="side-menu" aria-expanded="false" aria-label="Open sidebar"><span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: menu --></svg></span></button>
+        </header>
+
+      <main id="main-content" tabindex="-1" class="flex-1">
+        <div class="app-layout-body-container p-4 md:p-6">
+              <div class="level flex justify-between max-sm:flex-wrap gap-2 sm:gap-4 items-center page-header-component mb-4 max-sm:gap-3 max-sm:flex-col max-sm:items-stretch">
+  <div class="level-left flex items-center gap-4 shrink flex-1 min-w-0 max-sm:w-full max-sm:flex-col max-sm:items-start max-sm:gap-2"><div class="level-item flex items-center max-w-full max-sm:w-full min-w-0">        <div class="page-header-title-block min-w-0 space-y-1">
+          <h1 class="title text-2xl font-bold">Dashboard</h1>
+          <p class="subtitle text-sm text-base-content/70">Scroll: the banner stays, the sidebar keeps its top under it</p>
+        </div>
+</div></div>
+  
+</div>
+
+    <div class="space-y-4">
+        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 1</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 2</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 3</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 4</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 5</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 6</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 7</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 8</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 9</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 10</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 11</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>        <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+          <p class="font-semibold">Row 12</p>
+          <p class="text-sm text-base-content/60">
+            Filler so the page scrolls and the sticky strip has something to stick over.
+          </p>
+
+    </div>
+</div>    </div>
+
+        </div>
+
+
+      </main>
+    </div>
+  </div>
+
+</body>

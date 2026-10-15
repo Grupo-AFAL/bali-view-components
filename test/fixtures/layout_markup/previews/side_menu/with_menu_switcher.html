@@ -1,0 +1,239 @@
+<div class="h-[600px] bg-base-200 p-4 flex gap-4">
+  <div class="w-xs">
+    <nav id="side-menu" class="side-menu-component side-menu-component--inline" data-controller="side-menu" data-side-menu-collapsible-value="false" data-side-menu-fixed-value="false" aria-label="Sidebar">
+
+    <div class="menu-switcher mb-3 mt-3">
+      <details class="dropdown dropdown-bottom w-full">
+        <summary class="menu-switcher-trigger tooltip tooltip-right border-base-300 hover:bg-base-content/8 rounded-box flex w-full items-center gap-2 border p-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+                 data-tip="Back of House">
+          <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chef-hat --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Back of House</p>
+    <p class="text-xs text-base-content/70">Kitchen operations</p>
+  </div>
+</div>
+          <span class="icon-component menu-switcher-chevron ml-auto size-4 text-base-content/55" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevrons-up-down --></svg></span>
+        </summary>
+        <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
+            <li>
+              <a href="/boh/dashboard" class="active">
+                <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chef-hat --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Back of House</p>
+    <p class="text-xs text-base-content/70">Kitchen operations</p>
+  </div>
+</div>
+              </a>
+            </li>
+            <li>
+              <a href="/logistics/dashboard" class="">
+                <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: truck --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Logistics</p>
+    <p class="text-xs text-base-content/70">Supply chain</p>
+  </div>
+</div>
+              </a>
+            </li>
+            <li>
+              <a href="/acct/dashboard" class="">
+                <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: calculator --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Accounting</p>
+    <p class="text-xs text-base-content/70">Finance team</p>
+  </div>
+</div>
+              </a>
+            </li>
+        </ul>
+      </details>
+    </div>
+
+  <div class="sidebar-menu custom-scrollbar grow overflow-auto">
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Operations</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>  <a href="/boh/dashboard" class="menu-item group active side-menu-expanded" aria-current="page">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layout-dashboard --></svg></span>
+    <span class="grow">Dashboard</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/boh/dashboard" class="menu-item active" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layout-dashboard --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Dashboard
+  </template>
+</span>
+</li>
+    <li>  <a href="/boh/recipes" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: book-open --></svg></span>
+    <span class="grow">Recipes</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/boh/recipes" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: book-open --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Recipes
+  </template>
+</span>
+</li>
+    <li>    <div class="collapse side-menu-expanded">
+      <input type="checkbox" aria-label="Toggle Production" class="peer"
+              />
+      <div class="collapse-title px-2.5 py-1.5">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: factory --></svg></span>
+        <span class="grow">Production</span>
+        
+        <span class="icon-component size-3.5 arrow-icon" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-right --></svg></span>
+      </div>
+      <div class="collapse-content ms-6.5 !p-0">
+        <div class="mt-0.5 space-y-0.5">
+          
+              <a href="/production/plans" class="menu-item group side-menu-expanded">
+    
+    <span class="grow">Plans</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/production/plans" class="menu-item"><span class="size-4 flex items-center justify-center text-xs font-medium">P</span></a>
+</span>  <template data-tooltip-target="content">
+    Plans
+  </template>
+</span>
+
+              <a href="/production/schedule" class="menu-item group side-menu-expanded">
+    
+    <span class="grow">Schedule</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/production/schedule" class="menu-item"><span class="size-4 flex items-center justify-center text-xs font-medium">S</span></a>
+</span>  <template data-tooltip-target="content">
+    Schedule
+  </template>
+</span>
+
+        </div>
+      </div>
+    </div>
+    <div class="side-menu-collapsed-flyout side-menu-collapsed hidden dropdown dropdown-right dropdown-hover" data-controller="side-menu-flyout">
+      <div tabindex="0" role="button" class="menu-item" aria-label="Production" data-side-menu-flyout-target="trigger" data-action="keydown-&gt;side-menu-flyout#triggerKeydown"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: factory --></svg></span></div>
+      <ul tabindex="0"
+          class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] w-56 p-2"
+          data-side-menu-flyout-target="panel"
+          data-action="keydown->side-menu-flyout#panelKeydown">
+        <li class="menu-title px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-base-content/70">
+          Production
+        </li>
+        
+          <li><a href="/production/plans" class="">Plans</a></li>
+          <li><a href="/production/schedule" class="">Schedule</a></li>
+      </ul>
+    </div>
+</li>
+</ul>
+
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Inventory</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>    <div class="collapse side-menu-expanded">
+      <input type="checkbox" aria-label="Toggle Stock Counts" class="peer"
+              />
+      <div class="collapse-title px-2.5 py-1.5">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: clipboard-list --></svg></span>
+        <span class="grow">Stock Counts</span>
+        
+        <span class="icon-component size-3.5 arrow-icon" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-right --></svg></span>
+      </div>
+      <div class="collapse-content ms-6.5 !p-0">
+        <div class="mt-0.5 space-y-0.5">
+          
+              <a href="/inv/counts" class="menu-item group side-menu-expanded">
+    
+    <span class="grow">Counts</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/inv/counts" class="menu-item"><span class="size-4 flex items-center justify-center text-xs font-medium">C</span></a>
+</span>  <template data-tooltip-target="content">
+    Counts
+  </template>
+</span>
+
+              <a href="/inv/waste" class="menu-item group side-menu-expanded">
+    
+    <span class="grow">Waste</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/inv/waste" class="menu-item"><span class="size-4 flex items-center justify-center text-xs font-medium">W</span></a>
+</span>  <template data-tooltip-target="content">
+    Waste
+  </template>
+</span>
+
+              <a href="/inv/locations" class="menu-item group side-menu-expanded">
+    
+    <span class="grow">Locations</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/inv/locations" class="menu-item"><span class="size-4 flex items-center justify-center text-xs font-medium">L</span></a>
+</span>  <template data-tooltip-target="content">
+    Locations
+  </template>
+</span>
+
+        </div>
+      </div>
+    </div>
+    <div class="side-menu-collapsed-flyout side-menu-collapsed hidden dropdown dropdown-right dropdown-hover" data-controller="side-menu-flyout">
+      <div tabindex="0" role="button" class="menu-item" aria-label="Stock Counts" data-side-menu-flyout-target="trigger" data-action="keydown-&gt;side-menu-flyout#triggerKeydown"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: clipboard-list --></svg></span></div>
+      <ul tabindex="0"
+          class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] w-56 p-2"
+          data-side-menu-flyout-target="panel"
+          data-action="keydown->side-menu-flyout#panelKeydown">
+        <li class="menu-title px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-base-content/70">
+          Stock Counts
+        </li>
+        
+          <li><a href="/inv/counts" class="">Counts</a></li>
+          <li><a href="/inv/waste" class="">Waste</a></li>
+          <li><a href="/inv/locations" class="">Locations</a></li>
+      </ul>
+    </div>
+</li>
+    <li>  <a href="/configuration" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span>
+    <span class="grow">Configuration</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/configuration" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Configuration
+  </template>
+</span>
+</li>
+</ul>
+
+  </div>
+
+</nav>
+
+  </div>
+  <div class="flex-1 p-4">
+    <h2 class="text-xl font-bold mb-4">Menu Switcher</h2>
+    <p class="text-base-content/60">
+      Use the dropdown at the top to switch between different application modules.
+    </p>
+  </div>
+</div>

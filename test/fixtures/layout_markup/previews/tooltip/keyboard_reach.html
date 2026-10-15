@@ -1,0 +1,26 @@
+<div class="flex justify-center items-center gap-16 p-16">
+  <span class="tooltip-component inline-block" data-controller="tooltip" data-tooltip-placement-value="bottom" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+          <button class="btn btn-primary" type="button">
+
+    Focusable trigger
+
+  
+</button>
+
+</span>  <template data-tooltip-target="content">
+    
+    <p>The button inside the slot is the tab stop; the balloon opens on its focus.</p>
+
+  </template>
+</span>
+  <span class="tooltip-component inline-block help-tip" data-controller="tooltip" data-tooltip-placement-value="bottom" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger" role="img" aria-label="More information">
+          <span class="w-6 h-6 rounded-full border border-neutral flex items-center justify-center text-sm">?</span>
+
+</span>  <template data-tooltip-target="content">
+    
+    <p>Nothing in this slot can take focus, so the wrapper becomes the tab stop.</p>
+
+  </template>
+</span></div>

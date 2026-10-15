@@ -1,0 +1,78 @@
+<body class="app-layout flex flex-col min-h-screen bg-base-200 app-layout--has-navbar" data-controller="app-layout">
+    <a href="#main-content" class="bali-skip-link">Skip to main content</a>
+
+
+    <div class="app-layout-navbar">
+    <nav role="navigation" aria-label="Main navigation" data-controller="navbar" data-navbar-allow-transparency-value="false" data-navbar-throttle-interval-value="100" class="navbar navbar-base">
+  <div class="flex items-center w-full relative px-4 max-w-7xl mx-auto">
+    <div class="flex items-center gap-2">
+      <div class="navbar-brand">
+        
+        <span class="text-lg font-bold">MovieDB</span>
+
+      </div>
+        <button type="button" aria-label="Toggle menu" class="btn btn-ghost lg:hidden" data-action="navbar#toggleMenu" data-navbar-target="burger"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg></button>
+    </div>
+      <div class="hidden flex-col gap-4 absolute left-0 top-full w-full bg-base-100 max-lg:text-base-content max-lg:[--bali-navbar-ring:initial] shadow-lg p-4 z-40 lg:flex lg:flex-1 lg:static lg:flex-row lg:items-center lg:gap-4 lg:bg-transparent lg:shadow-none lg:p-0 lg:z-auto" data-navbar-target="menu">
+    <div class="flex flex-col lg:flex-row lg:items-center">
+      <ul class="menu flex-col gap-1 lg:menu-horizontal lg:flex-row lg:gap-0">
+          <li><a href="/lookbook">Home</a></li>
+          <li><a href="/lookbook">Features</a></li>
+          <li><a href="/lookbook">Pricing</a></li>
+      </ul>
+    </div>
+    <div class="flex flex-col lg:flex-row lg:items-center gap-2 lg:ml-auto max-sm:border-t max-sm:border-base-300 max-sm:pt-4 max-sm:pl-2">
+        <div>          <div class="flex gap-2">
+            <button class="btn btn-ghost btn-sm" type="button">
+
+    Sign In
+
+  
+</button>
+            <button class="btn btn-primary btn-sm" type="button">
+
+    Get Started
+
+  
+</button>
+          </div>
+</div>
+    </div>
+</div>
+  </div>
+</nav></div>
+
+  <div class="app-layout-main flex flex-1 min-h-0">
+    
+
+    <div class="app-layout-content flex-1 min-w-0 flex flex-col">
+
+      <main id="main-content" tabindex="-1" class="flex-1">
+        <div class="app-layout-body-container max-w-7xl px-4 md:px-6 py-4 mx-auto">
+              <div class="text-center py-20">
+      <h1 class="text-5xl font-bold mb-4">Welcome to MovieDB</h1>
+      <p class="text-xl text-base-content/70 mb-8">Your complete movie database management platform</p>
+      <div class="flex gap-4 justify-center">
+        <button class="btn btn-primary btn-lg" type="button">
+
+    Get Started
+
+  
+</button>
+        <button class="btn btn-ghost btn-lg" type="button">
+
+    Learn More
+
+  
+</button>
+      </div>
+    </div>
+
+        </div>
+
+
+      </main>
+    </div>
+  </div>
+
+</body>
