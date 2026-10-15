@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rango** (#1481, desde v3.1.0). Al elegir «Personalizado…», la lista y el selector de fechas
   compartían los 224 px del tope genérico de un filtro: la lista quedaba en «P…» y el rango a
   medias. Ahora el filtro toma el ancho de los dos, y el selector, el mismo mínimo de 13 rem que un
-  `date_range` sin `presets:`. Con un periodo elegido mide lo mismo que antes. Nada que hacer en la
-  app.
+  `date_range` sin `presets:`. Con un periodo elegido mide lo mismo que antes mientras la etiqueta y
+  las opciones quepan en esos 224 px, como en garita y afal-apps. Nada que hacer en la app.
 
 ## [v3.16.2] - 2026-10-14
 

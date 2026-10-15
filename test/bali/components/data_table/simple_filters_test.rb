@@ -454,6 +454,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
 
     assert_selector("[data-controller='time-period-field'] > .flatpickr.min-w-52", visible: :all)
     assert_no_selector(".sm\\:max-w-56")
+    assert_no_selector(".min-w-52 > [data-controller='time-period-field']")
   end
 
   # #1400: declared on the FilterForm, the placeholder reaches both date controls that read it —

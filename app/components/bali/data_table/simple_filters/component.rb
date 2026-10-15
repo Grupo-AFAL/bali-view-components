@@ -25,6 +25,9 @@ module Bali
         # without wrapping.
         SLIM_SELECT_CONTENT_WIDTH = ">240px"
 
+        # 13 rem: the longest range text measured (DejaVu Sans, ` to `) needs 184 px.
+        RANGE_PICKER_MIN_WIDTH = "min-w-52"
+
         # @param url [String] Form submission URL
         # @param filters [Array<Hash>] Filter configurations
         # @param show_clear [Boolean] Show clear button
@@ -136,14 +139,13 @@ module Bali
           date_range?(filter) && filter[:presets].present?
         end
 
-        # `min-w-52` is 13 rem: the longest range text measured (DejaVu Sans, ` to `) needs
-        # 184 px. With `presets:` the select and the picker share the wrapper, and the generic
-        # 224 px cap cut both ("P…" beside half a range), so the template puts the floor on
-        # the picker alone and the wrapper takes what the two need.
+        # With `presets:` the floor goes on the picker, in the template, not here: this wrapper
+        # also holds the select, and on a preset, with the picker hidden, it would hold the
+        # filter at 208 px around a narrower select.
         def filter_wrapper_classes(filter)
           return "" if toggle_group?(filter) || radio_group?(filter)
           return "w-auto" if number_range?(filter) || presets?(filter)
-          return "w-auto min-w-52" if date_range?(filter)
+          return "w-auto #{RANGE_PICKER_MIN_WIDTH}" if date_range?(filter)
 
           "w-auto sm:max-w-56"
         end
