@@ -1,0 +1,101 @@
+<nav id="side-menu" class="side-menu-component side-menu-component--fixed" data-controller="side-menu" data-side-menu-collapsible-value="true" data-side-menu-fixed-value="true" aria-label="Sidebar" inert="inert">
+    <div class="side-menu-expanded flex bali-chrome-height items-center gap-2 py-3 px-2.5 border-b border-base-300">
+        <span class="grow"></span>
+      <button type="button"
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+              aria-controls="side-menu"
+              aria-expanded="true"
+              data-action="side-menu#toggleCollapse"
+              class="menu-item p-2 shrink-0 max-lg:hidden">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: panel-left-close --></svg></span>
+      </button>
+        <button type="button"
+                title="Close sidebar"
+                aria-label="Close sidebar"
+                data-action="side-menu#close"
+                class="menu-item p-2 shrink-0 lg:hidden">
+          <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: x --></svg></span>
+        </button>
+    </div>
+    <div class="side-menu-collapsed hidden bali-chrome-height items-center px-1 border-b border-base-300">
+      <button type="button"
+              title="Expand sidebar"
+              aria-label="Expand sidebar"
+              aria-controls="side-menu"
+              aria-expanded="false"
+              data-action="side-menu#toggleCollapse"
+              class="collapse-toggle menu-item justify-center w-full">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: panel-left-open --></svg></span>
+      </button>
+    </div>
+
+
+  <div class="sidebar-menu custom-scrollbar grow overflow-auto">
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Organization</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>    <div class="dropdown dropdown-right dropdown-hover">
+      <div tabindex="0" role="button" class="menu-item group">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: building --></svg></span>
+        <span class="grow">Organization</span>
+        
+        <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-right --></svg></span>
+      </div>
+      <ul tabindex="0" class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] w-48 p-2">
+        
+          <li><a href="/org/units" class="active" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: boxes --></svg></span>Units</a></li>
+          <li><a href="/org/people" class="">People</a></li>
+      </ul>
+    </div>
+</li>
+    <li>    <div class="dropdown dropdown-right dropdown-hover">
+      <div tabindex="0" role="button" class="menu-item group">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layers --></svg></span>
+        <span class="grow">Deep</span>
+        
+        <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-right --></svg></span>
+      </div>
+      <ul tabindex="0" class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] w-48 p-2">
+        
+          <li><a class="">Middle</a></li>
+      </ul>
+    </div>
+</li>
+    <li>    <div class="dropdown dropdown-right dropdown-hover">
+      <div tabindex="0" role="button" class="menu-item group">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: link --></svg></span>
+        <span class="grow">Linked</span>
+        
+        <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-right --></svg></span>
+      </div>
+      <ul tabindex="0" class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] w-48 p-2">
+        
+          <li><a href="/org/linked" class="">Linked middle</a></li>
+      </ul>
+    </div>
+</li>
+    <li>  <a href="/" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: house --></svg></span>
+    <span class="grow">Home</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: house --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Home
+  </template>
+</span>
+</li>
+</ul>
+
+  </div>
+
+</nav>
+  <div class="side-menu-overlay"
+       aria-hidden="true"
+       data-controller="side-menu-trigger"
+       data-side-menu-trigger-menu-id-value="side-menu"
+       data-action="click->side-menu-trigger#close"></div>

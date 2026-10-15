@@ -17,6 +17,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `<fieldset>` y el valor va en el elemento del controlador. Una subclase local que deshabilita
   campo por campo, como la que afal-apps escribió para Becas, se borra.
 
+### Changed
+
+- **El layout de la aplicación se renderiza más rápido, con el mismo HTML** (#1487).
+  `Bali::Icon` guarda ya armado el `<svg>` de cada ícono de Lucide, por nombre y tamaño, y lo
+  reusa en las páginas siguientes. `SideMenu::Item` calcula una sola vez su coincidencia con la
+  ruta actual (antes, hasta ocho veces por renglón) y renderiza su ícono una vez para la fila y
+  para el riel colapsado. En afal-apps y gobierno-corporativo, el layout tarda entre 19 y 21 %
+  menos. El marcado no cambia ni un byte: `test/bali/components/layout_markup_golden_test.rb` lo
+  compara entero contra `test/fixtures/layout_markup`, en los previews de AppLayout, SideMenu,
+  Command, Topbar, Tooltip e Icon y en los casos que éstos no cubren.
+  - **Anfitrión:** nada que hacer. `LucideRails.default_options` se lee la primera vez que se
+    dibuja cada ícono, así que cambiarlo después del arranque ya no alcanza a los ya dibujados.
+    Ninguna app lo cambia.
+  - **En la gema:** un preview nuevo de esos seis componentes, o un cambio deliberado de su
+    marcado, pide reescribir los archivos con `GOLDEN=update bin/rails test
+    test/bali/components/layout_markup_golden_test.rb` y revisar su diff.
+
+- **Los renglones del menú lateral y de la paleta, el tooltip del riel y el envoltorio de cada
+  ícono se escriben sin pasar por `tag`, con el mismo HTML** (#1488). La copia de cada hoja en
+  el riel colapsado ya no renderiza un `Bali::Tooltip`, y las listas de clases fijas dejan de
+  pasar por `class_names`. Sumado a #1487, el layout tarda entre 34 y 43 % menos que en v3.16.2
+  (de 3 a 13 ms menos por página en afal-apps y gobierno-corporativo). Un renglón o un ícono con
+  atributos propios del anfitrión (`data:`, `id:`, `title:`…) se sigue armando con `tag`.
+  - **Anfitrión:** nada que hacer.
+
 ## [v3.16.2] - 2026-10-14
 
 ### Fixed

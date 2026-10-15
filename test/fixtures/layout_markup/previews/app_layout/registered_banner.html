@@ -1,0 +1,115 @@
+  <body class="app-layout flex flex-col min-h-screen bg-base-200 app-layout--has-fixed-sidebar app-layout--has-sidebar" data-controller="app-layout">
+    <a href="#main-content" class="bali-skip-link">Skip to main content</a>
+
+    <div class="app-layout-banner" data-app-layout-target="banner"><div role="status" class="alert alert-component alert-warning rounded-none">
+    <span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: eye --></svg></span>
+    <div><div class="flex flex-wrap items-center justify-between gap-2"><span>You are viewing as <strong>Ana García</strong> (ana@example.com)</span><button class="btn btn-neutral btn-sm" type="button">
+
+    Stop impersonating
+
+  
+</button></div></div>
+</div>
+        <div role="status" class="alert alert-component alert-info rounded-none">
+    <span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: clipboard-check --></svg></span>
+    <div>
+          The page's own banner, from <code>with_banner</code>: it stacks under the registered one.
+</div>
+</div></div>
+
+
+  <div class="app-layout-main flex flex-1 min-h-0">
+          <nav id="side-menu" class="side-menu-component side-menu-component--fixed" data-controller="side-menu" data-side-menu-collapsible-value="false" data-side-menu-fixed-value="true" aria-label="Sidebar" inert="inert">
+    <div class="flex bali-chrome-height items-center gap-2 px-2.5 border-b border-base-300">
+        <span class="side-menu-brand text-xl font-semibold grow items-center gap-2 min-w-0">
+          MovieDB
+        </span>
+        <button type="button"
+                title="Close sidebar"
+                aria-label="Close sidebar"
+                data-action="side-menu#close"
+                class="menu-item p-2 shrink-0 lg:hidden">
+          <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: x --></svg></span>
+        </button>
+    </div>
+
+
+  <div class="sidebar-menu custom-scrollbar grow overflow-auto">
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Main</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>  <a href="/admin" class="menu-item group active side-menu-expanded" aria-current="page">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layout-dashboard --></svg></span>
+    <span class="grow">Dashboard</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/admin" class="menu-item active" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layout-dashboard --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Dashboard
+  </template>
+</span>
+</li>
+    <li>  <a href="/admin/movies" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: film --></svg></span>
+    <span class="grow">Movies</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/admin/movies" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: film --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Movies
+  </template>
+</span>
+</li>
+    <li>  <a href="/admin/studios" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: building-2 --></svg></span>
+    <span class="grow">Studios</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/admin/studios" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: building-2 --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Studios
+  </template>
+</span>
+</li>
+</ul>
+
+  </div>
+
+</nav>
+  <div class="side-menu-overlay"
+       aria-hidden="true"
+       data-controller="side-menu-trigger"
+       data-side-menu-trigger-menu-id-value="side-menu"
+       data-action="click->side-menu-trigger#close"></div>
+
+
+
+    <div class="app-layout-content flex-1 min-w-0 flex flex-col">
+        <header class="app-layout-topbar app-layout-topbar--default-mobile flex items-center gap-2 px-4 py-2 bg-base-100 border-b border-base-300 lg:hidden">
+          <button type="button" data-controller="side-menu-trigger" data-action="click-&gt;side-menu-trigger#toggle" data-side-menu-trigger-menu-id-value="side-menu" class="btn btn-ghost btn-sm" aria-controls="side-menu" aria-expanded="false" aria-label="Open sidebar"><span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: menu --></svg></span></button>
+        </header>
+
+      <main id="main-content" tabindex="-1" class="flex-1">
+        <div class="app-layout-body-container p-4 md:p-6">
+                <div class="level flex justify-between max-sm:flex-wrap gap-2 sm:gap-4 items-center page-header-component mb-4 max-sm:gap-3 max-sm:flex-col max-sm:items-stretch">
+  <div class="level-left flex items-center gap-4 shrink flex-1 min-w-0 max-sm:w-full max-sm:flex-col max-sm:items-start max-sm:gap-2"><div class="level-item flex items-center max-w-full max-sm:w-full min-w-0">        <div class="page-header-title-block min-w-0 space-y-1">
+          <h1 class="title text-2xl font-bold">Dashboard</h1>
+          <p class="subtitle text-sm text-base-content/70">The warning comes from Bali.layout_banners, not from this layout</p>
+        </div>
+</div></div>
+  
+</div>
+
+        </div>
+
+
+      </main>
+    </div>
+  </div>
+
+</body>

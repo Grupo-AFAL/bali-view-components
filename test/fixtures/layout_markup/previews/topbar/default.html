@@ -1,0 +1,50 @@
+<header class="bali-topbar flex items-center gap-3 px-4 md:px-6 bali-chrome-height bg-base-100 border-b border-base-300">
+    <button type="button" class="btn btn-ghost btn-sm lg:hidden" data-controller="side-menu-trigger" data-action="click-&gt;side-menu-trigger#toggle" data-side-menu-trigger-menu-id-value="side-menu" aria-controls="side-menu" aria-expanded="false" aria-label="Open sidebar"><span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: menu --></svg></span></button>
+
+
+    <div class="@container flex-1 min-w-0 max-w-md">
+          <label class="input input-sm flex items-center gap-2 bg-base-200 border-0">
+      <span class="icon-component size-4 text-base-content/55" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: search --></svg></span>
+      <input type="text" class="grow" placeholder="Search..." />
+      <kbd class="kbd kbd-xs hidden sm:inline-flex">⌘K</kbd>
+    </label>
+
+    </div>
+
+    <div class="flex items-center gap-1 ml-auto">
+            <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Notifications" title="Notifications"><span class="icon-component size-5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: bell --></svg></span><span id="preview-notifications-badge" class="bali-topbar-badge absolute top-1.5 right-1.5 size-2 rounded-full bg-error border-2 border-base-100" aria-hidden="true"></span></button>
+
+            <button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Help" title="Help"><span class="icon-component size-5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-help circle-question-mark help-circle --></svg></span></button>
+
+            <div class="dropdown dropdown-end bali-topbar-user-menu" data-controller="dropdown" data-dropdown-close-on-click-value="true" data-dropdown-popover-value="false" data-dropdown-placement-value="bottom-end">
+  <div class="btn btn-ghost btn-sm gap-2 max-sm:btn-square" aria-label="User menu for Ana García" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger"><div class="avatar avatar-placeholder" title="Ana García" role="img" aria-label="Ana García">
+  <div class="w-8 rounded-full aspect-square text-xs" style="background-color: #dc2626; color: #fff;">
+      <span aria-hidden="true">AG</span>
+</div></div><span class="hidden md:inline max-w-48 truncate">Ana García</span><span class="icon-component max-sm:hidden" style="--bali-icon-size: 1rem" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-down --></svg></span></div>
+  <ul tabindex="-1" class="dropdown-content menu bg-base-100 text-base-content rounded-box border border-base-content/15 z-[var(--bali-z-dropdown)] shadow-lg p-2 w-52" role="menu" aria-label="Dropdown menu" data-dropdown-target="menu">
+        <li role="none"><span role="presentation" class="menu-title text-base-content/70 bali-topbar-user-menu-header wrap-anywhere"><span class="block text-sm font-medium text-base-content">Ana García</span><span class="block text-xs font-normal text-base-content/70">ana@example.com</span></span></li>
+        <li role="none"><a class="flex items-center gap-2 menu-item w-full text-left" role="menuitem" href="#" data-method="get">
+    <span class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: user --></svg></span>
+    Profile
+  
+  
+</a></li>
+        <li role="none"><a class="flex items-center gap-2 menu-item w-full text-left" role="menuitem" href="#" data-method="get">
+    <span class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span>
+    Settings
+  
+  
+</a></li>
+        <li role="none"><button role="menuitemcheckbox" aria-checked="false" class="menu-item w-full text-left bali-theme-toggle" data-controller="theme-toggle" data-action="theme-toggle#toggle" data-theme-toggle-light-value="light" data-theme-toggle-dark-value="dark" data-theme-toggle-cookie-value="bali_theme" type="button">
+  <span class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: moon --></svg></span>
+  Dark mode
+  <span class="bali-theme-toggle-switch" aria-hidden="true"></span>
+</button></li>
+        <li role="none">  <form class="bali-delete-link-form contents" method="post" action="#"><input type="hidden" name="_method" value="delete" /><button class="flex items-center gap-2 text-soft-error menu-item w-full text-left bali-topbar-sign-out" role="menuitem" type="submit">
+      <span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: log-out --></svg></span>
+
+    Sign out
+</button></form></li>
+</ul></div>
+    </div>
+</header>

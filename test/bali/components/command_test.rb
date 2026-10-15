@@ -288,4 +288,19 @@ class BaliCommandComponentTest < ComponentTestCase
     assert_no_selector(".bali-command-trigger")
     assert_selector("[data-action='click->command#open'] .my-trigger")
   end
+
+  # The row writes `button_options` by hand when the host passed none: a key added to the
+  # row's data has to reach both.
+  def test_command_item_writes_its_button_options_as_tag_would
+    [
+      {}, { href: "/a?b=1&c=2" }, { mode: :recent }, { mode: nil }, { search: %(<A & "B">) },
+      { href: :root }, { href: URI("https://example.com/") }
+    ].each do |options|
+      item = Bali::Command::Item::Component.new(title: "Title", meta: "Meta", **options)
+      render_inline(item)
+
+      assert_equal(vc_test_controller.view_context.tag.attributes(item.button_options), item.button_attributes,
+                   "Item(#{options.inspect})")
+    end
+  end
 end
