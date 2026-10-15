@@ -4,6 +4,8 @@ Documento de trabajo del componente. Se actualiza al cerrar cada fase (`[BPMN Fx
 español porque es prosa para el equipo, como el CHANGELOG; puede pasar al cuerpo del PR y
 borrarse antes de fusionar.
 
+**Avance: 98 %** (F0–F8 cerradas; falta aplicar la revisión independiente).
+
 ## F0 · Diagnóstico y plan
 
 ### Lo que hay
