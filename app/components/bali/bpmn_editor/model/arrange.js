@@ -26,6 +26,7 @@ export const LANE_PAD = 20
 export const HEADER_GAP = 40
 
 const snap = (v) => Math.round(v / GRID) * GRID
+const snapCenter = (start, size) => snap(start + size / 2) - size / 2
 
 // Shape ∪ name ∪ badge, as an offset box relative to the node's x/y.
 export function footprint (node, orientation) {
@@ -83,8 +84,10 @@ function place (doc) {
 
   const items = doc.nodes.filter((n) => n.type !== 'group').map((n) => {
     const fp = footprint(n, orientation)
+    const box = nodeBox(n)
     return {
       node: n,
+      size: { cross: cross === 'x' ? box.w : box.h, main: main === 'y' ? box.h : box.w },
       cross: Number(n[cross]) || 0,
       main: Number(n[main]) || 0,
       fp
@@ -104,13 +107,15 @@ function place (doc) {
       const minStart = header + LANE_PAD
       if (start(it, 'cross') < minStart) it.cross += minStart - start(it, 'cross')
     }
-    it.cross = snap(it.cross)
-    it.main = snap(it.main)
+    // Centres on the grid, not corners: an event, a gateway and a task in one
+    // row then share a centre line (their sizes differ).
+    it.cross = snapCenter(it.cross, it.size.cross)
+    it.main = snapCenter(it.main, it.size.main)
     for (let guard = 0; guard < 500; guard++) {
       const hit = placed.find((p) => rangeOverlap(start(it, 'main'), end(it, 'main'), start(p, 'main'), end(p, 'main'), GAP_ACROSS / 2) &&
         rangeOverlap(start(it, 'cross'), end(it, 'cross'), start(p, 'cross'), end(p, 'cross'), GAP_ALONG / 2))
       if (!hit) break
-      it.cross = snap(end(hit, 'cross') + GAP_ALONG - it.fp[crossD] + GRID / 2)
+      it.cross = snapCenter(end(hit, 'cross') + GAP_ALONG - it.fp[crossD] + GRID / 2, it.size.cross)
     }
     placed.push(it)
   }

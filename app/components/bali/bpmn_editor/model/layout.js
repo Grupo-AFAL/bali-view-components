@@ -1,21 +1,26 @@
-// Auto-layout ("Tidy the flow"): a layered layout that keeps every node in its
-// lane, so it works with lanes as well as without them — the reason it is not
-// dagre, which knows nothing about lanes.
+// Auto-arrange ("Tidy the flow"): a complete layered layout that keeps every
+// element in its lane — the reason it is not dagre, which knows no lanes.
 //
-// 1. Layers by longest path from the sources over the sequence flows, back
-//    edges (loops) ignored, so the main path reads along the flow axis.
-// 2. Inside each layer and lane, nodes are ordered by the barycentre of their
-//    predecessors, which keeps branches from crossing.
-// 3. Each lane is resized to the most crowded layer it holds.
-// Artifacts and data elements keep their place; connections go back to
-// automatic routing.
-import { isArtifactLike, nodeSize } from './catalog.js'
-import { layoutLanes, MIN_LANE_SIZE, HEADER, orientationOf } from './geometry.js'
+// 1. Columns by longest path from the sources over the sequence flows (loops
+//    ignored): one column per rank, aligned across every lane.
+// 2. Rows inside each lane: the happy path — from each element, the successor
+//    with the longest way still ahead — stays on its row, so it reads as a
+//    straight line (Method and Style). Exception branches leave below, then
+//    above; the branches of a parallel or inclusive split that merge again sit
+//    symmetrically around the split.
+// 3. Uniform spacing per column and per row on a 10 px grid; each lane is as
+//    thick as its rows.
+// 4. Artifacts go next to what they are associated with; then the incremental
+//    arrangement settles anything still touching, and every connection is
+//    routed again.
+import { isArtifactLike, isGateway, nodeSize, edgeType } from './catalog.js'
+import { layoutLanes, HEADER, orientationOf } from './geometry.js'
+import { arrange, HEADER_GAP, LANE_PAD } from './arrange.js'
 
-const STEP = { horizontal: 200, vertical: 116 } // distance between layers on the flow axis
-const SLOT = { horizontal: 104, vertical: 190 } // room per node across the flow axis
-const MARGIN = { horizontal: 40, vertical: 34 } // gap after the lane header
-const COLUMN = { horizontal: 150, vertical: 64 } // an activity's extent on the flow axis
+const STEP = { horizontal: 230, vertical: 150 } // column to column, along the flow
+const SLOT = { horizontal: 120, vertical: 220 } // row to row, across the flow
+const COLUMN = { horizontal: 150, vertical: 64 } // an activity's extent along the flow
+const ROW = { horizontal: 64, vertical: 150 } // an activity's extent across the flow
 
 function layers (nodes, edges) {
   const ids = nodes.map((n) => String(n.id))
@@ -64,7 +69,7 @@ function layers (nodes, edges) {
   }
   const predecessors = new Map(ids.map((id) => [id, []]))
   for (const [source, targets] of out) for (const t of targets) if (!back.has(`${source}>${t}`)) predecessors.get(t).push(source)
-  return { layer, predecessors }
+  return { layer, predecessors, out, back }
 }
 
 export function autoLayout (doc) {
@@ -72,99 +77,112 @@ export function autoLayout (doc) {
   const lanesLayout = layoutLanes(doc)
   const vertical = orientation === 'vertical'
   const flowNodes = (doc.nodes || []).filter((n) => !isArtifactLike(n))
-  const { layer, predecessors } = layers(flowNodes, (doc.edges || []).filter((e) => !e.type || e.type === 'sequence_flow'))
+  const flows = (doc.edges || []).filter((e) => edgeType(e) === 'sequence_flow')
+  const { layer, out, back } = layers(flowNodes, flows)
+  const byId = new Map(flowNodes.map((n) => [String(n.id), n]))
   const laneIds = lanesLayout.entries.map((e) => String(e.id))
-  const laneOf = (node) => {
-    const id = node.lane_id != null ? String(node.lane_id) : null
-    return id && laneIds.includes(id) ? id : (laneIds[0] || '')
+  const laneOf = (id) => {
+    const node = byId.get(id)
+    const lane = node && node.lane_id != null ? String(node.lane_id) : null
+    return lane && laneIds.includes(lane) ? lane : (laneIds[0] || '')
+  }
+  const forward = (id) => (out.get(id) || []).filter((t) => !back.has(`${id}>${t}`))
+
+  // How long the way ahead is from each element: the happy path follows it.
+  const depth = new Map()
+  const depthOf = (id) => {
+    if (depth.has(id)) return depth.get(id)
+    depth.set(id, 0)
+    const d = 1 + Math.max(0, ...forward(id).map(depthOf))
+    depth.set(id, d)
+    return d
+  }
+  const inCount = new Map()
+  for (const [, targets] of out) for (const t of targets) inCount.set(t, (inCount.get(t) || 0) + 1)
+
+  // Rows, walking the columns in order. The first row an element is given is kept.
+  const row = new Map()
+  const taken = new Set() // lane|layer|row
+  const claim = (id, wanted) => {
+    const lane = laneOf(id)
+    let r = wanted
+    for (let k = 1; taken.has(`${lane}|${layer.get(id)}|${r}`); k++) r = wanted + (k % 2 ? Math.ceil(k / 2) : -Math.ceil(k / 2))
+    row.set(id, r)
+    taken.add(`${lane}|${layer.get(id)}|${r}`)
+  }
+  const order = [...flowNodes].map((n) => String(n.id)).sort((a, b) => (layer.get(a) - layer.get(b)) || ((inCount.get(a) || 0) - (inCount.get(b) || 0)))
+  for (const id of order) {
+    if (!row.has(id)) claim(id, 0)
+    const here = row.get(id)
+    const next = forward(id).filter((t) => !row.has(t)).sort((a, b) => depthOf(b) - depthOf(a))
+    if (!next.length) continue
+    const node = byId.get(id)
+    // A split whose branches merge again (parallel, inclusive): symmetric.
+    const symmetric = isGateway(node) && node.type !== 'exclusive_gateway' && next.length > 1
+    const offsets = symmetric
+      ? (next.length % 2 ? [0] : []).concat(...Array.from({ length: Math.ceil(next.length / 2) }, (_, i) => [-(i + 1), i + 1])).slice(0, next.length)
+      : [0, ...Array.from({ length: next.length - 1 }, (_, i) => (i % 2 ? -Math.ceil((i + 1) / 2) : Math.ceil((i + 1) / 2)))]
+    if (symmetric && next.length % 2 === 0) offsets.sort((a, b) => a - b)
+    next.forEach((t, i) => claim(t, laneOf(t) === laneOf(id) ? here + offsets[i] : offsets[i]))
   }
 
-  // Buckets: lane → layer → nodes, ordered by barycentre of predecessors.
-  const slotOf = new Map()
-  const buckets = new Map()
-  const byLayer = [...flowNodes].sort((a, b) => layer.get(String(a.id)) - layer.get(String(b.id)))
-  for (const node of byLayer) {
-    const id = String(node.id)
-    const key = `${laneOf(node)}|${layer.get(id)}`
-    if (!buckets.has(key)) buckets.set(key, [])
-    buckets.get(key).push(node)
-  }
-  const maxLayer = Math.max(0, ...[...layer.values()])
-  for (let l = 0; l <= maxLayer; l++) {
-    for (const laneId of laneIds.length ? laneIds : ['']) {
-      const bucket = buckets.get(`${laneId}|${l}`)
-      if (!bucket) continue
-      const bary = (node) => {
-        const preds = predecessors.get(String(node.id)).filter((p) => slotOf.has(p))
-        if (!preds.length) return Number.MAX_SAFE_INTEGER
-        return preds.reduce((sum, p) => sum + slotOf.get(p), 0) / preds.length
-      }
-      bucket.sort((a, b) => bary(a) - bary(b))
-      // Free slots go to the nodes whose barycentre is closest.
-      const taken = new Set()
-      for (const node of bucket) {
-        const want = bary(node)
-        let slot = want === Number.MAX_SAFE_INTEGER ? 0 : Math.round(want)
-        while (taken.has(slot)) slot++
-        taken.add(slot)
-        slotOf.set(String(node.id), slot)
-      }
-    }
-  }
-
-  // Lane thickness: enough slots for the most crowded layer it holds.
-  const slotsPerLane = new Map()
-  for (const node of flowNodes) {
-    const lane = laneOf(node)
-    slotsPerLane.set(lane, Math.max(slotsPerLane.get(lane) || 0, slotOf.get(String(node.id)) + 1))
+  // Lane thickness from the rows each lane uses.
+  const rowsOf = new Map()
+  for (const [id, r] of row) {
+    const lane = laneOf(id)
+    const [lo, hi] = rowsOf.get(lane) || [r, r]
+    rowsOf.set(lane, [Math.min(lo, r), Math.max(hi, r)])
   }
   let offset = 0
-  const laneOffset = new Map()
+  const laneStart = new Map()
   const lanes = (doc.lanes || []).map((lane) => ({ ...lane }))
   for (const entry of lanesLayout.entries) {
-    const slots = Math.max(1, slotsPerLane.get(String(entry.id)) || 1)
-    const size = Math.max(MIN_LANE_SIZE[orientation], slots * SLOT[orientation] + 16)
-    laneOffset.set(String(entry.id), offset)
+    const [lo, hi] = rowsOf.get(String(entry.id)) || [0, 0]
+    const size = Math.ceil(((hi - lo + 1) * SLOT[orientation] + LANE_PAD * 2) / 10) * 10
+    laneStart.set(String(entry.id), offset)
     const lane = lanes.find((l) => String(l.id) === String(entry.id))
-    if (lane) lane.size = Math.ceil(size / 10) * 10
-    offset += Math.ceil(size / 10) * 10
+    if (lane) lane.size = size
+    offset += size
   }
 
   const header = laneIds.length ? HEADER[orientation] : 0
   const nodes = (doc.nodes || []).map((node) => {
     const id = String(node.id)
-    if (!layer.has(id)) return node
+    if (!row.has(id)) return node
     const { width, height } = nodeSize(node)
-    const center = header + MARGIN[orientation] + COLUMN[orientation] / 2 + layer.get(id) * STEP[orientation]
-    const along = center - (vertical ? height : width) / 2
-    const laneStart = laneOffset.get(laneOf(node)) || 0
-    const across = laneStart + 8 + slotOf.get(id) * SLOT[orientation] + (SLOT[orientation] - (vertical ? width : height)) / 2
-    const next = { ...node, lane_id: laneIds.length ? laneOf(node) : node.lane_id }
-    if (vertical) { next.x = Math.round(across); next.y = Math.round(along) } else { next.x = Math.round(along); next.y = Math.round(across) }
+    const lane = laneOf(id)
+    const [lo] = rowsOf.get(lane) || [0, 0]
+    const center = header + HEADER_GAP + COLUMN[orientation] / 2 + layer.get(id) * STEP[orientation]
+    const across = (laneStart.get(lane) || 0) + LANE_PAD + (row.get(id) - lo) * SLOT[orientation] + ROW[orientation] / 2
+    const next = { ...node, lane_id: laneIds.length ? lane : node.lane_id }
+    const snap = (v) => Math.round(v / 10) * 10
+    if (vertical) { next.x = snap(across) - width / 2; next.y = snap(center) - height / 2 } else { next.x = snap(center) - width / 2; next.y = snap(across) - height / 2 }
     return next
   })
-  // An artifact that arrived without a position goes next to whatever it is
-  // associated with, on the far side of the lane from the flow.
+
+  // Artifacts beside what they are associated with: an annotation above it,
+  // a data element below it; with no association, before the first column.
   const placed = new Map(nodes.map((n) => [String(n.id), n]))
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i]
-    if (!isArtifactLike(node) || (node.x != null && node.y != null)) continue
+    if (!isArtifactLike(node) || node.type === 'group') continue
     const link = (doc.edges || []).find((e) => String(e.source) === String(node.id) || String(e.target) === String(node.id))
     const partner = link && placed.get(String(String(link.source) === String(node.id) ? link.target : link.source))
     const { width, height } = nodeSize(node)
-    if (partner && partner.x != null) {
-      const size = nodeSize(partner)
+    if (partner && !isArtifactLike(partner)) {
+      const p = nodeSize(partner)
+      const above = node.type === 'text_annotation'
       nodes[i] = vertical
-        ? { ...node, x: partner.x + size.width + 30, y: partner.y + (size.height - height) / 2, lane_id: partner.lane_id }
-        : { ...node, x: partner.x + (size.width - width) / 2, y: partner.y - height - 24, lane_id: partner.lane_id }
-    } else {
-      nodes[i] = { ...node, x: header + 20, y: header + 20 }
+        ? { ...node, x: partner.x + p.width + 40, y: partner.y + (p.height - height) / 2, lane_id: partner.lane_id }
+        : { ...node, x: partner.x + (p.width - width) / 2, y: above ? partner.y - height - 40 : partner.y + p.height + 50, lane_id: partner.lane_id }
+    } else if (node.x == null || node.y == null) {
+      nodes[i] = { ...node, x: header + 20, y: 20 }
     }
   }
   const edges = (doc.edges || []).map((e) => ({ ...e, ports: { source: 'auto', target: 'auto' }, waypoints: [] }))
   const pool = { ...(doc.pool || {}) }
   delete pool.length
-  return { ...doc, lanes, nodes, edges, pool }
+  return arrange({ ...doc, lanes, nodes, edges, pool })
 }
 
 // Whether the document arrived without a position for some flow node — the
