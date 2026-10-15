@@ -104,6 +104,7 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
 
     assert_equal [], JSON.parse(island["data-bpmn-editor-legend-value"])
     assert_raises(ArgumentError) { component(legend: [ { key: "x", label: "X", swatch: "rainbow" } ]) }
+    assert_raises(ArgumentError) { component(legend: [ { key: "x", label: "X", swatch: "color" } ]) }
   end
 
   def test_it_serves_the_island_strings_in_the_current_locale

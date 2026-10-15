@@ -37,6 +37,20 @@ module Bali
         end
       end
 
+      # @label Palette and legend configured by the host
+      # The full palette with one item disabled and three marked with a note
+      # (dotted outline, the note in the tooltip, the note legend at the foot of
+      # the palette), and a legend with one entry removed and one added.
+      def configured
+        flow = ProcessFlow.order(:id).first
+        I18n.with_locale(:es) do
+          render_with_template(
+            template: "bali/bpmn_editor/previews/configured",
+            locals: { flow: flow }
+          )
+        end
+      end
+
       # @label Large (60 activities)
       # Sixty activities and ten decisions over four lanes, laid out on load.
       def large

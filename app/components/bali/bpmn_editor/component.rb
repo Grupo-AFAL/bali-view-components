@@ -175,6 +175,9 @@ module Bali
 
       def validate_legend_entry!(entry)
         swatch = entry[:swatch] || entry[:key]
+        if swatch == "color" && entry[:color].blank?
+          raise ArgumentError, "legend entry #{entry[:key].inspect} has swatch \"color\" but no color:"
+        end
         return if LEGEND_SWATCHES.include?(swatch)
 
         raise ArgumentError, "legend entry #{entry[:key].inspect} needs a swatch in #{LEGEND_SWATCHES.inspect}"

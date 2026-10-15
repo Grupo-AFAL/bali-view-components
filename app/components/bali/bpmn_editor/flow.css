@@ -125,6 +125,14 @@
 .bpmn-palette-item.has-note { outline: 1.5px dashed var(--color-warning); outline-offset: -2px; }
 .bpmn-palette-swatch-note { display: inline-block; width: 14px; height: 14px; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -2px; }
 
+.bpmn-canvas .react-flow__panel.bpmn-legend { bottom: 165px; }
+.bpmn-canvas.has-panel .react-flow__panel.bpmn-legend,
+.bpmn-canvas.has-panel .react-flow__minimap { right: 300px; }
+.bpmn-legend-lane {
+  display: inline-block; width: 24px; height: 14px; border: 1px solid var(--bpmn-border);
+  background: color-mix(in oklab, var(--color-base-content) 10%, var(--color-base-100));
+}
+
 @media print {
   .bpmn-chrome { display: none !important; }
 }

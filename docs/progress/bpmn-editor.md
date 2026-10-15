@@ -174,7 +174,12 @@ para que lo finalizado sea exactamente lo que se ve.
   `/admin/process_flows/:id`) y preview `editable`. Verificado en el navegador con Playwright
   (crear, mover, deshacer/rehacer, bloqueo de conexión, renombrar, reordenar carriles,
   orientación, auto-layout, 409).
-- [ ] F3 Paleta, leyenda y carril externo
+- [x] F3 Paleta, leyenda y carril externo — paleta por grupos plegables con contador y buscador,
+  presets `:descriptive`/`:analytic`/`:full`, elementos habilitados, deshabilitados o con nota de la
+  app (contorno punteado, nota en el tooltip y leyenda al pie); arrastrar o clic para colocar.
+  Leyenda flotante plegable sobre el minimapa, configurable (`legend: { add:, remove: }`, `false`).
+  Carril externo gris con actividades en blanco (casilla en el panel del carril) y lista de
+  participantes con «PE». Preview `configured`.
 - [ ] F4 Reglas, pendientes y Borrador/Finalizar
 - [ ] F5 Edición rápida
 - [ ] F6 Layout

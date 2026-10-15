@@ -29,6 +29,7 @@ import Palette, { PALETTE_MIME } from './chrome/Palette.jsx'
 import PropertiesPanel from './chrome/PropertiesPanel.jsx'
 import { CanvasToolbar, ViewToolbar } from './chrome/CanvasToolbar.jsx'
 import Notices, { HelpBar } from './chrome/Notices.jsx'
+import Legend from './chrome/Legend.jsx'
 import { openDrawerUrl } from './drawer.js'
 
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
@@ -569,7 +570,7 @@ function Editor ({
             />
           )}
           <div
-            className={`bpmn-canvas relative h-full min-w-0 flex-1 ${interactive ? 'is-editable' : 'is-readonly'} ${tool && tool.kind === 'place' ? 'is-placing' : ''} ${tool && tool.kind === 'connect' ? 'is-connecting' : ''}`}
+            className={`bpmn-canvas relative h-full min-w-0 flex-1 ${interactive ? 'is-editable' : 'is-readonly'} ${tool && tool.kind === 'place' ? 'is-placing' : ''} ${tool && tool.kind === 'connect' ? 'is-connecting' : ''} ${showPanel ? 'has-panel' : ''}`}
             onDragOver={(e) => { if (interactive && e.dataTransfer.types.includes(PALETTE_MIME)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' } }}
             onDrop={onDrop}
             onPointerDown={(e) => { if (!/^(input|textarea|select|button)$/i.test(e.target.tagName)) wrapperRef.current?.focus({ preventScroll: true }) }}
@@ -640,6 +641,7 @@ function Editor ({
                 fullscreen={fullscreen}
                 onFullscreen={toggleFullscreen}
               />
+              <Legend t={t} entries={legend} />
               <ZoomBar t={t} onSelectAll={interactive ? selectAll : null} selectedCount={selectedCount} />
             </ReactFlow>
             <HelpBar text={help} />

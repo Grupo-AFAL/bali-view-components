@@ -24,6 +24,18 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     assert_equal "/admin/process_flows/#{flow.id}/diagram", JSON.parse(island["data-bpmn-editor-urls-value"])["save"]
   end
 
+  def test_the_configured_preview_hands_over_palette_notes_and_legend
+    ProcessFlow.create!(name: "Preview flow", document: BpmnSampleFlows.invoice.except(:version))
+
+    get "/lookbook/preview/bali/bpmn_editor/configured"
+
+    island = css_select("[data-controller='bpmn-editor']").first
+    palette = JSON.parse(island["data-bpmn-editor-palette-value"])
+    assert_equal "disabled", palette["items"].find { |i| i["key"] == "complex_gateway" }["state"]
+    assert_equal "Por confirmar con el área", palette["items"].find { |i| i["key"] == "signal_event" }["note"]
+    assert_includes JSON.parse(island["data-bpmn-editor-legend-value"]).pluck("key"), "rework"
+  end
+
   def test_the_large_preview_carries_more_than_fifty_activities
     get "/lookbook/preview/bali/bpmn_editor/large"
 
