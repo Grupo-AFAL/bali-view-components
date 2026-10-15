@@ -46,9 +46,10 @@ module Bali
       # link, and a link has no form to carry the value anywhere.
       #
       # **Nesting**: every action is its own `<form>`. If your listing already lives inside a
-      # form of yours, the browser hoists the inner one out and the action silently stops
-      # working — render that form outside the listing and point a submit at it with the HTML
-      # `form="its-id"` attribute.
+      # form of yours, the browser drops the inner `<form>` tag and the action silently submits
+      # yours instead — render that form outside the listing, empty, and point a submit and a
+      # `selected_ids` field with `data-bulk-actions-target="bulkAction"` at it with the HTML
+      # `form="its-id"` attribute. The recipe is in the components guide, § BulkActions.
       def control_and_target
         render Bali::BulkActions::Component.new(variant: :toolbar) do |c|
           c.with_action(label: 'Assign driver', href: '/shipments/bulk_assign',

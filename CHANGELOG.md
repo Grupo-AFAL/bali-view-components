@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).
+  Su `form_with` sin bloque dejaba el formulario abierto, y la lista quedaba dentro de él, oculta
+  con él. Con bloque tampoco servía: el formulario de afuera no llevaba `selected_ids`. Ahora lo
+  cierra y le apunta, con el atributo `form`, el campo que el controlador llena. Ninguna app sigue
+  la receta: nada que hacer.
+
+- **La entrada de v3.16.0 del filtro `date_range` (#1461) recomendaba `min-w-0!`**, pero el filtro
+  no recibe clases; ahora da la regla CSS que sí baja el mínimo. Y el preview `date_range_presets`
+  escribe su rango con el separador del idioma: con `?locale=es` perdía la segunda fecha (#1495).
+
 ## [v3.17.0] - 2026-10-15
 
 ### Added
@@ -169,7 +181,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **Anfitrión:** si el filtro no usa `presets:`, se puede borrar la regla
   `.sm\:max-w-56:has(> div > .flatpickr[data-datepicker-mode-value="range"])`; gobierno-corporativo,
   cuyo único `date_range` (`microsoft_graph_call_logs_filter_form.rb:24`) no usa `presets:`, borra
-  `app/assets/tailwind/application.css:178`. Quien deba bajar el mínimo escribe `min-w-0!`.
+  `app/assets/tailwind/application.css:178`. Quien deba bajar el mínimo escribe, fuera de toda
+  `@layer`, `.min-w-52:has(> div > .flatpickr[data-datepicker-mode-value="range"]) { min-width: 0 }`:
+  el filtro no recibe clases.
 
 - **SlimSelect: una búsqueda remota que falla lo dice en la lista** (#1452). Un 4xx o 5xx, una
   respuesta que no es una lista JSON o un corte de red dejaban «Buscando...» puesto para siempre
