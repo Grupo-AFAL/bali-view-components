@@ -25,10 +25,14 @@ module Bali
       # every change autosaves the whole document with its version, a stale
       # version answers 409 and the island reloads. Requires the seeded flow
       # (`bin/rails db:seed`); edits PERSIST in the dummy database.
+      # `fresh` (on by default) puts the flow back to the sample first, so the
+      # preview always starts from the same clean document; switch it off to
+      # see your saved edits after a reload.
       # @param autosave toggle
+      # @param fresh toggle
       # @param palette select { choices: [descriptive, analytic, full] }
-      def editable(autosave: true, palette: :analytic)
-        flow = ProcessFlow.order(:id).first
+      def editable(autosave: true, fresh: true, palette: :analytic)
+        flow = fresh ? ProcessFlow.reset_sample! : ProcessFlow.order(:id).first
         I18n.with_locale(:es) do
           render_with_template(
             template: "bali/bpmn_editor/previews/editable",

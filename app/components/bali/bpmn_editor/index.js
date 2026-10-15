@@ -11,6 +11,7 @@ export class BpmnEditorController extends ReactIslandController {
     editable: { type: Boolean, default: false },
     readOnlyNotice: { type: String, default: '' },
     autosave: { type: Boolean, default: true },
+    autoArrange: { type: Boolean, default: true },
     // { items: [{ key, state, note }], note_legend } — Bali::BpmnEditor::Palette.resolve.
     palette: { type: Object, default: {} },
     legend: { type: Array, default: [] },

@@ -13,12 +13,15 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_the_editable_preview_wires_the_dummy_endpoints
-    flow = ProcessFlow.create!(name: "Preview flow", document: BpmnSampleFlows.invoice.except(:version))
+  def test_the_editable_preview_starts_from_the_clean_sample_and_wires_the_dummy_endpoints
+    ProcessFlow.create!(name: ProcessFlow::SAMPLE_NAME, document: { lanes: [ { id: "x", name: "Leftover" } ] }, version: 14)
 
     get "/lookbook/preview/bali/bpmn_editor/editable"
 
     assert_response :ok
+    flow = ProcessFlow.find_by!(name: ProcessFlow::SAMPLE_NAME)
+    assert_equal 1, flow.version
+    assert_not_includes flow.document["lanes"].pluck("name"), "Leftover"
     island = css_select("[data-controller='bpmn-editor']").first
     assert_equal "true", island["data-bpmn-editor-editable-value"]
     assert_equal "/admin/process_flows/#{flow.id}/diagram", JSON.parse(island["data-bpmn-editor-urls-value"])["save"]

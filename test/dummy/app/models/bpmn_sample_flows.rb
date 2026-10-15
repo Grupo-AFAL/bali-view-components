@@ -44,14 +44,13 @@ module BpmnSampleFlows
         { id: "as1", type: "association", source: "a1", target: "t1" }
       ]
     }
-    return doc if orientation == "horizontal"
-
-    # Vertical: no coordinates, so the island lays it out on load.
+    # No coordinates: the island lays the flow out on load, the same way every
+    # time, in either orientation.
     doc.merge(nodes: doc[:nodes].map { |node| node.except(:x, :y) })
   end
 
-  # A long purchasing flow: `activities` tasks across four lanes with a
-  # decision every `every` steps, no coordinates (laid out on load).
+  # A long purchasing flow: `activities` tasks in runs of five per lane over
+  # four lanes, a decision every `every` steps, no coordinates (laid out on load).
   def large(activities: 60, every: 6)
     lanes = [ "Solicitante", "Compras", "Almacén", "Finanzas" ].each_with_index.map do |name, i|
       { id: "l#{i + 1}", name: name, kind: "internal", order: i + 1 }
@@ -62,7 +61,7 @@ module BpmnSampleFlows
     previous = "start"
     activities.times do |i|
       step = i + 1
-      lane = "l#{(i % 4) + 1}"
+      lane = "l#{((i / 5) % 4) + 1}"
       nodes << { id: "t#{step}", type: "task", lane_id: lane, name: "Paso #{step} de la compra" }
       edges << { id: "f#{step}", source: previous, target: "t#{step}",
                  label: previous.start_with?("g") ? "Sí" : nil }.compact

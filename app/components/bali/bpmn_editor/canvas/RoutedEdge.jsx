@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { BaseEdge } from '@xyflow/react'
-import { pathFor } from '../model/routing.js'
+import { pathWithJumps } from '../model/routing.js'
 import { edgeType } from '../model/catalog.js'
 import { useCanvas } from './CanvasContext.js'
 
@@ -21,18 +21,18 @@ function RoutedEdge ({ id, data, selected }) {
   const type = edgeType(edge)
   const marker = MARKERS[type]
   const { x: ox, y: oy } = canvas.origin
-  const points = route.points.map((p) => ({ x: p.x + ox, y: p.y + oy }))
   const suffix = selected ? '-selected' : ''
   const label = edge.label
-  const lx = route.label.x + ox + (route.label.vertical ? 8 : 0)
-  const ly = route.label.y + oy - (route.label.vertical ? 0 : 10)
-  const width = label ? label.length * 6.6 + 14 : 0
+  // The label's box comes from model/edgeLabels.js: beside the line, near its source.
+  const box = label && canvas.edgeLabels ? canvas.edgeLabels.get(id) : null
+  const lx = box ? box.x + ox + box.w / 2 : route.label.x + ox
+  const ly = box ? box.y + oy + box.h / 2 : route.label.y + oy
   const renaming = canvas.renamingId === id
   return (
     <>
       <BaseEdge
         id={id}
-        path={pathFor(points)}
+        path={pathWithJumps(route.points, (canvas.jumps && canvas.jumps.get(id)) || [], ox, oy)}
         className={`bpmn-edge bpmn-edge-${type}${selected ? ' is-selected' : ''}${issue ? ' has-issue' : ''}${diff ? ` bpmn-diff-${diff}` : ''}`}
         markerEnd={marker.end ? `url(#${marker.end}${suffix})` : undefined}
         markerStart={marker.start ? `url(#${marker.start}${suffix})` : undefined}
@@ -46,8 +46,8 @@ function RoutedEdge ({ id, data, selected }) {
           transform={`translate(${lx} ${ly})`}
           onDoubleClick={canvas.editable ? (event) => { event.stopPropagation(); canvas.startRename(id) } : undefined}
         >
-          <rect x={route.label.vertical ? 0 : -width / 2} y={-9} width={width} height={18} rx={4} />
-          <text x={route.label.vertical ? width / 2 : 0} y={0} textAnchor='middle' dominantBaseline='central'>{label}</text>
+          <rect x={-(box ? box.w : 30) / 2} y={-9} width={box ? box.w : 30} height={18} rx={4} />
+          <text x={0} y={0} textAnchor='middle' dominantBaseline='central'>{label}</text>
         </g>
       )}
     </>

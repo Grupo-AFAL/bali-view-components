@@ -35,6 +35,8 @@ module Bali
       # @param read_only_notice [String] why it cannot be edited, shown above a read-only diagram.
       # @param autosave [Boolean] save with a debounce after each change (default) or only from
       #   the "Save draft" button.
+      # @param auto_arrange [Boolean] after each structural edit, make room and re-route
+      #   (default); the user can switch it off from the canvas toolbar.
       # @param palette [Symbol, Array, Hash] see Bali::BpmnEditor::Palette.resolve.
       # @param legend [Hash, Array, false] { add: [{ key:, label:, swatch: }], remove: [keys] }, a
       #   full list of entries, or false to hide it.
@@ -51,13 +53,14 @@ module Bali
       #   { document: <a document like data:>, label: "Published v1.0" }.
       # @param i18n [Hash] island strings. Defaults to Bali::BpmnEditor::Translations.island.
       # @param id [String] DOM id; also scopes the events the host sends back.
-      def initialize(data:, editable: false, read_only_notice: nil, autosave: true, palette: nil,
+      def initialize(data:, editable: false, read_only_notice: nil, autosave: true, auto_arrange: true, palette: nil,
                      legend: nil, rules: {}, node_fields: {}, lane_fields: [], urls: {}, name: nil,
                      watermark: nil, annotation_tags: [], compare_with: nil, i18n: nil, id: nil, **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @read_only_notice = read_only_notice
         @autosave = autosave
+        @auto_arrange = auto_arrange
         @palette = Palette.resolve(palette)
         @legend = resolve_legend(legend)
         @rules = validate_rules!(rules)
@@ -94,6 +97,7 @@ module Bali
           bpmn_editor_editable_value: editable?.to_s,
           bpmn_editor_read_only_notice_value: @read_only_notice,
           bpmn_editor_autosave_value: (!!@autosave).to_s,
+          bpmn_editor_auto_arrange_value: (!!@auto_arrange).to_s,
           bpmn_editor_palette_value: @palette.to_json,
           bpmn_editor_legend_value: @legend.to_json,
           bpmn_editor_rules_value: @rules.to_json,

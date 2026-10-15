@@ -2,20 +2,36 @@ import { memo } from 'react'
 import { Handle, NodeToolbar, Position, useStore } from '@xyflow/react'
 import { NodeShape, IssueMarker } from '../shapes.jsx'
 import { categoryOf, nodeSize, CATEGORY } from '../model/catalog.js'
+import { nodeBox } from '../model/geometry.js'
+import { nodeLabelBox, badgeBox } from '../model/labels.js'
 import { useCanvas } from './CanvasContext.js'
 
 const SIDES = [['top', Position.Top], ['right', Position.Right], ['bottom', Position.Bottom], ['left', Position.Left]]
 
-// Where the name goes: inside activities and annotations, under the shape for
-// events and data, above and to the right of a gateway — where the lines
-// leaving it do not run — and on top of a group.
-function labelClass (category, type, orientation) {
+// Names drawn inside the shape. A name outside it (events, gateways, data)
+// is placed at model/labels.js's box — the same box the router steers
+// around and the quality metric checks.
+function insideClass (category, type) {
   if (category === CATEGORY.activity) return 'bpmn-label bpmn-label-inside'
   if (type === 'text_annotation') return 'bpmn-label bpmn-label-annotation'
   if (type === 'group') return 'bpmn-label bpmn-label-group'
-  if (category === CATEGORY.gateway) return 'bpmn-label bpmn-label-gateway'
-  // In vertical lanes the flow leaves an event downwards, through the label.
-  return orientation === 'vertical' ? 'bpmn-label bpmn-label-side' : 'bpmn-label bpmn-label-below'
+  return null
+}
+
+function Label ({ node, name, orientation, category }) {
+  const inside = insideClass(category, node.type)
+  if (inside) return <div className={inside}>{name}</div>
+  const label = nodeLabelBox(node, orientation)
+  if (!label) return null
+  const box = nodeBox(node)
+  return (
+    <div
+      className={`bpmn-label bpmn-label-outside${category === CATEGORY.gateway ? ' text-right' : orientation === 'vertical' && category === CATEGORY.event ? ' text-left' : ' text-center'}`}
+      style={{ left: label.x - box.x, top: label.y - box.y, width: label.w, WebkitLineClamp: label.lines }}
+    >
+      {name}
+    </div>
+  )
 }
 
 // Width the quick menu needs, and the properties panel that covers the right
@@ -56,11 +72,11 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
     >
       <svg className='bpmn-node-shape' width={box.w} height={box.h} aria-hidden='true'>
         <NodeShape node={node} width={box.w} height={box.h} external={external} />
-        {issue && <IssueMarker x={box.w - 2} y={2} />}
+        {issue && (() => { const b = badgeBox({ ...node, x: 0, y: 0 }); return <IssueMarker x={b.x + b.w / 2} y={b.y + 8} /> })()}
       </svg>
       {renaming
         ? canvas.renderRename(node)
-        : name && <div className={labelClass(category, node.type, canvas.orientation)}>{name}</div>}
+        : name && <Label node={node} name={name} orientation={canvas.orientation} category={category} />}
       {note && <span className='bpmn-note-number' style={{ '--bpmn-note-color': note.color }} title={note.text}>{note.number}</span>}
       {linked && !canvas.editable && <span className='bpmn-node-link' aria-hidden='true'>↗</span>}
       {canvas.quickMenuId === id && (

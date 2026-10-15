@@ -16,7 +16,7 @@ function Tool ({ icon, label, title, onClick, active, disabled, testId }) {
 
 // Floating bar over the canvas: lanes, orientation, layout, connect, import
 // on the left; participants, navigate and full screen on the right.
-export function CanvasToolbar ({ t, editable, orientation, onAddLane, onToggleOrientation, onAutoLayout, connecting, onConnect, onImport }) {
+export function CanvasToolbar ({ t, editable, orientation, onAddLane, onToggleOrientation, autoArrange, onToggleAutoArrange, onAutoLayout, connecting, onConnect, onImport }) {
   if (!editable) return null
   const next = orientation === 'horizontal' ? 'vertical' : 'horizontal'
   return (
@@ -24,6 +24,10 @@ export function CanvasToolbar ({ t, editable, orientation, onAddLane, onToggleOr
       <Tool icon='lane' label={t('add_lane')} onClick={onAddLane} testId='bpmn-add-lane' />
       <Tool icon='swap' label={t(`orientation_${next}`)} title={t('switch_orientation')} onClick={onToggleOrientation} testId='bpmn-orientation' />
       <Tool icon='layout' label={t('auto_layout')} title={t('auto_layout_hint')} onClick={onAutoLayout} testId='bpmn-auto-layout' />
+      <label className='flex cursor-pointer items-center gap-1.5 px-2 text-sm' title={t('auto_arrange_hint')}>
+        <input type='checkbox' className='toggle toggle-xs toggle-primary' checked={Boolean(autoArrange)} onChange={onToggleAutoArrange} data-testid='bpmn-auto-arrange' />
+        {t('auto_arrange')}
+      </label>
       <Tool icon='arrowRight' label={t('connect')} onClick={onConnect} active={connecting} testId='bpmn-connect' />
       {onImport && (
         <>

@@ -1,10 +1,12 @@
 import { Panel, useReactFlow, useViewport } from '@xyflow/react'
 import Icon from './icons.jsx'
+import { fitDiagram } from '../canvas/fit.js'
 
 // Zoom with a visible percentage, "Center the flow", and — when editing —
 // "Select all" with the selection counter (the tablet path to multi-select).
-export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect, onBoxSelect }) {
-  const { zoomIn, zoomOut, fitView } = useReactFlow()
+export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect, onBoxSelect, fit = { padding: 0.12 } }) {
+  const flow = useReactFlow()
+  const { zoomIn, zoomOut } = flow
   const { zoom } = useViewport()
   const button = 'btn btn-ghost btn-xs btn-square'
   return (
@@ -17,7 +19,7 @@ export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect,
         <button type='button' className={button} onClick={() => zoomIn({ duration: 150 })} aria-label={t('zoom_in')} title={t('zoom_in')}>
           <Icon name='plus' size={14} />
         </button>
-        <button type='button' className={button} onClick={() => fitView({ padding: 0.12, duration: 200 })} aria-label={t('center')} title={t('center')}>
+        <button type='button' className={button} onClick={() => fitDiagram(flow, fit, 200)} aria-label={t('center')} title={t('center')}>
           <Icon name='crosshair' size={14} />
         </button>
       </div>

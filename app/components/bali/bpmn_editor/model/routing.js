@@ -201,3 +201,50 @@ export function distanceToRoute (point, route) {
   }
   return best
 }
+
+// Line jumps: where a horizontal stretch crosses a vertical stretch of a
+// connection drawn before it, the later one hops over (a small arc), so a
+// crossing never reads as a junction. id → [{ segment, x }].
+export function findJumps (routes) {
+  const drawn = []
+  const jumps = new Map()
+  for (const [id, route] of routes) {
+    const found = []
+    const points = route.points
+    for (let i = 0; i < points.length - 1; i++) {
+      const p = points[i]
+      const q = points[i + 1]
+      if (Math.abs(p.y - q.y) > 0.5) continue
+      const lo = Math.min(p.x, q.x) + 6
+      const hi = Math.max(p.x, q.x) - 6
+      for (const [a, b] of drawn) {
+        if (a.x < lo || a.x > hi) continue
+        if (p.y > Math.min(a.y, b.y) + 0.5 && p.y < Math.max(a.y, b.y) - 0.5) found.push({ segment: i, x: a.x })
+      }
+    }
+    if (found.length) jumps.set(id, found)
+    for (let i = 0; i < points.length - 1; i++) {
+      if (Math.abs(points[i].x - points[i + 1].x) < 0.5 && Math.abs(points[i].y - points[i + 1].y) > 0.5) drawn.push([points[i], points[i + 1]])
+    }
+  }
+  return jumps
+}
+
+const JUMP = 5
+
+export function pathWithJumps (points, jumps = [], dx = 0, dy = 0) {
+  let d = `M${points[0].x + dx},${points[0].y + dy}`
+  for (let i = 1; i < points.length; i++) {
+    const p = points[i - 1]
+    const q = points[i]
+    const here = jumps.filter((j) => j.segment === i - 1)
+    if (here.length) {
+      const sign = Math.sign(q.x - p.x)
+      for (const { x } of here.sort((a, b) => sign * (a.x - b.x))) {
+        d += ` L${x - sign * JUMP + dx},${p.y + dy} A${JUMP},${JUMP} 0 0 ${sign > 0 ? 1 : 0} ${x + sign * JUMP + dx},${p.y + dy}`
+      }
+    }
+    d += ` L${q.x + dx},${q.y + dy}`
+  }
+  return d
+}

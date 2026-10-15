@@ -27,8 +27,10 @@ function Swatch ({ swatch, color }) {
 
 // What each colour means on the canvas. The entries come from the host
 // (Bali::BpmnEditor::Component `legend:`), which can add and remove them.
-export default function Legend ({ t, entries, className = '' }) {
-  const [open, setOpen] = useState(true)
+export default function Legend ({ t, entries, className = '', open: controlled, onToggle }) {
+  const [own, setOwn] = useState(true)
+  const open = controlled ?? own
+  const setOpen = onToggle || setOwn
   if (!entries || !entries.length) return null
   return (
     <Panel position='bottom-right' className={`bpmn-chrome bpmn-legend w-60 rounded-lg border border-base-300 bg-base-100 text-xs shadow-sm ${className}`}>

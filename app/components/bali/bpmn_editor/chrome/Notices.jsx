@@ -20,13 +20,3 @@ export default function Notices ({ notices, onDismiss, t }) {
     </div>
   )
 }
-
-export function HelpBar ({ text }) {
-  return (
-    <div className='bpmn-chrome pointer-events-none absolute inset-x-0 bottom-3 z-10 hidden justify-center px-40 xl:flex'>
-      <p className='flex max-w-2xl items-center gap-2 rounded-full border border-base-300 bg-base-100 px-3 py-1 text-xs text-base-content/70 shadow-sm'>
-        <Icon name='info' size={13} />{text}
-      </p>
-    </div>
-  )
-}

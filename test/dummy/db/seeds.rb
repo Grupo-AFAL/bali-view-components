@@ -275,7 +275,7 @@ if roadmap
   puts "Document '#{roadmap.title}' references #{roadmap.entity_references.count} entities"
 end
 
-flow = ProcessFlow.find_by(name: ProcessFlow::SAMPLE_NAME) || ProcessFlow.reset_sample!
+flow = ProcessFlow.reset_sample!
 puts "Process flow '#{flow.name}' (BPMN editor) v#{flow.version}"
 
 # Dueño de las vistas guardadas: el dummy no autentica, hay un solo usuario y es el que

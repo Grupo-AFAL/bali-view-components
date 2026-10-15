@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import { ReactFlow, ReactFlowProvider, Background, ConnectionMode } from '@xyflow/react'
 import { layoutLanes, poolOrigin } from '../model/geometry.js'
-import { routeAll } from '../model/routing.js'
+import { routeAll, findJumps } from '../model/routing.js'
+import { placeEdgeLabels } from '../model/edgeLabels.js'
 import { buildRfNodes, buildRfEdges } from '../model/flow.js'
 import { diffDocuments, overlayDocument } from '../model/diff.js'
 import { CanvasContext } from '../canvas/CanvasContext.js'
@@ -23,7 +24,8 @@ function Diagram ({ doc, diff, t, caption }) {
   const canvas = useMemo(() => ({
     t, routes, origin: poolOrigin(doc), orientation: layout.orientation, editable: false, connectable: false,
     renamingId: null, highlightId: null, startRename: noop, renderRename: noop, renderEdgeRename: noop,
-    onLaneResize: noop, onLaneResizing: noop, quickMenuId: null, renderQuickMenu: noop
+    onLaneResize: noop, onLaneResizing: noop, quickMenuId: null, renderQuickMenu: noop,
+    edgeLabels: placeEdgeLabels(doc, routes), jumps: findJumps(routes)
   }), [t, routes, doc, layout.orientation])
   return (
     <CanvasContext.Provider value={canvas}>

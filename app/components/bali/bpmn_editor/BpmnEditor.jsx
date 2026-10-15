@@ -10,12 +10,15 @@ import './flow.css'
 import { translator } from './i18n.js'
 import { normalize } from './model/document.js'
 import { layoutLanes, nodeBox, poolOrigin } from './model/geometry.js'
-import { routeAll, boxesById, distanceToRoute } from './model/routing.js'
+import { routeAll, boxesById, distanceToRoute, findJumps } from './model/routing.js'
 import { buildRfNodes, buildRfEdges, isLaneNodeId, laneIdOf, laneNodeId } from './model/flow.js'
 import { PALETTE_ITEMS, isFlowNode, isArtifactLike, edgeType } from './model/catalog.js'
 import * as ops from './model/operations.js'
 import * as history from './model/history.js'
 import { autoLayout } from './model/layout.js'
+import { arrange } from './model/arrange.js'
+import { placeEdgeLabels } from './model/edgeLabels.js'
+import { fitOptions, fitDiagram, anchorStart } from './canvas/fit.js'
 import { blockPolicy, evaluate, mergeIssues, issuesByElement, hasErrors, ruleList } from './model/rules.js'
 import useSaver from './hooks/useSaver.js'
 import { CanvasContext } from './canvas/CanvasContext.js'
@@ -28,7 +31,8 @@ import TopBar from './chrome/TopBar.jsx'
 import Palette, { PALETTE_MIME } from './chrome/Palette.jsx'
 import PropertiesPanel from './chrome/PropertiesPanel.jsx'
 import { CanvasToolbar, ViewToolbar } from './chrome/CanvasToolbar.jsx'
-import Notices, { HelpBar } from './chrome/Notices.jsx'
+import Notices from './chrome/Notices.jsx'
+import Icon from './chrome/icons.jsx'
 import Legend from './chrome/Legend.jsx'
 import PendingPanel from './chrome/PendingPanel.jsx'
 import RulesDialog from './chrome/RulesDialog.jsx'
@@ -57,12 +61,17 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, readOnlyNotice, autosave, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
+  data, editable: editableProp, readOnlyNotice, autosave, autoArrange, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
   name, watermark, annotationTags, compare
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
-  const policy = useMemo(() => blockPolicy(rules), [rules])
+  // Auto-arrange settles every structural edit (model/arrange.js), so an
+  // overlap is resolved by moving the next elements along instead of refused.
+  const [autoArrangeOn, setAutoArrangeOn] = useState(autoArrange !== false)
+  const policy = useMemo(() => ({ ...blockPolicy(rules), ...(autoArrangeOn ? { noOverlap: false } : {}) }), [rules, autoArrangeOn])
+  const [arranging, setArranging] = useState(false)
+  const [legendOpen, setLegendOpen] = useState(true)
   const names = useMemo(() => ({
     task: t('new_task'), sub_process: t('new_sub_process'), gateway: t('new_gateway'), start: t('new_start'),
     end: t('new_end'), event: t('new_event'), annotation: t('new_annotation'), data: t('new_data')
@@ -87,13 +96,24 @@ function Editor ({
 
   const commit = useCallback((next, options) => setState((s) => history.commit(s, next, options)), [])
   // Runs an operation against the CURRENT document; commits or shows the block.
-  const apply = useCallback((operation, options) => {
-    const result = operation(docRef.current)
+  // With auto-arrange on, the edit and its arrangement are ONE document, so
+  // one undo step reverts both. `arrange: false` for edits that set geometry
+  // on purpose (a lane's size, the shared length) or run per keystroke.
+  const apply = useCallback((operation, options = {}) => {
+    let result = operation(docRef.current)
     if (result.error) { block(result); return null }
+    if (autoArrangeOn && options.arrange !== false && result.doc !== docRef.current) {
+      const settled = arrange(result.doc)
+      if (settled !== result.doc) {
+        result = { ...result, doc: settled }
+        setArranging(true)
+        setTimeout(() => setArranging(false), 260)
+      }
+    }
     if (result.doc !== docRef.current) commit(result.doc, options)
     docRef.current = result.doc
     return result
-  }, [block, commit])
+  }, [block, commit, autoArrangeOn])
 
   const emit = useCallback((name, detail) => {
     const target = hostElement || document
@@ -160,6 +180,10 @@ function Editor ({
 
   // The rules run on every change while editing; a viewer sees no pending
   // markers. Server issues (the document's `issues`) join them.
+  const edgeLabels = useMemo(() => placeEdgeLabels(liveDoc, routes), [liveDoc, routes])
+  const jumps = useMemo(() => findJumps(routes), [routes])
+  const fit = useMemo(() => fitOptions({ legendOpen: legendOpen && legend && legend.length > 0 }), [legendOpen, legend])
+
   const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t), doc.issues, doc) : []), [editable, doc, rules, t])
   const issues = useMemo(() => issuesByElement(issueList), [issueList])
   const baseNodes = useMemo(() => buildRfNodes(doc, { layout, editable: interactive, issues, selected: selectedSet }), [doc, layout, interactive, issues, selectedSet])
@@ -285,9 +309,9 @@ function Editor ({
   }, [apply, t, select])
 
   const api = useMemo(() => ({
-    updateNode: (id, patch, coalesce) => apply((d) => ops.updateNode(d, id, patch), { coalesce }),
-    updateEdge: (id, patch, coalesce) => apply((d) => ops.updateEdge(d, id, patch), { coalesce }),
-    updateLane: (id, patch, coalesce) => apply((d) => ops.updateLane(d, id, patch), { coalesce }),
+    updateNode: (id, patch, coalesce) => apply((d) => ops.updateNode(d, id, patch), { coalesce, arrange: !coalesce }),
+    updateEdge: (id, patch, coalesce) => apply((d) => ops.updateEdge(d, id, patch), { coalesce, arrange: !coalesce }),
+    updateLane: (id, patch, coalesce) => apply((d) => ops.updateLane(d, id, patch), { coalesce, arrange: !coalesce }),
     moveLane: (id, step) => apply((d) => ops.moveLane(d, id, step)),
     align: (dir) => apply((d) => ops.alignNodes(d, selection.nodes, dir, { policy })),
     addNote: (targetId) => apply((d) => ops.addAnnotation(d, targetId)),
@@ -372,7 +396,7 @@ function Editor ({
         const start = l.axis.main === 'y' ? { x: o.x, y: o.y + entry.offset } : { x: o.x + entry.offset, y: o.y }
         const dx = rfNode.position.x - start.x
         const dy = rfNode.position.y - start.y
-        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) apply((doc0) => ops.movePool(doc0, dx, dy))
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) apply((doc0) => ops.movePool(doc0, dx, dy), { arrange: false })
       }
       return
     }
@@ -468,10 +492,10 @@ function Editor ({
   const onLaneResize = useCallback((rfId, axisKind, params) => {
     const l = layoutLanes(docRef.current)
     if (axisKind === 'main') {
-      apply((doc0) => ops.resizeLane(doc0, laneIdOf(rfId), l.axis.main === 'y' ? params.height : params.width))
+      apply((doc0) => ops.resizeLane(doc0, laneIdOf(rfId), l.axis.main === 'y' ? params.height : params.width), { arrange: false })
     } else {
       setLiveLength(null)
-      apply((doc0) => ops.setPoolLength(doc0, l.axis.cross === 'x' ? params.width : params.height))
+      apply((doc0) => ops.setPoolLength(doc0, l.axis.cross === 'x' ? params.width : params.height), { arrange: false })
     }
   }, [apply])
   const onLaneResizing = useCallback((_rfId, params) => {
@@ -534,10 +558,10 @@ function Editor ({
   const toggleFullscreen = useCallback(() => {
     const el = wrapperRef.current
     if (!el) return
-    const done = () => setTimeout(() => flow.fitView({ padding: 0.12, duration: 200 }), 50)
+    const done = () => setTimeout(() => fitDiagram(flow, fit, 200), 50)
     if (document.fullscreenElement) document.exitFullscreen().then(done)
     else if (el.requestFullscreen) el.requestFullscreen().then(done)
-  }, [flow])
+  }, [flow, fit])
 
   // ── host events ────────────────────────────────────────────────────────
   const reload = saver.reload
@@ -651,8 +675,10 @@ function Editor ({
     quickMenuId,
     renderQuickMenu,
     notesByElement,
+    edgeLabels,
+    jumps,
     panelOpen: Boolean(showPanel)
-  }), [t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel])
+  }), [edgeLabels, jumps, t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel])
 
   // ── finalize ───────────────────────────────────────────────────────────
   // The draft always saves; finalizing needs a flow without errors, checked
@@ -731,7 +757,7 @@ function Editor ({
             />
           )}
           <div
-            className={`bpmn-canvas relative h-full min-w-0 flex-1 ${interactive ? 'is-editable' : 'is-readonly'} ${tool && tool.kind === 'place' ? 'is-placing' : ''} ${tool && tool.kind === 'connect' ? 'is-connecting' : ''} ${showPanel ? 'has-panel' : ''}`}
+            className={`bpmn-canvas relative h-full min-w-0 flex-1 ${interactive ? 'is-editable' : 'is-readonly'} ${tool && tool.kind === 'place' ? 'is-placing' : ''} ${tool && tool.kind === 'connect' ? 'is-connecting' : ''} ${showPanel ? 'has-panel' : ''} ${arranging ? 'is-arranging' : ''}`}
             onDragOver={(e) => { if (interactive && (e.dataTransfer.types.includes(PALETTE_MIME) || e.dataTransfer.types.includes(STENCIL_MIME))) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' } }}
             onDrop={onDrop}
             onPointerDown={(e) => { if (!/^(input|textarea|select|button)$/i.test(e.target.tagName)) wrapperRef.current?.focus({ preventScroll: true }) }}
@@ -769,7 +795,8 @@ function Editor ({
               panOnDrag={!(interactive && boxSelect)}
               selectionOnDrag={interactive && boxSelect}
               fitView
-              fitViewOptions={{ padding: 0.12 }}
+              fitViewOptions={fit}
+              onInit={(instance) => setTimeout(() => anchorStart(instance, fit), 60)}
               minZoom={0.1}
               maxZoom={2.5}
               zoomOnDoubleClick={false}
@@ -783,12 +810,14 @@ function Editor ({
                 onAddLane={addLane}
                 onToggleOrientation={() => {
                   apply((d) => ops.setOrientation(d, layout.orientation === 'horizontal' ? 'vertical' : 'horizontal'))
-                  setTimeout(() => flow.fitView({ padding: 0.12, duration: 250 }), 50)
+                  setTimeout(() => fitDiagram(flow, fit, 250), 50)
                 }}
+                autoArrange={autoArrangeOn}
+                onToggleAutoArrange={() => setAutoArrangeOn((on) => !on)}
                 onAutoLayout={() => {
-                  apply((d) => ({ doc: autoLayout(d) }))
+                  apply((d) => ({ doc: autoLayout(d) }), { arrange: false })
                   notify(t('toast_layout'), 'success')
-                  setTimeout(() => flow.fitView({ padding: 0.12, duration: 250 }), 50)
+                  setTimeout(() => fitDiagram(flow, fit, 250), 50)
                 }}
                 connecting={Boolean(tool && tool.kind === 'connect')}
                 onConnect={() => setTool((current) => (current && current.kind === 'connect' ? null : { kind: 'connect', edge: 'sequence_flow', source: null }))}
@@ -804,11 +833,10 @@ function Editor ({
                 fullscreen={fullscreen}
                 onFullscreen={toggleFullscreen}
               />
-              <Legend t={t} entries={legendEntries} />
+              <Legend t={t} entries={legendEntries} open={legendOpen} onToggle={setLegendOpen} />
               {interactive && !showPanel && <Stencil t={t} items={doc.stencil} />}
-              <ZoomBar t={t} onSelectAll={interactive ? selectAll : null} selectedCount={selectedCount} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} />
+              <ZoomBar t={t} fit={fit} onSelectAll={interactive ? selectAll : null} selectedCount={selectedCount} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} />
             </ReactFlow>
-            <HelpBar text={help} />
             <Notices notices={notices} t={t} onDismiss={(id) => setNotices((list) => list.filter((n) => n.id !== id))} />
             {showPanel
               ? (
@@ -824,6 +852,12 @@ function Editor ({
               : null}
           </div>
         </div>
+        {!compareMode && (
+          // The context help lives under the canvas, where it covers nothing.
+          <p className='bpmn-chrome flex items-center gap-2 border-t border-base-300 px-3 py-1.5 text-xs text-base-content/70' data-testid='bpmn-help'>
+            <Icon name='info' size={13} />{help}
+          </p>
+        )}
         {dialog === 'pending' && (
           <PendingPanel t={t} issues={issueList} onClose={() => setDialog(null)} onPick={(issue) => { setDialog(null); focusElement(issue.element_id) }} />
         )}

@@ -8,7 +8,9 @@
 import { NodeShape } from '../shapes.jsx'
 import { categoryOf, CATEGORY, edgeType } from '../model/catalog.js'
 import { layoutLanes, laneRect, nodeBox, contentBounds } from '../model/geometry.js'
-import { routeAll, pathFor } from '../model/routing.js'
+import { routeAll, pathWithJumps, findJumps } from '../model/routing.js'
+import { placeEdgeLabels } from '../model/edgeLabels.js'
+import { nodeLabelBox } from '../model/labels.js'
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', sans-serif"
 const MARGIN = 24
@@ -44,6 +46,8 @@ function Text ({ x, y, text, maxChars = 22, maxLines = 3, size = 11, weight = 50
 export default function ExportDiagram ({ doc, paint, colors, title, subtitle, watermark, notes = [], tags = [] }) {
   const layout = layoutLanes(doc)
   const routes = routeAll(doc)
+  const edgeLabels = placeEdgeLabels(doc, routes)
+  const jumps = findJumps(routes)
   const bounds = contentBounds(doc, layout)
   const titleHeight = title ? 48 : 0
   const x0 = bounds.x - MARGIN
@@ -103,21 +107,19 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
         if (!route) return null
         const type = edgeType(edge)
         const label = edge.label
-        const lx = route.label.x + (route.label.vertical ? 8 : 0)
-        const ly = route.label.y - (route.label.vertical ? 0 : 10)
-        const w = label ? label.length * 6.4 + 12 : 0
+        const box = label ? edgeLabels.get(String(edge.id)) : null
         return (
           <g key={`edge-${edge.id}`}>
             <path
-              d={pathFor(route.points)} fill='none' stroke={colors.line} strokeWidth={1.5} strokeLinejoin='round'
+              d={pathWithJumps(route.points, jumps.get(String(edge.id)) || [])} fill='none' stroke={colors.line} strokeWidth={1.5} strokeLinejoin='round'
               strokeDasharray={type === 'message_flow' ? '6 4' : type === 'association' ? '2 3' : undefined}
               markerEnd={type === 'association' ? undefined : `url(#${type === 'message_flow' ? 'x-arrow-open' : 'x-arrow'})`}
               markerStart={type === 'message_flow' ? 'url(#x-circle)' : undefined}
             />
-            {label && (
-              <g transform={`translate(${lx} ${ly})`}>
-                <rect x={route.label.vertical ? 0 : -w / 2} y={-9} width={w} height={18} rx={4} fill={colors.background} stroke={colors.border} />
-                <text x={route.label.vertical ? w / 2 : 0} y={0} textAnchor='middle' dominantBaseline='central' fontSize={11} fontWeight={600} fill={colors.text}>{label}</text>
+            {box && (
+              <g transform={`translate(${box.x + box.w / 2} ${box.y + box.h / 2})`}>
+                <rect x={-box.w / 2} y={-9} width={box.w} height={18} rx={4} fill={colors.background} stroke={colors.border} />
+                <text x={0} y={0} textAnchor='middle' dominantBaseline='central' fontSize={11} fontWeight={600} fill={colors.text}>{label}</text>
               </g>
             )}
           </g>
@@ -136,12 +138,13 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
             {category === CATEGORY.activity && <Text x={box.cx} y={box.cy} text={node.name} maxChars={Math.floor(box.w / 6.8)} maxLines={3} fill={colors.text} />}
             {node.type === 'text_annotation' && <Text x={box.x + 18} y={box.cy} anchor='start' text={node.name} maxChars={Math.floor((box.w - 20) / 6.5)} maxLines={3} weight={400} fill={colors.text} />}
             {node.type === 'group' && node.name && <text x={box.x + 10} y={box.y + 16} fontSize={11} fontWeight={600} fill={colors.muted}>{node.name}</text>}
-            {category === CATEGORY.gateway && node.name && <Text x={box.x + box.w - 6} y={box.y - 8} anchor='start' text={node.name} maxChars={26} maxLines={2} size={11} fill={colors.text} />}
-            {(category === CATEGORY.event || category === CATEGORY.data) && node.name && (
-              layout.orientation === 'vertical'
-                ? <Text x={box.x + box.w + 6} y={box.cy} anchor='start' text={node.name} maxChars={22} maxLines={2} size={11} fill={colors.text} />
-                : <Text x={box.cx} y={box.y + box.h + 14} text={node.name} maxChars={22} maxLines={2} size={11} fill={colors.text} />
-            )}
+            {(() => {
+              const lb = nodeLabelBox(node, layout.orientation)
+              if (!lb) return null
+              const anchor = category === CATEGORY.gateway ? 'end' : layout.orientation === 'vertical' && category === CATEGORY.event ? 'start' : 'middle'
+              const x = anchor === 'end' ? lb.x + lb.w : anchor === 'start' ? lb.x : lb.x + lb.w / 2
+              return <Text x={x} y={lb.y + lb.h / 2} anchor={anchor} text={node.name} maxChars={Math.max(4, Math.floor(lb.w / 6.4))} maxLines={lb.lines} size={11} fill={colors.text} />
+            })()}
             {note && (
               <g transform={`translate(${box.x - 2} ${box.y - 2})`}>
                 <circle r={10} fill={tagColor(note.tag)} />
