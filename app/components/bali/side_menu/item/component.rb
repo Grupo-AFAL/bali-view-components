@@ -128,10 +128,11 @@ module Bali
           end
         end
 
+        # Once per item: the expanded row and the collapsed rail's tooltip draw the same icon.
         def render_icon
           return unless icon.present?
 
-          render Bali::Icon::Component.new(icon, class: "size-4")
+          @render_icon ||= render Bali::Icon::Component.new(icon, class: "size-4")
         end
 
         def render_initial_icon
