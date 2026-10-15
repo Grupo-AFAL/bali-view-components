@@ -13,15 +13,14 @@ export function normalize (data) {
   return needsLayout(doc) ? autoLayout(doc) : doc
 }
 
-// Ids minted on the client: `prefix` + a short random suffix, checked against
-// every id already in the document. The server may keep or replace them.
+// Ids minted on the client: `prefix` + the first free number, so the same
+// edits always mint the same ids (the property tests replay sessions by
+// seed). The server may keep or replace them.
 export function newId (doc, prefix) {
   const taken = new Set([...doc.lanes, ...doc.nodes, ...doc.edges, ...(doc.annotations || [])].map((e) => String(e.id)))
-  let id
-  do {
-    id = `${prefix}${Math.random().toString(36).slice(2, 8)}`
-  } while (taken.has(id))
-  return id
+  let n = taken.size + 1
+  while (taken.has(`${prefix}${n}`)) n++
+  return `${prefix}${n}`
 }
 
 export const findNode = (doc, id) => doc.nodes.find((n) => String(n.id) === String(id)) || null

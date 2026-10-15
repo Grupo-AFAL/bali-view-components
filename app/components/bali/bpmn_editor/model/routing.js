@@ -8,6 +8,7 @@
 // shortest, with each bend costing BEND_COST of length. Sixty connections
 // route in ~8 ms (routing.test.js), so it runs on every frame of a drag.
 import { nodeBox } from './geometry.js'
+import { routeDiagram } from './router.js'
 
 export const SIDES = ['top', 'right', 'bottom', 'left']
 const STUB = 18
@@ -154,9 +155,15 @@ export function boxesById (doc) {
   return new Map((doc.nodes || []).map((n) => [String(n.id), { ...nodeBox(n), passThrough: n.type === 'group' }]))
 }
 
-// Routes for every edge of the document. `onlyIds`, when given, limits the
-// work to those edges and copies the rest from `previous` (used while dragging).
-export function routeAll (doc, { previous = null, onlyIds = null, boxes = null } = {}) {
+// The routes of the document's connections. The full router (router.js)
+// keeps lines apart and around everything; while a node is being dragged the
+// quick one below re-routes only the connections that touch it, every frame.
+export function routeAll (doc, options = {}) {
+  if (options.onlyIds) return quickRouteAll(doc, options)
+  return routeDiagram(doc, options)
+}
+
+export function quickRouteAll (doc, { previous = null, onlyIds = null, boxes = null } = {}) {
   const byId = boxes || boxesById(doc)
   const routes = new Map()
   for (const edge of doc.edges || []) {
