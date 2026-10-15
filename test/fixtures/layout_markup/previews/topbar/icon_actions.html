@@ -1,0 +1,41 @@
+<div class="flex flex-col gap-6 p-8">
+  <div class="flex items-center gap-4">
+    <button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Help" title="Help"><span class="icon-component size-5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-help circle-question-mark help-circle --></svg></span></button>
+    <span class="text-sm text-base-content/60">No badge — plain icon button</span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Notifications" title="Notifications"><span class="icon-component size-5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: bell --></svg></span><span class="bali-topbar-badge absolute top-1.5 right-1.5 size-2 rounded-full bg-error border-2 border-base-100" aria-hidden="true"></span></button>
+    <span class="text-sm text-base-content/60"><code>badge: true</code> — the dot</span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Inbox, 3 unread" title="Inbox, 3 unread"><span class="icon-component size-5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: inbox --></svg></span><span id="inbox-badge" class="bali-topbar-badge absolute -top-1 -right-1" aria-hidden="true"><span class="badge tag-component badge-error badge-xs">
+  3
+</span></span></button>
+    <span class="text-sm text-base-content/60">
+      <code>badge: 3, badge_id: 'inbox-badge'</code> — count pill, Turbo-Stream-replaceable
+    </span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Messages" title="Messages"><span class="icon-component size-5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: mail --></svg></span><span id="messages-badge" class="bali-topbar-badge" hidden="hidden" aria-hidden="true"></span></button>
+    <span class="text-sm text-base-content/60">
+      <code>badge_id:</code> alone — hidden empty target a stream can light up later
+    </span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <a class="btn btn-ghost btn-sm btn-square" aria-label="Settings" title="Settings" href="/lookbook"><span class="icon-component size-5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span></a>
+    <span class="text-sm text-base-content/60"><code>href:</code> — renders an <code>&lt;a&gt;</code></span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <a class="btn btn-ghost btn-sm btn-square relative btn-active" aria-label="Inbox, 128 pending" title="Inbox, 128 pending" aria-current="page" href="/lookbook"><span class="icon-component size-5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: inbox --></svg></span><span class="bali-topbar-badge absolute -top-1 -right-1" aria-hidden="true"><span class="badge tag-component badge-error badge-xs">
+  99+
+</span></span></a>
+    <span class="text-sm text-base-content/60">
+      <code>active: true, badge: 128</code> — current section (<code>aria-current="page"</code>) and the capped pill (<code>max_count:</code> defaults to 99)
+    </span>
+  </div>
+</div>
