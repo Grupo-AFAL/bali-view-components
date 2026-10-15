@@ -1,7 +1,7 @@
 // #1484 — `include_blank:` offers the blank as a value. On a flat list it is SlimSelect's
 // placeholder, which the list leaves out, so the ✕ is the way back to it. The ✕ selects
-// SlimSelect's first option, which is the blank only because slim_select_fields.rb puts the
-// placeholder first.
+// SlimSelect's first option, which is the blank only because `build_select` in
+// lib/bali/form_builder/slim_select_fields.rb puts the placeholder first.
 describe('SlimSelect blank', () => {
   it('empties an include_blank select back to the blank with the ✕', () => {
     cy.visit('/bali/form/slim_select/optional_blank')

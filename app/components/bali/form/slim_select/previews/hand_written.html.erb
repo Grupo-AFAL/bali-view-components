@@ -4,8 +4,7 @@
 <div lang="<%= lang %>" class="grid gap-4 max-w-sm">
   <% I18n.with_locale(lang) do %>
     <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-      <%= form.slim_select_group :name, options, include_blank: true, allow_deselect_option: true,
-                                                 label: 'From slim_select_field' %>
+      <%= form.slim_select_group :name, options, include_blank: true, label: 'From slim_select_field' %>
     <% end %>
   <% end %>
 

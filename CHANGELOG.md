@@ -12,11 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`slim_select_group`: un campo opcional con `include_blank:` puede volver al vacío** (#1484,
   desde v2.16.0). En una lista plana el vacío es el placeholder de SlimSelect, que no sale en la
   lista, así que un valor elegido ya no se podía quitar. Ahora `include_blank:` en un select
-  sencillo que no es `required:` enciende la ✕ (`allow_deselect_option`), que regresa al vacío;
-  también en los filtros `type: :slim_select` con `blank:` de `SimpleFilters`. `prompt:`,
-  `required:`, `multiple:` y las listas agrupadas quedan igual. Un campo que en realidad es
-  obligatorio pasa `required: true` (o `allow_deselect_option: false`) y conserva el aspecto de
-  antes.
+  sencillo y local que no es `required:` enciende la ✕ (`allow_deselect_option`), que regresa al
+  vacío; también en los filtros `type: :slim_select` con `blank:` de `SimpleFilters`. `prompt:`,
+  `required:`, `multiple:`, las listas agrupadas y los selects remotos (`ajax_url:`) quedan igual.
+  Para conservar el aspecto de antes, `allow_deselect_option: false`; si el campo es
+  obligatorio, `required: true` también apaga la ✕ y además marca la etiqueta. En un select
+  local de lista plana, un `allow_deselect_option: true` junto a un `include_blank:` ya sobra y
+  se puede borrar.
 
 ## [v3.16.2] - 2026-10-14
 

@@ -203,6 +203,11 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
                                                                          html: { multiple: true }), DESELECTABLE)
   end
 
+  def test_slim_select_field_remote_include_blank_leaves_the_deselect_button_off
+    refute_html(builder.slim_select_field(:status, [ %w[One 1] ], include_blank: "None", ajax_url: "/users.json"),
+                DESELECTABLE)
+  end
+
   # include_blank + grouped (optgroup) choices — the placeholder promotion must not
   # break Rails' grouped-choices detection, which looks only at the FIRST element
   # (afal-apps report_schedules regression, 27/07/2026)
@@ -229,7 +234,9 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, 'option[value="fiction:2"][selected]')
   end
 
-  # Its blank is a row of the list, which the ✕ would only duplicate.
+  # Its blank is already a row of the list. With the ✕ on, measured, clearing painted
+  # SlimSelect's "Select value" instead of the blank's text, and the ✕ stayed visible with
+  # the blank row chosen.
   def test_slim_select_field_include_blank_with_grouped_choices_leaves_the_deselect_button_off
     refute_html(builder.slim_select_field(:status, GROUPED_CHOICES, include_blank: "All"), DESELECTABLE)
   end
