@@ -64,9 +64,7 @@ module Bali
         def active?
           return @active unless @active.nil?
 
-          (!disabled? && active_path?(parsed_path, @current_path, match: @match_type)) ||
-            active_when_match? ||
-            active_child_items?
+          path_match? || active_child_items?
         end
 
         # OR-ed into +active?+ so an item declaring +active_when:+ stays
@@ -254,6 +252,17 @@ module Bali
         private
 
         attr_reader :current_path, :match_type
+
+        # The item's own half of `active?`, which its template, its parent's and its tooltip
+        # ask again and again (343 times for 44 items on one page). Only this half is
+        # memoized: a parent asks its children before their own items exist, so a memoized
+        # `active?` would freeze a three-level menu's middle item as inactive.
+        def path_match?
+          return @path_match if defined?(@path_match)
+
+          @path_match = (!disabled? && active_path?(parsed_path, @current_path, match: @match_type)) ||
+                        active_when_match?
+        end
 
         def parsed_path
           return nil if @href.blank?
