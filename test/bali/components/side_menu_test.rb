@@ -572,6 +572,32 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector(".side-menu-collapsed.tooltip-component")
   end
 
+  # The rail writes Bali::Tooltip's markup out instead of rendering it. A change to the
+  # Tooltip fails here until the copy in Item.collapsed_tooltip follows it.
+  def test_the_rail_tooltip_is_the_markup_bali_tooltip_renders
+    [
+      [ %(<a href="/a" class="menu-item">A</a>), "Name" ],
+      [ %(<a href="#" class="menu-item active" aria-current="page"><span>i</span></a>), "Tom &amp; &quot;J&quot;" ],
+      [ %(<a href="/b" class="menu-item"><span>B</span></a>), "" ]
+    ].each do |trigger, label|
+      render_inline(Bali::Tooltip::Component.new(placement: :right, class: "side-menu-collapsed hidden")) do |tooltip|
+        tooltip.with_trigger { trigger.html_safe }
+        label.html_safe
+      end
+
+      assert_equal(rendered_content,
+                   Bali::SideMenu::Item::Component.collapsed_tooltip(trigger.html_safe, label.html_safe),
+                   "Item.collapsed_tooltip drifted from Bali::Tooltip for the trigger #{trigger}")
+    end
+  end
+
+  def test_the_rail_tooltip_escapes_what_is_not_html_safe
+    tooltip = Bali::SideMenu::Item::Component.collapsed_tooltip(%(<a href="#">i</a>), %(<b>"x"</b>))
+
+    assert_includes(tooltip, "&lt;a href=&quot;#&quot;&gt;i&lt;/a&gt;")
+    assert_includes(tooltip, "&lt;b&gt;&quot;x&quot;&lt;/b&gt;")
+  end
+
   def test_dropdown_mode_uses_dropdown_right_without_flyout_wrapper
     @options[:group_behavior] = :dropdown
     render_inline(component) do |c|

@@ -6,6 +6,15 @@ module Bali
       class Component < ApplicationViewComponent
         MATCH_TYPES = %i[exact partial starts_with crud].freeze
 
+        # Bali::Tooltip's markup for the collapsed rail, around its trigger and its label.
+        COLLAPSED_TOOLTIP_OPEN = [
+          %(<span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" ),
+          %(data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" ),
+          %(data-tooltip-append-to-value="body">\n  <span class="trigger cursor-pointer" data-tooltip-target="trigger">\n    )
+        ].join.freeze
+        COLLAPSED_TOOLTIP_MIDDLE = %(\n</span>  <template data-tooltip-target="content">\n    )
+        COLLAPSED_TOOLTIP_CLOSE = %(\n  </template>\n</span>)
+
         # Returns a lambda for use with renders_many that builds Item components.
         # The lambda is evaluated in the host component's context, so @current_path
         # and @group_behavior resolve to the host's instance variables.
@@ -146,17 +155,31 @@ module Bali
           icon.present? ? render_icon : render_initial_icon
         end
 
-        def render_collapsed_tooltip(tooltip_href: nil)
-          render Bali::Tooltip::Component.new(placement: :right, class: "side-menu-collapsed hidden") do |tooltip|
-            tooltip.with_trigger do
-              tag.a(
-                href: tooltip_href || href.presence || "#",
-                class: class_names("menu-item", "active" => active?),
-                target: target, rel: rel, "aria-current": aria_current
-              ) { render_icon_or_initial }
-            end
-            content || name
-          end
+        # The collapsed rail's copy of a leaf: Bali::Tooltip's markup written out, because
+        # rendering the component under every leaf cost 30 µs and writing it out costs 0.7.
+        # side_menu_test compares it with what Bali::Tooltip renders.
+        def render_collapsed_tooltip
+          classes = active? ? "menu-item active" : "menu-item"
+          link = "<a #{link_attributes(href.presence || "#", classes)}>#{render_icon_or_initial}</a>".html_safe
+          self.class.collapsed_tooltip(link, tooltip_label)
+        end
+
+        # Bali::Tooltip.new(placement: :right, class: "side-menu-collapsed hidden") around a
+        # trigger and a label. Either one that is not html_safe is escaped.
+        def self.collapsed_tooltip(trigger, label)
+          ActiveSupport::SafeBuffer.new(COLLAPSED_TOOLTIP_OPEN)
+                                   .concat(trigger).safe_concat(COLLAPSED_TOOLTIP_MIDDLE)
+                                   .concat(label).safe_concat(COLLAPSED_TOOLTIP_CLOSE)
+        end
+
+        # The leaf's link attributes, written out unless the host passed attributes of its own.
+        def leaf_link_attributes
+          link_href = href.presence || "#"
+          classes = "#{menu_item_classes} side-menu-expanded"
+          return link_attributes(link_href, classes, disabled: disabled?) if @options.empty?
+
+          tag.attributes(href: link_href, class: classes, disabled: disabled? ? "disabled" : nil,
+                         target: target, rel: rel, "aria-current": aria_current, **@options)
         end
 
         # Class chain for the collapsed-state flyout container.
@@ -253,6 +276,25 @@ module Bali
         private
 
         attr_reader :current_path, :match_type
+
+        # href, class, disabled, target, rel and aria-current, as `tag` writes them.
+        def link_attributes(link_href, classes, disabled: false)
+          attributes = +%(href="#{escape_attribute(link_href)}" class="#{escape_attribute(classes)}")
+          attributes << ' disabled="disabled"' if disabled
+          attributes << %( target="#{escape_attribute(target)}") unless target.nil?
+          attributes << %( rel="#{rel}") if rel
+          current = aria_current
+          attributes << %( aria-current="#{current}") if current
+          attributes.html_safe
+        end
+
+        # What Bali::Tooltip shows for `content || name`: its block's value goes through
+        # `capture`, which escapes a String, keeps a SafeBuffer and drops anything else, so a
+        # numeric name never reached the rail.
+        def tooltip_label
+          label = content || name
+          label.is_a?(String) ? ERB::Util.html_escape(label) : ""
+        end
 
         # The item's own half of `active?`, which its template, its parent's and its tooltip
         # ask again and again (343 times for 44 items on one page). Only this half is
