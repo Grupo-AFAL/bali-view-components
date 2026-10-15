@@ -74,14 +74,27 @@ class BaliAttachmentsComponentTest < ComponentTestCase
   def test_remove_path_renders_a_delete_button_with_the_filename_in_its_name_and_confirm
     pdf = attach("minutes.pdf", "application/pdf")
 
+    fragment = render_inline(Bali::Attachments::Component.new(
+                               attachments: @workout.files,
+                               remove_path: ->(attachment) { "/attachments/#{attachment.id}" }
+                             ))
+
+    assert_selector("li##{dom_id_for(pdf)} button[title='Remove minutes.pdf']", text: "Remove minutes.pdf")
+    assert fragment.at_css("li##{dom_id_for(pdf)} button template form[action='/attachments/#{pdf.id}']" \
+                           "[data-turbo-confirm='Remove \"minutes.pdf\"?'] input[name='_method'][value='delete']")
+  end
+
+  # Hosts render the list inside the record's form, where a `button_to` form would be nested
+  # (#1473): the parser drops its start tag, and its `</form>` closes the record's form early.
+  def test_the_remove_buttons_have_no_form_around_them_so_the_list_can_sit_inside_a_form
+    attach("minutes.pdf", "application/pdf")
+
     render_inline(Bali::Attachments::Component.new(
                     attachments: @workout.files, remove_path: ->(attachment) { "/attachments/#{attachment.id}" }
                   ))
 
-    assert_selector("li##{dom_id_for(pdf)} form[action='/attachments/#{pdf.id}']" \
-                    "[data-turbo-confirm='Remove \"minutes.pdf\"?'] " \
-                    "input[name='_method'][value='delete']", visible: :all)
-    assert_selector("li##{dom_id_for(pdf)} button[title='Remove minutes.pdf']", text: "Remove minutes.pdf")
+    assert_no_selector("form button", visible: :all)
+    assert_selector("li button[form][data-controller='delete-link']")
   end
 
   # Who may delete is the host's policy: the lambda answers per attachment, and nil is "not this one".
@@ -94,8 +107,8 @@ class BaliAttachmentsComponentTest < ComponentTestCase
                     remove_path: ->(attachment) { "/attachments/#{attachment.id}" if attachment == removable }
                   ))
 
-    assert_no_selector("li##{dom_id_for(kept)} form")
-    assert_selector("li##{dom_id_for(removable)} form")
+    assert_no_selector("li##{dom_id_for(kept)} button")
+    assert_selector("li##{dom_id_for(removable)} button")
   end
 
   def test_without_remove_path_there_is_no_delete_button
@@ -103,7 +116,7 @@ class BaliAttachmentsComponentTest < ComponentTestCase
 
     render_inline(Bali::Attachments::Component.new(attachments: @workout.files))
 
-    assert_no_selector("form")
+    assert_no_selector("button")
   end
 
   def test_badge_renders_what_the_lambda_returns_for_each_attachment

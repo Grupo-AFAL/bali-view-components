@@ -39,6 +39,13 @@ module Bali
         render_with_template(locals: { files: Bali::Attachments::Preview.sample_files })
       end
 
+      # @label In a form
+      # The list inside a record's form, between its fields and its Save button. Each remove
+      # button sends its own DELETE; Save still sends every field.
+      def in_a_form
+        render_with_template(locals: { files: Bali::Attachments::Preview.sample_files })
+      end
+
       # @label Empty
       # The empty text is an item of the list, shown while it is alone, so the stream that
       # removes the last file brings it up. It comes from the locale files unless `empty_text:`

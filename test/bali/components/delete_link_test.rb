@@ -158,6 +158,54 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     assert_selector("form[data-bali-confirm-cancel='Cancel']")
   end
 
+  # Inside another form the parser drops a `<form>` start tag, and the `</form>` that follows
+  # closes the outer form early. `page` comes from `Capybara.HTML`, which empties every
+  # `<template>`; the fragment `render_inline` returns keeps the form inside it.
+  def test_in_form_renders_the_button_without_a_form_around_it
+    @options.merge!(in_form: true)
+    fragment = render_inline(component)
+
+    assert_no_selector("form button", visible: :all)
+    button = page.find("button[type='submit'][data-controller='delete-link'][data-action='delete-link#placeForm']")
+    form = template_form(fragment)
+    assert_equal button[:form], form[:id]
+    assert_equal "/delete-url", form[:action]
+    assert form.at_css("input[name='_method'][value='delete']")
+  end
+
+  def test_in_form_carries_the_confirm_on_its_form
+    @options.merge!(in_form: true)
+    form = template_form(render_inline(component))
+
+    assert_equal "Are you sure?", form["data-turbo-confirm"]
+    assert_equal "danger", form["data-bali-confirm-variant"]
+  end
+
+  def test_in_form_turns_turbo_on_for_its_button_unless_the_caller_says
+    @options.merge!(in_form: true)
+    render_inline(component)
+    assert_selector("button[data-turbo='true']")
+
+    @options.merge!(data: { turbo: false })
+    render_inline(component)
+    assert_selector("button[data-turbo='false']")
+  end
+
+  # The default's `<form>` is `inline-block`; without it a `flex` button took the whole row.
+  def test_plain_in_form_stays_inline
+    @options.merge!(plain: true, in_form: true)
+    render_inline(component)
+    assert_selector("button.inline-flex:not(.flex)")
+  end
+
+  def test_in_form_keeps_the_hosts_data_beside_its_controller
+    @options.merge!(in_form: true, data: { controller: "tracker", action: "click->tracker#log" })
+    render_inline(component)
+
+    assert_selector("button[data-controller='delete-link tracker']" \
+                    "[data-action='delete-link#placeForm click->tracker#log']")
+  end
+
   def test_authorization_does_not_render_when_authorized_false
     @options.merge!(authorized: false)
     render_inline(component)
@@ -223,5 +271,11 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     @options.merge!(disabled: true, icon: true)
     render_inline(component)
     assert_selector("button .icon-component")
+  end
+
+  private
+
+  def template_form(fragment)
+    fragment.at_css("button > template[data-delete-link-target='template'] > form")
   end
 end

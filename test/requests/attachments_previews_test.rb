@@ -8,6 +8,7 @@ class AttachmentsPreviewsTest < ActionDispatch::IntegrationTest
   PREVIEWS = {
     "/lookbook/preview/bali/attachments/default" => "ul.attachments-component > li[id^='attachment_'] img",
     "/lookbook/preview/bali/attachments/with_badge" => "ul.attachments-component > li[id^='attachment_'] .badge",
+    "/lookbook/preview/bali/attachments/in_a_form" => "form ul.attachments-component > li[id^='attachment_'] button[form]",
     "/lookbook/preview/bali/attachments/empty" => "ul.attachments-component > li.attachments-empty"
   }.freeze
 
