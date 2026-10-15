@@ -1,0 +1,129 @@
+<nav id="side-menu" class="side-menu-component side-menu-component--fixed" data-controller="side-menu" data-side-menu-collapsible-value="false" data-side-menu-fixed-value="true" aria-label="Sidebar" inert="inert">
+    <div class="flex bali-chrome-height items-center gap-2 px-2.5 border-b border-base-300">
+        <span class="grow"></span>
+        <button type="button"
+                title="Close sidebar"
+                aria-label="Close sidebar"
+                data-action="side-menu#close"
+                class="menu-item p-2 shrink-0 lg:hidden">
+          <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: x --></svg></span>
+        </button>
+    </div>
+
+
+  <div class="sidebar-menu custom-scrollbar grow overflow-auto">
+      <ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>  <a href="/docs" class="menu-item group active side-menu-expanded" target="_blank" rel="noopener noreferrer" aria-current="page">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: book --></svg></span>
+    <span class="grow">Docs</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/docs" class="menu-item active" target="_blank" rel="noopener noreferrer" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: book --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Docs
+  </template>
+</span>
+</li>
+    <li>  <a href="/same" class="menu-item group side-menu-expanded" target="_self">
+    
+    <span class="grow">Same tab</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/same" class="menu-item" target="_self"><span class="size-4 flex items-center justify-center text-xs font-medium">S</span></a>
+</span>  <template data-tooltip-target="content">
+    Same tab
+  </template>
+</span>
+</li>
+    <li>  <a href="https://example.com/a?b=1&amp;c=2" class="menu-item group side-menu-expanded" target="_blank" rel="noopener noreferrer">
+    
+    <span class="grow">External</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="https://example.com/a?b=1&amp;c=2" class="menu-item" target="_blank" rel="noopener noreferrer"><span class="size-4 flex items-center justify-center text-xs font-medium">E</span></a>
+</span>  <template data-tooltip-target="content">
+    External
+  </template>
+</span>
+</li>
+    <li>    <div class="collapse side-menu-expanded">
+      <input type="checkbox" aria-label="Toggle Parent" class="peer"
+             checked />
+      <div class="collapse-title px-2.5 py-1.5 active">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: folder --></svg></span>
+        <span class="grow">Parent</span>
+        
+        <span class="icon-component size-3.5 arrow-icon" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-right --></svg></span>
+      </div>
+      <div class="collapse-content ms-6.5 !p-0">
+        <div class="mt-0.5 space-y-0.5">
+          <a href="/parent" class="menu-item" target="_blank" rel="noopener noreferrer"><span class="grow">Parent</span></a>
+              <a href="/docs" class="menu-item group active side-menu-expanded" target="_blank" rel="noopener noreferrer" aria-current="page">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: file --></svg></span>
+    <span class="grow">Docs child</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/docs" class="menu-item active" target="_blank" rel="noopener noreferrer" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: file --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Docs child
+  </template>
+</span>
+
+              <a href="/other" class="menu-item group side-menu-expanded">
+    
+    <span class="grow">Other</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/other" class="menu-item"><span class="size-4 flex items-center justify-center text-xs font-medium">O</span></a>
+</span>  <template data-tooltip-target="content">
+    Other
+  </template>
+</span>
+
+        </div>
+      </div>
+    </div>
+    <div class="side-menu-collapsed-flyout side-menu-collapsed hidden dropdown dropdown-right dropdown-hover" data-controller="side-menu-flyout">
+      <a href="/parent" tabindex="0" class="menu-item active" target="_blank" rel="noopener noreferrer" data-side-menu-flyout-target="trigger" data-action="keydown-&gt;side-menu-flyout#triggerKeydown"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: folder --></svg></span></a>
+      <ul tabindex="0"
+          class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] w-56 p-2"
+          data-side-menu-flyout-target="panel"
+          data-action="keydown->side-menu-flyout#panelKeydown">
+        <li class="menu-title px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-base-content/70">
+          Parent
+        </li>
+        <li><a href="/parent" class="" target="_blank" rel="noopener noreferrer">Parent</a></li>
+          <li><a href="/docs" class="active" target="_blank" rel="noopener noreferrer" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: file --></svg></span>Docs child</a></li>
+          <li><a href="/other" class="">Other</a></li>
+      </ul>
+    </div>
+</li>
+</ul>
+
+  </div>
+
+    <ul class="side-menu-bottom-section border-t border-base-200 shrink-0 space-y-0.5 py-2">
+        <li>  <a href="/help" class="menu-item group side-menu-expanded" target="_blank" rel="noopener noreferrer">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-help circle-question-mark help-circle --></svg></span>
+    <span class="grow">Help</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/help" class="menu-item" target="_blank" rel="noopener noreferrer"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-help circle-question-mark help-circle --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Help
+  </template>
+</span>
+</li>
+    </ul>
+</nav>
+  <div class="side-menu-overlay"
+       aria-hidden="true"
+       data-controller="side-menu-trigger"
+       data-side-menu-trigger-menu-id-value="side-menu"
+       data-action="click->side-menu-trigger#close"></div>
