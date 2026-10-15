@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
+  accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el
+  `date.formats.long` de la app: «5 de marzo de 2026» con rails-i18n, «March 05, 2026» en inglés.
+  La vista de día de la variante `:mobile` pedía un formato `:long_with_day` que ni Rails ni
+  rails-i18n definen y lanzaba `I18n::MissingTranslationData`; ahora antepone el día de la semana
+  al `:long` («jueves, 5 de marzo de 2026»), salvo si éste ya lo trae, como el `es-MX` de
+  rails-i18n. Nada que hacer en la app; en gobierno-corporativo la vista de año toma su propio
+  `:long`.
+
 ## [v3.17.0] - 2026-10-15
 
 ### Added

@@ -137,6 +137,14 @@ module Bali
         { start_attribute => date }
       end
 
+      # @return [String] The phone day view's title: the locale's `date.formats.long`, which
+      #   Rails and all 123 rails-i18n locales define, with the weekday in front — unless
+      #   `:long` names it already, as 16 of those locales do (es-MX and 11 more Spanish).
+      def day_title
+        long = t("date.formats.long")
+        l(start_date, format: long.include?("%A") ? long : "%A, #{long}")
+      end
+
       # View helper methods
       def month_view?
         period == :month
