@@ -79,5 +79,20 @@ module Bali
     def identifier
       @identifier ||= self.class.name.sub("::Component", "").underscore.split("/").join("--")
     end
+
+    # An attribute value escaped exactly as `tag` escapes it: a SafeBuffer is trusted except
+    # for its quotes. With it, a template on the layout's hot path writes its attributes by
+    # hand and still renders the bytes `tag` would (escape_attribute_test.rb).
+    def escape_attribute(value)
+      escaped = ERB::Util.unwrapped_html_escape(value)
+      escaped.include?('"') ? escaped.gsub('"', "&quot;") : escaped
+    end
+
+    # The same for a `data:` value, which `tag` writes as JSON unless it is a String, a Symbol
+    # or a BigDecimal.
+    def escape_data_attribute(value)
+      value = value.to_json unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
+      escape_attribute(value)
+    end
   end
 end
