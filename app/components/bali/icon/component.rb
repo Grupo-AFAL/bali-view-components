@@ -59,6 +59,10 @@ module Bali
       LUCIDE_SVGS = Concurrent::Map.new
       LUCIDE_SVGS_LIMIT = 2_000
 
+      # What `call` writes by hand. A `data:` or `aria:` hash, a boolean attribute and anything
+      # else a host passes go through `tag`, which knows their rules.
+      HAND_WRITTEN_ATTRIBUTES = %i[class style aria-hidden].freeze
+
       # @param name [String, Symbol] Icon name (Bali name or Lucide name)
       # @param tag_name [Symbol] HTML tag to wrap the icon (:span, :div, etc.)
       # @param size [Symbol, Numeric] Icon size — :small / :medium / :large or
@@ -74,10 +78,22 @@ module Bali
       end
 
       def call
-        tag.send(tag_name, **options) { resolve_icon.html_safe }
+        return tag.send(tag_name, **options) { resolve_icon.html_safe } unless hand_written?
+
+        attributes = +""
+        options.each { |key, value| attributes << %( #{key}="#{escape_attribute(value)}") unless value.nil? }
+        "<span#{attributes}>#{resolve_icon}</span>".html_safe
       end
 
       private
+
+      # The common wrapper, written out instead of built by `tag`: with its <svg> cached,
+      # `tag.span` cost 1.9 of an icon's 7.5 µs.
+      def hand_written?
+        tag_name == :span && options.all? do |key, value|
+          HAND_WRITTEN_ATTRIBUTES.include?(key) && (value.is_a?(String) || [ nil, true, false ].include?(value))
+        end
+      end
 
       # An icon is decorative unless its host says otherwise: the meaning is in
       # the text or in the accessible name of the control it sits in, and an

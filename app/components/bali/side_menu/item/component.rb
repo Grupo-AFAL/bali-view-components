@@ -6,6 +6,15 @@ module Bali
       class Component < ApplicationViewComponent
         MATCH_TYPES = %i[exact partial starts_with crud].freeze
 
+        # Bali::Tooltip's markup for the collapsed rail, around its trigger and its label.
+        COLLAPSED_TOOLTIP_OPEN = [
+          %(<span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" ),
+          %(data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" ),
+          %(data-tooltip-append-to-value="body">\n  <span class="trigger cursor-pointer" data-tooltip-target="trigger">\n    )
+        ].join.freeze
+        COLLAPSED_TOOLTIP_MIDDLE = %(\n</span>  <template data-tooltip-target="content">\n    )
+        COLLAPSED_TOOLTIP_CLOSE = %(\n  </template>\n</span>)
+
         # Returns a lambda for use with renders_many that builds Item components.
         # The lambda is evaluated in the host component's context, so @current_path
         # and @group_behavior resolve to the host's instance variables.
@@ -97,22 +106,16 @@ module Bali
           @group_behavior == :dropdown
         end
 
+        # Fixed strings where the list is fixed: `class_names` cost 3 to 7 µs a call, several
+        # calls a row. A host's `class:` still goes through it.
         def menu_item_classes
-          class_names(
-            "menu-item",
-            "group",
-            { "active" => active? && !subitems? },
-            @link_class
-          )
+          return class_names("menu-item", "group", { "active" => active? && !subitems? }, @link_class) if @link_class
+
+          (active? && !subitems?) ? "menu-item group active" : "menu-item group"
         end
 
         def collapse_title_classes
-          class_names(
-            "collapse-title",
-            "px-2.5",
-            "py-1.5",
-            { "active" => active? }
-          )
+          active? ? "collapse-title px-2.5 py-1.5 active" : "collapse-title px-2.5 py-1.5"
         end
 
         # Translated aria-label for collapse toggle
@@ -146,31 +149,38 @@ module Bali
           icon.present? ? render_icon : render_initial_icon
         end
 
-        def render_collapsed_tooltip(tooltip_href: nil)
-          render Bali::Tooltip::Component.new(placement: :right, class: "side-menu-collapsed hidden") do |tooltip|
-            tooltip.with_trigger do
-              tag.a(
-                href: tooltip_href || href.presence || "#",
-                class: class_names("menu-item", "active" => active?),
-                target: target, rel: rel, "aria-current": aria_current
-              ) { render_icon_or_initial }
-            end
-            content || name
-          end
+        # The collapsed rail's copy of a leaf: Bali::Tooltip's markup written out, because
+        # rendering the component under every leaf cost 30 µs and writing it out costs 0.7.
+        # side_menu_test compares it with what Bali::Tooltip renders.
+        def render_collapsed_tooltip
+          classes = active? ? "menu-item active" : "menu-item"
+          link = "<a #{link_attributes(href.presence || "#", classes)}>#{render_icon_or_initial}</a>".html_safe
+          self.class.collapsed_tooltip(link, tooltip_label)
+        end
+
+        # Bali::Tooltip.new(placement: :right, class: "side-menu-collapsed hidden") around a
+        # trigger and a label. Either one that is not html_safe is escaped.
+        def self.collapsed_tooltip(trigger, label)
+          ActiveSupport::SafeBuffer.new(COLLAPSED_TOOLTIP_OPEN)
+                                   .concat(trigger).safe_concat(COLLAPSED_TOOLTIP_MIDDLE)
+                                   .concat(label).safe_concat(COLLAPSED_TOOLTIP_CLOSE)
+        end
+
+        # The leaf's link attributes, written out unless the host passed attributes of its own.
+        def leaf_link_attributes
+          link_href = href.presence || "#"
+          classes = "#{menu_item_classes} side-menu-expanded"
+          return link_attributes(link_href, classes, disabled: disabled?) if @options.empty?
+
+          tag.attributes(href: link_href, class: classes, disabled: disabled? ? "disabled" : nil,
+                         target: target, rel: rel, "aria-current": aria_current, **@options)
         end
 
         # Class chain for the collapsed-state flyout container.
         # Combines our own visibility scope (`side-menu-collapsed hidden`)
         # with DaisyUI's hover dropdown.
         def flyout_classes
-          class_names(
-            "side-menu-collapsed-flyout",
-            "side-menu-collapsed",
-            "hidden",
-            "dropdown",
-            "dropdown-right",
-            "dropdown-hover"
-          )
+          "side-menu-collapsed-flyout side-menu-collapsed hidden dropdown dropdown-right dropdown-hover"
         end
 
         # Flat link for a child entry inside a popup. Both the
@@ -179,7 +189,7 @@ module Bali
         # into nested accordions or flyouts.
         def render_subitem_link(item)
           tag.a(href: item.href,
-                class: class_names("active" => item.active?),
+                class: item.active? ? "active" : "",
                 target: item.target, rel: item.rel,
                 "aria-current": item.aria_current) do
             safe_join([
@@ -197,8 +207,7 @@ module Bali
 
           link = tag.a(
             href: href,
-            class: class_names({ "menu-item" => in_accordion },
-                               "active" => current_page?),
+            class: [ ("menu-item" if in_accordion), ("active" if current_page?) ].compact.join(" "),
             target: target, rel: rel, "aria-current": aria_current
           ) { in_accordion ? tag.span(name, class: "grow") : name }
 
@@ -210,7 +219,7 @@ module Bali
         # otherwise (popup-only). Either way it's keyboard-reachable
         # and wired to the Stimulus controller.
         def render_flyout_trigger
-          trigger_class = class_names("menu-item", "active" => active?)
+          trigger_class = active? ? "menu-item active" : "menu-item"
 
           if href.present?
             tag.a(href: href, tabindex: 0, class: trigger_class,
@@ -253,6 +262,25 @@ module Bali
         private
 
         attr_reader :current_path, :match_type
+
+        # href, class, disabled, target, rel and aria-current, as `tag` writes them.
+        def link_attributes(link_href, classes, disabled: false)
+          attributes = +%(href="#{escape_attribute(link_href)}" class="#{escape_attribute(classes)}")
+          attributes << ' disabled="disabled"' if disabled
+          attributes << %( target="#{escape_attribute(target)}") unless target.nil?
+          attributes << %( rel="#{rel}") if rel
+          current = aria_current
+          attributes << %( aria-current="#{current}") if current
+          attributes.html_safe
+        end
+
+        # What Bali::Tooltip shows for `content || name`: its block's value goes through
+        # `capture`, which escapes a String, keeps a SafeBuffer and drops anything else, so a
+        # numeric name never reached the rail.
+        def tooltip_label
+          label = content || name
+          label.is_a?(String) ? ERB::Util.html_escape(label) : ""
+        end
 
         # The item's own half of `active?`, which its template, its parent's and its tooltip
         # ask again and again (343 times for 44 items on one page). Only this half is

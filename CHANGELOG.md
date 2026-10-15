@@ -24,6 +24,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     marcado, pide reescribir los archivos con `GOLDEN=update bin/rails test
     test/bali/components/layout_markup_golden_test.rb` y revisar su diff.
 
+- **Los renglones del menú lateral y de la paleta, el tooltip del riel y el envoltorio de cada
+  ícono se escriben sin pasar por `tag`, con el mismo HTML** (#1488). La copia de cada hoja en
+  el riel colapsado ya no renderiza un `Bali::Tooltip`, y las listas de clases fijas dejan de
+  pasar por `class_names`. Sumado a #1487, el layout tarda entre 34 y 43 % menos que en v3.16.2
+  (de 3 a 13 ms menos por página en afal-apps y gobierno-corporativo). Un renglón o un ícono con
+  atributos propios del anfitrión (`data:`, `id:`, `title:`…) se sigue armando con `tag`.
+  - **Anfitrión:** nada que hacer.
+
 ## [v3.16.2] - 2026-10-14
 
 ### Fixed
