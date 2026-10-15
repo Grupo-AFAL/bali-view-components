@@ -50,7 +50,12 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
       "unknown port" => { edges: [ { id: "e1", source: "a", target: "b", ports: { source: "north" } } ] },
       "issue severity" => { issues: [ { rule: "R1", severity: "fatal" } ] },
       "collection not an array" => { nodes: { id: "n1" } },
-      "version not an integer" => { version: "v2" }
+      "version not an integer" => { version: "v2" },
+      "pool not a hash" => { pool: "x" },
+      "issue not a hash" => { issues: [ "oops" ] },
+      "ports not a hash" => { edges: [ { id: "e1", source: "a", target: "b", ports: "auto" } ] },
+      "annotation without id" => { annotations: [ { text: "x" } ] },
+      "stencil without reference" => { stencil: [ { label: "x" } ] }
     }.each do |label, payload|
       assert_raises(Data::InvalidError, label) { Data.new(payload) }
     end

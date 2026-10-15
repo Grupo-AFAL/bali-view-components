@@ -160,7 +160,7 @@ function Editor ({
 
   // The rules run on every change while editing; a viewer sees no pending
   // markers. Server issues (the document's `issues`) join them.
-  const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t), doc.issues) : []), [editable, doc, rules, t])
+  const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t), doc.issues, doc) : []), [editable, doc, rules, t])
   const issues = useMemo(() => issuesByElement(issueList), [issueList])
   const baseNodes = useMemo(() => buildRfNodes(doc, { layout, editable: interactive, issues, selected: selectedSet }), [doc, layout, interactive, issues, selectedSet])
   // Lanes share one length: while the end of one is dragged every lane
@@ -488,7 +488,7 @@ function Editor ({
     const mod = event.ctrlKey || event.metaKey
     const key = event.key.toLowerCase()
     if (key === 'escape') { setTool(null); setRenamingId(null); clearSelection(); return }
-    if (!editable) return
+    if (!interactive) return
     if (mod && key === 'z' && !event.shiftKey) {
       event.preventDefault(); undo()
     } else if (mod && (key === 'y' || (key === 'z' && event.shiftKey))) {
@@ -503,7 +503,7 @@ function Editor ({
       const delta = { x: key === 'arrowleft' ? -step : key === 'arrowright' ? step : 0, y: key === 'arrowup' ? -step : key === 'arrowdown' ? step : 0 }
       apply((d) => ops.moveNodes(d, selection.nodes, delta, { policy }), { coalesce: `arrows:${selection.nodes.join(',')}` })
     }
-  }, [editable, undo, redo, selectAll, deleteSelection, clearSelection, selection, apply, policy])
+  }, [interactive, undo, redo, selectAll, deleteSelection, clearSelection, selection, apply, policy])
 
   useEffect(() => {
     const onDocumentKey = (event) => {
@@ -513,8 +513,16 @@ function Editor ({
       const inside = focus && wrapper.contains(focus)
       if (inside || ((!focus || focus === document.body) && activeEditor === wrapper)) onKeyDown(event)
     }
+    // A click anywhere else on the page hands the keyboard back to the page.
+    const onDocumentPointer = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target) && activeEditor === wrapperRef.current) activeEditor = null
+    }
     document.addEventListener('keydown', onDocumentKey)
-    return () => document.removeEventListener('keydown', onDocumentKey)
+    document.addEventListener('pointerdown', onDocumentPointer, true)
+    return () => {
+      document.removeEventListener('keydown', onDocumentKey)
+      document.removeEventListener('pointerdown', onDocumentPointer, true)
+    }
   }, [onKeyDown])
 
   // ── fullscreen ─────────────────────────────────────────────────────────

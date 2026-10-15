@@ -4,7 +4,7 @@ Documento de trabajo del componente. Se actualiza al cerrar cada fase (`[BPMN Fx
 español porque es prosa para el equipo, como el CHANGELOG; puede pasar al cuerpo del PR y
 borrarse antes de fusionar.
 
-**Avance: 98 %** (F0–F8 cerradas; falta aplicar la revisión independiente).
+**Avance: 100 %** (F0–F8 cerradas y revisión independiente aplicada).
 
 ## F0 · Diagnóstico y plan
 
@@ -279,4 +279,11 @@ Revisados los comentarios de `ProcessFlowEditor.jsx` y `components/bpmn/**`, y l
   están en el modelo; se conservan como tipos desconocidos.
 - **`openDrawerUrl`** está copiado de `GanttFlow.jsx` en `bpmn_editor/drawer.js`; extraerlo a un
   util compartido es un cambio aparte que toca el Gantt.
-- **Revisión independiente** (`dhh-code-reviewer`) antes del PR, según `.claude/CLAUDE.md`.
+- **Revisión independiente:** hecha (agente general, sólo lectura) y aplicada: 14 hallazgos, todos
+  corregidos — finalizar fallido que dejaba la versión atrás (el 422 trae `version`), cambios
+  pendientes al navegar con Turbo, guardar y finalizar serializados, respuestas viejas ignoradas
+  tras una recarga, insertar sobre una conexión sin inicio/fin y conservando el id, waypoints al
+  borrar carril, alinear sin entrar al encabezado, XML con ids únicos y orden del XSD, `Data` sin
+  500 ante tipos inválidos, pendientes del servidor de elementos borrados, atajos en modo Navegar,
+  `registerBpmnEditor` instala la acción de stream, `forSave` sin `stencil`. Falta, antes del PR, la
+  pasada con `dhh-code-reviewer` que pide `.claude/CLAUDE.md`.

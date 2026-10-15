@@ -160,6 +160,11 @@ test('server issues join the client ones without repeating them', () => {
   assert.deepEqual(merged.map((i) => [i.rule, i.source]), [['R11', 'client'], ['APP9', 'server']])
 })
 
+test('a server issue about an element deleted since is dropped', () => {
+  const merged = mergeIssues([], [{ rule: 'APP2', element_id: 'gone', severity: 'error' }, { rule: 'APP3', element_id: 't1' }, { rule: 'APP4', element_id: null }], clean())
+  assert.deepEqual(merged.map((i) => i.rule), ['APP3', 'APP4'])
+})
+
 test('issuesByElement keeps the worst severity per element', () => {
   const map = issuesByElement([{ element_id: 'a', severity: 'warning' }, { element_id: 'a', severity: 'error' }, { element_id: 'b', severity: 'warning' }, { element_id: null, severity: 'error' }])
   assert.deepEqual([...map.entries()], [['a', 'error'], ['b', 'warning']])

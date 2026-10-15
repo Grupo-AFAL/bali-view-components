@@ -2,7 +2,7 @@
 //
 //   PUT  urls.save      { diagram, version } → 200 document · 409 stale · 422 { errors }
 //   GET  urls.diagram                        → 200 document
-//   POST urls.finalize  { diagram, version } → 200 document · 422 { errors, issues }
+//   POST urls.finalize  { diagram, version } → 200 document · 422 { errors, issues, version }
 //
 // Every answer that succeeds is the COMPLETE document: the server is
 // authoritative, the island never patches.
@@ -16,6 +16,8 @@ export class SaveError extends Error {
     this.statusCode = statusCode
     this.errors = errors
     this.issues = Array.isArray(body.issues) ? body.issues : null
+    // A failed finalize was still saved: the 422 carries the new version.
+    this.version = body.version ?? null
   }
 
   get conflict () { return this.statusCode === 409 }

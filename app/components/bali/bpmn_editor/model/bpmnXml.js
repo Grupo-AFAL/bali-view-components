@@ -9,7 +9,7 @@
 // extension on a plain task, so nothing is lost on the way out.
 import { layoutLanes, laneRect, nodeBox, poolOrigin } from './geometry.js'
 import { routeAll } from './routing.js'
-import { edgeType } from './catalog.js'
+import { edgeType, isFlowNode } from './catalog.js'
 
 const TAGS = {
   task: 'task',
@@ -54,8 +54,12 @@ const DEFINITIONS = {
 
 export const escapeXml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]))
 
-// XML ids must start with a letter or underscore.
+// XML ids must start with a letter or underscore, and are one namespace for
+// the whole file — while the contract only keeps ids unique per kind, so
+// lanes and connections carry a prefix of their own.
 const xmlId = (id) => (/^[A-Za-z_]/.test(String(id)) ? String(id) : `_${id}`).replace(/[^\w.-]/g, '_')
+const laneXmlId = (id) => `Lane_${xmlId(id)}`
+const flowXmlId = (id) => `Flow_${xmlId(id)}`
 
 function eventDefinitions (node) {
   const kind = node.event_definition && node.event_definition.kind
@@ -78,7 +82,7 @@ function element (node) {
   if (node.type === 'text_annotation') {
     return `<bpmn:textAnnotation id="${id}"><bpmn:text>${escapeXml(node.name)}</bpmn:text></bpmn:textAnnotation>`
   }
-  if (node.name) attributes.push(`name="${escapeXml(node.name)}"`)
+  if (node.name && node.type !== 'group') attributes.push(`name="${escapeXml(node.name)}"`)
   if (node.type === 'sub_process' && node.reference && node.reference.id) attributes.push(`calledElement="${escapeXml(node.reference.id)}"`)
   if (node.type === 'event_based_gateway') {
     if (node.instantiate) attributes.push('instantiate="true"')
@@ -114,14 +118,17 @@ export function toBpmnXml (doc, { name = '' } = {}) {
   const sequence = flows.filter((e) => edgeType(e) === 'sequence_flow')
   const messages = flows.filter((e) => edgeType(e) === 'message_flow')
   const associations = flows.filter((e) => edgeType(e) === 'association')
-  const flowXml = (e) => `<bpmn:sequenceFlow id="${xmlId(e.id)}" sourceRef="${xmlId(e.source)}" targetRef="${xmlId(e.target)}"${e.label ? ` name="${escapeXml(e.label)}"` : ''} />`
-  const associationXml = (e) => `<bpmn:association id="${xmlId(e.id)}" sourceRef="${xmlId(e.source)}" targetRef="${xmlId(e.target)}" />`
+  const flowXml = (e) => `<bpmn:sequenceFlow id="${flowXmlId(e.id)}" sourceRef="${xmlId(e.source)}" targetRef="${xmlId(e.target)}"${e.label ? ` name="${escapeXml(e.label)}"` : ''} />`
+  const associationXml = (e) => `<bpmn:association id="${flowXmlId(e.id)}" sourceRef="${xmlId(e.source)}" targetRef="${xmlId(e.target)}" />`
 
+  // The XSD lists a process's flow elements (nodes, data references, sequence
+  // flows) before its artifacts (annotations, groups, associations).
   const process = (processId, nodes, laneSet) => [
     `  <bpmn:process id="${processId}" isExecutable="false">`,
     laneSet,
-    ...nodes.map((n) => `    ${element(n)}`),
+    ...nodes.filter((n) => n.type !== 'text_annotation' && n.type !== 'group').map((n) => `    ${element(n)}`),
     ...sequence.filter((e) => processOf(byId.get(String(e.source))) === processId).map((e) => `    ${flowXml(e)}`),
+    ...nodes.filter((n) => n.type === 'text_annotation' || n.type === 'group').map((n) => `    ${element(n)}`),
     ...associations.filter((e) => processOf(byId.get(String(e.source))) === processId).map((e) => `    ${associationXml(e)}`),
     '  </bpmn:process>'
   ].filter(Boolean).join('\n')
@@ -131,8 +138,8 @@ export function toBpmnXml (doc, { name = '' } = {}) {
     ? [
         '    <bpmn:laneSet id="LaneSet_main">',
         ...internalLanes.map((e) => [
-          `      <bpmn:lane id="${xmlId(e.id)}" name="${escapeXml(e.lane.name)}">`,
-          ...mainNodes.filter((n) => String(n.lane_id) === String(e.id)).map((n) => `        <bpmn:flowNodeRef>${xmlId(n.id)}</bpmn:flowNodeRef>`),
+          `      <bpmn:lane id="${laneXmlId(e.id)}" name="${escapeXml(e.lane.name)}">`,
+          ...mainNodes.filter((n) => String(n.lane_id) === String(e.id) && isFlowNode(n)).map((n) => `        <bpmn:flowNodeRef>${xmlId(n.id)}</bpmn:flowNodeRef>`),
           '      </bpmn:lane>'
         ].join('\n')),
         '    </bpmn:laneSet>'
@@ -142,7 +149,7 @@ export function toBpmnXml (doc, { name = '' } = {}) {
   const participants = [
     `    <bpmn:participant id="Participant_main" name="${escapeXml(name)}" processRef="Process_main" />`,
     ...externalLanes.map((e) => `    <bpmn:participant id="Participant_${xmlId(e.id)}" name="${escapeXml(e.lane.name)}" processRef="Process_${xmlId(e.id)}" />`),
-    ...messages.map((e) => `    <bpmn:messageFlow id="${xmlId(e.id)}" sourceRef="${xmlId(e.source)}" targetRef="${xmlId(e.target)}"${e.label ? ` name="${escapeXml(e.label)}"` : ''} />`)
+    ...messages.map((e) => `    <bpmn:messageFlow id="${flowXmlId(e.id)}" sourceRef="${xmlId(e.source)}" targetRef="${xmlId(e.target)}"${e.label ? ` name="${escapeXml(e.label)}"` : ''} />`)
   ]
 
   // DI, in absolute canvas coordinates.
@@ -157,14 +164,14 @@ export function toBpmnXml (doc, { name = '' } = {}) {
   const shapes = [
     internalBox && `      <bpmndi:BPMNShape id="Participant_main_di" bpmnElement="Participant_main" isHorizontal="${horizontal}">${bounds(internalBox)}</bpmndi:BPMNShape>`,
     ...externalLanes.map((e) => `      <bpmndi:BPMNShape id="Participant_${xmlId(e.id)}_di" bpmnElement="Participant_${xmlId(e.id)}" isHorizontal="${horizontal}">${bounds(laneRect(layout, e))}</bpmndi:BPMNShape>`),
-    ...internalLanes.map((e) => `      <bpmndi:BPMNShape id="${xmlId(e.id)}_di" bpmnElement="${xmlId(e.id)}" isHorizontal="${horizontal}">${bounds(laneRect(layout, e))}</bpmndi:BPMNShape>`),
+    ...internalLanes.map((e) => `      <bpmndi:BPMNShape id="${laneXmlId(e.id)}_di" bpmnElement="${laneXmlId(e.id)}" isHorizontal="${horizontal}">${bounds(laneRect(layout, e))}</bpmndi:BPMNShape>`),
     ...(doc.nodes || []).map((n) => `      <bpmndi:BPMNShape id="${xmlId(n.id)}_di" bpmnElement="${xmlId(n.id)}">${bounds(nodeBox(n))}</bpmndi:BPMNShape>`)
   ].filter(Boolean)
   const edges = flows.map((e) => {
     const route = routes.get(String(e.id))
     if (!route) return ''
     const points = route.points.map((p) => `<di:waypoint x="${Math.round(origin.x + p.x)}" y="${Math.round(origin.y + p.y)}" />`).join('')
-    return `      <bpmndi:BPMNEdge id="${xmlId(e.id)}_di" bpmnElement="${xmlId(e.id)}">${points}</bpmndi:BPMNEdge>`
+    return `      <bpmndi:BPMNEdge id="${flowXmlId(e.id)}_di" bpmnElement="${flowXmlId(e.id)}">${points}</bpmndi:BPMNEdge>`
   }).filter(Boolean)
 
   return [

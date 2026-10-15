@@ -62,6 +62,7 @@ class AdminBpmnDiagramTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_includes response.parsed_body["issues"].pluck("rule"), "APP02"
+    assert_equal 2, response.parsed_body["version"], "the draft was saved; the next PUT needs this version"
     assert_nil @flow.reload.finalized_at
   end
 

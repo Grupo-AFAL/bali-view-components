@@ -31,8 +31,8 @@ export const outgoing = (doc, id) => doc.edges.filter((e) => String(e.source) ==
 export const incoming = (doc, id) => doc.edges.filter((e) => String(e.target) === String(id))
 
 // What the save request carries: the document minus what only the server
-// writes (`issues` comes back fresh with every 200).
+// writes (`issues` and `stencil` come back fresh with every 200).
 export function forSave (doc) {
-  const { issues, ...rest } = doc
+  const { issues, stencil, ...rest } = doc
   return rest
 }

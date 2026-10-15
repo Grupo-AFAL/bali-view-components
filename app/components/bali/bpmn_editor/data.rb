@@ -70,6 +70,7 @@ module Bali
         end
 
         integer!(@payload[:version], "version") unless @payload[:version].nil?
+        hash!(@payload[:pool], "pool") unless @payload[:pool].nil?
         numeric_keys!(@payload[:pool] || {}, %i[x y length], "pool")
         %i[lanes nodes edges annotations stencil issues].each { |key| array!(key) }
 
@@ -77,6 +78,11 @@ module Bali
         validate_nodes!
         validate_edges!
         validate_issues!
+        Array(@payload[:annotations]).each { |annotation| require_id!(annotation, "annotation") }
+        Array(@payload[:stencil]).each do |item|
+          hash!(item, "stencil item")
+          hash!(item[:reference], "stencil item reference")
+        end
       end
 
       def validate_lanes!
@@ -111,6 +117,7 @@ module Bali
             raise InvalidError, "edge #{edge[:id]}: type must be one of #{EDGE_TYPES.inspect}, got #{edge[:type].inspect}"
           end
 
+          hash!(edge[:ports], "edge #{edge[:id]}: ports") unless edge[:ports].nil?
           (edge[:ports] || {}).each do |end_name, side|
             next if PORTS.include?(side.to_s)
 
@@ -122,6 +129,7 @@ module Bali
 
       def validate_issues!
         issues.each do |issue|
+          hash!(issue, "issue")
           raise InvalidError, "issue requires a rule: #{issue.inspect}" if issue[:rule].blank?
 
           severity = (issue[:severity] || "error").to_s
@@ -129,6 +137,10 @@ module Bali
 
           raise InvalidError, "issue #{issue[:rule]}: severity must be one of #{SEVERITIES.inspect}, got #{severity.inspect}"
         end
+      end
+
+      def hash!(value, context)
+        raise InvalidError, "#{context} must be a Hash, got #{value.inspect}" unless value.is_a?(Hash)
       end
 
       def array!(key)

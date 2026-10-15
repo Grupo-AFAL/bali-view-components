@@ -32,11 +32,28 @@ class BaliBpmnXmlExportTest < ActiveSupport::TestCase
     assert_equal "101", xml.at_xpath("//bpmn:callActivity", NS)["calledElement"]
     assert xml.at_xpath("//bpmn:task[@id='odd']//*[local-name()='element'][@type='transaction']", NS)
     assert xml.at_xpath("//bpmn:startEvent/bpmn:messageEventDefinition", NS)
-    assert_equal "Sí", xml.at_xpath("//bpmn:sequenceFlow[@id='f3']", NS)["name"]
+    assert_equal "Sí", xml.at_xpath("//bpmn:sequenceFlow[@id='Flow_f3']", NS)["name"]
 
     shapes = xml.xpath("//bpmndi:BPMNShape", NS).pluck("bpmnElement")
     flow[:nodes].each { |node| assert_includes shapes, node[:id] }
     assert_operator xml.xpath("//bpmndi:BPMNEdge", NS).size, :>=, flow[:edges].size
+  end
+
+  # The contract keeps ids unique per kind only; the file has one namespace.
+  def test_ids_shared_across_kinds_stay_unique_and_artifacts_follow_flows
+    xml = export(lanes: [ { id: "1", name: "A" }, { id: "2", name: "B" } ],
+                 nodes: [ { id: "1", type: "task", lane_id: "1", name: "Do", x: 80, y: 40 },
+                          { id: "2", type: "end_event", lane_id: "1", name: "Done", x: 300, y: 50 },
+                          { id: "3", type: "text_annotation", name: "Why", x: 80, y: 120 },
+                          { id: "4", type: "group", name: "Grouped", x: 60, y: 20 } ],
+                 edges: [ { id: "1", source: "1", target: "2" }, { id: "2", type: "association", source: "3", target: "1" } ])
+
+    ids = xml.xpath("//@id").map(&:value)
+    assert_equal ids.uniq, ids, "duplicate ids in the export"
+    process = xml.at_xpath("//bpmn:process[@id='Process_main']", NS).element_children.map(&:name)
+    assert_operator process.index("sequenceFlow"), :<, process.index("textAnnotation")
+    assert_nil xml.at_xpath("//bpmn:group", NS)["name"]
+    assert_equal [ "_1", "_2" ], xml.xpath("//bpmn:lane[@id='Lane__1']/bpmn:flowNodeRef", NS).map(&:text)
   end
 
   def test_the_large_flow_exports

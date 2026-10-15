@@ -166,6 +166,7 @@ export const DEFAULT_I18N = {
   block_end_source: 'An end event has no outgoing flow.',
   block_artifact_flow: 'Artifacts and data connect with associations, not sequence flows.',
   block_message_flow: 'A message flow connects different participants.',
+  block_sequence_participants: 'A sequence flow stays inside one participant; use a message flow to reach another.',
   block_association: 'An association connects an artifact or a data element.',
   block_no_lane: 'Add a lane first.',
   toast_inserted: 'Activity inserted; the following elements moved along.',

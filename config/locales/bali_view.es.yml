@@ -606,6 +606,7 @@ es:
         block_end_source: "Un evento de fin no tiene salidas."
         block_artifact_flow: "Los artefactos y los datos se conectan con asociaciones, no con flujos de secuencia."
         block_message_flow: "Un flujo de mensaje conecta participantes distintos."
+        block_sequence_participants: "Un flujo de secuencia no sale de su participante; usa un flujo de mensaje para llegar a otro."
         block_association: "Una asociación conecta un artefacto o un elemento de datos."
         block_no_lane: "Agrega primero un carril."
         toast_inserted: "Actividad intermedia insertada; los elementos siguientes se recorrieron."

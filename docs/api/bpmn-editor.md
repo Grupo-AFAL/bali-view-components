@@ -103,7 +103,8 @@ authorize every endpoint on the server anyway.
 | `i18n:` | `Translations.island` | Flat string table; Spanish and English ship with the gem |
 | `id:` | `nil` | DOM id. The host's stream answers target it |
 
-Any other option (`class:`, `aria:`…) lands on the wrapper element.
+Any other option (`class:`, `aria:`…) lands on the wrapper element. `data:` is the document,
+so HTML data attributes go on a wrapper of your own.
 
 ---
 
@@ -175,7 +176,7 @@ whole document.**
 |---|---|---|
 | `PUT urls[:save]` `{ diagram:, version: }` | autosave (debounced), or "Save draft" | `200` the whole document with the new `version` and server `issues` · `409` stale version · `422` `{ errors: [...] }` |
 | `GET urls[:diagram]` | after a 409, and on `bali-bpmn:reload` | `200` the whole document |
-| `POST urls[:finalize]` `{ diagram:, version: }` | "Finalize flow", once the client found no errors | `200` the whole document · `422` `{ errors:, issues: }` |
+| `POST urls[:finalize]` `{ diagram:, version: }` | "Finalize flow", once the client found no errors and any save in flight is answered | `200` the whole document · `422` `{ errors:, issues:, version: }` |
 
 - On a **409** the island fetches `urls[:diagram]`, replaces its document (history
   cleared) and tells the user someone else changed it.
@@ -185,7 +186,10 @@ whole document.**
   state is saved next.
 - Undo and redo work on the client; each step is just one more `PUT`. The version
   travels apart from the document, so undoing never sends an old version.
-- `diagram` omits `issues`; the server recomputes them.
+- `diagram` omits `issues` and `stencil`; the server writes both.
+- A finalize that fails still saved the draft, so its 422 carries the new `version`;
+  without it the next save would answer 409.
+- Requests go one at a time, and an answer to a request sent before a reload is ignored.
 
 `test/dummy/app/controllers/admin/process_flows/diagrams_controller.rb` is the
 reference: it validates through `Bali::BpmnEditor::Data`, answers 409 on a stale
@@ -381,8 +385,9 @@ Listened for: `bali-bpmn:reload`, `bali-bpmn:reference-created`
 (`{ client_lane_id, assignee }`).
 
 Several flows in tabs: render one editor per `Bali::Tabs` panel, each with its own
-`id:`, and listen for `dirty-change` on each. The browser's leave-page warning is
-built in.
+`id:`, and listen for `dirty-change` on each. Leaving with unsaved changes: a full page
+load gets the browser's warning; on a Turbo visit, with autosave the pending change is
+sent at once, and without it the visitor is asked to confirm.
 
 ---
 

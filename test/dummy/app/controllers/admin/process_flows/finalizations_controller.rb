@@ -4,7 +4,8 @@ module Admin
   module ProcessFlows
     # "Finalize flow": saves the posted document, and finalizes it only when
     # the server's own rules raise no error — otherwise 422 with `issues`, which
-    # the island opens in its pending panel.
+    # the island opens in its pending panel, and the new `version`: the draft
+    # was saved, and the island's next save has to carry it.
     class FinalizationsController < BaseController
       skip_forgery_protection
 
@@ -14,7 +15,7 @@ module Admin
 
         errors = flow.server_issues.select { |issue| issue[:severity] == "error" }
         if errors.any?
-          return render json: { errors: errors.pluck(:message), issues: flow.server_issues },
+          return render json: { errors: errors.pluck(:message), issues: flow.server_issues, version: flow.version },
                         status: :unprocessable_entity
         end
 

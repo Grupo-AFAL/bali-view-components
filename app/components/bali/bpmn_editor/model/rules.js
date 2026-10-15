@@ -480,12 +480,17 @@ function interpolate (template, vars) {
 }
 
 // Issues computed by the server (the document's `issues`) next to the
-// client's. Server rules the client also knows are not repeated.
-export function mergeIssues (client, server) {
+// client's. Server rules the client also knows are not repeated, and an issue
+// about an element deleted since the last save is gone with it.
+export function mergeIssues (client, server, doc = null) {
   const seen = new Set(client.map((i) => `${i.rule}:${i.element_id}`))
-  const fromServer = (server || []).filter((i) => !seen.has(`${i.rule}:${i.element_id ?? null}`)).map((i) => ({
-    rule: String(i.rule), element_id: i.element_id == null ? null : String(i.element_id), severity: i.severity === 'warning' ? 'warning' : 'error', message: i.message || String(i.rule), source: 'server'
-  }))
+  const exists = doc
+    ? new Set([...(doc.nodes || []), ...(doc.edges || []), ...(doc.lanes || [])].map((e) => String(e.id)))
+    : null
+  const fromServer = (server || []).filter((i) => !seen.has(`${i.rule}:${i.element_id ?? null}`))
+    .filter((i) => !exists || i.element_id == null || exists.has(String(i.element_id))).map((i) => ({
+      rule: String(i.rule), element_id: i.element_id == null ? null : String(i.element_id), severity: i.severity === 'warning' ? 'warning' : 'error', message: i.message || String(i.rule), source: 'server'
+    }))
   return [...client, ...fromServer]
 }
 

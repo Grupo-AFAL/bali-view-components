@@ -9,9 +9,9 @@
 // Node coordinates are pool-relative and lanes stack, so anything that
 // changes a lane's size or position on the main axis has to carry the nodes of
 // the lanes after it along: `resizeLane` and `reorderLanes` do.
-import { nodeSize, isActivity, isArtifactLike, isStart, isEnd, edgeType, categoryOf, CATEGORY } from './catalog.js'
+import { nodeSize, isActivity, isArtifactLike, isFlowNode, isStart, isEnd, edgeType, categoryOf, CATEGORY } from './catalog.js'
 import {
-  layoutLanes, laneAt, nodeBox, boxesOverlap, laneRequiredSize, axisFor, sortedLanes, laneSize,
+  layoutLanes, laneAt, nodeBox, boxesOverlap, laneRequiredSize, axisFor, sortedLanes, laneSize, insideLane,
   HEADER, LANE_PADDING, DEFAULT_LANE_SIZE, MIN_LANE_SIZE, orientationOf
 } from './geometry.js'
 import { newId, findNode, outgoing, incoming } from './document.js'
@@ -271,6 +271,9 @@ export function connectionError (doc, sourceId, targetId, { type = 'sequence_flo
     if (policy.messageFlowParticipants && participantOf(doc, source) === participantOf(doc, target)) return 'block_message_flow'
     return null
   }
+  // A sequence flow stays inside one process; crossing to an external
+  // participant is what a message flow is for (BPMN 2.0 §9.3).
+  if (policy.messageFlowParticipants && participantOf(doc, source) !== participantOf(doc, target)) return 'block_sequence_participants'
   if (isStart(target)) return 'block_start_target'
   if (isEnd(source)) return 'block_end_source'
   if (policy.oneInOneOut) {
@@ -341,10 +344,12 @@ export function deleteElements (doc, { nodeIds = [], edgeIds = [], laneIds = [] 
     const entry = layout.byId.get(laneId)
     if (!entry) continue
     const later = new Set(layout.entries.filter((e) => e.offset > entry.offset).map((e) => String(e.id)))
+    const moved = new Set(next.nodes.filter((n) => n.lane_id != null && later.has(String(n.lane_id))).map((n) => String(n.id)))
     next = {
       ...next,
       lanes: next.lanes.filter((l) => String(l.id) !== laneId),
-      nodes: next.nodes.map((n) => (n.lane_id != null && later.has(String(n.lane_id)) ? shiftNodeMain(n, -entry.size, layout.axis) : n))
+      nodes: next.nodes.map((n) => (moved.has(String(n.id)) ? shiftNodeMain(n, -entry.size, layout.axis) : n)),
+      edges: clearWaypointsOf(next.edges, moved)
     }
   }
   return { doc: next }
@@ -478,10 +483,16 @@ export function insertOnEdge (doc, edgeId, attrs, point, { policy = DEFAULT_POLI
   const created = createNode(room, attrs, center, { policy, names })
   if (created.error) return created
   const id = String(created.id)
-  const rest = created.doc.edges.filter((e) => !sameId(e.id, edge.id))
-  const first = { ...edge, id: newId(created.doc, 'e_'), target: id, ports: { source: (edge.ports || {}).source || 'auto', target: 'auto' }, waypoints: [] }
-  const second = { id: newId({ ...created.doc, edges: [...rest, first] }, 'e_'), source: id, target: String(edge.target), ports: { source: 'auto', target: (edge.ports || {}).target || 'auto' } }
-  return { doc: { ...created.doc, edges: [...rest, first, second] }, id }
+  // Both halves must be connections that could be drawn by hand: no start
+  // event in the middle of a flow, no end event with something after it.
+  const without = { ...created.doc, edges: created.doc.edges.filter((e) => !sameId(e.id, edge.id)) }
+  const error = connectionError(without, edge.source, id, { policy }) ||
+    connectionError({ ...without, edges: [...without.edges, { id: '__first__', source: String(edge.source), target: id }] }, id, edge.target, { policy })
+  if (error) return blocked(error)
+  // The first half keeps the edge's id, so notes pinned to it stay pinned.
+  const first = { ...edge, target: id, ports: { source: (edge.ports || {}).source || 'auto', target: 'auto' }, waypoints: [] }
+  const second = { id: newId({ ...without, edges: [...without.edges, first] }, 'e_'), source: id, target: String(edge.target), ports: { source: 'auto', target: (edge.ports || {}).target || 'auto' } }
+  return { doc: { ...without, edges: [...without.edges, first, second] }, id }
 }
 
 // Aligns the selected nodes on one axis (to their average). Across the flow
@@ -510,6 +521,15 @@ export function alignNodes (doc, ids, direction, { policy = DEFAULT_POLICY } = {
     edges: clearWaypointsOf(doc.edges, set)
   }
   if (policy.noOverlap && overlapping(next, set)) return blocked('block_overlap')
+  if (policy.insideLane && doc.lanes.length) {
+    // Only what the alignment pushes out counts (an imported node already
+    // outside is a pending issue, not a reason to refuse).
+    const before = layoutLanes(doc)
+    const after = layoutLanes(next)
+    const wasInside = new Set(doc.nodes.filter((n) => insideLane(before, n)).map((n) => String(n.id)))
+    const out = next.nodes.some((n) => set.has(String(n.id)) && isFlowNode(n) && wasInside.has(String(n.id)) && !insideLane(after, n))
+    if (out) return blocked('block_lane')
+  }
   return { doc: fitLanes(next) }
 }
 

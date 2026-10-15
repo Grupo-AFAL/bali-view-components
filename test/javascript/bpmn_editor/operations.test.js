@@ -176,7 +176,6 @@ test('insertOnEdge splits a flow without disconnecting anything and moves the re
   const ids = next.edges.map((e) => [e.source, e.target])
   assert.ok(ids.some(([s, t]) => s === 's' && t === id))
   assert.ok(ids.some(([s, t]) => s === id && t === 't1'))
-  assert.equal(next.edges.some((e) => e.id === 'f1'), false)
   assert.ok(nodeBox(byId(next, 't1')).cx > nodeBox(byId(d, 't1')).cx)
   assert.ok(nodeBox(byId(next, 't2')).cx > before)
   for (const n of next.nodes) assert.ok(insideLane(layoutLanes(next), n), `${n.id} inside its lane`)
@@ -190,4 +189,33 @@ test('alignNodes lines up across lanes on the flow axis, and only inside a lane 
   assert.equal(ops.alignNodes(d, ['t1', 't2'], 'horizontal').error, 'block_align_horizontal')
   const row = ops.alignNodes(d, ['s', 't1'], 'horizontal').doc
   assert.equal(nodeBox(byId(row, 's')).cy, nodeBox(byId(row, 't1')).cy)
+})
+
+test('insertOnEdge refuses a start or end event and keeps the edge id on the first half', () => {
+  assert.equal(ops.insertOnEdge(twoLanes(), 'f1', { type: 'end_event' }, { x: 180, y: 90 }).error, 'block_end_source')
+  assert.equal(ops.insertOnEdge(twoLanes(), 'f1', { type: 'start_event' }, { x: 180, y: 90 }).error, 'block_start_target')
+  const { doc: next, id } = ops.insertOnEdge(twoLanes(), 'f1', { type: 'task' }, { x: 180, y: 90 })
+  assert.deepEqual(next.edges.find((e) => e.id === 'f1'), { id: 'f1', source: 's', target: id, ports: { source: 'auto', target: 'auto' }, waypoints: [] })
+})
+
+test('deleting a lane clears the waypoints of the nodes it moves', () => {
+  const added = ops.addLane(twoLanes(), { name: 'C' })
+  const d = ops.reorderLanes(added.doc, [added.id, 'l1', 'l2']).doc
+  d.edges[2].waypoints = [{ x: 1, y: 1 }, { x: 2, y: 2 }]
+  const removed = ops.deleteElements(d, { laneIds: [added.id] }).doc
+  assert.deepEqual(removed.edges[2].waypoints, [])
+  assert.deepEqual(removed.nodes.map((n) => n.y), twoLanes().nodes.map((n) => n.y), 'nodes back where they were')
+})
+
+test('aligning never pushes a node into the lane header', () => {
+  const d = doc({ lanes: lanes('A', 'B'), nodes: [node('s', 'start_event', 'l1', 72, 90), node('t', 'task', 'l2', 129, 270)] })
+  assert.equal(ops.alignNodes(d, ['s', 't'], 'vertical').error, 'block_lane')
+})
+
+test('a sequence flow does not cross into an external participant', () => {
+  const d = twoLanes()
+  d.lanes[1].kind = 'external'
+  d.edges = d.edges.filter((e) => e.id !== 'f2')
+  assert.equal(ops.connectionError(d, 't1', 't2'), 'block_sequence_participants')
+  assert.equal(ops.connectionError(d, 't1', 't2', { type: 'message_flow' }), null)
 })
