@@ -144,7 +144,13 @@ para que lo finalizado sea exactamente lo que se ve.
 ## Fases
 
 - [x] F0 Diagnóstico y plan
-- [ ] F1 Esqueleto
+- [x] F1 Esqueleto — `Component`, `Data`, `Palette`, `Translations` (en/es), entries npm
+  (`./bpmn-editor`, `-entry`, `-loader`), isla de solo lectura (carriles horizontales y
+  verticales, nodos del catálogo completo dibujados en SVG, conexiones con ruteo ortogonal,
+  etiquetas, minimapa, zoom con porcentaje, navegación a `reference.url`), auto-layout al cargar
+  un documento sin coordenadas, previews (`default`, `vertical`, `large`, `empty`), pruebas Ruby y
+  `node --test` (geometría, ruteo, layout). Muestras sintéticas en
+  `test/dummy/app/models/bpmn_sample_flows.rb`.
 - [ ] F2 Paridad de edición
 - [ ] F3 Paleta, leyenda y carril externo
 - [ ] F4 Reglas, pendientes y Borrador/Finalizar

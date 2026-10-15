@@ -40,6 +40,7 @@ application.register('theme-switcher', ThemeSwitcherController)
 // app/components/bali/gantt/previews/).
 startIslandLoader('react-island-demo')
 startIslandLoader('gantt')
+startIslandLoader('bpmn-editor')
 
 // Register all core Bali controllers (utility + component)
 registerAllControllers(application)

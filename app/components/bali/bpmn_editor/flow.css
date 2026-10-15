@@ -1,0 +1,128 @@
+/* CSS of the BPMN editor ISLAND (#1489), bundled through the bpmn-editor
+ * entry right after @xyflow/react's stylesheet and emitted as the island's
+ * own stylesheet. Not part of the Tailwind build.
+ *
+ * Unlayered on purpose: its adversary is @xyflow/react/dist/style.css, which
+ * is unlayered too, and the rules below win on order and specificity. Two of
+ * them need !important because React Flow writes the property inline on the
+ * node wrapper (`pointer-events: all` on every selectable node). */
+
+.bali-bpmn-editor {
+  --bpmn-line: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+  --bpmn-border: var(--color-base-300);
+  --bpmn-select: var(--color-primary);
+}
+
+.bpmn-canvas { position: relative; min-height: 420px; background: var(--color-base-100); }
+.bpmn-canvas .react-flow__pane { cursor: grab; }
+.bpmn-canvas .react-flow__pane.dragging { cursor: grabbing; }
+.bpmn-canvas.is-placing .react-flow__pane { cursor: crosshair; }
+
+/* Lanes: only the header and the resize controls take the pointer. */
+.bpmn-canvas .react-flow__node-lane { pointer-events: none !important; }
+.bpmn-canvas .react-flow__node-lane .bpmn-lane-header,
+.bpmn-canvas .react-flow__node-lane .react-flow__resize-control { pointer-events: all; }
+.bpmn-canvas .react-flow__node-lane.selected,
+.bpmn-canvas .react-flow__node-lane:focus,
+.bpmn-canvas .react-flow__node-bpmn:focus { outline: none; box-shadow: none; }
+
+.bpmn-lane {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--bpmn-border);
+  background: var(--color-base-100);
+}
+.bpmn-lane-vertical { flex-direction: column; }
+.bpmn-lane.is-external { background: color-mix(in oklab, var(--color-base-content) 7%, var(--color-base-100)); }
+.bpmn-lane-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--color-base-200);
+  color: var(--color-base-content);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  cursor: move;
+  user-select: none;
+}
+.bpmn-lane-horizontal .bpmn-lane-header { border-right: 1px solid var(--bpmn-border); }
+.bpmn-lane-vertical .bpmn-lane-header { border-bottom: 1px solid var(--bpmn-border); padding: 0 28px; }
+.bpmn-lane.is-external .bpmn-lane-header { background: color-mix(in oklab, var(--color-base-content) 13%, var(--color-base-100)); }
+.bpmn-lane.is-selected .bpmn-lane-header,
+.bpmn-lane.is-highlighted .bpmn-lane-header { box-shadow: inset 0 0 0 2px var(--bpmn-select); }
+.bpmn-lane-name { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; line-height: 1.2; overflow: hidden; }
+.bpmn-lane-horizontal .bpmn-lane-name { writing-mode: vertical-rl; transform: rotate(180deg); max-height: 100%; padding: 6px 0; }
+.bpmn-lane-external { font-size: 9.5px; font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); }
+.bpmn-lane-issue { position: absolute; top: 4px; right: 4px; }
+.bpmn-lane-horizontal .bpmn-lane-issue { right: 12px; }
+.bpmn-lane-resize.react-flow__resize-control.line { border-color: transparent; }
+.bpmn-lane-resize.react-flow__resize-control.line.bottom { border-bottom-width: 6px; }
+.bpmn-lane-resize.react-flow__resize-control.line.right { border-right-width: 6px; }
+.bpmn-lane-resize.react-flow__resize-control.line:hover { border-color: color-mix(in oklab, var(--bpmn-select) 45%, transparent); }
+
+/* Flow nodes. */
+.bpmn-node { position: relative; width: 100%; height: 100%; }
+.bpmn-node-shape { display: block; overflow: visible; }
+.bpmn-node.is-selected .bpmn-node-shape,
+.bpmn-node.is-highlighted .bpmn-node-shape { filter: drop-shadow(0 0 0.5px var(--bpmn-select)) drop-shadow(0 0 3px color-mix(in oklab, var(--bpmn-select) 55%, transparent)); }
+.bpmn-node.is-highlighted .bpmn-node-shape { animation: bpmn-pulse 1.2s ease-in-out 2; }
+@keyframes bpmn-pulse { 50% { filter: drop-shadow(0 0 6px var(--bpmn-select)); } }
+.bpmn-label { color: var(--color-base-content); font-size: 11.5px; font-weight: 500; line-height: 1.25; pointer-events: none; overflow-wrap: anywhere; }
+.bpmn-label-inside {
+  position: absolute; inset: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center;
+  overflow: hidden;
+}
+.bpmn-label-below { position: absolute; top: calc(100% + 3px); left: 50%; width: 130px; transform: translateX(-50%); text-align: center; }
+.bpmn-label-side { position: absolute; top: 50%; left: calc(100% + 6px); width: 130px; transform: translateY(-50%); text-align: left; }
+.bpmn-label-gateway { position: absolute; bottom: calc(100% - 6px); left: calc(100% - 10px); width: 150px; text-align: left; }
+.bpmn-label-annotation { position: absolute; inset: 4px 6px 4px 18px; overflow: hidden; font-weight: 400; }
+.bpmn-label-group { position: absolute; top: 6px; left: 10px; font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
+.bpmn-node-link { position: absolute; top: 3px; right: 6px; font-size: 12px; color: var(--color-secondary); }
+.bpmn-canvas.is-readonly .react-flow__node-bpmn { cursor: default; }
+.bpmn-canvas.is-readonly .react-flow__node-bpmn:has(.bpmn-node-link) { cursor: pointer; }
+
+.bpmn-handle.react-flow__handle {
+  width: 9px; height: 9px; border: 1.5px solid var(--bpmn-select); background: var(--color-base-100);
+  opacity: 0; transition: opacity .12s;
+}
+.bpmn-canvas.is-editable .react-flow__node-bpmn:hover .bpmn-handle,
+.bpmn-canvas.is-editable .react-flow__node-bpmn.selected .bpmn-handle,
+.bpmn-canvas.is-connecting .bpmn-handle { opacity: 1; }
+.bpmn-canvas:not(.is-editable) .bpmn-handle { pointer-events: none; }
+
+/* Connections. */
+.bpmn-edge.react-flow__edge-path { stroke: var(--bpmn-line); stroke-width: 1.5; stroke-linejoin: round; fill: none; }
+.bpmn-edge.react-flow__edge-path.is-selected { stroke: var(--bpmn-select); stroke-width: 2.2; }
+.bpmn-edge.react-flow__edge-path.has-issue { stroke: var(--color-warning); }
+.bpmn-marker .bpmn-marker-fill { fill: var(--bpmn-line); }
+.bpmn-marker .bpmn-marker-open { fill: var(--color-base-100); stroke: var(--bpmn-line); stroke-width: 1.2; }
+.bpmn-marker.is-selected .bpmn-marker-fill { fill: var(--bpmn-select); }
+.bpmn-marker.is-selected .bpmn-marker-open { stroke: var(--bpmn-select); }
+.bpmn-markers { position: absolute; width: 0; height: 0; }
+.bpmn-edge-label rect { fill: var(--color-base-100); stroke: var(--bpmn-border); }
+.bpmn-edge-label text { fill: var(--color-base-content); font-size: 11px; font-weight: 600; }
+.react-flow__edge.selected .bpmn-edge-label text { fill: var(--bpmn-select); }
+.bpmn-canvas .react-flow__edge-textwrapper, .bpmn-edge-label { pointer-events: all; cursor: text; }
+
+/* In-place rename. */
+.bpmn-rename {
+  position: absolute; z-index: 10; min-width: 140px; padding: 2px 6px; border: 1px solid var(--bpmn-select);
+  border-radius: 4px; background: var(--color-base-100); color: var(--color-base-content); font-size: 12px;
+}
+.bpmn-lane-horizontal .bpmn-rename { writing-mode: horizontal-tb; transform: none; left: 4px; min-width: 160px; }
+
+.bpmn-canvas .react-flow__minimap { border: 1px solid var(--bpmn-border); border-radius: 8px; background: var(--color-base-100); }
+.bpmn-canvas .react-flow__background { --xy-background-pattern-color: color-mix(in oklab, var(--color-base-content) 18%, transparent); }
+
+/* Palette: an item the host marked with a note. */
+.bpmn-palette-item.has-note { outline: 1.5px dashed var(--color-warning); outline-offset: -2px; }
+.bpmn-palette-swatch-note { display: inline-block; width: 14px; height: 14px; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -2px; }
+
+@media print {
+  .bpmn-chrome { display: none !important; }
+}
