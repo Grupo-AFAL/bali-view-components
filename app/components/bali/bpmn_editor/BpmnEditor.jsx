@@ -16,7 +16,7 @@ import { PALETTE_ITEMS } from './model/catalog.js'
 import * as ops from './model/operations.js'
 import * as history from './model/history.js'
 import { autoLayout } from './model/layout.js'
-import { blockPolicy } from './model/rules.js'
+import { blockPolicy, evaluate, mergeIssues, issuesByElement, hasErrors, ruleList } from './model/rules.js'
 import useSaver from './hooks/useSaver.js'
 import { CanvasContext } from './canvas/CanvasContext.js'
 import FlowNode from './canvas/FlowNode.jsx'
@@ -30,6 +30,8 @@ import PropertiesPanel from './chrome/PropertiesPanel.jsx'
 import { CanvasToolbar, ViewToolbar } from './chrome/CanvasToolbar.jsx'
 import Notices, { HelpBar } from './chrome/Notices.jsx'
 import Legend from './chrome/Legend.jsx'
+import PendingPanel from './chrome/PendingPanel.jsx'
+import RulesDialog from './chrome/RulesDialog.jsx'
 import { openDrawerUrl } from './drawer.js'
 
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
@@ -117,6 +119,7 @@ function Editor ({
   const [highlightId, setHighlightId] = useState(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [dragPositions, setDragPositions] = useState(null) // id → absolute position while dragging
+  const [dialog, setDialog] = useState(null) // null | 'pending' | 'rules'
   const interactive = editable && mode === 'edit'
 
   const selectedSet = useMemo(() => new Set([...selection.nodes, ...selection.edges, ...selection.lanes.map(laneNodeId)]), [selection])
@@ -145,7 +148,10 @@ function Editor ({
     return routeAll(liveDoc, { previous: baseRoutes, onlyIds: touched, boxes: boxesById(liveDoc) })
   }, [liveDoc, baseRoutes, dragPositions])
 
-  const issues = useMemo(() => new Map(), [])
+  // The rules run on every change while editing; a viewer sees no pending
+  // markers. Server issues (the document's `issues`) join them.
+  const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t), doc.issues) : []), [editable, doc, rules, t])
+  const issues = useMemo(() => issuesByElement(issueList), [issueList])
   const baseNodes = useMemo(() => buildRfNodes(doc, { layout, editable: interactive, issues, selected: selectedSet }), [doc, layout, interactive, issues, selectedSet])
   const nodes = useMemo(() => {
     if (!dragPositions) return baseNodes
@@ -521,6 +527,24 @@ function Editor ({
     onLaneResizing: () => {}
   }), [t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize])
 
+  // ── finalize ───────────────────────────────────────────────────────────
+  // The draft always saves; finalizing needs a flow without errors, checked
+  // here first and then by the server, whose 422 `issues` open the panel.
+  const finalize = useCallback(async () => {
+    if (hasErrors(issueList)) {
+      setDialog('pending')
+      notify(t('toast_finalize_blocked'), 'block')
+      return
+    }
+    const result = await saver.finalize()
+    if (result.ok) notify(t('toast_finalized'), 'success')
+    else if (result.issues) {
+      setState((s) => history.adopt(s, { ...s.present, issues: result.issues }))
+      setDialog('pending')
+      notify(t('toast_finalize_blocked'), 'block')
+    }
+  }, [issueList, saver, notify, t])
+
   // ── chrome ─────────────────────────────────────────────────────────────
   const selectedCount = selection.nodes.length
   let help = t('help_default')
@@ -536,7 +560,7 @@ function Editor ({
     <CanvasContext.Provider value={canvas}>
       <div
         ref={wrapperRef}
-        className={`bpmn-editor flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm outline-none ${fullscreen ? 'h-screen' : ''}`}
+        className={`bpmn-editor relative flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm outline-none ${fullscreen ? 'h-screen' : ''}`}
         onPointerDownCapture={() => { activeEditor = wrapperRef.current }}
         tabIndex={-1}
       >
@@ -549,10 +573,14 @@ function Editor ({
           statusLabel={doc.status_label}
           saveStatus={saver.status}
           autosave={autosave}
-          issues={[]}
+          issues={issueList}
+          onIssues={() => setDialog('pending')}
+          onRules={() => setDialog('rules')}
           history={{ undo, redo, canUndo: state.past.length > 0, canRedo: state.future.length > 0 }}
           onSave={saver.save}
-          canFinalize={false}
+          canFinalize={Boolean(urls.finalize)}
+          onFinalize={finalize}
+          finalizing={saver.finalizing}
         />
         <div className={`flex min-h-0 ${fullscreen ? 'flex-1' : 'h-[640px]'}`}>
           {editable && (
@@ -659,6 +687,10 @@ function Editor ({
               : null}
           </div>
         </div>
+        {dialog === 'pending' && (
+          <PendingPanel t={t} issues={issueList} onClose={() => setDialog(null)} onPick={(issue) => { setDialog(null); focusElement(issue.element_id) }} />
+        )}
+        {dialog === 'rules' && <RulesDialog t={t} rules={ruleList(rules || {})} onClose={() => setDialog(null)} />}
       </div>
     </CanvasContext.Provider>
   )

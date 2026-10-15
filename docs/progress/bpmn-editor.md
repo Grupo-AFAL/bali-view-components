@@ -151,6 +151,16 @@ para que lo finalizado sea exactamente lo que se ve.
 - **Selección:** carriles y nodos no se mezclan en una selección; `elevateNodesOnSelect` va
   apagado porque un carril seleccionado taparía sus nodos.
 
+- **Catálogo de reglas:** activas por omisión las del catálogo estándar del issue (R01–R03, R05–R11,
+  R13, R18, R21–R26) y B01–B06, B08–B10 como advertencia. Desactivadas: las opcionales del issue
+  (R12, R14, R15, R16, R17, R19), R04 y R20 (convenciones de dominio) y B07, B11 (estilo).
+- **Gateways de cierre** quedan fuera de R08 y R09: no llevan decisión que nombrar ni describir
+  (guías de Camunda; bpmnlint `label-required` los exige, aquí se relaja).
+- **Participante externo:** un elemento de un carril externo conectado por flujo de mensaje no
+  cuenta como desconectado (R13): el carril externo representa otro proceso.
+- **R20 (mínimo de actividades)** es genérica (`options.min_activities`); el mínimo por nivel de
+  jerarquía queda en la app.
+
 ## Fases
 
 - [x] F0 Diagnóstico y plan
@@ -180,7 +190,15 @@ para que lo finalizado sea exactamente lo que se ve.
   Leyenda flotante plegable sobre el minimapa, configurable (`legend: { add:, remove: }`, `false`).
   Carril externo gris con actividades en blanco (casilla en el panel del carril) y lista de
   participantes con «PE». Preview `configured`.
-- [ ] F4 Reglas, pendientes y Borrador/Finalizar
+- [x] F4 Reglas, pendientes y Borrador/Finalizar — motor desacoplado (`model/rules.js`): 26 reglas
+  del catálogo (R01–R26) y 11 de buenas prácticas BPMN (B01–B11), cada una con fuente; activar,
+  desactivar, cambiar severidad y reemplazar mensaje (`rules:`); reglas de la app con
+  `registerBpmnRule` y pendientes del servidor (`issues`) mezclados sin duplicar. Botón «⚠ N
+  pendientes», panel agrupado por severidad (el clic centra y resalta), diálogo «Reglas» con estado
+  y fuente, triángulo en elementos y carriles. «Finalizar flujo» revisa errores en el cliente y
+  luego hace `POST urls[:finalize]`; un 422 con `issues` abre el panel. Bloqueos inmediatos
+  derivados de las reglas activas (`blockPolicy`). Pruebas: cada regla cumple e incumple
+  (`rules.test.js`).
 - [ ] F5 Edición rápida
 - [ ] F6 Layout
 - [ ] F7 Puntos de extensión
