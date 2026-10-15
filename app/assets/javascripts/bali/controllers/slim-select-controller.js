@@ -357,21 +357,28 @@ export class SlimSelectController extends Controller {
       .forEach(widget => widget.remove())
   }
 
+  // `data` stands in for SlimSelect's own reading of the <select>, so what it would have read
+  // there comes along: the groups, and the placeholder `build_select` puts first
+  // (slim_select_fields.rb) — an option that never carries `data-inner-html` itself.
   dataWithHTML () {
-    return Array.from(this.selectTarget.children).map(option => {
-      return {
-        text: option.text,
-        value: option.value,
-        html: option.dataset.innerHtml, // SlimSelect v3 uses 'html' instead of 'innerHTML'
-        selected: option.selected,
-        disabled: option.disabled
-      }
+    const optionData = option => ({
+      text: option.text,
+      value: option.value,
+      html: option.dataset.innerHtml, // SlimSelect v3 uses 'html' instead of 'innerHTML'
+      selected: option.selected,
+      disabled: option.disabled,
+      placeholder: option.dataset.placeholder === 'true'
     })
+
+    return Array.from(this.selectTarget.children, node =>
+      node.tagName === 'OPTGROUP'
+        ? { label: node.label, options: Array.from(node.children, optionData) }
+        : optionData(node)
+    )
   }
 
   hasInnerHTML () {
-    const firstOption = this.selectTarget.children[0]
-    return firstOption && !!firstOption.dataset.innerHtml
+    return this.selectTarget.querySelector('option[data-inner-html]') !== null
   }
 
   selectAll () {

@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   se veía «B»: el valor se quedaba 20 px corto dentro de una columna que se ajusta a su contenido.
   Lo ven los filtros `slim_select` de afal-apps y gobierno-corporativo. En un campo de formulario un
   valor largo se trunca 16 px más cerca de la flecha. Nada que hacer en la app.
+- **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante o estén
+  en grupos** (#1495). El controlador miraba sólo el primer hijo del `<select>`, que con
+  `include_blank:` o `prompt:` es el placeholder y en una lista agrupada es un `<optgroup>`. En
+  gobierno-corporativo, el selector de procesos de un documento muestra la ruta de cada
+  uno. Nada que hacer en la app; el blank con `data-inner-html` propio que arman sus helpers para
+  esquivarlo ya no hace falta.
 
 ## [v3.17.0] - 2026-10-15
 

@@ -235,7 +235,8 @@ module Bali
         end
 
         # @label Custom HTML
-        # Options with custom HTML content (badges, icons, etc.)
+        # Options with custom HTML content (badges, icons, etc.) — after a blank, and inside
+        # option groups too.
         def custom_html
           render_with_template(
             template: 'bali/form/slim_select/previews/custom_html',
