@@ -445,14 +445,15 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_selector("div.min-w-52 > div > .flatpickr[data-datepicker-mode-value='range']")
   end
 
-  def test_a_date_range_filter_with_presets_keeps_the_generic_cap
+  # #1481: with `presets:` the select and the picker share the wrapper, so a cap there cut both.
+  def test_a_date_range_filter_with_presets_puts_the_floor_on_the_picker
     render_inline(Bali::DataTable::SimpleFilters::Component.new(
       url: "/test",
       filters: [ { attribute: :created_at, label: "Created between", type: :date_range, presets: %i[today] } ]
     ))
 
-    assert_selector("div.sm\\:max-w-56 > div[data-controller='time-period-field']")
-    assert_no_selector(".min-w-52")
+    assert_selector("[data-controller='time-period-field'] > .flatpickr.min-w-52", visible: :all)
+    assert_no_selector(".sm\\:max-w-56")
   end
 
   # #1400: declared on the FilterForm, the placeholder reaches both date controls that read it —

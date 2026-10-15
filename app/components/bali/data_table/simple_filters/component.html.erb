@@ -176,7 +176,8 @@
             <%# `name: nil` leaves the input with no `name` attribute, i.e. out of the submit.
                 The initial `hidden` goes on the WRAPPER (`.flatpickr`), which is what the
                 controller hides: with `alt_input` the real input is already hidden and what is
-                seen is the alt input flatpickr creates beside it, inside that same wrapper. %>
+                seen is the alt input flatpickr creates beside it, inside that same wrapper.
+                Its `min-w-52` is the floor `filter_wrapper_classes` gives a bare range picker. %>
             <%= f.date_field(
                   filter_field_name(filter),
                   name: nil,
@@ -192,7 +193,7 @@
                   "aria-label": preset_picker_accessible_name(filter),
                   alt_input_class: "input input-sm w-full",
                   wrapper_options: {
-                    class: class_names("flatpickr", "hidden" => preset_select_value(filter) != Bali::DateRangePresets::CUSTOM)
+                    class: class_names("flatpickr min-w-52", "hidden" => preset_select_value(filter) != Bali::DateRangePresets::CUSTOM)
                   },
                   data: {
                     "time-period-field-target": "dateInput",

@@ -137,11 +137,13 @@ module Bali
         end
 
         # `min-w-52` is 13 rem: the longest range text measured (DejaVu Sans, ` to `) needs
-        # 184 px. A picker with `presets:` shares its row with the select, so it keeps the cap.
+        # 184 px. With `presets:` the select and the picker share the wrapper, and the generic
+        # 224 px cap cut both ("P…" beside half a range), so the template puts the floor on
+        # the picker alone and the wrapper takes what the two need.
         def filter_wrapper_classes(filter)
           return "" if toggle_group?(filter) || radio_group?(filter)
-          return "w-auto" if number_range?(filter)
-          return "w-auto min-w-52" if date_range?(filter) && !presets?(filter)
+          return "w-auto" if number_range?(filter) || presets?(filter)
+          return "w-auto min-w-52" if date_range?(filter)
 
           "w-auto sm:max-w-56"
         end
