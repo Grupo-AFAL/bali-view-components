@@ -29,7 +29,7 @@ class BaliBpmnEditorPaletteTest < ActiveSupport::TestCase
     resolved = Palette.resolve(preset: :descriptive,
                                items: { group: false, complex_gateway: true, signal_event: "disabled" },
                                notes: { signal_event: "Pending confirmation" },
-                               note_legend: "Dotted: pending")
+                               note_legend: "Dotted: pending", note_label: "pending")
     by_key = resolved[:items].index_by { |item| item[:key] }
 
     assert_nil by_key["group"]
@@ -37,6 +37,7 @@ class BaliBpmnEditorPaletteTest < ActiveSupport::TestCase
     assert_equal "disabled", by_key["signal_event"][:state]
     assert_equal "Pending confirmation", by_key["signal_event"][:note]
     assert_equal "Dotted: pending", resolved[:note_legend]
+    assert_equal "pending", resolved[:note_label]
   end
 
   def test_unknown_input_raises

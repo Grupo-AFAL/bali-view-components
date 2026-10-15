@@ -126,7 +126,7 @@
 .bpmn-canvas .react-flow__background { --xy-background-pattern-color: color-mix(in oklab, var(--color-base-content) 18%, transparent); }
 
 /* Palette: an item the host marked with a note. */
-.bpmn-palette-item.has-note { outline: 1.5px dashed var(--color-warning); outline-offset: -2px; }
+.bpmn-palette-item.has-note { outline: 1.5px dashed var(--color-warning); outline-offset: -2px; background: color-mix(in oklab, var(--color-warning) 12%, transparent); }
 .bpmn-palette-swatch-note { display: inline-block; width: 14px; height: 14px; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -2px; }
 
 .bpmn-canvas .react-flow__panel.bpmn-legend { bottom: 165px; }
@@ -159,4 +159,4 @@
 @media print {
   .bpmn-chrome { display: none !important; }
 }
-.bpmn-note-chip { padding: 0 4px; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -1px; font-size: 10px; font-weight: 600; }
+.bpmn-note-chip { padding: 0 6px; background: color-mix(in oklab, var(--color-warning) 12%, transparent); white-space: nowrap; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -1px; font-size: 10px; font-weight: 600; }

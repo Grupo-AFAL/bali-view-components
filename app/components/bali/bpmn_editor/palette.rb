@@ -56,14 +56,15 @@ module Bali
       ]).freeze
 
       PRESETS = { descriptive: DESCRIPTIVE, analytic: ANALYTIC, full: KEYS }.freeze
-      HASH_KEYS = %i[preset items notes note_legend].freeze
+      HASH_KEYS = %i[preset items notes note_legend note_label].freeze
 
       module_function
 
       # @param option [Symbol, String, Array, Hash, nil] a preset name, the exact
       #   list of keys, or { preset:, items: { key => true | false | "disabled" },
-      #   notes: { key => "text" }, note_legend: "text" }.
-      # @return [Hash] { items: [{ key:, state: "enabled" | "disabled", note: }], note_legend: }
+      #   notes: { key => "text" }, note_legend: "text", note_label: "por confirmar" }. note_label
+      #   names the marked items in each group's header ("3 por confirmar").
+      # @return [Hash] { items: [{ key:, state: "enabled" | "disabled", note: }], note_legend:, note_label: }
       def resolve(option)
         config = normalize(option)
         states = preset_keys(config[:preset]).index_with { "enabled" }
@@ -80,7 +81,8 @@ module Bali
 
         {
           items: KEYS.filter_map { |key| { key: key, state: states[key], note: notes[key] }.compact if states[key] },
-          note_legend: config[:note_legend]&.to_s
+          note_legend: config[:note_legend]&.to_s,
+          note_label: config[:note_label]&.to_s
         }.compact
       end
 
@@ -96,7 +98,7 @@ module Bali
           raise ArgumentError, "unknown palette keys #{unknown.inspect}; expected #{HASH_KEYS.inspect}" if unknown.any?
 
           { preset: (option[:preset] || :descriptive).to_sym, items: (option[:items] || {}).to_h,
-            notes: (option[:notes] || {}).to_h, note_legend: option[:note_legend] }
+            notes: (option[:notes] || {}).to_h, note_legend: option[:note_legend], note_label: option[:note_label] }
         else
           raise ArgumentError, "palette must be a preset, an Array of keys or a Hash, got #{option.class}"
         end

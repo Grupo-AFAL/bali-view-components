@@ -219,7 +219,8 @@ levels of Bruce Silver's *BPMN Method and Style*:
 
 `items:` adds (`true`), removes (`false`) or shows greyed (`"disabled"`) an item.
 `notes:` marks an item with a dotted outline and puts the note in its tooltip;
-`note_legend:` explains the mark at the foot of the palette. Keys:
+`note_legend:` explains the mark at the foot of the palette, and `note_label:` names the
+marked items in each group's header ("3 pending confirmation"). Keys:
 `Bali::BpmnEditor::Palette::KEYS`.
 
 ## Legend

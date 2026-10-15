@@ -68,7 +68,11 @@ export default function Palette ({ t, palette, tool, onPick, onAddLane, collapse
               >
                 <Icon name={open ? 'chevronDown' : 'chevronRight'} size={12} />
                 <span className='grow'>{t(`palette_group_${group}`)}</span>
-                {notes > 0 && <span className='bpmn-note-chip'>{notes}</span>}
+                {notes > 0 && (
+                  <span className='bpmn-note-chip'>
+                    {palette.note_label ? (notes === groupItems.length ? palette.note_label : `${notes} ${palette.note_label}`) : notes}
+                  </span>
+                )}
                 <span className='text-base-content/60'>{groupItems.length}</span>
               </button>
               {open && (
