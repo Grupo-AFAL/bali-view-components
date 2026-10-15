@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Handle, Position } from '@xyflow/react'
+import { Handle, NodeToolbar, Position } from '@xyflow/react'
 import { NodeShape, IssueMarker } from '../shapes.jsx'
 import { categoryOf, nodeSize, CATEGORY } from '../model/catalog.js'
 import { useCanvas } from './CanvasContext.js'
@@ -42,6 +42,11 @@ function FlowNode ({ id, data, selected }) {
         ? canvas.renderRename(node)
         : name && <div className={labelClass(category, node.type, canvas.orientation)}>{name}</div>}
       {linked && !canvas.editable && <span className='bpmn-node-link' aria-hidden='true'>↗</span>}
+      {canvas.quickMenuId === id && (
+        <NodeToolbar isVisible position={Position.Right} align='start' offset={14}>
+          {canvas.renderQuickMenu(node)}
+        </NodeToolbar>
+      )}
       {SIDES.map(([side, position]) => (
         <Handle
           key={side}

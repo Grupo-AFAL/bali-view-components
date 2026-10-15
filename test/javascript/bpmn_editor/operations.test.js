@@ -139,3 +139,55 @@ test('movePool only moves the pool origin', () => {
   assert.deepEqual(d.pool, { x: 40, y: -10 })
   assert.deepEqual(d.nodes, twoLanes().nodes)
 })
+
+test('appendNode adds the next element connected, in the chosen direction', () => {
+  const d = twoLanes()
+  d.nodes.push(node('g', 'exclusive_gateway', 'l1', 450, 90, { name: 'Valid?' }))
+  d.edges = d.edges.filter((e) => e.id !== 'f2').concat(flow('fg', 't1', 'g'))
+  const { doc: next, id } = ops.appendNode(d, 'g', { type: 'end_event' }, 'right', { labels: { yes: 'Yes', no: 'No' } })
+  const created = byId(next, id)
+  assert.ok(nodeBox(created).cx > nodeBox(byId(d, 'g')).cx)
+  assert.equal(created.lane_id, 'l1')
+  assert.deepEqual(next.edges.at(-1), { id: next.edges.at(-1).id, source: 'g', target: id, label: 'Yes' })
+})
+
+test('appendNode moves the following nodes along when the spot ahead is taken', () => {
+  const d = twoLanes()
+  d.edges = d.edges.filter((e) => e.id !== 'f2')
+  d.nodes.push(node('t9', 'task', 'l1', 470, 90, { name: 'Next' }))
+  const before = nodeBox(byId(d, 't9')).cx
+  const { doc: next } = ops.appendNode(d, 't1', { type: 'task' }, 'right')
+  assert.ok(nodeBox(byId(next, 't9')).cx > before, 'the node ahead moved')
+})
+
+test('appendNode is blocked where there is no room and where the connection is not allowed', () => {
+  const d = twoLanes()
+  assert.equal(ops.appendNode(d, 't1', { type: 'task' }, 'right').error, 'block_connection', 't1 already has its outgoing flow')
+  d.edges = d.edges.filter((e) => e.id !== 'f2')
+  assert.equal(ops.appendNode(d, 't1', { type: 'task' }, 'up').error, 'block_no_space', 'above the first lane')
+  assert.equal(ops.appendNode(d, 's', { type: 'task' }, 'left').error, 'block_no_space', 'into the header')
+  assert.equal(ops.appendNode(d, 'e', { type: 'task' }, 'right').error, 'block_end_source')
+})
+
+test('insertOnEdge splits a flow without disconnecting anything and moves the rest along', () => {
+  const d = twoLanes()
+  const before = nodeBox(byId(d, 't2')).cx
+  const { doc: next, id } = ops.insertOnEdge(d, 'f1', { type: 'task' }, { x: 180, y: 90 })
+  const ids = next.edges.map((e) => [e.source, e.target])
+  assert.ok(ids.some(([s, t]) => s === 's' && t === id))
+  assert.ok(ids.some(([s, t]) => s === id && t === 't1'))
+  assert.equal(next.edges.some((e) => e.id === 'f1'), false)
+  assert.ok(nodeBox(byId(next, 't1')).cx > nodeBox(byId(d, 't1')).cx)
+  assert.ok(nodeBox(byId(next, 't2')).cx > before)
+  for (const n of next.nodes) assert.ok(insideLane(layoutLanes(next), n), `${n.id} inside its lane`)
+})
+
+test('alignNodes lines up across lanes on the flow axis, and only inside a lane across it', () => {
+  const d = twoLanes()
+  const column = ops.alignNodes(d, ['t1', 't2'], 'vertical').doc
+  assert.equal(nodeBox(byId(column, 't1')).cx, nodeBox(byId(column, 't2')).cx)
+  assert.equal(byId(column, 't2').lane_id, 'l2')
+  assert.equal(ops.alignNodes(d, ['t1', 't2'], 'horizontal').error, 'block_align_horizontal')
+  const row = ops.alignNodes(d, ['s', 't1'], 'horizontal').doc
+  assert.equal(nodeBox(byId(row, 's')).cy, nodeBox(byId(row, 't1')).cy)
+})

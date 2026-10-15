@@ -8,6 +8,16 @@
         autosave: autosave,
         palette: palette,
         i18n: Bali::BpmnEditor::Translations.island(locale: :es),
+        node_fields: {
+          "*" => [ { key: "owner_note", label: "Nota del responsable", type: "textarea" } ],
+          user_task: [
+            { key: "duration", label: "Duración (minutos)", type: "number", min: 0 },
+            { key: "systems", label: "Sistemas", type: "multi_select",
+              options: [ { value: "erp", label: "ERP" }, { value: "portal", label: "Portal de proveedores" },
+                         { value: "bank", label: "Banca en línea" } ] }
+          ]
+        },
+        lane_fields: [ { key: "notes", label: "Notas", type: "textarea" } ],
         urls: {
           save: admin_process_flow_diagram_path(flow),
           diagram: admin_process_flow_diagram_path(flow),

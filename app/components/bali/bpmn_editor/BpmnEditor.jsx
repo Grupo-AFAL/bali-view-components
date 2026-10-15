@@ -10,9 +10,9 @@ import './flow.css'
 import { translator } from './i18n.js'
 import { normalize } from './model/document.js'
 import { layoutLanes, nodeBox, poolOrigin } from './model/geometry.js'
-import { routeAll, boxesById } from './model/routing.js'
+import { routeAll, boxesById, distanceToRoute } from './model/routing.js'
 import { buildRfNodes, buildRfEdges, isLaneNodeId, laneIdOf, laneNodeId } from './model/flow.js'
-import { PALETTE_ITEMS } from './model/catalog.js'
+import { PALETTE_ITEMS, isFlowNode, isArtifactLike, edgeType } from './model/catalog.js'
 import * as ops from './model/operations.js'
 import * as history from './model/history.js'
 import { autoLayout } from './model/layout.js'
@@ -32,6 +32,7 @@ import Notices, { HelpBar } from './chrome/Notices.jsx'
 import Legend from './chrome/Legend.jsx'
 import PendingPanel from './chrome/PendingPanel.jsx'
 import RulesDialog from './chrome/RulesDialog.jsx'
+import QuickMenu from './chrome/QuickMenu.jsx'
 import { openDrawerUrl } from './drawer.js'
 
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
@@ -120,6 +121,7 @@ function Editor ({
   const [fullscreen, setFullscreen] = useState(false)
   const [dragPositions, setDragPositions] = useState(null) // id → absolute position while dragging
   const [dialog, setDialog] = useState(null) // null | 'pending' | 'rules'
+  const [direction, setDirection] = useState(() => (normalize(data).orientation === 'vertical' ? 'down' : 'right'))
   const interactive = editable && mode === 'edit'
 
   const selectedSet = useMemo(() => new Set([...selection.nodes, ...selection.edges, ...selection.lanes.map(laneNodeId)]), [selection])
@@ -207,12 +209,27 @@ function Editor ({
   const createAt = useCallback((key, point) => {
     const item = PALETTE_ITEMS[key]
     if (!item || !item.node) return
-    const result = apply((d) => ops.createNode(d, item.node, point, { policy, names }))
+    // Dropped on a sequence flow: inserted in it, nothing disconnected.
+    const onEdge = isFlowNode(item.node) && docRef.current.edges.find((e) => {
+      const route = baseRoutes.get(String(e.id))
+      return edgeType(e) === 'sequence_flow' && route && distanceToRoute(point, route) < 10
+    })
+    const result = onEdge
+      ? apply((d) => ops.insertOnEdge(d, onEdge.id, item.node, point, { policy, names }))
+      : apply((d) => ops.createNode(d, item.node, point, { policy, names }))
     if (result) {
       select({ nodes: [String(result.id)] })
       setTool(null)
+      if (onEdge) notify(t('toast_inserted'), 'success')
     }
-  }, [apply, policy, names, select])
+  }, [apply, policy, names, select, baseRoutes, notify, t])
+
+  const appendFrom = useCallback((sourceId, key) => {
+    const item = PALETTE_ITEMS[key]
+    if (!item || !item.node) return
+    const result = apply((d) => ops.appendNode(d, sourceId, item.node, direction, { policy, names, labels }))
+    if (result) select({ nodes: [String(result.id)] })
+  }, [apply, direction, policy, names, labels, select])
 
   const connectNodes = useCallback((source, target, type = 'sequence_flow') => {
     const result = apply((d) => ops.connect(d, source, target, { type, policy, labels }))
@@ -241,12 +258,12 @@ function Editor ({
     updateEdge: (id, patch, coalesce) => apply((d) => ops.updateEdge(d, id, patch), { coalesce }),
     updateLane: (id, patch, coalesce) => apply((d) => ops.updateLane(d, id, patch), { coalesce }),
     moveLane: (id, step) => apply((d) => ops.moveLane(d, id, step)),
-    align: () => {},
+    align: (dir) => apply((d) => ops.alignNodes(d, selection.nodes, dir, { policy })),
     deleteSelection,
     openReference: (node) => openReference(node, hostElement),
     newReference: (nodeId) => urls.new_reference && openDrawerUrl(withParam(urls.new_reference, 'client_node_id', nodeId)),
     newLaneAssignee: (laneId) => urls.new_lane_assignee && openDrawerUrl(withParam(urls.new_lane_assignee, 'client_lane_id', laneId))
-  }), [apply, deleteSelection, hostElement, urls])
+  }), [apply, deleteSelection, hostElement, urls, selection, policy])
 
   // ── React Flow callbacks ───────────────────────────────────────────────
   const onNodesChange = useCallback((changes) => {
@@ -380,6 +397,19 @@ function Editor ({
     if (interactive) setRenamingId(rfNode.id)
   }, [interactive, hostElement])
 
+  const onEdgeClick = useCallback((event, rfEdge) => {
+    if (!tool || tool.kind !== 'place') return
+    const item = PALETTE_ITEMS[tool.key]
+    const edge = docRef.current.edges.find((e) => String(e.id) === rfEdge.id)
+    if (!item || !item.node || !isFlowNode(item.node) || !edge || edgeType(edge) !== 'sequence_flow') return
+    const result = apply((d) => ops.insertOnEdge(d, edge.id, item.node, toPool(event.clientX, event.clientY), { policy, names }))
+    if (result) {
+      select({ nodes: [String(result.id)] })
+      setTool(null)
+      notify(t('toast_inserted'), 'success')
+    }
+  }, [tool, apply, toPool, policy, names, select, notify, t])
+
   const onPaneClick = useCallback((event) => {
     setRenamingId(null)
     if (tool && tool.kind === 'place') { createAt(tool.key, toPool(event.clientX, event.clientY)); return }
@@ -511,6 +541,15 @@ function Editor ({
     </EdgeLabelRenderer>
   ), [apply])
 
+  // The quick menu shows next to the one selected flow node that can be
+  // followed (not an end event, not an artifact) while nothing else is going on.
+  const enabledKeys = useMemo(() => new Set(((palette && palette.items) || []).filter((i) => i.state === 'enabled').map((i) => i.key)), [palette])
+  const single = selection.nodes.length === 1 && !selection.edges.length ? doc.nodes.find((n) => String(n.id) === selection.nodes[0]) : null
+  const quickMenuId = interactive && !tool && !dragPositions && !renamingId && single && single.type !== 'end_event' && !isArtifactLike(single) ? String(single.id) : null
+  const renderQuickMenu = useCallback((node) => (
+    <QuickMenu t={t} enabled={enabledKeys} direction={direction} onDirection={setDirection} onAdd={(key) => appendFrom(node.id, key)} />
+  ), [t, enabledKeys, direction, appendFrom])
+
   const canvas = useMemo(() => ({
     t,
     routes,
@@ -524,8 +563,10 @@ function Editor ({
     renderRename,
     renderEdgeRename,
     onLaneResize,
-    onLaneResizing: () => {}
-  }), [t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize])
+    onLaneResizing: () => {},
+    quickMenuId,
+    renderQuickMenu
+  }), [t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, quickMenuId, renderQuickMenu])
 
   // ── finalize ───────────────────────────────────────────────────────────
   // The draft always saves; finalizing needs a flow without errors, checked
@@ -618,6 +659,7 @@ function Editor ({
               isValidConnection={isValidConnection}
               onNodeClick={onNodeClick}
               onNodeDoubleClick={onNodeDoubleClick}
+              onEdgeClick={interactive ? onEdgeClick : undefined}
               onEdgeDoubleClick={interactive ? (_e, edge) => setRenamingId(edge.id) : undefined}
               onPaneClick={onPaneClick}
               onConnectEnd={interactive ? onConnectEnd : undefined}

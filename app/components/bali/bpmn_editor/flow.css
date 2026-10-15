@@ -126,8 +126,11 @@
 .bpmn-palette-swatch-note { display: inline-block; width: 14px; height: 14px; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -2px; }
 
 .bpmn-canvas .react-flow__panel.bpmn-legend { bottom: 165px; }
-.bpmn-canvas.has-panel .react-flow__panel.bpmn-legend,
+/* With the properties panel open the minimap moves aside and the legend
+ * steps out: React Flow paints panels (z-index 5) over the node toolbar that
+ * holds the quick menu (inside the renderer, z-index 4). */
 .bpmn-canvas.has-panel .react-flow__minimap { right: 300px; }
+.bpmn-canvas.has-panel .react-flow__panel.bpmn-legend { display: none; }
 .bpmn-legend-lane {
   display: inline-block; width: 24px; height: 14px; border: 1px solid var(--bpmn-border);
   background: color-mix(in oklab, var(--color-base-content) 10%, var(--color-base-100));

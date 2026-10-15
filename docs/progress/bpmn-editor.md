@@ -199,7 +199,15 @@ para que lo finalizado sea exactamente lo que se ve.
   luego hace `POST urls[:finalize]`; un 422 con `issues` abre el panel. Bloqueos inmediatos
   derivados de las reglas activas (`blockPolicy`). Pruebas: cada regla cumple e incumple
   (`rules.test.js`).
-- [ ] F5 Edición rápida
+- [x] F5 Edición rápida — menú rápido junto al elemento seleccionado (Actividad, Evento, Gateway,
+  Fin y «Más» con los elementos habilitados de la paleta) con dirección arriba/abajo/izquierda/
+  derecha: crea el siguiente ya conectado; si adelante está ocupado recorre los siguientes, si no
+  hay lugar dice «No fue posible crear el elemento en la dirección solicitada.». Insertar sobre una
+  conexión (arrastrar desde la paleta o clic con la herramienta sobre la línea) sin desconectar.
+  Deshacer/rehacer, atajos, renombrar con doble clic (nodo, carril y etiqueta), panel de propiedades
+  con nombre, descripción, expresión de tiempo, referencia y campos `node_fields`/`lane_fields`
+  (text, textarea, number, select, multi_select locales o remotos, readonly), arrastrar desde la
+  paleta. Alineación de la selección (vertical entre carriles, horizontal sólo en el mismo carril).
 - [ ] F6 Layout
 - [ ] F7 Puntos de extensión
 - [ ] F8 Notas, comparación, salidas, docs

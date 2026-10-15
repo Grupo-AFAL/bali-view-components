@@ -386,3 +386,129 @@ export function setOrientation (doc, orientation) {
   const edges = doc.edges.map((e) => ({ ...e, ports: { source: 'auto', target: 'auto' }, waypoints: [] }))
   return { doc: fitLanes({ ...doc, orientation, lanes, nodes, edges, pool }) }
 }
+
+// ── quick edits ────────────────────────────────────────────────────────────
+
+const GAP = { horizontal: 56, vertical: 46 }
+
+// Moves every node whose centre lies at or beyond `from` on the flow axis by
+// `by`, except `exceptId` — makes room along the flow.
+function shiftAlong (doc, from, by, exceptId) {
+  const axis = axisFor(orientationOf(doc))
+  const moved = new Set()
+  const nodes = doc.nodes.map((n) => {
+    if (sameId(n.id, exceptId)) return n
+    const box = nodeBox(n)
+    const center = axis.cross === 'x' ? box.cx : box.cy
+    if (center < from) return n
+    moved.add(String(n.id))
+    return { ...n, [axis.cross]: (Number(n[axis.cross]) || 0) + by }
+  })
+  return { ...doc, nodes, edges: clearWaypointsOf(doc.edges, moved) }
+}
+
+// "Add the next element" from the quick menu: a node of `attrs` placed next
+// to `sourceId` in `direction` (up/down/left/right), already connected. When
+// the spot ahead along the flow is taken, the following nodes move along;
+// otherwise there is no room and the edit is blocked.
+export function appendNode (doc, sourceId, attrs, direction, { policy = DEFAULT_POLICY, names = {}, labels = {} } = {}) {
+  const source = findNode(doc, sourceId)
+  if (!source) return blocked('block_no_space')
+  const orientation = orientationOf(doc)
+  const axis = axisFor(orientation)
+  const probe = { ...attrs, id: '__probe__' }
+  const connectError = connectionError({ ...doc, nodes: [...doc.nodes, probe] }, source.id, probe.id, { policy })
+  if (connectError) return blocked(connectError)
+  const box = nodeBox(source)
+  const { width, height } = nodeSize(attrs)
+  const gap = GAP[orientation]
+  const center = { x: box.cx, y: box.cy }
+  if (direction === 'right') center.x = box.x + box.w + gap + width / 2
+  if (direction === 'left') center.x = box.x - gap - width / 2
+  if (direction === 'down') center.y = box.y + box.h + gap + height / 2
+  if (direction === 'up') center.y = box.y - gap - height / 2
+  const layout = layoutLanes(doc)
+  if (layout.entries.length) {
+    const entry = laneAt(layout, center)
+    const crossStart = (axis.cross === 'x' ? center.x - width / 2 : center.y - height / 2)
+    if (!entry || crossStart < layout.header) return blocked('block_no_space')
+    // Into another lane: centre it in that lane's band.
+    if (!sameId(entry.id, source.lane_id)) center[axis.main] = entry.offset + entry.size / 2
+  }
+  const forward = (axis.cross === 'x' && direction === 'right') || (axis.cross === 'y' && direction === 'down')
+  let created = createNode(doc, attrs, center, { policy, names })
+  if (created.error === 'block_overlap' && forward) {
+    const from = (axis.cross === 'x' ? box.x + box.w : box.y + box.h) + 1
+    const step = (axis.cross === 'x' ? width : height) + gap
+    created = createNode(shiftAlong(doc, from, step, source.id), attrs, center, { policy, names })
+  }
+  if (created.error) return blocked(created.error === 'block_overlap' || created.error === 'block_lane' ? 'block_no_space' : created.error)
+  const connected = connect(created.doc, source.id, created.id, { policy, labels })
+  if (connected.error) return connected
+  return { doc: connected.doc, id: created.id, edgeId: connected.id }
+}
+
+// Drops a node onto an existing sequence flow: source → new → target, the
+// label and the source port kept on the first half, nothing disconnected.
+// The new node goes right after the source along the flow and everything
+// further along moves to make room.
+export function insertOnEdge (doc, edgeId, attrs, point, { policy = DEFAULT_POLICY, names = {} } = {}) {
+  const edge = doc.edges.find((e) => sameId(e.id, edgeId))
+  if (!edge || edgeType(edge) !== 'sequence_flow') return blocked('block_connection')
+  const source = findNode(doc, edge.source)
+  const target = findNode(doc, edge.target)
+  if (!source || !target) return blocked('block_connection')
+  const orientation = orientationOf(doc)
+  const axis = axisFor(orientation)
+  const { width, height } = nodeSize(attrs)
+  const size = axis.cross === 'x' ? width : height
+  const gap = GAP[orientation]
+  const sourceBox = nodeBox(source)
+  const along = (box) => (axis.cross === 'x' ? box.cx : box.cy)
+  const sourceEnd = axis.cross === 'x' ? sourceBox.x + sourceBox.w : sourceBox.y + sourceBox.h
+  const ahead = along(nodeBox(target)) > along(sourceBox)
+  const center = { ...point }
+  if (ahead) center[axis.cross] = sourceEnd + gap + size / 2
+  const layout = layoutLanes(doc)
+  const dropLane = layout.entries.length ? laneAt(layout, point) : null
+  if (!dropLane || sameId(dropLane.id, source.lane_id)) {
+    center[axis.main] = axis.main === 'y' ? sourceBox.cy : sourceBox.cx
+  }
+  const room = ahead ? shiftAlong(doc, sourceEnd + 1, size + gap, source.id) : doc
+  const created = createNode(room, attrs, center, { policy, names })
+  if (created.error) return created
+  const id = String(created.id)
+  const rest = created.doc.edges.filter((e) => !sameId(e.id, edge.id))
+  const first = { ...edge, id: newId(created.doc, 'e_'), target: id, ports: { source: (edge.ports || {}).source || 'auto', target: 'auto' }, waypoints: [] }
+  const second = { id: newId({ ...created.doc, edges: [...rest, first] }, 'e_'), source: id, target: String(edge.target), ports: { source: 'auto', target: (edge.ports || {}).target || 'auto' } }
+  return { doc: { ...created.doc, edges: [...rest, first, second] }, id }
+}
+
+// Aligns the selected nodes on one axis (to their average). Across the flow
+// ("vertical" for horizontal lanes) they may sit in different lanes; along the
+// lane's stacking axis they must share one, or they would change participant.
+export function alignNodes (doc, ids, direction, { policy = DEFAULT_POLICY } = {}) {
+  const set = new Set(ids.map(String))
+  const nodes = doc.nodes.filter((n) => set.has(String(n.id)))
+  if (nodes.length < 2) return { doc }
+  const axis = axisFor(orientationOf(doc))
+  // "vertical" = line them up in a column (same x); "horizontal" = in a row (same y).
+  const coordinate = direction === 'vertical' ? 'x' : 'y'
+  const acrossLanes = coordinate === axis.main
+  if (acrossLanes && doc.lanes.length && new Set(nodes.map((n) => String(n.lane_id))).size > 1) {
+    return blocked(direction === 'vertical' ? 'block_align_vertical' : 'block_align_horizontal')
+  }
+  const center = (n) => (coordinate === 'x' ? nodeBox(n).cx : nodeBox(n).cy)
+  const target = Math.round(nodes.reduce((sum, n) => sum + center(n), 0) / nodes.length)
+  const next = {
+    ...doc,
+    nodes: doc.nodes.map((n) => {
+      if (!set.has(String(n.id))) return n
+      const half = (coordinate === 'x' ? nodeBox(n).w : nodeBox(n).h) / 2
+      return { ...n, [coordinate]: Math.round(target - half) }
+    }),
+    edges: clearWaypointsOf(doc.edges, set)
+  }
+  if (policy.noOverlap && overlapping(next, set)) return blocked('block_overlap')
+  return { doc: fitLanes(next) }
+}
