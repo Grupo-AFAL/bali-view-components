@@ -18,6 +18,12 @@ export class BpmnEditorController extends ReactIslandController {
     nodeFields: { type: Object, default: {} },
     laneFields: { type: Array, default: [] },
     urls: { type: Object, default: {} },
+    name: { type: String, default: '' },
+    watermark: { type: String, default: '' },
+    // [{ key, label, color }] — the tags review notes can carry.
+    annotationTags: { type: Array, default: [] },
+    // { document, label } — a version to compare against; {} = none.
+    compare: { type: Object, default: {} },
     i18n: { type: Object, default: {} }
   }
 

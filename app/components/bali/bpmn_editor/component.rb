@@ -43,11 +43,17 @@ module Bali
       # @param node_fields [Hash] { node_type (or "*") => [{ key:, label:, type:, options:, url: }] }.
       # @param lane_fields [Array] the same field schema, for lanes.
       # @param urls [Hash] island endpoints, keys in URL_KEYS — see docs/api/bpmn-editor.md.
+      # @param name [String] the diagram's name: title of the image and print outputs, file
+      #   names, and the main participant of the .bpmn export.
+      # @param watermark [String] text across the image and print outputs (e.g. "Borrador").
+      # @param annotation_tags [Array] tags of the review notes: [{ key:, label:, color: }].
+      # @param compare_with [Hash] another version to compare against:
+      #   { document: <a document like data:>, label: "Published v1.0" }.
       # @param i18n [Hash] island strings. Defaults to Bali::BpmnEditor::Translations.island.
       # @param id [String] DOM id; also scopes the events the host sends back.
       def initialize(data:, editable: false, read_only_notice: nil, autosave: true, palette: nil,
-                     legend: nil, rules: {}, node_fields: {}, lane_fields: [], urls: {}, i18n: nil,
-                     id: nil, **options)
+                     legend: nil, rules: {}, node_fields: {}, lane_fields: [], urls: {}, name: nil,
+                     watermark: nil, annotation_tags: [], compare_with: nil, i18n: nil, id: nil, **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @read_only_notice = read_only_notice
@@ -58,6 +64,10 @@ module Bali
         @node_fields = validate_node_fields!(node_fields)
         @lane_fields = validate_fields!(lane_fields, "lane_fields")
         @urls = validate_urls!(urls)
+        @name = name
+        @watermark = watermark
+        @annotation_tags = validate_annotation_tags!(annotation_tags)
+        @compare_with = resolve_compare(compare_with)
         @i18n = i18n
         @id = id
         @options = options
@@ -90,6 +100,10 @@ module Bali
           bpmn_editor_node_fields_value: @node_fields.to_json,
           bpmn_editor_lane_fields_value: @lane_fields.to_json,
           bpmn_editor_urls_value: @urls.to_json,
+          bpmn_editor_name_value: @name,
+          bpmn_editor_watermark_value: @watermark,
+          bpmn_editor_annotation_tags_value: @annotation_tags.to_json,
+          bpmn_editor_compare_value: @compare_with&.to_json,
           bpmn_editor_i18n_value: island_i18n.to_json
         }.compact
       end
@@ -149,6 +163,24 @@ module Bali
 
           field.merge(key: field[:key].to_s, type: type)
         end
+      end
+
+      def validate_annotation_tags!(tags)
+        Array(tags).map do |tag|
+          tag = tag.to_h.symbolize_keys
+          raise ArgumentError, "annotation_tags: every tag needs a key and a label" if tag[:key].blank? || tag[:label].blank?
+
+          tag.slice(:key, :label, :color).transform_values(&:to_s)
+        end
+      end
+
+      def resolve_compare(compare)
+        return nil if compare.blank?
+
+        compare = compare.to_h.symbolize_keys
+        document = compare[:document] or raise ArgumentError, "compare_with needs a document:"
+        document = document.is_a?(Data) ? document : Data.new(document)
+        { document: document.to_h, label: compare[:label].to_s }
       end
 
       def resolve_legend(legend)

@@ -2,6 +2,7 @@ import { paletteKeyFor, isActivity, isEvent, isGateway } from '../model/catalog.
 import Icon from './icons.jsx'
 import FieldInput from './FieldInput.jsx'
 import ReferencePicker from './ReferencePicker.jsx'
+import NotesEditor from './NotesEditor.jsx'
 
 // Mirrors Bali::BpmnEditor::Component::FIELD_TYPES.
 export const FIELD_TYPES = ['text', 'textarea', 'number', 'select', 'multi_select', 'readonly']
@@ -156,7 +157,7 @@ function Participants ({ doc, t, onPick }) {
 // The side panel: properties of what is selected (a node, a connection, a
 // lane, several nodes) or the list of participants. Replaces the modal
 // dialogs of the old editor.
-export default function PropertiesPanel ({ t, doc, selection, api, editable, nodeFields, laneFields, urls, view, onClose, onPickLane }) {
+export default function PropertiesPanel ({ t, doc, selection, api, editable, nodeFields, laneFields, urls, view, onClose, onPickLane, annotationTags = [] }) {
   const nodes = selection.nodes.map((id) => doc.nodes.find((n) => String(n.id) === id)).filter(Boolean)
   const edge = selection.edges.length === 1 ? doc.edges.find((e) => String(e.id) === selection.edges[0]) : null
   const lane = selection.lanes.length === 1 ? doc.lanes.find((l) => String(l.id) === selection.lanes[0]) : null
@@ -193,6 +194,19 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, nod
     title = t('props_lane_title')
     const index = order.indexOf(String(lane.id))
     body = <LaneProperties lane={lane} api={api} t={t} editable={editable} laneFields={laneFields} urls={urls} canMove={{ up: index > 0, down: index < order.length - 1 }} />
+  }
+  const target = nodes.length === 1 ? nodes[0] : edge
+  const notes = target ? (doc.annotations || []).filter((a) => String(a.target_id) === String(target.id)) : []
+  if (target && view !== 'participants' && (editable || notes.length)) {
+    body = (
+      <>
+        {body}
+        <NotesEditor
+          t={t} notes={notes} tags={annotationTags} editable={editable}
+          onAdd={() => api.addNote(target.id)} onChange={api.updateNote} onDelete={api.deleteNote}
+        />
+      </>
+    )
   }
   const hasSelection = nodes.length || edge || lane
   return (

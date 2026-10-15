@@ -17,6 +17,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `<fieldset>` y el valor va en el elemento del controlador. Una subclase local que deshabilita
   campo por campo, como la que afal-apps escribió para Becas, se borra.
 
+- **`Bali::BpmnEditor`: editor de diagramas BPMN 2.0 con carriles** (#1489). Isla de React Flow
+  construida como `Bali::Gantt` (entry propio `bali-view-components/bpmn-editor-entry`, loader y
+  dependencias opcionales `react`, `react-dom`, `@xyflow/react`, `@rails/request.js`). Recibe un
+  documento (`Bali::BpmnEditor::Data`), guarda el documento completo con su versión en `urls[:save]`
+  (200, 409 y 422) y llega a la app por drawers, búsquedas remotas, la acción de Turbo Stream
+  `bali_bpmn_event` (helpers `bali_bpmn_reference_created`, `bali_bpmn_lane_assignee_created`,
+  `bali_bpmn_reload`) y los eventos `bali-bpmn:*`. Trae paleta con presets (`:descriptive`,
+  `:analytic`, `:full`) y notas de la app, leyenda configurable, carril externo, menú rápido con
+  dirección, insertar sobre una conexión, deshacer y rehacer, ruteo ortogonal que rodea elementos,
+  auto-layout con carriles, reglas de modelado R01–R26 y B01–B11 configurables con panel de
+  pendientes y ciclo Borrador/Finalizar, notas de revisión, comparación entre versiones y salidas
+  `.bpmn`, PNG, SVG e impresión con marca de agua. Sin `urls[:save]` o sin `editable:` es un
+  visor.
+  - **Anfitrión:** nada que hacer si no lo usa. Para usarlo, los cuatro pasos de instalación de
+    `docs/api/bpmn-editor.md`; la implementación de referencia está en `test/dummy`
+    (`ProcessFlow` y `Admin::ProcessFlows::*`).
+
 ### Changed
 
 - **El layout de la aplicación se renderiza más rápido, con el mismo HTML** (#1487).

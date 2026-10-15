@@ -17,7 +17,7 @@ function RoutedEdge ({ id, data, selected }) {
   const canvas = useCanvas()
   const route = canvas.routes.get(id)
   if (!route) return null
-  const { edge, issue } = data
+  const { edge, issue, diff } = data
   const type = edgeType(edge)
   const marker = MARKERS[type]
   const { x: ox, y: oy } = canvas.origin
@@ -33,7 +33,7 @@ function RoutedEdge ({ id, data, selected }) {
       <BaseEdge
         id={id}
         path={pathFor(points)}
-        className={`bpmn-edge bpmn-edge-${type}${selected ? ' is-selected' : ''}${issue ? ' has-issue' : ''}`}
+        className={`bpmn-edge bpmn-edge-${type}${selected ? ' is-selected' : ''}${issue ? ' has-issue' : ''}${diff ? ` bpmn-diff-${diff}` : ''}`}
         markerEnd={marker.end ? `url(#${marker.end}${suffix})` : undefined}
         markerStart={marker.start ? `url(#${marker.start}${suffix})` : undefined}
         style={{ strokeDasharray: marker.dash }}

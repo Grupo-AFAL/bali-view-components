@@ -12,8 +12,6 @@ module Bali
   #         client_node_id: params[:client_node_id],
   #         reference: { id: procedure.id, label: procedure.name, url: procedure_path(procedure) }) %>
   module BpmnEditorHelper
-    include Turbo::Streams::ActionHelper
-
     EVENTS = %w[reference-created lane-assignee-created reload].freeze
 
     # @param event [String] one of EVENTS
@@ -23,7 +21,11 @@ module Bali
       event = event.to_s
       raise ArgumentError, "unknown BPMN editor event #{event.inspect}; expected #{EVENTS.inspect}" if EVENTS.exclude?(event)
 
-      turbo_stream_action_tag(:bali_bpmn_event, target: target.presence, event: event, detail: detail.to_json)
+      # Written out rather than through turbo-rails' turbo_stream_action_tag:
+      # this file is eager-loaded in every host and the gemspec does not
+      # declare turbo-rails (test/bali/packaging/dependency_contract_test.rb).
+      content_tag("turbo-stream", tag.template, action: "bali_bpmn_event", target: target.presence,
+                                                 event: event, detail: detail.to_json)
     end
 
     def bali_bpmn_reference_created(client_node_id:, reference:, target: nil)

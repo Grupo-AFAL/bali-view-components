@@ -7,6 +7,15 @@
 class ProcessFlow < ApplicationRecord
   validates :name, presence: true
 
+  SAMPLE_NAME = "Pago a proveedores"
+
+  # The seeded flow, back to the sample (db/seeds.rb, the Cypress spec).
+  def self.reset_sample!
+    flow = find_or_initialize_by(name: SAMPLE_NAME)
+    flow.update!(document: BpmnSampleFlows.invoice.except(:version, :status_label), version: 1, finalized_at: nil)
+    flow
+  end
+
   # The complete document the island receives, and every 200 returns.
   def to_diagram
     document.deep_symbolize_keys.merge(

@@ -12,7 +12,7 @@ import { useCanvas } from './CanvasContext.js'
 // CROSS-axis one the length every lane shares.
 function LaneNode ({ id, data, selected }) {
   const canvas = useCanvas()
-  const { lane, orientation, header, issue } = data
+  const { lane, orientation, header, issue, diff } = data
   const horizontal = orientation === 'horizontal'
   const external = lane.kind === 'external'
   const name = lane.name || canvas.t('lane_unnamed')
@@ -20,7 +20,7 @@ function LaneNode ({ id, data, selected }) {
   const renaming = canvas.renamingId === id
   return (
     <div
-      className={`bpmn-lane bpmn-lane-${orientation}${external ? ' is-external' : ''}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}`}
+      className={`bpmn-lane bpmn-lane-${orientation}${external ? ' is-external' : ''}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}`}
       data-testid='bpmn-lane'
     >
       <div

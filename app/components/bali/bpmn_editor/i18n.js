@@ -334,6 +334,23 @@ export const DEFAULT_I18N = {
   dir_right: 'Right',
   stencil_title: 'To place',
   stencil_hint: 'Drag them onto the diagram.',
+  notes_title: 'Notes',
+  notes_add: 'Add note',
+  notes_empty: 'No notes on this element.',
+  notes_text: 'Note',
+  notes_tag: 'Tag',
+  notes_none_tag: 'No tag',
+  compare: 'Compare',
+  compare_with: 'Compare with %{label}',
+  compare_overlay: 'Overlay',
+  compare_side_by_side: 'Side by side',
+  compare_exit: 'Close comparison',
+  compare_added: 'Added',
+  compare_removed: 'Removed',
+  compare_changed: 'Changed',
+  compare_summary: '%{added} added · %{removed} removed · %{changed} changed',
+  compare_base: 'Before',
+  compare_current: 'Now',
   rename: 'Rename'
 }
 

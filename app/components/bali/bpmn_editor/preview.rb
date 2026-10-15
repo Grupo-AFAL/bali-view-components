@@ -51,6 +51,27 @@ module Bali
         end
       end
 
+      # @label Review notes and comparison (read-only)
+      # A viewer with numbered review notes (tags and colours from the host) and
+      # a previous version to compare against: "Compare" shows what was
+      # added, removed and changed, over one canvas or side by side. The
+      # image, SVG and print outputs carry the "Borrador" watermark.
+      def review
+        current = BpmnSampleFlows.invoice
+        current[:nodes] = current[:nodes].map { |n| n[:id] == "t4" ? n.merge(name: "Programar transferencia bancaria") : n }
+        current[:nodes] << { id: "t5", type: "send_task", lane_id: "l2", name: "Notificar al proveedor", x: 960, y: 290 }
+        current[:annotations] = [
+          { id: "a1", target_id: "t1", number: 1, text: "¿Quién valida las facturas en el extranjero?", tag: "question" },
+          { id: "a2", target_id: "t4", number: 2, text: "Se automatiza en el segundo trimestre.", tag: "keep" }
+        ]
+        previous = BpmnSampleFlows.invoice
+        previous[:nodes] << { id: "t0", type: "task", lane_id: "l2", name: "Imprimir factura", x: 700, y: 300 }
+        island(:es, data: current, name: "Pago a proveedores", watermark: "Borrador",
+                    annotation_tags: [ { key: "question", label: "Pregunta", color: "#2563eb" },
+                                       { key: "keep", label: "Mantener", color: "#16a34a" } ],
+                    compare_with: { document: previous, label: "Vigente v1.0" })
+      end
+
       # @label Large (60 activities)
       # Sixty activities and ten decisions over four lanes, laid out on load.
       def large

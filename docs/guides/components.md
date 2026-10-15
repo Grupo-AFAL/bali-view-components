@@ -2978,6 +2978,30 @@ None of the three is the right call for a **grid of figures** — a metric snaps
 summary — where the number is the content and the label is its caption. That is
 `StatCard` with `surface: :cell`; see [Card or cell?](#card-or-cell) under StatCard.
 
+#### BpmnEditor
+
+BPMN 2.0 diagrams with lanes, drawn and edited in a React Flow island built like the Gantt.
+The component knows BPMN; the app knows its business. It takes one document
+(`Bali::BpmnEditor::Data`), saves the **whole** document back to `urls[:save]` with its version
+(200 / 409 / 422), checks modelling rules (R01–R26 and B01–B11, configurable) and reaches the app
+through drawers, remote searches and the `bali-bpmn:*` events. Without `editable:` or without
+`urls[:save]` it is a viewer. **It needs JavaScript.**
+
+```erb
+<%= render Bali::BpmnEditor::Component.new(
+  data: FlowDiagram.new(@flow).to_h,       # the contract — see Bali::BpmnEditor::Data
+  editable: policy(@flow).edit_diagram?,
+  palette: :analytic,                      # :descriptive (default), :analytic, :full, or a Hash
+  rules: { disabled: %i[R17], options: { min_lanes: 2 } },
+  urls: { save: flow_diagram_path(@flow), diagram: flow_diagram_path(@flow),
+          finalize: flow_finalization_path(@flow) },
+  id: dom_id(@flow, :bpmn)) %>
+```
+
+Everything else — installation, the data and save contracts, the palette and legend options,
+the rule catalogue, field schemas, the extension points and the events — is in
+[docs/api/bpmn-editor.md](../api/bpmn-editor.md).
+
 #### Gantt
 
 Timeline of scheduled work: groups (one nesting level), items (sub-items, milestones as

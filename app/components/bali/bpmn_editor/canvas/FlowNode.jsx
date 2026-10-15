@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Handle, NodeToolbar, Position } from '@xyflow/react'
+import { Handle, NodeToolbar, Position, useStore } from '@xyflow/react'
 import { NodeShape, IssueMarker } from '../shapes.jsx'
 import { categoryOf, nodeSize, CATEGORY } from '../model/catalog.js'
 import { useCanvas } from './CanvasContext.js'
@@ -18,9 +18,29 @@ function labelClass (category, type, orientation) {
   return orientation === 'vertical' ? 'bpmn-label bpmn-label-side' : 'bpmn-label bpmn-label-below'
 }
 
-function FlowNode ({ id, data, selected }) {
+// Width the quick menu needs, and the properties panel that covers the right
+// edge of the canvas while it is open (w-72 + its gap).
+const MENU_WIDTH = 250
+const PANEL_WIDTH = 300
+
+// The quick menu goes to the right of the node, or to its left when there is
+// no room before the canvas edge (or the properties panel). Only the selected
+// node mounts this, so only it follows the viewport.
+function QuickMenuToolbar ({ x, width, children, panelOpen }) {
+  const right = useStore((s) => (x + width) * s.transform[2] + s.transform[0])
+  const paneWidth = useStore((s) => s.width)
+  const room = paneWidth - (panelOpen ? PANEL_WIDTH : 0) - right
+  return (
+    <NodeToolbar isVisible position={room < MENU_WIDTH ? Position.Left : Position.Right} align='start' offset={14}>
+      {children}
+    </NodeToolbar>
+  )
+}
+
+function FlowNode ({ id, data, selected, positionAbsoluteX }) {
   const canvas = useCanvas()
-  const { node, external, issue } = data
+  const { node, external, issue, diff } = data
+  const note = canvas.notesByElement && canvas.notesByElement.get(id)
   const size = nodeSize(node)
   const box = { w: size.width, h: size.height }
   const category = categoryOf(node)
@@ -29,7 +49,7 @@ function FlowNode ({ id, data, selected }) {
   const linked = node.type === 'sub_process' && node.reference && node.reference.url
   return (
     <div
-      className={`bpmn-node bpmn-node-${category}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}`}
+      className={`bpmn-node bpmn-node-${category}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}`}
       data-node-type={node.type}
       data-testid='bpmn-node'
       title={name || undefined}
@@ -41,11 +61,12 @@ function FlowNode ({ id, data, selected }) {
       {renaming
         ? canvas.renderRename(node)
         : name && <div className={labelClass(category, node.type, canvas.orientation)}>{name}</div>}
+      {note && <span className='bpmn-note-number' style={{ '--bpmn-note-color': note.color }} title={note.text}>{note.number}</span>}
       {linked && !canvas.editable && <span className='bpmn-node-link' aria-hidden='true'>↗</span>}
       {canvas.quickMenuId === id && (
-        <NodeToolbar isVisible position={Position.Right} align='start' offset={14}>
+        <QuickMenuToolbar x={positionAbsoluteX} width={box.w} panelOpen={canvas.panelOpen}>
           {canvas.renderQuickMenu(node)}
-        </NodeToolbar>
+        </QuickMenuToolbar>
       )}
       {SIDES.map(([side, position]) => (
         <Handle

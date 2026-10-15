@@ -24,7 +24,7 @@ function IconButton ({ icon, label, shortcut, onClick, disabled }) {
 // finalize actions. Page title, "edit mode" and "exit" belong to the host.
 export default function TopBar ({
   t, editable, statusLabel, saveStatus, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
-  finalizing, exports
+  finalizing, exports, onCompare, comparing
 }) {
   const status = STATUS[saveStatus] || STATUS.saved
   const errors = issues.filter((i) => i.severity === 'error').length
@@ -53,6 +53,11 @@ export default function TopBar ({
           <Icon name='listChecks' size={13} />{t('rules_button')}
         </button>
       )}
+      {onCompare && (
+        <button type='button' className={`btn btn-ghost btn-xs gap-1 ${comparing ? 'btn-active' : ''}`} onClick={onCompare} aria-pressed={String(Boolean(comparing))} data-testid='bpmn-compare-button'>
+          <Icon name='compare' size={13} />{t('compare')}
+        </button>
+      )}
       <span className='grow' />
       {editable && (
         <div className='flex items-center' role='group'>
@@ -64,6 +69,7 @@ export default function TopBar ({
         <div className='flex items-center' role='group'>
           <IconButton icon='download' label={t('download_bpmn')} onClick={exports.bpmn} />
           <IconButton icon='image' label={t('download_image')} onClick={exports.png} />
+          <IconButton icon='note' label={t('download_svg')} onClick={exports.svg} />
           <IconButton icon='printer' label={t('print')} onClick={exports.print} />
         </div>
       )}

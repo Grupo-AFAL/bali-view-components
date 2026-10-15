@@ -227,4 +227,23 @@ para que lo finalizado sea exactamente lo que se ve.
   `reference-created` y `lane-assignee-created`. Importar BPMN abre el drawer `urls[:import]`.
   Implementación de referencia completa en el dummy (búsquedas, drawers y streams), verificada en
   `/admin/process_flows/:id`.
-- [ ] F8 Notas, comparación, salidas, docs
+- [x] F8 Notas, comparación, salidas, docs — notas de revisión numeradas con etiquetas de la app
+  (`annotation_tags:`), modo comparación (`compare_with:`) superpuesto o lado a lado por id,
+  descargas `.bpmn` (BPMN 2.0 XML con DI; carriles externos como participantes; validado con
+  Nokogiri), PNG y SVG del diagrama completo con título y marca de agua (`watermark:`), imprimir.
+  `docs/api/bpmn-editor.md`, sección en `docs/guides/components.md`, fila en el README, entrada en
+  el CHANGELOG. Pruebas de documento grande (60 actividades: layout, ruteo y reglas) en JS, Ruby y
+  preview `large`; Cypress `cypress/e2e/bpmn-editor.cy.js` (6 pruebas en verde).
+
+## Pendiente y siguiente paso
+
+- **Importar BPMN en el cliente:** no se hizo; el botón abre el drawer de la app (`urls[:import]`)
+  y la app responde `bali_bpmn_reload`. Si se quiere en el cliente, el siguiente paso es un
+  `fromBpmnXml` con `DOMParser` en `model/bpmnXml.js` (el inverso de `toBpmnXml`).
+- **Rutas manuales (waypoints):** se dibujan y se exportan si vienen en el documento, pero no hay
+  manijas para editarlas en el lienzo; se puede fijar el puerto o recalcular.
+- **Bordes intermedios (boundary events), subprocesos expandidos y pools múltiples internos:** no
+  están en el modelo; se conservan como tipos desconocidos.
+- **`openDrawerUrl`** está copiado de `GanttFlow.jsx` en `bpmn_editor/drawer.js`; extraerlo a un
+  util compartido es un cambio aparte que toca el Gantt.
+- **Revisión independiente** (`dhh-code-reviewer`) antes del PR, según `.claude/CLAUDE.md`.

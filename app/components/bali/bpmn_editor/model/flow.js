@@ -19,7 +19,7 @@ export const laneIdOf = (id) => String(id).slice(LANE_PREFIX.length)
 const Z_LANE = -20
 const Z_GROUP = -10
 
-export function buildRfNodes (doc, { layout = layoutLanes(doc), editable = false, issues = new Map(), selected = new Set() } = {}) {
+export function buildRfNodes (doc, { layout = layoutLanes(doc), editable = false, issues = new Map(), selected = new Set(), diff = null } = {}) {
   const origin = poolOrigin(doc)
   const lanes = layout.entries.map((entry, index) => {
     const rect = laneRect(layout, entry)
@@ -42,7 +42,8 @@ export function buildRfNodes (doc, { layout = layoutLanes(doc), editable = false
         index,
         orientation: layout.orientation,
         header: layout.header,
-        issue: issues.get(String(entry.id)) || null
+        issue: issues.get(String(entry.id)) || null,
+        diff: diff ? diff.lanes[String(entry.id)] || null : null
       }
     }
   })
@@ -65,14 +66,15 @@ export function buildRfNodes (doc, { layout = layoutLanes(doc), editable = false
       data: {
         node,
         external: node.lane_id != null && external.has(String(node.lane_id)),
-        issue: issues.get(id) || null
+        issue: issues.get(id) || null,
+        diff: diff ? diff.nodes[id] || null : null
       }
     }
   })
   return [...lanes, ...nodes]
 }
 
-export function buildRfEdges (doc, routes, { editable = false, selected = new Set(), issues = new Map() } = {}) {
+export function buildRfEdges (doc, routes, { editable = false, selected = new Set(), issues = new Map(), diff = null } = {}) {
   const edges = []
   for (const edge of doc.edges || []) {
     const id = String(edge.id)
@@ -90,7 +92,7 @@ export function buildRfEdges (doc, routes, { editable = false, selected = new Se
       deletable: editable,
       selected: selected.has(id),
       zIndex: 1,
-      data: { edge, issue: issues.get(id) || null }
+      data: { edge, issue: issues.get(id) || null, diff: diff ? diff.edges[id] || null : null }
     })
   }
   return edges

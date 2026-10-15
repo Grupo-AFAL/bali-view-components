@@ -120,3 +120,29 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal "Flow", island["aria-label"]
   end
 end
+
+class BaliBpmnEditorComponentOutputsTest < ComponentTestCase
+  def payload = { lanes: [], nodes: [], edges: [] }
+
+  def test_name_watermark_tags_and_comparison_reach_the_island
+    render_inline(Bali::BpmnEditor::Component.new(
+      data: payload, name: "Supplier payments", watermark: "Draft",
+      annotation_tags: [ { key: :keep, label: "Keep", color: "#16a34a" } ],
+      compare_with: { document: payload.merge(nodes: [ { id: "n1", type: "task" } ]), label: "v1.0" }
+    ))
+
+    island = page.find(".bali-bpmn-editor")
+    assert_equal "Supplier payments", island["data-bpmn-editor-name-value"]
+    assert_equal "Draft", island["data-bpmn-editor-watermark-value"]
+    assert_equal "keep", JSON.parse(island["data-bpmn-editor-annotation-tags-value"]).dig(0, "key")
+    compare = JSON.parse(island["data-bpmn-editor-compare-value"])
+    assert_equal [ "v1.0", "n1" ], [ compare["label"], compare.dig("document", "nodes", 0, "id") ]
+  end
+
+  def test_a_comparison_document_is_validated_like_data
+    assert_raises(Bali::BpmnEditor::Data::InvalidError) do
+      Bali::BpmnEditor::Component.new(data: payload, compare_with: { document: { orientation: "diagonal" } })
+    end
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, annotation_tags: [ { key: "x" } ]) }
+  end
+end

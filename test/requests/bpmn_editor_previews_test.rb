@@ -3,7 +3,7 @@
 require "test_helper"
 
 class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
-  %w[default vertical large empty].each do |preview|
+  %w[default vertical large empty review].each do |preview|
     define_method("test_the_#{preview}_preview_renders_the_island_and_its_loader_metas") do
       get "/lookbook/preview/bali/bpmn_editor/#{preview}"
 

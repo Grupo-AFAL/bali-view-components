@@ -33,7 +33,7 @@
   },
   "scripts": {
     "standard": "standard",
-    "test:js": "node --test test/javascript/",
+    "test:js": "node --test 'test/javascript/**/*.test.js'",
     "build": "yarn --cwd test/dummy build",
     "check:manifest": "node scripts/check-controller-manifest.mjs",
     "cy:open": "cypress open",

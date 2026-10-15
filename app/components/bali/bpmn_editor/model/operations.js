@@ -512,3 +512,22 @@ export function alignNodes (doc, ids, direction, { policy = DEFAULT_POLICY } = {
   if (policy.noOverlap && overlapping(next, set)) return blocked('block_overlap')
   return { doc: fitLanes(next) }
 }
+
+// ── review notes ───────────────────────────────────────────────────────────
+
+// A numbered note pinned to an element, numbered after the highest one, so
+// deleting a note in the middle leaves the others' numbers alone.
+export function addAnnotation (doc, targetId, { text = '', tag = null } = {}) {
+  const annotations = doc.annotations || []
+  const number = annotations.reduce((max, a) => Math.max(max, Number(a.number) || 0), 0) + 1
+  const note = { id: newId(doc, 'a_'), target_id: String(targetId), number, text, tag }
+  return { doc: { ...doc, annotations: [...annotations, note] }, id: note.id }
+}
+
+export function updateAnnotation (doc, id, patch) {
+  return { doc: { ...doc, annotations: (doc.annotations || []).map((a) => (sameId(a.id, id) ? { ...a, ...patch } : a)) } }
+}
+
+export function deleteAnnotation (doc, id) {
+  return { doc: { ...doc, annotations: (doc.annotations || []).filter((a) => !sameId(a.id, id)) } }
+}

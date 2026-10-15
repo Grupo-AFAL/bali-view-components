@@ -35,6 +35,9 @@ import RulesDialog from './chrome/RulesDialog.jsx'
 import QuickMenu from './chrome/QuickMenu.jsx'
 import Stencil, { STENCIL_MIME } from './chrome/Stencil.jsx'
 import { openDrawerUrl } from './drawer.js'
+import CompareView from './chrome/CompareView.jsx'
+import { toBpmnXml } from './model/bpmnXml.js'
+import { resolveColors, renderSvg, download, downloadPng, printSvg, fileName } from './export/exporters.js'
 
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
 const edgeTypes = { routed: RoutedEdge }
@@ -54,7 +57,8 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, readOnlyNotice, autosave, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement
+  data, editable: editableProp, readOnlyNotice, autosave, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
+  name, watermark, annotationTags, compare
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
@@ -123,6 +127,7 @@ function Editor ({
   const [fullscreen, setFullscreen] = useState(false)
   const [dragPositions, setDragPositions] = useState(null) // id → absolute position while dragging
   const [dialog, setDialog] = useState(null) // null | 'pending' | 'rules'
+  const [compareMode, setCompareMode] = useState(null) // null | 'overlay' | 'side_by_side'
   const [direction, setDirection] = useState(() => (normalize(data).orientation === 'vertical' ? 'down' : 'right'))
   const interactive = editable && mode === 'edit'
 
@@ -278,6 +283,9 @@ function Editor ({
     updateLane: (id, patch, coalesce) => apply((d) => ops.updateLane(d, id, patch), { coalesce }),
     moveLane: (id, step) => apply((d) => ops.moveLane(d, id, step)),
     align: (dir) => apply((d) => ops.alignNodes(d, selection.nodes, dir, { policy })),
+    addNote: (targetId) => apply((d) => ops.addAnnotation(d, targetId)),
+    updateNote: (id, patch, coalesce) => apply((d) => ops.updateAnnotation(d, id, patch), { coalesce }),
+    deleteNote: (id) => apply((d) => ops.deleteAnnotation(d, id)),
     deleteSelection,
     openReference: (node) => openReference(node, hostElement),
     newReference: (nodeId) => urls.new_reference && openDrawerUrl(withParams(urls.new_reference, { client_node_id: nodeId, editor_id: hostElement && hostElement.id })),
@@ -567,6 +575,33 @@ function Editor ({
     </EdgeLabelRenderer>
   ), [apply])
 
+  const tags = useMemo(() => annotationTags || [], [annotationTags])
+  const compareBase = useMemo(() => (compare && compare.document ? normalize(compare.document) : null), [compare])
+  const notesByElement = useMemo(() => {
+    const map = new Map()
+    for (const note of doc.annotations || []) {
+      if (map.has(String(note.target_id))) continue
+      map.set(String(note.target_id), { number: note.number, text: note.text, color: (tags.find((tag) => tag.key === note.tag) || {}).color })
+    }
+    return map
+  }, [doc.annotations, tags])
+  const legendEntries = useMemo(() => {
+    const used = new Set((doc.annotations || []).map((a) => a.tag).filter(Boolean))
+    return [...(legend || []), ...tags.filter((tag) => used.has(tag.key)).map((tag) => ({ key: `note_${tag.key}`, label: tag.label, swatch: 'color', color: tag.color }))]
+  }, [legend, tags, doc.annotations])
+
+  // ── outputs ────────────────────────────────────────────────────────────
+  const exportSvg = useCallback(() => {
+    const { paint, colors } = resolveColors(wrapperRef.current)
+    return renderSvg({ doc, paint, colors, title: name || null, subtitle: doc.status_label || null, watermark: watermark || null, notes: doc.annotations || [], tags })
+  }, [doc, name, watermark, tags])
+  const exports = useMemo(() => ({
+    bpmn: () => download(fileName(name, 'bpmn'), toBpmnXml(doc, { name }), 'application/xml'),
+    svg: () => download(fileName(name, 'svg'), exportSvg(), 'image/svg+xml'),
+    png: () => downloadPng(fileName(name, 'png'), exportSvg()),
+    print: () => printSvg(exportSvg(), name)
+  }), [doc, name, exportSvg])
+
   // The quick menu shows next to the one selected flow node that can be
   // followed (not an end event, not an artifact) while nothing else is going on.
   const enabledKeys = useMemo(() => new Set(((palette && palette.items) || []).filter((i) => i.state === 'enabled').map((i) => i.key)), [palette])
@@ -575,6 +610,9 @@ function Editor ({
   const renderQuickMenu = useCallback((node) => (
     <QuickMenu t={t} enabled={enabledKeys} direction={direction} onDirection={setDirection} onAdd={(key) => appendFrom(node.id, key)} />
   ), [t, enabledKeys, direction, appendFrom])
+
+  const hasSelection = selection.nodes.length || selection.edges.length || selection.lanes.length
+  const showPanel = panel === 'participants' || hasSelection
 
   const canvas = useMemo(() => ({
     t,
@@ -591,8 +629,10 @@ function Editor ({
     onLaneResize,
     onLaneResizing: () => {},
     quickMenuId,
-    renderQuickMenu
-  }), [t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, quickMenuId, renderQuickMenu])
+    renderQuickMenu,
+    notesByElement,
+    panelOpen: Boolean(showPanel)
+  }), [t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, quickMenuId, renderQuickMenu, notesByElement, showPanel])
 
   // ── finalize ───────────────────────────────────────────────────────────
   // The draft always saves; finalizing needs a flow without errors, checked
@@ -620,8 +660,6 @@ function Editor ({
   else if (tool && tool.kind === 'connect') help = t(tool.source ? 'help_connect_target' : 'help_connect_source')
   else if (tool && tool.kind === 'place') help = t('help_place')
   else if (selectedCount === 1) help = t('help_selected')
-  const hasSelection = selection.nodes.length || selection.edges.length || selection.lanes.length
-  const showPanel = panel === 'participants' || hasSelection
 
   return (
     <CanvasContext.Provider value={canvas}>
@@ -648,8 +686,16 @@ function Editor ({
           canFinalize={Boolean(urls.finalize)}
           onFinalize={finalize}
           finalizing={saver.finalizing}
+          exports={exports}
+          onCompare={compareBase ? () => setCompareMode((m) => (m ? null : 'overlay')) : null}
+          comparing={Boolean(compareMode)}
         />
-        <div className={`flex min-h-0 ${fullscreen ? 'flex-1' : 'h-[640px]'}`}>
+        {compareMode && (
+          <div className={fullscreen ? 'min-h-0 flex-1' : 'h-[640px]'}>
+            <CompareView t={t} base={compareBase} current={doc} label={compare.label} mode={compareMode} onMode={setCompareMode} onExit={() => setCompareMode(null)} />
+          </div>
+        )}
+        <div className={`flex min-h-0 ${compareMode ? 'hidden' : ''} ${fullscreen ? 'flex-1' : 'h-[640px]'}`}>
           {editable && (
             <Palette
               t={t} palette={palette} tool={tool && tool.kind === 'place' ? tool : null}
@@ -738,7 +784,7 @@ function Editor ({
                 fullscreen={fullscreen}
                 onFullscreen={toggleFullscreen}
               />
-              <Legend t={t} entries={legend} />
+              <Legend t={t} entries={legendEntries} />
               {interactive && !showPanel && <Stencil t={t} items={doc.stencil} />}
               <ZoomBar t={t} onSelectAll={interactive ? selectAll : null} selectedCount={selectedCount} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} />
             </ReactFlow>
@@ -752,6 +798,7 @@ function Editor ({
                   view={panel === 'participants' && !hasSelection ? 'participants' : 'properties'}
                   onClose={() => { setPanel(null); clearSelection() }}
                   onPickLane={(id) => focusElement(id)}
+                  annotationTags={tags}
                 />
                 )
               : null}
