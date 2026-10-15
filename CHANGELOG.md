@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::Attachments` dentro de un formulario: quitar un archivo ya no envía el formulario de
+  afuera** (#1473, desde v3.16.0). Cada botón de quitar era un `button_to`, un `<form>` anidado: el
+  navegador descartaba su apertura, el primer botón enviaba el formulario del registro y su
+  `</form>` dejaba fuera los campos y el botón «Guardar» de después de la lista. Ahora son
+  `DeleteLink` con la nueva opción `in_form: true`, que sirve a cualquier `DeleteLink` dentro de un
+  formulario: su formulario espera en un `<template>` y el controlador `delete-link` lo coloca
+  después del de afuera al presionar el botón. En afal-apps lo arregla la subida en los formularios
+  de proyecto, entregable y líneas del caso de negocio. Nada que hacer en una app que registra con
+  `registerAll`; la que registre controlador por controlador agrega `delete-link`.
+
 ## [v3.16.2] - 2026-10-14
 
 ### Fixed

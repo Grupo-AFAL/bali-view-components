@@ -1,0 +1,11 @@
+<%= form_with(url: '/lookbook/noop', id: 'record-form', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_group :title %>
+  <%= render Bali::Attachments::Component.new(
+        attachments: files,
+        remove_path: ->(attachment) { "/lookbook/attachments/#{attachment.id}" }
+      ) %>
+  <%= form.text_group :notes %>
+  <div class="mt-4">
+    <%= render Bali::Button::Component.new(name: 'Save', variant: :primary, type: :submit) %>
+  </div>
+<% end %>

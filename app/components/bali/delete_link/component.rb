@@ -33,6 +33,10 @@ module Bali
       # @param icon [Boolean, String, Symbol] `true` for the default trash icon, or the
       #   name of any other icon. Replaces the old `icon:` / `icon_name:` pair, where one
       #   said whether and the other said which.
+      # @param in_form [Boolean] `true` when the button sits inside another `<form>`. HTML has
+      #   no nested forms, so the button renders on its own and its form travels in a
+      #   `<template>` the `delete-link` controller places after the outer form when the button
+      #   is pressed. There is no form around the button for `form_class:` to style.
       # rubocop:disable Metrics/ParameterLists
       def initialize(
         model: nil,
@@ -49,6 +53,7 @@ module Bali
         icon_name: nil,
         authorized: true,
         plain: false,
+        in_form: false,
         **options
       )
         @model = model
@@ -65,6 +70,7 @@ module Bali
         @icon = icon.presence || deprecated_icon_name(icon_name, hint: ICON_HINT)
         @authorized = authorized
         @plain = plain
+        @in_form = in_form
         # `button_to` puts a <form> around the button, and daisyUI styles `.menu li > *`
         # (`:not(.btn)` skips a button, not a form) — so inside a menu the FORM was the
         # item: it took the 6px/12px padding, the radius and the hover box, on top of the
@@ -139,6 +145,14 @@ module Bali
         @disabled
       end
 
+      def in_form?
+        @in_form
+      end
+
+      def form_id
+        @form_id ||= "delete-link-form-#{SecureRandom.hex(4)}"
+      end
+
       def button_classes
         if @plain
           class_names("flex items-center gap-2 text-soft-error", @options[:class])
@@ -163,6 +177,11 @@ module Bali
 
       def button_options
         @options.except(:class)
+      end
+
+      def in_form_button_options
+        options = prepend_controller(detach_data(button_options), "delete-link")
+        prepend_action(options, "delete-link#placeForm")
       end
 
       private

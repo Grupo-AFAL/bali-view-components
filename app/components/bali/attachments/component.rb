@@ -23,8 +23,8 @@ module Bali
       #   of attachments. Only the saved ones render.
       # @param remove_path [Proc, nil] `->(attachment) { path }`, the DELETE route for that
       #   attachment, or nil to leave it without a remove button: who may delete is the host's
-      #   policy, and the route its controller. Not inside a `<form>`: each button is a
-      #   `button_to` form, and a form inside another closes the outer one where it ends.
+      #   policy, and the route its controller. Inside a form or outside one alike: each button
+      #   is a `DeleteLink` rendered `in_form: true`.
       # @param badge [Proc, nil] `->(attachment) { html }`, drawn beside each file.
       # @param empty_text [String, false, nil] What the list says while it holds no file
       #   (default: from the locale files). `false` renders nothing for an empty list.

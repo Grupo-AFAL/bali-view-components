@@ -69,6 +69,12 @@ module Bali
         )
       end
 
+      # Inside another form, `in_form: true`: the button renders on its own and its form waits in
+      # a `<template>` until the button is pressed, so Save still sends the field below it.
+      def in_a_form
+        render_with_template
+      end
+
       # When `authorized: false`, the component does not render at all.
       # This is useful for conditionally hiding delete links based on permissions.
       # @param authorized toggle

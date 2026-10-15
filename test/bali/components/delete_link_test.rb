@@ -158,6 +158,37 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     assert_selector("form[data-bali-confirm-cancel='Cancel']")
   end
 
+  # Inside another form the parser drops a `<form>` start tag, and the `</form>` that follows
+  # closes the outer form early. Capybara leaves a template's content out, as the browser's
+  # document does, so the form is looked for in an HTML5 parse of the markup.
+  def test_in_form_renders_the_button_without_a_form_around_it
+    @options.merge!(in_form: true)
+    render_inline(component)
+
+    assert_no_selector("form")
+    button = page.find("button[type='submit'][data-controller='delete-link'][data-action='delete-link#placeForm']")
+    form = template_form
+    assert_equal button[:form], form[:id]
+    assert_equal "/delete-url", form[:action]
+    assert form.at_css("input[name='_method'][value='delete']")
+  end
+
+  def test_in_form_carries_the_confirm_on_its_form
+    @options.merge!(in_form: true)
+    render_inline(component)
+
+    assert_equal "Are you sure?", template_form["data-turbo-confirm"]
+    assert_equal "danger", template_form["data-bali-confirm-variant"]
+  end
+
+  def test_in_form_keeps_the_hosts_data_beside_its_controller
+    @options.merge!(in_form: true, data: { controller: "tracker", action: "click->tracker#log" })
+    render_inline(component)
+
+    assert_selector("button[data-controller='delete-link tracker']" \
+                    "[data-action='delete-link#placeForm click->tracker#log']")
+  end
+
   def test_authorization_does_not_render_when_authorized_false
     @options.merge!(authorized: false)
     render_inline(component)
@@ -223,5 +254,11 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     @options.merge!(disabled: true, icon: true)
     render_inline(component)
     assert_selector("button .icon-component")
+  end
+
+  private
+
+  def template_form
+    Nokogiri::HTML5.fragment(rendered_content).at_css("button > template[data-delete-link-target='template'] > form")
   end
 end

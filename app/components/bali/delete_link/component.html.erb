@@ -16,6 +16,18 @@
       <% end %>
     <% end %>
   <% end %>
+<% elsif in_form? %>
+  <%# The parser drops a `<form>` start tag inside another form, except inside a `<template>`. %>
+  <%= tag.button(type: 'submit', form: form_id, class: button_classes, **in_form_button_options) do %>
+    <% if icon_name.present? %>
+      <%= render Bali::Icon::Component.new(icon_name, size: :small) %>
+    <% end %>
+
+    <%= name %>
+    <template data-delete-link-target="template">
+      <%= form_tag(href, method: :delete, id: form_id, hidden: true, data: confirm_data) {} %>
+    </template>
+  <% end %>
 <% else %>
   <%= button_to href, method: :delete,
                       form: { data: confirm_data },
