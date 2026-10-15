@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`checkbox-toggle` deshabilita la parte oculta con `data-checkbox-toggle-disable-hidden-value="true"`**
+  (#1486), como ya hacía `radio-toggle`. El target oculto, que tiene que ser un `<fieldset>`,
+  queda deshabilitado: el navegador no valida ni manda sus campos, así que un `required` del lado
+  oculto —un `file_group` lo respeta desde v3.12.0— ya no detiene el formulario sin aviso. Sin el
+  valor, nada cambia. Nada que hacer en `main` de ninguna app. Para usarlo, los targets pasan a
+  `<fieldset>` y el valor va en el elemento del controlador. Una subclase local que deshabilita
+  campo por campo, como la que afal-apps escribió para Becas, se borra.
+
 - **`Bali::DeleteLink` toma `in_form: true` para un botón dentro de otro formulario** (#1473). El
   botón se pinta solo y nombra su formulario con el atributo `form`; ese formulario espera en un
   `<template>` y el controlador nuevo `delete-link` lo coloca antes del de afuera al presionar el
@@ -42,7 +50,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   atributos propios del anfitrión (`data:`, `id:`, `title:`…) se sigue armando con `tag`.
   - **Anfitrión:** nada que hacer.
 
+- **El layout de la aplicación se renderiza más rápido, con el mismo HTML** (#1487).
+  `Bali::Icon` guarda ya armado el `<svg>` de cada ícono de Lucide, por nombre y tamaño, y lo
+  reusa en las páginas siguientes. `SideMenu::Item` calcula una sola vez su coincidencia con la
+  ruta actual (antes, hasta ocho veces por renglón) y renderiza su ícono una vez para la fila y
+  para el riel colapsado. En afal-apps y gobierno-corporativo, el layout tarda entre 19 y 21 %
+  menos. El marcado no cambia ni un byte: `test/bali/components/layout_markup_golden_test.rb` lo
+  compara entero contra `test/fixtures/layout_markup`, en los previews de AppLayout, SideMenu,
+  Command, Topbar, Tooltip e Icon y en los casos que éstos no cubren.
+  - **Anfitrión:** nada que hacer. `LucideRails.default_options` se lee la primera vez que se
+    dibuja cada ícono, así que cambiarlo después del arranque ya no alcanza a los ya dibujados.
+    Ninguna app lo cambia.
+  - **En la gema:** un preview nuevo de esos seis componentes, o un cambio deliberado de su
+    marcado, pide reescribir los archivos con `GOLDEN=update bin/rails test
+    test/bali/components/layout_markup_golden_test.rb` y revisar su diff.
+
+- **Los renglones del menú lateral y de la paleta, el tooltip del riel y el envoltorio de cada
+  ícono se escriben sin pasar por `tag`, con el mismo HTML** (#1488). La copia de cada hoja en
+  el riel colapsado ya no renderiza un `Bali::Tooltip`, y las listas de clases fijas dejan de
+  pasar por `class_names`. Sumado a #1487, el layout tarda entre 34 y 43 % menos que en v3.16.2
+  (de 3 a 13 ms menos por página en afal-apps y gobierno-corporativo). Un renglón o un ícono con
+  atributos propios del anfitrión (`data:`, `id:`, `title:`…) se sigue armando con `tag`.
+  - **Anfitrión:** nada que hacer.
+
+- **El layout de la aplicación se renderiza más rápido, con el mismo HTML** (#1487).
+  `Bali::Icon` guarda ya armado el `<svg>` de cada ícono de Lucide, por nombre y tamaño, y lo
+  reusa en las páginas siguientes. `SideMenu::Item` calcula una sola vez su coincidencia con la
+  ruta actual (antes, hasta ocho veces por renglón) y renderiza su ícono una vez para la fila y
+  para el riel colapsado. En afal-apps y gobierno-corporativo, el layout tarda entre 19 y 21 %
+  menos. El marcado no cambia ni un byte: `test/bali/components/layout_markup_golden_test.rb` lo
+  compara entero contra `test/fixtures/layout_markup`, en los previews de AppLayout, SideMenu,
+  Command, Topbar, Tooltip e Icon y en los casos que éstos no cubren.
+  - **Anfitrión:** nada que hacer. `LucideRails.default_options` se lee la primera vez que se
+    dibuja cada ícono, así que cambiarlo después del arranque ya no alcanza a los ya dibujados.
+    Ninguna app lo cambia.
+  - **En la gema:** un preview nuevo de esos seis componentes, o un cambio deliberado de su
+    marcado, pide reescribir los archivos con `GOLDEN=update bin/rails test
+    test/bali/components/layout_markup_golden_test.rb` y revisar su diff.
+
+- **Los renglones del menú lateral y de la paleta, el tooltip del riel y el envoltorio de cada
+  ícono se escriben sin pasar por `tag`, con el mismo HTML** (#1488). La copia de cada hoja en
+  el riel colapsado ya no renderiza un `Bali::Tooltip`, y las listas de clases fijas dejan de
+  pasar por `class_names`. Sumado a #1487, el layout tarda entre 34 y 43 % menos que en v3.16.2
+  (de 3 a 13 ms menos por página en afal-apps y gobierno-corporativo). Un renglón o un ícono con
+  atributos propios del anfitrión (`data:`, `id:`, `title:`…) se sigue armando con `tag`.
+  - **Anfitrión:** nada que hacer.
+
 ### Fixed
+
+- **`Bali::Calendar`: los encabezados de mes empiezan con mayúscula** (#1485). Con un
+  `es.date.month_names` en minúscula, como el de rails-i18n, el encabezado decía «octubre 2026» y
+  la vista de año «enero», «febrero»…; ahora «Octubre 2026», «Enero». Las fechas no cambian, ni la
+  etiqueta accesible de cada día del año («5 marzo 2026»). Nada que hacer en la app;
+  gobierno-corporativo puede borrar su parche de `::first-letter` en `application.css`.
+
+- **`DataTable::SimpleFilters`: un `date_range` con `presets:` ya no recorta «Personalizado…» ni el
+  rango** (#1481, desde v3.1.0). Al elegir «Personalizado…», la lista y el selector de fechas
+  compartían los 224 px del tope genérico de un filtro: la lista quedaba en «P…» y el rango a
+  medias. Ahora el filtro toma el ancho de los dos, y el selector, el mismo mínimo de 13 rem que un
+  `date_range` sin `presets:`. Con un periodo elegido mide lo mismo que antes mientras la etiqueta y
+  las opciones quepan en esos 224 px, como en garita y afal-apps. Nada que hacer en la app.
 
 - **`Bali::Attachments` dentro de un formulario: quitar un archivo ya no envía el formulario de
   afuera** (#1473, desde v3.16.0). Cada botón de quitar es un `DeleteLink`, que pintaba un

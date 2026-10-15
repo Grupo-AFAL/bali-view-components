@@ -138,6 +138,13 @@ two-target variant of `checkbox-reveal`.
 
 `checked` sets the initial state before the first change event.
 
+**Hidden fields are not sent** — `data-checkbox-toggle-disable-hidden-value="true"`
+disables the hidden target, which has to be a `<fieldset>`. A disabled fieldset
+sends none of its fields and the browser skips their validation, so a `required`
+field on the hidden side no longer stops the form; the fields keep their own
+`disabled` and a file already chosen. Live in the
+`bali/checkbox_toggle/required_fields` preview.
+
 ## `datepicker`
 
 Date picker built on [flatpickr](https://flatpickr.js.org/) (optional peer,

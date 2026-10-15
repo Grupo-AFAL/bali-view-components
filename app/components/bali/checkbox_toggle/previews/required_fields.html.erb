@@ -1,0 +1,27 @@
+<%# The form GETs its own URL so the query string at the bottom is the record of what
+    was sent: with `disable-hidden` on, the hidden side's file is not in it. It submits
+    without Turbo, which leaves files out of a GET's query string. %>
+<%= form_with(scope: :expense, url: request.path, method: :get, builder: Bali::FormBuilder,
+              class: "max-w-lg space-y-2",
+              data: { turbo: false,
+                      controller: "checkbox-toggle",
+                      checkbox_toggle_checked_value: false,
+                      checkbox_toggle_disable_hidden_value: (true if disable_hidden) }) do |form| %>
+  <fieldset data-checkbox-toggle-target="off" data-testid="invoice">
+    <%= form.file_group :pdf_invoice, label: "Invoice (PDF)", accept: ".pdf", required: true %>
+  </fieldset>
+
+  <fieldset class="hidden" data-checkbox-toggle-target="on" data-testid="receipts">
+    <%= form.file_group :receipts, label: "School receipts", multiple: true, required: true %>
+  </fieldset>
+
+  <%= form.boolean_group :public_school_fee, text: "Public school registration fee",
+        data: { action: "checkbox-toggle#change" } %>
+
+  <%= form.submit_group "Save" %>
+<% end %>
+
+<p class="mt-6 text-sm" data-testid="query">
+  Query string:
+  <code><%= request.query_string.presence || "(empty)" %></code>
+</p>
