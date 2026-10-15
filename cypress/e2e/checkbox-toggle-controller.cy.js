@@ -1,0 +1,48 @@
+describe('CheckboxToggleController', () => {
+  const target = name => cy.get(`[data-testid="${name}"]`)
+  const box = () => cy.contains('label', 'Public school registration fee').find('input[type="checkbox"]')
+  // `force`: Bali's file field hides the native input behind its own button.
+  const attachInvoice = () => cy.get('#expense_pdf_invoice')
+    .selectFile({ contents: Cypress.Buffer.from('%PDF'), fileName: 'invoice.pdf' }, { force: true })
+
+  context('with disable-hidden', () => {
+    beforeEach(() => cy.visit('/bali/checkbox_toggle/required_fields'))
+
+    it('disables the side hidden on connect', () => {
+      target('receipts').should('have.class', 'hidden').and('be.disabled')
+      target('invoice').should('not.have.class', 'hidden').and('be.enabled')
+    })
+
+    it('swaps which side is disabled as the checkbox changes', () => {
+      box().check()
+      target('invoice').should('have.class', 'hidden').and('be.disabled')
+      target('receipts').should('not.have.class', 'hidden').and('be.enabled')
+
+      box().uncheck()
+      target('receipts').should('have.class', 'hidden').and('be.disabled')
+      target('invoice').should('not.have.class', 'hidden').and('be.enabled')
+    })
+
+    it('sends the form without the required file on the hidden side', () => {
+      attachInvoice()
+      cy.contains('button', 'Save').click()
+
+      cy.get('[data-testid="query"]').should('contain', 'pdf_invoice%5D=invoice.pdf')
+      cy.get('[data-testid="query"]').should('not.contain', 'receipts')
+    })
+  })
+
+  context('without disable-hidden', () => {
+    beforeEach(() => cy.visit('/bali/checkbox_toggle/required_fields?disable_hidden=false'))
+
+    it('leaves the hidden side enabled, so its required file still stops the form', () => {
+      attachInvoice()
+
+      target('receipts').should('have.class', 'hidden').and('be.enabled')
+      cy.get('form[data-controller="checkbox-toggle"]').should(($form) => {
+        const invalid = [...$form[0].elements].filter(field => field.willValidate && !field.validity.valid)
+        expect(invalid.map(field => field.name)).to.deep.equal(['expense[receipts][]'])
+      })
+    })
+  })
+})
