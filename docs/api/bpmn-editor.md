@@ -398,8 +398,9 @@ sent at once, and without it the visitor is asked to confirm.
   flow it is inserted into it — nothing disconnects, and what follows moves along.
 - **Quick menu** next to the selected element: activity, intermediate event,
   gateway, end, or "More", towards any of four directions, already connected. When the
-  spot ahead is taken the following elements move along; when there is no room it says
-  so.
+  spot ahead is taken the following elements move along; past the first or last lane,
+  across the flow, that lane grows; when there is still no room (into a lane header) it
+  says so.
 - **Lanes**: add, rename in the header (double-click), drag the header over another
   lane to reorder or elsewhere to move them all, resize one lane or the common length,
   mark external (grey lane, white activities).
@@ -426,15 +427,24 @@ Typing in the properties panel, resizing lanes and moving the pool are not re-ar
 
 **Tidy up** lays the whole diagram out again: a straight happy path, the branches of a split
 symmetric around it, exceptions alternating below and above, aligned columns and uniform
-spacing. Then it fits the view. A fit never goes below **40 %**; a larger diagram opens at
-its start and scrolls.
+spacing. Then it fits the view, clear of the toolbars and of the open legend or properties
+panel. A fit never goes below **40 %**; a larger diagram opens at its start and scrolls.
+
+The canvas reserves no room for the **legend**: when the view settles with an element under
+the open legend, it folds itself to its title. Opened again by hand, it stays open until the
+view moves.
 
 What is kept at zero after any operation, with auto-arrange on:
 
 - elements on top of each other; a flow element outside its lane or on its header;
 - a connection through an element, an element's name or a pending badge;
 - two connections sharing a stretch of line (parallel lines keep ≥ 12 px apart);
-- labels on labels, lines or elements; a badge on a label.
+- labels on labels, lines or elements; a badge on a label;
+- two branches of a gateway with up to three ways out leaving by the same side. The
+  continuation in the gateway's own lane (with none, the branch most in line with it) leaves
+  straight by the reading-direction side — right, or bottom in vertical lanes — and the others
+  by the side towards their target. "Tidy up" keeps that continuation on the gateway's row
+  even when the longest way ahead goes to another lane.
 
 Conventions, and where they come from:
 
@@ -444,7 +454,7 @@ Conventions, and where they come from:
 | The happy path in a straight line, left to right (top to bottom in vertical lanes) | Bruce Silver, *BPMN Method and Style* (2nd ed.) — the happy path; Camunda (model left to right, emphasize the happy path) |
 | Splits drawn symmetrically | Camunda (model symmetrically) |
 | A loop back runs under or over the flow, not through it | Camunda (avoid crossing flows); *Method and Style* |
-| Flow in on the left/top side, out on the right/bottom; a gateway's branches leave from distinct corners | *Method and Style*; Camunda (model symmetrically) |
+| Flow in on the left/top side, out on the right/bottom; a gateway's branches leave by distinct corners, the straight one by the reading side | *Method and Style*; Camunda (model symmetrically) |
 | Uniform element sizes, a 10 px grid, uniform spacing | *Method and Style* |
 | Event names below the event, gateway names above it; a connection's label next to where it leaves its source | *Method and Style* (labeling); Camunda (labeling gateways and their outgoing flows) |
 | Text annotations and data objects next to the element they belong to | *Method and Style* |
@@ -461,7 +471,7 @@ over 200 random sequences of 30 edits with auto-arrange on (hard violations: 0).
 | Invoice (3 lanes, external participant) | 0 | 0 | ≤ 1 | ≤ 2 |
 | Decision with rework | 0 | ≤ 1 | ≤ 1.5 | ≤ 4 |
 | Three-branch parallel | 0 | 0 | ≤ 1 | ≤ 2 |
-| 60 activities, 4 lanes | 0 | ≤ 1 | ≤ 1 | ≤ 2 |
+| 60 activities, 4 lanes | 0 | 0 | ≤ 1 | ≤ 2 |
 | Two external participants | 0 | 0 | ≤ 1 | ≤ 2 |
 
 ## Outputs, notes and comparison

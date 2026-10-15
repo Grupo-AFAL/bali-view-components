@@ -32,3 +32,10 @@ test('at the floor, an axis whose start is already in view is left alone', () =>
   anchorStart(flow, fitOptions())
   assert.deepEqual(flow.calls, [])
 })
+
+test('the fit keeps the diagram clear of the properties panel and of the open legend', () => {
+  assert.equal(fitOptions().padding.right, '40px')
+  assert.equal(fitOptions({ legendOpen: true }).padding.right, '290px')
+  assert.equal(fitOptions({ panelOpen: true }).padding.right, '320px')
+  assert.equal(fitOptions({ legendOpen: true, panelOpen: true }).padding.right, '320px')
+})

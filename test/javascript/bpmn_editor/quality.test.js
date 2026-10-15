@@ -6,15 +6,16 @@ import { autoLayout } from '../../../app/components/bali/bpmn_editor/model/layou
 import { arrange } from '../../../app/components/bali/bpmn_editor/model/arrange.js'
 import { measure, sharedLength, segmentsCross } from '../../../app/components/bali/bpmn_editor/model/layoutQuality.js'
 import { setOrientation } from '../../../app/components/bali/bpmn_editor/model/operations.js'
+import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 
 // Ceilings for the soft measures after Auto-arrange, per fixture: what the
 // layout reaches today, so a regression shows. Crossings stay at most one
-// (the 60-activity flow has one); bends average at most one per connection.
+// (the rework loop has one); bends average at most one per connection.
 const CEILING = {
   invoice: { crossings: 0, avgBends: 1, maxBends: 2 },
   rework: { crossings: 1, avgBends: 1.5, maxBends: 4 },
   parallel: { crossings: 0, avgBends: 1, maxBends: 2 },
-  large: { crossings: 1, avgBends: 1, maxBends: 2 },
+  large: { crossings: 0, avgBends: 1, maxBends: 2 },
   partners: { crossings: 0, avgBends: 1, maxBends: 2 }
 }
 
@@ -58,4 +59,39 @@ test('the hand-placed invoice flow has violations Auto-arrange removes', () => {
   const loaded = normalize(FIXTURES.invoice())
   assert.ok(measure(loaded).hard > 0)
   assert.equal(measure(autoLayout(loaded)).hard, 0)
+})
+
+test('the metric counts two branches of a gateway leaving by the same side', () => {
+  const doc = normalize(FIXTURES.invoice())
+  const route = (points) => ({ points })
+  const routes = new Map(doc.edges.map((e) => [String(e.id), route([{ x: 0, y: 0 }, { x: 0, y: 1 }])]))
+  // Both out of g1 downwards, 12 px apart: no shared stretch, still one side.
+  routes.set('f3', route([{ x: 450, y: 275 }, { x: 450, y: 400 }]))
+  routes.set('f4', route([{ x: 462, y: 271 }, { x: 462, y: 300 }, { x: 600, y: 300 }]))
+  const m = measure(doc, { routes, edgeLabels: new Map() })
+  assert.equal(m.gatewaySharedSide, 1)
+  assert.deepEqual(m.details.find((d) => d[0] === 'gatewaySharedSide'), ['gatewaySharedSide', 'g1', 'f3', 'f4', 'bottom'])
+})
+
+// "No" goes on in the gateway's lane, "Yes" to the next lane: "No" leaves
+// straight out the reading side on the gateway's row, "Yes" by the side
+// towards its lane.
+for (const [orientation, straight, towardsNextLane] of [['horizontal', 'right', 'bottom'], ['vertical', 'bottom', 'right']]) {
+  test(`the invoice's gateway after Tidy up (${orientation}): its branches leave by distinct sides, the one in its lane straight`, () => {
+    const doc = autoLayout(normalize({ ...FIXTURES.invoice(), orientation }))
+    const routes = routeAll(doc)
+    assert.equal(routes.get('f4').sourceSide, straight)
+    assert.equal(routes.get('f3').sourceSide, towardsNextLane)
+    assert.equal(routes.get('f4').points.length, 2, 'No → Invoice rejected is one straight line')
+    assert.equal(measure(doc, { routes }).gatewaySharedSide, 0)
+  })
+}
+
+test('a gateway whose branches both lie below it still sends them out by distinct sides: the one in its lane by the reading side', () => {
+  const laid = autoLayout(normalize(FIXTURES.invoice()))
+  // "Invoice rejected" a row lower, still in the gateway's lane: both targets are below.
+  const doc = { ...laid, nodes: laid.nodes.map((n) => (n.id === 'e2' ? { ...n, y: n.y + 60 } : n)) }
+  const routes = routeAll(doc)
+  assert.equal(routes.get('f4').sourceSide, 'right')
+  assert.equal(routes.get('f3').sourceSide, 'bottom')
 })

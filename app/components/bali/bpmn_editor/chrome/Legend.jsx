@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Panel } from '@xyflow/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Panel, useOnViewportChange } from '@xyflow/react'
 import { NodeShape, LIVE_PAINT } from '../shapes.jsx'
 import Icon from './icons.jsx'
 
@@ -25,15 +25,41 @@ function Swatch ({ swatch, color }) {
   }
 }
 
+// Whether an element of the diagram is drawn under `panel` right now.
+export function coversContent (panel) {
+  const flow = panel && panel.closest('.react-flow')
+  if (!flow) return false
+  const r = panel.getBoundingClientRect()
+  return [...flow.querySelectorAll('.react-flow__node-bpmn')].some((node) => {
+    const b = node.getBoundingClientRect()
+    return b.left < r.right && r.left < b.right && b.top < r.bottom && r.top < b.bottom
+  })
+}
+
 // What each colour means on the canvas. The entries come from the host
 // (Bali::BpmnEditor::Component `legend:`), which can add and remove them.
+// The canvas reserves no room for it: when the view settles with an element
+// under the open legend, it folds itself to its title. Opened again, it stays
+// open until the view moves.
 export default function Legend ({ t, entries, className = '', open: controlled, onToggle }) {
   const [own, setOwn] = useState(true)
   const open = controlled ?? own
   const setOpen = onToggle || setOwn
+  const panel = useRef(null)
+  const foldIfCovering = useCallback(() => {
+    if (open && coversContent(panel.current)) setOpen(false)
+  }, [open, setOpen])
+  useOnViewportChange({ onEnd: foldIfCovering })
+  // Once, after the first fit has settled.
+  const latest = useRef(foldIfCovering)
+  latest.current = foldIfCovering
+  useEffect(() => {
+    const timer = setTimeout(() => latest.current(), 400)
+    return () => clearTimeout(timer)
+  }, [])
   if (!entries || !entries.length) return null
   return (
-    <Panel position='bottom-right' className={`bpmn-chrome bpmn-legend w-60 rounded-lg border border-base-300 bg-base-100 text-xs shadow-sm ${className}`}>
+    <Panel ref={panel} position='bottom-right' className={`bpmn-chrome bpmn-legend w-60 rounded-lg border border-base-300 bg-base-100 text-xs shadow-sm ${className}`}>
       <button type='button' className='flex w-full items-center justify-between px-3 py-1.5 font-semibold uppercase tracking-wide text-base-content/70' aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         {t('legend_title')}
         <Icon name={open ? 'chevronDown' : 'chevronRight'} size={12} />

@@ -164,9 +164,27 @@ test('appendNode is blocked where there is no room and where the connection is n
   const d = twoLanes()
   assert.equal(ops.appendNode(d, 't1', { type: 'task' }, 'right').error, 'block_connection', 't1 already has its outgoing flow')
   d.edges = d.edges.filter((e) => e.id !== 'f2')
-  assert.equal(ops.appendNode(d, 't1', { type: 'task' }, 'up').error, 'block_no_space', 'above the first lane')
   assert.equal(ops.appendNode(d, 's', { type: 'task' }, 'left').error, 'block_no_space', 'into the header')
   assert.equal(ops.appendNode(d, 'e', { type: 'task' }, 'right').error, 'block_end_source')
+})
+
+// Lanes fitted to their content leave no band beyond the first or last one:
+// the edge lane grows instead of the edit being refused.
+test('appendNode across the flow past the first or the last lane grows that lane', () => {
+  const d = twoLanes()
+  d.edges = d.edges.filter((e) => e.id !== 'f2' && e.id !== 'f3')
+  const down = ops.appendNode(d, 't2', { type: 'task' }, 'down')
+  assert.equal(down.error, undefined)
+  const below = byId(down.doc, down.id)
+  assert.equal(below.lane_id, 'l2')
+  assert.ok(nodeBox(below).cy > nodeBox(byId(d, 't2')).cy)
+  assert.ok(insideLane(layoutLanes(down.doc), below), 'inside its lane')
+  const up = ops.appendNode(d, 't1', { type: 'task' }, 'up')
+  assert.equal(up.error, undefined)
+  const above = byId(up.doc, up.id)
+  assert.equal(above.lane_id, 'l1')
+  assert.ok(nodeBox(above).cy < nodeBox(byId(up.doc, 't1')).cy)
+  assert.ok(up.doc.nodes.every((n) => insideLane(layoutLanes(up.doc), n)), 'everything still inside its lane')
 })
 
 test('insertOnEdge splits a flow without disconnecting anything and moves the rest along', () => {

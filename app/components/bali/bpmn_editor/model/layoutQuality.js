@@ -5,15 +5,17 @@
 // HARD (must be 0 after any operation): nodes on top of each other, flow
 // nodes outside their lane or on its header, connections through a node, a
 // node's name or a pending badge, two connections sharing a stretch of line,
-// labels on top of labels, lines or nodes, a badge on a label.
+// labels on top of labels, lines or nodes, a badge on a label, two branches
+// of a gateway with up to three ways out leaving by the same side.
 //
 // SOFT (kept low, reported): crossings, bends per connection, how far the
 // happy path strays from a straight line.
-import { isFlowNode, edgeType } from './catalog.js'
+import { isFlowNode, isGateway, edgeType } from './catalog.js'
 import { layoutLanes, insideLane, nodeBox, boxesOverlap } from './geometry.js'
 import { nodeLabelBox, badgeBox } from './labels.js'
 import { routeAll } from './routing.js'
 import { placeEdgeLabels } from './edgeLabels.js'
+import { GATEWAY_DISTINCT_EXITS } from './router.js'
 
 const EPS = 0.5
 
@@ -109,6 +111,7 @@ export function measure (doc, { routes = routeAll(doc), edgeLabels = placeEdgeLa
     sharedSegments: 0,
     labelOverlaps: 0,
     badgeOnLabel: 0,
+    gatewaySharedSide: 0,
     crossings: 0,
     maxBends: 0,
     avgBends: 0,
@@ -201,6 +204,25 @@ export function measure (doc, { routes = routeAll(doc), edgeLabels = placeEdgeLa
     }
   }
 
+  // Gateway branches: the side each leaves by, read off its first stretch.
+  const sideOf = ([p, q]) => (Math.abs(p.x - q.x) < EPS ? (q.y < p.y ? 'top' : 'bottom') : (q.x < p.x ? 'left' : 'right'))
+  const exits = new Map()
+  for (const { edge, route } of routed) {
+    if (edgeType(edge) !== 'sequence_flow' || route.points.length < 2) continue
+    const source = (doc.nodes || []).find((n) => String(n.id) === String(edge.source))
+    if (!source || !isGateway(source)) continue
+    if (!exits.has(String(source.id))) exits.set(String(source.id), [])
+    exits.get(String(source.id)).push([edge.id, sideOf(route.points.slice(0, 2))])
+  }
+  for (const [id, list] of exits) {
+    if (list.length > GATEWAY_DISTINCT_EXITS) continue
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        if (list[i][1] === list[j][1]) { result.gatewaySharedSide++; details.push(['gatewaySharedSide', id, list[i][0], list[j][0], list[i][1]]) }
+      }
+    }
+  }
+
   // Happy path: steps that go back against the reading direction, or move
   // across the flow while staying in the same lane.
   const path = happyPath(doc).map((id) => (doc.nodes || []).find((n) => String(n.id) === id)).filter(Boolean)
@@ -215,7 +237,7 @@ export function measure (doc, { routes = routeAll(doc), edgeLabels = placeEdgeLa
   }
 
   result.hard = result.overlaps + result.outsideLane + result.edgeThroughNode + result.edgeThroughLabel +
-    result.sharedSegments + result.labelOverlaps + result.badgeOnLabel
+    result.sharedSegments + result.labelOverlaps + result.badgeOnLabel + result.gatewaySharedSide
   result.details = details
   return result
 }

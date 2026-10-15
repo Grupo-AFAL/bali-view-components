@@ -127,8 +127,13 @@ function assignPorts (doc, edges, ctx) {
   for (const edge of edges) {
     const source = ctx.byId.get(String(edge.source))
     const target = ctx.byId.get(String(edge.target))
-    const s = sidesFor(doc, edge, source, target, ctx)
-    sides.set(String(edge.id), s)
+    sides.set(String(edge.id), sidesFor(doc, edge, source, target, ctx))
+  }
+  gatewayExits(edges, sides, ctx)
+  for (const edge of edges) {
+    const source = ctx.byId.get(String(edge.source))
+    const target = ctx.byId.get(String(edge.target))
+    const s = sides.get(String(edge.id))
     for (const [nodeId, side, end, otherId] of [[source.id, s.out, 'source', target.id], [target.id, s.into, 'target', source.id]]) {
       const key = `${nodeId}|${side}`
       if (!slots.has(key)) slots.set(key, [])
@@ -159,6 +164,67 @@ function assignPorts (doc, edges, ctx) {
     p.targetSide = s.into
   }
   return ports
+}
+
+// The branches of a gateway with up to three ways out leave by distinct sides
+// (Method and Style; Camunda's "model symmetrically"): the continuation in the
+// gateway's own lane — or, with none, the branch most in line with it — goes
+// straight out the reading-direction side, the others by the side towards
+// their target (the farthest keeps it when two want the same one). A side the
+// user pinned stays.
+export const GATEWAY_DISTINCT_EXITS = 3
+
+function gatewayExits (edges, sides, ctx) {
+  const { forwardOut, mainKey, crossKey } = ctx
+  const up = mainKey === 'y' ? 'top' : 'left'
+  const down = mainKey === 'y' ? 'bottom' : 'right'
+  const across = (box) => box[mainKey === 'y' ? 'cy' : 'cx']
+  const along = (box) => box[crossKey === 'x' ? 'cx' : 'cy']
+  const byGateway = new Map()
+  for (const edge of edges) {
+    if (edgeType(edge) !== 'sequence_flow') continue
+    const source = ctx.byId.get(String(edge.source))
+    if (!isGateway(source)) continue
+    if (!byGateway.has(String(source.id))) byGateway.set(String(source.id), [])
+    byGateway.get(String(source.id)).push(edge)
+  }
+  for (const [id, outs] of byGateway) {
+    if (outs.length < 2 || outs.length > GATEWAY_DISTINCT_EXITS) continue
+    const gateway = ctx.byId.get(id)
+    const box = ctx.boxes.get(id)
+    const pinned = (e) => ['top', 'right', 'bottom', 'left'].includes((e.ports || {}).source)
+    const info = outs.map((edge) => {
+      const target = ctx.byId.get(String(edge.target))
+      const b = ctx.boxes.get(String(edge.target))
+      return { edge, offset: across(b) - across(box), ahead: along(b) - along(box), sameLane: String(target.lane_id) === String(gateway.lane_id) }
+    })
+    const free = new Set([forwardOut, up, down])
+    for (const i of info) if (pinned(i.edge)) free.delete(sides.get(String(i.edge.id)).out)
+    const open = info.filter((i) => !pinned(i.edge))
+    const candidates = open.filter((i) => i.ahead > 0)
+    const main = [...candidates].sort((a, b) => (b.sameLane - a.sameLane) || (Math.abs(a.offset) - Math.abs(b.offset)) || (a.ahead - b.ahead))[0]
+    const span = (b) => (crossKey === 'x' ? b.w : b.h)
+    const set = (i, side) => {
+      const s = sides.get(String(i.edge.id))
+      const loop = s.out === s.into
+      s.out = side
+      if (loop || i.ahead <= 0) s.into = loop ? side : s.into
+      else if (side === forwardOut) s.into = ctx.forwardIn
+      else s.into = Math.abs(i.ahead) < (span(box) + span(ctx.boxes.get(String(i.edge.target)))) / 2 ? OPPOSITE[side] : ctx.forwardIn
+      const target = ctx.byId.get(String(i.edge.target))
+      if (labelSide(target, ctx.orientation) === s.into) s.into = ctx.forwardIn
+      if (['top', 'right', 'bottom', 'left'].includes((i.edge.ports || {}).target)) s.into = i.edge.ports.target
+      free.delete(side)
+    }
+    let straight = null
+    if (main && free.has(forwardOut)) { set(main, forwardOut); straight = main }
+    const rest = open.filter((i) => i !== straight).sort((a, b) => Math.abs(b.offset) - Math.abs(a.offset))
+    for (const i of rest) {
+      const wanted = i.offset < 0 ? up : down
+      const side = [wanted, OPPOSITE[wanted], forwardOut].find((x) => free.has(x))
+      if (side) set(i, side)
+    }
+  }
 }
 
 // ── occupancy ──────────────────────────────────────────────────────────────
@@ -448,7 +514,7 @@ export function routeDiagram (doc, { order = null } = {}) {
       if (!path) {
         // The preferred sides are walled in (a node right above the target,
         // say): try the other sides, nearest pair first.
-        const alternative = otherSides(edge, ctx, blockers, occupied, bounds, port)
+        const alternative = otherSides(edge, ctx, blockers, occupied, bounds, siblingExits(edge, edges, ports, ctx))
         if (alternative) {
           ({ path } = alternative)
           s.side = alternative.s.side; s.point = alternative.s.point; s.stub = alternative.s.stub
@@ -480,7 +546,16 @@ export function routeDiagram (doc, { order = null } = {}) {
   return routes
 }
 
-function otherSides (edge, ctx, blockers, occupied, bounds) {
+// The sides a gateway's other branches leave by, which a retry must not take.
+function siblingExits (edge, edges, ports, ctx) {
+  const source = ctx.byId.get(String(edge.source))
+  if (edgeType(edge) !== 'sequence_flow' || !isGateway(source) || ctx.outCount.get(String(source.id)) > GATEWAY_DISTINCT_EXITS) return new Set()
+  return new Set(edges
+    .filter((e) => e !== edge && String(e.source) === String(edge.source) && edgeType(e) === 'sequence_flow')
+    .map((e) => ports.get(String(e.id)).sourceSide))
+}
+
+function otherSides (edge, ctx, blockers, occupied, bounds, taken = new Set()) {
   const source = ctx.byId.get(String(edge.source))
   const target = ctx.byId.get(String(edge.target))
   const a = ctx.boxes.get(String(edge.source))
@@ -496,7 +571,7 @@ function otherSides (edge, ctx, blockers, occupied, bounds) {
     return null
   }
   const pairs = []
-  for (const out of ['right', 'bottom', 'top', 'left']) {
+  for (const out of ['right', 'bottom', 'top', 'left'].filter((side) => !taken.has(side))) {
     for (const into of ['left', 'top', 'bottom', 'right']) {
       const s = endFor(source, a, out)
       const t = endFor(target, b, into)

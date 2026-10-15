@@ -36,6 +36,14 @@ describe('BPMN editor island', () => {
     cy.get('.bali-bpmn-editor-skeleton').should('not.exist')
   })
 
+  it('folds the legend when the diagram lies under it, and keeps it open when nothing does', () => {
+    cy.visit('/bali/bpmn_editor/default')
+    cy.get('[data-testid="bpmn-legend"]').should('be.visible')
+    cy.visit('/bali/bpmn_editor/large')
+    cy.get('.bpmn-legend button[aria-expanded="false"]').should('exist')
+    cy.get('[data-testid="bpmn-legend"]').should('not.exist')
+  })
+
   describe('editing', () => {
     beforeEach(() => {
       resetFlow()

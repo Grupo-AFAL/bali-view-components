@@ -299,10 +299,10 @@ de documentación.
 
 | Flujo de referencia | Antes (al cargar) | Después (Autoajustar, H/V) | Cruces | Quiebres prom./máx. |
 |---|---|---|---|---|
-| Factura | 3 | 0 / 0 | 0 | 0.25 / 1 |
+| Factura | 3 | 0 / 0 | 0 | 0.13 / 1 |
 | Decisión con retrabajo | 1 | 0 / 0 | 1 | 1 / 4 |
 | Paralelo de 3 ramas | 6 | 0 / 0 | 0 | 0.67–0.89 / 2 |
-| 60 actividades | 9 | 0 / 0 | 1 | 0.38 / 2 |
+| 60 actividades | 9 | 0 / 0 | 0 | 0.37 / 2 |
 | Dos participantes externos | 1 | 0 / 0 | 0 | 0.67 / 2 |
 
 Desvío del camino feliz: 0 en todos. Pruebas por propiedades: 200 secuencias × 30 operaciones con
@@ -312,6 +312,27 @@ semillas fijas, 0 violaciones duras (reportan la secuencia mínima si fallan).
 ejemplo sale limpio; un flujo de 12 elementos armado sólo con el menú rápido y la paleta queda con
 0 duras, 2 cruces y 1.06 quiebres promedio, y tras «Autoajustar» con 0 duras, 0 cruces y 0.56.
 
+### Verificación independiente (team-lead) y arreglos
+
+- **Ramas de gateway por el mismo lado** (Sí y No bajaban paralelas por el vértice inferior):
+  nueva restricción dura `gatewaySharedSide` en `layoutQuality` para gateways con ≤ 3 salidas,
+  cubierta por las pruebas por propiedades y los fixtures. El router asigna lados distintos: la
+  continuación en el carril del gateway (o, sin ella, la rama más alineada) sale recta por el
+  lado de lectura; las demás, hacia su destino; un reintento de ruta no toma el lado de una rama
+  hermana.
+- **Camino recto desde el gateway:** «Autoajustar» cuenta las filas por carril, así que la
+  continuación en el mismo carril conserva la fila aunque el camino más largo cambie de carril
+  (en la factura, «No» → Fin queda en línea recta y «Sí» baja a Tesorería). No existe en el
+  contrato una marca de «rama principal»; no se agregó.
+- **Leyenda sobre el contenido:** se pliega sola cuando la vista se asienta con un elemento
+  debajo (opción elegida en lugar de reservar una franja del lienzo, que restaría ~290 px al
+  diagrama siempre). El encuadre deja libre además el panel de propiedades.
+- **Menú rápido hacia abajo desde el último carril:** con carriles ajustados al contenido no
+  quedaba banda libre y se rechazaba; ahora crece el carril del borde.
+
+Flujo de 12 elementos en el navegador (menú rápido y paleta): 0 duras, 1 cruce, 0.5 quiebres
+promedio; tras «Autoajustar», 0 duras, 1 cruce, 0.67.
+
 ### Lo que no se logró
 
 - Las líneas no se animan durante el acomodo (los nodos sí, 0.22 s); se rerutean al terminar.
@@ -319,6 +340,8 @@ ejemplo sale limpio; un flujo de 12 elementos armado sólo con el menú rápido 
 - El acomodo incremental empuja hacia adelante, no compacta: tras borrar puede quedar un hueco
   hasta «Autoajustar».
 - El retrabajo conserva un cruce y un máximo de 4 quiebres (el lazo por debajo del flujo).
+- Un gateway con tres ramas, dos de ellas hacia abajo, saca una por arriba y la rodea: lados
+  distintos, pero con más quiebres.
 
 ### Decisiones
 

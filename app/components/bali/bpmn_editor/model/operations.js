@@ -412,6 +412,24 @@ function shiftAlong (doc, from, by, exceptId) {
   return { ...doc, nodes, edges: clearWaypointsOf(doc.edges, moved) }
 }
 
+function growEdgeLane (doc, layout, source, center, size) {
+  const main = layout.axis.main
+  const first = layout.entries[0]
+  const last = layout.entries[layout.entries.length - 1]
+  const start = center[main] - size / 2
+  const end = center[main] + size / 2
+  const grow = (entry, by) => doc.lanes.map((l) => (sameId(l.id, entry.id) ? { ...l, size: entry.size + by } : l))
+  if (end > layout.thickness && sameId(source.lane_id, last.id)) {
+    return { doc: { ...doc, lanes: grow(last, Math.ceil(end + LANE_PADDING - layout.thickness)) }, center: center[main] }
+  }
+  if (start < 0 && sameId(source.lane_id, first.id)) {
+    const by = Math.ceil(LANE_PADDING - start)
+    const nodes = doc.nodes.map((n) => ({ ...n, [main]: (Number(n[main]) || 0) + by }))
+    return { doc: { ...doc, lanes: grow(first, by), nodes, edges: clearWaypointsOf(doc.edges, new Set(nodes.map((n) => String(n.id)))) }, center: center[main] + by }
+  }
+  return null
+}
+
 // "Add the next element" from the quick menu: a node of `attrs` placed next
 // to `sourceId` in `direction` (up/down/left/right), already connected. When
 // the spot ahead along the flow is taken, the following nodes move along;
@@ -432,7 +450,13 @@ export function appendNode (doc, sourceId, attrs, direction, { policy = DEFAULT_
   if (direction === 'left') center.x = box.x - gap - width / 2
   if (direction === 'down') center.y = box.y + box.h + gap + height / 2
   if (direction === 'up') center.y = box.y - gap - height / 2
-  const layout = layoutLanes(doc)
+  let layout = layoutLanes(doc)
+  if (layout.entries.length && !laneAt(layout, center)) {
+    // Past the first or last lane's edge, across the flow: that lane grows
+    // to take it (lanes fitted to their content leave no spare band).
+    const grown = growEdgeLane(doc, layout, source, center, axis.main === 'y' ? height : width)
+    if (grown) { doc = grown.doc; center[axis.main] = grown.center; layout = layoutLanes(doc) }
+  }
   if (layout.entries.length) {
     const entry = laneAt(layout, center)
     const crossStart = (axis.cross === 'x' ? center.x - width / 2 : center.y - height / 2)

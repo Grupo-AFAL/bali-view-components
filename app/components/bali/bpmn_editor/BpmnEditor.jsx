@@ -182,7 +182,8 @@ function Editor ({
   // markers. Server issues (the document's `issues`) join them.
   const edgeLabels = useMemo(() => placeEdgeLabels(liveDoc, routes), [liveDoc, routes])
   const jumps = useMemo(() => findJumps(routes), [routes])
-  const fit = useMemo(() => fitOptions({ legendOpen: legendOpen && legend && legend.length > 0 }), [legendOpen, legend])
+  const panelOpen = panel === 'participants' || selection.nodes.length > 0 || selection.edges.length > 0 || selection.lanes.length > 0
+  const fit = useMemo(() => fitOptions({ legendOpen: legendOpen && legend && legend.length > 0, panelOpen }), [legendOpen, legend, panelOpen])
 
   const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t), doc.issues, doc) : []), [editable, doc, rules, t])
   const issues = useMemo(() => issuesByElement(issueList), [issueList])

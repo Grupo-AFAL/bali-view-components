@@ -119,11 +119,20 @@ export function autoLayout (doc) {
     const node = byId.get(id)
     // A split whose branches merge again (parallel, inclusive): symmetric.
     const symmetric = isGateway(node) && node.type !== 'exclusive_gateway' && next.length > 1
-    const offsets = symmetric
-      ? (next.length % 2 ? [0] : []).concat(...Array.from({ length: Math.ceil(next.length / 2) }, (_, i) => [-(i + 1), i + 1])).slice(0, next.length)
-      : [0, ...Array.from({ length: next.length - 1 }, (_, i) => (i % 2 ? -Math.ceil((i + 1) / 2) : Math.ceil((i + 1) / 2)))]
-    if (symmetric && next.length % 2 === 0) offsets.sort((a, b) => a - b)
-    next.forEach((t, i) => claim(t, laneOf(t) === laneOf(id) ? here + offsets[i] : offsets[i]))
+    if (symmetric) {
+      const offsets = (next.length % 2 ? [0] : []).concat(...Array.from({ length: Math.ceil(next.length / 2) }, (_, i) => [-(i + 1), i + 1])).slice(0, next.length)
+      if (next.length % 2 === 0) offsets.sort((a, b) => a - b)
+      next.forEach((t, i) => claim(t, laneOf(t) === laneOf(id) ? here + offsets[i] : offsets[i]))
+      continue
+    }
+    // Rows are counted per lane: when the longest way ahead leaves the lane,
+    // the continuation that stays in it keeps the row and leaves the gateway
+    // in a straight line; exceptions go below, then above.
+    const exception = (i) => (i === 0 ? 0 : i % 2 ? Math.ceil(i / 2) : -Math.ceil(i / 2))
+    const sameLane = next.filter((t) => laneOf(t) === laneOf(id))
+    const otherLanes = next.filter((t) => laneOf(t) !== laneOf(id))
+    sameLane.forEach((t, i) => claim(t, here + exception(i)))
+    otherLanes.forEach((t, i) => claim(t, exception(i)))
   }
 
   // Lane thickness from the rows each lane uses.

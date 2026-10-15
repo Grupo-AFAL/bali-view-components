@@ -1,12 +1,12 @@
 // "Center the flow" and the first view: the whole diagram, clear of the
-// toolbars over the canvas (top), the zoom bar (bottom) and, while it is open,
-// the legend (right) — and never below 40 %, where names stop being legible;
+// toolbars over the canvas (top), the zoom bar (bottom) and, while either is
+// open, the legend or the properties panel (right) — and never below 40 %, where names stop being legible;
 // a larger diagram is scrolled instead of shrunk.
 export const MIN_FIT_ZOOM = 0.4
 
-export function fitOptions ({ legendOpen = false, duration } = {}) {
+export function fitOptions ({ legendOpen = false, panelOpen = false, duration } = {}) {
   return {
-    padding: { top: '76px', right: legendOpen ? '290px' : '40px', bottom: '64px', left: '40px' },
+    padding: { top: '76px', right: panelOpen ? '320px' : legendOpen ? '290px' : '40px', bottom: '64px', left: '40px' },
     minZoom: MIN_FIT_ZOOM,
     ...(duration ? { duration } : {})
   }
