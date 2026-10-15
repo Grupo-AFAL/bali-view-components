@@ -13,9 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#1486), como ya hacía `radio-toggle`. El target oculto, que tiene que ser un `<fieldset>`,
   queda deshabilitado: el navegador no valida ni manda sus campos, así que un `required` del lado
   oculto —un `file_group` lo respeta desde v3.12.0— ya no detiene el formulario sin aviso. Sin el
-  valor, nada cambia. En la rama de Becas de afal-apps, los dos targets del formulario del gasto
-  pasan a `<fieldset>` con el valor, y se borran `controllers/checkbox_toggle_controller.js` y su
-  registro en `controllers/index.js`.
+  valor, nada cambia. Nada que hacer en `main` de ninguna app. Para usarlo, los targets pasan a
+  `<fieldset>` y el valor va en el elemento del controlador. Una subclase local que deshabilita
+  campo por campo, como la que afal-apps escribió para Becas, se borra.
 
 ## [v3.16.2] - 2026-10-14
 
