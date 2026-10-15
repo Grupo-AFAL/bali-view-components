@@ -474,10 +474,24 @@ caption to point at, so pass `html: { "aria-label": "…" }`. Beside a `<label>`
 - `show_search` - Enable search input (default: true)
 - `add_items` - Allow adding new items (default: false)
 - `close_on_select` - Close dropdown on selection (default: true)
-- `allow_deselect_option` - Allow deselecting (default: false)
+- `allow_deselect_option` - Show the ✕ that empties the field (default: true with
+  `include_blank:` on a single, local select with a flat list that is not `required:`, false
+  otherwise)
 - `select_all` - Show select all/deselect all buttons (default: false)
 - `hide_selected` - Hide selected items from dropdown (default: false)
 - `search_highlight` - Highlight search matches (default: false)
+
+**The blank:** on a flat list, `include_blank:` and `prompt:` both become SlimSelect's
+placeholder, which its list leaves out. `include_blank:` offers the blank as a value, so the
+✕ goes back to it; `prompt:` is a hint shown until there is a value, and leaves the ✕ off.
+`allow_deselect_option: false` keeps it off; on a field that must hold a value,
+`required: true` does too, and marks the caption as required. On a grouped list the blank
+stays a row of the list. A remote select (`ajax_url:`) keeps the ✕ off: once a search result
+outside the seed is chosen, SlimSelect's ✕ picks that result again instead of the blank.
+
+```erb
+<%= f.slim_select_group :parent_id, categories, include_blank: "None (top level)" %>
+```
 
 **Text options:** every string the widget paints defaults to Bali's translation under
 `bali_view.form_builder.slim_select`, shipped in `en` and `es`, and the option replaces it

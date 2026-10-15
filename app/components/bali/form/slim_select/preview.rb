@@ -161,6 +161,16 @@ module Bali
           )
         end
 
+        # @label Optional, with a blank
+        # `include_blank:` offers the blank as a value, so the ✕ goes back to it. `prompt:` is
+        # a hint shown until something is chosen: no ✕, as on a `required:` field.
+        def optional_blank
+          render_with_template(
+            template: 'bali/form/slim_select/previews/optional_blank',
+            locals: { model: form_record, options: OPTIONS }
+          )
+        end
+
         # @label Disabled
         # Select in disabled state - cannot be interacted with
         def disabled

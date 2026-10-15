@@ -96,6 +96,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   atributos propios del anfitrión (`data:`, `id:`, `title:`…) se sigue armando con `tag`.
   - **Anfitrión:** nada que hacer.
 
+- **El layout de la aplicación se renderiza más rápido, con el mismo HTML** (#1487).
+  `Bali::Icon` guarda ya armado el `<svg>` de cada ícono de Lucide, por nombre y tamaño, y lo
+  reusa en las páginas siguientes. `SideMenu::Item` calcula una sola vez su coincidencia con la
+  ruta actual (antes, hasta ocho veces por renglón) y renderiza su ícono una vez para la fila y
+  para el riel colapsado. En afal-apps y gobierno-corporativo, el layout tarda entre 19 y 21 %
+  menos. El marcado no cambia ni un byte: `test/bali/components/layout_markup_golden_test.rb` lo
+  compara entero contra `test/fixtures/layout_markup`, en los previews de AppLayout, SideMenu,
+  Command, Topbar, Tooltip e Icon y en los casos que éstos no cubren.
+  - **Anfitrión:** nada que hacer. `LucideRails.default_options` se lee la primera vez que se
+    dibuja cada ícono, así que cambiarlo después del arranque ya no alcanza a los ya dibujados.
+    Ninguna app lo cambia.
+  - **En la gema:** un preview nuevo de esos seis componentes, o un cambio deliberado de su
+    marcado, pide reescribir los archivos con `GOLDEN=update bin/rails test
+    test/bali/components/layout_markup_golden_test.rb` y revisar su diff.
+
+- **Los renglones del menú lateral y de la paleta, el tooltip del riel y el envoltorio de cada
+  ícono se escriben sin pasar por `tag`, con el mismo HTML** (#1488). La copia de cada hoja en
+  el riel colapsado ya no renderiza un `Bali::Tooltip`, y las listas de clases fijas dejan de
+  pasar por `class_names`. Sumado a #1487, el layout tarda entre 34 y 43 % menos que en v3.16.2
+  (de 3 a 13 ms menos por página en afal-apps y gobierno-corporativo). Un renglón o un ícono con
+  atributos propios del anfitrión (`data:`, `id:`, `title:`…) se sigue armando con `tag`.
+  - **Anfitrión:** nada que hacer.
+
 ### Fixed
 
 - **`Bali::Calendar`: los encabezados de mes empiezan con mayúscula** (#1485). Con un
@@ -119,6 +142,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   la subida en los formularios de proyecto, entregable y líneas del caso de negocio. Sin el
   `<form>` alrededor, cada renglón de chip mide 24 px en vez de 26 y el botón queda alineado con el
   chip. Nada que hacer en la app.
+
+- **`slim_select_group`: un campo opcional con `include_blank:` puede volver al vacío** (#1484,
+  desde v2.16.0). En una lista plana el vacío es el placeholder de SlimSelect, que no sale en la
+  lista, así que un valor elegido ya no se podía quitar. Ahora `include_blank:` en un select
+  sencillo y local que no es `required:` enciende la ✕ (`allow_deselect_option`), que regresa al
+  vacío; también en los filtros `type: :slim_select` con `blank:` de `SimpleFilters`. `prompt:`,
+  `required:`, `multiple:`, las listas agrupadas y los selects remotos (`ajax_url:`) quedan igual.
+  Para conservar el aspecto de antes, `allow_deselect_option: false`; si el campo es
+  obligatorio, `required: true` también apaga la ✕ y además marca la etiqueta. Donde la ✕ ya
+  sale por omisión, un `allow_deselect_option: true` explícito sobra y se puede borrar.
 
 ## [v3.16.2] - 2026-10-14
 

@@ -260,6 +260,19 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     assert_no_selector("[data-slim-select-close-on-select-value]")
   end
 
+  # #1484. `blank:` is "All", a value the filter takes, and the ✕ is the way back to it.
+  def test_a_slim_select_with_a_blank_can_be_cleared_back_to_it
+    render_country_filter(blank: "All countries", value: "USA")
+
+    assert_selector("[data-slim-select-allow-deselect-option-value='true']")
+  end
+
+  def test_a_multiple_slim_select_with_a_blank_has_no_single_clear_button
+    render_country_filter(blank: "All countries", multiple: true, predicate: :in)
+
+    assert_no_selector("[data-slim-select-allow-deselect-option-value]")
+  end
+
   def test_renders_multiple_filters
     multi_filters = [
       {
