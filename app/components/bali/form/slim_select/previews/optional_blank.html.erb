@@ -1,0 +1,6 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <div class="grid gap-4 max-w-sm">
+    <%= form.slim_select_group :select, options, label: 'Parent', include_blank: 'None (top level)', selected: 2 %>
+    <%= form.slim_select_group :number, options, label: 'Priority', prompt: 'Pick a priority', selected: 2 %>
+  </div>
+<% end %>

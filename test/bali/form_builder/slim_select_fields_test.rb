@@ -161,6 +161,48 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
+  # include_blank -> the ✕ back to the blank, which the placeholder keeps out of the list (#1484)
+
+  DESELECTABLE = 'div[data-slim-select-allow-deselect-option-value="true"]'
+
+  def test_slim_select_field_include_blank_turns_the_deselect_button_on
+    assert_html(builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: true), DESELECTABLE)
+    assert_html(builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "None"), DESELECTABLE)
+  end
+
+  def test_slim_select_group_include_blank_turns_the_deselect_button_on
+    assert_html(builder.slim_select_group(:status, Movie.statuses.to_a, include_blank: "None"), DESELECTABLE)
+  end
+
+  def test_slim_select_field_prompt_leaves_the_deselect_button_off
+    refute_html(builder.slim_select_field(:status, Movie.statuses.to_a, prompt: "Pick one"), DESELECTABLE)
+  end
+
+  def test_slim_select_field_required_include_blank_leaves_the_deselect_button_off
+    refute_html(builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "None", required: true),
+                DESELECTABLE)
+    refute_html(builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "None",
+                                                                         html: { required: true }), DESELECTABLE)
+  end
+
+  def test_slim_select_field_the_blank_required_adds_leaves_the_deselect_button_off
+    result = builder.slim_select_field(:status, Movie.statuses.to_a, required: true)
+    assert_html(result, 'option[data-placeholder="true"][value=""]')
+    refute_html(result, DESELECTABLE)
+  end
+
+  def test_slim_select_field_explicit_allow_deselect_option_false_wins_over_include_blank
+    refute_html(builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "None",
+                                                                         allow_deselect_option: false), DESELECTABLE)
+  end
+
+  def test_slim_select_field_multiple_include_blank_leaves_the_deselect_button_off
+    refute_html(builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "None", multiple: true),
+                DESELECTABLE)
+    refute_html(builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "None",
+                                                                         html: { multiple: true }), DESELECTABLE)
+  end
+
   # include_blank + grouped (optgroup) choices — the placeholder promotion must not
   # break Rails' grouped-choices detection, which looks only at the FIRST element
   # (afal-apps report_schedules regression, 27/07/2026)
@@ -185,6 +227,11 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     result = builder.slim_select_field(:status, GROUPED_CHOICES,
                                        include_blank: "All", selected: "fiction:2")
     assert_html(result, 'option[value="fiction:2"][selected]')
+  end
+
+  # Its blank is a row of the list, which the ✕ would only duplicate.
+  def test_slim_select_field_include_blank_with_grouped_choices_leaves_the_deselect_button_off
+    refute_html(builder.slim_select_field(:status, GROUPED_CHOICES, include_blank: "All"), DESELECTABLE)
   end
 
   def test_slim_select_field_applies_daisyui_select_classes
