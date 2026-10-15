@@ -87,4 +87,41 @@ describe('Period presets on a date range filter', () => {
       expect(url).to.include('q%5Bcreated_at%5D=this_week')
     })
   })
+
+  // #1481: the select and the picker share one wrapper, and a cap on it cut "Personalizado…"
+  // to "P…" beside half a range. A select's `scrollWidth` equals its `clientWidth` in Chromium
+  // even while its text is cut, so the label is measured against the content box instead.
+  it('on "Custom…" the select keeps its whole label and the picker its whole range', () => {
+    cy.visit(`${listing}?locale=es&q[created_at]=2026-01-01 a 2026-03-31`)
+
+    cy.get('.flatpickr input:visible').should($input => {
+      expect($input.val()).to.eq('01/01/2026 a 31/03/2026')
+      expect($input[0].scrollWidth, 'range text width').to.be.at.most($input[0].clientWidth)
+    })
+
+    periodSelect().should('have.value', 'custom').then($select => {
+      const select = $select[0]
+      const style = getComputedStyle(select)
+      const context = select.ownerDocument.createElement('canvas').getContext('2d')
+      context.font = style.font
+      const contentBox = select.getBoundingClientRect().width -
+        ['borderLeftWidth', 'paddingLeft', 'paddingRight', 'borderRightWidth']
+          .reduce((sum, side) => sum + parseFloat(style[side]), 0)
+
+      expect(context.measureText(select.selectedOptions[0].text).width, 'label width')
+        .to.be.at.most(contentBox + 0.5)
+    })
+  })
+
+  it('on a preset the filter is only as wide as its select', () => {
+    cy.visit(`${listing}?locale=es&q[created_at]=last_30_days`)
+    cy.get('.flatpickr').should('not.be.visible')
+
+    periodSelect().then($select => {
+      const control = $select[0].parentElement
+      const wrapper = $select[0].closest('[data-controller="time-period-field"]').parentElement
+      expect(wrapper.getBoundingClientRect().width)
+        .to.be.closeTo(control.getBoundingClientRect().width, 1)
+    })
+  })
 })

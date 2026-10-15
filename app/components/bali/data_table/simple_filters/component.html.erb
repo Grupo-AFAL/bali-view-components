@@ -192,7 +192,7 @@
                   "aria-label": preset_picker_accessible_name(filter),
                   alt_input_class: "input input-sm w-full",
                   wrapper_options: {
-                    class: class_names("flatpickr", "hidden" => preset_select_value(filter) != Bali::DateRangePresets::CUSTOM)
+                    class: class_names("flatpickr", RANGE_PICKER_MIN_WIDTH, "hidden" => preset_select_value(filter) != Bali::DateRangePresets::CUSTOM)
                   },
                   data: {
                     "time-period-field-target": "dateInput",
