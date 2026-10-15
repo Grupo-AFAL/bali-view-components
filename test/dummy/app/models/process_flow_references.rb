@@ -19,7 +19,26 @@ module ProcessFlowReferences
     { id: "external:1", label: "Proveedor", group: "Externo" }
   ].freeze
 
+  # What the dummy's drawers create live here for as long as the server runs:
+  # enough for the round trip the reference implementation shows.
+  CREATED = { references: [], assignees: [] } # rubocop:disable Style/MutableConstant
+
   module_function
+
+  def references = CATALOG + CREATED[:references]
+  def assignees = ASSIGNEES + CREATED[:assignees]
+
+  def create_reference(label, group)
+    item = { id: "new-#{SecureRandom.hex(3)}", label: label, description: group, group: group }
+    CREATED[:references] << item
+    item
+  end
+
+  def create_assignee(label, group)
+    item = { id: "new-#{SecureRandom.hex(3)}", label: label, group: group }
+    CREATED[:assignees] << item
+    item
+  end
 
   def search(catalog, query, group = nil)
     catalog.select do |item|
@@ -28,5 +47,5 @@ module ProcessFlowReferences
     end
   end
 
-  def find(id) = CATALOG.find { |item| item[:id] == id.to_s }
+  def find(id) = references.find { |item| item[:id] == id.to_s }
 end

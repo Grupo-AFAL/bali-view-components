@@ -1,0 +1,11 @@
+<%# The host's own form, opened by the editor in the layout's drawer. The
+    hidden fields carry the node and the editor the answer is meant for. %>
+<%= form_with url: admin_process_flow_references_path(params[:process_flow_id]), scope: :reference,
+              builder: Bali::FormBuilder, data: { turbo: true }, class: "space-y-4 p-4" do |f| %>
+  <h3 class="text-lg font-semibold">Nuevo procedimiento</h3>
+  <%= hidden_field_tag :client_node_id, params[:client_node_id] %>
+  <%= hidden_field_tag :editor_id, params[:editor_id] %>
+  <%= f.text_group :label, label: "Nombre", required: true, placeholder: "Ej. Alta de proveedor" %>
+  <%= f.select_group :group, %w[Compras Tesorería Contabilidad], label: "Área" %>
+  <%= f.submit_group "Crear y vincular" %>
+<% end %>

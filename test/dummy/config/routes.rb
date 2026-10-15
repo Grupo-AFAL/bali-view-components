@@ -60,6 +60,8 @@ Rails.application.routes.draw do
       scope module: :process_flows do
         resource :diagram, only: %i[show update]
         resource :finalization, only: :create
+        resources :references, only: %i[index new create]
+        resources :lane_assignees, only: %i[index new create]
       end
     end
 

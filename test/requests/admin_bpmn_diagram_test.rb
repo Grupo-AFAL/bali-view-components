@@ -73,3 +73,42 @@ class AdminBpmnDiagramTest < ActionDispatch::IntegrationTest
     assert @flow.reload.finalized_at
   end
 end
+
+class AdminBpmnReferencesTest < ActionDispatch::IntegrationTest
+  setup do
+    @flow = ProcessFlow.create!(name: "Supplier payments", document: BpmnSampleFlows.invoice.except(:version))
+  end
+
+  def test_the_search_answers_items_with_their_group
+    get "/admin/process_flows/#{@flow.id}/references", params: { q: "alta" }, as: :json
+
+    assert_equal [ "Alta de proveedor" ], response.parsed_body.pluck("label")
+    assert_equal "Compras", response.parsed_body.first["group"]
+  end
+
+  def test_the_lane_assignee_search_narrows_by_group
+    get "/admin/process_flows/#{@flow.id}/lane_assignees", params: { group: "Rol" }, as: :json
+
+    assert(response.parsed_body.all? { |item| item["group"] == "Rol" })
+  end
+
+  def test_creating_a_reference_answers_the_stream_that_links_the_node
+    post "/admin/process_flows/#{@flow.id}/references",
+         params: { reference: { label: "Supplier review", group: "Compras" }, client_node_id: "n9", editor_id: "flow_bpmn" },
+         headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :ok
+    stream = Nokogiri::HTML.fragment(response.body).at("turbo-stream[action='bali_bpmn_event']")
+    assert_equal "flow_bpmn", stream["target"]
+    detail = JSON.parse(stream["detail"])
+    assert_equal "n9", detail["client_node_id"]
+    assert_equal "Supplier review", detail.dig("reference", "label")
+  end
+
+  def test_the_document_proposes_what_is_still_to_place
+    get "/admin/process_flows/#{@flow.id}/diagram", as: :json
+
+    labels = response.parsed_body["stencil"].map { |item| item.dig("reference", "label") }
+    assert_includes labels, "Conciliación bancaria"
+  end
+end

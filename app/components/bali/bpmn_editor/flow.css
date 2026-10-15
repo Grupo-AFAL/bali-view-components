@@ -131,6 +131,7 @@
  * holds the quick menu (inside the renderer, z-index 4). */
 .bpmn-canvas.has-panel .react-flow__minimap { right: 300px; }
 .bpmn-canvas.has-panel .react-flow__panel.bpmn-legend { display: none; }
+.bpmn-canvas .react-flow__panel.bpmn-stencil { top: 52px; }
 .bpmn-legend-lane {
   display: inline-block; width: 24px; height: 14px; border: 1px solid var(--bpmn-border);
   background: color-mix(in oklab, var(--color-base-content) 10%, var(--color-base-100));

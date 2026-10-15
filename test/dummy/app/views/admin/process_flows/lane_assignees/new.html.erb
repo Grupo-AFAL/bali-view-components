@@ -1,0 +1,9 @@
+<%= form_with url: admin_process_flow_lane_assignees_path(params[:process_flow_id]), scope: :assignee,
+              builder: Bali::FormBuilder, data: { turbo: true }, class: "space-y-4 p-4" do |f| %>
+  <h3 class="text-lg font-semibold">Nuevo responsable</h3>
+  <%= hidden_field_tag :client_lane_id, params[:client_lane_id] %>
+  <%= hidden_field_tag :editor_id, params[:editor_id] %>
+  <%= f.text_group :label, label: "Nombre", required: true, placeholder: "Ej. Analista de tesorería" %>
+  <%= f.select_group :group, %w[Área Rol Externo], label: "Grupo" %>
+  <%= f.submit_group "Crear y asignar" %>
+<% end %>

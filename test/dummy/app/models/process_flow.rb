@@ -12,8 +12,18 @@ class ProcessFlow < ApplicationRecord
     document.deep_symbolize_keys.merge(
       version: version,
       status_label: finalized_at ? "Finalizado v#{version}" : "Borrador v#{version}",
-      issues: server_issues
+      issues: server_issues,
+      stencil: stencil
     )
+  end
+
+  # The host's "still to place" list: treasury procedures no sub-process links
+  # yet. Dragged onto the canvas they arrive linked.
+  def stencil
+    linked = Array(document["nodes"]).filter_map { |n| n.dig("reference", "id") }
+    ProcessFlowReferences.references
+                         .select { |r| r[:group] == "Tesorería" && linked.exclude?(r[:id]) }
+                         .map { |r| { reference: r.slice(:id, :label) } }
   end
 
   # Host rules: what only the server can know. The island lists them with its
@@ -39,6 +49,6 @@ class ProcessFlow < ApplicationRecord
   def save_draft(diagram, expected_version)
     return false unless expected_version.to_i == version
 
-    update!(document: diagram.except(:version, :status_label, :issues), version: version + 1, finalized_at: nil)
+    update!(document: diagram.except(:version, :status_label, :issues, :stencil), version: version + 1, finalized_at: nil)
   end
 end

@@ -215,5 +215,16 @@ para que lo finalizado sea exactamente lo que se ve.
   superposición, puertos de salida/entrada (Auto, Arriba, Derecha, Abajo, Izquierda) y «Recalcular
   ruta», reconexión arrastrando los extremos, ruteo ortogonal propio que rodea elementos y
   etiquetas sobre el segmento más largo de su línea, editables aparte con doble clic.
-- [ ] F7 Puntos de extensión
+- [x] F7 Puntos de extensión — subproceso: búsqueda remota agrupada (`urls[:references]?q=`),
+  «Crear nuevo» abre el drawer `urls[:new_reference]?client_node_id=…&editor_id=…` (se abre solo al
+  colocar un subproceso cuando no hay búsqueda) y la app responde con
+  `bali_bpmn_reference_created` (helper `Bali::BpmnEditorHelper`, acción de Turbo Stream
+  `bali_bpmn_event`) → el nodo queda ligado. Responsable del carril: búsqueda agrupada con filtro por
+  grupo (`urls[:lane_assignees]?group=&q=`) y drawer `urls[:new_lane_assignee]` con
+  `bali_bpmn_lane_assignee_created`. `stencil`: panel «Por colocar», arrastrar crea el subproceso
+  ligado. Navegación (clic en solo lectura, doble clic editando, evento cancelable
+  `bali-bpmn:open-reference`). Eventos `dirty-change`, `saved`, `finalized`; escucha `reload`,
+  `reference-created` y `lane-assignee-created`. Importar BPMN abre el drawer `urls[:import]`.
+  Implementación de referencia completa en el dummy (búsquedas, drawers y streams), verificada en
+  `/admin/process_flows/:id`.
 - [ ] F8 Notas, comparación, salidas, docs

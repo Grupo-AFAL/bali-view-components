@@ -33,6 +33,7 @@ import Legend from './chrome/Legend.jsx'
 import PendingPanel from './chrome/PendingPanel.jsx'
 import RulesDialog from './chrome/RulesDialog.jsx'
 import QuickMenu from './chrome/QuickMenu.jsx'
+import Stencil, { STENCIL_MIME } from './chrome/Stencil.jsx'
 import { openDrawerUrl } from './drawer.js'
 
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
@@ -222,8 +223,25 @@ function Editor ({
       select({ nodes: [String(result.id)] })
       setTool(null)
       if (onEdge) notify(t('toast_inserted'), 'success')
+      // With nothing to search, the only way to link a new sub-process is to
+      // create its entity: the host's drawer opens right away.
+      if (item.node.type === 'sub_process' && urls.new_reference && !urls.references) {
+        openDrawerUrl(withParams(urls.new_reference, { client_node_id: result.id, editor_id: hostElement && hostElement.id }))
+      }
     }
-  }, [apply, policy, names, select, baseRoutes, notify, t])
+  }, [apply, policy, names, select, baseRoutes, notify, t, urls, hostElement])
+
+  // A stencil item becomes a linked sub-process and leaves the list.
+  const placeStencil = useCallback((index, point) => {
+    const item = (docRef.current.stencil || [])[index]
+    if (!item || !item.reference) return
+    const result = apply((d) => {
+      const created = ops.createNode(d, { type: 'sub_process', reference: item.reference, name: item.reference.label }, point, { policy, names })
+      if (created.error) return created
+      return { ...created, doc: { ...created.doc, stencil: (created.doc.stencil || []).filter((_, i) => i !== index) } }
+    })
+    if (result) select({ nodes: [String(result.id)] })
+  }, [apply, policy, names, select])
 
   const appendFrom = useCallback((sourceId, key) => {
     const item = PALETTE_ITEMS[key]
@@ -262,8 +280,8 @@ function Editor ({
     align: (dir) => apply((d) => ops.alignNodes(d, selection.nodes, dir, { policy })),
     deleteSelection,
     openReference: (node) => openReference(node, hostElement),
-    newReference: (nodeId) => urls.new_reference && openDrawerUrl(withParam(urls.new_reference, 'client_node_id', nodeId)),
-    newLaneAssignee: (laneId) => urls.new_lane_assignee && openDrawerUrl(withParam(urls.new_lane_assignee, 'client_lane_id', laneId))
+    newReference: (nodeId) => urls.new_reference && openDrawerUrl(withParams(urls.new_reference, { client_node_id: nodeId, editor_id: hostElement && hostElement.id })),
+    newLaneAssignee: (laneId) => urls.new_lane_assignee && openDrawerUrl(withParams(urls.new_lane_assignee, { client_lane_id: laneId, editor_id: hostElement && hostElement.id }))
   }), [apply, deleteSelection, hostElement, urls, selection, policy])
 
   // ── React Flow callbacks ───────────────────────────────────────────────
@@ -418,11 +436,18 @@ function Editor ({
   }, [tool, createAt, toPool])
 
   const onDrop = useCallback((event) => {
+    if (!interactive) return
+    const stencilIndex = event.dataTransfer.getData(STENCIL_MIME)
+    if (stencilIndex !== '') {
+      event.preventDefault()
+      placeStencil(Number(stencilIndex), toPool(event.clientX, event.clientY))
+      return
+    }
     const key = event.dataTransfer.getData(PALETTE_MIME)
-    if (!key || !interactive) return
+    if (!key) return
     event.preventDefault()
     createAt(key, toPool(event.clientX, event.clientY))
-  }, [createAt, toPool, interactive])
+  }, [createAt, toPool, interactive, placeStencil])
 
   // ── lanes: resize ──────────────────────────────────────────────────────
   const onLaneResize = useCallback((rfId, axisKind, params) => {
@@ -641,7 +666,7 @@ function Editor ({
           )}
           <div
             className={`bpmn-canvas relative h-full min-w-0 flex-1 ${interactive ? 'is-editable' : 'is-readonly'} ${tool && tool.kind === 'place' ? 'is-placing' : ''} ${tool && tool.kind === 'connect' ? 'is-connecting' : ''} ${showPanel ? 'has-panel' : ''}`}
-            onDragOver={(e) => { if (interactive && e.dataTransfer.types.includes(PALETTE_MIME)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' } }}
+            onDragOver={(e) => { if (interactive && (e.dataTransfer.types.includes(PALETTE_MIME) || e.dataTransfer.types.includes(STENCIL_MIME))) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' } }}
             onDrop={onDrop}
             onPointerDown={(e) => { if (!/^(input|textarea|select|button)$/i.test(e.target.tagName)) wrapperRef.current?.focus({ preventScroll: true }) }}
           >
@@ -714,6 +739,7 @@ function Editor ({
                 onFullscreen={toggleFullscreen}
               />
               <Legend t={t} entries={legend} />
+              {interactive && !showPanel && <Stencil t={t} items={doc.stencil} />}
               <ZoomBar t={t} onSelectAll={interactive ? selectAll : null} selectedCount={selectedCount} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} />
             </ReactFlow>
             <HelpBar text={help} />
@@ -767,9 +793,11 @@ function RenameInput ({ value, className, onDone }) {
   )
 }
 
-function withParam (url, key, value) {
+// The drawer URL carries the client id of what is being created and the
+// editor's DOM id, which the host's stream answer targets.
+function withParams (url, params) {
   const target = new URL(url, window.location.origin)
-  target.searchParams.set(key, value)
+  for (const [key, value] of Object.entries(params)) if (value) target.searchParams.set(key, value)
   return target.pathname + target.search
 }
 
