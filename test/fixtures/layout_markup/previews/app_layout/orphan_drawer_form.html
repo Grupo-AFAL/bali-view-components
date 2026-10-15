@@ -1,0 +1,68 @@
+<body class="app-layout flex flex-col min-h-screen bg-base-200" data-controller="app-layout modal drawer">
+    <a href="#main-content" class="bali-skip-link">Skip to main content</a>
+
+
+
+  <div class="app-layout-main flex flex-1 min-h-0">
+    
+
+    <div class="app-layout-content flex-1 min-w-0 flex flex-col">
+
+      <main id="main-content" tabindex="-1" class="flex-1">
+        <div class="app-layout-body-container p-4 md:p-6">
+              <div class="max-w-md space-y-4 p-4">
+      <h1 class="text-lg font-semibold">Orphan drawer form (#984)</h1>
+
+      <form data-controller="submit-button" action="/" accept-charset="UTF-8" method="get">
+        <input type="hidden" name="probe" id="probe" value="1" />
+        <div class="control"><input class="input w-full" type="text" name="name" id="name" /></div>
+        <div class="submit-actions flex items-center justify-end gap-2 mt-6"><div class="inline"><a class="btn btn-ghost" data-action="drawer#close" href="/?cancelled=1">Cancel</a></div><div class="inline"><button type="submit" class="btn btn-primary" data-action="drawer#submit">Create</button></div></div>
+</form>
+      <p class="text-sm" data-testid="query">
+        Query string: <code>(empty)</code>
+      </p>
+    </div>
+
+        </div>
+
+          <dialog id="main-modal"
+     class="modal-component modal fixed inset-0 z-[var(--bali-z-modal)] items-center justify-center hidden [&.modal-open]:flex"
+     
+     
+     
+     
+     
+     data-modal-target="template"
+     data-action="keydown.esc->modal#close">
+  <div class="modal-backdrop fixed inset-0 bg-black/50" data-modal-target="background" aria-hidden="true"></div>
+  <div class="modal-box relative bg-base-100 rounded-box p-4 sm:p-6 shadow-xl w-11/12 max-h-[calc(100vh-5em)] overflow-y-auto" data-wrapper-class="" data-modal-target="wrapper" tabindex="-1">
+      <button class="btn btn-sm btn-circle btn-ghost float-right ml-2 -mt-2 -mr-2 sm:-mt-4 sm:-mr-4" aria-label="Close modal" data-action="modal#close" type="button">✕</button>
+    <div class="modal-inner" data-modal-target="content">
+        
+            <div class="space-y-4"><div class="skeleton h-4 h-7 w-1/2"></div><div class="space-y-2 py-2"><div class="skeleton h-4 w-full"></div><div class="skeleton h-4 w-full"></div><div class="skeleton h-4 w-3/4"></div></div><div class="flex justify-end gap-2 pt-4"><div class="skeleton h-4 h-10 w-20 rounded-btn"></div><div class="skeleton h-4 h-10 w-24 rounded-btn"></div></div></div>
+
+    </div>
+  </div>
+</dialog>
+
+          <dialog id="main-drawer" class="drawer-component z-[var(--bali-z-drawer)] fixed" inert="inert" data-controller="drawer" data-drawer-target="template" data-action="keydown.esc-&gt;drawer#close" data-drawer-confirm-close-message-value="You have unsaved changes. Discard them?">
+  <div class="drawer-overlay fixed inset-0 bg-black/50 z-0"
+       data-drawer-target="background"
+       data-action="click->drawer#close"
+    aria-hidden="true"></div>
+  <div class="drawer-panel fixed top-0 h-full w-full text-base-content right-0 max-w-lg bg-base-100 [.drawer-open&gt;&amp;]:shadow-2xl transform transition-[transform,translate,box-shadow] duration-300 ease-in-out [.drawer-open&gt;&amp;]:transition-transform translate-x-full overflow-auto z-10 [.drawer-open&gt;&amp;]:translate-x-0 max-md:w-[85%]"
+       data-drawer-target="wrapper"
+       role="document"
+       tabindex="-1">
+    <div class="drawer-inner p-6" data-drawer-target="content">
+      
+            <div class="space-y-3"><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div></div>
+
+    </div>
+  </div>
+</dialog>      </main>
+    </div>
+  </div>
+
+    <div id="toast-notifications" class="toast toast-container-component z-[var(--bali-z-toast)] toast-bottom toast-end" data-controller="toast-container"></div>
+</body>

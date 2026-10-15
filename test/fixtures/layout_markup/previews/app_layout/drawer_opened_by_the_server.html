@@ -1,0 +1,57 @@
+<body class="app-layout flex flex-col min-h-screen bg-base-200" data-controller="app-layout">
+    <a href="#main-content" class="bali-skip-link">Skip to main content</a>
+
+
+
+  <div class="app-layout-main flex flex-1 min-h-0">
+    
+
+    <div class="app-layout-content flex-1 min-w-0 flex flex-col">
+
+      <main id="main-content" tabindex="-1" class="flex-1">
+        <div class="app-layout-body-container p-4 md:p-6">
+          
+    <div class="level flex justify-between max-sm:flex-wrap gap-2 sm:gap-4 items-center page-header-component mb-4 max-sm:gap-3 max-sm:flex-col max-sm:items-stretch">
+  <div class="level-left flex items-center gap-4 shrink flex-1 min-w-0 max-sm:w-full max-sm:flex-col max-sm:items-start max-sm:gap-2"><div class="level-item flex items-center max-w-full max-sm:w-full min-w-0">        <div class="page-header-title-block min-w-0 space-y-1">
+          <h1 class="title text-2xl font-bold">Projects</h1>
+          <p class="subtitle text-sm text-base-content/70">The page opened on the new project form.</p>
+        </div>
+</div></div>
+  
+</div>
+
+    <dialog id="new-project-drawer" class="drawer-component z-[var(--bali-z-drawer)] fixed drawer-open" aria-labelledby="new-project-drawer-title" data-controller="drawer" data-drawer-target="template" data-action="keydown.esc-&gt;drawer#close" data-drawer-shared-value="false">
+  <div class="drawer-overlay fixed inset-0 bg-black/50 z-0"
+       data-drawer-target="background"
+       data-action="click->drawer#close"
+    aria-hidden="true"></div>
+  <div class="drawer-panel fixed top-0 h-full w-full text-base-content right-0 max-w-lg bg-base-100 [.drawer-open&gt;&amp;]:shadow-2xl transform transition-[transform,translate,box-shadow] duration-300 ease-in-out [.drawer-open&gt;&amp;]:transition-transform translate-x-full overflow-auto z-10 [.drawer-open&gt;&amp;]:translate-x-0 max-md:w-[85%]"
+       data-drawer-target="wrapper"
+       role="document"
+       tabindex="-1">
+      <div class="drawer-header flex items-center justify-between p-4 border-b border-base-200">
+          <h2 id="new-project-drawer-title" class="text-lg font-semibold">New project</h2>
+        <button type="button"
+                class="btn btn-sm btn-circle btn-ghost"
+                data-action="drawer#close"
+                aria-label="Close drawer">
+          <span class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: x --></svg></span>
+        </button>
+      </div>
+    <div class="drawer-inner p-6" data-drawer-target="content">
+      
+      <form data-controller="submit-button" action="/fake/submit" accept-charset="UTF-8" method="post">
+        <fieldset id="project_name_field" class="fieldset w-full"><label class="fieldset-legend" id="project_name_label" for="project_name">Name</label><div class="control"><input autofocus="autofocus" class="input w-full" type="text" name="project[name]" id="project_name" /></div></fieldset>
+</form>
+    </div>
+  </div>
+</dialog>
+        </div>
+
+
+      </main>
+    </div>
+  </div>
+
+    <div id="toast-notifications" class="toast toast-container-component z-[var(--bali-z-toast)] toast-bottom toast-end" data-controller="toast-container"></div>
+</body>

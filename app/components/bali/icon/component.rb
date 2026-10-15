@@ -50,6 +50,19 @@ module Bali
       # Nothing but the hook: bali/general.css holds the look, where a caller's utility wins.
       CLASSES = "icon-component"
 
+      # Built Lucide <svg>s by [Lucide name, pixel size]. Building one through `tag.svg` was
+      # half of an icon's render (18 of 36 µs), and a layout draws the same few dozen on every
+      # page. Kept and custom icons stay out: `Bali.add_icon` can change those at runtime.
+      # `LucideRails.default_options` is read when an entry is built, so it is boot-time
+      # configuration. Capped because a numeric `size:` is the caller's: 2,000 entries is
+      # about 1.1 MB, 405 bytes of markup per <svg> on average plus the key and the objects.
+      LUCIDE_SVGS = Concurrent::Map.new
+      LUCIDE_SVGS_LIMIT = 2_000
+
+      # What `call` writes by hand. A `data:` or `aria:` hash, a boolean attribute and anything
+      # else a host passes go through `tag`, which knows their rules.
+      HAND_WRITTEN_ATTRIBUTES = %i[class style aria-hidden].freeze
+
       # @param name [String, Symbol] Icon name (Bali name or Lucide name)
       # @param tag_name [Symbol] HTML tag to wrap the icon (:span, :div, etc.)
       # @param size [Symbol, Numeric] Icon size — :small / :medium / :large or
@@ -65,10 +78,22 @@ module Bali
       end
 
       def call
-        tag.send(tag_name, **options) { resolve_icon.html_safe }
+        return tag.send(tag_name, **options) { resolve_icon.html_safe } unless hand_written?
+
+        attributes = +""
+        options.each { |key, value| attributes << %( #{key}="#{escape_attribute(value)}") unless value.nil? }
+        "<span#{attributes}>#{resolve_icon}</span>".html_safe
       end
 
       private
+
+      # The common wrapper, written out instead of built by `tag`: with its <svg> cached,
+      # `tag.span` cost 1.9 of an icon's 7.5 µs.
+      def hand_written?
+        tag_name == :span && options.all? do |key, value|
+          HAND_WRITTEN_ATTRIBUTES.include?(key) && (value.is_a?(String) || [ nil, true, false ].include?(value))
+        end
+      end
 
       # An icon is decorative unless its host says otherwise: the meaning is in
       # the text or in the accessible name of the control it sits in, and an
@@ -91,11 +116,12 @@ module Bali
       def resolve_icon
         # 1. Try Lucide mapping (Bali name → Lucide name)
         if (lucide_name = LucideMapping.find(@name))
-          return render_lucide_icon(lucide_name)
+          return lucide_svg(lucide_name) { LucideRails::IconProvider.icon(lucide_name) }
         end
 
         # 2. Try direct Lucide name (allows using Lucide names directly)
-        return render_lucide_icon(@name) if lucide_icon_exists?(name)
+        direct = lucide_svg(@name) { lucide_icon_body(@name) }
+        return direct if direct
 
         # 3. Try kept icons (brands, regional, custom domain-specific)
         return KeptIcons.find(@name) if KeptIcons.exists?(@name)
@@ -107,13 +133,23 @@ module Bali
         raise Options::IconNotAvailable, icon_not_found_message
       end
 
-      # Renders a Lucide icon using the lucide-rails provider
-      #
-      # @param lucide_name [String] the Lucide icon name
-      # @return [String] SVG markup
-      def render_lucide_icon(lucide_name)
-        svg_content = LucideRails::IconProvider.icon(lucide_name)
+      # The <svg> of a Lucide icon from LUCIDE_SVGS, or built around the body the block
+      # returns. The caller looks the body up, so a mapping that names a missing icon still
+      # raises while a direct name falls through; a nil body is no icon and is not cached.
+      def lucide_svg(lucide_name)
+        key = [ lucide_name, pixel_size ]
+        cached = LUCIDE_SVGS[key]
+        return cached if cached
 
+        body = yield
+        return unless body
+
+        svg = build_lucide_svg(body).to_str.freeze
+        LUCIDE_SVGS[key] = svg if LUCIDE_SVGS.size < LUCIDE_SVGS_LIMIT
+        svg
+      end
+
+      def build_lucide_svg(svg_content)
         # `default_options` carries "width"/"height" as String keys (24); the
         # Symbol overrides below would serialize as a SECOND pair, and HTML
         # parsers keep the first — so 24 always won and `size:` never reached
@@ -161,15 +197,14 @@ module Bali
         numeric_size? ? "#{@size.to_i}px" : "#{pixel_size / 16}rem"
       end
 
-      # Checks if a Lucide icon exists
+      # The body of a Lucide icon, or nil when Lucide has none by that name
       #
-      # @param icon_name [String] the icon name to check
-      # @return [Boolean]
-      def lucide_icon_exists?(icon_name)
+      # @param icon_name [String] the icon name to look up
+      # @return [String, nil]
+      def lucide_icon_body(icon_name)
         LucideRails::IconProvider.icon(icon_name.to_s)
-        true
       rescue ArgumentError
-        false
+        nil
       end
 
       # Generates a helpful error message for missing icons

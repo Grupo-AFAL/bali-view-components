@@ -1,0 +1,79 @@
+<div class="bali-command" data-controller="command" data-command-results-value="{&quot;one&quot;:&quot;%{count} result&quot;,&quot;other&quot;:&quot;%{count} results&quot;}">
+    <button type="button"
+            data-action="click->command#open"
+            aria-haspopup="dialog"
+            title="Search…"
+            class="bali-command-trigger flex items-center gap-2 w-full bg-base-content/8 hover:bg-base-content/16 rounded-md px-2.5 py-1.5 text-sm text-base-content/75 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content @max-[7rem]:size-8 @max-[7rem]:max-w-full @max-[7rem]:justify-center @max-[7rem]:px-0 @max-[7rem]:overflow-hidden">
+      <span class="icon-component size-4 shrink-0" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: search --></svg></span>
+      <span class="flex-1 min-w-0 truncate text-left @max-[7rem]:sr-only">Search…</span>
+        <kbd class="kbd kbd-xs hidden sm:inline-flex @max-[7rem]:hidden" aria-hidden="true" data-command-target="shortcut">⌘K</kbd>
+    </button>
+
+  <dialog data-command-target="surface" class="bali-command-surface" aria-label="Search…">
+    <div data-command-target="backdrop"
+         data-action="click->command#close"
+         class="hidden fixed inset-0 bg-black/40 z-[calc(var(--bali-z-command)_-_1)]"></div>
+
+    <div data-command-target="panel"
+         class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[var(--bali-z-command)] w-[520px] max-w-[calc(100vw-2rem)]">
+      <div class="cmd-panel bg-base-100 border border-base-content/15 rounded-box shadow-xl flex flex-col overflow-hidden ">
+        <div class="cmd-input-wrap flex items-center gap-3 border-b border-base-200 text-base-content/60">
+          <span class="icon-component size-4 shrink-0" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: search --></svg></span>
+          <input data-command-target="input"
+                 data-action="input->command#filter keydown->command#nav"
+                 type="text"
+                 placeholder="Search…"
+                 class="cmd-input flex-1 min-w-0 bg-transparent border-0 outline-none text-base-content placeholder:text-base-content/70"
+                 aria-label="Search…" />
+          <kbd class="kbd kbd-xs">esc</kbd>
+        </div>
+
+        <div class="cmd-list p-1.5 max-h-80 overflow-y-auto">
+            <div data-command-target="group" data-mode="searchable">
+  <div class="cmd-group text-xs font-semibold uppercase tracking-wider text-base-content/70 px-3 pt-3 pb-1.5">&lt;script&gt;alert(1)&lt;/script&gt;</div>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/s?q=&quot;x&quot;&amp;y=&lt;z&gt;" data-search="&lt;script&gt;&quot;t&quot; &amp; &#39;q&#39;&lt;/script&gt; &lt;b&gt;m&lt;/b&gt; &amp; &quot;q&quot;" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: search --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">&lt;script&gt;&quot;t&quot; &amp; &#39;q&#39;&lt;/script&gt;</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">&lt;b&gt;m&lt;/b&gt; &amp; &quot;q&quot;</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/safe?x=&quot;1&quot;" data-search="&lt;em&gt;safe&lt;/em&gt; &lt;i&gt;safe&lt;/i&gt;" data-action="click-&gt;command#select">
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate"><em>safe</em></span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate"><i>safe</i></span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-search="&lt;a &amp; &quot;b&quot;&gt;" data-action="click-&gt;command#select">
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Search escapes</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+</div>
+
+          <div data-command-target="noResults" class="hidden text-center px-4 pt-8 pb-3">
+            <div class="text-sm font-semibold text-base-content">No results</div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 px-3 py-2 border-t border-base-200 bg-base-100 text-xs text-base-content/70">
+          <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> navigate</span>
+          <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">⏎</kbd> open</span>
+          <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">esc</kbd> close</span>
+          <span class="ml-auto font-mono text-[10.5px] text-base-content/70" data-command-target="count"></span>
+        </div>
+      </div>
+    </div>
+  </dialog>
+</div>
