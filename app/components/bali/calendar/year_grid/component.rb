@@ -90,6 +90,8 @@ module Bali
         end
 
         # @return [String] Localised month name. `date.month_names` is 1-indexed.
+        #   Not capitalised here: `day_label` writes it inside a date, lowercase in
+        #   rails-i18n's Spanish; only the heading takes `upcase_first`.
         def month_name(month)
           t("date.month_names")[month.month]
         end

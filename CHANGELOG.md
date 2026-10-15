@@ -32,6 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   atributos propios del anfitrión (`data:`, `id:`, `title:`…) se sigue armando con `tag`.
   - **Anfitrión:** nada que hacer.
 
+### Fixed
+
+- **`Bali::Calendar`: los encabezados de mes empiezan con mayúscula** (#1485). Con un
+  `es.date.month_names` en minúscula, como el de rails-i18n, el encabezado decía «octubre 2026» y
+  la vista de año «enero», «febrero»…; ahora «Octubre 2026», «Enero». Las fechas no cambian, ni la
+  etiqueta accesible de cada día del año («5 marzo 2026»). Nada que hacer en la app;
+  gobierno-corporativo puede borrar su parche de `::first-letter` en `application.css`.
+
 ## [v3.16.2] - 2026-10-14
 
 ### Fixed
