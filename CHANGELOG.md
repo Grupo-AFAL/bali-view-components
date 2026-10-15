@@ -16,9 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   vacío; también en los filtros `type: :slim_select` con `blank:` de `SimpleFilters`. `prompt:`,
   `required:`, `multiple:`, las listas agrupadas y los selects remotos (`ajax_url:`) quedan igual.
   Para conservar el aspecto de antes, `allow_deselect_option: false`; si el campo es
-  obligatorio, `required: true` también apaga la ✕ y además marca la etiqueta. En un select
-  local de lista plana, un `allow_deselect_option: true` junto a un `include_blank:` ya sobra y
-  se puede borrar.
+  obligatorio, `required: true` también apaga la ✕ y además marca la etiqueta. Donde la ✕ ya
+  sale por omisión, un `allow_deselect_option: true` explícito sobra y se puede borrar.
 
 ## [v3.16.2] - 2026-10-14
 
