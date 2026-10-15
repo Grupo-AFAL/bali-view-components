@@ -1,0 +1,32 @@
+<header class="bali-topbar flex items-center gap-3 px-4 md:px-6 bali-chrome-height bg-base-100 border-b border-base-300">
+    <button type="button" class="btn btn-ghost btn-sm lg:hidden" data-controller="side-menu-trigger" data-action="click-&gt;side-menu-trigger#toggle" data-side-menu-trigger-menu-id-value="side-menu" aria-controls="side-menu" aria-expanded="false" aria-label="Open sidebar"><span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: menu --></svg></span></button>
+
+
+
+    <div class="flex items-center gap-1 ml-auto">
+            <button type="button" class="btn btn-ghost btn-sm btn-square relative" aria-label="Notifications">
+      <span class="icon-component size-5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: bell --></svg></span>
+      <span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-error border-2 border-base-100"></span>
+    </button>
+
+            <div class="dropdown dropdown-start lg:dropdown-end" data-controller="dropdown" data-dropdown-close-on-click-value="true" data-dropdown-popover-value="false" data-dropdown-placement-value="bottom-start">
+  <div class="btn btn-ghost btn-sm gap-2" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" data-dropdown-target="trigger">        <div class="avatar avatar-placeholder">
+  <div class="w-8 rounded-full aspect-square bg-neutral text-neutral-content text-xs">
+      AG
+</div></div>        <span class="hidden md:inline">Ana García</span>
+        <span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-down --></svg></span>
+</div>
+  <ul tabindex="-1" class="dropdown-content menu bg-base-100 text-base-content rounded-box border border-base-content/15 z-[var(--bali-z-dropdown)] shadow-lg p-2 w-52" role="menu" aria-label="Dropdown menu" data-dropdown-target="menu">
+        <li role="none"><a class="flex items-center gap-2 menu-item w-full text-left" role="menuitem" href="#" data-method="get">
+    
+  
+  Profile
+</a></li>
+        <li role="none"><a class="flex items-center gap-2 menu-item w-full text-left" role="menuitem" href="#" data-method="get">
+    
+  
+  Sign out
+</a></li>
+</ul></div>
+    </div>
+</header>

@@ -1,0 +1,388 @@
+<body class="app-layout flex flex-col min-h-screen bg-base-200 app-layout--has-fixed-sidebar app-layout--has-sidebar app-layout--viewport-locked" data-controller="app-layout modal drawer">
+    <a href="#main-content" class="bali-skip-link">Skip to main content</a>
+
+
+
+  <div class="app-layout-main flex flex-1 min-h-0">
+    
+    <nav id="side-menu" class="side-menu-component side-menu-component--fixed" data-controller="side-menu" data-side-menu-collapsible-value="true" data-side-menu-fixed-value="true" aria-label="Sidebar" inert="inert">
+    <div class="side-menu-expanded flex bali-chrome-height items-center gap-2 py-3 px-2.5 border-b border-base-300">
+        <span class="side-menu-brand text-xl font-semibold grow items-center gap-2 min-w-0">
+          MovieDB
+        </span>
+      <button type="button"
+              title="Collapse sidebar"
+              aria-label="Collapse sidebar"
+              aria-controls="side-menu"
+              aria-expanded="true"
+              data-action="side-menu#toggleCollapse"
+              class="menu-item p-2 shrink-0 max-lg:hidden">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: panel-left-close --></svg></span>
+      </button>
+        <button type="button"
+                title="Close sidebar"
+                aria-label="Close sidebar"
+                data-action="side-menu#close"
+                class="menu-item p-2 shrink-0 lg:hidden">
+          <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: x --></svg></span>
+        </button>
+    </div>
+    <div class="side-menu-collapsed hidden bali-chrome-height items-center px-1 border-b border-base-300">
+      <button type="button"
+              title="Expand sidebar"
+              aria-label="Expand sidebar"
+              aria-controls="side-menu"
+              aria-expanded="false"
+              data-action="side-menu#toggleCollapse"
+              class="collapse-toggle menu-item justify-center w-full">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: panel-left-open --></svg></span>
+      </button>
+    </div>
+
+    <div class="menu-switcher mb-3 mt-3">
+      <details class="dropdown dropdown-bottom w-full">
+        <summary class="menu-switcher-trigger tooltip tooltip-right border-base-300 hover:bg-base-content/8 rounded-box flex w-full items-center gap-2 border p-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+                 data-tip="MovieDB">
+          <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: clapperboard --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">MovieDB</p>
+    
+  </div>
+</div>
+          <span class="icon-component menu-switcher-chevron ml-auto size-4 text-base-content/55" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevrons-up-down --></svg></span>
+        </summary>
+        <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
+            <li>
+              <a href="/admin" class="active">
+                <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: clapperboard --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">MovieDB</p>
+    
+  </div>
+</div>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="">
+                <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: bar-chart-3 --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Analytics</p>
+    
+  </div>
+</div>
+              </a>
+            </li>
+        </ul>
+      </details>
+    </div>
+
+  <div class="sidebar-menu custom-scrollbar grow overflow-auto">
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Main</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>  <a href="/admin" class="menu-item group active side-menu-expanded" aria-current="page">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layout-dashboard --></svg></span>
+    <span class="grow">Dashboard</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/admin" class="menu-item active" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layout-dashboard --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Dashboard
+  </template>
+</span>
+</li>
+    <li>  <a href="/admin/movies" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: film --></svg></span>
+    <span class="grow">Movies</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/admin/movies" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: film --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Movies
+  </template>
+</span>
+</li>
+    <li>  <a href="/admin/studios" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: building-2 --></svg></span>
+    <span class="grow">Studios</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/admin/studios" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: building-2 --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Studios
+  </template>
+</span>
+</li>
+</ul>
+
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Reports</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>  <a href="#" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: bar-chart-3 --></svg></span>
+    <span class="grow">Analytics</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="#" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: bar-chart-3 --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Analytics
+  </template>
+</span>
+</li>
+    <li>  <a href="#" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: dollar-sign --></svg></span>
+    <span class="grow">Revenue</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="#" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: dollar-sign --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Revenue
+  </template>
+</span>
+</li>
+</ul>
+
+  </div>
+
+    <ul class="side-menu-bottom-section border-t border-base-200 shrink-0 space-y-0.5 py-2">
+        <li>  <a href="#" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-user --></svg></span>
+    <span class="grow">Ana García</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="#" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-user --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Ana García
+  </template>
+</span>
+</li>
+        <li><div class="side-menu-bottom-group dropdown dropdown-top dropdown-end w-full">
+  <div tabindex="0" role="button"
+       class="menu-item side-menu-expanded w-full">
+      <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span>
+    <span class="grow">Configuration</span>
+    <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-up --></svg></span>
+  </div>
+  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+          <div tabindex="0" role="button" class="menu-item">
+          <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span>
+      </div>
+
+</span>  <template data-tooltip-target="content">
+    
+    Configuration
+
+  </template>
+</span>  <ul tabindex="0"
+      class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mb-2 w-56 p-2">
+      <li>  <a href="#" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-user --></svg></span>
+    <span class="grow">Profile</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="#" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: circle-user --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Profile
+  </template>
+</span>
+</li>
+      <li>  <a href="#" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span>
+    <span class="grow">Settings</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="#" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Settings
+  </template>
+</span>
+</li>
+      <li>  <a href="#" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: book-open --></svg></span>
+    <span class="grow">Documentation</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="#" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: book-open --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Documentation
+  </template>
+</span>
+</li>
+      <li>  <a href="#" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: log-out --></svg></span>
+    <span class="grow">Log Out</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="#" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: log-out --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Log Out
+  </template>
+</span>
+</li>
+  </ul>
+</div>
+</li>
+    </ul>
+</nav>
+  <div class="side-menu-overlay"
+       aria-hidden="true"
+       data-controller="side-menu-trigger"
+       data-side-menu-trigger-menu-id-value="side-menu"
+       data-action="click->side-menu-trigger#close"></div>
+
+
+
+    <div class="app-layout-content flex-1 min-w-0 flex flex-col">
+        <header class="app-layout-topbar app-layout-topbar--default-mobile flex items-center gap-2 px-4 py-2 bg-base-100 border-b border-base-300 lg:hidden">
+          <button type="button" data-controller="side-menu-trigger" data-action="click-&gt;side-menu-trigger#toggle" data-side-menu-trigger-menu-id-value="side-menu" class="btn btn-ghost btn-sm" aria-controls="side-menu" aria-expanded="false" aria-label="Open sidebar"><span style="--bali-icon-size: 1rem" class="icon-component" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: menu --></svg></span></button>
+            <span class="font-semibold text-sm">MovieDB</span>
+        </header>
+
+      <main id="main-content" tabindex="-1" class="flex-1">
+        <div class="app-layout-body-container p-4 md:p-6">
+              <div class="max-w-7xl">
+      <div class="level flex justify-between max-sm:flex-wrap gap-2 sm:gap-4 items-center page-header-component mb-4 max-sm:gap-3 max-sm:flex-col max-sm:items-stretch">
+  <div class="level-left flex items-center gap-4 shrink flex-1 min-w-0 max-sm:w-full max-sm:flex-col max-sm:items-start max-sm:gap-2"><div class="level-item flex items-center max-w-full max-sm:w-full min-w-0">        <div class="page-header-title-block min-w-0 space-y-1">
+          <h1 class="title text-2xl font-bold">Dashboard</h1>
+          <p class="subtitle text-sm text-base-content/70">Welcome back, Ana</p>
+        </div>
+</div></div>
+  
+</div>
+
+      <div class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-6">
+    
+          <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-base-content/60">Total Movies</p>
+                <p class="text-2xl font-bold">1,234</p>
+              </div>
+              <span class="icon-component size-8 text-primary" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: film --></svg></span>
+            </div>
+
+    </div>
+</div>          <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-base-content/60">Studios</p>
+                <p class="text-2xl font-bold">56</p>
+              </div>
+              <span class="icon-component size-8 text-secondary" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: building-2 --></svg></span>
+            </div>
+
+    </div>
+</div>          <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-base-content/60">Revenue</p>
+                <p class="text-2xl font-bold">$45.2K</p>
+              </div>
+              <span class="icon-component size-8 text-success" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: dollar-sign --></svg></span>
+            </div>
+
+    </div>
+</div>          <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body p-4">
+      
+      
+      
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-base-content/60">Users</p>
+                <p class="text-2xl font-bold">892</p>
+              </div>
+              <span class="icon-component size-8 text-info" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: users --></svg></span>
+            </div>
+
+    </div>
+</div>
+</div>
+      <div class="card bg-base-100 card-border shadow-sm">
+  
+    <div class="card-body">
+      
+      
+      
+        <h3 class="card-title text-lg mb-4">Recent Activity</h3>
+        <p class="text-base-content/60">This is a preview of the AppLayout component with a fixed sidebar.</p>
+
+    </div>
+</div>    </div>
+
+        </div>
+
+          <dialog id="main-modal"
+     class="modal-component modal fixed inset-0 z-[var(--bali-z-modal)] items-center justify-center hidden [&.modal-open]:flex"
+     
+     
+     
+     
+     
+     data-modal-target="template"
+     data-action="keydown.esc->modal#close">
+  <div class="modal-backdrop fixed inset-0 bg-black/50" data-modal-target="background" aria-hidden="true"></div>
+  <div class="modal-box relative bg-base-100 rounded-box p-4 sm:p-6 shadow-xl w-11/12 max-h-[calc(100vh-5em)] overflow-y-auto" data-wrapper-class="" data-modal-target="wrapper" tabindex="-1">
+      <button class="btn btn-sm btn-circle btn-ghost float-right ml-2 -mt-2 -mr-2 sm:-mt-4 sm:-mr-4" aria-label="Close modal" data-action="modal#close" type="button">✕</button>
+    <div class="modal-inner" data-modal-target="content">
+        
+            <div class="space-y-4"><div class="skeleton h-4 h-7 w-1/2"></div><div class="space-y-2 py-2"><div class="skeleton h-4 w-full"></div><div class="skeleton h-4 w-full"></div><div class="skeleton h-4 w-3/4"></div></div><div class="flex justify-end gap-2 pt-4"><div class="skeleton h-4 h-10 w-20 rounded-btn"></div><div class="skeleton h-4 h-10 w-24 rounded-btn"></div></div></div>
+
+    </div>
+  </div>
+</dialog>
+
+          <dialog id="main-drawer" class="drawer-component z-[var(--bali-z-drawer)] fixed" inert="inert" data-controller="drawer" data-drawer-target="template" data-action="keydown.esc-&gt;drawer#close" data-drawer-confirm-close-message-value="You have unsaved changes. Discard them?">
+  <div class="drawer-overlay fixed inset-0 bg-black/50 z-0"
+       data-drawer-target="background"
+       data-action="click->drawer#close"
+    aria-hidden="true"></div>
+  <div class="drawer-panel fixed top-0 h-full w-full text-base-content right-0 max-w-2xl bg-base-100 [.drawer-open&gt;&amp;]:shadow-2xl transform transition-[transform,translate,box-shadow] duration-300 ease-in-out [.drawer-open&gt;&amp;]:transition-transform translate-x-full overflow-auto z-10 [.drawer-open&gt;&amp;]:translate-x-0 max-md:w-[85%]"
+       data-drawer-target="wrapper"
+       role="document"
+       tabindex="-1">
+    <div class="drawer-inner p-6" data-drawer-target="content">
+      
+            <div class="space-y-3"><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div><div class="flex items-center gap-3"><div class="skeleton h-4 w-10 h-10 rounded-full shrink-0"></div><div class="flex-1 space-y-2"><div class="skeleton h-4 w-1/3"></div><div class="skeleton h-4 h-3 w-1/2"></div></div></div></div>
+
+    </div>
+  </div>
+</dialog>      </main>
+    </div>
+  </div>
+
+</body>

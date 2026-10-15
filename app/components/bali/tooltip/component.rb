@@ -61,7 +61,7 @@ module Bali
       end
 
       def trigger_classes
-        class_names("trigger", "cursor-pointer")
+        "trigger cursor-pointer"
       end
 
       def trigger_attributes
