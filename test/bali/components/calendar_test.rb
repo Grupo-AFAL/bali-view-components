@@ -649,7 +649,6 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector(".header h3", text: "Octubre 2026")
   end
 
-  # The day's aria-label reads the same names inside a date, where they stay lowercase.
   def test_year_view_capitalises_lowercase_month_headings_but_not_the_day_labels
     @options.merge!(
       start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],
@@ -875,7 +874,7 @@ class BaliCalendarComponentTest < ComponentTestCase
 
   # rails-i18n 8.1's `es.date.month_names`, lowercase because `%B` writes them inside a
   # date. The dummy's es.yml capitalises them, so a test rendering plain `:es` passes
-  # without the fix. Stores back what was there, as `with_filter_texts_marked` does.
+  # without the fix.
   def with_rails_i18n_month_names(&block)
     previous = I18n.t("date.month_names", locale: :es)
     I18n.backend.store_translations(:es, date: { month_names: [ nil ] + %w[enero febrero marzo abril
