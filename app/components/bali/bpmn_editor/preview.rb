@@ -19,6 +19,24 @@ module Bali
         island(locale, data: BpmnSampleFlows.invoice(orientation: "vertical"))
       end
 
+      # @label Editable (dummy endpoints)
+      # The complete editor against the dummy's reference endpoints
+      # (Admin::ProcessFlows::DiagramsController / FinalizationsController):
+      # every change autosaves the whole document with its version, a stale
+      # version answers 409 and the island reloads. Requires the seeded flow
+      # (`bin/rails db:seed`); edits PERSIST in the dummy database.
+      # @param autosave toggle
+      # @param palette select { choices: [descriptive, analytic, full] }
+      def editable(autosave: true, palette: :analytic)
+        flow = ProcessFlow.order(:id).first
+        I18n.with_locale(:es) do
+          render_with_template(
+            template: "bali/bpmn_editor/previews/editable",
+            locals: { flow: flow, autosave: autosave, palette: palette.to_sym }
+          )
+        end
+      end
+
       # @label Large (60 activities)
       # Sixty activities and ten decisions over four lanes, laid out on load.
       def large

@@ -68,7 +68,9 @@
 /* Flow nodes. */
 .bpmn-node { position: relative; width: 100%; height: 100%; }
 .bpmn-node-shape { display: block; overflow: visible; }
-.bpmn-node.is-selected .bpmn-node-shape,
+.bpmn-node.is-selected::after {
+  content: ''; position: absolute; inset: -5px; border: 1.5px dashed var(--bpmn-select); border-radius: 10px; pointer-events: none;
+}
 .bpmn-node.is-highlighted .bpmn-node-shape { filter: drop-shadow(0 0 0.5px var(--bpmn-select)) drop-shadow(0 0 3px color-mix(in oklab, var(--bpmn-select) 55%, transparent)); }
 .bpmn-node.is-highlighted .bpmn-node-shape { animation: bpmn-pulse 1.2s ease-in-out 2; }
 @keyframes bpmn-pulse { 50% { filter: drop-shadow(0 0 6px var(--bpmn-select)); } }
@@ -126,3 +128,4 @@
 @media print {
   .bpmn-chrome { display: none !important; }
 }
+.bpmn-note-chip { padding: 0 4px; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -1px; font-size: 10px; font-weight: 600; }

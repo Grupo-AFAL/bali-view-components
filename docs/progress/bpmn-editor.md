@@ -141,6 +141,16 @@ para que lo finalizado sea exactamente lo que se ve.
 - **Textos:** tabla i18n plana con respaldo en inglés en JS (como el Gantt); el locale `es` es
   el que se escribe primero.
 
+- **`editable:` sin `urls[:save]` es solo lectura:** editar sin dónde guardar perdería el trabajo al
+  recargar.
+- **Atajos de teclado:** escuchan en `document` y responden si el foco está dentro del editor o en
+  `<body>` y fue el último editor tocado (al borrar el nodo enfocado, el foco cae en `<body>`). Con
+  varias instancias en pestañas sólo responde una.
+- **Arrastre de carril:** si el centro del carril cae sobre otro carril, se reordena; si no, se
+  mueve el conjunto (heurística del editor de Gobierno Corporativo).
+- **Selección:** carriles y nodos no se mezclan en una selección; `elevateNodesOnSelect` va
+  apagado porque un carril seleccionado taparía sus nodos.
+
 ## Fases
 
 - [x] F0 Diagnóstico y plan
@@ -151,7 +161,19 @@ para que lo finalizado sea exactamente lo que se ve.
   un documento sin coordenadas, previews (`default`, `vertical`, `large`, `empty`), pruebas Ruby y
   `node --test` (geometría, ruteo, layout). Muestras sintéticas en
   `test/dummy/app/models/bpmn_sample_flows.rb`.
-- [ ] F2 Paridad de edición
+- [x] F2 Paridad de edición — operaciones puras (`model/operations.js`): crear, mover (cambia de
+  carril por el centro; el carril crece y los siguientes se recorren), conectar (con bloqueos y
+  etiquetas Sí/No en el gateway exclusivo), reconectar, borrar (con carril con elementos y mínimo de
+  carriles bloqueados), carriles (agregar, renombrar en el encabezado, reordenar arrastrando el
+  encabezado o con Subir/Bajar, redimensionar con largo común, mover el conjunto), orientación,
+  auto-layout. Historial (`model/history.js`), autoguardado del documento completo con versión
+  (`hooks/useSaver.js`: 200, 409 → recarga y aviso, 422 → errores), indicador de guardado, aviso del
+  navegador al salir, modo Navegar, pantalla completa, zoom con porcentaje, minimapa, atajos
+  (Ctrl+Z/Y/A, Supr, Esc, flechas). Implementación de referencia en `test/dummy`
+  (`ProcessFlow`, `Admin::ProcessFlows::DiagramsController` y `FinalizationsController`, página
+  `/admin/process_flows/:id`) y preview `editable`. Verificado en el navegador con Playwright
+  (crear, mover, deshacer/rehacer, bloqueo de conexión, renombrar, reordenar carriles,
+  orientación, auto-layout, 409).
 - [ ] F3 Paleta, leyenda y carril externo
 - [ ] F4 Reglas, pendientes y Borrador/Finalizar
 - [ ] F5 Edición rápida

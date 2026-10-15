@@ -56,6 +56,7 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
     @studio = Studio.create!(name: "Smoke Studio", country: "USA", status: :active)
     @project = Project.create!(name: "Smoke Project")
     @document = Document.create!(title: "Smoke Document", author_name: "Smoke Author")
+    @process_flow = ProcessFlow.create!(name: "Smoke Flow", document: BpmnSampleFlows.invoice.except(:version))
   end
 
   # Two assertions off one walk rather than two test methods, because the walk is the
@@ -150,6 +151,8 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
       "admin/studios" => { "id" => @studio.to_param },
       "admin/projects" => { "id" => @project.to_param },
       "admin/projects/schedules" => { "project_id" => @project.to_param },
+      "admin/process_flows" => { "id" => @process_flow.to_param },
+      "admin/process_flows/diagrams" => { "process_flow_id" => @process_flow.to_param },
       "documents" => { "id" => @document.to_param },
       "pages" => { "project_slug" => "bali-demo" }
     }

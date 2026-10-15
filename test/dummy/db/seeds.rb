@@ -275,6 +275,11 @@ if roadmap
   puts "Document '#{roadmap.title}' references #{roadmap.entity_references.count} entities"
 end
 
+flow = ProcessFlow.find_or_create_by!(name: "Pago a proveedores") do |f|
+  f.document = BpmnSampleFlows.invoice.except(:version, :status_label)
+end
+puts "Process flow '#{flow.name}' (BPMN editor) v#{flow.version}"
+
 # Dueño de las vistas guardadas: el dummy no autentica, hay un solo usuario y es el que
 # nombra el topbar.
 User.demo

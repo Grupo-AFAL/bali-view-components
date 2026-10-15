@@ -2,6 +2,9 @@
 // diagram: these are rebuilt from the document after every change, and a drag
 // only becomes real when it is committed back into the document.
 //
+// Every node carries `measured`: the sizes are the document's, and without
+// it React Flow refuses to drag a node it has not measured itself.
+//
 // Lanes are NOT parents of the nodes inside them (`parentId`): membership is
 // decided by geometry when a node is dropped, which is what lets a node move
 // to another lane, and a lane is a background node whose body lets pointer
@@ -27,6 +30,7 @@ export function buildRfNodes (doc, { layout = layoutLanes(doc), editable = false
       position: { x: origin.x + rect.x, y: origin.y + rect.y },
       width: rect.w,
       height: rect.h,
+      measured: { width: rect.w, height: rect.h },
       zIndex: Z_LANE,
       draggable: editable,
       dragHandle: '.bpmn-lane-header',
@@ -52,6 +56,7 @@ export function buildRfNodes (doc, { layout = layoutLanes(doc), editable = false
       position: { x: origin.x + box.x, y: origin.y + box.y },
       width: box.w,
       height: box.h,
+      measured: { width: box.w, height: box.h },
       zIndex: node.type === 'group' ? Z_GROUP : 0,
       draggable: editable,
       selectable: true,
