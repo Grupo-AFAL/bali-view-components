@@ -2435,11 +2435,9 @@ Each item is `<li id="<%= dom_id(attachment) %>">`, so the destroy action answer
 `turbo_stream.remove attachment`. The empty text is an item that shows only while it is alone
 in the list, so the stream that removes the last file brings it up with nothing else to send.
 
-**Not inside a form with `remove_path:`.** Each remove button is a `button_to`, which is a
-`<form>` of its own, and HTML has no nested forms: the browser drops the first button's `<form>`
-tag, so that button submits the outer form, and its `</form>` closes the outer one, leaving
-every field and the submit button after the list outside it. Inside a form, leave
-`remove_path:` out and put the list outside the form when it needs the buttons.
+**Inside a form too.** The list can sit in the record's own form, between its fields and its
+submit button: each remove button is a `DeleteLink` rendered `in_form: true` (see DeleteLink),
+so it sends its own DELETE and the form keeps every field after the list.
 
 A file Active Storage can resize (`variable?`) is a thumbnail drawn from a variant of at most
 512×256, so it stays sharp on a 2x screen in its 256×128 box. That needs a working variant
@@ -4487,7 +4485,25 @@ Delete button that submits a DELETE request and automatically triggers the style
 - `icon` - `true` for the trash icon, or the name of any other icon (default: `false`)
 - `authorized` - When `false`, the component does not render (default: `true`)
 - `plain` - Render as a plain text link instead of a button (default: `false`)
-- `form_class` - Extra classes for the wrapping form (default: `nil`)
+- `form_class` - Extra classes for the wrapping form; there is none with `in_form:` (default: `nil`)
+- `in_form` - `true` when the button sits inside another form (default: `false`)
+
+**Inside another form, pass `in_form: true`.** HTML has no nested forms: the parser drops the
+inner `<form>` start tag, so the button submits the outer form, and the inner `</form>` closes
+the outer one early, leaving every field and the submit button after it outside. With
+`in_form:` the button renders on its own and names its form with the `form` attribute; the
+form waits in a `<template>`, and the `delete-link` controller (registered by `registerAll`)
+places it before the outer form when the button is pressed. The confirm dialog is the same. The
+button carries `data-turbo="true"` unless you pass `turbo:` in its `data:`, so an outer
+`data-turbo="false"`, usual on an upload form, does not send the DELETE without the confirm.
+
+```erb
+<%= form_with model: @movie do |f| %>
+  <%= f.text_field :title %>
+  <%= render Bali::DeleteLink::Component.new(href: movie_poster_path(@movie), in_form: true) %>
+  <%= f.submit %>
+<% end %>
+```
 
 The destructive red is `text-soft-error` on top of `variant: :ghost`, the default. It also
 applies to `variant: :link`; those two are the variants with no colour of their own. Name

@@ -32,6 +32,7 @@ import { BulkActionsController } from '../../../components/bali/bulk_actions/ind
 import { CarouselController } from '../../../components/bali/carousel/index'
 import { ChatController } from '../../../components/bali/chat/index'
 import { ClipboardController } from '../../../components/bali/clipboard/index'
+import { DeleteLinkController } from '../../../components/bali/delete_link/index'
 import { HovercardController } from '../../../components/bali/hover_card/index'
 import { ThemeToggleController } from '../../../components/bali/topbar/user_menu/index'
 import { KanbanController } from '../../../components/bali/kanban/index'
@@ -82,6 +83,7 @@ export {
   ColumnSelectorController,
   CommandController,
   ConditionController,
+  DeleteLinkController,
   DirectUploadController,
   DocumentEditorController,
   DocumentPageController,
@@ -163,6 +165,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   carousel: CarouselController,
   chat: ChatController,
   clipboard: ClipboardController,
+  'delete-link': DeleteLinkController,
   hovercard: HovercardController,
   kanban: KanbanController,
   reveal: RevealController,

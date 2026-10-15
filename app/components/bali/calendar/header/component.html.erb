@@ -11,7 +11,7 @@
       <% if period == :year %>
         <%= start_date.year %>
       <% else %>
-        <%= t('date.month_names')[start_date.month] %> <%= start_date.year %>
+        <%= t('date.month_names')[start_date.month].upcase_first %> <%= start_date.year %>
       <% end %>
     </h3>
     <% if period_switch? %>

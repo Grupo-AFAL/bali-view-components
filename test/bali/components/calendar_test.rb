@@ -639,6 +639,28 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector(".header a.btn", text: "Mes")
   end
 
+  def test_month_header_capitalises_a_lowercase_month_name
+    with_rails_i18n_month_names do
+      render_inline(component) do |c|
+        c.with_header(start_date: "2026-10-01", period: :month)
+      end
+    end
+
+    assert_selector(".header h3", text: "Octubre 2026")
+  end
+
+  def test_year_view_capitalises_lowercase_month_headings_but_not_the_day_labels
+    @options.merge!(
+      start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],
+      day_url: ->(day, events) { "/days/#{day}" if events.any? }
+    )
+    with_rails_i18n_month_names { render_inline(component) }
+
+    assert_equal(%w[Enero Febrero Marzo Abril Mayo Junio Julio Agosto Septiembre Octubre
+                    Noviembre Diciembre], page.all(".year-month h4").map(&:text))
+    assert_selector("a.year-day[aria-label='5 marzo 2020']", count: 1)
+  end
+
   def test_year_view_is_drawn_on_mobile_too
     @options.merge!(start_date: "2020-01-01", period: :year)
     with_variant(:mobile) { render_inline(component) }
@@ -848,6 +870,18 @@ class BaliCalendarComponentTest < ComponentTestCase
 
   def year_event(date)
     Struct.new(:start_time).new(Date.parse(date))
+  end
+
+  # rails-i18n 8.1's `es.date.month_names`, lowercase because `%B` writes them inside a
+  # date. The dummy's es.yml capitalises them, so a test rendering plain `:es` passes
+  # without the fix.
+  def with_rails_i18n_month_names(&block)
+    previous = I18n.t("date.month_names", locale: :es)
+    I18n.backend.store_translations(:es, date: { month_names: [ nil ] + %w[enero febrero marzo abril
+      mayo junio julio agosto septiembre octubre noviembre diciembre] })
+    I18n.with_locale(:es, &block)
+  ensure
+    I18n.backend.store_translations(:es, date: { month_names: previous }) if previous
   end
 end
 

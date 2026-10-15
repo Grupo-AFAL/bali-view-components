@@ -97,6 +97,7 @@ export {
   ColumnSelectorController,
   CommandController,
   ConditionController,
+  DeleteLinkController,
   DirectUploadController,
   DocumentEditorController,
   DocumentPageController,

@@ -12,11 +12,15 @@ import { Controller } from '@hotwired/stimulus'
  *    On content
  *  </div>
  * </div>
+ *
+ *
+ * `data-checkbox-toggle-disable-hidden-value="true"` disables the hidden target, so
+ * the form does not send its fields. The targets have to be `<fieldset>`s.
  */
 
 export class CheckboxToggleController extends Controller {
   static targets = ['on', 'off']
-  static values = { checked: Boolean }
+  static values = { checked: Boolean, disableHidden: Boolean }
 
   connect () {
     this.toggleTargets(this.checkedValue)
@@ -27,12 +31,14 @@ export class CheckboxToggleController extends Controller {
   }
 
   toggleTargets (checked) {
-    if (checked) {
-      this.onTarget.classList.remove('hidden')
-      this.offTarget.classList.add('hidden')
-    } else {
-      this.onTarget.classList.add('hidden')
-      this.offTarget.classList.remove('hidden')
-    }
+    this.toggle(this.onTarget, checked)
+    this.toggle(this.offTarget, !checked)
+  }
+
+  toggle (element, visible) {
+    element.classList.toggle('hidden', !visible)
+    // A disabled fieldset sends none of its fields, keeps their own `disabled`
+    // and a file already chosen, and covers fields a stream appends later.
+    if (this.disableHiddenValue) element.disabled = !visible
   }
 }

@@ -1,0 +1,8 @@
+<%= form_with(url: '/lookbook/noop', builder: Bali::FormBuilder) do |form| %>
+  <%= form.text_group :title %>
+  <%= render Bali::DeleteLink::Component.new(href: '/lookbook', name: 'Remove cover', icon: true, in_form: true) %>
+  <%= form.text_group :notes %>
+  <div class="mt-4">
+    <%= render Bali::Button::Component.new(name: 'Save', variant: :primary, type: :submit) %>
+  </div>
+<% end %>
