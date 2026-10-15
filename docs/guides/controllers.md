@@ -139,6 +139,10 @@ field on the hidden side no longer stops the form; the fields keep their own
 `disabled` and a file already chosen. Live in the
 `bali/checkbox_toggle/required_fields` preview.
 
+**Targets that arrive later** — an `on` or `off` target a Turbo Stream replaces
+follows the checkbox on screen, not the state the server painted: its `hidden`
+class and, with `disable-hidden`, its `disabled`.
+
 ## `datepicker`
 
 Date picker built on [flatpickr](https://flatpickr.js.org/) (optional peer,

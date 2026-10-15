@@ -5,6 +5,14 @@ describe('CheckboxToggleController', () => {
   const attachInvoice = () => cy.get('#expense_pdf_invoice')
     .selectFile({ contents: Cypress.Buffer.from('%PDF'), fileName: 'invoice.pdf' }, { force: true })
 
+  // One side per stream: a callback that renders both sides would cover for the other.
+  // Turbo applies a stream on the next frame, so assertions wait for `data-streamed`.
+  const replace = (name, attributes) => cy.window().then(win => win.Turbo.renderStreamMessage(`
+    <turbo-stream action="replace" targets="[data-testid='${name}']"><template>
+      <fieldset data-testid="${name}" data-streamed ${attributes}><input type="file"></fieldset>
+    </template></turbo-stream>`))
+  const streamed = name => cy.get(`[data-testid="${name}"][data-streamed]`)
+
   context('with disable-hidden', () => {
     beforeEach(() => cy.visit('/bali/checkbox_toggle/required_fields'))
 
@@ -21,6 +29,17 @@ describe('CheckboxToggleController', () => {
       box().uncheck()
       target('receipts').should('have.class', 'hidden').and('be.disabled')
       target('invoice').should('not.have.class', 'hidden').and('be.enabled')
+    })
+
+    // The server repaints each side as it last saw the form, unchecked.
+    it('applies the checkbox on screen to each side a Turbo Stream replaces', () => {
+      box().check()
+
+      replace('receipts', 'class="hidden" disabled data-checkbox-toggle-target="on"')
+      streamed('receipts').should('not.have.class', 'hidden').and('be.enabled')
+
+      replace('invoice', 'data-checkbox-toggle-target="off"')
+      streamed('invoice').should('have.class', 'hidden').and('be.disabled')
     })
 
     it('sends the form without the required file on the hidden side', () => {
@@ -43,6 +62,16 @@ describe('CheckboxToggleController', () => {
         const invalid = [...$form[0].elements].filter(field => field.willValidate && !field.validity.valid)
         expect(invalid.map(field => field.name)).to.deep.equal(['expense[receipts][]'])
       })
+    })
+
+    it('applies the checkbox on screen to each side a Turbo Stream replaces', () => {
+      box().check()
+
+      replace('receipts', 'class="hidden" data-checkbox-toggle-target="on"')
+      streamed('receipts').should('not.have.class', 'hidden')
+
+      replace('invoice', 'data-checkbox-toggle-target="off"')
+      streamed('invoice').should('have.class', 'hidden').and('be.enabled')
     })
   })
 })
