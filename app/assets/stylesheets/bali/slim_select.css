@@ -272,7 +272,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1 1 auto;
-  max-width: calc(100% - 20px);
+  /* No percentage max-width: a SimpleFilters column sizes to this text, and the percentage
+     resolves against that size afterwards — `calc(100% - 20px)` drew «Beto» in 8.2 px of its
+     26. `min-width: 0` is what keeps a long value inside the trigger. */
 }
 
 /* Max selected indicator */

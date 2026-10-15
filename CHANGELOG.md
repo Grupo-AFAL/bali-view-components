@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Un filtro `slim_select` de `SimpleFilters` muestra completo el valor elegido** (#1495). «Beto»
+  se veía «B»: el valor se quedaba 20 px corto dentro de una columna que se ajusta a su contenido.
+  Lo ven los filtros `slim_select` de afal-apps y gobierno-corporativo. En un campo de formulario un
+  valor largo se trunca 16 px más cerca de la flecha. Nada que hacer en la app.
+
 ## [v3.17.0] - 2026-10-15
 
 ### Added
