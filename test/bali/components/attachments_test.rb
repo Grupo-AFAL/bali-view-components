@@ -74,14 +74,14 @@ class BaliAttachmentsComponentTest < ComponentTestCase
   def test_remove_path_renders_a_delete_button_with_the_filename_in_its_name_and_confirm
     pdf = attach("minutes.pdf", "application/pdf")
 
-    render_inline(Bali::Attachments::Component.new(
-                    attachments: @workout.files, remove_path: ->(attachment) { "/attachments/#{attachment.id}" }
-                  ))
+    fragment = render_inline(Bali::Attachments::Component.new(
+                               attachments: @workout.files,
+                               remove_path: ->(attachment) { "/attachments/#{attachment.id}" }
+                             ))
 
     assert_selector("li##{dom_id_for(pdf)} button[title='Remove minutes.pdf']", text: "Remove minutes.pdf")
-    assert Nokogiri::HTML5.fragment(rendered_content)
-                          .at_css("li##{dom_id_for(pdf)} button template form[action='/attachments/#{pdf.id}']" \
-                                  "[data-turbo-confirm='Remove \"minutes.pdf\"?'] input[name='_method'][value='delete']")
+    assert fragment.at_css("li##{dom_id_for(pdf)} button template form[action='/attachments/#{pdf.id}']" \
+                           "[data-turbo-confirm='Remove \"minutes.pdf\"?'] input[name='_method'][value='delete']")
   end
 
   # Hosts render the list inside the record's form, where a `button_to` form would be nested
@@ -93,8 +93,8 @@ class BaliAttachmentsComponentTest < ComponentTestCase
                     attachments: @workout.files, remove_path: ->(attachment) { "/attachments/#{attachment.id}" }
                   ))
 
+    assert_no_selector("form button", visible: :all)
     assert_selector("li button[form][data-controller='delete-link']")
-    assert_no_selector("form")
   end
 
   # Who may delete is the host's policy: the lambda answers per attachment, and nil is "not this one".

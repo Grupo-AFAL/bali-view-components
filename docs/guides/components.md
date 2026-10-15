@@ -4493,7 +4493,9 @@ inner `<form>` start tag, so the button submits the outer form, and the inner `<
 the outer one early, leaving every field and the submit button after it outside. With
 `in_form:` the button renders on its own and names its form with the `form` attribute; the
 form waits in a `<template>`, and the `delete-link` controller (registered by `registerAll`)
-places it after the outer form when the button is pressed. The confirm dialog is the same.
+places it before the outer form when the button is pressed. The confirm dialog is the same. The
+button carries `data-turbo="true"` unless you pass `turbo:` in its `data:`, so an outer
+`data-turbo="false"`, usual on an upload form, does not send the DELETE without the confirm.
 
 ```erb
 <%= form_with model: @movie do |f| %>

@@ -64,7 +64,7 @@ describe('Attachments with a badge, in a narrow row', () => {
 })
 
 // A remove button inside the record's form is a `DeleteLink` rendered `in_form: true`: its own
-// form waits in a <template> and is placed after the record's form when the button is pressed.
+// form waits in a <template> and is placed before the record's form when the button is pressed.
 describe('Attachments inside a form', () => {
   const firstItem = () => cy.get('.attachments-component > li[id^="attachment_"]').first()
   const placedForms = () => cy.get('form[id^="delete-link-form-"]')

@@ -35,7 +35,7 @@ module Bali
       #   said whether and the other said which.
       # @param in_form [Boolean] `true` when the button sits inside another `<form>`. HTML has
       #   no nested forms, so the button renders on its own and its form travels in a
-      #   `<template>` the `delete-link` controller places after the outer form when the button
+      #   `<template>` the `delete-link` controller places before the outer form when the button
       #   is pressed. There is no form around the button for `form_class:` to style.
       # rubocop:disable Metrics/ParameterLists
       def initialize(
@@ -155,7 +155,8 @@ module Bali
 
       def button_classes
         if @plain
-          class_names("flex items-center gap-2 text-soft-error", @options[:class])
+          # The default's `<form>` is `inline-block`, which keeps a `flex` button inline.
+          class_names(@in_form ? "inline-flex" : "flex", "items-center gap-2 text-soft-error", @options[:class])
         else
           class_names(
             "btn",
@@ -179,8 +180,12 @@ module Bali
         @options.except(:class)
       end
 
+      # Turbo reads `data-turbo` off the submitter's ancestors too, and this button sits in the
+      # outer form: an outer `data-turbo="false"`, usual on an upload form, would send the DELETE
+      # without Turbo, and so without the confirm.
       def in_form_button_options
         options = prepend_controller(detach_data(button_options), "delete-link")
+        options[:data][:turbo] = true unless options[:data].key?(:turbo)
         prepend_action(options, "delete-link#placeForm")
       end
 
