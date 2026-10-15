@@ -3,7 +3,7 @@ import Icon from './icons.jsx'
 
 // Zoom with a visible percentage, "Center the flow", and — when editing —
 // "Select all" with the selection counter (the tablet path to multi-select).
-export default function ZoomBar ({ t, onSelectAll, selectedCount = 0 }) {
+export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect, onBoxSelect }) {
   const { zoomIn, zoomOut, fitView } = useReactFlow()
   const { zoom } = useViewport()
   const button = 'btn btn-ghost btn-xs btn-square'
@@ -24,6 +24,11 @@ export default function ZoomBar ({ t, onSelectAll, selectedCount = 0 }) {
       {onSelectAll && (
         <button type='button' className='btn btn-xs border-base-300 bg-base-100 shadow-sm' onClick={onSelectAll} title='Ctrl+A'>
           <Icon name='selectAll' size={14} />{t('select_all')}
+        </button>
+      )}
+      {onBoxSelect && (
+        <button type='button' className={`btn btn-xs border-base-300 bg-base-100 shadow-sm ${boxSelect ? 'btn-active text-primary' : ''}`} onClick={onBoxSelect} title={t('select_mode_hint')} aria-pressed={String(Boolean(boxSelect))}>
+          <Icon name='selectAll' size={14} />{t('select_mode')}
         </button>
       )}
       {selectedCount > 0 && <span className='text-xs text-base-content/70'>{t('selected_count', { count: selectedCount })}</span>}

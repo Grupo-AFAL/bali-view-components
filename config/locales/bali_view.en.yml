@@ -488,6 +488,8 @@ en:
         zoom_out: "Zoom out"
         center: "Center the flow"
         select_all: "Select all"
+        select_mode: "Box select"
+        select_mode_hint: "Drag on the canvas to select several elements (for touch screens)"
         selected_count: "%{count} selected"
         minimap: "Minimap"
         help_default: "Select an element to edit it. Drag the background to move around; the wheel zooms."

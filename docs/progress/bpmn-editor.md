@@ -208,6 +208,12 @@ para que lo finalizado sea exactamente lo que se ve.
   con nombre, descripción, expresión de tiempo, referencia y campos `node_fields`/`lane_fields`
   (text, textarea, number, select, multi_select locales o remotos, readonly), arrastrar desde la
   paleta. Alineación de la selección (vertical entre carriles, horizontal sólo en el mismo carril).
-- [ ] F6 Layout
+- [x] F6 Layout — carriles que crecen y recorren a los siguientes al crear o mover, «Auto-layout /
+  Ajustar flujo» por capas que respeta carriles (horizontal y vertical), Centrar, selección múltiple
+  con Shift+clic, Ctrl+A, «Seleccionar todo» y modo «Selección múltiple» (arrastrar un recuadro,
+  para pantallas táctiles), contador, alineación con bloqueo por cambio de participante o
+  superposición, puertos de salida/entrada (Auto, Arriba, Derecha, Abajo, Izquierda) y «Recalcular
+  ruta», reconexión arrastrando los extremos, ruteo ortogonal propio que rodea elementos y
+  etiquetas sobre el segmento más largo de su línea, editables aparte con doble clic.
 - [ ] F7 Puntos de extensión
 - [ ] F8 Notas, comparación, salidas, docs

@@ -485,6 +485,8 @@ es:
         zoom_out: "Alejar"
         center: "Centrar flujo"
         select_all: "Seleccionar todo"
+        select_mode: "Selección múltiple"
+        select_mode_hint: "Arrastra sobre el lienzo para seleccionar varios elementos (pantallas táctiles)"
         selected_count: "%{count} seleccionados"
         minimap: "Minimapa"
         help_default: "Selecciona un elemento para editarlo. Arrastra el fondo para navegar; la rueda hace zoom."

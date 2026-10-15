@@ -114,6 +114,7 @@ function Editor ({
   const [selection, setSelection] = useState(EMPTY_SELECTION)
   const [tool, setTool] = useState(null) // { kind: 'place', key } | { kind: 'connect', edge, source }
   const [mode, setMode] = useState('edit') // 'edit' | 'navigate'
+  const [boxSelect, setBoxSelect] = useState(false)
   const [panel, setPanel] = useState(null) // null | 'participants'
   const [paletteCollapsed, setPaletteCollapsed] = useState(false)
   const [renamingId, setRenamingId] = useState(null)
@@ -674,7 +675,8 @@ function Editor ({
               deleteKeyCode={null}
               selectionKeyCode='Shift'
               multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
-              panOnDrag
+              panOnDrag={!(interactive && boxSelect)}
+              selectionOnDrag={interactive && boxSelect}
               fitView
               fitViewOptions={{ padding: 0.12 }}
               minZoom={0.1}
@@ -712,7 +714,7 @@ function Editor ({
                 onFullscreen={toggleFullscreen}
               />
               <Legend t={t} entries={legend} />
-              <ZoomBar t={t} onSelectAll={interactive ? selectAll : null} selectedCount={selectedCount} />
+              <ZoomBar t={t} onSelectAll={interactive ? selectAll : null} selectedCount={selectedCount} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} />
             </ReactFlow>
             <HelpBar text={help} />
             <Notices notices={notices} t={t} onDismiss={(id) => setNotices((list) => list.filter((n) => n.id !== id))} />
