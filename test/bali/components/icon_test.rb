@@ -164,4 +164,60 @@ class BaliIconComponentTest < ComponentTestCase
     render_inline(Bali::Icon::Component.new("snowflake", "aria-hidden": false))
     assert_selector("span.icon-component[aria-hidden='false']", visible: :all)
   end
+
+  def test_cache_builds_a_lucide_svg_once_per_name_and_size
+    with_empty_lucide_cache do
+      render_inline(Bali::Icon::Component.new("edit", size: 32))
+      assert_equal([ [ "pencil", 32 ] ], lucide_svgs.keys)
+
+      lucide_svgs[[ "pencil", 32 ]] = "<svg>reused</svg>"
+      render_inline(Bali::Icon::Component.new("pencil", size: 32))
+      assert_includes(rendered_content, "<svg>reused</svg>")
+
+      render_inline(Bali::Icon::Component.new("pencil"))
+      refute_includes(rendered_content, "reused")
+    end
+  end
+
+  # `Bali.add_icon` can change a kept or custom icon at runtime; an unknown name has no <svg>.
+  def test_cache_keeps_only_lucide_icons
+    with_empty_lucide_cache do
+      previous = Bali.custom_icons
+      Bali.custom_icons = previous.merge("cache-custom" => "<svg></svg>")
+      render_inline(Bali::Icon::Component.new("visa"))
+      render_inline(Bali::Icon::Component.new("cache-custom"))
+      assert_raises(Bali::Icon::Options::IconNotAvailable) do
+        render_inline(Bali::Icon::Component.new("definitely-not-an-icon-xyz"))
+      end
+
+      assert_empty(lucide_svgs.keys)
+    ensure
+      Bali.custom_icons = previous
+    end
+  end
+
+  def test_cache_stops_growing_at_its_limit_and_still_renders
+    with_empty_lucide_cache do
+      stub_const(Bali::Icon::Component, :LUCIDE_SVGS_LIMIT, 1) do
+        render_inline(Bali::Icon::Component.new("user"))
+        render_inline(Bali::Icon::Component.new("arrow-left"))
+      end
+
+      assert_selector("svg.lucide-icon")
+      assert_equal(1, lucide_svgs.size)
+    end
+  end
+
+  private
+
+  def lucide_svgs
+    Bali::Icon::Component::LUCIDE_SVGS
+  end
+
+  def with_empty_lucide_cache
+    lucide_svgs.clear
+    yield
+  ensure
+    lucide_svgs.clear
+  end
 end

@@ -1,0 +1,25 @@
+<div class="flex justify-center items-center gap-16 p-16">
+  <div class="relative w-40 h-20 overflow-hidden border border-base-300 rounded flex items-center justify-center">
+    <span class="tooltip-component inline-block" data-controller="tooltip" data-tooltip-placement-value="top" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+            <span class="btn btn-sm btn-primary">Escapes (default)</span>
+
+</span>  <template data-tooltip-target="content">
+    
+      <p>The default (`append_to: :body`) portals the balloon out of the overflow-hidden container.</p>
+
+  </template>
+</span>  </div>
+
+  <div class="relative w-40 h-20 overflow-hidden border border-base-300 rounded flex items-center justify-center">
+    <span class="tooltip-component inline-block" data-controller="tooltip" data-tooltip-placement-value="top" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="parent">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+            <span class="btn btn-sm">Clipped (:parent)</span>
+
+</span>  <template data-tooltip-target="content">
+    
+      <p>Opting into `append_to: :parent` keeps the balloon in place — and clipped here.</p>
+
+  </template>
+</span>  </div>
+</div>

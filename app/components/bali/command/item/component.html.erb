@@ -1,7 +1,7 @@
 <%# Padding, the hover background and the body's direction/gap live in
     index.css next to the `.is-active` and `.is-compact` overrides — see the
     comment there before moving them back onto these elements. %>
-<%= tag.button(**button_options) do %>
+<button <%= button_attributes %>>
   <% if icon %>
     <%# bg / text colour live in index.css next to the `.is-active` override —
         see the comment there before moving them back onto this element. %>
@@ -19,4 +19,4 @@
   <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
     <kbd class="kbd kbd-xs">⏎</kbd>
   </span>
-<% end %>
+</button>

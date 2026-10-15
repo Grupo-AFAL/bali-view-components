@@ -57,11 +57,11 @@
 <% else %>
   <%# Simple item: expanded and collapsed versions %>
   <%# Expanded state %>
-  <%= tag.a(href: href.presence || '#', class: "#{menu_item_classes} side-menu-expanded", disabled: disabled? ? 'disabled' : nil, target: target, rel: rel, 'aria-current': aria_current, **@options) do %>
+  <a <%= leaf_link_attributes %>>
     <%= render_icon %>
     <span class="grow"><%= content || name %></span>
     <%= render_badge %>
-  <% end %>
-  <%# Collapsed state: icon with tooltip %>
-  <%= render_collapsed_tooltip %>
+  <%# Collapsed state: icon with tooltip, on the line of the `</a>` below because the markup
+      has no newline between them. Erubi drops this comment's lines whole. %>
+</a>  <%= render_collapsed_tooltip %>
 <% end %>

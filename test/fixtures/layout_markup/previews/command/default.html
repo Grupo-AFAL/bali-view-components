@@ -1,0 +1,217 @@
+<div class="p-6 bg-base-200 min-h-[480px]">
+  <div class="bali-command max-w-md" data-controller="command" data-command-results-value="{&quot;one&quot;:&quot;%{count} result&quot;,&quot;other&quot;:&quot;%{count} results&quot;}">
+    <button type="button"
+            data-action="click->command#open"
+            aria-haspopup="dialog"
+            title="Search documents, folios, procedures…"
+            class="bali-command-trigger flex items-center gap-2 w-full bg-base-content/8 hover:bg-base-content/16 rounded-md px-2.5 py-1.5 text-sm text-base-content/75 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content @max-[7rem]:size-8 @max-[7rem]:max-w-full @max-[7rem]:justify-center @max-[7rem]:px-0 @max-[7rem]:overflow-hidden">
+      <span class="icon-component size-4 shrink-0" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: search --></svg></span>
+      <span class="flex-1 min-w-0 truncate text-left @max-[7rem]:sr-only">Search documents, folios, procedures…</span>
+        <kbd class="kbd kbd-xs hidden sm:inline-flex @max-[7rem]:hidden" aria-hidden="true" data-command-target="shortcut">⌘K</kbd>
+    </button>
+
+  <dialog data-command-target="surface" class="bali-command-surface" aria-label="Search documents, folios, procedures…">
+    <div data-command-target="backdrop"
+         data-action="click->command#close"
+         class="hidden fixed inset-0 bg-black/40 z-[calc(var(--bali-z-command)_-_1)]"></div>
+
+    <div data-command-target="panel"
+         class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[var(--bali-z-command)] w-[520px] max-w-[calc(100vw-2rem)]">
+      <div class="cmd-panel bg-base-100 border border-base-content/15 rounded-box shadow-xl flex flex-col overflow-hidden ">
+        <div class="cmd-input-wrap flex items-center gap-3 border-b border-base-200 text-base-content/60">
+          <span class="icon-component size-4 shrink-0" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: search --></svg></span>
+          <input data-command-target="input"
+                 data-action="input->command#filter keydown->command#nav"
+                 type="text"
+                 placeholder="Search documents, folios, procedures…"
+                 class="cmd-input flex-1 min-w-0 bg-transparent border-0 outline-none text-base-content placeholder:text-base-content/70"
+                 aria-label="Search documents, folios, procedures…" />
+          <kbd class="kbd kbd-xs">esc</kbd>
+        </div>
+
+        <div class="cmd-list p-1.5 max-h-80 overflow-y-auto">
+            <div data-command-target="group" data-mode="navigation">
+  <div class="cmd-group text-xs font-semibold uppercase tracking-wider text-base-content/70 px-3 pt-3 pb-1.5">Pages</div>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="navigation" data-href="/lookbook" data-search="policies regulations" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: book-open --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Policies</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">Regulations</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="navigation" data-href="/lookbook" data-search="procedures operations" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: list-checks --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Procedures</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">Operations</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="navigation" data-href="/lookbook" data-search="committees structure" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: users --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Committees</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">Structure</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+</div>
+            <div data-command-target="group" data-mode="searchable">
+  <div class="cmd-group text-xs font-semibold uppercase tracking-wider text-base-content/70 px-3 pt-3 pb-1.5">Documents</div>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/lookbook" data-search="anti-money laundering policy v3.2 pol-2026-0218 · active · ethics committee" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: file-text --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Anti-Money Laundering Policy v3.2</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">POL-2026-0218 · Active · Ethics Committee</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/lookbook" data-search="code of ethics and conduct pol-2026-0211 · active · board" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: file-text --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Code of Ethics and Conduct</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">POL-2026-0211 · Active · Board</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/lookbook" data-search="conflict of interest policy pol-2025-0184 · active · ethics committee" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: file-text --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Conflict of Interest Policy</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">POL-2025-0184 · Active · Ethics Committee</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/lookbook" data-search="reinforced kyc procedure pro-2026-0094 · in review" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: file-check --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Reinforced KYC Procedure</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">PRO-2026-0094 · In review</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+</div>
+            <div data-command-target="group" data-mode="recent">
+  <div class="cmd-group text-xs font-semibold uppercase tracking-wider text-base-content/70 px-3 pt-3 pb-1.5">Recents</div>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="recent" data-href="/lookbook" data-search="anti-money laundering policy v3.2 pol-2026-0218 · active" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: file-text --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Anti-Money Laundering Policy v3.2</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">POL-2026-0218 · Active</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="recent" data-href="/lookbook" data-search="reinforced kyc procedure pro-2026-0094 · in review" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: file-check --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Reinforced KYC Procedure</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">PRO-2026-0094 · In review</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="recent" data-href="/lookbook" data-search="inbox 7 pending" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: inbox --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Inbox</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">7 pending</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+</div>
+            <div data-command-target="group" data-mode="action">
+  <div class="cmd-group text-xs font-semibold uppercase tracking-wider text-base-content/70 px-3 pt-3 pb-1.5">Actions</div>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="action" data-href="/lookbook" data-search="new document request start an approval flow" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: plus --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">New document request</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">Start an approval flow</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="action" data-href="/lookbook" data-search="upload committee minutes signed pdf" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: paperclip --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Upload committee minutes</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">Signed PDF</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="action" data-href="/lookbook" data-search="import regulations csv or excel" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: upload --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Import regulations</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">CSV or Excel</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+</div>
+
+          <div data-command-target="noResults" class="hidden text-center px-4 pt-8 pb-3">
+            <div class="text-sm font-semibold text-base-content">No results</div>
+              <div class="text-xs text-base-content/70 mt-1">Try a folio number or a committee name.</div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 px-3 py-2 border-t border-base-200 bg-base-100 text-xs text-base-content/70">
+          <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> navigate</span>
+          <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">⏎</kbd> open</span>
+          <span class="inline-flex items-center gap-1.5"><kbd class="kbd kbd-xs">esc</kbd> close</span>
+          <span class="ml-auto font-mono text-[10.5px] text-base-content/70" data-command-target="count"></span>
+        </div>
+      </div>
+    </div>
+  </dialog>
+</div></div>
