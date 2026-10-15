@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { Fragment, memo } from 'react'
 import { NodeResizeControl } from '@xyflow/react'
 import { IssueMarker } from '../shapes.jsx'
 import { MIN_LANE_SIZE } from '../model/geometry.js'
@@ -10,7 +10,7 @@ import { useCanvas } from './CanvasContext.js'
 //
 // Two resize controls: the MAIN-axis one changes this lane's size, the
 // CROSS-axis one the length every lane shares.
-function LaneNode ({ id, data, selected }) {
+function LaneNode ({ id, data, selected, width, height }) {
   const canvas = useCanvas()
   const { lane, orientation, header, issue, diff } = data
   const horizontal = orientation === 'horizontal'
@@ -44,7 +44,11 @@ function LaneNode ({ id, data, selected }) {
         )}
       </div>
       {editable && (
-        <>
+        // Keyed on the size: a NodeResizeControl keeps the box it measured when
+        // it mounted, so after a resize the next drag started from the old
+        // geometry and did nothing (gobierno-corporativo hit the same, and
+        // remounts it the same way).
+        <Fragment key={`${width}x${height}`}>
           <NodeResizeControl
             position={horizontal ? 'bottom' : 'right'}
             variant='line'
@@ -62,7 +66,7 @@ function LaneNode ({ id, data, selected }) {
             onResize={(_event, params) => canvas.onLaneResizing(id, params)}
             onResizeEnd={(_event, params) => canvas.onLaneResize(id, 'cross', params)}
           />
-        </>
+        </Fragment>
       )}
     </div>
   )

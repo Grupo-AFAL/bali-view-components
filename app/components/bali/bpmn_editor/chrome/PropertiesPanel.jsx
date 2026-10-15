@@ -81,11 +81,15 @@ function NodeProperties ({ node, doc, api, t, editable, nodeFields, urls }) {
 function EdgeProperties ({ edge, doc, api, t, editable }) {
   const name = (id) => (doc.nodes.find((n) => String(n.id) === String(id)) || {}).name || t('unnamed')
   const ports = edge.ports || {}
+  // A parallel split takes every path unconditionally (BPMN 2.0 §10.6.4): its
+  // flows carry no condition, so no label either.
+  const source = doc.nodes.find((n) => String(n.id) === String(edge.source))
+  const unlabelled = source && source.type === 'parallel_gateway'
   return (
     <>
       <p className='text-sm'>{name(edge.source)} <span className='text-base-content/50'>→</span> {name(edge.target)}</p>
       <Field label={t('props_edge_label')}>
-        <input className='input input-sm w-full' value={edge.label || ''} disabled={!editable}
+        <input className='input input-sm w-full' value={edge.label || ''} disabled={!editable || unlabelled}
           onChange={(e) => api.updateEdge(edge.id, { label: e.target.value }, `label:${edge.id}`)} />
       </Field>
       <PortPicker label={t('props_source_port')} value={ports.source} editable={editable} t={t}

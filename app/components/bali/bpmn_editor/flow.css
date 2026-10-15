@@ -60,9 +60,13 @@
 .bpmn-lane-external { font-size: 9.5px; font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); }
 .bpmn-lane-issue { position: absolute; top: 4px; right: 4px; }
 .bpmn-lane-horizontal .bpmn-lane-issue { right: 12px; }
-.bpmn-lane-resize.react-flow__resize-control.line { border-color: transparent; }
-.bpmn-lane-resize.react-flow__resize-control.line.bottom { border-bottom-width: 6px; }
-.bpmn-lane-resize.react-flow__resize-control.line.right { border-right-width: 6px; }
+/* React Flow centres a line control on the edge (translate -50%), which puts
+ * half of it inside the NEXT lane — painted later at the same z-index, so the
+ * neighbour covers it and the handle stops answering (fixed the same way in
+ * gobierno-corporativo, commit 301b3a7e). Anchored inside the lane instead. */
+.bpmn-lane-resize.react-flow__resize-control.line { border-color: transparent; transform: none; }
+.bpmn-lane-resize.react-flow__resize-control.line.bottom { top: auto; bottom: 0; height: 8px; border-bottom-width: 3px; cursor: ns-resize; }
+.bpmn-lane-resize.react-flow__resize-control.line.right { left: auto; right: 0; width: 8px; border-right-width: 3px; cursor: ew-resize; }
 .bpmn-lane-resize.react-flow__resize-control.line:hover { border-color: color-mix(in oklab, var(--bpmn-select) 45%, transparent); }
 
 /* Flow nodes. */

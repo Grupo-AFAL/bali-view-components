@@ -126,6 +126,7 @@ function Editor ({
   const [highlightId, setHighlightId] = useState(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [dragPositions, setDragPositions] = useState(null) // id → absolute position while dragging
+  const [liveLength, setLiveLength] = useState(null) // shared lane length while one lane's end is dragged
   const [dialog, setDialog] = useState(null) // null | 'pending' | 'rules'
   const [compareMode, setCompareMode] = useState(null) // null | 'overlay' | 'side_by_side'
   const [direction, setDirection] = useState(() => (normalize(data).orientation === 'vertical' ? 'down' : 'right'))
@@ -162,10 +163,16 @@ function Editor ({
   const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t), doc.issues) : []), [editable, doc, rules, t])
   const issues = useMemo(() => issuesByElement(issueList), [issueList])
   const baseNodes = useMemo(() => buildRfNodes(doc, { layout, editable: interactive, issues, selected: selectedSet }), [doc, layout, interactive, issues, selectedSet])
+  // Lanes share one length: while the end of one is dragged every lane
+  // follows it (gobierno-corporativo's onLaneResizing), not only on release.
   const nodes = useMemo(() => {
-    if (!dragPositions) return baseNodes
-    return baseNodes.map((n) => (dragPositions.has(n.id) ? { ...n, position: dragPositions.get(n.id) } : n))
-  }, [baseNodes, dragPositions])
+    if (!dragPositions && liveLength == null) return baseNodes
+    const key = layout.axis.crossSize
+    return baseNodes.map((n) => {
+      if (n.type === 'lane' && liveLength != null) return { ...n, [key]: liveLength, measured: { ...n.measured, [key]: liveLength } }
+      return dragPositions && dragPositions.has(n.id) ? { ...n, position: dragPositions.get(n.id) } : n
+    })
+  }, [baseNodes, dragPositions, liveLength, layout.axis.crossSize])
   const edges = useMemo(() => buildRfEdges(doc, routes, { editable: interactive, selected: selectedSet, issues }), [doc, routes, interactive, selectedSet, issues])
 
   // Selection that points at deleted elements is dropped.
@@ -463,9 +470,14 @@ function Editor ({
     if (axisKind === 'main') {
       apply((doc0) => ops.resizeLane(doc0, laneIdOf(rfId), l.axis.main === 'y' ? params.height : params.width))
     } else {
+      setLiveLength(null)
       apply((doc0) => ops.setPoolLength(doc0, l.axis.cross === 'x' ? params.width : params.height))
     }
   }, [apply])
+  const onLaneResizing = useCallback((_rfId, params) => {
+    const l = layoutLanes(docRef.current)
+    setLiveLength(l.axis.cross === 'x' ? params.width : params.height)
+  }, [])
 
   // ── keyboard ───────────────────────────────────────────────────────────
   const undo = useCallback(() => setState(history.undo), [])
@@ -623,16 +635,16 @@ function Editor ({
     connectable: interactive,
     renamingId,
     highlightId,
-    startRename: (id) => interactive && setRenamingId(id),
+    startRename: (id) => interactive && !labelLocked(docRef.current, id) && setRenamingId(id),
     renderRename,
     renderEdgeRename,
     onLaneResize,
-    onLaneResizing: () => {},
+    onLaneResizing,
     quickMenuId,
     renderQuickMenu,
     notesByElement,
     panelOpen: Boolean(showPanel)
-  }), [t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, quickMenuId, renderQuickMenu, notesByElement, showPanel])
+  }), [t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel])
 
   // ── finalize ───────────────────────────────────────────────────────────
   // The draft always saves; finalizing needs a flow without errors, checked
@@ -732,7 +744,7 @@ function Editor ({
               onNodeClick={onNodeClick}
               onNodeDoubleClick={onNodeDoubleClick}
               onEdgeClick={interactive ? onEdgeClick : undefined}
-              onEdgeDoubleClick={interactive ? (_e, edge) => setRenamingId(edge.id) : undefined}
+              onEdgeDoubleClick={interactive ? (_e, edge) => { if (!labelLocked(docRef.current, edge.id)) setRenamingId(edge.id) } : undefined}
               onPaneClick={onPaneClick}
               onConnectEnd={interactive ? onConnectEnd : undefined}
               connectionMode={ConnectionMode.Loose}
@@ -811,6 +823,13 @@ function Editor ({
       </div>
     </CanvasContext.Provider>
   )
+}
+
+// Flows leaving a parallel gateway carry no condition, hence no label.
+function labelLocked (doc, edgeId) {
+  const edge = doc.edges.find((e) => String(e.id) === String(edgeId))
+  const source = edge && doc.nodes.find((n) => String(n.id) === String(edge.source))
+  return Boolean(source && source.type === 'parallel_gateway')
 }
 
 function RenameInput ({ value, className, onDone }) {

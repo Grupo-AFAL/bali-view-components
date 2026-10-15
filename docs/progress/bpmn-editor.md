@@ -161,6 +161,37 @@ para que lo finalizado sea exactamente lo que se ve.
 - **R20 (mínimo de actividades)** es genérica (`options.min_activities`); el mínimo por nivel de
   jerarquía queda en la app.
 
+## Arreglos heredados del editor de GC
+
+Revisados los comentarios de `ProcessFlowEditor.jsx` y `components/bpmn/**`, y las pruebas
+`test/javascript/bpmn/*` y `test/playwright/*` de Gobierno Corporativo.
+
+| Arreglo o caso límite en GC | Estado en Bali |
+|---|---|
+| Etiquetas de conexión tapadas por los nodos al moverlos (`LABELLED_EDGE_Z_INDEX` > 1000 de `elevateNodesOnSelect`) | **Adaptado:** todas las conexiones van en `zIndex: 1` sobre los nodos y `elevateNodesOnSelect` está apagado, así que ningún nodo sube por encima de una etiqueta; además el ruteo rodea los nodos. |
+| Etiqueta como `<text>` nativo en el SVG, no portal, para que no se desincronice | **Portado:** `RoutedEdge` dibuja la etiqueta dentro del SVG de la conexión. |
+| `interactionWidth` amplio en las conexiones (trackpad) | **Portado:** 16 px (las rutas ortogonales son rectas; 30 px tapaba los puertos). |
+| Ancho cruzado de todos los carriles sincronizado durante el arrastre (`onLaneResizing`) | **Portado:** `liveLength` en `BpmnEditor.jsx`; verificado en el navegador (los demás carriles siguen al arrastre). |
+| `NodeResizeControl` se queda con la geometría vieja tras redimensionar (`updateNodeInternals` + `key`) | **Portado:** los controles se remontan con `key` por tamaño (`LaneNode.jsx`); los nodos llevan `measured` explícito. |
+| Control de redimensionar centrado en el borde: la mitad cae en el carril vecino y éste lo tapa (commit 301b3a7e) | **Portado:** `flow.css` lo ancla dentro del carril, con cursores `ns-resize`/`ew-resize`; verificado con Playwright (el control queda dentro y responde). |
+| `minHeight` / `minWidth` de carril para que no quede inutilizable | **Adaptado:** `MIN_LANE_SIZE` y `resizeLane` nunca dejan un carril más chico que su contenido. |
+| TDZ y refs para que los handlers memorizados de carril llamen a la versión actual | **No aplica:** los carriles no guardan callbacks en `data`; leen el contexto del lienzo (`CanvasContext`) y las operaciones toman el documento actual de `docRef`. |
+| El doble clic del carril no llega al `onDoubleClick` del DOM una vez que el carril es seleccionable | **No aplica:** el cuerpo del carril deja pasar el puntero y sólo el encabezado lo recibe; el doble clic en el encabezado renombra (verificado con Playwright). |
+| Botón de editar del carril que no debe propagar el clic (commit 34113c79) | **No aplica:** no hay botón; se renombra en el encabezado y se edita en el panel. |
+| Promover actividades al borrar un carril | **No aplica, por diseño del issue:** borrar un carril con elementos se **bloquea** con mensaje. |
+| Auto-layout desactivado con carriles (dagre no conoce carriles) | **Resuelto distinto:** el auto-layout propio respeta el carril de cada nodo y funciona con carriles. |
+| Coordenadas relativas al pool para que mover el conjunto no toque las de los nodos | **Portado** (contrato: `x`/`y` relativos al pool). |
+| Arrastre de carril: intercambio si el centro cae en otro carril, si no mover el conjunto | **Portado** (`onNodeDragStop`). |
+| Insertar el carril nuevo ANTES de las actividades para que no las tape | **Adaptado:** los carriles van en `zIndex: -20`, debajo de todo, y su cuerpo no recibe el puntero. |
+| Al cambiar las dimensiones, escribir `width`/`height` y `style` a la vez | **No aplica:** los nodos se reconstruyen del documento con `width`, `height` y `measured`. |
+| Salidas de un gateway paralelo sin etiqueta (regresión 9d17ef83) | **Portado:** la etiqueta se deshabilita en el panel y no se puede renombrar en el lienzo. |
+| Etiqueta desde dos fuentes (`label` / `data.condition_label`) | **No aplica:** una sola fuente, `edge.label` del documento. |
+| La expresión de tiempo sólo se envía en eventos de tiempo | **Adaptado:** el campo «Expresión» sólo aparece en eventos con `kind: "timer"`. |
+| `fitView` al entrar y salir de pantalla completa | **Portado.** |
+| Pantalla completa sobre el contenedor del editor (prueba de Playwright) | **Portado** y los diálogos se dibujan dentro del contenedor para seguir visibles. |
+| Pruebas `laneGeometry`/`edgeGeometry` (lados, anclas, apilado, ancho común) | **Cubiertas** por `geometry.test.js`, `routing.test.js` y `operations.test.js`. |
+| Pruebas de nodos (glifos de gateway, inicio/fin, terminación, subproceso navegable) | **Cubiertas** visualmente en los previews y en Cypress (montaje, carril externo); la forma es SVG compartida con la exportación. |
+
 ## Fases
 
 - [x] F0 Diagnóstico y plan
