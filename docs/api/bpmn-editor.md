@@ -90,6 +90,7 @@ authorize every endpoint on the server anyway.
 | `data:` | required | The document (`Hash` or `Bali::BpmnEditor::Data`) |
 | `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save |
 | `read_only_notice:` | `nil` | Why it cannot be edited; shown above a read-only diagram |
+| `auto_arrange:` | `true` | Start with "Auto-arrange" on: each edit is followed by an incremental arrangement — see [Layout](#layout). The user can switch it off in the toolbar |
 | `autosave:` | `true` | Save with a ~1.2 s debounce after each change. `false`: only the "Save draft" button saves |
 | `palette:` | `:descriptive` | A preset, an `Array` of keys (exactly those), or a `Hash` — see [Palette](#palette) |
 | `legend:` | default entries | `{ add: [...], remove: [...] }`, a full `Array`, or `false` — see [Legend](#legend) |
@@ -154,8 +155,8 @@ so HTML data attributes go on a wrapper of your own.
   `escalation`, `compensation`, `link`, `error`, `cancel`, `terminate`.
 - **A type the island does not know is kept**: drawn as a dashed box and saved
   back untouched.
-- **A document without coordinates is laid out on load** (the same auto-layout as the
-  toolbar button).
+- **A document without coordinates is laid out on load** (the same layout as the
+  toolbar's "Tidy up").
 - **`stencil`** is the app's list of entities to place; **`issues`** are pending
   issues the server computed. Both are written by the server and never saved back.
 
@@ -404,13 +405,64 @@ sent at once, and without it the visitor is asked to confirm.
   mark external (grey lane, white activities).
 - **Connections**: drag from a node's dot, or the "Connect" tool; drag an end to
   reconnect; pick exit/entry ports or "Recalculate route"; double-click a label to edit it.
-  Routing is orthogonal and goes around elements; labels ride on their line.
+  Routing is orthogonal and goes around elements; a label sits beside its line, next to
+  where it leaves its source.
 - **Selection**: Shift+click, Ctrl+A, "Select all", or "Box select" (for touch
   screens). Align vertically across lanes; horizontally only inside one lane.
 - **Keyboard**: Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z), Ctrl+A, Delete/Backspace, Esc,
   arrows (10 px, Shift for 1 px). Shortcuts reach the editor last touched.
-- **Auto-layout / tidy the flow**: a layered layout that keeps every element in its lane.
+- **Auto-arrange** (toolbar switch) and **Tidy up**: see [Layout](#layout).
 - **Orientation**: horizontal ↔ vertical lanes, keeping lanes and reading order.
+
+## Layout
+
+**Auto-arrange** runs after every edit that changes the structure (add, insert, connect,
+move, delete, rename) while the toolbar switch is on. It keeps what the user placed where
+they placed it and only fixes what collides: an element whose footprint — shape, name and
+pending badge — runs into another moves *forward along the flow*, and so do the ones after
+it; lanes grow and shrink to their content; connections are routed again. The edit and its
+arrangement are one undo step, and the nodes slide into place (0.22 s) instead of jumping.
+Typing in the properties panel, resizing lanes and moving the pool are not re-arranged.
+
+**Tidy up** lays the whole diagram out again: a straight happy path, the branches of a split
+symmetric around it, exceptions alternating below and above, aligned columns and uniform
+spacing. Then it fits the view. A fit never goes below **40 %**; a larger diagram opens at
+its start and scrolls.
+
+What is kept at zero after any operation, with auto-arrange on:
+
+- elements on top of each other; a flow element outside its lane or on its header;
+- a connection through an element, an element's name or a pending badge;
+- two connections sharing a stretch of line (parallel lines keep ≥ 12 px apart);
+- labels on labels, lines or elements; a badge on a label.
+
+Conventions, and where they come from:
+
+| Convention | Source |
+|---|---|
+| Orthogonal connections, as few bends and crossings as possible; a jump where two lines cross | Camunda best practices, *Creating readable process models* (avoid crossing flows) |
+| The happy path in a straight line, left to right (top to bottom in vertical lanes) | Bruce Silver, *BPMN Method and Style* (2nd ed.) — the happy path; Camunda (model left to right, emphasize the happy path) |
+| Splits drawn symmetrically | Camunda (model symmetrically) |
+| A loop back runs under or over the flow, not through it | Camunda (avoid crossing flows); *Method and Style* |
+| Flow in on the left/top side, out on the right/bottom; a gateway's branches leave from distinct corners | *Method and Style*; Camunda (model symmetrically) |
+| Uniform element sizes, a 10 px grid, uniform spacing | *Method and Style* |
+| Event names below the event, gateway names above it; a connection's label next to where it leaves its source | *Method and Style* (labeling); Camunda (labeling gateways and their outgoing flows) |
+| Text annotations and data objects next to the element they belong to | *Method and Style* |
+| Message flows between participants drawn vertically (horizontally in vertical lanes) | *Method and Style* (collaboration diagrams) |
+| No overlapping elements | bpmnlint, `no-overlapping-elements` |
+| Lanes fitted to their content | *Method and Style* |
+
+The measurement behind this is `model/layoutQuality.js`; `test/javascript/bpmn_editor/`
+runs it over five reference flows after Tidy up (both orientations) with these caps, and
+over 200 random sequences of 30 edits with auto-arrange on (hard violations: 0).
+
+| Reference flow | Hard | Crossings | Avg. bends | Max. bends |
+|---|---|---|---|---|
+| Invoice (3 lanes, external participant) | 0 | 0 | ≤ 1 | ≤ 2 |
+| Decision with rework | 0 | ≤ 1 | ≤ 1.5 | ≤ 4 |
+| Three-branch parallel | 0 | 0 | ≤ 1 | ≤ 2 |
+| 60 activities, 4 lanes | 0 | ≤ 1 | ≤ 1 | ≤ 2 |
+| Two external participants | 0 | 0 | ≤ 1 | ≤ 2 |
 
 ## Outputs, notes and comparison
 

@@ -268,6 +268,66 @@ Revisados los comentarios de `ProcessFlowEditor.jsx` y `components/bpmn/**`, y l
   el CHANGELOG. Pruebas de documento grande (60 actividades: layout, ruteo y reglas) en JS, Ruby y
   preview `large`; Cypress `cypress/e2e/bpmn-editor.cy.js` (6 pruebas en verde).
 
+## BPMN-L · Acomodo automático y calidad del layout
+
+**Avance BPMN-L: 100 %.** Commits `bf30767c` (métrica, pruebas por propiedades, router y acomodo
+incremental), `dfc6055e` (Autoajustar completo) y `cf9b5f3e` (integración en el editor), más el
+de documentación.
+
+### Qué hay
+
+- **Métrica** `model/layoutQuality.js`: violaciones duras (encimados, fuera de carril o en el
+  encabezado, línea por elemento/nombre/insignia, tramos compartidos, etiquetas encimadas,
+  insignia sobre etiqueta) y blandas (cruces, quiebres, desvío del camino feliz). La usan las
+  pruebas y sirve para medir en el navegador (el documento del `PUT`).
+- **Router** `model/router.js`: A* sobre una rejilla ortogonal dispersa con ocupación de tramos
+  (prohíbe colinealidad, penaliza cruces y quiebres), puertos repartidos por lado, reserva previa
+  de todos los stubs, reintento por otros lados. Saltos de línea en cruces (`findJumps`).
+- **Acomodo incremental** `model/arrange.js`: huellas (forma ∪ nombre ∪ insignia), empuje hacia
+  adelante en el flujo, carriles ajustados al contenido, rejilla de 10 px por centros, `makeRoom`
+  cuando una ruta no cabe. Idempotente: un paso de deshacer.
+- **Autoajustar** `model/layout.js`: columnas por camino más largo, camino feliz recto, ramas de
+  splits simétricas, excepciones alternadas, artefactos junto a su elemento; encuadre con zoom
+  mínimo de 40 % y, si no cabe, desde el inicio.
+- **Etiquetas** `model/labels.js` y `model/edgeLabels.js`: eventos abajo, gateways arriba,
+  conexiones junto a su origen; la misma geometría en lienzo, exportación y métrica.
+- **UI:** interruptor «Ajuste automático», ayuda en un pie fijo (ya no tapa «Selección múltiple»),
+  Leyenda y «Por colocar» plegables y fuera del área de encuadre, preview editable que arranca del
+  ejemplo limpio (`fresh`).
+
+### Métrica antes y después (violaciones duras)
+
+| Flujo de referencia | Antes (al cargar) | Después (Autoajustar, H/V) | Cruces | Quiebres prom./máx. |
+|---|---|---|---|---|
+| Factura | 3 | 0 / 0 | 0 | 0.25 / 1 |
+| Decisión con retrabajo | 1 | 0 / 0 | 1 | 1 / 4 |
+| Paralelo de 3 ramas | 6 | 0 / 0 | 0 | 0.67–0.89 / 2 |
+| 60 actividades | 9 | 0 / 0 | 1 | 0.38 / 2 |
+| Dos participantes externos | 1 | 0 / 0 | 0 | 0.67 / 2 |
+
+Desvío del camino feliz: 0 en todos. Pruebas por propiedades: 200 secuencias × 30 operaciones con
+semillas fijas, 0 violaciones duras (reportan la secuencia mínima si fallan).
+
+**En el navegador** (Playwright contra el dummy, capturas fuera del repo): el gateway Sí/No del
+ejemplo sale limpio; un flujo de 12 elementos armado sólo con el menú rápido y la paleta queda con
+0 duras, 2 cruces y 1.06 quiebres promedio, y tras «Autoajustar» con 0 duras, 0 cruces y 0.56.
+
+### Lo que no se logró
+
+- Las líneas no se animan durante el acomodo (los nodos sí, 0.22 s); se rerutean al terminar.
+- Los saltos de línea se dibujan sobre los tramos horizontales.
+- El acomodo incremental empuja hacia adelante, no compacta: tras borrar puede quedar un hueco
+  hasta «Autoajustar».
+- El retrabajo conserva un cruce y un máximo de 4 quiebres (el lazo por debajo del flujo).
+
+### Decisiones
+
+- Sin librerías de layout (ELK, dagre): el contrato «a lo largo del flujo, dentro del carril» es
+  propio y las pruebas fijan el resultado.
+- Durante el arrastre se usa el ruteo rápido; el router completo corre al soltar.
+- `newId` determinista para poder reproducir secuencias en las pruebas por propiedades.
+- El tecleo en el panel, redimensionar carriles y mover el pool no disparan el acomodo.
+
 ## Pendiente y siguiente paso
 
 - **Importar BPMN en el cliente:** no se hizo; el botón abre el drawer de la app (`urls[:import]`)

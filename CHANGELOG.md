@@ -26,7 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `bali_bpmn_reload`) y los eventos `bali-bpmn:*`. Trae paleta con presets (`:descriptive`,
   `:analytic`, `:full`) y notas de la app, leyenda configurable, carril externo, menú rápido con
   dirección, insertar sobre una conexión, deshacer y rehacer, ruteo ortogonal que rodea elementos,
-  auto-layout con carriles, reglas de modelado R01–R26 y B01–B11 configurables con panel de
+  acomodo automático tras cada edición (`auto_arrange:`, encendido por omisión) y «Autoajustar»
+  — sin elementos encimados, líneas que atraviesen elementos o nombres, tramos compartidos ni
+  etiquetas encimadas —, reglas de modelado R01–R26 y B01–B11 configurables con panel de
   pendientes y ciclo Borrador/Finalizar, notas de revisión, comparación entre versiones y salidas
   `.bpmn`, PNG, SVG e impresión con marca de agua. Sin `urls[:save]` o sin `editable:` es un
   visor.
