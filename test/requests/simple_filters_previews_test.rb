@@ -2,8 +2,6 @@
 
 require "test_helper"
 
-# The `date_range_presets` preview offered a range spelled with " to ", which `?locale=es`
-# splits on " a ": the picker got one date out of it (#1495).
 class SimpleFiltersPreviewsTest < ActionDispatch::IntegrationTest
   PREVIEW = "/lookbook/preview/bali/data_table/simple_filters/date_range_presets"
 

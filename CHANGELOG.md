@@ -16,8 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   la receta: nada que hacer.
 
 - **La entrada de v3.16.0 del filtro `date_range` (#1461) recomendaba `min-w-0!`**, pero el filtro
-  no recibe clases; ahora da la regla CSS que sí baja el mínimo. Y el preview `date_range_presets`
-  escribe su rango con el separador del idioma: con `?locale=es` perdía la segunda fecha (#1495).
+  no recibe clases; ahora da la regla CSS que sí baja el mínimo (#1495).
 
 ## [v3.17.0] - 2026-10-15
 
