@@ -156,19 +156,27 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
 
   GENRES = [ %w[Drama drama], %w[Comedy comedy] ].freeze
 
+  def multiple_genre_field(resource = Movie.new, **options)
+    movie_form_builder(resource).slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true, **options)
+  end
+
   def test_slim_select_field_include_blank_selects_the_placeholder_while_there_is_no_value
     result = builder.slim_select_field(:genre, GENRES, include_blank: "Any genre")
     assert_html(result, 'option[data-placeholder="true"][selected]')
   end
 
   def test_slim_select_field_multiple_include_blank_never_selects_the_placeholder
-    result = builder.slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true)
-    assert_html(result, "option[selected]", count: 0)
+    assert_html(multiple_genre_field, "option[selected]", count: 0)
+    assert_html(multiple_genre_field(Movie.new(genre: "")), "option[selected]", count: 0)
+    # What SimpleFilters passes for a filter with no value.
+    assert_html(multiple_genre_field(selected: ""), "option[selected]", count: 0)
+  end
 
-    result = movie_form_builder(Movie.new(genre: "comedy"))
-               .slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true)
-    assert_html(result, 'option[selected][value="comedy"]')
-    assert_html(result, 'option[data-placeholder="true"]:not([selected])')
+  def test_slim_select_field_multiple_include_blank_keeps_the_values_it_is_given
+    [ multiple_genre_field(Movie.new(genre: "comedy")), multiple_genre_field(selected: [ "", "comedy" ]) ].each do |result|
+      assert_html(result, "option[selected]", count: 1)
+      assert_html(result, 'option[selected][value="comedy"]')
+    end
   end
 
   def test_slim_select_field_include_blank_keeps_the_real_options_selectable

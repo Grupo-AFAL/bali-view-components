@@ -38,19 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Lo ven los filtros `slim_select` de afal-apps y gobierno-corporativo. En un campo de formulario un
   valor largo se trunca junto a la ✕ o la flecha, hasta 18 px más ancho. Nada que hacer en la app.
 
-- **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante o estén
-  en grupos** (#1495). El controlador miraba sólo el primer hijo del `<select>`, que con
-  `include_blank:` o `prompt:` es el placeholder y en una lista agrupada es un `<optgroup>`. Ahora
-  SlimSelect lee el HTML de cada opción y el `<select>` ya no se reescribe al montar: sus opciones
-  conservan `id`, `class` y los demás `data-*`. En gobierno-corporativo, el selector de procesos de
-  un documento muestra la ruta de cada uno. Nada que hacer en la app. El blank con
+- **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante, estén
+  en grupos o lleguen después de montar** (#1495). El controlador miraba sólo el primer hijo del
+  `<select>`, que con `include_blank:` o `prompt:` es el placeholder y en una lista agrupada es un
+  `<optgroup>`, y sólo al montar. Ahora SlimSelect lee el HTML de cada opción, también de la que
+  agrega después un Turbo Stream o el JS de la app, y el `<select>` ya no se reescribe al montar:
+  sus opciones conservan `id`, `class` y los demás `data-*`. En gobierno-corporativo, el selector
+  de procesos de un documento muestra la ruta de cada uno. Nada que hacer en la app. El blank con
   `data-inner-html` propio que arman sus helpers para esquivarlo ya no hace falta; cambiarlo por
   `include_blank:` lo convierte de fila de la lista en placeholder, con ✕.
-
-- **SlimSelect: una opción con `data-inner-html` que llega después de montar también dibuja su
-  HTML**. La que agrega un Turbo Stream dentro del `<select>`, o el JS de la app, salía en texto
-  plano: SlimSelect sólo lee `data-html`, y el controlador lo copiaba únicamente al montar. Ninguna
-  app agrega opciones así hoy. Nada que hacer en la app.
 
 - **SlimSelect: «Seleccionar todo» también elige las opciones de una lista agrupada**. Con
   `select_all: true` sobre una lista en `<optgroup>` no elegía ninguna: leía sólo los hijos directos
@@ -58,14 +54,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que antes salían como chip sin que el formulario las mandara, y las vacías: el placeholder de
   `include_blank:` y la fila en blanco que Rails pone en una lista agrupada. El único uso con
   Bali 3, los avisos de la guardería en afal-apps, es una lista plana sin deshabilitadas ni
-  `include_blank:`. Nada que hacer en la app.
+  `include_blank:` (`daycare/notices/_form.html.erb`, con `placeholder:`). Nada que hacer en la app.
 
 - **Un `slim_select` múltiple con `include_blank:` o `prompt:` ya no arranca con el vacío
-  elegido**. Rails elige la opción `""` mientras el valor es `nil`, y en un select múltiple esa
-  opción es el placeholder: salía como chip y el formulario mandaba un valor vacío. En
-  gobierno-corporativo lo ven los dos selects múltiples de
-  `document_classification_types/_config_field.html.erb` mientras no tienen valor; su modelo ya
-  descartaba el vacío. Nada que hacer en la app.
+  elegido**. Rails elige la opción `""` mientras el valor es `nil` o vacío, y en un select múltiple
+  esa opción es el placeholder: salía como chip y el formulario mandaba un valor vacío. Lo mismo
+  con un `selected: ""`, que es lo que `SimpleFilters` pasa a un filtro sin valor. En
+  gobierno-corporativo cambia lo que se ve en los selects múltiples `by_management_level` y
+  `by_relation` de `document_classification_types/_config_field.html.erb` (`:92` y `:105`) mientras
+  no tienen valor: su `config-field` marca el campo como inválido al cargar hasta que se elige algo
+  (antes el vacío elegido contaba como elección), y la consulta de usuarios resueltos deja de mandar
+  `value[]=`. Su modelo ya descartaba el vacío.
 
 - **SlimSelect: las opciones de un `<optgroup disabled>` ya no se pueden elegir**. SlimSelect sólo
   lee el `disabled` de cada opción, así que se elegían y salían como chip aunque el formulario no

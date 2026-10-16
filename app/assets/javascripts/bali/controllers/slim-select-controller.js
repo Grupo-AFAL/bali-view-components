@@ -104,6 +104,7 @@ export class SlimSelectController extends Controller {
     // <select>, and the orphan reverts what the live one writes: the user picks an option,
     // the widget shows it, and the <select> that FormData serializes stays empty.
     const generation = (this.generation = (this.generation || 0) + 1)
+    let optionObserver
 
     try {
       const slimSelect = await import('slim-select').catch(optionalPeer('slim-select'))
@@ -152,9 +153,9 @@ export class SlimSelectController extends Controller {
 
       // And on every option that arrives later — a Turbo Stream into the <select>, a host's
       // script — before SlimSelect's own observer reads it: SlimSelect rebuilds the <select> from
-      // what it read, dropping a group's `disabled` for good. Observers are called in the order
-      // they started observing, so this one starts before `new SlimSelect`.
-      const optionObserver = new MutationObserver(() => this.prepareOptions())
+      // what it read, dropping a group's `disabled` for good. A mutation both observe reaches the
+      // one that started observing first, so this one starts before `new SlimSelect`.
+      optionObserver = new MutationObserver(() => this.prepareOptions())
       optionObserver.observe(this.selectTarget, { childList: true, subtree: true })
 
       if (this.hasAjaxValues()) {
@@ -214,6 +215,7 @@ export class SlimSelectController extends Controller {
       this.announceErrors()
       this.joinTopLayerOnOpen()
     } catch (error) {
+      optionObserver?.disconnect()
       console.error('[SlimSelect] Failed to initialize:', error)
     }
   }
@@ -381,7 +383,8 @@ export class SlimSelectController extends Controller {
 
     // SlimSelect reads an option's own `disabled`, never its group's, and its rebuild of the
     // <select> drops the group's (3.4.3 to 4.6.0): the options of a disabled <optgroup> stayed
-    // pickable, each a chip the form does not send.
+    // pickable, each a chip the form does not send. One way: a group enabled again keeps its
+    // options disabled — SlimSelect replaces the group on its next read anyway.
     for (const option of this.selectTarget.querySelectorAll('optgroup[disabled] > option:not([disabled])')) {
       option.disabled = true
     }

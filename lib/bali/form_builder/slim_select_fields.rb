@@ -223,10 +223,15 @@ module Bali
 
         values = [ [ text, "", { data: { placeholder: true } } ], *values ]
         options = options.except(:include_blank, :prompt)
-        # Rails selects the "" option while the value is nil (`Tags::Select#render`): the
-        # placeholder, which is right on a single select. A multiple one came back with it chosen,
-        # a chip that sends a blank.
-        options = options.reverse_merge(selected: []) if html_options[:multiple] && @object.try(method).nil?
+        # The placeholder is one of the choices, so Rails marks it selected whenever what it selects
+        # holds a "": a nil value, which `Tags::Select#render` turns into one, or a blank handed in,
+        # as SimpleFilters does for a filter with no value. Rails' own include_blank option is never
+        # marked. On a multiple select it is a chip that sends a blank, so the "" goes — as it does
+        # from the controller's `selectAll`.
+        if html_options[:multiple]
+          selected = options.fetch(:selected) { @object.try(method) }
+          options = options.merge(selected: Array(selected).map(&:to_s) - [ "" ])
+        end
         select(method, values, options, html_options)
       end
 
