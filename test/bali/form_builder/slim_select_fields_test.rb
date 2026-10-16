@@ -154,6 +154,23 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, "option[data-placeholder]", count: 0)
   end
 
+  GENRES = [ %w[Drama drama], %w[Comedy comedy] ].freeze
+
+  def test_slim_select_field_include_blank_selects_the_placeholder_while_there_is_no_value
+    result = builder.slim_select_field(:genre, GENRES, include_blank: "Any genre")
+    assert_html(result, 'option[data-placeholder="true"][selected]')
+  end
+
+  def test_slim_select_field_multiple_include_blank_never_selects_the_placeholder
+    result = builder.slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true)
+    assert_html(result, "option[selected]", count: 0)
+
+    result = movie_form_builder(Movie.new(genre: "comedy"))
+               .slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true)
+    assert_html(result, 'option[selected][value="comedy"]')
+    assert_html(result, 'option[data-placeholder="true"]:not([selected])')
+  end
+
   def test_slim_select_field_include_blank_keeps_the_real_options_selectable
     result = builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "Choose a status")
     Movie.statuses.each do |name, value|

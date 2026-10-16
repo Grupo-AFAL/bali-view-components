@@ -222,7 +222,12 @@ module Bali
         return select(method, values, options, html_options) if text.nil? || !flat_choices?(values)
 
         values = [ [ text, "", { data: { placeholder: true } } ], *values ]
-        select(method, values, options.except(:include_blank, :prompt), html_options)
+        options = options.except(:include_blank, :prompt)
+        # Rails selects the "" option while the value is nil (`Tags::Select#render`): the
+        # placeholder, which is right on a single select. A multiple one came back with it chosen,
+        # a chip that sends a blank.
+        options = options.reverse_merge(selected: []) if html_options[:multiple] && @object.try(method).nil?
+        select(method, values, options, html_options)
       end
 
       # Rails' select decides between options_for_select and grouped_options_for_select

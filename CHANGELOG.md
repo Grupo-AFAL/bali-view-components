@@ -55,9 +55,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SlimSelect: «Seleccionar todo» también elige las opciones de una lista agrupada**. Con
   `select_all: true` sobre una lista en `<optgroup>` no elegía ninguna: leía sólo los hijos directos
   del `<select>`. Ahora elige todas las habilitadas, en grupos o no. Deja fuera las deshabilitadas,
-  que antes salían como chip sin que el formulario las mandara, y el placeholder de
-  `include_blank:`, que mandaba un valor vacío. El único uso con Bali 3, los avisos de la guardería
-  en afal-apps, es una lista plana sin deshabilitadas ni `include_blank:`. Nada que hacer en la app.
+  que antes salían como chip sin que el formulario las mandara, y las vacías: el placeholder de
+  `include_blank:` y la fila en blanco que Rails pone en una lista agrupada. El único uso con
+  Bali 3, los avisos de la guardería en afal-apps, es una lista plana sin deshabilitadas ni
+  `include_blank:`. Nada que hacer en la app.
+
+- **Un `slim_select` múltiple con `include_blank:` o `prompt:` ya no arranca con el vacío
+  elegido**. Rails elige la opción `""` mientras el valor es `nil`, y en un select múltiple esa
+  opción es el placeholder: salía como chip y el formulario mandaba un valor vacío. En
+  gobierno-corporativo lo ven los dos selects múltiples de
+  `document_classification_types/_config_field.html.erb` mientras no tienen valor; su modelo ya
+  descartaba el vacío. Nada que hacer en la app.
 
 - **SlimSelect: las opciones de un `<optgroup disabled>` ya no se pueden elegir**. SlimSelect sólo
   lee el `disabled` de cada opción, así que se elegían y salían como chip aunque el formulario no

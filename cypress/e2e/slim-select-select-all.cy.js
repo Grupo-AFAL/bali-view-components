@@ -9,6 +9,8 @@ const selectedValues = select => [...select.selectedOptions].map(option => optio
 
 const listOption = text => cy.contains('.ss-content.ss-open .ss-option', text)
 
+const GROUPED_ENABLED = ['apple', 'banana', 'orange', 'carrot', 'broccoli', 'spinach', 'milk', 'cheese', 'yogurt']
+
 describe('SlimSelect select all', () => {
   describe('over option groups, with a disabled option and a disabled group', () => {
     beforeEach(() => {
@@ -22,9 +24,7 @@ describe('SlimSelect select all', () => {
       cy.get('[data-slim-select-target="selectAllButton"]').click()
 
       cy.get('#form_record_name').should(([select]) => {
-        expect(selectedValues(select)).to.deep.equal([
-          'apple', 'banana', 'orange', 'carrot', 'broccoli', 'spinach', 'milk', 'cheese', 'yogurt'
-        ])
+        expect(selectedValues(select)).to.deep.equal(GROUPED_ENABLED)
       })
     })
 
@@ -60,11 +60,24 @@ describe('SlimSelect select all', () => {
 
   it('leaves the include_blank placeholder out', () => {
     visit('blank=true')
+    cy.get('#form_record_name option[data-placeholder="true"]').should('exist')
+    cy.get('#form_record_name_select_div .ss-value').should('have.length', 0)
 
     cy.get('[data-slim-select-target="selectAllButton"]').click()
 
     cy.get('#form_record_name').should(([select]) => {
       expect(selectedValues(select)).to.deep.equal(['1', '2', '3', '4', '5'])
+    })
+  })
+
+  it("leaves Rails' blank row of a grouped list out", () => {
+    visit('grouped=true&blank=true')
+    cy.get('#form_record_name > option[value=""]:not([data-placeholder])').should('exist')
+
+    cy.get('[data-slim-select-target="selectAllButton"]').click()
+
+    cy.get('#form_record_name').should(([select]) => {
+      expect(selectedValues(select)).to.deep.equal(GROUPED_ENABLED)
     })
   })
 })

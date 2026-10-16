@@ -397,12 +397,11 @@ export class SlimSelectController extends Controller {
   }
 
   selectAll () {
-    // Not the disabled ones: selected, they show a chip, and the form does not send them. Nor
-    // the placeholder `build_select` writes for `include_blank:`, which would send a blank.
-    const values = Array.from(
-      this.selectTarget.querySelectorAll('option:enabled:not([data-placeholder="true"])'),
-      option => option.value
-    )
+    // Not the disabled ones: selected, they show a chip, and the form does not send them. Nor a
+    // blank — the placeholder `build_select` writes for `include_blank:`, or Rails' blank row on
+    // a grouped list — which would send an empty value.
+    const values = Array.from(this.selectTarget.querySelectorAll('option:enabled'), option => option.value)
+      .filter(value => value !== '')
 
     this.select.setSelected(values)
 
