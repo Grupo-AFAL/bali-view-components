@@ -70,11 +70,37 @@ describe('BPMN editor island', () => {
       cy.get('[data-testid="bpmn-save-status"]').should('contain', 'Borrador guardado')
     })
 
-    it('blocks a second outgoing connection from an activity and says why', () => {
+    // The user's case: an activity that already has its way out, one more
+    // element asked for to the right.
+    it('turns a second way out of an activity into a split instead of refusing it', () => {
       nodeNamed('Registrar pago').click()
+      cy.get('[data-testid="bpmn-quick-menu"] [aria-label="Derecha"]').click()
       cy.get('[data-testid="bpmn-quick-menu"] [data-quick="task"]').click()
-      cy.get('[data-testid="bpmn-notice"]').should('contain', 'regla de entradas y salidas')
+      cy.get('[data-testid="bpmn-branch-with"]').should('contain', 'Bifurcar con')
+        .find('[data-branch="exclusive_gateway"]').should('contain', 'Decisión').click()
+      cy.get('[data-testid="bpmn-notice"]').should('not.exist')
+      cy.get('[data-testid="bpmn-node"]').should('have.length', 11)
+      cy.get('.react-flow__edge').should('have.length', 10)
+      // The gateway, the new branch and the arrangement are one step.
+      cy.get('body').type('{ctrl}z')
       cy.get('[data-testid="bpmn-node"]').should('have.length', 9)
+    })
+
+    it('offers the split on a connection the one-in, one-out rule refuses', () => {
+      cy.get('[data-testid="bpmn-connect"]').click()
+      nodeNamed('Programar transferencia').click()
+      nodeNamed('Fin').click()
+      cy.get('[data-testid="bpmn-notice"]').should('contain', 'regla de entradas y salidas')
+      cy.get('[data-testid="bpmn-notice-action"]').should('contain', 'Agregar gateway').click()
+      cy.get('[data-testid="bpmn-node"]').should('have.length', 10)
+      cy.get('.react-flow__edge').should('have.length', 10)
+    })
+
+    it('disables a direction nothing can be added in, and says why', () => {
+      nodeNamed('Factura recibida').click()
+      cy.get('[data-testid="bpmn-quick-menu"] [aria-label="Izquierda"]')
+        .should('have.attr', 'aria-disabled', 'true')
+        .and('have.attr', 'title').and('contain', 'No fue posible')
     })
 
     it('undoes and redoes with the keyboard', () => {

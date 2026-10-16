@@ -398,8 +398,15 @@ sent at once, and without it the visitor is asked to confirm.
 - **Quick menu** next to the selected element: activity, intermediate event,
   gateway, end, or "More", towards any of four directions, already connected. When the
   spot ahead is taken the following elements move along; past the first or last lane,
-  across the flow, that lane grows; when there is still no room (into a lane header) it
-  says so.
+  across the flow, that lane grows. A direction where nothing can go (into a lane header)
+  is disabled, and its tooltip says why.
+- **Branching**: an activity has one way in and one way out (R01/R02). Asked for a second
+  way out, the quick menu offers "Split with: Decision (exclusive) · Parallel" (and
+  Inclusive when the palette has it): the gateway goes after the activity, the existing way
+  out passes through it, and the new element is its second branch — one undo step, its
+  branch names left as pending (R03). When the way out already leads to a splitting
+  gateway, the new element is one more branch of it. A connection drawn by hand that the
+  rule refuses stays refused, and the notice offers "Add gateway", which does the same.
 - **Lanes**: add, rename in the header (double-click), drag the header over another
   lane to reorder or elsewhere to move them all, resize one lane or the common length,
   mark external (grey lane, white activities).

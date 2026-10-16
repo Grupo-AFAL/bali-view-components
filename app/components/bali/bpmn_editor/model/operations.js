@@ -477,6 +477,63 @@ export function appendNode (doc, sourceId, attrs, direction, { policy = DEFAULT_
   return { doc: connected.doc, id: created.id, edgeId: connected.id }
 }
 
+// An activity has one way out (R01/R02), so a second one is a split. What the
+// quick menu and a blocked connection offer then: null when `sourceId` is not
+// an activity with exactly one outgoing sequence flow; otherwise that flow,
+// and the splitting gateway it already leads to (null when it leads
+// elsewhere and a gateway has to be inserted).
+export function branchPoint (doc, sourceId) {
+  const source = findNode(doc, sourceId)
+  if (!source || !isActivity(source)) return null
+  const out = outgoing(doc, source.id).filter((e) => edgeType(e) === 'sequence_flow')
+  if (out.length !== 1) return null
+  const next = findNode(doc, out[0].target)
+  const splitting = next && categoryOf(next) === CATEGORY.gateway &&
+    incoming(doc, next.id).filter((e) => edgeType(e) === 'sequence_flow').length <= 1
+  return { edge: out[0], split: splitting ? next : null }
+}
+
+// Puts a gateway of type `gateway` after the activity, on its way out, unless
+// that way already leads to a splitting gateway: { doc, gatewayId }.
+function splitAfter (doc, sourceId, gateway, { policy, names }) {
+  const point = branchPoint(doc, sourceId)
+  if (!point) return blocked('block_connection')
+  if (point.split) return { doc, gatewayId: String(point.split.id), existing: true }
+  if (!gateway) return blocked('block_needs_gateway')
+  // Right after the activity along the flow, whichever way its target lies.
+  const orientation = orientationOf(doc)
+  const box = nodeBox(findNode(doc, sourceId))
+  const size = nodeSize({ type: gateway })
+  const at = axisFor(orientation).cross === 'x'
+    ? { x: box.x + box.w + GAP[orientation] + size.width / 2, y: box.cy }
+    : { x: box.cx, y: box.y + box.h + GAP[orientation] + size.height / 2 }
+  const inserted = insertOnEdge(doc, point.edge.id, { type: gateway }, at, { policy, names })
+  if (inserted.error) return inserted
+  return { doc: inserted.doc, gatewayId: String(inserted.id), existing: false }
+}
+
+// The quick menu from an activity that already has its way out: the new
+// element becomes a branch — of the splitting gateway that way leads to, or of
+// a `gateway` inserted after the activity, the existing way passing through
+// it. A new gateway's branches are left unnamed (R03 reports them pending).
+export function branchNode (doc, sourceId, attrs, direction, { gateway, policy = DEFAULT_POLICY, names = {}, labels = {} } = {}) {
+  const split = splitAfter(doc, sourceId, gateway, { policy, names })
+  if (split.error) return split
+  const appended = appendNode(split.doc, split.gatewayId, attrs, direction, { policy, names, labels: split.existing ? labels : {} })
+  if (appended.error) return appended
+  return { ...appended, gatewayId: split.gatewayId }
+}
+
+// A connection refused because the activity already has its way out, made
+// through a gateway instead (the same split as branchNode).
+export function connectThroughGateway (doc, sourceId, targetId, { gateway = 'exclusive_gateway', policy = DEFAULT_POLICY, names = {}, labels = {} } = {}) {
+  const split = splitAfter(doc, sourceId, gateway, { policy, names })
+  if (split.error) return split
+  const connected = connect(split.doc, split.gatewayId, targetId, { policy, labels: split.existing ? labels : {} })
+  if (connected.error) return connected
+  return { ...connected, gatewayId: split.gatewayId }
+}
+
 // Drops a node onto an existing sequence flow: source → new → target, the
 // label and the source port kept on the first half, nothing disconnected.
 // The new node goes right after the source along the flow and everything

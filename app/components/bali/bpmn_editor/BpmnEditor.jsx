@@ -84,10 +84,10 @@ function Editor ({
   docRef.current = doc
 
   const [notices, setNotices] = useState([])
-  const notify = useCallback((text, tone = 'info') => {
+  const notify = useCallback((text, tone = 'info', action = null) => {
     const id = Math.random().toString(36).slice(2)
-    setNotices((list) => [...list.slice(-2), { id, text, tone }])
-    setTimeout(() => setNotices((list) => list.filter((n) => n.id !== id)), NOTICE_MS)
+    setNotices((list) => [...list.slice(-2), { id, text, tone, action }])
+    setTimeout(() => setNotices((list) => list.filter((n) => n.id !== id)), action ? NOTICE_MS * 2 : NOTICE_MS)
   }, [])
   const block = useCallback((result) => notify(t(result.error, result.vars), 'block'), [notify, t])
 
@@ -278,18 +278,43 @@ function Editor ({
     if (result) select({ nodes: [String(result.id)] })
   }, [apply, policy, names, select])
 
-  const appendFrom = useCallback((sourceId, key) => {
+  // The quick menu's add: from an activity that already has its way out, a
+  // branch through `gateway` (or the splitting gateway that way leads to).
+  const quickAdd = useCallback((d, sourceId, attrs, dir, gateway) => {
+    const appended = ops.appendNode(d, sourceId, attrs, dir, { policy, names, labels })
+    if (appended.error !== 'block_connection' || !ops.branchPoint(d, sourceId)) return appended
+    return ops.branchNode(d, sourceId, attrs, dir, { gateway, policy, names, labels })
+  }, [policy, names, labels])
+
+  const appendFrom = useCallback((sourceId, key, gateway) => {
     const item = PALETTE_ITEMS[key]
     if (!item || !item.node) return
-    const result = apply((d) => ops.appendNode(d, sourceId, item.node, direction, { policy, names, labels }))
+    const result = apply((d) => quickAdd(d, sourceId, item.node, direction, gateway))
     if (result) select({ nodes: [String(result.id)] })
-  }, [apply, direction, policy, names, labels, select])
+  }, [apply, quickAdd, direction, select])
+
+  // A sequence flow refused because the activity already has its way out:
+  // the block stays, and the notice offers the split that makes it valid.
+  const blockConnection = useCallback((source, target, type, error) => {
+    const through = (d) => ops.connectThroughGateway(d, source, target, { policy, names, labels })
+    const offer = type === 'sequence_flow' && error === 'block_connection' && !through(docRef.current).error
+    if (!offer) { block({ error }); return }
+    notify(t(error), 'block', {
+      label: t('add_gateway'),
+      run: () => {
+        const result = apply(through)
+        if (result) select({ edges: [String(result.id)] })
+      }
+    })
+  }, [policy, names, labels, block, notify, t, apply, select])
 
   const connectNodes = useCallback((source, target, type = 'sequence_flow') => {
+    const error = ops.connectionError(docRef.current, source, target, { type, policy })
+    if (error) { blockConnection(source, target, type, error); return null }
     const result = apply((d) => ops.connect(d, source, target, { type, policy, labels }))
     if (result) select({ edges: [String(result.id)] })
     return result
-  }, [apply, policy, labels, select])
+  }, [apply, policy, labels, select, blockConnection])
 
   const deleteSelection = useCallback(() => {
     const sel = selection
@@ -426,8 +451,8 @@ function Editor ({
     const targetId = (connectionState.toNode && connectionState.toNode.id) || (target && target.dataset.id)
     if (!targetId || targetId === connectionState.fromNode.id) return
     const error = ops.connectionError(docRef.current, connectionState.fromNode.id, targetId, { type: connectorType, policy })
-    if (error) block({ error })
-  }, [connectorType, policy, block])
+    if (error) blockConnection(connectionState.fromNode.id, targetId, connectorType, error)
+  }, [connectorType, policy, blockConnection])
 
   const onReconnect = useCallback((oldEdge, connection) => {
     const source = connection.source !== oldEdge.source ? connection.source : undefined
@@ -650,9 +675,27 @@ function Editor ({
   const enabledKeys = useMemo(() => new Set(((palette && palette.items) || []).filter((i) => i.state === 'enabled').map((i) => i.key)), [palette])
   const single = selection.nodes.length === 1 && !selection.edges.length ? doc.nodes.find((n) => String(n.id) === selection.nodes[0]) : null
   const quickMenuId = interactive && !tool && !dragPositions && !renamingId && single && single.type !== 'end_event' && !isArtifactLike(single) ? String(single.id) : null
-  const renderQuickMenu = useCallback((node) => (
-    <QuickMenu t={t} enabled={enabledKeys} direction={direction} onDirection={setDirection} onAdd={(key) => appendFrom(node.id, key)} />
-  ), [t, enabledKeys, direction, appendFrom])
+  const renderQuickMenu = useCallback((node) => {
+    const d = doc
+    const point = policy.oneInOneOut ? ops.branchPoint(d, node.id) : null
+    const splits = ['exclusive_gateway', 'parallel_gateway', 'inclusive_gateway'].filter((k) => enabledKeys.has(k))
+    const needsGateway = Boolean(point && !point.split)
+    // Each direction tried on the side, so one that cannot work is disabled
+    // and says why instead of failing after the click.
+    const blocked = {}
+    for (const dir of ['up', 'down', 'left', 'right']) {
+      const tried = needsGateway && !splits.length
+        ? { error: 'block_connection' }
+        : quickAdd(d, node.id, { type: 'task' }, dir, splits[0])
+      if (tried.error) blocked[dir] = t(tried.error, tried.vars)
+    }
+    return (
+      <QuickMenu
+        t={t} enabled={enabledKeys} direction={direction} onDirection={setDirection} blocked={blocked} needsGateway={needsGateway}
+        onAdd={(key, gateway) => appendFrom(node.id, key, gateway)}
+      />
+    )
+  }, [t, enabledKeys, direction, appendFrom, policy, quickAdd, doc])
 
   const hasSelection = selection.nodes.length || selection.edges.length || selection.lanes.length
   const showPanel = panel === 'participants' || hasSelection

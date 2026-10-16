@@ -237,3 +237,46 @@ test('a sequence flow does not cross into an external participant', () => {
   assert.equal(ops.connectionError(d, 't1', 't2'), 'block_sequence_participants')
   assert.equal(ops.connectionError(d, 't1', 't2', { type: 'message_flow' }), null)
 })
+
+// The user's case: "Record payment" already goes up to a new activity; the
+// quick menu asked for one more to the right.
+const recordPayment = () => doc({
+  lanes: lanes('Accounts payable', 'Treasury'),
+  nodes: [node('t3', 'task', 'l2', 300, 270, { name: 'Record payment' }), node('up', 'task', 'l1', 300, 90, { name: 'New activity' })],
+  edges: [flow('f5', 't3', 'up')]
+})
+
+test('a second way out of an activity is a split: a gateway after it, the existing way through it, the new element as its second branch', () => {
+  const d = recordPayment()
+  assert.equal(ops.appendNode(d, 't3', { type: 'task' }, 'right').error, 'block_connection', 'R02 still holds')
+  assert.deepEqual(ops.branchPoint(d, 't3'), { edge: d.edges[0], split: null })
+  assert.equal(ops.branchNode(d, 't3', { type: 'task' }, 'right').error, 'block_needs_gateway')
+
+  const { doc: next, id, gatewayId } = ops.branchNode(d, 't3', { type: 'task' }, 'right', { gateway: 'exclusive_gateway', labels: { yes: 'Yes', no: 'No' } })
+  const gateway = byId(next, gatewayId)
+  assert.equal(gateway.type, 'exclusive_gateway')
+  const pairs = next.edges.map((e) => [e.source, e.target])
+  assert.deepEqual(pairs.filter(([s]) => s === 't3'), [['t3', gatewayId]], 'the activity keeps one way out')
+  assert.ok(pairs.some(([s, t]) => s === gatewayId && t === 'up'), 'the existing way passes through the gateway')
+  assert.ok(pairs.some(([s, t]) => s === gatewayId && t === id), 'the new element is a branch')
+  assert.ok(nodeBox(byId(next, id)).cx > nodeBox(gateway).cx, 'in the direction asked for')
+  assert.ok(next.edges.filter((e) => e.source === gatewayId).every((e) => !e.label), 'branches of a new gateway are left to be named (R03)')
+})
+
+test('when the way out already leads to a splitting gateway, the new element is one more branch of it', () => {
+  const d = recordPayment()
+  const first = ops.branchNode(d, 't3', { type: 'task' }, 'right', { gateway: 'parallel_gateway' })
+  const again = ops.branchNode(first.doc, 't3', { type: 'end_event' }, 'down', { gateway: 'exclusive_gateway' })
+  assert.equal(again.gatewayId, first.gatewayId)
+  assert.equal(again.doc.nodes.filter((n) => n.type.endsWith('_gateway')).length, 1, 'no second gateway')
+  assert.equal(again.doc.edges.filter((e) => e.source === first.gatewayId).length, 3)
+})
+
+test('a connection refused for that reason can be made through a gateway', () => {
+  const d = recordPayment()
+  d.nodes.push(node('e', 'end_event', 'l2', 600, 270))
+  assert.equal(ops.connectionError(d, 't3', 'e'), 'block_connection')
+  const { doc: next, gatewayId } = ops.connectThroughGateway(d, 't3', 'e')
+  assert.ok(next.edges.some((e) => e.source === gatewayId && e.target === 'e'))
+  assert.ok(next.edges.some((e) => e.source === gatewayId && e.target === 'up'))
+})
