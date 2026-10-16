@@ -62,8 +62,8 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, readOnlyNotice, autosave, orientation: fixedOrientation, layout: layoutMode, page, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
-  name, watermark, annotationTags, compare
+  data, editable: editableProp, autosave, lockOrientation, externalLanes = true, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
+  name, watermark, review
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
@@ -81,11 +81,7 @@ function Editor ({
   const wrapperRef = useRef(null)
 
   // ── document & history ─────────────────────────────────────────────────
-  // An orientation the host fixed (AFAL LAN-10) applies to every document
-  // that arrives, and the toolbar offers no switch.
-  const fixed = fixedOrientation === 'horizontal' || fixedOrientation === 'vertical' ? fixedOrientation : null
-  const load = useCallback((d) => (fixed && d.orientation !== fixed ? ops.setOrientation(d, fixed).doc : d), [fixed])
-  const [state, setState] = useState(() => history.initialHistory(load(normalize(data, layoutOptions))))
+  const [state, setState] = useState(() => history.initialHistory(normalize(data, layoutOptions)))
   const doc = state.present
   const docRef = useRef(doc)
   docRef.current = doc
@@ -132,9 +128,9 @@ function Editor ({
     editable,
     autosave,
     onAdopt: useCallback((serverDoc, { replace }) => {
-      setState((s) => (replace ? history.adopt(s, load(serverDoc)) : history.adopt(s, { ...s.present, issues: serverDoc.issues, version: serverDoc.version })))
-    }, [load]),
-    onReset: useCallback((serverDoc) => setState((s) => history.reset(s, load(serverDoc))), [load]),
+      setState((s) => (replace ? history.adopt(s, serverDoc) : history.adopt(s, { ...s.present, issues: serverDoc.issues, version: serverDoc.version })))
+    }, []),
+    onReset: useCallback((serverDoc) => setState((s) => history.reset(s, serverDoc)), []),
     onEvent: emit,
     notify,
     t
@@ -154,7 +150,7 @@ function Editor ({
   const [liveLength, setLiveLength] = useState(null) // shared lane length while one lane's end is dragged
   const [dialog, setDialog] = useState(null) // null | 'pending' | 'rules'
   const [compareMode, setCompareMode] = useState(null) // null | 'overlay' | 'side_by_side'
-  const [direction, setDirection] = useState(() => (load(normalize(data)).orientation === 'vertical' ? 'down' : 'right'))
+  const [direction, setDirection] = useState(() => (normalize(data).orientation === 'vertical' ? 'down' : 'right'))
   const interactive = editable && mode === 'edit'
 
   const selectedSet = useMemo(() => new Set([...selection.nodes, ...selection.edges, ...selection.lanes.map(laneNodeId)]), [selection])
@@ -654,7 +650,8 @@ function Editor ({
     </EdgeLabelRenderer>
   ), [apply])
 
-  const tags = useMemo(() => annotationTags || [], [annotationTags])
+  const tags = useMemo(() => (review && review.tags) || [], [review])
+  const compare = (review && review.compare_with) || null
   const compareBase = useMemo(() => (compare && compare.document ? normalize(compare.document) : null), [compare])
   const notesByElement = useMemo(() => {
     const map = new Map()
@@ -769,9 +766,6 @@ function Editor ({
         onPointerDownCapture={() => { activeEditor = wrapperRef.current }}
         tabIndex={-1}
       >
-        {readOnlyNotice && !editable && (
-          <div className='bpmn-chrome border-b border-base-300 bg-base-200 px-4 py-2 text-sm' role='status'>{readOnlyNotice}</div>
-        )}
         <TopBar
           t={t}
           editable={editable}
@@ -862,7 +856,7 @@ function Editor ({
                 editable={interactive}
                 orientation={layout.orientation}
                 onAddLane={addLane}
-                onToggleOrientation={fixed ? null : () => {
+                onToggleOrientation={lockOrientation ? null : () => {
                   apply((d) => ops.setOrientation(d, layout.orientation === 'horizontal' ? 'vertical' : 'horizontal'))
                   setTimeout(() => fitDiagram(flow, fit, 250), 50)
                 }}
@@ -894,7 +888,8 @@ function Editor ({
               ? (
                 <PropertiesPanel
                   t={t} doc={doc} selection={selection} api={api} editable={interactive}
-                  nodeFields={nodeFields || {}} laneFields={laneFields || []} urls={urls || {}}
+                  nodeFields={(fields && fields.nodes) || {}} laneFields={(fields && fields.lanes) || []} urls={urls || {}}
+                  externalLanes={externalLanes}
                   view={panel === 'participants' && !hasSelection ? 'participants' : 'properties'}
                   onClose={() => { setPanel(null); clearSelection() }}
                   onPickLane={(id) => focusElement(id)}

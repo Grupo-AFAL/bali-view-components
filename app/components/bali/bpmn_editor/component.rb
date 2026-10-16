@@ -20,28 +20,32 @@ module Bali
     class Component < ApplicationViewComponent
       URL_KEYS = %i[save diagram finalize references new_reference lane_assignees new_lane_assignee import].freeze
       RULE_KEYS = %i[disabled enabled severities messages options].freeze
+      # Mirrors RULE_OPTIONS in model/rules.js; contract_test.rb compares them.
       RULE_OPTIONS = %i[min_lanes min_activities max_activities].freeze
-      SEVERITIES = %w[error warning].freeze
-      # Mirrors autoLayout's modes (model/layout.js).
+      # Mirrors LAYOUTS in model/layout.js.
       LAYOUTS = %i[compact straight].freeze
       # Letter, inches; mirrors LETTER in model/page.js.
       DEFAULT_PAGE = { width: 8.5, height: 11, orientation: "landscape" }.freeze
       PAGE_ORIENTATIONS = %w[landscape portrait].freeze
-      # Mirrors FIELD_TYPES in PropertiesPanel.jsx.
+      FIELD_KEYS = %i[nodes lanes].freeze
+      REVIEW_KEYS = %i[tags compare_with].freeze
+      # Mirrors FIELD_TYPES in chrome/FieldInput.jsx.
       FIELD_TYPES = %w[text textarea number select multi_select readonly].freeze
-      # Mirrors the swatches Legend.jsx draws.
+      # Mirrors LEGEND_SWATCHES in chrome/Legend.jsx.
       LEGEND_SWATCHES = %w[task sub_process gateway start_event end_event external_lane external_task issue color].freeze
       DEFAULT_LEGEND = %w[task sub_process external_lane external_task issue].freeze
+      EXTERNAL_LEGEND = %w[external_lane external_task].freeze
 
       attr_reader :data
 
       # @param data [Hash, Bali::BpmnEditor::Data] the document (contract in Bali::BpmnEditor::Data)
       # @param editable [Boolean] the island may change the document (the host authorizes).
-      # @param read_only_notice [String] why it cannot be edited, shown above a read-only diagram.
       # @param autosave [Boolean] save with a debounce after each change (default) or only from
       #   the "Save draft" button.
-      # @param orientation [Symbol, nil] :horizontal or :vertical fixes the lanes' orientation
-      #   (documents arrive turned to it, the toolbar offers no switch); nil lets the user switch.
+      # @param lock_orientation [Boolean] keep the document's own orientation (`data[:orientation]`);
+      #   the toolbar offers no switch.
+      # @param external_lanes [Boolean] offer marking a lane as an external participant (default);
+      #   false hides that checkbox and the external entries of the default legend.
       # @param layout [Symbol] how "Tidy up" (and the first layout of a document without
       #   coordinates) arranges the flow: :compact (default) folds it into bands that fit
       #   `page:` legibly; :straight keeps the happy path in one line.
@@ -52,49 +56,49 @@ module Bali
       #   full list of entries, or false to hide it.
       # @param rules [Hash] { disabled: [ids], enabled: [ids], severities: { id => :warning },
       #   messages: { id => "text" }, options: { min_lanes:, min_activities:, max_activities: } }.
-      # @param node_fields [Hash] { node_type (or "*") => [{ key:, label:, type:, options:, url: }] }.
-      # @param lane_fields [Array] the same field schema, for lanes.
+      # @param fields [Hash] the properties panel's own fields: { nodes: { node_type (or "*") =>
+      #   [{ key:, label:, type:, options:, url: }] }, lanes: [the same field schema] }.
       # @param urls [Hash] island endpoints, keys in URL_KEYS — see docs/api/bpmn-editor.md.
       # @param name [String] the diagram's name: title of the image and print outputs, file
       #   names, and the main participant of the .bpmn export.
       # @param watermark [String] text across the image and print outputs (e.g. "Borrador").
-      # @param annotation_tags [Array] tags of the review notes: [{ key:, label:, color: }].
-      # @param compare_with [Hash] another version to compare against:
-      #   { document: <a document like data:>, label: "Published v1.0" }.
+      # @param review [Hash] { tags: [{ key:, label:, color: }] of the review notes,
+      #   compare_with: { document: <a document like data:>, label: "Published v1.0" } }.
       # @param i18n [Hash] island strings. Defaults to Bali::BpmnEditor::Translations.island.
-      # @param id [String] DOM id; also scopes the events the host sends back.
-      def initialize(data:, editable: false, read_only_notice: nil, autosave: true, orientation: nil, layout: :compact,
-                     page: DEFAULT_PAGE, palette: nil,
-                     legend: nil, rules: {}, node_fields: {}, lane_fields: [], urls: {}, name: nil,
-                     watermark: nil, annotation_tags: [], compare_with: nil, i18n: nil, id: nil, **options)
+      # @param id [String] DOM id; also scopes the events the host sends back. Generated when
+      #   omitted, so two editors on one page never share it.
+      def initialize(data:, editable: false, autosave: true, lock_orientation: false, external_lanes: true,
+                     layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil, rules: {}, fields: {},
+                     urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil, **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
-        @read_only_notice = read_only_notice
         @autosave = autosave
-        @orientation = validate_orientation!(orientation)
-        @layout = validate_layout!(layout)
-        @page = validate_page!(page)
+        @lock_orientation = lock_orientation
+        @external_lanes = external_lanes
+        @layout = resolve_layout(layout)
+        @page = resolve_page(page)
         @palette = Palette.resolve(palette)
         @legend = resolve_legend(legend)
-        @rules = validate_rules!(rules)
-        @node_fields = validate_node_fields!(node_fields)
-        @lane_fields = validate_fields!(lane_fields, "lane_fields")
-        @urls = validate_urls!(urls)
+        @rules = resolve_rules(rules)
+        @fields = resolve_fields(fields)
+        @urls = resolve_urls(urls)
         @name = name
         @watermark = watermark
-        @annotation_tags = validate_annotation_tags!(annotation_tags)
-        @compare_with = resolve_compare(compare_with)
+        @review = resolve_review(review)
         @i18n = i18n
-        @id = id
+        # The locale it was built in: Lookbook builds a component inside
+        # `I18n.with_locale` and renders it after that block returns.
+        @locale = I18n.locale
+        @id = id.presence || "bpmn-editor-#{SecureRandom.hex(4)}"
         @options = options
       end
 
       def island_i18n
-        @island_i18n ||= @i18n || Translations.island
+        @island_i18n ||= @i18n || Translations.island(locale: @locale)
       end
 
       def wrapper_attributes
-        @options.except(:class, :data).merge(
+        @options.except(:class).merge(
           id: @id,
           class: class_names("bali-bpmn-editor", @options[:class]),
           data: island_values
@@ -108,21 +112,19 @@ module Bali
           controller: "bpmn-editor",
           bpmn_editor_data_value: data.to_h.to_json,
           bpmn_editor_editable_value: editable?.to_s,
-          bpmn_editor_read_only_notice_value: @read_only_notice,
           bpmn_editor_autosave_value: (!!@autosave).to_s,
-          bpmn_editor_orientation_value: @orientation,
+          bpmn_editor_lock_orientation_value: (!!@lock_orientation).to_s,
+          bpmn_editor_external_lanes_value: (!!@external_lanes).to_s,
           bpmn_editor_layout_value: @layout.to_s,
           bpmn_editor_page_value: @page.to_json,
           bpmn_editor_palette_value: @palette.to_json,
           bpmn_editor_legend_value: @legend.to_json,
           bpmn_editor_rules_value: @rules.to_json,
-          bpmn_editor_node_fields_value: @node_fields.to_json,
-          bpmn_editor_lane_fields_value: @lane_fields.to_json,
+          bpmn_editor_fields_value: @fields.to_json,
           bpmn_editor_urls_value: @urls.to_json,
           bpmn_editor_name_value: @name,
           bpmn_editor_watermark_value: @watermark,
-          bpmn_editor_annotation_tags_value: @annotation_tags.to_json,
-          bpmn_editor_compare_value: @compare_with&.to_json,
+          bpmn_editor_review_value: @review.to_json,
           bpmn_editor_i18n_value: island_i18n.to_json
         }.compact
       end
@@ -132,13 +134,13 @@ module Bali
         !!@editable && @urls[:save].present?
       end
 
-      def validate_layout!(layout)
+      def resolve_layout(layout)
         return layout.to_sym if LAYOUTS.include?(layout.to_s.to_sym)
 
         raise ArgumentError, "layout must be one of #{LAYOUTS.inspect}, got #{layout.inspect}"
       end
 
-      def validate_page!(page)
+      def resolve_page(page)
         page = DEFAULT_PAGE.merge((page || {}).to_h.symbolize_keys)
         unknown = page.keys - DEFAULT_PAGE.keys
         raise ArgumentError, "unknown page: keys #{unknown.inspect}; expected #{DEFAULT_PAGE.keys.inspect}" if unknown.any?
@@ -153,7 +155,7 @@ module Bali
         raise ArgumentError, "page orientation: must be one of #{PAGE_ORIENTATIONS.inspect}, got #{page[:orientation].inspect}"
       end
 
-      def validate_urls!(urls)
+      def resolve_urls(urls)
         urls = (urls || {}).to_h.symbolize_keys
         unknown = urls.keys - URL_KEYS
         return urls.compact if unknown.empty?
@@ -161,26 +163,15 @@ module Bali
         raise ArgumentError, "unknown urls: keys #{unknown.inspect}; expected #{URL_KEYS.inspect}"
       end
 
-      def validate_orientation!(orientation)
-        return nil if orientation.nil?
-        return orientation.to_s if %w[horizontal vertical].include?(orientation.to_s)
-
-        raise ArgumentError, "orientation must be :horizontal, :vertical or nil, got #{orientation.inspect}"
-      end
-
-      def validate_rules!(rules)
+      def resolve_rules(rules)
         rules = (rules || {}).to_h.deep_symbolize_keys
         unknown = rules.keys - RULE_KEYS
         raise ArgumentError, "unknown rules: keys #{unknown.inspect}; expected #{RULE_KEYS.inspect}" if unknown.any?
 
         (rules[:severities] || {}).each do |id, severity|
-          next if SEVERITIES.include?(severity.to_s)
+          next if Data::SEVERITIES.include?(severity.to_s)
 
-          raise ArgumentError, "rules severities: #{id} must be one of #{SEVERITIES.inspect}, got #{severity.inspect}"
-        end
-        unknown_options = (rules[:options] || {}).keys - RULE_OPTIONS
-        if unknown_options.any?
-          raise ArgumentError, "unknown rules options #{unknown_options.inspect}; expected #{RULE_OPTIONS.inspect}"
+          raise ArgumentError, "rules severities: #{id} must be one of #{Data::SEVERITIES.inspect}, got #{severity.inspect}"
         end
 
         {
@@ -188,17 +179,34 @@ module Bali
           enabled: Array(rules[:enabled]).map(&:to_s),
           severities: (rules[:severities] || {}).to_h { |id, severity| [ id.to_s, severity.to_s ] },
           messages: (rules[:messages] || {}).to_h { |id, message| [ id.to_s, message.to_s ] },
-          options: rules[:options] || {}
+          options: resolve_rule_options(rules[:options] || {})
         }
       end
 
-      def validate_node_fields!(node_fields)
-        (node_fields || {}).to_h.to_h do |type, fields|
-          [ type.to_s, validate_fields!(fields, "node_fields[#{type}]") ]
+      # Every option counts something (lanes, activities): a positive whole number.
+      def resolve_rule_options(options)
+        unknown = options.keys - RULE_OPTIONS
+        raise ArgumentError, "unknown rules options #{unknown.inspect}; expected #{RULE_OPTIONS.inspect}" if unknown.any?
+
+        options.each do |key, value|
+          next if value.is_a?(Integer) && value.positive?
+
+          raise ArgumentError, "rules options: #{key} must be a positive integer, got #{value.inspect}"
         end
       end
 
-      def validate_fields!(fields, context)
+      def resolve_fields(fields)
+        fields = (fields || {}).to_h.symbolize_keys
+        unknown = fields.keys - FIELD_KEYS
+        raise ArgumentError, "unknown fields: keys #{unknown.inspect}; expected #{FIELD_KEYS.inspect}" if unknown.any?
+
+        {
+          nodes: (fields[:nodes] || {}).to_h.to_h { |type, list| [ type.to_s, field_schema(list, "fields[:nodes][#{type}]") ] },
+          lanes: field_schema(fields[:lanes], "fields[:lanes]")
+        }
+      end
+
+      def field_schema(fields, context)
         Array(fields).map do |field|
           field = field.to_h.symbolize_keys
           raise ArgumentError, "#{context}: every field needs a key and a label" if field[:key].blank? || field[:label].blank?
@@ -212,20 +220,28 @@ module Bali
         end
       end
 
-      def validate_annotation_tags!(tags)
+      def resolve_review(review)
+        review = (review || {}).to_h.symbolize_keys
+        unknown = review.keys - REVIEW_KEYS
+        raise ArgumentError, "unknown review: keys #{unknown.inspect}; expected #{REVIEW_KEYS.inspect}" if unknown.any?
+
+        { tags: review_tags(review[:tags]), compare_with: review_comparison(review[:compare_with]) }.compact
+      end
+
+      def review_tags(tags)
         Array(tags).map do |tag|
           tag = tag.to_h.symbolize_keys
-          raise ArgumentError, "annotation_tags: every tag needs a key and a label" if tag[:key].blank? || tag[:label].blank?
+          raise ArgumentError, "review tags: every tag needs a key and a label" if tag[:key].blank? || tag[:label].blank?
 
           tag.slice(:key, :label, :color).transform_values(&:to_s)
         end
       end
 
-      def resolve_compare(compare)
+      def review_comparison(compare)
         return nil if compare.blank?
 
         compare = compare.to_h.symbolize_keys
-        document = compare[:document] or raise ArgumentError, "compare_with needs a document:"
+        document = compare[:document] or raise ArgumentError, "review compare_with needs a document:"
         document = document.is_a?(Data) ? document : Data.new(document)
         { document: document.to_h, label: compare[:label].to_s }
       end
@@ -235,24 +251,28 @@ module Bali
 
         entries =
           case legend
-          when nil then DEFAULT_LEGEND.map { |key| { key: key } }
+          when nil then default_legend.map { |key| { key: key } }
           when Array then legend.map { |entry| legend_entry(entry) }
           when Hash
             legend = legend.symbolize_keys
             removed = Array(legend[:remove]).map(&:to_s)
-            DEFAULT_LEGEND.reject { |key| removed.include?(key) }.map { |key| { key: key } } +
+            default_legend.reject { |key| removed.include?(key) }.map { |key| { key: key } } +
               Array(legend[:add]).map { |entry| legend_entry(entry) }
           else
             raise ArgumentError, "legend must be nil, false, an Array or a Hash, got #{legend.class}"
           end
-        entries.each { |entry| validate_legend_entry!(entry) }
+        entries.each { |entry| check_legend_entry!(entry) }
+      end
+
+      def default_legend
+        @external_lanes ? DEFAULT_LEGEND : DEFAULT_LEGEND - EXTERNAL_LEGEND
       end
 
       def legend_entry(entry)
         entry.is_a?(Hash) ? entry.symbolize_keys.transform_values(&:to_s) : { key: entry.to_s }
       end
 
-      def validate_legend_entry!(entry)
+      def check_legend_entry!(entry)
         swatch = entry[:swatch] || entry[:key]
         if swatch == "color" && entry[:color].blank?
           raise ArgumentError, "legend entry #{entry[:key].inspect} has swatch \"color\" but no color:"

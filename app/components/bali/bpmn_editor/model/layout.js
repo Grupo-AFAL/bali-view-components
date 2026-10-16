@@ -22,6 +22,9 @@ import { layoutLanes, HEADER, orientationOf } from './geometry.js'
 import { arrange, HEADER_GAP, LANE_PAD, STEP } from './arrange.js'
 import { pageFit, LETTER } from './page.js'
 
+// The modes; mirrors Bali::BpmnEditor::Component::LAYOUTS (contract_test.rb).
+export const LAYOUTS = ['compact', 'straight']
+
 const SLOT = { horizontal: 120, vertical: 220 } // row to row, across the flow
 const COLUMN = { horizontal: 150, vertical: 64 } // an activity's extent along the flow
 const ROW = { horizontal: 64, vertical: 150 } // an activity's extent across the flow

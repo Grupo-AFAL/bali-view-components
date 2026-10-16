@@ -55,13 +55,33 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal({ "save" => "/flows/1/diagram" }, JSON.parse(island["data-bpmn-editor-urls-value"]))
   end
 
-  def test_the_host_can_fix_the_orientation
-    render_inline(component(orientation: :horizontal))
-    assert_equal "horizontal", island["data-bpmn-editor-orientation-value"]
+  def test_without_an_id_each_editor_gets_its_own
+    ids = 2.times.map do
+      render_inline(component)
+      island["id"]
+    end
+
+    assert_match(/\Abpmn-editor-\h{8}\z/, ids.first)
+    assert_not_equal ids.first, ids.last
+  end
+
+  # The orientation has one source, the document; the host only locks it.
+  def test_the_host_can_lock_the_documents_orientation
+    render_inline(component(lock_orientation: true))
+    assert_equal "true", island["data-bpmn-editor-lock-orientation-value"]
 
     render_inline(component)
-    assert_nil island["data-bpmn-editor-orientation-value"]
-    assert_raises(ArgumentError) { component(orientation: :diagonal) }
+    assert_equal "false", island["data-bpmn-editor-lock-orientation-value"]
+  end
+
+  def test_external_lanes_can_be_turned_off_and_take_their_legend_entries_along
+    render_inline(component)
+    assert_equal "true", island["data-bpmn-editor-external-lanes-value"]
+    assert_includes JSON.parse(island["data-bpmn-editor-legend-value"]).pluck("key"), "external_lane"
+
+    render_inline(component(external_lanes: false))
+    assert_equal "false", island["data-bpmn-editor-external-lanes-value"]
+    assert_equal %w[task sub_process issue], JSON.parse(island["data-bpmn-editor-legend-value"]).pluck("key")
   end
 
   def test_the_layout_is_compact_on_a_landscape_letter_page_unless_the_host_says_otherwise
@@ -107,15 +127,25 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_raises(ArgumentError) { component(rules: { disable: [ "R1" ] }) }
   end
 
+  # The options count lanes and activities; the island compares them as numbers.
+  def test_rule_options_are_positive_integers
+    [ 0, -1, "3", 2.5, nil ].each do |value|
+      error = assert_raises(ArgumentError) { component(rules: { options: { min_lanes: value } }) }
+      assert_includes error.message, "min_lanes must be a positive integer"
+    end
+  end
+
   def test_field_schemas_are_validated
-    render_inline(component(node_fields: { task: [ { key: :duration, label: "Duration", type: :number } ] },
-                            lane_fields: [ { key: "notes", label: "Notes", type: "textarea" } ]))
+    render_inline(component(fields: { nodes: { task: [ { key: :duration, label: "Duration", type: :number } ] },
+                                      lanes: [ { key: "notes", label: "Notes", type: "textarea" } ] }))
 
-    assert_equal "number", JSON.parse(island["data-bpmn-editor-node-fields-value"]).dig("task", 0, "type")
-    assert_equal "textarea", JSON.parse(island["data-bpmn-editor-lane-fields-value"]).dig(0, "type")
+    fields = JSON.parse(island["data-bpmn-editor-fields-value"])
+    assert_equal "number", fields.dig("nodes", "task", 0, "type")
+    assert_equal "textarea", fields.dig("lanes", 0, "type")
 
-    assert_raises(ArgumentError) { component(lane_fields: [ { key: "x", label: "X", type: "date" } ]) }
-    assert_raises(ArgumentError) { component(node_fields: { task: [ { label: "No key" } ] }) }
+    assert_raises(ArgumentError) { component(fields: { lanes: [ { key: "x", label: "X", type: "date" } ] }) }
+    assert_raises(ArgumentError) { component(fields: { nodes: { task: [ { label: "No key" } ] } }) }
+    assert_includes assert_raises(ArgumentError) { component(fields: { edges: [] }) }.message, ":edges"
   end
 
   def test_the_legend_takes_additions_and_removals
@@ -139,7 +169,17 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal "Elementos", JSON.parse(island["data-bpmn-editor-i18n-value"]).fetch("palette_title")
   end
 
-  def test_extra_options_land_on_the_wrapper_but_data_does_not
+  # Lookbook builds the component inside `I18n.with_locale` and renders it
+  # after the block returns; the previews pass no `i18n:`.
+  def test_the_strings_follow_the_locale_the_component_was_built_in
+    built = I18n.with_locale(:es) { component }
+    render_inline(built)
+
+    assert_equal "Elementos", JSON.parse(island["data-bpmn-editor-i18n-value"]).fetch("palette_title")
+  end
+
+  # `data:` is the document, so HTML data attributes cannot ride along.
+  def test_extra_options_land_on_the_wrapper
     render_inline(component(class: "h-full", aria: { label: "Flow" }))
 
     assert_includes island[:class], "h-full"
@@ -153,22 +193,23 @@ class BaliBpmnEditorComponentOutputsTest < ComponentTestCase
   def test_name_watermark_tags_and_comparison_reach_the_island
     render_inline(Bali::BpmnEditor::Component.new(
       data: payload, name: "Supplier payments", watermark: "Draft",
-      annotation_tags: [ { key: :keep, label: "Keep", color: "#16a34a" } ],
-      compare_with: { document: payload.merge(nodes: [ { id: "n1", type: "task" } ]), label: "v1.0" }
+      review: { tags: [ { key: :keep, label: "Keep", color: "#16a34a" } ],
+                compare_with: { document: payload.merge(nodes: [ { id: "n1", type: "task" } ]), label: "v1.0" } }
     ))
 
     island = page.find(".bali-bpmn-editor")
     assert_equal "Supplier payments", island["data-bpmn-editor-name-value"]
     assert_equal "Draft", island["data-bpmn-editor-watermark-value"]
-    assert_equal "keep", JSON.parse(island["data-bpmn-editor-annotation-tags-value"]).dig(0, "key")
-    compare = JSON.parse(island["data-bpmn-editor-compare-value"])
-    assert_equal [ "v1.0", "n1" ], [ compare["label"], compare.dig("document", "nodes", 0, "id") ]
+    review = JSON.parse(island["data-bpmn-editor-review-value"])
+    assert_equal "keep", review.dig("tags", 0, "key")
+    assert_equal [ "v1.0", "n1" ], [ review.dig("compare_with", "label"), review.dig("compare_with", "document", "nodes", 0, "id") ]
   end
 
   def test_a_comparison_document_is_validated_like_data
     assert_raises(Bali::BpmnEditor::Data::InvalidError) do
-      Bali::BpmnEditor::Component.new(data: payload, compare_with: { document: { orientation: "diagonal" } })
+      Bali::BpmnEditor::Component.new(data: payload, review: { compare_with: { document: { orientation: "diagonal" } } })
     end
-    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, annotation_tags: [ { key: "x" } ]) }
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, review: { tags: [ { key: "x" } ] }) }
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, review: { notes: [] }) }
   end
 end

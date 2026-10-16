@@ -3,7 +3,10 @@ import { Panel, useOnViewportChange } from '@xyflow/react'
 import { NodeShape, NodeIcon } from '../shapes.jsx'
 import Icon from './icons.jsx'
 
-// Swatches the legend draws. Mirrors Bali::BpmnEditor::Component::LEGEND_SWATCHES.
+// The swatches the legend draws; mirrors Bali::BpmnEditor::Component::LEGEND_SWATCHES
+// (contract_test.rb).
+export const LEGEND_SWATCHES = ['task', 'sub_process', 'gateway', 'start_event', 'end_event', 'external_lane', 'external_task', 'issue', 'color']
+
 function Swatch ({ swatch, color }) {
   // The canvas shapes themselves (shapes.jsx), so a colour here is the
   // element's colour there.

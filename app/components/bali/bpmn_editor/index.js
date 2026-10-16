@@ -9,10 +9,11 @@ export class BpmnEditorController extends ReactIslandController {
     // The document — contract in Bali::BpmnEditor::Data.
     data: Object,
     editable: { type: Boolean, default: false },
-    readOnlyNotice: { type: String, default: '' },
     autosave: { type: Boolean, default: true },
-    // 'horizontal' | 'vertical' fixes the lanes' orientation; '' lets the user switch.
-    orientation: { type: String, default: '' },
+    // Keeps the document's own orientation: no switch in the toolbar.
+    lockOrientation: { type: Boolean, default: false },
+    // Lanes may be marked as external participants (the lane panel's checkbox).
+    externalLanes: { type: Boolean, default: true },
     // 'compact' | 'straight' — autoLayout's mode (model/layout.js).
     layout: { type: String, default: 'compact' },
     // { width, height } in inches and orientation — model/page.js.
@@ -21,15 +22,13 @@ export class BpmnEditorController extends ReactIslandController {
     palette: { type: Object, default: {} },
     legend: { type: Array, default: [] },
     rules: { type: Object, default: {} },
-    nodeFields: { type: Object, default: {} },
-    laneFields: { type: Array, default: [] },
+    // { nodes: { type or '*' => [field] }, lanes: [field] } — the properties panel's own fields.
+    fields: { type: Object, default: {} },
     urls: { type: Object, default: {} },
     name: { type: String, default: '' },
     watermark: { type: String, default: '' },
-    // [{ key, label, color }] — the tags review notes can carry.
-    annotationTags: { type: Array, default: [] },
-    // { document, label } — a version to compare against; {} = none.
-    compare: { type: Object, default: {} },
+    // { tags: [{ key, label, color }], compare_with: { document, label } } — review notes and comparison.
+    review: { type: Object, default: {} },
     i18n: { type: Object, default: {} }
   }
 

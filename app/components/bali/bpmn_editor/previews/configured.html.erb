@@ -1,7 +1,7 @@
-<%# locals: flow %>
+<%# locals: flow, locale %>
 <%= react_island_meta_tags('bpmn-editor', js: 'bpmn-editor-island.js', css: 'bpmn-editor-island.css') %>
 <% if flow %>
-  <%= render Bali::BpmnEditor::Component.new(
+  <%= I18n.with_locale(locale) { render Bali::BpmnEditor::Component.new(
         data: flow.to_diagram,
         editable: true,
         palette: {
@@ -13,9 +13,8 @@
           note_label: "por confirmar"
         },
         legend: { remove: %i[external_task], add: [ { key: "rework", label: "Retrabajo", swatch: "color", color: "#dc2626" } ] },
-        i18n: Bali::BpmnEditor::Translations.island(locale: :es),
         urls: { save: admin_process_flow_diagram_path(flow), diagram: admin_process_flow_diagram_path(flow) },
-        id: dom_id(flow, :bpmn)) %>
+        id: dom_id(flow, :bpmn)) } %>
 <% else %>
   <p class="p-4 text-sm text-base-content/60">
     This preview edits the seeded process flow — run <code>bin/rails db:seed</code> in test/dummy first.

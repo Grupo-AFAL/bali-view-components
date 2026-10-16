@@ -107,7 +107,7 @@ function EdgeProperties ({ edge, doc, api, t, editable }) {
   )
 }
 
-function LaneProperties ({ lane, api, t, editable, laneFields, urls, canMove }) {
+function LaneProperties ({ lane, api, t, editable, laneFields, urls, canMove, externalLanes }) {
   const external = lane.kind === 'external'
   return (
     <>
@@ -115,13 +115,15 @@ function LaneProperties ({ lane, api, t, editable, laneFields, urls, canMove }) 
         <input className='input input-sm w-full' value={lane.name || ''} disabled={!editable}
           onChange={(e) => api.updateLane(lane.id, { name: e.target.value }, `lane:${lane.id}`)} />
       </Field>
-      <label className='flex cursor-pointer items-start gap-2'>
-        <input type='checkbox' className='checkbox checkbox-sm mt-0.5' checked={external} disabled={!editable}
-          onChange={(e) => api.updateLane(lane.id, { kind: e.target.checked ? 'external' : 'internal' })} />
-        <span className='text-sm'>{t('props_lane_external')}
-          <span className='block text-xs text-base-content/60'>{t('props_lane_external_hint')}</span>
-        </span>
-      </label>
+      {externalLanes && (
+        <label className='flex cursor-pointer items-start gap-2' data-testid='bpmn-lane-external'>
+          <input type='checkbox' className='checkbox checkbox-sm mt-0.5' checked={external} disabled={!editable}
+            onChange={(e) => api.updateLane(lane.id, { kind: e.target.checked ? 'external' : 'internal' })} />
+          <span className='text-sm'>{t('props_lane_external')}
+            <span className='block text-xs text-base-content/60'>{t('props_lane_external_hint')}</span>
+          </span>
+        </label>
+      )}
       {urls.lane_assignees && <ReferencePicker lane={lane} api={api} t={t} editable={editable} urls={urls} />}
       <div className='flex gap-1'>
         <button type='button' className='btn btn-outline btn-xs gap-1' disabled={!editable || !canMove.up} onClick={() => api.moveLane(lane.id, -1)}>
@@ -164,7 +166,7 @@ function Participants ({ doc, t, onPick }) {
 // The side panel: properties of what is selected (a node, a connection, a
 // lane, several nodes) or the list of participants. Replaces the modal
 // dialogs of the old editor.
-export default function PropertiesPanel ({ t, doc, selection, api, editable, nodeFields, laneFields, urls, view, onClose, onPickLane, annotationTags = [] }) {
+export default function PropertiesPanel ({ t, doc, selection, api, editable, nodeFields, laneFields, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true }) {
   const nodes = selection.nodes.map((id) => doc.nodes.find((n) => String(n.id) === id)).filter(Boolean)
   const edge = selection.edges.length === 1 ? doc.edges.find((e) => String(e.id) === selection.edges[0]) : null
   const lane = selection.lanes.length === 1 ? doc.lanes.find((l) => String(l.id) === selection.lanes[0]) : null
@@ -200,7 +202,7 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, nod
   } else if (lane) {
     title = t('props_lane_title')
     const index = order.indexOf(String(lane.id))
-    body = <LaneProperties lane={lane} api={api} t={t} editable={editable} laneFields={laneFields} urls={urls} canMove={{ up: index > 0, down: index < order.length - 1 }} />
+    body = <LaneProperties lane={lane} api={api} t={t} editable={editable} laneFields={laneFields} urls={urls} canMove={{ up: index > 0, down: index < order.length - 1 }} externalLanes={externalLanes} />
   }
   const target = nodes.length === 1 ? nodes[0] : edge
   const notes = target ? (doc.annotations || []).filter((a) => String(a.target_id) === String(target.id)) : []

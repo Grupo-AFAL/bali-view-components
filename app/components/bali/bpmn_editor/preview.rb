@@ -27,32 +27,29 @@ module Bali
       # (`bin/rails db:seed`); edits PERSIST in the dummy database.
       # `fresh` (on by default) puts the flow back to the sample first, so the
       # preview always starts from the same clean document; switch it off to
-      # see your saved edits after a reload.
+      # see your saved edits after a reload. `external_lanes` off hides the
+      # lane panel's "external participant" checkbox and its legend entries.
+      # @param locale select { choices: [es, en] }
       # @param autosave toggle
       # @param fresh toggle
+      # @param external_lanes toggle
       # @param palette select { choices: [descriptive, analytic, full] }
-      def editable(autosave: true, fresh: true, palette: :analytic)
+      def editable(locale: :es, autosave: true, fresh: true, external_lanes: true, palette: :analytic)
         flow = fresh ? ProcessFlow.reset_sample! : ProcessFlow.order(:id).first
-        I18n.with_locale(:es) do
-          render_with_template(
-            template: "bali/bpmn_editor/previews/editable",
-            locals: { flow: flow, autosave: autosave, palette: palette.to_sym }
-          )
-        end
+        render_with_template(
+          template: "bali/bpmn_editor/previews/editable",
+          locals: { flow: flow, locale: locale, autosave: autosave, external_lanes: external_lanes, palette: palette.to_sym }
+        )
       end
 
       # @label Palette and legend configured by the host
       # The full palette with one item disabled and three marked with a note
       # (dotted outline, the note in the tooltip, the note legend at the foot of
       # the palette), and a legend with one entry removed and one added.
-      def configured
+      # @param locale select { choices: [es, en] }
+      def configured(locale: :es)
         flow = ProcessFlow.order(:id).first
-        I18n.with_locale(:es) do
-          render_with_template(
-            template: "bali/bpmn_editor/previews/configured",
-            locals: { flow: flow }
-          )
-        end
+        render_with_template(template: "bali/bpmn_editor/previews/configured", locals: { flow: flow, locale: locale })
       end
 
       # @label Review notes and comparison (read-only)
@@ -60,7 +57,8 @@ module Bali
       # a previous version to compare against: "Compare" shows what was
       # added, removed and changed, over one canvas or side by side. The
       # image, SVG and print outputs carry the "Borrador" watermark.
-      def review
+      # @param locale select { choices: [es, en] }
+      def review(locale: :es)
         current = BpmnSampleFlows.invoice
         current[:nodes] = current[:nodes].map { |n| n[:id] == "t4" ? n.merge(name: "Programar transferencia bancaria") : n }
         current[:nodes] << { id: "t5", type: "send_task", lane_id: "l2", name: "Notificar al proveedor", x: 960, y: 290 }
@@ -70,40 +68,45 @@ module Bali
         ]
         previous = BpmnSampleFlows.invoice
         previous[:nodes] << { id: "t0", type: "task", lane_id: "l2", name: "Imprimir factura", x: 700, y: 300 }
-        island(:es, data: current, name: "Pago a proveedores", watermark: "Borrador",
-                    annotation_tags: [ { key: "question", label: "Pregunta", color: "#2563eb" },
-                                       { key: "keep", label: "Mantener", color: "#16a34a" } ],
-                    compare_with: { document: previous, label: "Vigente v1.0" })
+        island(locale, data: current, name: "Pago a proveedores", watermark: "Borrador",
+                       review: {
+                         tags: [ { key: "question", label: "Pregunta", color: "#2563eb" },
+                                 { key: "keep", label: "Mantener", color: "#16a34a" } ],
+                         compare_with: { document: previous, label: "Vigente v1.0" }
+                       })
       end
 
       # @label Large (60 activities)
       # Sixty activities and ten decisions over four lanes, laid out on load.
-      def large
-        island(:es, data: BpmnSampleFlows.large)
+      # @param locale select { choices: [es, en] }
+      def large(locale: :es)
+        island(locale, data: BpmnSampleFlows.large)
       end
 
       # @label Catalog of shapes
       # Every element of the palette, one row per group: on the left as its
       # palette icon draws it (28 px), on the right as the canvas does, with
       # its palette name. The two come from one drawing (shapes.jsx).
-      def catalog
-        island(:es, data: BpmnSampleFlows.catalog(Bali::BpmnEditor::Translations.island(locale: :es)))
+      # @param locale select { choices: [es, en] }
+      def catalog(locale: :es)
+        island(locale, data: BpmnSampleFlows.catalog(Bali::BpmnEditor::Translations.island(locale: locale)))
       end
 
       # An empty document still mounts the island and its empty canvas.
-      def empty
-        island(:es, data: { version: 1, lanes: [], nodes: [], edges: [] })
+      # @param locale select { choices: [es, en] }
+      def empty(locale: :es)
+        island(locale, data: { version: 1, lanes: [], nodes: [], edges: [] })
       end
 
       private
 
+      # The island's strings follow the locale the component is built in
+      # (Component#island_i18n), so none are passed.
       def island(locale, **options)
         I18n.with_locale(locale) do
           render_with_template(
             template: "bali/bpmn_editor/previews/component",
-            locals: { component: Bali::BpmnEditor::Component.new(
-              i18n: Bali::BpmnEditor::Translations.island(locale: locale), **options
-            ) }
+            locals: { component: Bali::BpmnEditor::Component.new(**options) }
           )
         end
       end
