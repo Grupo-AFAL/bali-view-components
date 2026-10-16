@@ -207,7 +207,7 @@ module Bali
           render_with_template(
             template: "bali/bpmn_editor/previews/rules_gallery",
             locals: { flow: flow, rule: rule, example: example.to_s, optional: optional,
-                      optional_rules: optional_rules, sample: sample }
+                      optional_rules: optional_rules, sample: sample, locale: locale }
           )
         end
       end

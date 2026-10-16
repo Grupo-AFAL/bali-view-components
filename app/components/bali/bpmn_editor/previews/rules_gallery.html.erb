@@ -1,10 +1,10 @@
-<%# locals: flow, rule, example, optional, optional_rules, sample %>
+<%# locals: flow, rule, example, optional, optional_rules, sample, locale %>
 <%# The optional rule package runs only in the bundle that imports it: this
     preview loads a second island bundle (test/dummy/app/javascript/
     bpmn-editor-island-with-rules.js) instead of the usual one. %>
 <% bundle = optional_rules ? "bpmn-editor-island-with-rules" : "bpmn-editor-island" %>
 <%= react_island_meta_tags("bpmn-editor", js: "#{bundle}.js", css: "#{bundle}.css") %>
-<% texts = Bali::BpmnEditor::Translations.island %>
+<% texts = Bali::BpmnEditor::Translations.island(locale: locale) %>
 <div class="flex flex-col gap-3 p-4" data-testid="bpmn-rules-gallery" data-rule="<%= rule %>" data-example="<%= example %>">
   <div>
     <p class="text-sm font-semibold"><%= rule %> · <%= texts["rule_title_#{rule}"] || rule %></p>
@@ -24,7 +24,7 @@
       <code>optional_rules</code> to see it run.
     <% end %>
   <% end %>
-  <%= render Bali::BpmnEditor::Component.new(
+  <%= I18n.with_locale(locale) { render Bali::BpmnEditor::Component.new(
         data: sample[:document].merge("version" => flow.version),
         editable: true,
         autosave: false,
@@ -33,5 +33,5 @@
         page: (sample[:page] || {}).symbolize_keys.presence || Bali::BpmnEditor::Component::DEFAULT_PAGE,
         rules: { enabled: optional && !optional_rules ? [] : [ rule ], options: sample[:options] || {} },
         urls: { save: admin_process_flow_diagram_path(flow), diagram: admin_process_flow_diagram_path(flow) },
-        id: "rules_gallery_bpmn") %>
+        id: "rules_gallery_bpmn") } %>
 </div>

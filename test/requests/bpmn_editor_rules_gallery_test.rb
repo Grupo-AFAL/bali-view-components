@@ -67,4 +67,16 @@ class BpmnEditorRulesGalleryTest < ActionDispatch::IntegrationTest
     assert_select "[data-testid='bpmn-rules-gallery-optional']", count: 0
     assert_select "meta[name='bali-bpmn-editor-js'][content*='bpmn-editor-island-with-rules']"
   end
+
+  # The editor's own strings follow the gallery's locale, like its example.
+  def test_the_editor_speaks_the_gallery_locale
+    get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "R06", locale: "en" }
+    i18n = JSON.parse(css_select("[data-controller='bpmn-editor']").first["data-bpmn-editor-i18n-value"])
+    assert_equal "Rules", i18n["rules_button"]
+
+    # No `locale` in the query: the preview's own default (es), whatever the app's is.
+    get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "R06" }
+    i18n = JSON.parse(css_select("[data-controller='bpmn-editor']").first["data-bpmn-editor-i18n-value"])
+    assert_equal "Reglas", i18n["rules_button"]
+  end
 end
