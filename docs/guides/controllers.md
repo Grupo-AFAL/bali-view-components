@@ -612,9 +612,9 @@ filter forms. Two actions, so a select and a search box can share one controller
 - `delay` (ms) debounces **both** actions. Without it, `submit` is immediate and
   `debouncedSubmit` waits 300 ms.
 - `skip-initial` (default `true`) drops change events fired in the first frame after
-  connecting. SlimSelect emits one on the native `<select>` while it builds its
-  widget, which used to submit a form nobody had touched. Set it to `false` only if
-  your app relies on that submit.
+  connecting. SlimSelect 3.x emitted one on the native `<select>` while it built its
+  widget over options with `data-inner-html`, which submitted a form nobody had
+  touched. Set it to `false` only if your app relies on a submit in that frame.
 - `action` / `method` submit somewhere other than the form's own target, via a
   hidden submitter with `formaction`/`formmethod` (the form's normal submit button
   keeps its own destination). That submitter skips browser validation, so a `required`

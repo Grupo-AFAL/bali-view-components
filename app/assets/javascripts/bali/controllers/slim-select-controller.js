@@ -146,8 +146,12 @@ export class SlimSelectController extends Controller {
         options.settings.contentWidth = this.contentWidthValue
       }
 
-      if (this.hasInnerHTML()) {
-        options.data = this.dataWithHTML()
+      // SlimSelect reads an option's markup from `data-html`; `data-inner-html` is the name Bali
+      // documents and hosts write. Copied, not handed over as `data`: SlimSelect rebuilds the
+      // <select> from `data`, keeping only the attributes it maps, and 3.x dispatches a `change`
+      // doing it.
+      for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
+        option.dataset.html = option.dataset.innerHtml
       }
 
       if (this.hasAjaxValues()) {
@@ -369,23 +373,6 @@ export class SlimSelectController extends Controller {
     this.element
       .querySelectorAll('.ss-main')
       .forEach(widget => widget.remove())
-  }
-
-  dataWithHTML () {
-    return Array.from(this.selectTarget.children).map(option => {
-      return {
-        text: option.text,
-        value: option.value,
-        html: option.dataset.innerHtml, // SlimSelect v3 uses 'html' instead of 'innerHTML'
-        selected: option.selected,
-        disabled: option.disabled
-      }
-    })
-  }
-
-  hasInnerHTML () {
-    const firstOption = this.selectTarget.children[0]
-    return firstOption && !!firstOption.dataset.innerHtml
   }
 
   selectAll () {

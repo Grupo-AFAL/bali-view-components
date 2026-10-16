@@ -5,11 +5,12 @@
 // "submitted" is the query string on the request. Asserting on the rendered value would
 // pass on the initial render too.
 //
-// The preview's select carries `data-inner-html`, and that is load-bearing: rich option
-// markup makes SlimSelect rewrite the native <select> during initialization, and the
-// rewrite dispatches a `change` on it. Measured against this same preview with
-// `skip-initial-value="false"`, the page navigates to
-// `?form_record[select]=1&form_record[text]=` on its own before anything is touched.
+// The preview's select carries `data-inner-html`, which on SlimSelect 3.x made the
+// slim-select controller rewrite the native <select> during initialization, and the rewrite
+// dispatched a `change` on it: measured then with `skip-initial-value="false"`, the page
+// navigated to `?form_record[select]=1&form_record[text]=` on its own. Measured on 4.5.0, with
+// and without #1495, no `change` fires at all, so the first test holds the contract rather than
+// catching a path that still exists.
 const PREVIEW = '/bali/submit_on_change/default'
 
 // Only a submit carries a query string — `cy.visit(PREVIEW)` does not, so the initial

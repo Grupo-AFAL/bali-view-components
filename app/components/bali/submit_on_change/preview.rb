@@ -5,10 +5,11 @@ module Bali
     # The `submit-on-change` utility controller, which has no component of its own.
     # See docs/guides/controllers.md for the full catalog.
     class Preview < ApplicationViewComponentPreview
-      # `data-inner-html` is what makes this preview a regression test and not a demo:
-      # rich option markup forces SlimSelect to rewrite the native <select>, and that
-      # rewrite dispatches a `change` on it while the widget is still initializing.
-      # Without the connect guard the form submits before the user has touched anything.
+      # `data-inner-html` is why this preview became a regression test: the slim-select
+      # controller used to hand such options to SlimSelect as `data`, which rewrites the native
+      # <select>, and on SlimSelect 3.x that rewrite dispatched a `change` while the widget was
+      # initializing. Without the connect guard the form submitted before anyone touched it.
+      # 4.5.0 dispatched none and, since #1495, nothing rewrites the <select>.
       # Integer values because `form_records.select` is an integer column, so the widget
       # comes back showing whatever the last submit sent.
       OPTIONS = [
