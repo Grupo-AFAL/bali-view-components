@@ -136,7 +136,8 @@ two-target variant of `checkbox-reveal`.
 </div>
 ```
 
-`checked` sets the initial state before the first change event.
+`checked` sets the initial state before the first change event. One target is
+enough: a controller with only `on` or only `off` toggles that one.
 
 **Hidden fields are not sent** — `data-checkbox-toggle-disable-hidden-value="true"`
 disables the hidden target, which has to be a `<fieldset>`. A disabled fieldset

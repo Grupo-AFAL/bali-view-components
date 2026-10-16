@@ -74,4 +74,23 @@ describe('CheckboxToggleController', () => {
       streamed('invoice').should('have.class', 'hidden').and('be.enabled')
     })
   })
+
+  context('with one target', () => {
+    beforeEach(() => cy.visit('/bali/checkbox_toggle/required_fields'))
+
+    // Both arrive in one mutation, so a controller that throws while connecting
+    // would also keep the one after it from connecting.
+    it('paints a controller that has only one of the two targets', () => {
+      cy.document().then(doc => doc.body.insertAdjacentHTML('beforeend', `
+        <div data-controller="checkbox-toggle" data-checkbox-toggle-checked-value="true">
+          <div class="hidden" data-checkbox-toggle-target="on" data-testid="only-on"></div>
+        </div>
+        <div data-controller="checkbox-toggle" data-checkbox-toggle-checked-value="true">
+          <div data-checkbox-toggle-target="off" data-testid="only-off"></div>
+        </div>`))
+
+      target('only-on').should('not.have.class', 'hidden')
+      target('only-off').should('have.class', 'hidden')
+    })
+  })
 })

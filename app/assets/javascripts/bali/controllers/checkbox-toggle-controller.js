@@ -41,8 +41,8 @@ export class CheckboxToggleController extends Controller {
   }
 
   toggleTargets (checked) {
-    this.toggle(this.onTarget, checked)
-    this.toggle(this.offTarget, !checked)
+    if (this.hasOnTarget) this.toggle(this.onTarget, checked)
+    if (this.hasOffTarget) this.toggle(this.offTarget, !checked)
   }
 
   toggle (element, visible) {
