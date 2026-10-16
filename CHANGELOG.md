@@ -19,11 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `:analytic`, `:full`) y notas de la app, leyenda configurable, carril externo, menú rápido con
   dirección, insertar sobre una conexión, deshacer y rehacer, ruteo ortogonal que rodea elementos,
   acomodo local tras cada edición (siempre activo) y «Autoajustar» — sin elementos encimados,
-  líneas que atraviesen elementos o nombres, tramos compartidos ni etiquetas encimadas —,
-  reglas de modelado R01–R26 y B01–B11 configurables con panel de pendientes y ciclo
-  Borrador/Finalizar, notas de revisión, comparación entre versiones y salidas
-  `.bpmn`, PNG, SVG e impresión con marca de agua. Sin `urls[:save]` o sin `editable:` es un
-  visor.
+  líneas que atraviesen elementos o nombres, tramos compartidos ni etiquetas encimadas —, que
+  por omisión dobla el flujo en bandas hasta caber legible en carta (`layout: :compact`,
+  `:straight` para una sola línea; la hoja en `page:`), reglas de modelado R01–R26 y B01–B11
+  configurables con panel de pendientes y ciclo Borrador/Finalizar, notas de revisión,
+  comparación entre versiones y salidas `.bpmn`, PNG, SVG e impresión con marca de agua, en
+  hoja tamaño carta cuando cabe. Sin `urls[:save]` o sin `editable:` es un visor.
   - **Anfitrión:** nada que hacer si no lo usa. Para usarlo, los cuatro pasos de instalación de
     `docs/api/bpmn-editor.md`; la implementación de referencia está en `test/dummy`
     (`ProcessFlow` y `Admin::ProcessFlows::*`).

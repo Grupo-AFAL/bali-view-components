@@ -91,6 +91,8 @@ authorize every endpoint on the server anyway.
 | `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save |
 | `read_only_notice:` | `nil` | Why it cannot be edited; shown above a read-only diagram |
 | `autosave:` | `true` | Save with a ~1.2 s debounce after each change. `false`: only the "Save draft" button saves |
+| `layout:` | `:compact` | How "Tidy up" (and the first layout of a document without coordinates) arranges the flow: `:compact` folds it to fit `page:` legibly, `:straight` keeps the happy path in one line — see [Layout](#layout). An unknown value raises |
+| `page:` | `{ width: 8.5, height: 11, orientation: "landscape" }` | The sheet, in inches: the compact layout's target, and what the image, SVG and print outputs are laid on. `orientation:` is `"landscape"` or `"portrait"`; anything else, or a non-positive size, raises |
 | `palette:` | `:descriptive` | A preset, an `Array` of keys (exactly those), or a `Hash` — see [Palette](#palette) |
 | `legend:` | default entries | `{ add: [...], remove: [...] }`, a full `Array`, or `false` — see [Legend](#legend) |
 | `rules:` | `{}` | `{ disabled:, enabled:, severities:, messages:, options: }` — see [Rules](#rules) |
@@ -438,6 +440,19 @@ symmetric around it, exceptions alternating below and above, aligned columns and
 spacing. Then it fits the view, clear of the toolbars and of the open legend or properties
 panel. A fit never goes below **40 %**; a larger diagram opens at its start and scrolls.
 
+With `layout: :compact` (the default) the columns fold into **bands**: the first reads left
+to right, the next comes back right to left under it, and so on — the flow serpentines down
+the lanes, which stay horizontal and whole, each holding one group of rows per band it takes
+part in. Tidy up takes the fewest bands with which the diagram fits `page:` legibly, so a
+diagram that fits straight stays straight; one that fits no way takes the band count that
+shows it largest. A step on a returning band is a straight line out of the left side. Vertical
+lanes are always laid out straight. `layout: :straight` keeps one band.
+
+**Fits the page legibly** means the canvas' running text (names and labels, 11 px) prints at
+**6 pt or more**: 11 px is 8.25 pt, so the diagram may shrink to 6 / 8.25 ≈ 0.73 of its size
+inside the sheet's 10 mm margins, measured on what the image export draws (content, margins and
+title). `model/page.js` (`pageFit`) computes it.
+
 The canvas reserves no room for the **legend**: when the view settles with an element under
 the open legend, it folds itself to its title. Opened again by hand, it stays open until the
 view moves.
@@ -489,8 +504,10 @@ wider than a column empty).
   participants of their own (message flows are only valid between participants);
   a referenced sub-process becomes a call activity; unknown types travel in a
   `bali:element` extension.
-- **Download image (PNG) / SVG and Print**: the whole diagram at full size, with the
-  `name:` as title, `status_label` under it and the `watermark:` across.
+- **Download image (PNG) / SVG and Print**: the whole diagram, with the `name:` as title,
+  `status_label` under it and the `watermark:` across. When it fits `page:` legibly it is laid
+  on a sheet of that size, centred inside 10 mm margins and shrunk only as much as it must;
+  otherwise it keeps its own size. Print uses the same sheet (`@page` of the page's size).
 - **Review notes**: numbered markers on elements, a text and a tag from
   `annotation_tags:`, edited in the properties panel and saved in `annotations`.
 - **Comparison**: with `compare_with:`, "Compare" shows what was added (green),
