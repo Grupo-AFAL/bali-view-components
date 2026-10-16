@@ -701,6 +701,12 @@ class BaliCalendarComponentTest < ComponentTestCase
     I18n.backend.store_translations(:en, date: { formats: { long: previous } })
   end
 
+  def test_mobile_day_view_renders_without_a_template_as_the_desktop_one_does
+    assert_nothing_raised { render_mobile_day_view(template: nil) }
+
+    assert_equal("Thursday, March 05, 2020", mobile_day_title)
+  end
+
   def test_year_view_marks_the_card_with_year_view
     @options.merge!(start_date: "2020-01-01", period: :year)
     render_inline(component)
@@ -904,8 +910,8 @@ class BaliCalendarComponentTest < ComponentTestCase
   end
 
   # The day view's arrows call `url_for`, which needs a request on a real route.
-  def render_mobile_day_view
-    @options.merge!(start_date: "2020-03-05", period: :day, template: "calendar_fixtures/day")
+  def render_mobile_day_view(template: "calendar_fixtures/day")
+    @options.merge!(start_date: "2020-03-05", period: :day, template: template)
     with_request_url("/admin/movies") { with_variant(:mobile) { render_inline(component) } }
   end
 
