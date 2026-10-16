@@ -167,10 +167,9 @@ module Bali
       # which its list leaves out, so on a single select the ✕ is the only way back to the
       # blank (#1484). A grouped list keeps the blank as a row of its own.
       #
-      # The ✕ selects SlimSelect's first option. A remote result chosen outside the seed goes
-      # in ahead of the placeholder (slim-select 4.5.0, `Store#setData`), and measured there
-      # the ✕ picked that result again and left the value as it was, so a remote select
-      # keeps its ✕ off.
+      # Not on a remote select: nearly every one in the apps writes `include_blank:` as a hint
+      # ("Select a position", "Type to search..."), and a ✕ would appear on screens nobody
+      # asked to change. `allow_deselect_option: true` still turns it on.
       def blank_needs_deselect?(options, html_options, values)
         return false unless options[:include_blank] && flat_choices?(values)
         return false if options[:ajax_url]
@@ -217,8 +216,6 @@ module Bali
       # the blank as a real, checkmarked, selectable row. When a blank is requested
       # for a flat option list, promote it to a proper SlimSelect placeholder so the
       # "choose one" hint behaves like a placeholder instead of a pickable value.
-      # SlimSelect's ✕ selects its first option, so the placeholder goes first
-      # (slim-select-blank.cy.js).
       def build_select(method, values, options, html_options)
         text = placeholder_option_text(options)
         return select(method, values, options, html_options) if text.nil? || !flat_choices?(values)

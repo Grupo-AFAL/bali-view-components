@@ -129,6 +129,16 @@ module Bali
           )
         end
 
+        # @label Remote with a blank
+        # `include_blank:` with `allow_deselect_option: true`: the ✕ goes back to the blank,
+        # whether the value came from the seed or from a search.
+        def remote_with_blank
+          render_with_template(
+            template: 'bali/form/slim_select/previews/remote_with_blank',
+            locals: { model: form_record, options: OPTIONS }
+          )
+        end
+
         # @label Written by hand
         # A SlimSelect written in the view, outside the FormBuilder, says what
         # `slim_select_field` says in the page's `lang` (#1389). A

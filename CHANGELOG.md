@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda** (#1495, desde
+  v3.11.0, con SlimSelect 4). Al elegir un resultado que no venía en la semilla, SlimSelect lo
+  ponía delante del placeholder y la ✕ lo volvía a elegir: el valor no cambiaba. Afecta sólo a
+  los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
+  hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+
 ## [v3.17.0] - 2026-10-15
 
 ### Added
