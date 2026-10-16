@@ -4182,20 +4182,38 @@ the `<form target>` of a form action and the `<a target>` of a GET one.
 
 ##### Nested forms
 
-Every action is its own `<form>`. If the listing already lives inside a form of yours, the
-HTML parser hoists the inner ones out and the action silently stops working. Render that
-action's form **outside** the listing and point a plain submit at it with the HTML `form`
-attribute:
+Every form action is its own `<form>`. If the listing already lives inside a form of yours,
+the HTML parser drops the inner `<form>` start tag, so the action submits yours, and its
+`</form>` closes yours early. Leave those actions out of `with_action` (a `method: :get`
+action is a link and can stay): render each one's form **outside** the listing, empty, and
+point at it, with the HTML `form` attribute, a plain submit and the `selected_ids` field the
+controller fills. That field goes inside the component's block, because the controller only
+fills the `bulkAction` targets under its own element. The example is a bare `BulkActions`: a
+`DataTable` with filters or saved views renders forms of its own and cannot sit inside
+another form.
 
 ```erb
-<%= form_with url: bulk_archive_movies_path, id: 'bulk-archive', class: 'hidden' %>
+<%= form_with url: bulk_archive_movies_path, id: 'bulk-archive', class: 'hidden' do %><% end %>
 
 <%= form_with model: @report do |f| %>
-  <%# ... the DataTable lives here ... %>
+  <%= render Bali::BulkActions::Component.new do |c| %>
+    <% @movies.each do |movie| %>
+      <% c.with_item(record_id: movie.id, class: 'flex items-center gap-3 p-3') do %>
+        <input type="checkbox" class="checkbox checkbox-sm">
+        <p><%= movie.name %></p>
+      <% end %>
+    <% end %>
+    <%= hidden_field_tag :selected_ids, '[]', id: nil, form: 'bulk-archive',
+                         data: { bulk_actions_target: 'bulkAction' } %>
+  <% end %>
   <%= render Bali::Button::Component.new(name: 'Archive', form: 'bulk-archive',
                                          type: :submit) %>
 <% end %>
 ```
+
+With no `with_action` left the bar is not rendered (no counter, no announcement);
+`bulk-actions:change` carries the count. A single record's delete button inside a form needs
+none of this: `Bali::DeleteLink` takes `in_form: true`.
 
 ##### Acting on the whole filtered result
 

@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
   `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
 
+### Documentation
+
+- **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).
+  Su `form_with` sin bloque dejaba el formulario abierto, y la lista quedaba dentro de él, oculta
+  con él. Con bloque tampoco servía: el formulario de afuera no llevaba `selected_ids`. Ahora lo
+  cierra y le apunta, con el atributo `form`, el campo que el controlador llena. Ninguna app sigue
+  la receta: nada que hacer.
+
+- **La entrada de v3.16.0 del filtro `date_range` (#1461) recomendaba `min-w-0!`**, pero el filtro
+  no recibe clases; ahora da la regla CSS que sí baja el mínimo (#1495).
+
 ## [v3.17.0] - 2026-10-15
 
 ### Added
