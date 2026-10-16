@@ -8,19 +8,22 @@ module Admin
     # was saved, and the island's next save has to carry it.
     class FinalizationsController < BaseController
       skip_forgery_protection
+      include DemoServer
 
       def create
         diagram = Bali::BpmnEditor::Data.new(params.require(:diagram).to_unsafe_h).to_h
         return head :conflict unless flow.save_draft(diagram, params[:version])
 
-        errors = flow.server_issues.select { |issue| issue[:severity] == "error" }
+        issues = demo_diagram(flow)[:issues]
+        issues += demo_issues(flow) if demo_server == "reject_finalize"
+        errors = issues.select { |issue| issue[:severity] == "error" }
         if errors.any?
-          return render json: { errors: errors.pluck(:message), issues: flow.server_issues, version: flow.version },
+          return render json: { errors: errors.pluck(:message), issues: issues, version: flow.version },
                         status: :unprocessable_entity
         end
 
         flow.update!(finalized_at: Time.current)
-        render json: flow.to_diagram
+        render json: demo_diagram(flow)
       rescue Bali::BpmnEditor::Data::InvalidError => e
         render json: { errors: [ e.message ] }, status: :unprocessable_entity
       end

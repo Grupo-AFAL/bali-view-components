@@ -4,9 +4,22 @@
 // puts the sample flow back on every visit (its `fresh` param), so each test
 // starts from it.
 
-const EDITABLE = '/bali/bpmn_editor/editable'
+const EDITABLE = '/bali/bpmn_editor/playground'
+// The playground's URLs carry the dummy's demo query (`?locale=…&server=…`).
+const DIAGRAM = /\/diagram(\?.*)?$/
 
 const nodeNamed = (name) => cy.contains('.react-flow__node-bpmn', name)
+
+// A task from the palette into the first lane of the editor in `scope`.
+const placeTask = (scope = 'body') => {
+  cy.get(`${scope} [data-palette-key="task"]`).click()
+  cy.get(`${scope} [data-testid="bpmn-lane"]`).first().then(($lane) => {
+    const lane = $lane[0].getBoundingClientRect()
+    const pane = $lane[0].closest('.react-flow').querySelector('.react-flow__pane')
+    const box = pane.getBoundingClientRect()
+    cy.wrap(pane).click(lane.left - box.left + lane.width * 0.7, lane.top - box.top + lane.height / 2)
+  })
+}
 
 describe('BPMN editor island', () => {
   it('mounts read-only from the default preview, with lanes, nodes and connections', () => {
@@ -22,7 +35,7 @@ describe('BPMN editor island', () => {
   it('folds the legend when the diagram lies under it, and keeps it open when nothing does', () => {
     cy.visit('/bali/bpmn_editor/default')
     cy.get('[data-testid="bpmn-legend"]').should('be.visible')
-    cy.visit('/bali/bpmn_editor/large')
+    cy.visit('/bali/bpmn_editor/playground?sample=large')
     cy.get('.bpmn-legend button[aria-expanded="false"]').should('exist')
     cy.get('[data-testid="bpmn-legend"]').should('not.exist')
   })
@@ -55,6 +68,36 @@ describe('BPMN editor island', () => {
     })
   })
 
+  // The playground's `server` parameter: the dummy answering like a host in
+  // trouble (Admin::ProcessFlows::DemoServer).
+  describe('playground server modes', () => {
+    it('reloads the server version when the save meets a 409', () => {
+      cy.visit(`${EDITABLE}?server=conflict`)
+      cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
+      placeTask()
+      cy.get('[data-testid="bpmn-notice"]', { timeout: 8000 }).should('contain', 'Alguien más modificó este diagrama')
+    })
+
+    it('opens the pending panel with the issues a refused finalize brings', () => {
+      cy.visit(`${EDITABLE}?sample=partners&server=reject_finalize`)
+      cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 7)
+      cy.get('[data-testid="bpmn-finalize"]').click()
+      cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible')
+        .and('contain', 'Esta actividad no tiene responsable en la app')
+    })
+  })
+
+  it('lists the events the editors send in the host console', () => {
+    // Several canvases sizing themselves on one page: the browser's benign notice.
+    cy.on('uncaught:exception', (error) => !error.message.includes('ResizeObserver loop'))
+    cy.visit('/bali/bpmn_editor/host_integration')
+    cy.get('#host_first_bpmn [data-testid="bpmn-node"]').should('have.length.at.least', 9)
+    placeTask('#host_first_bpmn')
+    cy.get('[data-testid="bpmn-host-console"] [data-event="dirty-change"]').should('exist')
+    cy.get('[data-testid="bpmn-host-console"] [data-event="saved"]', { timeout: 8000 }).should('contain', '#host_first_bpmn')
+    cy.get('#tab-0 [data-unsaved]').should('have.attr', 'hidden')
+  })
+
   // Two editors mint the same client ids: an event the host sends to one
   // must not change the other.
   it('delivers a host event to the editor it names and to no other', () => {
@@ -74,7 +117,7 @@ describe('BPMN editor island', () => {
 
   describe('editing', () => {
     beforeEach(() => {
-      cy.intercept('PUT', '**/diagram').as('save')
+      cy.intercept('PUT', DIAGRAM).as('save')
       cy.visit(EDITABLE)
       cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
     })
@@ -143,8 +186,8 @@ describe('BPMN editor island', () => {
 
     // Someone else saved first: the 409 reloads their version and says so.
     it('reloads the server version on a 409 and says why', () => {
-      cy.intercept('PUT', '**/diagram', { statusCode: 409, body: { errors: ['stale'] } }).as('stale')
-      cy.intercept('GET', '**/diagram*').as('fetch')
+      cy.intercept('PUT', DIAGRAM, { statusCode: 409, body: { errors: ['stale'] } }).as('stale')
+      cy.intercept('GET', DIAGRAM).as('fetch')
       cy.get('[data-palette-key="task"]').click()
       cy.get('[data-testid="bpmn-lane"]').first().then(($lane) => {
         const lane = $lane[0].getBoundingClientRect()
@@ -197,7 +240,7 @@ describe('BPMN editor island', () => {
     })
 
     it('does not finalize with errors: the pending panel opens instead', () => {
-      cy.intercept('POST', '**/finalization').as('finalize')
+      cy.intercept('POST', /\/finalization(\?.*)?$/).as('finalize')
       cy.get('[data-testid="bpmn-pending-button"]').should('contain', 'pendiente')
       cy.get('[data-testid="bpmn-finalize"]').click()
       cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible').find('[data-rule="R07"]').should('exist')

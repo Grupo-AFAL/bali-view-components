@@ -817,7 +817,7 @@ function Editor ({
                 }}
                 connecting={Boolean(tool && tool.kind === 'connect')}
                 onConnect={() => setTool((current) => (current && current.kind === 'connect' ? null : { kind: 'connect', edge: 'sequence_flow', source: null }))}
-                onImport={urls.import ? () => openDrawerUrl(urls.import) : null}
+                onImport={urls.import ? () => openDrawerUrl(withParams(urls.import, { editor_id: hostElement && hostElement.id })) : null}
               />
               <ViewToolbar
                 t={t}

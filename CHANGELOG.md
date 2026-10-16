@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   en `urls[:save]`; sin esa URL es un visor. Reglas de modelado configurables con ciclo
   Borrador/Finalizar, acomodo y ruteo propios, y salidas `.bpmn`, PNG, SVG e impresión. Las
   reglas que solo son lineamiento de AFAL viven aparte, en `bali-view-components/bpmn-editor/afal-rules`.
+  En Lookbook, el Playground prueba cada opción (y las respuestas 409, 422 y lentas del servidor),
+  la galería de reglas muestra cada regla con un ejemplo que falla y uno que pasa, e «Integración
+  con la app» muestra los eventos y los helpers de Turbo Stream.
   - **Anfitrión:** nada que hacer si no lo usa. Para usarlo, los cuatro pasos de instalación de
     [la guía](docs/api/bpmn-editor.md) y sus dependencias opcionales (`react`, `react-dom`,
     `@xyflow/react`, `@rails/request.js`); la implementación de referencia está en `test/dummy`

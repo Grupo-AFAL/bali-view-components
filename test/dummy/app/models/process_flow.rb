@@ -9,18 +9,33 @@ class ProcessFlow < ApplicationRecord
 
   SAMPLE_NAME = "Pago a proveedores"
 
-  # The seeded flow, back to the sample (db/seeds.rb, the Cypress spec).
+  # The seeded flow, back to the sample (db/seeds.rb).
   def self.reset_sample!
-    flow = find_or_initialize_by(name: SAMPLE_NAME)
-    flow.update!(document: BpmnSampleFlows.invoice.except(:version, :status_label), version: 1, finalized_at: nil)
+    reset!(SAMPLE_NAME, BpmnSampleFlows.invoice)
+  end
+
+  # One record per preview, sample, orientation and locale, so no preview
+  # overwrites another's edits; `fresh` puts it back to the sample.
+  def self.for_sample(sample, locale:, fresh: true, orientation: "horizontal", name: nil)
+    name ||= "Sample #{sample} #{orientation} (#{locale})"
+    document = BpmnSampleFlows.sample(sample, locale: locale).merge(orientation: orientation)
+    return find_by(name: name) || reset!(name, document) unless fresh
+
+    reset!(name, document)
+  end
+
+  def self.reset!(name, document)
+    flow = find_or_initialize_by(name: name)
+    flow.update!(document: document.except(:version, :status_label), version: 1, finalized_at: nil)
     flow
   end
 
   # The complete document the island receives, and every 200 returns.
-  def to_diagram
+  def to_diagram(locale: :es)
+    en = locale.to_s == "en"
     document.deep_symbolize_keys.merge(
       version: version,
-      status_label: finalized_at ? "Finalizado v#{version}" : "Borrador v#{version}",
+      status_label: finalized_at ? "#{en ? 'Finalized' : 'Finalizado'} v#{version}" : "#{en ? 'Draft' : 'Borrador'} v#{version}",
       issues: server_issues,
       stencil: stencil
     )

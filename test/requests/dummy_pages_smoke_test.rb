@@ -155,6 +155,7 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
       "admin/process_flows/diagrams" => { "process_flow_id" => @process_flow.to_param },
       "admin/process_flows/references" => { "process_flow_id" => @process_flow.to_param },
       "admin/process_flows/lane_assignees" => { "process_flow_id" => @process_flow.to_param },
+      "admin/process_flows/imports" => { "process_flow_id" => @process_flow.to_param },
       "documents" => { "id" => @document.to_param },
       "pages" => { "project_slug" => "bali-demo" }
     }

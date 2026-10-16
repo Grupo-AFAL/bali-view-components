@@ -3,104 +3,179 @@
 module Bali
   module BpmnEditor
     class Preview < ApplicationViewComponentPreview
-      # A read-only diagram: no `urls:` and no `editable:`. Three lanes, the
-      # first an external participant (grey lane, white activities), a
-      # message flow from it, a decision with labelled branches and an
-      # annotation. Clicking a sub-process with a `reference.url` navigates.
-      # @param locale select { choices: [es, en] }
-      def default(locale: :es)
-        island(locale, data: BpmnSampleFlows.invoice)
-      end
+      # The sheets the playground offers, in inches.
+      PAGES = {
+        "letter_landscape" => { width: 8.5, height: 11, orientation: "landscape" },
+        "letter_portrait" => { width: 8.5, height: 11, orientation: "portrait" },
+        "a4_landscape" => { width: 8.27, height: 11.69, orientation: "landscape" },
+        "a4_portrait" => { width: 8.27, height: 11.69, orientation: "portrait" },
+        "legal_landscape" => { width: 8.5, height: 14, orientation: "landscape" },
+        "legal_portrait" => { width: 8.5, height: 14, orientation: "portrait" }
+      }.freeze
 
-      # The same flow with vertical lanes. Its nodes carry no coordinates, so
-      # the island lays it out on load.
-      # @param locale select { choices: [es, en] }
-      def vertical(locale: :es)
-        island(locale, data: BpmnSampleFlows.invoice(orientation: "vertical"))
-      end
+      # `rules:` presets: the defaults; strict (optional rules on, two warnings
+      # raised to errors, a custom message, tighter limits); relaxed (three rules
+      # off, a warning instead of an error, one lane allowed).
+      RULE_PRESETS = {
+        "default" => {},
+        "strict" => {
+          enabled: %w[R04 R14 R15 R17 R19 R20 B07],
+          severities: { R11: :error, B11: :error },
+          messages: { R07: "Name the outcome the flow ends with, e.g. «Invoice paid»." },
+          options: { min_activities: 3, max_activities: 12 }
+        },
+        "relaxed" => {
+          disabled: %w[R07 R09 R22],
+          severities: { R08: :warning },
+          options: { min_lanes: 1 }
+        }
+      }.freeze
 
-      # @label Editable (dummy endpoints)
-      # The complete editor against the dummy's reference endpoints
-      # (Admin::ProcessFlows::DiagramsController / FinalizationsController):
-      # every change autosaves the whole document with its version, a stale
-      # version answers 409 and the island reloads. Requires the seeded flow
-      # (`bin/rails db:seed`); edits PERSIST in the dummy database.
-      # `fresh` (on by default) puts the flow back to the sample first, so the
-      # preview always starts from the same clean document; switch it off to
-      # see your saved edits after a reload. `external_lanes` off hides the
-      # lane panel's "external participant" checkbox and its legend entries.
+      DOCS = "docs/api/bpmn-editor.md"
+
+      # @label Playground
+      # The whole editor against the dummy app's endpoints
+      # (Admin::ProcessFlows::*), every option a parameter. Each `sample` keeps
+      # its own record per locale, and `fresh` (on) puts it back on every visit;
+      # turn it off to find your edits after a reload.
+      #
+      # What to try: the quick menu next to a selected element (a second way
+      # out of an activity offers a split), dragging from the palette onto a
+      # connection, «Autoajustar», undo, the properties panel, «Reglas» and the
+      # pending panel, «Finalizar», the outputs (PNG, SVG, print, .bpmn) and
+      # «Importar». `server` makes the dummy answer like a host in trouble —
+      # demonstration only (Admin::ProcessFlows::DemoServer). Every option:
+      # docs/api/bpmn-editor.md
+      # @param sample select "The flow to start from" { choices: [invoice, empty, rework, parallel, partners, large] }
+      # @param orientation select "Lanes stacked vertically (horizontal) or side by side (vertical)" { choices: [horizontal, vertical] }
+      # @param palette select "Palette preset" { choices: [descriptive, analytic, full] }
+      # @param layout select "What «Autoajustar» and the first layout do" { choices: [compact, straight] }
+      # @param page select "Sheet for the compact layout and the outputs" { choices: [letter_landscape, letter_portrait, a4_landscape, a4_portrait, legal_landscape, legal_portrait] }
+      # @param lock_orientation toggle "Hide the orientation switch"
+      # @param external_lanes toggle "Offer the external participant checkbox"
+      # @param autosave toggle "Save after every change (off: only «Guardar borrador»)"
+      # @param optional_rules toggle "Load the optional rule package"
+      # @param rule_severity select "Rule configuration: default, strict or relaxed" { choices: [default, strict, relaxed] }
+      # @param server select "How the dummy server answers (demonstration only)" { choices: [normal, conflict, error, slow, issues, reject_finalize] }
+      # @param theme select "Page theme" { choices: [light, dark] }
       # @param locale select { choices: [es, en] }
-      # @param autosave toggle
-      # @param fresh toggle
-      # @param external_lanes toggle
-      # @param palette select { choices: [descriptive, analytic, full] }
-      def editable(locale: :es, autosave: true, fresh: true, external_lanes: true, palette: :analytic)
-        flow = fresh ? ProcessFlow.reset_sample! : ProcessFlow.order(:id).first
+      # @param name text "Title of the outputs and file name"
+      # @param watermark text "Text across the outputs"
+      # @param fresh toggle "Start from the sample on every visit"
+      def playground(sample: "invoice", orientation: "horizontal", palette: :analytic, layout: :compact,
+                     page: "letter_landscape", lock_orientation: false, external_lanes: true, autosave: true,
+                     optional_rules: false, rule_severity: "default", server: "normal", theme: "light",
+                     locale: :es, name: "", watermark: "", fresh: true)
+        flow = ProcessFlow.for_sample(sample.to_s, locale: locale, fresh: fresh, orientation: orientation.to_s)
         render_with_template(
-          template: "bali/bpmn_editor/previews/editable",
-          locals: { flow: flow, locale: locale, autosave: autosave, external_lanes: external_lanes, palette: palette.to_sym }
+          template: "bali/bpmn_editor/previews/playground",
+          locals: { flow: flow, locale: locale, theme: theme.to_s, optional_rules: optional_rules, server: server.to_s,
+                    options: { palette: palette.to_sym, layout: layout.to_sym, page: PAGES.fetch(page.to_s),
+                               lock_orientation: lock_orientation, external_lanes: external_lanes,
+                               autosave: autosave, rules: RULE_PRESETS.fetch(rule_severity.to_s),
+                               name: name.presence, watermark: watermark.presence } }
         )
       end
 
-      # @label Palette and legend configured by the host
+      # @label Read-only viewer
+      # No `editable:` and no `urls:`: a diagram to look at. Three lanes, the
+      # first an external participant (grey lane, white activities), a message
+      # flow, a decision with labelled answers and an annotation. Try zooming,
+      # «Pantalla completa», the outputs, and clicking a sub-process with a link.
+      # docs/api/bpmn-editor.md
+      # @param locale select { choices: [es, en] }
+      def default(locale: :es)
+        island(locale, data: BpmnSampleFlows.invoice(locale: locale))
+      end
+
+      # @label Host integration
+      # What the app around the editor does: a console of the `bali-bpmn:*`
+      # events the editors send (dirty-change, saved, finalized, open-reference,
+      # with their detail), buttons that answer through the Turbo Stream helpers
+      # (`bali_bpmn_reload`, `bali_bpmn_reference_created`) against one editor's
+      # id, the read-only pattern (an alert the app composes above a locked
+      # editor) and two flows in tabs whose label marks unsaved changes from
+      # `bali-bpmn:dirty-change`. The console and the tabs' mark are the dummy's
+      # own Stimulus controller, not the component's.
+      # docs/api/bpmn-editor.md#extension-points
+      # @param locale select { choices: [es, en] }
+      def host_integration(locale: :es)
+        invoice = BpmnSampleFlows.invoice(locale: locale)
+        invoice[:nodes] << { id: "sp", type: "sub_process", lane_id: "l3", name: locale.to_s == "en" ? "Procedure" : "Procedimiento" }
+        first = ProcessFlow.reset!("Host integration A (#{locale})", invoice)
+        second = ProcessFlow.for_sample("rework", locale: locale, fresh: true, name: "Host integration B (#{locale})")
+        locked = BpmnSampleFlows.sample("parallel", locale: locale)
+        render_with_template(template: "bali/bpmn_editor/previews/host_integration",
+                             locals: { first: first, second: second, locked: locked, locale: locale })
+      end
+
+      # @label Palette and legend configured by the app
       # The full palette with one item disabled and three marked with a note
       # (dotted outline, the note in the tooltip, the note legend at the foot of
-      # the palette), and a legend with one entry removed and one added.
+      # the palette), and a legend with one entry removed and one added. Its
+      # own record, back to the sample on every visit.
+      # docs/api/bpmn-editor.md#palette
       # @param locale select { choices: [es, en] }
       def configured(locale: :es)
-        flow = ProcessFlow.order(:id).first
+        flow = ProcessFlow.for_sample("invoice", locale: locale, fresh: true, name: "Configured (#{locale})")
         render_with_template(template: "bali/bpmn_editor/previews/configured", locals: { flow: flow, locale: locale })
       end
 
-      # @label Review notes and comparison (read-only)
-      # A viewer with numbered review notes (tags and colours from the host) and
-      # a previous version to compare against: "Compare" shows what was
-      # added, removed and changed, over one canvas or side by side. The
-      # image, SVG and print outputs carry the "Borrador" watermark.
+      # @label Review notes and comparison
+      # Numbered review notes (tags and colours from the app) and a previous
+      # version to compare against: «Comparar» shows what was added, removed
+      # and changed, over one canvas or side by side. The outputs carry the
+      # watermark. With `editable` on, select an element and add notes in the
+      # properties panel; they are saved to this preview's own record.
+      # docs/api/bpmn-editor.md#outputs-notes-and-comparison
+      # @param editable toggle "Let notes be added and edited"
       # @param locale select { choices: [es, en] }
-      def review(locale: :es)
-        current = BpmnSampleFlows.invoice
-        current[:nodes] = current[:nodes].map { |n| n[:id] == "t4" ? n.merge(name: "Programar transferencia bancaria") : n }
-        current[:nodes] << { id: "t5", type: "send_task", lane_id: "l2", name: "Notificar al proveedor", x: 960, y: 290 }
+      def review(editable: false, locale: :es)
+        en = locale.to_s == "en"
+        current = BpmnSampleFlows.invoice(locale: locale)
+        current[:nodes] = current[:nodes].map do |n|
+          n[:id] == "t4" ? n.merge(name: en ? "Schedule bank transfer" : "Programar transferencia bancaria") : n
+        end
+        current[:nodes] << { id: "t5", type: "send_task", lane_id: "l2", name: en ? "Notify the supplier" : "Notificar al proveedor" }
         current[:annotations] = [
-          { id: "a1", target_id: "t1", number: 1, text: "¿Quién valida las facturas en el extranjero?", tag: "question" },
-          { id: "a2", target_id: "t4", number: 2, text: "Se automatiza en el segundo trimestre.", tag: "keep" }
+          { id: "a1", target_id: "t1", number: 1, tag: "question",
+            text: en ? "Who validates invoices from abroad?" : "¿Quién valida las facturas del extranjero?" },
+          { id: "a2", target_id: "t4", number: 2, tag: "keep",
+            text: en ? "Automated next quarter." : "Se automatiza el próximo trimestre." }
         ]
-        previous = BpmnSampleFlows.invoice
-        previous[:nodes] << { id: "t0", type: "task", lane_id: "l2", name: "Imprimir factura", x: 700, y: 300 }
-        island(locale, data: current, name: "Pago a proveedores", watermark: "Borrador",
+        previous = BpmnSampleFlows.invoice(locale: locale)
+        previous[:nodes] << { id: "t0", type: "task", lane_id: "l2", name: en ? "Print invoice" : "Imprimir factura" }
+        flow = ProcessFlow.reset!("Review (#{locale})", current)
+        path = Rails.application.routes.url_helpers.admin_process_flow_diagram_path(flow)
+        urls = { save: path, diagram: path }
+        island(locale, data: flow.to_diagram(locale: locale), editable: editable, urls: editable ? urls : {},
+                       name: en ? "Supplier payments" : "Pago a proveedores",
+                       watermark: en ? "Draft" : "Borrador",
                        review: {
-                         tags: [ { key: "question", label: "Pregunta", color: "#2563eb" },
-                                 { key: "keep", label: "Mantener", color: "#16a34a" } ],
-                         compare_with: { document: previous, label: "Vigente v1.0" }
+                         tags: [ { key: "question", label: en ? "Question" : "Pregunta", color: "#2563eb" },
+                                 { key: "keep", label: en ? "Keep" : "Mantener", color: "#16a34a" } ],
+                         compare_with: { document: previous, label: en ? "Published v1.0" : "Vigente v1.0" }
                        })
-      end
-
-      # @label Large (60 activities)
-      # Sixty activities and ten decisions over four lanes, laid out on load.
-      # @param locale select { choices: [es, en] }
-      def large(locale: :es)
-        island(locale, data: BpmnSampleFlows.large)
       end
 
       # @label Catalog of shapes
       # Every element of the palette, one row per group: on the left as its
       # palette icon draws it (28 px), on the right as the canvas does, with
       # its palette name. The two come from one drawing (shapes.jsx).
+      # docs/api/bpmn-editor.md#palette
       # @param locale select { choices: [es, en] }
       def catalog(locale: :es)
         island(locale, data: BpmnSampleFlows.catalog(Bali::BpmnEditor::Translations.island(locale: locale)))
       end
 
-      # An empty document still mounts the island and its empty canvas.
-      # @param locale select { choices: [es, en] }
       # @label Two editors on one page
-      # Two editors of the same flow: an event a host sends to one (a linked
-      # sub-process, a reload) reaches that one only.
+      # Two editors of the same flow, each with its own id: an event the app
+      # sends to one (a linked sub-process, a reload) reaches that one only.
+      # docs/api/bpmn-editor.md#extension-points
       # @param locale select { choices: [es, en] }
       def pair(locale: :es)
-        data = BpmnSampleFlows.invoice
-        data[:nodes] << { id: "sp", type: "sub_process", lane_id: "l3", name: "Procedimiento", x: 1150, y: 388 }
+        data = BpmnSampleFlows.invoice(locale: locale)
+        data[:nodes] << { id: "sp", type: "sub_process", lane_id: "l3", name: locale.to_s == "en" ? "Procedure" : "Procedimiento" }
         I18n.with_locale(locale) do
           render_with_template(
             template: "bali/bpmn_editor/previews/pair",
@@ -108,10 +183,6 @@ module Bali
                       second: Bali::BpmnEditor::Component.new(data: data, id: "second_bpmn") }
           )
         end
-      end
-
-      def empty(locale: :es)
-        island(locale, data: { version: 1, lanes: [], nodes: [], edges: [] })
       end
 
       # @label Rules gallery

@@ -58,7 +58,7 @@ first `turbo:load` when Turbo is loaded after the island's entry.
 
 ```erb
 <% if (reason = @flow.edit_blocked_reason) %>
-  <%= render Bali::Notification::Component.new(type: :info) { reason } %>
+  <%= render Bali::Alert::Component.new(color: :info) { reason } %>
 <% end %>
 <%= render Bali::BpmnEditor::Component.new(
       data: FlowDiagram.new(@flow).to_h,
@@ -90,7 +90,7 @@ authorize every endpoint on the server anyway.
 | Parameter | Default | Description |
 |---|---|---|
 | `data:` | required | The document (`Hash` or `Bali::BpmnEditor::Data`) |
-| `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save. Why it cannot be edited is the host's to say, with a `Bali::Notification` above it |
+| `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save. Why it cannot be edited is the host's to say, with a `Bali::Alert` above it |
 | `autosave:` | `true` | Save with a ~1.2 s debounce after each change. `false`: only the "Save draft" button saves |
 | `lock_orientation:` | `false` | `true` keeps the document's own orientation (`data[:orientation]`, the one source of it) and the toolbar offers no switch — e.g. a host whose lanes are always horizontal |
 | `external_lanes:` | `true` | Lanes may be marked as external participants (grey lane, white activities, joined by message flows). `false` hides that checkbox in the lane panel and the external entries of the default legend |
@@ -441,8 +441,11 @@ remote `url:` answering `[{ id, label }]`), `readonly`.
 4. **Lane responsible** — a grouped search at `urls[:lane_assignees]?group=…&q=` (the
    groups are whatever `group` the app returns) and a drawer at `urls[:new_lane_assignee]`
    answered with `bali_bpmn_lane_assignee_created(target:, client_lane_id:, assignee:)`.
-5. **Import BPMN** — the toolbar button opens `urls[:import]` in the drawer; when the
-   app is done it answers `bali_bpmn_reload(target:)`.
+5. **Import BPMN** — the toolbar button opens `urls[:import]?editor_id=…` in the drawer;
+   the app turns the file into a document and answers `bali_bpmn_reload(target:
+   params[:editor_id])`. Parsing BPMN is the app's: the dummy's drawer
+   (`Admin::ProcessFlows::ImportsController`) does not, and reloads its sample so the
+   round trip can be tried.
 6. **Navigation** — read-only, a click on a node with `reference.url` navigates;
    editing, a double-click does. The cancelable `bali-bpmn:open-reference` event comes
    first (`event.preventDefault()` to handle it yourself).
@@ -612,15 +615,27 @@ focus, documented shortcuts, and a `<noscript>` notice in the mount.
 
 | Preview | What it shows |
 |---|---|
-| `bali/bpmn_editor/default` | Read-only, horizontal lanes, an external participant |
-| `bali/bpmn_editor/vertical` | Vertical lanes, laid out on load |
-| `bali/bpmn_editor/editable` | The full editor against the dummy's endpoints; starts from the clean sample on each load (`fresh`, off to keep your edits) |
+| `bali/bpmn_editor/playground` | The whole editor against the dummy's endpoints, every option a parameter: `sample` (invoice, empty, rework, parallel, partners, large), `orientation`, `palette`, `layout`, `page` (Letter, A4, Legal × landscape, portrait), `lock_orientation`, `external_lanes`, `autosave`, `optional_rules`, `rule_severity` (default, strict, relaxed: `rules:` with `enabled:`, `disabled:`, `severities:`, `messages:` and `options:`), `server`, `theme`, `locale`, `name`, `watermark`, `fresh`. Each sample keeps its own record; `fresh` puts it back on every visit |
+| `bali/bpmn_editor/default` | Read-only viewer: no `editable:`, no `urls:` |
+| `bali/bpmn_editor/host_integration` | The app around the editor: a console of the `bali-bpmn:*` events, buttons answering through the Turbo Stream helpers, the read-only pattern (an alert above a locked editor), and two flows in `Bali::Tabs` marked while unsaved |
+| `bali/bpmn_editor/rules_gallery` | One rule at a time: a flow that breaks it (`example=failing`) or follows it (`passing`), with the issues panel open. `optional_rules` loads the optional rule package. The examples are `test/fixtures/bpmn_editor/rule_examples.json`, shared with the JS tests |
 | `bali/bpmn_editor/configured` | Palette with disabled items and notes; legend with added/removed entries |
-| `bali/bpmn_editor/review` | Review notes, comparison and the watermarked outputs |
-| `bali/bpmn_editor/large` | 60 activities and 10 decisions over four lanes |
-| `bali/bpmn_editor/empty` | An empty document |
+| `bali/bpmn_editor/review` | Review notes, comparison and the watermarked outputs; `editable` lets notes be added |
 | `bali/bpmn_editor/catalog` | Every palette element as its icon draws it and as the canvas does, with its name |
-| `bali/bpmn_editor/rules_gallery` | One rule at a time: a flow that breaks it (`example=failing`) or follows it (`passing`), with the issues panel open. `optional_rules` loads the optional rule package — in the dummy, a second island bundle (`test/dummy/app/javascript/bpmn-editor-island-with-rules.js`) only this preview uses. The examples are `test/fixtures/bpmn_editor/rule_examples.json`, shared with the JS tests |
+| `bali/bpmn_editor/pair` | Two editors on one page: an event the app sends to one reaches that one only |
+
+The samples are `test/fixtures/bpmn_editor/samples.json`, in English and Spanish, read by
+the dummy (`BpmnSampleFlows`) and by the JS layout tests alike.
+
+**Dummy-only switches.** The playground's `server` parameter adds `?server=` to the
+editor's URLs, and the dummy answers as a host in trouble would: `conflict` (409),
+`error` (422 with messages), `slow` (~2 s), `issues` (the server's own pending issues),
+`reject_finalize` (Finalize → 422 with issues) — `Admin::ProcessFlows::DemoServer`, for
+demonstration only. The optional rule package loads only where a preview asks for it: the
+dummy builds a second island bundle (`test/dummy/app/javascript/bpmn-editor-island-with-rules.js`,
+`import 'bali-view-components/bpmn-editor/afal-rules'`) and those previews point the island's
+meta tags at it. The import drawer (`Admin::ProcessFlows::ImportsController`) does not
+parse BPMN: it reloads the sample and answers `bali_bpmn_reload`.
 
 `/admin/process_flows/:id` in the dummy is the editor in a real layout, with the
 drawers of the extension points working.

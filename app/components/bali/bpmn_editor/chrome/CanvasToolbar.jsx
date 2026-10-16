@@ -20,7 +20,9 @@ export function CanvasToolbar ({ t, editable, orientation, onAddLane, onToggleOr
   if (!editable) return null
   const next = orientation === 'horizontal' ? 'vertical' : 'horizontal'
   return (
-    <Panel position='top-left' className='bpmn-chrome flex flex-wrap items-center gap-0.5 rounded-lg border border-base-300 bg-base-100 p-1 shadow-sm'>
+    // Wraps instead of running under the view toolbar on the right (Participants,
+    // Navigate, Full screen: ~24rem) when the canvas is narrow.
+    <Panel position='top-left' className='bpmn-chrome flex max-w-[calc(100%-25rem)] flex-wrap items-center gap-0.5 rounded-lg border border-base-300 bg-base-100 p-1 shadow-sm'>
       <Tool icon='lane' label={t('add_lane')} onClick={onAddLane} testId='bpmn-add-lane' />
       {onToggleOrientation && <Tool icon='swap' label={t(`orientation_${next}`)} title={t('switch_orientation')} onClick={onToggleOrientation} testId='bpmn-orientation' />}
       <Tool icon='layout' label={t('auto_layout')} title={t('auto_layout_hint')} onClick={onAutoLayout} testId='bpmn-auto-layout' />
