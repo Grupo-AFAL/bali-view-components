@@ -16,6 +16,7 @@ import { PALETTE_ITEMS, isFlowNode, isArtifactLike, edgeType } from './model/cat
 import * as ops from './model/operations.js'
 import * as history from './model/history.js'
 import { autoLayout } from './model/layout.js'
+import { LETTER } from './model/page.js'
 import { arrange } from './model/arrange.js'
 import { placeEdgeLabels } from './model/edgeLabels.js'
 import { fitOptions, fitDiagram, anchorStart } from './canvas/fit.js'
@@ -61,11 +62,13 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, readOnlyNotice, autosave, orientation: fixedOrientation, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
+  data, editable: editableProp, readOnlyNotice, autosave, orientation: fixedOrientation, layout: layoutMode, page, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
   name, watermark, annotationTags, compare
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
+  // The compact layout and the print/export sheet (Component `layout:`, `page:`).
+  const layoutOptions = useMemo(() => ({ mode: layoutMode === 'straight' ? 'straight' : 'compact', page: { ...LETTER, ...(page || {}) } }), [layoutMode, page])
   const policy = useMemo(() => blockPolicy(rules), [rules])
   const [arranging, setArranging] = useState(false)
   const [legendOpen, setLegendOpen] = useState(true)
@@ -82,7 +85,7 @@ function Editor ({
   // that arrives, and the toolbar offers no switch.
   const fixed = fixedOrientation === 'horizontal' || fixedOrientation === 'vertical' ? fixedOrientation : null
   const load = useCallback((d) => (fixed && d.orientation !== fixed ? ops.setOrientation(d, fixed).doc : d), [fixed])
-  const [state, setState] = useState(() => history.initialHistory(load(normalize(data))))
+  const [state, setState] = useState(() => history.initialHistory(load(normalize(data, layoutOptions))))
   const doc = state.present
   const docRef = useRef(doc)
   docRef.current = doc
@@ -189,7 +192,7 @@ function Editor ({
 
   // The palette the host allows, for VIS-10 (an imported element it does not offer).
   const allowed = useMemo(() => (palette && palette.items && palette.items.length ? new Set(palette.items.filter((i) => i.state === 'enabled').map((i) => i.key)) : null), [palette])
-  const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t, { allowed }), doc.issues, doc) : []), [editable, doc, rules, t, allowed])
+  const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t, { allowed, page: layoutOptions.page }), doc.issues, doc) : []), [editable, doc, rules, t, allowed, layoutOptions])
   const issues = useMemo(() => issuesByElement(issueList), [issueList])
   const baseNodes = useMemo(() => buildRfNodes(doc, { layout, editable: interactive, issues, selected: selectedSet }), [doc, layout, interactive, issues, selectedSet])
   // Lanes share one length: while the end of one is dragged every lane
@@ -669,14 +672,14 @@ function Editor ({
   // ── outputs ────────────────────────────────────────────────────────────
   const exportSvg = useCallback(() => {
     const { paint, colors } = resolveColors(wrapperRef.current)
-    return renderSvg({ doc, paint, colors, title: name || null, subtitle: doc.status_label || null, watermark: watermark || null, notes: doc.annotations || [], tags })
-  }, [doc, name, watermark, tags])
+    return renderSvg({ doc, paint, colors, title: name || null, subtitle: doc.status_label || null, watermark: watermark || null, notes: doc.annotations || [], tags, page: layoutOptions.page })
+  }, [doc, name, watermark, tags, layoutOptions])
   const exports = useMemo(() => ({
     bpmn: () => download(fileName(name, 'bpmn'), toBpmnXml(doc, { name }), 'application/xml'),
     svg: () => download(fileName(name, 'svg'), exportSvg(), 'image/svg+xml'),
     png: () => downloadPng(fileName(name, 'png'), exportSvg()),
-    print: () => printSvg(exportSvg(), name)
-  }), [doc, name, exportSvg])
+    print: () => printSvg(exportSvg(), name, layoutOptions.page)
+  }), [doc, name, exportSvg, layoutOptions])
 
   // The quick menu shows next to the one selected flow node that can be
   // followed (not an end event, not an artifact) while nothing else is going on.
@@ -864,7 +867,7 @@ function Editor ({
                   setTimeout(() => fitDiagram(flow, fit, 250), 50)
                 }}
                 onAutoLayout={() => {
-                  apply((d) => ({ doc: autoLayout(d) }), { arrange: false })
+                  apply((d) => ({ doc: autoLayout(d, layoutOptions) }), { arrange: false })
                   notify(t('toast_layout'), 'success')
                   setTimeout(() => fitDiagram(flow, fit, 250), 50)
                 }}

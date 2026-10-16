@@ -5,13 +5,15 @@ import { autoLayout, needsLayout } from './layout.js'
 
 const COLLECTIONS = ['lanes', 'nodes', 'edges', 'annotations', 'stencil', 'issues']
 
-export function normalize (data) {
+// A document without coordinates is laid out with `layoutOptions`
+// (autoLayout's mode and page).
+export function normalize (data, layoutOptions) {
   const doc = { ...(data || {}) }
   for (const key of COLLECTIONS) doc[key] = Array.isArray(doc[key]) ? doc[key] : []
   doc.orientation = doc.orientation === 'vertical' ? 'vertical' : 'horizontal'
   doc.pool = { x: 0, y: 0, ...(doc.pool || {}) }
   doc.nodes = doc.nodes.map((n) => (namedByReference(n) && n.name !== n.reference.label ? { ...n, name: n.reference.label } : n))
-  return needsLayout(doc) ? autoLayout(doc) : doc
+  return needsLayout(doc) ? autoLayout(doc, layoutOptions) : doc
 }
 
 // A related procedure carries the official name of the one it cites (AFAL

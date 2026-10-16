@@ -13,9 +13,14 @@
 // 4. Artifacts go next to what they are associated with; then the incremental
 //    arrangement settles anything still touching, and every connection is
 //    routed again.
+//
+// `mode: 'compact'` (AFAL VIS-01/02/03) folds the columns into bands that
+// serpentine down the lanes until the diagram fits the page (page.js);
+// `'straight'` keeps one band, the happy path in one line.
 import { isArtifactLike, isGateway, nodeSize, edgeType } from './catalog.js'
 import { layoutLanes, HEADER, orientationOf } from './geometry.js'
 import { arrange, HEADER_GAP, LANE_PAD, STEP } from './arrange.js'
+import { pageFit, LETTER } from './page.js'
 
 const SLOT = { horizontal: 120, vertical: 220 } // row to row, across the flow
 const COLUMN = { horizontal: 150, vertical: 64 } // an activity's extent along the flow
@@ -71,7 +76,7 @@ function layers (nodes, edges) {
   return { layer, predecessors, out, back }
 }
 
-export function autoLayout (doc) {
+export function autoLayout (doc, { mode = 'straight', page = LETTER } = {}) {
   const orientation = orientationOf(doc)
   const lanesLayout = layoutLanes(doc)
   const vertical = orientation === 'vertical'
@@ -134,63 +139,102 @@ export function autoLayout (doc) {
     otherLanes.forEach((t, i) => claim(t, exception(i)))
   }
 
-  // Lane thickness from the rows each lane uses.
-  const rowsOf = new Map()
-  for (const [id, r] of row) {
-    const lane = laneOf(id)
-    const [lo, hi] = rowsOf.get(lane) || [r, r]
-    rowsOf.set(lane, [Math.min(lo, r), Math.max(hi, r)])
-  }
-  let offset = 0
-  const laneStart = new Map()
-  const lanes = (doc.lanes || []).map((lane) => ({ ...lane }))
-  for (const entry of lanesLayout.entries) {
-    const [lo, hi] = rowsOf.get(String(entry.id)) || [0, 0]
-    const size = Math.ceil(((hi - lo + 1) * SLOT[orientation] + LANE_PAD * 2) / 10) * 10
-    laneStart.set(String(entry.id), offset)
-    const lane = lanes.find((l) => String(l.id) === String(entry.id))
-    if (lane) lane.size = size
-    offset += size
-  }
-
   const header = laneIds.length ? HEADER[orientation] : 0
-  const nodes = (doc.nodes || []).map((node) => {
-    const id = String(node.id)
-    if (!row.has(id)) return node
-    const { width, height } = nodeSize(node)
-    const lane = laneOf(id)
-    const [lo] = rowsOf.get(lane) || [0, 0]
-    const center = header + HEADER_GAP + COLUMN[orientation] / 2 + layer.get(id) * STEP[orientation]
-    const across = (laneStart.get(lane) || 0) + LANE_PAD + (row.get(id) - lo) * SLOT[orientation] + ROW[orientation] / 2
-    const next = { ...node, lane_id: laneIds.length ? lane : node.lane_id }
-    const snap = (v) => Math.round(v / 10) * 10
-    if (vertical) { next.x = snap(across) - width / 2; next.y = snap(center) - height / 2 } else { next.x = snap(center) - width / 2; next.y = snap(across) - height / 2 }
-    return next
-  })
+  const columns = 1 + Math.max(0, ...[...row.keys()].map((id) => layer.get(id)))
 
-  // Artifacts beside what they are associated with: an annotation above it,
-  // a data element below it; with no association, before the first column.
-  const placed = new Map(nodes.map((n) => [String(n.id), n]))
-  for (let i = 0; i < nodes.length; i++) {
-    const node = nodes[i]
-    if (!isArtifactLike(node) || node.type === 'group') continue
-    const link = (doc.edges || []).find((e) => String(e.source) === String(node.id) || String(e.target) === String(node.id))
-    const partner = link && placed.get(String(String(link.source) === String(node.id) ? link.target : link.source))
-    const { width, height } = nodeSize(node)
-    if (partner && !isArtifactLike(partner)) {
-      const p = nodeSize(partner)
-      const above = node.type === 'text_annotation'
-      nodes[i] = vertical
-        ? { ...node, x: partner.x + p.width + 40, y: partner.y + (p.height - height) / 2, lane_id: partner.lane_id }
-        : { ...node, x: partner.x + (p.width - width) / 2, y: above ? partner.y - height - 40 : partner.y + p.height + 50, lane_id: partner.lane_id }
-    } else if (node.x == null || node.y == null) {
-      nodes[i] = { ...node, x: header + 20, y: 20 }
+  // Positions with `perBand` columns to a band. One band is the straight
+  // layout. With more, the flow serpentines (boustrophedon): band 0 reads
+  // left to right, band 1 comes back right to left under it, and so on —
+  // each lane holds one group of rows per band it takes part in, so lanes
+  // stay horizontal and whole.
+  function position (perBand) {
+    const bandOf = (id) => Math.floor(layer.get(id) / perBand)
+    const columnOf = (id) => {
+      const c = layer.get(id) % perBand
+      return bandOf(id) % 2 ? perBand - 1 - c : c
     }
+    // Rows each lane uses in each band.
+    const rowsOf = new Map()
+    for (const [id, r] of row) {
+      const key = `${laneOf(id)}|${bandOf(id)}`
+      const [lo, hi] = rowsOf.get(key) || [r, r]
+      rowsOf.set(key, [Math.min(lo, r), Math.max(hi, r)])
+    }
+    let offset = 0
+    const laneStart = new Map()
+    const bandStart = new Map() // lane|band → offset inside the lane
+    const lanes = (doc.lanes || []).map((lane) => ({ ...lane }))
+    const bands = Math.ceil(columns / perBand)
+    for (const entry of lanesLayout.entries) {
+      let inner = 0
+      for (let band = 0; band < bands; band++) {
+        const span = rowsOf.get(`${entry.id}|${band}`)
+        if (!span) continue
+        bandStart.set(`${entry.id}|${band}`, inner)
+        inner += (span[1] - span[0] + 1) * SLOT[orientation]
+      }
+      const size = Math.ceil(((inner || SLOT[orientation]) + LANE_PAD * 2) / 10) * 10
+      laneStart.set(String(entry.id), offset)
+      const lane = lanes.find((l) => String(l.id) === String(entry.id))
+      if (lane) lane.size = size
+      offset += size
+    }
+
+    const nodes = (doc.nodes || []).map((node) => {
+      const id = String(node.id)
+      if (!row.has(id)) return node
+      const { width, height } = nodeSize(node)
+      const lane = laneOf(id)
+      const key = `${lane}|${bandOf(id)}`
+      const [lo] = rowsOf.get(key) || [0, 0]
+      const center = header + HEADER_GAP + COLUMN[orientation] / 2 + columnOf(id) * STEP[orientation]
+      const across = (laneStart.get(lane) || 0) + LANE_PAD + (bandStart.get(key) || 0) + (row.get(id) - lo) * SLOT[orientation] + ROW[orientation] / 2
+      const next = { ...node, lane_id: laneIds.length ? lane : node.lane_id }
+      const snap = (v) => Math.round(v / 10) * 10
+      if (vertical) { next.x = snap(across) - width / 2; next.y = snap(center) - height / 2 } else { next.x = snap(center) - width / 2; next.y = snap(across) - height / 2 }
+      return next
+    })
+
+    // Artifacts beside what they are associated with: an annotation above it,
+    // a data element below it; with no association, before the first column.
+    const placed = new Map(nodes.map((n) => [String(n.id), n]))
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i]
+      if (!isArtifactLike(node) || node.type === 'group') continue
+      const link = (doc.edges || []).find((e) => String(e.source) === String(node.id) || String(e.target) === String(node.id))
+      const partner = link && placed.get(String(String(link.source) === String(node.id) ? link.target : link.source))
+      const { width, height } = nodeSize(node)
+      if (partner && !isArtifactLike(partner)) {
+        const p = nodeSize(partner)
+        const above = node.type === 'text_annotation'
+        nodes[i] = vertical
+          ? { ...node, x: partner.x + p.width + 40, y: partner.y + (p.height - height) / 2, lane_id: partner.lane_id }
+          : { ...node, x: partner.x + (p.width - width) / 2, y: above ? partner.y - height - 40 : partner.y + p.height + 50, lane_id: partner.lane_id }
+      } else if (node.x == null || node.y == null) {
+        nodes[i] = { ...node, x: header + 20, y: 20 }
+      }
+    }
+    const edges = (doc.edges || []).map((e) => ({ ...e, ports: { source: 'auto', target: 'auto' }, waypoints: [] }))
+    const pool = { ...(doc.pool || {}) }
+    delete pool.length
+    return { ...doc, lanes, nodes, edges, pool }
   }
-  const edges = (doc.edges || []).map((e) => ({ ...e, ports: { source: 'auto', target: 'auto' }, waypoints: [] }))
-  const pool = { ...(doc.pool || {}) }
-  delete pool.length
-  return arrange({ ...doc, lanes, nodes, edges, pool })
+
+  // Compact: the fewest bands that fit the page legibly — a diagram that
+  // fits straight stays straight; one that fits nowhere takes the band count
+  // that shows it largest. Horizontal lanes only (AFAL VIS-03 keeps lanes
+  // horizontal); vertical lanes are laid out straight.
+  if (mode === 'compact' && !vertical && columns > 2) {
+    let best = null
+    for (let perBand = columns; perBand >= 2; perBand--) {
+      const candidate = position(perBand)
+      const fit = pageFit(candidate, page)
+      if (fit.fits) return arrange(candidate)
+      if (!best || fit.scale > best.scale + 1e-9) best = { candidate, scale: fit.scale }
+    }
+    return arrange(best.candidate)
+  }
+  return arrange(position(columns))
 }
 
 // Whether the document arrived without a position for some flow node — the

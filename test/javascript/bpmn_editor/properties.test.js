@@ -11,6 +11,8 @@ import { measure } from '../../../app/components/bali/bpmn_editor/model/layoutQu
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 import { layoutLanes, nodeBox } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
 import { isActivity, isGateway } from '../../../app/components/bali/bpmn_editor/model/catalog.js'
+import { autoLayout } from '../../../app/components/bali/bpmn_editor/model/layout.js'
+import { large } from './fixtures.js'
 
 const SEQUENCES = Number(process.env.BPMN_SEQUENCES || 200)
 const STEPS = Number(process.env.BPMN_STEPS || 30)
@@ -56,8 +58,19 @@ export function seedDoc (orientation) {
 
 const TYPES = [{ type: 'task' }, { type: 'exclusive_gateway' }, { type: 'parallel_gateway' }, { type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }, { type: 'end_event' }, { type: 'user_task' }]
 
+// The sessions: lanes stacked vertically or horizontally, and — the compact
+// layout's case — horizontal lanes that "Tidy up" (compact) folds into
+// serpentine bands now and then, with local edits on top of the result.
+const SUITES = {
+  horizontal: { seed: () => seedDoc('horizontal'), salt: 1 },
+  vertical: { seed: () => seedDoc('vertical'), salt: 7919 },
+  // Starts folded: 14 steps over four lanes do not fit a letter page straight.
+  compact: { seed: () => autoLayout(normalize(large(14)), { mode: 'compact' }), salt: 104729, tidy: 0.1 }
+}
+
 // One random operation, described so it can be replayed: [name, ...args].
-function randomOp (random, doc) {
+function randomOp (random, doc, suite = {}) {
+  if (suite.tidy && random() < suite.tidy) return ['tidy']
   const nodes = doc.nodes
   const kind = random()
   if (kind < 0.35 && nodes.length) {
@@ -101,6 +114,7 @@ function randomOp (random, doc) {
 
 export function apply (doc, op) {
   const [name, ...args] = op
+  if (name === 'tidy') return autoLayout(doc, { mode: 'compact' })
   let result = null
   if (name === 'append') result = ops.appendNode(doc, args[0], args[1], args[2], { policy: POLICY, names: NAMES, labels: LABELS })
   if (name === 'insert') result = ops.insertOnEdge(doc, args[0], args[1], (() => { const r = routeAll(doc).get(String(args[0])); return r ? r.label : { x: 0, y: 0 } })(), { policy: POLICY, names: NAMES })
@@ -121,8 +135,8 @@ function violation (before, doc) {
   return m.hard ? m : null
 }
 
-function run (orientation, sequence) {
-  let doc = seedDoc(orientation)
+function run (suite, sequence) {
+  let doc = SUITES[suite].seed()
   for (let i = 0; i < sequence.length; i++) {
     const before = doc
     doc = apply(doc, sequence[i])
@@ -133,35 +147,35 @@ function run (orientation, sequence) {
 }
 
 // Drops operations one at a time while the run still fails.
-function shrink (orientation, sequence) {
+function shrink (suite, sequence) {
   let current = sequence
   let changed = true
   while (changed) {
     changed = false
     for (let i = 0; i < current.length; i++) {
       const candidate = [...current.slice(0, i), ...current.slice(i + 1)]
-      if (run(orientation, candidate)) { current = candidate; changed = true; break }
+      if (run(suite, candidate)) { current = candidate; changed = true; break }
     }
   }
   return current
 }
 
-for (const orientation of ['horizontal', 'vertical']) {
-  test(`${SEQUENCES / 2} random editing sessions (${orientation}) keep every hard constraint`, () => {
+for (const suite of Object.keys(SUITES)) {
+  test(`${SEQUENCES / 2} random editing sessions (${suite}) keep every hard constraint`, () => {
     for (let seed = 1; seed <= SEQUENCES / 2; seed++) {
-      const random = rng(seed * (orientation === 'horizontal' ? 1 : 7919))
-      let doc = seedDoc(orientation)
+      const random = rng(seed * SUITES[suite].salt)
+      let doc = SUITES[suite].seed()
       const sequence = []
       for (let step = 0; step < STEPS; step++) {
-        const op = randomOp(random, doc)
+        const op = randomOp(random, doc, SUITES[suite])
         sequence.push(op)
         const before = doc
         doc = apply(doc, op)
         const failed = violation(before, doc)
         if (failed) {
-          const minimal = shrink(orientation, sequence)
-          const replay = run(orientation, minimal)
-          assert.fail(`seed ${seed} (${orientation}) breaks a hard constraint at step ${step}.\n` +
+          const minimal = shrink(suite, sequence)
+          const replay = run(suite, minimal)
+          assert.fail(`seed ${seed} (${suite}) breaks a hard constraint at step ${step}.\n` +
             `minimal sequence: ${JSON.stringify(minimal)}\n` +
             `violations: ${JSON.stringify((replay || { failed }).failed.details.slice(0, 6))}`)
         }
@@ -169,3 +183,20 @@ for (const orientation of ['horizontal', 'vertical']) {
     }
   })
 }
+
+// Found by 600 compact sessions (seed 154): a gateway's "Yes" with only a
+// 60 px stretch before its target had no free spot beside it and fell back
+// onto the gateway's own badge.
+test('a crowded connection label goes further out instead of onto a badge (compact seed 154)', () => {
+  const sequence = [['move', 'end', { x: 0, y: -590 }], ['drop', { type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }, 1717, 176], ['insert', 'f12-g', { type: 'exclusive_gateway' }], ['drop', { type: 'user_task' }, 1827, 578], ['tidy'], ['insert', 'f6-no', { type: 'exclusive_gateway' }], ['drop', { type: 'user_task' }, 1770, 890], ['move', 't8', { x: 0, y: 595 }], ['delete', 't12'], ['append', 'n_50', { type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }, 'left'], ['tidy'], ['move', 'n_49', { x: 0, y: 530 }], ['append', 'n_45', { type: 'user_task' }, 'right']]
+  const failed = run('compact', sequence)
+  assert.equal(failed, null, failed && JSON.stringify(failed.failed.details))
+})
+
+// Also from 600 compact sessions: four ways out of a gateway's top side
+// spread 12 px apart ran past the corner, and two clamped onto one point.
+test('every way out of a gateway top keeps its own endpoint (compact, four exits)', () => {
+  const sequence = [['append', 'g12', { type: 'end_event' }, 'right'], ['move', 'g12', { x: 0, y: 260 }], ['append', 'g12', { type: 'end_event' }, 'up']]
+  const failed = run('compact', sequence)
+  assert.equal(failed, null, failed && JSON.stringify(failed.failed.details))
+})
