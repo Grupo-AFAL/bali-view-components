@@ -402,6 +402,132 @@ nombre debajo.
 | Flujo de mensaje | línea discontinua, círculo hueco en el origen, punta hueca | correcto | Collaboration › Message Flow |
 | Asociación | línea punteada | correcto | Artifacts › Association |
 
+## BPMN-X · Cobertura de criterios AFAL
+
+Los 104 criterios de la matriz «Criterios BPMN Rev.01». **Regla**: el editor la revisa
+(el id de la regla es el código del criterio que la nombra; `criteria` lista los que
+cubre). **Función del componente**: el editor lo hace por construcción. **Configuración de
+la app**: depende de lo que la app pase. **Revisión humana**: es de criterio, ningún
+chequeo lo decide. Las reglas que la matriz basa en BPMN 2.0 están activas por omisión;
+las que son solo lineamiento AFAL (`afal`) se activan con `rules: { enabled: %w[afal] }`.
+Las reglas de redacción son advertencias.
+
+Reglas nuevas: COM-19, COM-20, COM-12, COM-02, DEC-03, EST-05, EST-01, VIS-10, EVI-03,
+EVI-05 (activas) y COM-22, EVF-04, SUB-05, ACT-02, ACT-07, ACT-09, ACT-03, ACT-10, LAN-08
+(`afal`). Cambian: R05 (COM-21), R08 (ya no pide descripción: EVM-04/06), R21 (LAN-09),
+B11 (verbo al inicio; rombo azul e inclusivo), y R12, R16 y B11 se activan por omisión.
+`test/javascript/bpmn_editor/criteria.test.js` reproduce los ejemplos «Uso incorrecto /
+Uso correcto» de cada criterio que revisa una regla.
+
+| Código | Cobertura | Cómo |
+|---|---|---|
+| LAN-01 | Función del componente | carriles del pool; R26 (todo elemento dentro de un carril) |
+| LAN-02 | Regla + Revisión humana | R22 (nombre específico); si es puesto, rol o función lo decide el área |
+| LAN-03 | Revisión humana + Configuración de la app | denominación oficial; la app liga el responsable del carril (`urls[:lane_assignees]`) |
+| LAN-04 | Revisión humana | participante genérico |
+| LAN-05 | Revisión humana | función como participante |
+| LAN-06 | Regla + Revisión humana | R26 (dentro de un carril); quién ejecuta realmente, el área |
+| LAN-07 | Regla | R10 |
+| LAN-08 | Regla | LAN-08 (`afal`, advertencia) |
+| LAN-09 | Regla | R21, que ahora cuenta carriles con actividades |
+| LAN-10 | Configuración de la app | opción de orientación fija (otra parte de BPMN-X) |
+| EXT-01 | Función del componente | carril externo gris (`kind: external`) |
+| EXT-02 | Función del componente | actividad externa blanca |
+| EXT-03 | Función del componente | actividad interna azul |
+| ACT-01 | Regla + Revisión humana | ACT-07 (solo recibe o envía); si hay transformación, el área |
+| ACT-02 | Regla | ACT-02 (`afal`, advertencia); R17 sigue opcional |
+| ACT-03 | Regla | ACT-03 «vague» (`afal`, advertencia); R23 |
+| ACT-04 | Regla | ACT-03 «operative» |
+| ACT-05 | Regla | ACT-03 «several» |
+| ACT-06 | Regla | R16, ahora activa por omisión |
+| ACT-07 | Regla | ACT-07 |
+| ACT-08 | Regla | ACT-07 |
+| ACT-09 | Regla | ACT-09 (`afal`, advertencia) |
+| ACT-10 | Regla | ACT-10 (`afal`, advertencia) |
+| ACT-11 | Regla | ACT-10 |
+| ACT-12 | Regla | ACT-10 |
+| ACT-13 | Regla | COM-22 (`afal`) |
+| EVI-01 | Regla | R12, ahora activa por omisión |
+| EVI-02 | Regla | R06 |
+| EVI-03 | Regla | EVI-03 (advertencia) |
+| EVI-04 | Revisión humana | que el tipo corresponda al detonante; EVI-05 cubre el caso temporal |
+| EVI-05 | Regla | EVI-05 (advertencia) |
+| EVI-06 | Regla | R24 |
+| EVM-01 | Regla + Configuración de la app | VIS-10 con la paleta que la app configura (`palette:` sin los otros eventos) |
+| EVM-02 | Revisión humana | acontecimiento, no trabajo |
+| EVM-03 | Revisión humana | comunicación real |
+| EVM-04 | Regla | R08 (nombre genérico «Mensaje») |
+| EVM-05 | Revisión humana | espera temporal |
+| EVM-06 | Regla | R08 (nombre genérico «Tiempo») |
+| EVM-07 | Revisión humana | espera frente a fecha límite |
+| EVM-08 | Revisión humana | espera condicionada |
+| EVM-09 | Regla | EVI-03 (evento condicional) |
+| EVF-01 | Regla | EST-01, R13 y R12 |
+| EVF-02 | Regla | R07 |
+| EVF-03 | Regla | EVI-03 (evento de fin) |
+| EVF-04 | Regla | EVF-04 (`afal`) |
+| EVF-05 | Regla | R24 |
+| COM-01 | Regla + Función del componente | R01/R02; «Bifurcar con» y «Agregar gateway» |
+| COM-02 | Regla + Función del componente | COM-02; rombo azul (decisión Sí/No) |
+| COM-03 | Función del componente + Revisión humana | XOR con X; que solo una alternativa aplique, el área |
+| COM-04 | Revisión humana | naturaleza inclusiva |
+| COM-05 | Revisión humana | paralelismo obligatorio |
+| COM-06 | Regla | R09 (nombre) y B11 (pregunta) |
+| COM-07 | Regla | R03 y COM-02 |
+| COM-08 | Regla | R09 y B11: el criterio es el nombre o la pregunta, sin campo extra |
+| COM-09 | Regla | R03 |
+| COM-10 | Revisión humana | exclusividad de las condiciones |
+| COM-11 | Revisión humana | inclusividad de las condiciones |
+| COM-12 | Regla | COM-12 |
+| COM-13 | Regla | B11 (verbo al inicio), activa por omisión |
+| COM-14 | Regla | R01 |
+| COM-15 | Regla | COM-19 |
+| COM-16 | Regla | COM-19 |
+| COM-17 | Regla | COM-19; R05 |
+| COM-18 | Regla | COM-19; R05 |
+| COM-19 | Regla | COM-19 |
+| COM-20 | Regla | COM-20 |
+| COM-21 | Regla | R05 ya no exige cierre a rutas que terminan |
+| COM-22 | Regla + Función del componente | COM-22 (`afal`); conectar hacia atrás ofrece el XOR de unión |
+| DEC-01 | Regla | R09 y B11 |
+| DEC-02 | Regla | R03 |
+| DEC-03 | Regla | DEC-03 (advertencia) |
+| SEC-01 | Revisión humana | orden real de ejecución |
+| SEC-02 | Regla + Función del componente | R13, R25; el editor no deja conexiones sin destino |
+| SEC-03 | Función del componente | toda conexión dibuja su flecha |
+| SEC-04 | Regla | EST-01 |
+| SEC-05 | Regla | R01 |
+| SUB-01 | Función del componente + Regla | token de color del procedimiento relacionado, gris por omisión; R11 |
+| SUB-02 | Función del componente | nombre sincronizado con `reference.label` |
+| SUB-03 | Revisión humana | dependencia de resultado |
+| SUB-04 | Función del componente | el procedimiento relacionado se dibuja colapsado; no hay subprocesos expandidos |
+| SUB-05 | Regla | SUB-05 (`afal`) |
+| SUB-06 | Regla | SUB-05 |
+| SUB-07 | Regla | SUB-05 |
+| SUB-08 | Revisión humana | salida habilitante |
+| SUB-09 | Regla | R01 (la caja + es una actividad) |
+| ART-01 | Revisión humana + Regla | uso complementario; B03/B04 impiden que una anotación entre al flujo |
+| ART-02 | Revisión humana | la lógica no va en notas |
+| EST-01 | Regla | EST-01 |
+| EST-02 | Regla | EST-01 |
+| EST-03 | Revisión humana | orden lógico de las actividades |
+| EST-04 | Regla | COM-22 |
+| EST-05 | Regla | EST-05 |
+| EST-06 | Función del componente + Revisión humana | caja gris (+); el alcance, el área |
+| VIS-01 | Función del componente | acomodo compacto + indicador VIS-02 (otra parte de BPMN-X) |
+| VIS-02 | Función del componente | acomodo compacto + indicador VIS-02 (otra parte de BPMN-X) |
+| VIS-03 | Función del componente | acomodo compacto + indicador VIS-02 (otra parte de BPMN-X) |
+| VIS-04 | Función del componente | «Autoajustar»: columnas alineadas y rejilla de 10 px |
+| VIS-05 | Función del componente | ajuste local y métrica `layoutQuality` (sin encimados) |
+| VIS-06 | Función del componente | ruteo con cruces mínimos y saltos de línea |
+| VIS-07 | Regla + Función del componente | R18; la métrica mantiene en cero etiquetas sobre líneas o nodos |
+| VIS-08 | Función del componente | acomodo compacto + indicador VIS-02 (otra parte de BPMN-X) |
+| VIS-09 | Función del componente | interna azul, externa blanca en carril gris, procedimiento relacionado gris (token) |
+| VIS-10 | Regla | VIS-10 |
+| VIS-11 | Función del componente | etiquetas junto a su ruta (`edgeLabels`); la métrica las mantiene sin encimar |
+
+Conteo (un criterio puede tener dos coberturas): Configuración de la app 3, Función del componente 24, Regla 67, Revisión humana 24.
+
 ## Pendiente y siguiente paso
 
 - **Importar BPMN en el cliente:** no se hizo; el botón abre el drawer de la app (`urls[:import]`)
