@@ -364,7 +364,11 @@
   justify-content: center;
   width: fit-content;
   height: auto;
-  padding: 0 var(--ss-spacing-m);
+  /* 24px tall to the pointer around its 12px glyph, the target WCAG 2.5.8 asks for. The negative
+     margin keeps it 12px to the layout: with padding alone a `sm` multiple holding chips went
+     from 32 to 36px. */
+  padding: 0.375rem var(--ss-spacing-m);
+  margin-block: -0.375rem;
   /* A control, so 3:1 (WCAG 1.4.11). At 0.5 it measured 3.05:1 on `afal`, the lowest of the six
      themes; at 0.55 the lowest is 3.52:1, still `afal`. */
   opacity: 0.55;
@@ -1055,6 +1059,9 @@ div.ss-main.select-bordered {
   background-image: none !important;
   background-position: unset !important;
   padding-right: var(--ss-spacing-l) !important;
+  /* daisyUI 5's `.select` sets `gap: .375rem`, on top of the ✕'s padding and the arrow's margin:
+     12px more beside them on every trigger, 12 of the 32px the phone filter had for its value. */
+  gap: 0;
 }
 
 /* ss-content should have NO padding from DaisyUI select classes */
