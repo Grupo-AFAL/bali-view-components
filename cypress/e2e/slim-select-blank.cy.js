@@ -54,5 +54,23 @@ describe('SlimSelect blank', () => {
 
       expectBlank('@select', '@main', 'Anyone')
     })
+
+    // While a search is listed, the blank is only there if the search handed it back: missing,
+    // SlimSelect gives the ✕ an empty placeholder of its own.
+    it('empties back to the blank with a search still listed', () => {
+      cy.get('@main').click()
+      cy.contains('.ss-content.ss-open .ss-option', 'Option 2').click()
+      cy.get('@select').should('have.value', '2')
+      cy.get('@main').click()
+      cy.get('.ss-content.ss-open .ss-search input').type('jane')
+      cy.wait('@remoteSearch')
+      cy.contains('.ss-content.ss-open .ss-optgroup .ss-option', 'Jane Smith')
+
+      clear()
+
+      expectBlank('@select', '@main', 'Anyone')
+      cy.get('.ss-content.ss-open').should('not.exist')
+      cy.get('@select').find('option[value=""]').should('have.length', 1)
+    })
   })
 })
