@@ -14,6 +14,15 @@ describe('CheckboxToggleController', () => {
   const streamed = name => cy.get(`[data-testid="${name}"][data-streamed]`)
   // A morph keeps the element, so no target callback runs for it.
   const streams = { replaces: '', morphs: 'method="morph"' }
+  // The server re-renders the checkbox unchecked; a morph unchecks it without a `change`.
+  const uncheckOnServer = () => cy.get('#expense_public_school_fee_field').then(($field) => {
+    const copy = $field[0].cloneNode(true)
+    copy.querySelector('input[type="checkbox"]').removeAttribute('checked')
+    copy.setAttribute('data-streamed', '')
+    return cy.window().then(win => win.Turbo.renderStreamMessage(`
+      <turbo-stream action="replace" method="morph" target="${copy.id}"><template>${copy.outerHTML}</template></turbo-stream>`))
+  })
+  const uncheckedOnScreen = () => cy.get('#expense_public_school_fee_field[data-streamed] input[type="checkbox"]').should('not.be.checked')
 
   context('with disable-hidden', () => {
     beforeEach(() => cy.visit('/bali/checkbox_toggle/required_fields'))
@@ -44,6 +53,15 @@ describe('CheckboxToggleController', () => {
         replace('invoice', 'data-checkbox-toggle-target="off"', method)
         streamed('invoice').should('have.class', 'hidden').and('be.disabled')
       })
+    })
+
+    it('follows the checkbox a Turbo Stream morph leaves unchecked', () => {
+      box().check()
+      uncheckOnServer()
+
+      uncheckedOnScreen()
+      target('receipts').should('have.class', 'hidden').and('be.disabled')
+      target('invoice').should('not.have.class', 'hidden').and('be.enabled')
     })
 
     it('sends the form without the required file on the hidden side', () => {
@@ -78,6 +96,15 @@ describe('CheckboxToggleController', () => {
         replace('invoice', 'data-checkbox-toggle-target="off"', method)
         streamed('invoice').should('have.class', 'hidden').and('be.enabled')
       })
+    })
+
+    it('follows the checkbox a Turbo Stream morph leaves unchecked', () => {
+      box().check()
+      uncheckOnServer()
+
+      uncheckedOnScreen()
+      target('receipts').should('have.class', 'hidden').and('be.enabled')
+      target('invoice').should('not.have.class', 'hidden')
     })
   })
 

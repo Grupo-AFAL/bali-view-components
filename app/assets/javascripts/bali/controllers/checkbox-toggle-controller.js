@@ -50,7 +50,14 @@ export class CheckboxToggleController extends Controller {
     this.toggleTargets(this.checkedValue)
   }
 
-  retoggle = () => this.toggleTargets(this.checkedValue)
+  // A morph that unchecks the box, or checks it, fires no `change`, and the box as
+  // it leaves it is what the form sends.
+  retoggle = () => {
+    const box = this.element.querySelector(`input[type="checkbox"][data-action*="${this.identifier}#change"]`)
+    if (box) this.checkedValue = box.checked
+
+    this.toggleTargets(this.checkedValue)
+  }
 
   toggleTargets (checked) {
     this.onTargets.forEach(element => this.toggle(element, checked))

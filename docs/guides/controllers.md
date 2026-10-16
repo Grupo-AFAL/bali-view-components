@@ -146,7 +146,9 @@ their own `disabled` and a file already chosen. Live in the
 
 **Targets that arrive later** — an `on` or `off` target a Turbo Stream replaces
 or morphs follows the checkbox on screen, not the state the server painted: its
-`hidden` class and, with `disable-hidden`, its `disabled`.
+`hidden` class and, with `disable-hidden`, its `disabled`. A morph of the checkbox
+itself moves the targets with it: they follow the box as the morph leaves it, which
+is what the form sends.
 
 ## `datepicker`
 

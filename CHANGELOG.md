@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Turbo Stream con morph, y `checkbox-toggle` pinta todos los targets de cada lado.** Un
   `turbo_stream.replace(…, method: :morph)` conserva el elemento y no lo volvía a pintar: un
   target se quedaba con el `hidden` y, con `disable-hidden`, el `disabled` que mandó el servidor.
-  Si el morph marcaba otro radio, `radio-toggle` seguía mostrando los campos del anterior aunque
-  el formulario enviara el nuevo. Ahora los tres vuelven a pintar tras cada morph dentro del
+  Si el morph marcaba otro radio o desmarcaba la casilla, los targets seguían la elección anterior
+  aunque el formulario enviara la nueva. Ahora los tres vuelven a pintar tras cada morph dentro del
   controlador, con la elección que el morph deja en pantalla; en los dos toggles, por
   `toggleTargets`. Y un segundo `on` u `off` no se pintaba nunca, ni al conectar ni al cambiar la
   casilla. Ninguna app hace hoy nada de esto: nada que hacer en la app.
