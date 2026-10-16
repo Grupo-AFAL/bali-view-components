@@ -59,7 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   partían en los espacios, y un rango con hora («2026-01-01 10:00:00 a 2026-01-02 12:00:00»)
   terminaba hoy. Ahora lo eligen por idioma, igual que el datepicker elige el de flatpickr: « a »
   para `es` y cualquier `es-*`, « to » para el resto. Un rango de días sin hora ya salía bien, que
-  es lo que mandan los filtros de costa-norte en `es-MX`: nada que hacer en la app.
+  es lo que mandan los filtros de costa-norte en `es-MX`. El FormBuilder escribe y parte un campo
+  `mode: "range"` con ese mismo separador, y se retira la llave
+  `bali_view.form_builder.date_fields.range_separator`: con la cadena de fallbacks de la app podía
+  decir otra cosa que flatpickr. Ninguna app la sobrescribe: nada que hacer en la app.
 
 ### Documentation
 

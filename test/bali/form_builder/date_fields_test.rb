@@ -113,6 +113,18 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
     assert_html(result, %(div[data-datepicker-default-dates-value='["2024-01-01","2024-01-31"]']))
   end
 
+  # Under costa-norte's fallback chain, `[:es, :en]`, a translation looked up in `fr` comes back
+  # Spanish, while flatpickr writes the range in English.
+  def test_date_group_with_a_range_writes_and_splits_it_as_flatpickr_does_in_that_locale
+    with_fallbacks(:es, :en, locale: :fr) do
+      range = builder.date_group(:release_date, mode: "range", value: Date.new(2026, 1, 1)..Date.new(2026, 3, 31))
+      text = builder.date_group(:release_date, mode: "range", value: "2026-01-01 to 2026-03-31")
+
+      assert_html(range, 'input[value="2026-01-01 to 2026-03-31"]')
+      assert_html(text, %(div[data-datepicker-default-dates-value='["2026-01-01","2026-03-31"]']))
+    end
+  end
+
   # Both spellings would render, and a parser keeps the first.
   def test_an_option_replaces_the_same_attribute_written_in_wrapper_options
     result = builder.date_field(:release_date, min_date: "2026-01-01",
@@ -259,5 +271,17 @@ class BaliFormBuilderDateFieldsTest < FormBuilderTestCase
 
   def test_constants_freezes_button_class
     assert Bali::FormBuilder::SharedDateUtils::BUTTON_CLASS.frozen?
+  end
+
+  private
+
+  # The dummy declares only `en` and `es`, and falls back to `en`.
+  def with_fallbacks(*chain, locale:, &block)
+    previous = [ I18n.available_locales, I18n.fallbacks ]
+    I18n.available_locales += [ locale ]
+    I18n.fallbacks = I18n::Locale::Fallbacks.new(*chain)
+    I18n.with_locale(locale, &block)
+  ensure
+    I18n.available_locales, I18n.fallbacks = previous
   end
 end
