@@ -310,8 +310,22 @@ every code a rule covers:
 | EVI-03 | A start, end or conditional event names a fact or a state, not an action | EVI-03, EVF-03, EVM-09 | warning |
 | EVI-05 | A plain start whose name speaks of a period («Cierre mensual») should be a timer start | EVI-05 | warning |
 
-Off by default — AFAL guidelines only. `rules: { enabled: %w[afal] }` turns them all on;
-`disabled:` still turns one off:
+**AFAL's guidelines** — the matrix's criteria whose origin is «Lineamiento AFAL», not
+BPMN 2.0 — are not in the editor's catalogue. They ship as an optional package that
+registers them (`registerBpmnRule`); a host that follows AFAL's matrix imports it in the
+**same bundle as the editor** — the island's own entry — so both share one rule registry:
+
+```js
+// app/javascript/bpmn-editor-island.js
+import 'bali-view-components/bpmn-editor-entry'
+import 'bali-view-components/bpmn-editor/afal-rules'
+```
+
+(With `registerBpmnEditor(application)` in the main bundle, import it there instead.)
+Imported, they are on; `rules: { disabled: %i[ACT-02] }` still turns one off, and
+`severities:`/`messages:` apply as to any rule. A host that does not import the package
+never runs them, whatever `rules:` names — the editor warns in the console about a
+configured id no rule has:
 
 | ID | Rule | Criteria | Severity |
 |---|---|---|---|
@@ -324,6 +338,7 @@ Off by default — AFAL guidelines only. `rules: { enabled: %w[afal] }` turns th
 | ACT-03 | No vague phrase, screen instruction («Dar clic») or several actions in one box | ACT-03, ACT-04, ACT-05 | warning |
 | ACT-10 | Validating, reviewing, approving or authorizing is followed by a decision | ACT-10, ACT-11, ACT-12 | warning |
 | LAN-08 | No two lanes with nearly the same name («Gerente Jurídico» / «Gte. Jurídico») | LAN-08 | warning |
+| VIS-02 | The diagram is legible on its `page:` (11 px text printed at 6 pt or more) | VIS-02, VIS-08 | warning |
 
 The «Rules» dialog groups every rule by the matrix's chapters and shows its criteria.
 VIS-10 needs to know the palette: the editor passes the palette keys the host leaves
