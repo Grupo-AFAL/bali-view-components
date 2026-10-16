@@ -117,8 +117,8 @@ them otherwise. The hiding class defaults to `hidden`; override it with
 </div>
 ```
 
-An `item` a Turbo Stream morphs follows the checkboxes on screen, not the class the
-server painted.
+An `item` a Turbo Stream replaces or morphs follows the checkboxes on screen, not
+the class the server painted.
 
 ## `checkbox-toggle`
 

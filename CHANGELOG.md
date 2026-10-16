@@ -23,8 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Si el morph marcaba otro radio o desmarcaba la casilla, los targets seguían la elección anterior
   aunque el formulario enviara la nueva. Ahora los tres vuelven a pintar tras cada morph dentro del
   controlador, con la elección que el morph deja en pantalla; en los dos toggles, por
-  `toggleTargets`. Y un segundo `on` u `off` no se pintaba nunca, ni al conectar ni al cambiar la
-  casilla. Ninguna app hace hoy nada de esto: nada que hacer en la app.
+  `toggleTargets`. `checkbox-reveal` tampoco pintaba un `item` que un Turbo Stream reemplaza sin
+  morph; ahora lo hace, como `checkbox-toggle`. Y un segundo `on` u `off` no se pintaba nunca, ni
+  al conectar ni al cambiar la casilla. Ninguna app hace hoy nada de esto: nada que hacer en la
+  app.
 
 - **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
   accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el
