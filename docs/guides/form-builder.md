@@ -486,8 +486,8 @@ placeholder, which its list leaves out. `include_blank:` offers the blank as a v
 ✕ goes back to it; `prompt:` is a hint shown until there is a value, and leaves the ✕ off.
 `allow_deselect_option: false` keeps it off; on a field that must hold a value,
 `required: true` does too, and marks the caption as required. On a grouped list the blank
-stays a row of the list. A remote select (`ajax_url:`) keeps the ✕ off: once a search result
-outside the seed is chosen, SlimSelect's ✕ picks that result again instead of the blank.
+stays a row of the list. A remote select (`ajax_url:`) leaves the ✕ off unless
+`allow_deselect_option: true` turns it on.
 
 ```erb
 <%= f.slim_select_group :parent_id, categories, include_blank: "None (top level)" %>

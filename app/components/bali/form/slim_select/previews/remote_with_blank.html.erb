@@ -1,0 +1,10 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <%= form.slim_select_group :name, options,
+        label: 'User',
+        include_blank: 'Anyone',
+        allow_deselect_option: true,
+        ajax_param_name: 'q',
+        ajax_value_name: 'id',
+        ajax_text_name: 'full_name',
+        ajax_url: '/users.json' %>
+<% end %>
