@@ -9,27 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`Bali::BpmnEditor`: editor de diagramas BPMN 2.0 con carriles** (#1489). Isla de React Flow
-  construida como `Bali::Gantt` (entry propio `bali-view-components/bpmn-editor-entry`, loader y
-  dependencias opcionales `react`, `react-dom`, `@xyflow/react`, `@rails/request.js`). Recibe un
-  documento (`Bali::BpmnEditor::Data`), guarda el documento completo con su versión en `urls[:save]`
-  (200, 409 y 422) y llega a la app por drawers, búsquedas remotas, la acción de Turbo Stream
-  `bali_bpmn_event` (helpers `bali_bpmn_reference_created`, `bali_bpmn_lane_assignee_created`,
-  `bali_bpmn_reload`) y los eventos `bali-bpmn:*`. Trae paleta con presets (`:descriptive`,
-  `:analytic`, `:full`) y notas de la app, leyenda configurable, carril externo, menú rápido con
-  dirección, insertar sobre una conexión, deshacer y rehacer, ruteo ortogonal que rodea elementos,
-  acomodo local tras cada edición (siempre activo) y «Autoajustar» — sin elementos encimados,
-  líneas que atraviesen elementos o nombres, tramos compartidos ni etiquetas encimadas —, que
-  por omisión dobla el flujo en bandas hasta caber legible en carta (`layout: :compact`,
-  `:straight` para una sola línea; la hoja en `page:`), reglas de modelado R01–R26 y B01–B11
-  configurables, más las de la matriz de criterios BPMN de AFAL (las de BPMN 2.0 activas; las
-  que solo son lineamiento AFAL con `rules: { enabled: %w[afal] }`), con panel de pendientes y
-  ciclo Borrador/Finalizar, decisión Sí/No (rombo azul), orientación fija (`orientation:`),
-  procedimiento relacionado gris (+) con su color en el token CSS `--bpmn-sub-process`, notas de revisión,
-  comparación entre versiones y salidas `.bpmn`, PNG, SVG e impresión con marca de agua, en
-  hoja tamaño carta cuando cabe. Sin `urls[:save]` o sin `editable:` es un visor.
+- **`Bali::BpmnEditor`: editor de diagramas BPMN 2.0 con carriles** (#1489). Isla de React Flow,
+  como `Bali::Gantt`, con su propio entry (`bali-view-components/bpmn-editor-entry`). Edita el
+  documento que recibe (`Bali::BpmnEditor::Data`) y guarda el documento completo, con su versión,
+  en `urls[:save]`; sin esa URL es un visor. Reglas de modelado configurables con ciclo
+  Borrador/Finalizar, acomodo y ruteo propios, y salidas `.bpmn`, PNG, SVG e impresión.
   - **Anfitrión:** nada que hacer si no lo usa. Para usarlo, los cuatro pasos de instalación de
-    `docs/api/bpmn-editor.md`; la implementación de referencia está en `test/dummy`
+    [la guía](docs/api/bpmn-editor.md) y sus dependencias opcionales (`react`, `react-dom`,
+    `@xyflow/react`, `@rails/request.js`); la implementación de referencia está en `test/dummy`
     (`ProcessFlow` y `Admin::ProcessFlows::*`).
 
 ## [v3.18.0] - 2026-10-15

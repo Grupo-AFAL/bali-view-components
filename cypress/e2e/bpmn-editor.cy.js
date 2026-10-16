@@ -163,6 +163,18 @@ describe('BPMN editor island', () => {
         })
       })
       cy.get('[data-testid="bpmn-legend"]').should('contain', 'participante externo')
+      cy.get('[data-testid="bpmn-lane"]').eq(1).find('.bpmn-lane-header').click()
+      cy.get('[data-testid="bpmn-lane-external"]').should('be.visible')
+    })
+
+    // `external_lanes: false`: an app without external participants offers no
+    // checkbox for them, and its legend does not explain them.
+    it('hides the external participant checkbox and its legend entries when the host turns them off', () => {
+      cy.visit(`${EDITABLE}?external_lanes=false`)
+      cy.get('[data-testid="bpmn-lane"]').eq(1).find('.bpmn-lane-header').click()
+      cy.get('[data-testid="bpmn-properties"]').should('be.visible')
+      cy.get('[data-testid="bpmn-lane-external"]').should('not.exist')
+      cy.get('[data-testid="bpmn-legend"]').should('contain', 'Actividad').and('not.contain', 'participante externo')
     })
   })
 })

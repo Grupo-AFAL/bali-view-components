@@ -171,6 +171,8 @@ React is the exception in Bali, not the rule — the default remains Turbo + Sti
 
 BPMN/process-flow editing, once a deferred candidate here, ships as [`Bali::BpmnEditor`](bpmn-editor.md) (#1489): the generic half of gobierno-corporativo's `ProcessFlowEditor`, with the business half left to the app behind drawers, remote searches and events.
 
+**`Bali::BpmnEditor` is an exception to rule 1, not a case of it.** One app uses it today, gobierno-corporativo. The maintainer promoted it anyway, because it was built generic from the start — BPMN 2.0 is the contract, and everything one app's processes need is an option, a host rule or a host endpoint — so a second app takes it as it is rather than extracting it later. Rule 1 still stands for every other island.
+
 ## Working example
 
 The dummy app wires a toy counter through the full production loop — loader, meta tags, entry, subclass:

@@ -83,7 +83,9 @@ function element (node) {
     return `<bpmn:textAnnotation id="${id}"><bpmn:text>${escapeXml(node.name)}</bpmn:text></bpmn:textAnnotation>`
   }
   if (node.name && node.type !== 'group') attributes.push(`name="${escapeXml(node.name)}"`)
-  if (node.type === 'sub_process' && node.reference && node.reference.id) attributes.push(`calledElement="${escapeXml(node.reference.id)}"`)
+  // calledElement is an xsd:QName, which cannot start with a digit: a host's
+  // numeric id ("101") goes out as "_101", like every other id here.
+  if (node.type === 'sub_process' && node.reference && node.reference.id) attributes.push(`calledElement="${escapeXml(xmlId(node.reference.id))}"`)
   if (node.type === 'event_based_gateway') {
     if (node.instantiate) attributes.push('instantiate="true"')
     attributes.push(`eventGatewayType="${node.event_gateway_type === 'parallel' ? 'Parallel' : 'Exclusive'}"`)

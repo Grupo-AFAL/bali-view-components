@@ -29,7 +29,8 @@ class BaliBpmnXmlExportTest < ActiveSupport::TestCase
     assert_equal "Sample & <flow>", xml.at_xpath("//bpmn:participant[@id='Participant_main']", NS)["name"]
     assert_equal 1, xml.xpath("//bpmn:collaboration/bpmn:messageFlow", NS).size
     assert_equal [ "Cuentas por pagar", "Tesorería" ], xml.xpath("//bpmn:lane", NS).pluck("name")
-    assert_equal "101", xml.at_xpath("//bpmn:callActivity", NS)["calledElement"]
+    # An xsd:QName: the numeric reference id gets the same "_" prefix as every id.
+    assert_equal "_101", xml.at_xpath("//bpmn:callActivity", NS)["calledElement"]
     assert xml.at_xpath("//bpmn:task[@id='odd']//*[local-name()='element'][@type='transaction']", NS)
     assert xml.at_xpath("//bpmn:startEvent/bpmn:messageEventDefinition", NS)
     assert_equal "Sí", xml.at_xpath("//bpmn:sequenceFlow[@id='Flow_f3']", NS)["name"]

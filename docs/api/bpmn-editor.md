@@ -56,14 +56,15 @@ The entry also installs the `bali_bpmn_event` Turbo Stream action (see
 ## Usage
 
 ```erb
+<% if (reason = @flow.edit_blocked_reason) %>
+  <%= render Bali::Notification::Component.new(type: :info) { reason } %>
+<% end %>
 <%= render Bali::BpmnEditor::Component.new(
       data: FlowDiagram.new(@flow).to_h,
       editable: policy(@flow).edit_diagram?,
-      read_only_notice: @flow.edit_blocked_reason,
       palette: { preset: :analytic, notes: { signal_event: "Pending confirmation" } },
-      rules: { disabled: %i[R17], severities: { R16: :warning }, options: { min_lanes: 2 } },
-      node_fields: FlowDiagram.node_fields,
-      lane_fields: FlowDiagram.lane_fields,
+      rules: { disabled: %i[R16], severities: { R11: :error }, options: { min_lanes: 3 } },
+      fields: { nodes: FlowDiagram.node_fields, lanes: FlowDiagram.lane_fields },
       name: @flow.name,
       watermark: (@flow.draft? ? "Borrador" : nil),
       urls: {
@@ -88,22 +89,22 @@ authorize every endpoint on the server anyway.
 | Parameter | Default | Description |
 |---|---|---|
 | `data:` | required | The document (`Hash` or `Bali::BpmnEditor::Data`) |
-| `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save |
-| `read_only_notice:` | `nil` | Why it cannot be edited; shown above a read-only diagram |
+| `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save. Why it cannot be edited is the host's to say, with a `Bali::Notification` above it |
 | `autosave:` | `true` | Save with a ~1.2 s debounce after each change. `false`: only the "Save draft" button saves |
+| `lock_orientation:` | `false` | `true` keeps the document's own orientation (`data[:orientation]`, the one source of it) and the toolbar offers no switch — e.g. a host whose lanes are always horizontal |
+| `external_lanes:` | `true` | Lanes may be marked as external participants (grey lane, white activities, joined by message flows). `false` hides that checkbox in the lane panel and the external entries of the default legend |
 | `layout:` | `:compact` | How "Tidy up" (and the first layout of a document without coordinates) arranges the flow: `:compact` folds it to fit `page:` legibly, `:straight` keeps the happy path in one line — see [Layout](#layout). An unknown value raises |
 | `page:` | `{ width: 8.5, height: 11, orientation: "landscape" }` | The sheet, in inches: the compact layout's target, and what the image, SVG and print outputs are laid on. `orientation:` is `"landscape"` or `"portrait"`; anything else, or a non-positive size, raises |
 | `palette:` | `:descriptive` | A preset, an `Array` of keys (exactly those), or a `Hash` — see [Palette](#palette) |
 | `legend:` | default entries | `{ add: [...], remove: [...] }`, a full `Array`, or `false` — see [Legend](#legend) |
 | `rules:` | `{}` | `{ disabled:, enabled:, severities:, messages:, options: }` — see [Rules](#rules) |
-| `node_fields:` / `lane_fields:` | `{}` / `[]` | Field schemas for the properties panel — see [Fields](#fields) |
+| `fields:` | `{}` | `{ nodes: { type => [field] }, lanes: [field] }`, the properties panel's own fields — see [Fields](#fields). An unknown key raises |
 | `urls:` | `{}` | `save`, `diagram`, `finalize`, `references`, `new_reference`, `lane_assignees`, `new_lane_assignee`, `import`. An unknown key raises |
 | `name:` | `nil` | Title of the image and print outputs, the file names, the main participant of the `.bpmn` |
 | `watermark:` | `nil` | Text across the image and print outputs, e.g. `"Borrador"` |
-| `annotation_tags:` | `[]` | Tags of the review notes: `[{ key:, label:, color: }]` |
-| `compare_with:` | `nil` | `{ document:, label: }` — another version to compare against |
-| `i18n:` | `Translations.island` | Flat string table; Spanish and English ship with the gem |
-| `id:` | `nil` | DOM id. The host's stream answers target it |
+| `review:` | `{}` | `{ tags: [{ key:, label:, color: }], compare_with: { document:, label: } }`: the tags of the review notes and another version to compare against — see [Outputs, notes and comparison](#outputs-notes-and-comparison) |
+| `i18n:` | `Translations.island` | Flat string table; Spanish and English ship with the gem, in the locale the component is built in |
+| `id:` | generated | DOM id. The host's stream answers target it; generated (`bpmn-editor-<hex>`) when omitted, so two editors on one page never share one |
 
 Any other option (`class:`, `aria:`…) lands on the wrapper element. `data:` is the document,
 so HTML data attributes go on a wrapper of your own.
@@ -232,7 +233,8 @@ marked items in each group's header ("3 pending confirmation"). Keys:
 ## Legend
 
 A collapsible legend floats over the canvas. Default entries: `task`,
-`sub_process`, `external_lane`, `external_task`, `issue`.
+`sub_process`, `external_lane`, `external_task`, `issue` — without the two external
+ones under `external_lanes: false`.
 
 ```ruby
 legend: { remove: %i[external_task],
@@ -244,6 +246,14 @@ Swatches: `task`, `sub_process`, `gateway`, `start_event`, `end_event`,
 `external_lane`, `external_task`, `issue`, `color` (needs `color:`). Review-note
 tags in use are added automatically.
 
+The related procedure (a collapsed sub-process with its [+]) is grey on the palette, the
+canvas, the legend, the minimap and the outputs alike. Its colour is one CSS custom
+property a host may set on the editor:
+
+```css
+.bali-bpmn-editor { --bpmn-sub-process: var(--color-secondary); }
+```
+
 ---
 
 ## Rules
@@ -252,11 +262,16 @@ Every rule has an id, a severity (`error` / `warning`), the element it points at
 and a message. **The draft always saves;** "Finalize flow" refuses while there is
 an error. Messages come from the i18n table (`rule_<ID>`), interpolating `%{name}`.
 
+Each key below changes a default: R16 is on and R17/R19 off out of the box, R11 is an
+error, and the options default to 2 lanes and 25 activities.
+
 ```ruby
-rules: { disabled: %i[R17], enabled: %i[R12 B07], severities: { R16: :warning },
+rules: { disabled: %i[R16], enabled: %i[R17 R19], severities: { R11: :warning },
          messages: { R06: "Name the trigger, not «%{name}»." },
-         options: { min_lanes: 2, min_activities: 2, max_activities: 25 } }
+         options: { min_lanes: 3, max_activities: 40 } }
 ```
+
+The options are positive whole numbers; anything else raises.
 
 On by default — the standard catalogue of #1489:
 
@@ -369,15 +384,17 @@ registerBpmnRule({
 
 The properties panel edits name and description, the timer expression, the
 sub-process reference and the review notes. The app adds its own fields, stored
-in the element's `fields`:
+in the element's `fields`: per node type (`"*"` for every node) and for lanes.
 
 ```ruby
-node_fields: {
-  "*" => [ { key: "owner_note", label: "Owner's note", type: "textarea" } ],
-  user_task: [ { key: "duration", label: "Duration (minutes)", type: "number", min: 0 },
-               { key: "systems", label: "Systems", type: "multi_select", url: "/systems/options" } ]
-},
-lane_fields: [ { key: "notes", label: "Notes", type: "textarea" } ]
+fields: {
+  nodes: {
+    "*" => [ { key: "owner_note", label: "Owner's note", type: "textarea" } ],
+    user_task: [ { key: "duration", label: "Duration (minutes)", type: "number", min: 0 },
+                 { key: "systems", label: "Systems", type: "multi_select", url: "/systems/options" } ]
+  },
+  lanes: [ { key: "notes", label: "Notes", type: "textarea" } ]
+}
 ```
 
 Types: `text`, `textarea`, `number`, `select`, `multi_select` (local `options:` or a
@@ -545,15 +562,17 @@ wider than a column empty).
 
 - **Download .bpmn**: BPMN 2.0 XML with diagram interchange. External lanes become
   participants of their own (message flows are only valid between participants);
-  a referenced sub-process becomes a call activity; unknown types travel in a
-  `bali:element` extension.
+  a referenced sub-process becomes a `callActivity` whose `calledElement` is the
+  reference's `id` — an `xsd:QName`, so an id that does not start with a letter or `_`
+  goes out prefixed (`101` → `_101`), like every other id in the file; an importer maps
+  it back. Unknown types travel in a `bali:element` extension.
 - **Download image (PNG) / SVG and Print**: the whole diagram, with the `name:` as title,
   `status_label` under it and the `watermark:` across. When it fits `page:` legibly it is laid
   on a sheet of that size, centred inside 10 mm margins and shrunk only as much as it must;
   otherwise it keeps its own size. Print uses the same sheet (`@page` of the page's size).
 - **Review notes**: numbered markers on elements, a text and a tag from
-  `annotation_tags:`, edited in the properties panel and saved in `annotations`.
-- **Comparison**: with `compare_with:`, "Compare" shows what was added (green),
+  `review: { tags: }`, edited in the properties panel and saved in `annotations`.
+- **Comparison**: with `review: { compare_with: }`, "Compare" shows what was added (green),
   removed (red) and changed (amber) — over one canvas or side by side — by element id.
 
 ---
