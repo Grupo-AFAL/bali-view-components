@@ -110,6 +110,10 @@ describe('BPMN editor island', () => {
       probe.remove()
       expect(getComputedStyle($svg[0].closest('.react-flow__minimap')).backgroundColor).to.eq(base)
       expect(getComputedStyle($svg[0].querySelector('.react-flow__minimap-mask')).fill).not.to.eq('rgba(240, 240, 240, 0.6)')
+      // React Flow's attribution, too: no white patch, no fixed #999.
+      const attribution = $svg[0].closest('.react-flow').querySelector('.react-flow__attribution')
+      expect(getComputedStyle(attribution).backgroundColor).not.to.eq('rgba(255, 255, 255, 0.5)')
+      expect(getComputedStyle(attribution.querySelector('a')).color).not.to.eq('rgb(153, 153, 153)')
     })
   })
 

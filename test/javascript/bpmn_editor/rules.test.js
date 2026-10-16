@@ -83,7 +83,7 @@ for (const [id, example] of Object.entries(RULE_EXAMPLES.rules)) {
 
 test('an example that also breaks another rule says why', () => {
   for (const [id, example] of Object.entries(RULE_EXAMPLES.rules)) {
-    if (example.also) assert.ok(example.why, `${id} lists also: without why`)
+    if (example.also) assert.ok(example.why && example.why.en && example.why.es, `${id} lists also: without its why in en and es`)
   }
 })
 

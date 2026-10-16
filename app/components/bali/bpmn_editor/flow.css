@@ -183,3 +183,10 @@
   background: var(--color-base-100); color: var(--color-base-content);
   font-size: 12px; line-height: 1.4; box-shadow: 0 4px 16px color-mix(in oklab, var(--color-base-content) 18%, transparent);
 }
+
+/* React Flow's attribution stays (its MIT licence lets it go, but the authors
+ * ask commercial users who hide it to subscribe to React Flow Pro); it takes
+ * the theme instead of its fixed white and #999, which a dark page shows as a
+ * light patch. */
+.bpmn-canvas .react-flow__attribution { --xy-attribution-background-color-default: color-mix(in oklab, var(--color-base-100) 70%, transparent); }
+.bpmn-canvas .react-flow__attribution a { color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }

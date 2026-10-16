@@ -135,6 +135,23 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # Every palette element appears with what it is, when to use it and what the
+  # editor does with it, in both languages.
+  def test_the_catalog_explains_every_palette_element_in_both_languages
+    { es: "Una unidad de trabajo", en: "An atomic unit of work" }.each do |locale, task_summary|
+      get "#{PREVIEW}/catalog", params: { locale: locale }
+      Bali::BpmnEditor::Palette::KEYS.each do |key|
+        %w[summary when editor].each do |text|
+          cell = css_select("tr[data-catalog-key='#{key}'] td[data-text='#{text}']").first
+          assert cell, "#{locale}: #{key} has no #{text} cell"
+          assert_predicate cell.text.strip, :present?, "#{locale}: #{key} #{text} is empty"
+        end
+      end
+      assert_match task_summary, css_select("tr[data-catalog-key='task'] td[data-text='summary']").first.text
+    end
+    assert_select "tr[data-catalog-key='task'] [data-rule='R01']"
+  end
+
   def test_the_configured_preview_hands_over_palette_notes_and_legend_on_its_own_record
     get "#{PREVIEW}/configured"
 

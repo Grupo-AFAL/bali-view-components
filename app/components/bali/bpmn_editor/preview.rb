@@ -158,14 +158,24 @@ module Bali
                        })
       end
 
-      # @label Catalog of shapes
-      # Every element of the palette, one row per group: on the left as its
-      # palette icon draws it (28 px), on the right as the canvas does, with
-      # its palette name. The two come from one drawing (shapes.jsx).
-      # docs/api/bpmn-editor.md#palette
+      # @label Catalog of elements
+      # Every element of the palette, grouped as the palette groups them: its
+      # icon and its canvas shape (one drawing, shapes.jsx), then a table with
+      # what it is, when to use it, what this editor does with it, the rules
+      # that check it and the palette presets it is in. The texts are the
+      # island's own strings (palette_<key>_summary/_when/_editor) and the
+      # rules come from their `appliesTo`. docs/api/bpmn-editor.md#palette
       # @param locale select { choices: [es, en] }
-      def catalog(locale: :es)
-        island(locale, data: BpmnSampleFlows.catalog(Bali::BpmnEditor::Translations.island(locale: locale)))
+      # @param theme select "Page theme" { choices: [light, dark] }
+      def catalog(locale: :es, theme: "light")
+        I18n.with_locale(locale) do
+          data = BpmnSampleFlows.catalog(Bali::BpmnEditor::Translations.island(locale: locale))
+          render_with_template(
+            template: "bali/bpmn_editor/previews/catalog",
+            locals: { component: Bali::BpmnEditor::Component.new(data: data), groups: BpmnElementCatalog.groups(locale),
+                      locale: locale, theme: theme.to_s }
+          )
+        end
       end
 
       # @label Two editors on one page

@@ -232,6 +232,17 @@ levels of Bruce Silver's *BPMN Method and Style*:
 marked items in each group's header ("3 pending confirmation"). Keys:
 `Bali::BpmnEditor::Palette::KEYS`.
 
+
+**What each element is.** Every palette item explains itself in a tooltip — on hover and
+on keyboard focus, in the palette and in the quick menu's "More": its name, what it is
+(`palette_<key>_summary`) and when to use it (`palette_<key>_when`), plus the app's note
+when there is one. A third string, `palette_<key>_editor`, says what this editor does with
+the element; it is shown in the Lookbook `catalog` preview, next to the rules that check
+the element (each rule declares the palette keys it applies to, `appliesTo`). The three
+are island strings like any other: an app replaces them with `i18n:`. The tooltip is
+portaled into the editor's root — a tooltip inside the scrolling palette would be
+clipped or give it a horizontal scrollbar — and takes the page's theme.
+
 ## Legend
 
 A collapsible legend floats over the canvas. Default entries: `task`,
@@ -612,6 +623,11 @@ The canvas is mouse-first, like the Gantt's: keep a non-canvas path to what matt
 `aria-label`s and `aria-pressed` states, labelled groups, dialogs with
 `aria-modal`, the pending panel and rules as lists, notices in live regions, visible
 focus, documented shortcuts, and a `<noscript>` notice in the mount.
+
+The canvas keeps React Flow's small attribution link, in the page's theme. Its MIT licence
+would let it go (`proOptions: { hideAttribution: true }`, which the Gantt uses), but the
+authors ask commercial users who hide it to subscribe to React Flow Pro; whether to hide it
+is the maintainers' call, not a default here.
 
 ## Lookbook previews
 

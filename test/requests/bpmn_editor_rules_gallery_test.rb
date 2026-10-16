@@ -79,4 +79,13 @@ class BpmnEditorRulesGalleryTest < ActionDispatch::IntegrationTest
     i18n = JSON.parse(css_select("[data-controller='bpmn-editor']").first["data-bpmn-editor-i18n-value"])
     assert_equal "Reglas", i18n["rules_button"]
   end
+
+  def test_the_gallery_texts_follow_the_locale
+    get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "COM-22", locale: "es" }
+    assert_select "[data-testid='bpmn-rules-gallery']", text: /Este flujo incumple la regla/
+    assert_select "[data-testid='bpmn-rules-gallery-also']", text: /También dispara R01: Un regreso directo/
+
+    get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "COM-22", locale: "en" }
+    assert_select "[data-testid='bpmn-rules-gallery']", text: /This flow breaks the rule/
+  end
 end

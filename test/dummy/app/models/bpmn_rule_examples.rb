@@ -40,6 +40,6 @@ module BpmnRuleExamples
     host = which.to_s == "failing" ? entry.slice("options", "allowed", "page") : {}
     also = which.to_s == "failing" ? BpmnSampleFlows.localize(entry["also"] || [], locale.to_s) : []
     { document: BpmnSampleFlows.localize(document, locale.to_s), options: host["options"], allowed: host["allowed"],
-      page: host["page"], also: also, why: (entry["why"] if also.any?) }
+      page: host["page"], also: also, why: (BpmnSampleFlows.localize(entry["why"], locale.to_s) if also.any?) }
   end
 end

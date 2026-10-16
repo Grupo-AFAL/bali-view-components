@@ -5,23 +5,33 @@
 <% bundle = optional_rules ? "bpmn-editor-island-with-rules" : "bpmn-editor-island" %>
 <%= react_island_meta_tags("bpmn-editor", js: "#{bundle}.js", css: "#{bundle}.css") %>
 <% texts = Bali::BpmnEditor::Translations.island(locale: locale) %>
+<% en = locale.to_s == "en" %>
 <div class="flex flex-col gap-3 p-4" data-testid="bpmn-rules-gallery" data-rule="<%= rule %>" data-example="<%= example %>">
   <div>
     <p class="text-sm font-semibold"><%= rule %> · <%= texts["rule_title_#{rule}"] || rule %></p>
     <p class="text-xs text-base-content/70">
-      <%= example == "failing" ? "This flow breaks the rule: the panel lists it." : "This flow follows the rule: the panel does not list it." %>
+      <% if example == "failing" %>
+        <%= en ? "This flow breaks the rule: the panel lists it." : "Este flujo incumple la regla: el panel la lista." %>
+      <% else %>
+        <%= en ? "This flow follows the rule: the panel does not list it." : "Este flujo cumple la regla: el panel no la lista." %>
+      <% end %>
     </p>
     <% also = sample[:also].reject { |id| BpmnRuleExamples.optional_rule_ids.include?(id) && !optional_rules } %>
     <% if also.any? %>
       <p class="text-xs text-base-content/70" data-testid="bpmn-rules-gallery-also">
-        It also raises <%= also.join(", ") %>: <%= sample[:why] %>
+        <%= en ? "It also raises" : "También dispara" %> <%= also.join(", ") %>: <%= sample[:why] %>
       </p>
     <% end %>
   </div>
   <% if optional && !optional_rules %>
     <%= render Bali::Alert::Component.new(color: :info, size: :sm, data: { testid: "bpmn-rules-gallery-optional" }) do %>
-      This rule belongs to the optional rule package, which is not loaded: turn on
-      <code>optional_rules</code> to see it run.
+      <% if en %>
+        This rule belongs to the optional rule package, which is not loaded: turn on
+        <code>optional_rules</code> to see it run.
+      <% else %>
+        Esta regla es del paquete de reglas opcional, que no está cargado: activa
+        <code>optional_rules</code> para verla funcionar.
+      <% end %>
     <% end %>
   <% end %>
   <%= I18n.with_locale(locale) { render Bali::BpmnEditor::Component.new(
