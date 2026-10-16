@@ -174,3 +174,12 @@
   .bpmn-chrome { display: none !important; }
 }
 .bpmn-note-chip { padding: 0 6px; background: color-mix(in oklab, var(--color-warning) 12%, transparent); white-space: nowrap; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -1px; font-size: 10px; font-weight: 600; }
+
+/* The palette's tooltip (chrome/Hint.jsx): portaled into the editor's root,
+ * positioned against the viewport, in the page's theme. */
+.bpmn-hint {
+  position: fixed; z-index: 60; width: 280px; pointer-events: none;
+  padding: 8px 10px; border: 1px solid var(--color-base-300); border-radius: 8px;
+  background: var(--color-base-100); color: var(--color-base-content);
+  font-size: 12px; line-height: 1.4; box-shadow: 0 4px 16px color-mix(in oklab, var(--color-base-content) 18%, transparent);
+}

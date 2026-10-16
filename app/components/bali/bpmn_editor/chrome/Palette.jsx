@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { PALETTE_GROUPS, PALETTE_ITEMS } from '../model/catalog.js'
 import { NodeIcon, ConnectorIcon, LaneIcon } from '../shapes.jsx'
 import Icon from './icons.jsx'
+import { Hint, PaletteHint } from './Hint.jsx'
 
 export const PALETTE_MIME = 'application/x-bali-bpmn-palette'
 
@@ -83,22 +84,27 @@ export default function Palette ({ t, palette, tool, onPick, onAddLane, collapse
                     const off = disabled || it.state === 'disabled'
                     const active = tool && tool.key === it.key
                     const placeable = Boolean(def.node) && !off
+                    // aria-disabled, not disabled: a disabled button gets no hover
+                    // or focus, and its tooltip (with the app's note) would not show.
                     return (
-                      <button
-                        key={it.key}
-                        type='button'
-                        className={`bpmn-palette-item btn btn-ghost btn-sm btn-square h-9 w-9 ${it.note ? 'has-note' : ''} ${active ? 'btn-active ring-1 ring-primary' : ''}`}
-                        disabled={off}
-                        title={it.note ? `${label} · ${it.note}` : label}
-                        aria-label={it.note ? `${label} (${it.note})` : label}
-                        aria-pressed={active ? 'true' : 'false'}
-                        draggable={placeable}
-                        data-palette-key={it.key}
-                        onDragStart={(e) => { e.dataTransfer.setData(PALETTE_MIME, it.key); e.dataTransfer.effectAllowed = 'copy' }}
-                        onClick={() => (def.tool === 'lane' ? onAddLane() : onPick(active ? null : it.key))}
-                      >
-                        <ItemIcon itemKey={it.key} />
-                      </button>
+                      <Hint key={it.key} content={<PaletteHint t={t} itemKey={it.key} note={it.note} />}>
+                        {(hint) => (
+                          <button
+                            type='button'
+                            className={`bpmn-palette-item btn btn-ghost btn-sm btn-square h-9 w-9 ${it.note ? 'has-note' : ''} ${active ? 'btn-active ring-1 ring-primary' : ''} ${off ? 'btn-disabled pointer-events-auto' : ''}`}
+                            aria-disabled={off ? 'true' : undefined}
+                            aria-label={it.note ? `${label} (${it.note})` : label}
+                            aria-pressed={active ? 'true' : 'false'}
+                            draggable={placeable}
+                            data-palette-key={it.key}
+                            {...hint}
+                            onDragStart={(e) => { if (!placeable) { e.preventDefault(); return } e.dataTransfer.setData(PALETTE_MIME, it.key); e.dataTransfer.effectAllowed = 'copy' }}
+                            onClick={() => { if (off) return; if (def.tool === 'lane') onAddLane(); else onPick(active ? null : it.key) }}
+                          >
+                            <ItemIcon itemKey={it.key} />
+                          </button>
+                        )}
+                      </Hint>
                     )
                   })}
                 </div>

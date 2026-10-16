@@ -262,6 +262,24 @@ describe('BPMN editor island', () => {
       })
     })
 
+    // The palette explains each element: name, what it is, when to use it —
+    // on hover and on keyboard focus, gone when the pointer or focus leaves.
+    it('shows what a palette element is on hover and on focus', () => {
+      cy.get('[data-palette-key="user_task"]').trigger('mouseover')
+      cy.get('[data-testid="bpmn-hint"]').should('be.visible')
+        .and('contain', 'Tarea de usuario')
+        .and('contain', 'Trabajo que una persona hace con ayuda de una aplicación')
+        .invoke('attr', 'id').then((id) => {
+          cy.get('[data-palette-key="user_task"]').should('have.attr', 'aria-describedby', id)
+        })
+      cy.get('[data-palette-key="user_task"]').trigger('mouseout')
+      cy.get('[data-testid="bpmn-hint"]').should('not.exist')
+      cy.get('[data-palette-key="exclusive_gateway"]').focus()
+      cy.get('[data-testid="bpmn-hint"]').should('contain', 'Gateway exclusivo')
+      cy.get('[data-palette-key="exclusive_gateway"]').blur()
+      cy.get('[data-testid="bpmn-hint"]').should('not.exist')
+    })
+
     it('undoes and redoes with the keyboard', () => {
       nodeNamed('¿La factura es válida?').click()
       cy.get('[data-testid="bpmn-quick-menu"] [data-quick="end_event"]').click()

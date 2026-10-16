@@ -41,6 +41,7 @@ import Legend from './chrome/Legend.jsx'
 import PendingPanel from './chrome/PendingPanel.jsx'
 import RulesDialog from './chrome/RulesDialog.jsx'
 import QuickMenu from './chrome/QuickMenu.jsx'
+import { HintLayer } from './chrome/Hint.jsx'
 import Stencil, { STENCIL_MIME } from './chrome/Stencil.jsx'
 import { openDrawerUrl } from '../../../frontend/bali/utils/drawer.js'
 import { withParams } from './model/urls.js'
@@ -724,6 +725,7 @@ function Editor ({
 
   return (
     <CanvasContext.Provider value={canvas}>
+      <HintLayer rootRef={wrapperRef}>
       <div
         ref={wrapperRef}
         className={`bpmn-editor relative flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm outline-none ${fullscreen ? 'h-screen' : ''}`}
@@ -877,6 +879,7 @@ function Editor ({
         )}
         {dialog === 'rules' && <RulesDialog t={t} rules={ruleList(rules || {})} onClose={() => setDialog(null)} />}
       </div>
+      </HintLayer>
     </CanvasContext.Provider>
   )
 }

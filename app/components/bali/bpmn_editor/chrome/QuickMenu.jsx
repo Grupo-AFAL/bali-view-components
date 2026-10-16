@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { PALETTE_ITEMS } from '../model/catalog.js'
 import { NodeIcon } from '../shapes.jsx'
 import Icon from './icons.jsx'
+import { Hint, PaletteHint } from './Hint.jsx'
 
 // The four quick picks and, under "More", the rest of the palette's node
 // items. Only what the host left enabled in the palette is offered.
@@ -80,9 +81,13 @@ export default function QuickMenu ({ t, enabled, direction, onDirection, onAdd, 
       {more && (
         <div className='grid max-h-48 grid-cols-6 gap-0.5 overflow-y-auto border-t border-base-300 pt-1'>
           {extra.map((key) => (
-            <button key={key} type='button' className={`btn btn-ghost btn-xs btn-square h-8 w-8 ${blocked[direction] ? 'btn-disabled pointer-events-auto' : ''}`} title={blocked[direction] || t(`palette_${key}`)} aria-label={t(`palette_${key}`)} aria-disabled={blocked[direction] ? 'true' : undefined} data-quick={key} aria-pressed={pending === key ? 'true' : undefined} onClick={() => add(key)}>
-              <NodeIcon node={PALETTE_ITEMS[key].node} size={22} />
-            </button>
+            <Hint key={key} content={blocked[direction] ? null : <PaletteHint t={t} itemKey={key} />}>
+              {(hint) => (
+                <button type='button' className={`btn btn-ghost btn-xs btn-square h-8 w-8 ${blocked[direction] ? 'btn-disabled pointer-events-auto' : ''}`} title={blocked[direction] || undefined} aria-label={t(`palette_${key}`)} aria-disabled={blocked[direction] ? 'true' : undefined} data-quick={key} aria-pressed={pending === key ? 'true' : undefined} {...hint} onClick={() => add(key)}>
+                  <NodeIcon node={PALETTE_ITEMS[key].node} size={22} />
+                </button>
+              )}
+            </Hint>
           ))}
         </div>
       )}
