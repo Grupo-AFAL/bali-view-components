@@ -13,7 +13,9 @@ const soft = (token, amount = 12) => `color-mix(in oklab, var(${token}) ${amount
 export const LIVE_PAINT = {
   activity: { fill: soft('--color-primary', 10), stroke: 'var(--color-primary)' },
   externalActivity: { fill: 'var(--color-base-100)', stroke: 'var(--color-primary)' },
-  subProcess: { fill: soft('--color-secondary', 10), stroke: 'var(--color-secondary)' },
+  // Violet between the activity's primary and the theme's secondary: a
+  // sub-process reads as an activity, set apart (the design's purple).
+  subProcess: { fill: 'color-mix(in oklab, color-mix(in oklab, var(--color-primary) 60%, var(--color-secondary)) 10%, var(--color-base-100))', stroke: 'color-mix(in oklab, var(--color-primary) 60%, var(--color-secondary))' },
   gateway: { fill: soft('--color-warning', 12), stroke: 'var(--color-warning)' },
   start: { fill: soft('--color-success', 12), stroke: 'var(--color-success)' },
   intermediate: { fill: 'var(--color-base-100)', stroke: 'var(--color-warning)' },
@@ -119,9 +121,9 @@ function GatewayShape ({ node, w, h, paint }) {
       inner = (
         <g>
           <circle cx={cx} cy={cy} r={11 * k} fill='none' stroke={colors.stroke} strokeWidth={1.3} />
-          {!node.instantiate && <circle cx={cx} cy={cy} r={8.5 * k} fill='none' stroke={colors.stroke} strokeWidth={1.3} />}
+          {!node.instantiate && !parallel && <circle cx={cx} cy={cy} r={8.5 * k} fill='none' stroke={colors.stroke} strokeWidth={1.3} />}
           {parallel
-            ? <path d={`M${cx},${cy - 6 * k} L${cx},${cy + 6 * k} M${cx - 6 * k},${cy} L${cx + 6 * k},${cy}`} stroke={colors.stroke} strokeWidth={1.6} />
+            ? <path d={`M${cx - 2 * k},${cy - 7 * k} h${4 * k} v${5 * k} h${5 * k} v${4 * k} h${-5 * k} v${5 * k} h${-4 * k} v${-5 * k} h${-5 * k} v${-4 * k} h${5 * k} Z`} fill='none' stroke={colors.stroke} strokeWidth={1.3} strokeLinejoin='round' />
             : <path d={`M${cx},${cy - 5.5 * k} L${cx + 5.2 * k},${cy - 1.7 * k} L${cx + 3.2 * k},${cy + 4.5 * k} L${cx - 3.2 * k},${cy + 4.5 * k} L${cx - 5.2 * k},${cy - 1.7 * k} Z`} fill='none' stroke={colors.stroke} strokeWidth={1.3} />}
         </g>
       )
@@ -137,10 +139,10 @@ function GatewayShape ({ node, w, h, paint }) {
   )
 }
 
-// Task-type marker in the top-left corner (BPMN 2.0 §10.3.3).
-export function TaskMarker ({ type, x, y, color, background }) {
-  const line = { stroke: color, strokeWidth: 1.3, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }
-  const t = `translate(${x} ${y})`
+// Task-type marker in the top-left corner (BPMN 2.0 §10.3.3), 16 px at `scale` 1.
+export function TaskMarker ({ type, x, y, color, background, scale = 1 }) {
+  const line = { stroke: color, strokeWidth: 1.3 / scale, fill: 'none', strokeLinecap: 'round', strokeLinejoin: 'round' }
+  const t = `translate(${x} ${y}) scale(${scale})`
   switch (type) {
     case 'user_task':
       return <g transform={t}><circle cx={8} cy={5} r={3.2} {...line} /><path d='M2,15 C2.5,10.5 5,9 8,9 C11,9 13.5,10.5 14,15 Z' {...line} /></g>
@@ -160,22 +162,33 @@ export function TaskMarker ({ type, x, y, color, background }) {
   }
 }
 
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
+
+// A rounded rectangle (BPMN 2.0, Activities › Task), its corner radius a
+// tenth of its height, the marker scaled with it: the canvas node (64 px
+// high) and the palette icon (21 px) are the same figure. The markers keep a
+// legible floor at icon size.
 function ActivityShape ({ node, w, h, paint, external }) {
   const colors = paintFor(node, paint, external)
   const sub = node.type === 'sub_process'
   const unlinked = sub && !node.reference
+  const scale = clamp(h / 64, 0.7, 1)
+  // Collapsed sub-process marker: a small [+] at the bottom centre (BPMN 2.0,
+  // Activities › Sub-Process).
+  const plus = clamp(h * 0.22, 8, 14)
+  const plusY = h - plus - clamp(h * 0.05, 1.5, 3)
   return (
     <g>
       <rect
-        x={1} y={1} width={w - 2} height={h - 2} rx={9}
+        x={1} y={1} width={w - 2} height={h - 2} rx={Math.round(h * 0.1 * 10) / 10}
         style={{ fill: colors.fill, stroke: colors.stroke }}
-        strokeWidth={sub ? 2.4 : 1.5} strokeDasharray={unlinked ? '5 3' : undefined}
+        strokeWidth={sub ? 2.2 : 1.5} strokeDasharray={unlinked ? '5 3' : undefined}
       />
-      <TaskMarker type={node.type} x={6} y={5} color={colors.stroke} background={paint.marker} />
+      <TaskMarker type={node.type} x={6 * scale} y={5 * scale} scale={scale} color={colors.stroke} background={paint.marker} />
       {sub && (
         <g>
-          <rect x={w / 2 - 7} y={h - 16} width={14} height={13} rx={1.5} style={{ fill: paint.marker, stroke: colors.stroke }} strokeWidth={1.3} />
-          <path d={`M${w / 2},${h - 13} v7 M${w / 2 - 3.5},${h - 9.5} h7`} style={{ stroke: colors.stroke }} strokeWidth={1.3} />
+          <rect x={w / 2 - plus / 2} y={plusY} width={plus} height={plus} rx={1} style={{ fill: paint.marker, stroke: colors.stroke }} strokeWidth={1.2} />
+          <path d={`M${w / 2},${plusY + plus * 0.22} v${plus * 0.56} M${w / 2 - plus * 0.28},${plusY + plus / 2} h${plus * 0.56}`} style={{ stroke: colors.stroke }} strokeWidth={1.2} />
         </g>
       )}
     </g>
@@ -213,7 +226,10 @@ function DataShape ({ node, w, h, paint }) {
 function ArtifactShape ({ node, w, h, paint }) {
   const stroke = paint.neutral.stroke
   if (node.type === 'group') {
-    return <rect x={1} y={1} width={w - 2} height={h - 2} rx={10} fill='none' style={{ stroke }} strokeWidth={1.4} strokeDasharray='8 4 2 4' />
+    // Rounded rectangle, dash-dot border (BPMN 2.0, Artifacts › Group); the
+    // dashes scale with it.
+    const k = clamp(h / 60, 0.4, 1)
+    return <rect x={1} y={1} width={w - 2} height={h - 2} rx={Math.round(h * 0.1 * 10) / 10} fill='none' style={{ stroke }} strokeWidth={1.4} strokeDasharray={[8, 4, 2, 4].map((d) => d * k).join(' ')} />
   }
   return <path d={`M14,1 L1,1 L1,${h - 1} L14,${h - 1}`} fill='none' style={{ stroke }} strokeWidth={1.5} />
 }
@@ -231,17 +247,22 @@ export function NodeShape ({ node, width, height, paint = LIVE_PAINT, external =
   }
 }
 
-// Icon of a palette item: the element's own shape at icon scale.
-export function NodeIcon ({ node, size = 28 }) {
+// Icon of a palette item, the quick menu and the legend: the element's own
+// shape (NodeShape, as on the canvas) in a box of the icon's size — 4:3 for
+// activities and groups, as BPMN draws them, upright for data.
+export function iconBox (node, size) {
   const category = categoryOf(node)
-  const w = category === CATEGORY.activity ? size : category === CATEGORY.data ? size * 0.72 : size
-  const h = category === CATEGORY.activity ? size * 0.72 : size
-  const box = { width: w, height: h }
+  if (category === CATEGORY.activity || node.type === 'group') return { width: size, height: Math.round(size * 0.75) }
+  if (category === CATEGORY.data) return { width: Math.round(size * 0.72), height: size }
+  if (node.type === 'text_annotation') return { width: size - 4, height: size - 4 }
+  return { width: size, height: size }
+}
+
+export function NodeIcon ({ node, size = 28, external = false }) {
+  const { width: w, height: h } = iconBox(node, size)
   return (
-    <svg width={size} height={size} viewBox={`${-(size - w) / 2} ${-(size - h) / 2} ${size} ${size}`} aria-hidden='true'>
-      {node.type === 'text_annotation' || node.type === 'group'
-        ? <NodeShape node={node} width={size - 4} height={size - 4} />
-        : <NodeShape node={node} {...box} />}
+    <svg width={size} height={size} viewBox={`${-(size - w) / 2} ${-(size - h) / 2} ${size} ${size}`} aria-hidden='true' data-icon={node.type}>
+      <NodeShape node={node} width={w} height={h} external={external} />
     </svg>
   )
 }

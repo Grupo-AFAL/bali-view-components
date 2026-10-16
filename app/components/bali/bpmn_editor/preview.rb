@@ -82,6 +82,14 @@ module Bali
         island(:es, data: BpmnSampleFlows.large)
       end
 
+      # @label Catalog of shapes
+      # Every element of the palette, one row per group: on the left as its
+      # palette icon draws it (28 px), on the right as the canvas does, with
+      # its palette name. The two come from one drawing (shapes.jsx).
+      def catalog
+        island(:es, data: BpmnSampleFlows.catalog(Bali::BpmnEditor::Translations.island(locale: :es)))
+      end
+
       # An empty document still mounts the island and its empty canvas.
       def empty
         island(:es, data: { version: 1, lanes: [], nodes: [], edges: [] })

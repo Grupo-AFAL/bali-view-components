@@ -125,6 +125,23 @@ describe('BPMN editor island', () => {
       cy.get('.react-flow__node-bpmn.selected').should('contain', 'Fin')
     })
 
+    // BPMN 2.0 notation: an activity is a rectangle with rounded corners, not
+    // a pill; a group a rounded rectangle; a collapsed sub-process carries its
+    // [+] at the bottom centre.
+    it('draws the palette icons as the BPMN shapes they create', () => {
+      const shape = (key) => cy.get(`[data-palette-key="${key}"] svg rect`).first()
+      const ratio = ($rect, attr) => Number($rect.attr('rx')) / Number($rect.attr(attr))
+      shape('task').should(($rect) => expect(ratio($rect, 'height')).to.be.at.most(0.15))
+      shape('group').should(($rect) => {
+        expect(ratio($rect, 'height')).to.be.at.most(0.15)
+        expect(Number($rect.attr('width')) / Number($rect.attr('height'))).to.be.greaterThan(1.2)
+      })
+      cy.get('[data-palette-key="sub_process"] svg rect').then(($rects) => {
+        const [frame, marker] = [$rects[0], $rects[1]]
+        expect(Number(marker.getAttribute('y'))).to.be.greaterThan(Number(frame.getAttribute('height')) / 2)
+      })
+    })
+
     it('marks an external lane grey and its activities white', () => {
       cy.get('[data-testid="bpmn-lane"].is-external').should('have.length', 1)
       // Same shape, different fill: the external activity is drawn on the

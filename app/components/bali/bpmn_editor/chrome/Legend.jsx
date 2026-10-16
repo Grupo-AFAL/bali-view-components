@@ -1,21 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Panel, useOnViewportChange } from '@xyflow/react'
-import { NodeShape, LIVE_PAINT } from '../shapes.jsx'
+import { NodeShape, NodeIcon } from '../shapes.jsx'
 import Icon from './icons.jsx'
 
 // Swatches the legend draws. Mirrors Bali::BpmnEditor::Component::LEGEND_SWATCHES.
 function Swatch ({ swatch, color }) {
-  // Plain rounded boxes, as in the design: at this size the canvas shapes'
-  // markers would only be noise.
-  const box = (paint, width = 1.5) => (
-    <svg width={24} height={16} aria-hidden='true'>
-      <rect x={1} y={1} width={22} height={14} rx={3} style={{ fill: paint.fill, stroke: paint.stroke }} strokeWidth={width} />
-    </svg>
-  )
+  // The canvas shapes themselves (shapes.jsx), so a colour here is the
+  // element's colour there.
   switch (swatch) {
-    case 'task': return box(LIVE_PAINT.activity)
-    case 'sub_process': return box(LIVE_PAINT.subProcess, 2)
-    case 'external_task': return box(LIVE_PAINT.externalActivity)
+    case 'task': return <NodeIcon node={{ type: 'task' }} size={24} />
+    case 'sub_process': return <NodeIcon node={{ type: 'sub_process', reference: {} }} size={24} />
+    case 'external_task': return <NodeIcon node={{ type: 'task' }} size={24} external />
     case 'gateway': return <svg width={24} height={18} aria-hidden='true'><g transform='translate(3 0)'><NodeShape node={{ type: 'exclusive_gateway' }} width={18} height={18} /></g></svg>
     case 'start_event': return <svg width={24} height={18} aria-hidden='true'><g transform='translate(3 0)'><NodeShape node={{ type: 'start_event' }} width={18} height={18} /></g></svg>
     case 'end_event': return <svg width={24} height={18} aria-hidden='true'><g transform='translate(3 0)'><NodeShape node={{ type: 'end_event' }} width={18} height={18} /></g></svg>

@@ -512,11 +512,12 @@ focus, documented shortcuts, and a `<noscript>` notice in the mount.
 |---|---|
 | `bali/bpmn_editor/default` | Read-only, horizontal lanes, an external participant |
 | `bali/bpmn_editor/vertical` | Vertical lanes, laid out on load |
-| `bali/bpmn_editor/editable` | The full editor against the dummy's endpoints (`bin/rails db:seed`; edits persist) |
+| `bali/bpmn_editor/editable` | The full editor against the dummy's endpoints; starts from the clean sample on each load (`fresh`, off to keep your edits) |
 | `bali/bpmn_editor/configured` | Palette with disabled items and notes; legend with added/removed entries |
 | `bali/bpmn_editor/review` | Review notes, comparison and the watermarked outputs |
 | `bali/bpmn_editor/large` | 60 activities and 10 decisions over four lanes |
 | `bali/bpmn_editor/empty` | An empty document |
+| `bali/bpmn_editor/catalog` | Every palette element as its icon draws it and as the canvas does, with its name |
 
 `/admin/process_flows/:id` in the dummy is the editor in a real layout, with the
 drawers of the extension points working.

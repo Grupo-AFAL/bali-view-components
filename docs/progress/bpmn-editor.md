@@ -351,6 +351,57 @@ promedio; tras «Autoajustar», 0 duras, 1 cruce, 0.67.
 - `newId` determinista para poder reproducir secuencias en las pruebas por propiedades.
 - El tecleo en el panel, redimensionar carriles y mover el pool no disparan el acomodo.
 
+## BPMN-R · Ajuste local siempre activo, ramificar y notación
+
+### Ajuste local siempre activo
+
+Se quitaron el interruptor «Ajuste automático» y la opción `auto_arrange:` (nunca se
+publicaron). El ajuste local corre tras cada edición y ni el usuario ni la app lo apagan;
+«Autoajustar» queda como la acción global. Al borrar, el tramo del flujo que queda vacío en
+todos los carriles y es más ancho que una columna se cierra: lo que sigue se recorre hacia
+atrás, todos los carriles juntos, y nada de lo que está antes del hueco se mueve. La métrica
+cuenta `emptyStretches`, y las pruebas por propiedades fallan si un borrado deja un hueco así.
+El bloqueo por encimado (R18) dejó de usarse: el ajuste recorre en vez de rechazar; R18 sigue
+como pendiente si los datos de la app traen un encimado.
+
+### Ramificar
+
+Caso del usuario: «Registrar pago» con una salida hacia arriba y otra pedida a la derecha. El
+menú rápido ya no falla: ofrece «Bifurcar con: Decisión (exclusivo) · Paralelo» (e Inclusivo si
+la paleta lo trae), inserta el gateway tras la actividad, pasa la salida existente por él y pone
+el elemento nuevo como segunda rama, en un solo paso de deshacer; las ramas quedan sin nombre
+(R03 pendiente). Si la salida ya va a un gateway de apertura, el elemento es otra rama de ése.
+Una dirección imposible se deshabilita con el motivo en el tooltip. Al conectar a mano el
+bloqueo sigue y el aviso ofrece «Agregar gateway».
+
+### Auditoría de figuras
+
+Todas las figuras salen de `shapes.jsx` (`NodeShape`): el lienzo, la paleta, el menú rápido,
+«Más…», la leyenda y la exportación. El ícono es la misma figura en una caja de 28 px (4:3 para
+actividades y grupos), con el radio y los marcadores proporcionales a la altura. La preview
+`catalog` dibuja cada elemento como lo dibuja su ícono y como lo dibuja el lienzo, con su
+nombre debajo.
+
+| Elemento | Notación esperada | Estado | Referencia (OMG BPMN 2.0.2, cap. de notación) |
+|---|---|---|---|
+| Tarea (task) | rectángulo redondeado, radio 10 % de la altura | corregido (el ícono salía como píldora: rx 9 en 20 px) | Activities › Task |
+| Tareas de usuario, servicio, envío, recepción, script, regla de negocio, manual | rectángulo redondeado con el marcador de tipo arriba a la izquierda; envío relleno, recepción hueco | corregido (forma del ícono; el marcador escala con la altura, con piso legible) | Activities › Task types (markers) |
+| Subproceso colapsado | rectángulo redondeado, [+] pequeño abajo al centro; el mismo violeta en paleta, lienzo y leyenda | corregido ([+] centrado y grande en el ícono; rosa en vez del morado del diseño) | Activities › Sub-Process (collapsed marker) |
+| Gateway exclusivo, paralelo, inclusivo, complejo | rombo con X, +, círculo grueso y asterisco | correcto | Gateways |
+| Gateway basado en eventos | rombo, doble círculo y pentágono | correcto | Gateways › Event-Based Gateway |
+| Basado en eventos de inicio | rombo, círculo sencillo y pentágono | correcto | Gateways › Event-Based Gateway (instantiate) |
+| Paralelo basado en eventos | rombo, círculo sencillo y cruz hueca | corregido (salía con doble círculo y una cruz de trazo) | Gateways › Event-Based Gateway (parallel) |
+| Eventos de inicio (vacío, tiempo, mensaje, condicional, señal, múltiple, paralelo múltiple) | círculo de trazo delgado, glifo de captura hueco | correcto | Events › Start Event |
+| Eventos intermedios de captura y de lanzamiento | doble trazo; captura hueca, lanzamiento relleno | correcto | Events › Intermediate Event |
+| Eventos de fin (todos) | trazo grueso, glifo relleno | correcto | Events › End Event |
+| Anotación de texto | corchete abierto | correcto | Artifacts › Text Annotation |
+| Grupo | rectángulo redondeado, trazo raya-punto | corregido (el ícono salía como círculo punteado) | Artifacts › Group |
+| Objeto de datos, colección, entrada, salida | hoja con esquina doblada; tres barras; flecha hueca; flecha rellena | correcto | Items and Data › Data Object, Data Input/Output |
+| Almacén de datos | cilindro | correcto | Items and Data › Data Store |
+| Flujo de secuencia | línea continua, punta rellena | correcto | Connecting Objects › Sequence Flow |
+| Flujo de mensaje | línea discontinua, círculo hueco en el origen, punta hueca | correcto | Collaboration › Message Flow |
+| Asociación | línea punteada | correcto | Artifacts › Association |
+
 ## Pendiente y siguiente paso
 
 - **Importar BPMN en el cliente:** no se hizo; el botón abre el drawer de la app (`urls[:import]`)
