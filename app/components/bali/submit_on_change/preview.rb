@@ -9,7 +9,7 @@ module Bali
       # controller used to hand such options to SlimSelect as `data`, which rewrites the native
       # <select>, and on SlimSelect 3.x that rewrite dispatched a `change` while the widget was
       # initializing. Without the connect guard the form submitted before anyone touched it.
-      # 4.x dispatches none and, since #1495, nothing rewrites the <select>.
+      # 4.5.0 dispatched none and, since #1495, nothing rewrites the <select>.
       # Integer values because `form_records.select` is an integer column, so the widget
       # comes back showing whatever the last submit sent.
       OPTIONS = [

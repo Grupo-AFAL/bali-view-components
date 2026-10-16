@@ -147,8 +147,9 @@ export class SlimSelectController extends Controller {
       }
 
       // SlimSelect reads an option's markup from `data-html`; `data-inner-html` is the name Bali
-      // documents and hosts write. Copied, not handed over as `data`: that rewrites the <select>
-      // and drops every attribute SlimSelect does not map, the placeholder flag and the groups too.
+      // documents and hosts write. Copied, not handed over as `data`: SlimSelect rebuilds the
+      // <select> from `data`, keeping only the attributes it maps, and 3.x dispatches a `change`
+      // doing it.
       for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
         option.dataset.html = option.dataset.innerHtml
       }
