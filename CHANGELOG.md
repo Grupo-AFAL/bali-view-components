@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **La llave `bali_view.form_builder.date_fields.range_separator`** (hallado al resolver #1495). El
   FormBuilder escribe y parte un rango con `Bali::Types::DateRangeValue.separator`, el mismo que usa
-  flatpickr; con la cadena de fallbacks de la app, la llave podía decir otra cosa. Una app que la
-  sobrescriba deja de tener efecto; ninguna de las siete lo hace. Nada que hacer en la app.
+  flatpickr; con la cadena de fallbacks de la app, la llave podía decir otra cosa. Si una app la
+  sobrescribe, su valor deja de tener efecto; ninguna de las siete lo hace. Nada que hacer en la app.
 
 ### Fixed
 
