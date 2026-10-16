@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
   `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
 
+- **`checkbox-toggle`, `radio-toggle` y `checkbox-reveal` siguen lo que hay en pantalla tras un
+  Turbo Stream con morph, y `checkbox-toggle` pinta todos los targets de cada lado** (hallado al
+  resolver #1495). Un `turbo_stream.replace(…, method: :morph)` conserva el elemento: el target se
+  quedaba con el `hidden` y, con `disable-hidden`, el `disabled` que mandó el servidor, y si el
+  morph cambiaba el radio o la casilla, los targets seguían la elección anterior. Ahora, tras un
+  morph, la elección es el control que se ve; el atributo de valor sólo da el estado inicial.
+  `checkbox-reveal` tampoco pintaba un `item` reemplazado sin morph, ni él ni `radio-toggle`
+  seguían una casilla target reemplazada, y un segundo `on` u `off` no se pintaba nunca. Un
+  `toggleTargets` sobrescrito en una subclase corre ahora tras cada elemento que el morph
+  transforma dentro del controlador, varias veces por stream: tiene que ser idempotente. Ninguna
+  app hace hoy nada de esto: nada que hacer en la app.
+
 - **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
   accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el
   `date.formats.long` de la app: «5 de marzo de 2026» con rails-i18n, «March 05, 2026» en inglés.
@@ -27,11 +39,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ArchivalNotice`. Las siete apps en Bali 3 la tienen: nada que hacer en la app. En
   gobierno-corporativo la vista de año toma su propio `:long`.
 
-- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda** (#1495, desde
-  v3.11.0, con SlimSelect 4). Al elegir un resultado que no venía en la semilla, SlimSelect lo
-  ponía delante del placeholder y la ✕ lo volvía a elegir: el valor no cambiaba. Afecta sólo a
-  los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
-  hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda, con la lista cerrada
+  o todavía abierta** (#1495, desde v3.11.0, con SlimSelect 4). Al elegir un resultado que no
+  venía en la semilla, SlimSelect lo ponía delante del placeholder y la ✕ lo volvía a elegir: el
+  valor no cambiaba. Con la lista todavía abierta, la ✕ vaciaba el valor pero mostraba el texto por
+  omisión («Select value») en vez del placeholder, y dejaba una segunda `<option value="">`. Afecta
+  sólo a los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app
+  escribe hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+
+- **SlimSelect remoto: un resultado que ya está en la semilla no sale dos veces**. El registro ya
+  no se repite en la lista ni en el `<select>`, y una búsqueda que encuentra el valor ya elegido no
+  vuelve a llamar a `after_change_fetch_url`. En gobierno-corporativo lo ven los cuatro
+  `PositionSelect` de las nominaciones, que ya no piden dos veces el aviso del nominado, y los
+  selects remotos cuyo endpoint responde ids numéricos: entidad y producto de las solicitudes de
+  acceso, fuentes y columnas del glosario y áreas de los recordatorios. En éstas, un área de la
+  semilla elegida en una búsqueda se lee como en la semilla al cerrar la lista: «Finanzas», no
+  «Finanzas (Dirección)». Nada que hacer en la app.
 
 - **Un filtro `slim_select` de `SimpleFilters` muestra completo el valor elegido** (#1495). «Beto»
   se veía «B»: el valor se quedaba 20 px corto dentro de una columna que se ajusta a su contenido.

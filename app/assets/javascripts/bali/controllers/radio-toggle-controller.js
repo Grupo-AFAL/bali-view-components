@@ -1,10 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
+import { wiredInputs } from '../utils/wired-inputs.js'
 
 /**
  * Shows different elements based on the value of a radio button
  *
  * <div data-controller="radio-toggle" data-radio-toggle-current-value="one">
- *   <input type="radio" data-action="radio-toggle#change" value="one">
+ *   <input type="radio" data-action="radio-toggle#change" value="one" checked>
  *   <input type="radio" data-action="radio-toggle#change" value="two">
  *
  *   <div data-radio-toggle-target="element" data-radio-toggle-value="one">
@@ -20,7 +21,7 @@ import { Controller } from '@hotwired/stimulus'
  * Shows the same result with multiple radio buttons value
  *
  * <div data-controller="radio-toggle" data-radio-toggle-current-value="one">
- *   <input type="radio" data-action="radio-toggle#change" value="one">
+ *   <input type="radio" data-action="radio-toggle#change" value="one" checked>
  *   <input type="radio" data-action="radio-toggle#change" value="two">
  *
  *   <div data-radio-toggle-target="element" data-radio-toggle-value="one">
@@ -48,6 +49,16 @@ export class RadioToggleController extends Controller {
   static targets = ['element', 'checkbox']
   static values = { current: String, disableHidden: Boolean }
 
+  // A stream with `method="morph"` keeps the target, so no `elementTargetConnected`
+  // runs for it and it would keep what the server painted.
+  connect () {
+    this.element.addEventListener('turbo:morph-element', this.retoggle)
+  }
+
+  disconnect () {
+    this.element.removeEventListener('turbo:morph-element', this.retoggle)
+  }
+
   change (event) {
     if (event.target.type !== 'checkbox') this.currentValue = event.target.value
 
@@ -59,6 +70,20 @@ export class RadioToggleController extends Controller {
   // and takes the choice on screen rather than the one the server painted.
   elementTargetConnected (element) {
     this.toggle(element)
+  }
+
+  // A checkbox a Turbo Stream replaces brings its own state, and no event says so.
+  checkboxTargetConnected () {
+    this.toggleTargets()
+  }
+
+  // A morph that checks another radio, or none, fires no `change`, and the radios
+  // as it leaves them are what the form sends.
+  retoggle = () => {
+    const radios = wiredInputs(this, 'radio')
+    if (radios.length) this.currentValue = radios.find(radio => radio.checked)?.value ?? ''
+
+    this.toggleTargets()
   }
 
   toggleTargets () {
