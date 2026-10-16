@@ -1,16 +1,26 @@
-// WCAG 2.5.8 asks for a pointer target of at least 24×24. The ✕ that clears a SlimSelect was as
-// tall as its 12px glyph: 28×12, and 24×12 in a `sm` one. It grows for the pointer only, so the
-// trigger it sits in keeps its height.
-const expectTarget = (deselect, triggerHeight) => {
-  const box = deselect.getBoundingClientRect()
+// WCAG 2.5.8: a pointer target of at least 24×24. SlimSelect's ✕ buttons grow for the pointer
+// only, so the chip and the trigger they sit in keep their size.
+const expectTarget = button => {
+  const box = button.getBoundingClientRect()
   expect(box.width, 'width').to.be.at.least(24)
   expect(box.height, 'height').to.be.at.least(24)
-  // What the pointer reaches, not only the box: the trigger could clip it.
+  // What the pointer reaches, not only the box: the trigger could clip it, a sibling cover it.
   ;[[box.left + 1, box.top + 1], [box.right - 1, box.bottom - 1]].forEach(([x, y]) => {
-    expect(deselect.contains(deselect.ownerDocument.elementFromPoint(x, y)), `hit at ${x}, ${y}`).to.equal(true)
+    expect(button.contains(button.ownerDocument.elementFromPoint(x, y)), `hit at ${x}, ${y}`).to.equal(true)
   })
-  expect(deselect.closest('.ss-main').getBoundingClientRect().height, 'trigger height').to.equal(triggerHeight)
 }
+
+const height = el => el.getBoundingClientRect().height
+
+// A chip scales in (`ss-valueIn`) and reports a smaller box until that finishes.
+const running = el => el.getAnimations({ subtree: true }).filter(animation => animation.playState !== 'finished')
+
+const pick = options => options.forEach(option => {
+  cy.get('body').then($body => {
+    if (!$body.find('.ss-content.ss-open').length) cy.get('.ss-main .ss-values').click()
+  })
+  cy.contains('.ss-content.ss-open .ss-option', new RegExp(`^${option}$`)).click()
+})
 
 describe('SlimSelect: the ✕ that clears the value', () => {
   ;[
@@ -22,20 +32,51 @@ describe('SlimSelect: the ✕ that clears the value', () => {
       cy.viewport(width, 600)
       cy.visit(path)
 
-      cy.get('.ss-main .ss-deselect').scrollIntoView().should($deselect => expectTarget($deselect[0], triggerHeight))
+      cy.get('.ss-main .ss-deselect').scrollIntoView().should($deselect => {
+        expectTarget($deselect[0])
+        expect(height($deselect[0].closest('.ss-main')), 'trigger height').to.equal(triggerHeight)
+      })
     })
   })
 
-  // A trigger that sizes to its content: grown with padding alone, the ✕ took a `sm` multiple
-  // holding chips from 32 to 36px. No preview has one, because SimpleFilters gives a multiple no
-  // ✕; `allow_deselect_option: true` would show it, so the test shows it by hand.
+  // A trigger that sizes to its content. No preview has one with a ✕, because SimpleFilters gives
+  // a multiple none; `allow_deselect_option: true` would show it, so the test shows it by hand.
   it('does not grow a `sm` multiple holding chips', () => {
     cy.viewport(1280, 600)
     cy.visit('/bali/data_table/simple_filters/multiple')
-    cy.get('.ss-main').click()
-    ;['USA', 'France'].forEach(country => cy.contains('.ss-content.ss-open .ss-option', new RegExp(`^${country}$`)).click())
+    pick(['USA', 'France'])
     cy.get('.ss-value').should('have.length', 2)
 
-    cy.get('.ss-main .ss-deselect').invoke('removeClass', 'ss-hide').should($deselect => expectTarget($deselect[0], 32))
+    cy.get('.ss-main .ss-deselect').invoke('removeClass', 'ss-hide').should($deselect => {
+      expectTarget($deselect[0])
+      expect(height($deselect[0].closest('.ss-main')), 'trigger height').to.equal(32)
+    })
+  })
+})
+
+describe('SlimSelect: the ✕ on a chip', () => {
+  ;[
+    ['a form field', '/bali/form/slim_select/multiple', ['Option 1', 'Option 2'], 26, 40],
+    ['a `sm` multiple', '/bali/data_table/simple_filters/multiple', ['USA', 'France'], 20, 32]
+  ].forEach(([where, path, options, chipHeight, triggerHeight]) => {
+    it(`is a 24×24 target in ${where}, and the chip keeps its size`, () => {
+      cy.viewport(1280, 600)
+      cy.visit(path)
+      pick(options)
+
+      cy.get('.ss-main').should($main => {
+        expect(running($main[0])).to.have.length(0)
+        const chips = $main.find('.ss-value').toArray()
+        expect(chips).to.have.length(2)
+        chips.forEach(chip => {
+          expectTarget(chip.querySelector('.ss-value-delete'))
+          expect(height(chip), 'chip height').to.equal(chipHeight)
+          // Beside the text the ✕ takes only its 10px glyph and 8px of padding, as it always has.
+          const text = chip.querySelector('.ss-value-text').getBoundingClientRect().width
+          expect(chip.getBoundingClientRect().width, 'chip width').to.be.closeTo(text + 18, 0.5)
+        })
+        expect(height($main[0]), 'trigger height').to.equal(triggerHeight)
+      })
+    })
   })
 })

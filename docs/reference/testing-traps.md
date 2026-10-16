@@ -67,6 +67,10 @@ goes here.
   caching, so the browser keeps running the old bundle and the spec tests the code from before.
 - **`.scrollIntoView()` ignores `scroll-margin`.** Cypress computes its own offsets. Call the
   native method inside a `then` and measure in the same block.
+- **`scrollWidth <= clientWidth` misses a cut under a pixel.** Both are rounded integers: a
+  SlimSelect value drawn «Be…» read 26 of 26, its text 26.17px wide in a 26px box. Measure the
+  text with a `Range` (`selectNodeContents`) against the box's `getBoundingClientRect().width`
+  (`simple-filters-slim-select.cy.js`).
 - **A DOM change made in a `then` may not reach the page's MutationObservers before the next
   command runs.** Stimulus connects and disconnects from one: a node moved in a `then` and a
   `pointerup` triggered by the next command reached SortableJS before the disconnect, and the

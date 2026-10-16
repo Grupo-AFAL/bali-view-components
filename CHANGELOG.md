@@ -40,17 +40,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **En el teléfono, un filtro `slim_select` con `icon:` deja ver el valor elegido.** Debajo de `sm`
   se encogía a los 64 px del `select` nativo, y la ✕, la flecha, el borde, el relleno y el `gap` de
-  daisyUI ocupaban 80: el valor medía 0 px. Ahora se encoge a 100 px y le quedan 30 px al valor, que
-  se trunca; la ✕ sigue ahí. Ninguna app pasa `icon:` a un filtro `slim_select`: nada que hacer.
+  daisyUI ocupaban 80: el valor medía 0 px. Ahora se encoge a 100 px y deja 30 px para el valor: uno
+  corto se ve entero, uno largo se trunca. La ✕ sigue ahí. Ninguna app pasa `icon:` a un filtro
+  `slim_select`: nada que hacer.
 
-- **La ✕ que limpia un SlimSelect es un blanco de 24×24 px** (WCAG 2.5.8). Tenía el alto de su
-  glifo: 28×12, y 24×12 en `size: :sm`. Crece hacia arriba y hacia abajo sólo para el puntero: el
-  campo conserva su alto. Nada que hacer en la app.
+- **Las ✕ de SlimSelect son blancos de 24×24 px** (WCAG 2.5.8). La que limpia el valor tenía el
+  alto de su glifo: 28×12, y 24×12 en `size: :sm`. La de cada chip de un múltiple medía 18×26, y
+  18×20 en `sm`. Crecen sólo para el puntero: ni el chip ni el campo cambian de tamaño. Nada que
+  hacer en la app.
 
-- **SlimSelect ya no hereda el `gap` del `.select` de daisyUI.** Sumaba 6 px a cada lado de la ✕,
-  encima de su propio relleno y del margen de la flecha. Un filtro de `SimpleFilters` mide 12 px
-  menos; en un campo, la ✕ queda 6 px más cerca de la flecha y el valor gana 12 px. Nada que hacer
-  en la app.
+- **SlimSelect ya no hereda el `gap` del `.select` de daisyUI.** Eran 6 px por hueco, encima del
+  relleno de la ✕ y del margen de la flecha. Un filtro de `SimpleFilters` mide 6 px menos, 12 si
+  muestra la ✕; en un campo el valor gana lo mismo y la ✕ queda 6 px más cerca de la flecha. Nada
+  que hacer en la app.
 
 - **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante o estén
   en grupos** (#1495). El controlador miraba sólo el primer hijo del `<select>`, que con

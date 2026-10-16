@@ -116,8 +116,8 @@ module Bali
 
         # Below `sm` an iconed select shrinks and leaves the icon to say what it filters. Not to
         # the native select's 64px: the ✕, the arrow, border and padding take 68. At 100px the
-        # value has 30, «Beto» whole. Not a multiple: its chips are the value, and at 64px each
-        # took a row.
+        # value has 30, a four-letter name whole. Not a multiple: its chips are the value, and at
+        # 100px each took a row.
         def slim_select_phone_width(filter)
           "max-sm:w-25" if filter[:icon] && !multiple?(filter)
         end
