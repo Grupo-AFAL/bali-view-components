@@ -97,6 +97,22 @@ class BaliTypesDateRangeValueTest < ActiveSupport::TestCase
     assert_equal Time.zone.parse("2026-03-31").end_of_day, range.last
   end
 
+  # A split on whitespace still finds both ends of a range of bare dates; with the time, the range
+  # ends on "12:00:00", today.
+  def test_cast_splits_a_regional_locale_on_the_separator_of_its_language
+    range = in_locale(:"es-MX") { @type.cast("2026-01-01 10:00:00 a 2026-01-02 12:00:00") }
+
+    assert_equal Time.zone.parse("2026-01-01").beginning_of_day, range.first
+    assert_equal Time.zone.parse("2026-01-02").end_of_day, range.last
+  end
+
+  def test_cast_splits_a_language_the_picker_has_no_locale_for_on_its_english
+    range = in_locale(:fr) { @type.cast("2026-01-01 10:00:00 to 2026-01-02 12:00:00") }
+
+    assert_equal Time.zone.parse("2026-01-01").beginning_of_day, range.first
+    assert_equal Time.zone.parse("2026-01-02").end_of_day, range.last
+  end
+
   def test_cast_still_widens_a_single_date_to_that_whole_day
     range = @type.cast("2026-01-01")
 
@@ -110,5 +126,16 @@ class BaliTypesDateRangeValueTest < ActiveSupport::TestCase
 
     already_a_range = Time.zone.parse("2026-01-01")..Time.zone.parse("2026-01-31")
     assert_equal already_a_range, @type.cast(already_a_range)
+  end
+
+  private
+
+  # The dummy declares only `en` and `es`; costa-norte runs in `es-MX`.
+  def in_locale(locale, &block)
+    previous = I18n.available_locales
+    I18n.available_locales += [ locale ]
+    I18n.with_locale(locale, &block)
+  ensure
+    I18n.available_locales = previous
   end
 end

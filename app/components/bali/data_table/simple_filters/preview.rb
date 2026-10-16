@@ -538,7 +538,7 @@ module Bali
         # The picker splits a range on the locale's separator (" to ", " a "), so a range
         # spelled out among the choices above keeps only its first date in the other locale.
         def explicit_range
-          %w[2026-01-01 2026-03-31].join(I18n.t('bali_view.form_builder.date_fields.range_separator'))
+          %w[2026-01-01 2026-03-31].join(Bali::Types::DateRangeValue.separator)
         end
       end
     end

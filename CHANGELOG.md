@@ -70,6 +70,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `data-inner-html` propio que arman sus helpers para esquivarlo ya no hace falta; cambiarlo por
   `include_blank:` lo convierte de fila de la lista en placeholder, con ✕.
 
+- **La variante `:mobile` de `Bali::Calendar` dibuja sin `template:`, y en un renglón sus flechas
+  y su título** (hallado al resolver #1495). Sin `template:` lanzaba `ArgumentError`; ahora muestra
+  el día sin contenido, como la de escritorio. Las flechas y el título se apilaban en tres renglones
+  por debajo de 768 px, es decir, en todo teléfono. Las flechas eran un ícono suelto de 16×22 px;
+  ahora son el botón `ghost` del encabezado de escritorio, de 40×40 (WCAG 2.2 pide 24×24), y como
+  él pasan por el `route_path` de `with_header`: conservan su query string y `drop_params`, y se
+  deshabilitan antes de salir de `min_date`/`max_date`. Sin `route_path` no hay flechas, como en
+  escritorio. Ninguna app en Bali 3 pone `request.variant = :mobile`: nada que hacer en la app.
+
+- **El encabezado de `Bali::Calendar` con `period: :day` avanza un día** (hallado al resolver
+  #1495). Sus flechas saltaban al lunes de la semana anterior o de la siguiente, como las de
+  `:week`. Ahora van al día de antes o al de después y, con `weekdays_only`, saltan el fin de
+  semana, también desde un sábado o un domingo, como las del teléfono. `:week`, `:month` y `:year`
+  no cambian. Ninguna app en Bali 3 usa `period: :day`: nada que hacer en la app.
+
+- **Un rango de fechas en `es-MX`, o en cualquier idioma con región, se parte en su separador**
+  (hallado al resolver #1495).
+  `Bali::Types::DateRangeValue` (los filtros `date_range` de `FilterForm`) y
+  `Bali::Concerns::DateRangeAttribute` sólo lo conocían para `en` y `es` exactos; en otro idioma
+  partían en los espacios, y un rango con hora («2026-01-01 10:00:00 a 2026-01-02 12:00:00»)
+  terminaba hoy. Ahora lo eligen por idioma, igual que el datepicker elige el de flatpickr: « a »
+  para `es` y cualquier `es-*`, « to » para el resto. Un rango de días sin hora ya salía bien, que
+  es lo que mandan los filtros de costa-norte en `es-MX`. El FormBuilder escribe y parte un campo
+  `mode: "range"` con ese mismo separador, y se retira la llave
+  `bali_view.form_builder.date_fields.range_separator`: con la cadena de fallbacks de la app podía
+  decir otra cosa que flatpickr. Ninguna app la sobrescribe: nada que hacer en la app.
+
 ### Documentation
 
 - **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).
