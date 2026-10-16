@@ -8,7 +8,7 @@ module Admin
       skip_forgery_protection
 
       def index
-        render json: ProcessFlowReferences.search(ProcessFlowReferences.assignees, params[:q], params[:group])
+        render json: ProcessFlowReferences.search(ProcessFlowReferences.assignees(params[:locale] || :es), params[:q], params[:group])
       end
 
       def new

@@ -32,7 +32,7 @@ module Admin
       end
 
       def demo_diagram(flow)
-        diagram = flow.to_diagram
+        diagram = flow.to_diagram(locale: params[:locale] || :es)
         return diagram unless demo_server == "issues"
 
         diagram.merge(issues: diagram[:issues] + demo_issues(flow))

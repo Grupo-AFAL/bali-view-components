@@ -98,6 +98,21 @@ describe('BPMN editor island', () => {
     cy.get('#tab-0 [data-unsaved]').should('have.attr', 'hidden')
   })
 
+  // The minimap takes the theme: on a dark page it is no light grey box.
+  it('paints the minimap from the dark theme', () => {
+    cy.visit(`${EDITABLE}?sample=partners&theme=dark`)
+    cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 7)
+    cy.get('[data-theme="dark"] .react-flow__minimap svg').then(($svg) => {
+      const probe = $svg[0].ownerDocument.createElement('span')
+      probe.style.color = 'var(--color-base-100)'
+      $svg[0].closest('[data-theme]').appendChild(probe)
+      const base = getComputedStyle(probe).color
+      probe.remove()
+      expect(getComputedStyle($svg[0].closest('.react-flow__minimap')).backgroundColor).to.eq(base)
+      expect(getComputedStyle($svg[0].querySelector('.react-flow__minimap-mask')).fill).not.to.eq('rgba(240, 240, 240, 0.6)')
+    })
+  })
+
   // Two editors mint the same client ids: an event the host sends to one
   // must not change the other.
   it('delivers a host event to the editor it names and to no other', () => {
@@ -226,6 +241,24 @@ describe('BPMN editor island', () => {
         cy.get('[data-testid="bpmn-open-reference"]').click()
         cy.get('body').should('have.attr', 'data-opened')
         cy.location('pathname').should('eq', before)
+      })
+    })
+
+    // The canvas position React Flow draws a node at (its transform).
+    const positionOf = (name) => nodeNamed(name).closest('.react-flow__node').then(($n) => {
+      const [, x, y] = $n[0].style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/)
+      return { x: Number(x), y: Number(y) }
+    })
+
+    it('moves the selected element with the arrows: 10 px a press, 1 px with Shift, one undo step', () => {
+      positionOf('Registrar pago').then((start) => {
+        nodeNamed('Registrar pago').click()
+        cy.get('body').type('{rightarrow}{rightarrow}{rightarrow}')
+        positionOf('Registrar pago').should((now) => expect(now.x).to.eq(start.x + 30))
+        cy.get('body').type('{shift}{downarrow}{downarrow}')
+        positionOf('Registrar pago').should((now) => expect(now.y).to.eq(start.y + 2))
+        cy.get('body').type('{ctrl}z')
+        positionOf('Registrar pago').should((now) => expect(now.y).to.eq(start.y))
       })
     })
 

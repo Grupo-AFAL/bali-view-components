@@ -505,7 +505,9 @@ sent at once, and without it the visitor is asked to confirm.
 - **Selection**: Shift+click, Ctrl+A, "Select all", or "Box select" (for touch
   screens). Align vertically across lanes; horizontally only inside one lane.
 - **Keyboard**: Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z), Ctrl+A, Delete/Backspace, Esc,
-  arrows (10 px, Shift for 1 px). Shortcuts reach the editor last touched.
+  arrows move the selection (10 px a press, Shift for 1 px; a run of presses is one undo
+  step, and the local arrangement runs when the key goes up — a Shift nudge keeps its pixel).
+  Shortcuts reach the editor last touched.
 - **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
 - **Orientation**: horizontal ↔ vertical lanes, keeping lanes and reading order.
 

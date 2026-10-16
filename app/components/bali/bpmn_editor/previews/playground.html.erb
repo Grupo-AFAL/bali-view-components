@@ -29,10 +29,10 @@
           save: admin_process_flow_diagram_path(flow, **demo),
           diagram: admin_process_flow_diagram_path(flow, **demo),
           finalize: admin_process_flow_finalization_path(flow, **demo),
-          references: admin_process_flow_references_path(flow),
-          new_reference: new_admin_process_flow_reference_path(flow),
-          lane_assignees: admin_process_flow_lane_assignees_path(flow),
-          new_lane_assignee: new_admin_process_flow_lane_assignee_path(flow),
+          references: admin_process_flow_references_path(flow, locale: locale),
+          new_reference: new_admin_process_flow_reference_path(flow, locale: locale),
+          lane_assignees: admin_process_flow_lane_assignees_path(flow, locale: locale),
+          new_lane_assignee: new_admin_process_flow_lane_assignee_path(flow, locale: locale),
           import: new_admin_process_flow_import_path(flow, locale: locale)
         },
         id: dom_id(flow, :bpmn)) } %>

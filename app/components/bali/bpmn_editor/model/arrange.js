@@ -55,12 +55,14 @@ const rangeOverlap = (a1, a2, b1, b2, margin) => a1 < b2 + margin && b1 < a2 + m
 // elements from its far end on move along the flow and it routes again.
 // `before`: the document the edit started from; elements it had and `doc`
 // lacks were deleted, and the gap they leave is closed.
-export function arrange (doc, { before = null } = {}) {
-  let current = place(before ? closeGaps(before, doc) : doc)
+// `keep`: ids the user just placed by hand to the pixel (arrow keys with
+// Shift) — they are not snapped to the grid, only moved if they collide.
+export function arrange (doc, { before = null, keep = null } = {}) {
+  let current = place(before ? closeGaps(before, doc) : doc, keep)
   for (let round = 0; round < 8; round++) {
     const failed = [...routeDiagram(current).entries()].filter(([, r]) => r.failed).map(([id]) => id)
     if (!failed.length) return current
-    current = place(makeRoom(current, failed))
+    current = place(makeRoom(current, failed), keep)
   }
   return current
 }
@@ -127,7 +129,7 @@ function makeRoom (doc, edgeIds) {
   return { ...doc, nodes: doc.nodes.map((n) => (along(n) >= from ? { ...n, [cross]: (Number(n[cross]) || 0) + GAP_ALONG / 2 } : n)) }
 }
 
-function place (doc) {
+function place (doc, keep = null) {
   if (!doc.nodes || !doc.nodes.length) return fitLanesToContent(doc)
   const orientation = orientationOf(doc)
   const layout = layoutLanes(doc)
@@ -165,8 +167,10 @@ function place (doc) {
     }
     // Centres on the grid, not corners: an event, a gateway and a task in one
     // row then share a centre line (their sizes differ).
-    it.cross = snapCenter(it.cross, it.size.cross)
-    it.main = snapCenter(it.main, it.size.main)
+    if (!keep || !keep.has(String(it.node.id))) {
+      it.cross = snapCenter(it.cross, it.size.cross)
+      it.main = snapCenter(it.main, it.size.main)
+    }
     for (let guard = 0; guard < 500; guard++) {
       const hit = placed.find((p) => rangeOverlap(start(it, 'main'), end(it, 'main'), start(p, 'main'), end(p, 'main'), GAP_ACROSS / 2) &&
         rangeOverlap(start(it, 'cross'), end(it, 'cross'), start(p, 'cross'), end(p, 'cross'), GAP_ALONG / 2))

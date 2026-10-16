@@ -541,6 +541,7 @@ function Editor ({
   const undo = useCallback(() => setState(history.undo), [])
   const redo = useCallback(() => setState(history.redo), [])
   const selectAll = useCallback(() => select({ nodes: docRef.current.nodes.map((n) => String(n.id)) }), [select])
+  const arrowRun = useRef(null) // the run of arrow presses not yet settled
   const onKeyDown = useCallback((event) => {
     if (event.defaultPrevented || /^(input|textarea|select)$/i.test(event.target.tagName) || event.target.isContentEditable) return
     const mod = event.ctrlKey || event.metaKey
@@ -556,14 +557,27 @@ function Editor ({
     } else if (key === 'delete' || key === 'backspace') {
       event.preventDefault(); deleteSelection()
     } else if (key.startsWith('arrow') && selection.nodes.length) {
+      // 10 px a press, 1 px with Shift. The whole run of presses is one undo
+      // step (coalesce); the local arrangement waits for the key to go up.
       event.preventDefault()
       const step = event.shiftKey ? 1 : 10
       const delta = { x: key === 'arrowleft' ? -step : key === 'arrowright' ? step : 0, y: key === 'arrowup' ? -step : key === 'arrowdown' ? step : 0 }
-      apply((d) => ops.moveNodes(d, selection.nodes, delta, { policy }), { coalesce: `arrows:${selection.nodes.join(',')}` })
+      const coalesce = `arrows:${selection.nodes.join(',')}`
+      arrowRun.current = { coalesce, ids: selection.nodes, fine: event.shiftKey || Boolean(arrowRun.current && arrowRun.current.fine) }
+      apply((d) => ops.moveNodes(d, selection.nodes, delta, { policy }), { coalesce, arrange: false })
     }
   }, [interactive, undo, redo, selectAll, deleteSelection, clearSelection, selection, apply, policy])
 
-  useKeyboard(wrapperRef, onKeyDown)
+  // An arrow released: the run of moves settles (collisions, lanes, routes)
+  // into the same undo step. Moves made with Shift keep their pixel.
+  const onKeyUp = useCallback((event) => {
+    if (!event.key.toLowerCase().startsWith('arrow') || !arrowRun.current) return
+    const { coalesce, ids, fine } = arrowRun.current
+    arrowRun.current = null
+    apply((d) => ({ doc: arrange(d, { keep: fine ? new Set(ids.map(String)) : null }) }), { coalesce, arrange: false })
+  }, [apply])
+
+  useKeyboard(wrapperRef, onKeyDown, onKeyUp)
 
   // ── fullscreen ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -788,6 +802,9 @@ function Editor ({
               edgesReconnectable={interactive}
               elementsSelectable={interactive}
               deleteKeyCode={null}
+              // The editor's own keyboard (useKeyboard) moves the selection with the
+              // arrows; React Flow's would move a focused node behind its back.
+              disableKeyboardA11y
               selectionKeyCode='Shift'
               multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
               panOnDrag={!(interactive && boxSelect)}

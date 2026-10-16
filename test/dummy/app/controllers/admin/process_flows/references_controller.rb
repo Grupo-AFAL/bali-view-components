@@ -11,7 +11,7 @@ module Admin
       skip_forgery_protection
 
       def index
-        render json: ProcessFlowReferences.search(ProcessFlowReferences.references, params[:q], params[:group])
+        render json: ProcessFlowReferences.search(ProcessFlowReferences.references(params[:locale] || :es), params[:q], params[:group])
                                           .map { |item| item.merge(url: admin_process_flow_path(flow)) }
       end
 

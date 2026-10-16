@@ -36,34 +36,36 @@ class ProcessFlow < ApplicationRecord
     document.deep_symbolize_keys.merge(
       version: version,
       status_label: finalized_at ? "#{en ? 'Finalized' : 'Finalizado'} v#{version}" : "#{en ? 'Draft' : 'Borrador'} v#{version}",
-      issues: server_issues,
-      stencil: stencil
+      issues: server_issues(locale: locale),
+      stencil: stencil(locale: locale)
     )
   end
 
   # The host's "still to place" list: treasury procedures no sub-process links
   # yet. Dragged onto the canvas they arrive linked.
-  def stencil
+  def stencil(locale: :es)
     linked = Array(document["nodes"]).filter_map { |n| n.dig("reference", "id") }
-    ProcessFlowReferences.references
-                         .select { |r| r[:group] == "Tesorería" && linked.exclude?(r[:id]) }
+    ProcessFlowReferences.references(locale)
+                         .select { |r| r[:area] == "treasury" && linked.exclude?(r[:id]) }
                          .map { |r| { reference: r.slice(:id, :label) } }
   end
 
   # Host rules: what only the server can know. The island lists them with its
   # own pending issues; finalizing fails while one is an error.
-  def server_issues
+  def server_issues(locale: :es)
+    en = locale.to_s == "en"
     nodes = Array(document["nodes"])
     issues = []
     unless nodes.any? { |n| n["type"] == "user_task" }
       issues << { rule: "APP01", element_id: nil, severity: "warning",
-                  message: "El flujo no tiene ninguna tarea de usuario." }
+                  message: en ? "The flow has no user task." : "El flujo no tiene ninguna tarea de usuario." }
     end
     nodes.select { |n| n["type"] == "sub_process" && n.dig("reference", "id").present? }.each do |node|
       next if ProcessFlowReferences.find(node.dig("reference", "id"))
 
       issues << { rule: "APP02", element_id: node["id"], severity: "error",
-                  message: "El subproceso «#{node['name']}» apunta a un procedimiento que ya no existe." }
+                  message: en ? "The sub-process «#{node['name']}» points to a procedure that no longer exists." :
+                                "El subproceso «#{node['name']}» apunta a un procedimiento que ya no existe." }
     end
     issues
   end

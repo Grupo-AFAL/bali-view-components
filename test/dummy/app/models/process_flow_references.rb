@@ -1,23 +1,11 @@
 # frozen_string_literal: true
 
-# The entities a sub-process of the reference host can point at: a fixed,
-# synthetic catalog standing in for the host's own procedures.
+# The entities a sub-process of the reference host can point at, and the
+# assignees a lane can take: a fixed, synthetic catalog standing in for the
+# host's own data, in English and Spanish
+# (test/fixtures/bpmn_editor/references.json, like the samples).
 module ProcessFlowReferences
-  CATALOG = [
-    { id: "101", label: "Alta de proveedor", description: "Compras", group: "Compras" },
-    { id: "102", label: "Evaluación de proveedores", description: "Compras", group: "Compras" },
-    { id: "201", label: "Conciliación bancaria", description: "Tesorería", group: "Tesorería" },
-    { id: "202", label: "Programación de pagos", description: "Tesorería", group: "Tesorería" },
-    { id: "301", label: "Cierre contable mensual", description: "Contabilidad", group: "Contabilidad" }
-  ].freeze
-
-  ASSIGNEES = [
-    { id: "area:1", label: "Cuentas por pagar", group: "Área" },
-    { id: "area:2", label: "Tesorería", group: "Área" },
-    { id: "role:1", label: "Analista de compras", group: "Rol" },
-    { id: "role:2", label: "Gerente de finanzas", group: "Rol" },
-    { id: "external:1", label: "Proveedor", group: "Externo" }
-  ].freeze
+  DATA_PATH = Bali::Engine.root.join("test/fixtures/bpmn_editor/references.json")
 
   # What the dummy's drawers create live here for as long as the server runs:
   # enough for the round trip the reference implementation shows.
@@ -25,8 +13,26 @@ module ProcessFlowReferences
 
   module_function
 
-  def references = CATALOG + CREATED[:references]
-  def assignees = ASSIGNEES + CREATED[:assignees]
+  def data
+    @data ||= JSON.parse(File.read(DATA_PATH))
+  end
+
+  def text(value, locale) = value.is_a?(Hash) ? (value[locale.to_s] || value["en"]) : value
+  def group_label(key, locale) = text(data.dig("groups", key), locale)
+
+  # [{ id, label, description, group, area }] in `locale`.
+  def references(locale = :es)
+    data["references"].map do |item|
+      group = group_label(item["area"], locale)
+      { id: item["id"], label: text(item["label"], locale), description: group, group: group, area: item["area"] }
+    end + CREATED[:references]
+  end
+
+  def assignees(locale = :es)
+    data["assignees"].map do |item|
+      { id: item["id"], label: text(item["label"], locale), group: group_label(item["kind"], locale) }
+    end + CREATED[:assignees]
+  end
 
   def create_reference(label, group)
     item = { id: "new-#{SecureRandom.hex(3)}", label: label, description: group, group: group }

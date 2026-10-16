@@ -107,3 +107,11 @@ test('deleting an element closes the gap it leaves; what lies before it stays pu
   assert.ok(x(laid, 't4') - x(settled, 't4') >= STEP.horizontal - 10, 'after it: one column back')
   assert.equal(measure(settled).hard, 0)
 })
+
+test('an element nudged by the pixel keeps its pixel; the arrangement only moves it out of a collision', () => {
+  const laid = autoLayout(normalize(FIXTURES.invoice()))
+  const nudged = { ...laid, nodes: laid.nodes.map((n) => (n.id === 't3' ? { ...n, x: n.x + 1 } : n)) }
+  const x = (d) => d.nodes.find((n) => n.id === 't3').x
+  assert.equal(x(arrange(nudged)), x(laid), 'snapped back to the grid by default')
+  assert.equal(x(arrange(nudged, { keep: new Set(['t3']) })), x(laid) + 1)
+})

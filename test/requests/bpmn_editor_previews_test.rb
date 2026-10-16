@@ -78,6 +78,22 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     assert_equal "Supplier payments", island["data-bpmn-editor-name-value"]
   end
 
+  # The dummy's own data (the procedures to place, the server's issues) follows
+  # the preview's locale too.
+  def test_the_dummy_data_follows_the_locale
+    get "#{PREVIEW}/playground", params: { locale: "en" }
+    labels = island_value("data")["stencil"].map { |item| item.dig("reference", "label") }
+    assert_equal [ "Bank reconciliation", "Payment scheduling" ], labels
+    assert_match(/locale=en/, island_value("urls")["references"])
+
+    get "#{PREVIEW}/playground", params: { locale: "en", sample: "rework" }
+    assert_equal "The flow has no user task.", island_value("data")["issues"].first["message"]
+
+    get "#{PREVIEW}/playground", params: { locale: "es" }
+    assert_equal [ "Conciliación bancaria", "Programación de pagos" ],
+                 island_value("data")["stencil"].map { |item| item.dig("reference", "label") }
+  end
+
   def test_the_optional_rule_package_loads_only_with_its_toggle
     get "#{PREVIEW}/playground"
     assert_select "meta[name='bali-bpmn-editor-js'][content*='bpmn-editor-island-with-rules']", count: 0

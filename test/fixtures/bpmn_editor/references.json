@@ -1,0 +1,24 @@
+{
+  "references": [
+    { "id": "101", "area": "purchasing", "label": { "en": "Supplier onboarding", "es": "Alta de proveedor" } },
+    { "id": "102", "area": "purchasing", "label": { "en": "Supplier evaluation", "es": "Evaluación de proveedores" } },
+    { "id": "201", "area": "treasury", "label": { "en": "Bank reconciliation", "es": "Conciliación bancaria" } },
+    { "id": "202", "area": "treasury", "label": { "en": "Payment scheduling", "es": "Programación de pagos" } },
+    { "id": "301", "area": "accounting", "label": { "en": "Monthly closing", "es": "Cierre contable mensual" } }
+  ],
+  "assignees": [
+    { "id": "area:1", "kind": "area", "label": { "en": "Accounts payable", "es": "Cuentas por pagar" } },
+    { "id": "area:2", "kind": "area", "label": { "en": "Treasury", "es": "Tesorería" } },
+    { "id": "role:1", "kind": "role", "label": { "en": "Purchasing analyst", "es": "Analista de compras" } },
+    { "id": "role:2", "kind": "role", "label": { "en": "Finance manager", "es": "Gerente de finanzas" } },
+    { "id": "external:1", "kind": "external", "label": { "en": "Supplier", "es": "Proveedor" } }
+  ],
+  "groups": {
+    "purchasing": { "en": "Purchasing", "es": "Compras" },
+    "treasury": { "en": "Treasury", "es": "Tesorería" },
+    "accounting": { "en": "Accounting", "es": "Contabilidad" },
+    "area": { "en": "Area", "es": "Área" },
+    "role": { "en": "Role", "es": "Rol" },
+    "external": { "en": "External", "es": "Externo" }
+  }
+}

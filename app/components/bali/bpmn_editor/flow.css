@@ -128,7 +128,15 @@
 }
 .bpmn-lane-horizontal .bpmn-rename { writing-mode: horizontal-tb; transform: none; left: 4px; min-width: 160px; }
 
-.bpmn-canvas .react-flow__minimap { border: 1px solid var(--bpmn-border); border-radius: 8px; background: var(--color-base-100); }
+.bpmn-canvas .react-flow__minimap {
+  border: 1px solid var(--bpmn-border); border-radius: 8px; background: var(--color-base-100);
+  /* React Flow paints the map and its viewport mask in fixed light greys
+   * (#fff, rgba(240,240,240,.6)): from the theme instead, or a dark page shows
+   * a light grey box. */
+  --xy-minimap-background-color-default: var(--color-base-100);
+  --xy-minimap-mask-background-color-default: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  --xy-minimap-mask-stroke-color-default: var(--color-base-300);
+}
 .bpmn-canvas .react-flow__background { --xy-background-pattern-color: color-mix(in oklab, var(--color-base-content) 18%, transparent); }
 
 /* Palette: an item the host marked with a note. */
