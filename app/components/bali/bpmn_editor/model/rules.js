@@ -493,7 +493,8 @@ export const CATALOG = [
     criteria: ['COM-13', 'DEC-01'],
     severity: 'warning',
     // A decision (exclusive, Yes/No or inclusive split) is phrased as a
-    // question, and is no activity: «¿Autorizar solicitud?» still names work.
+    // question, and is no activity: a question that starts with a verb in
+    // the infinitive ("Authorize request?") still names work.
     source: 'Camunda modeling guidelines: label exclusive gateways as questions; BPMN 2.0, AFAL COM-13; AFAL DEC-01',
     check: (_doc, ctx) => ctx.nodes.filter((n) => isDecision(ctx, n) && words(n.name)).flatMap((n) => {
       const vars = { name: ctx.name(n) }
@@ -690,7 +691,8 @@ export const CATALOG = [
 
   // ── AFAL criteria matrix: wording (warnings; the word lists are i18n) ────
   {
-    // Infinitive + object: «Validar los documentos», not «Validación de documentos».
+    // Infinitive + object ("Validate the documents"), not a noun phrase
+    // ("Validation of documents").
     id: 'ACT-02',
     section: 'activities',
     criteria: ['ACT-02'],

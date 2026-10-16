@@ -3,7 +3,7 @@
 // of the UI and a host can rewrite any list through `i18n:`.
 //
 // Names and lists are compared without accents, case or punctuation:
-// «Validación» and «validacion» are the same word.
+// a word written with or without its accents is the same word.
 
 export const plain = (text) => String(text || '')
   .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -43,7 +43,7 @@ export const isNominal = (word, endings) => {
 }
 
 // Verbs at the start of the name or right after a comma or a conjunction:
-// «Revisar, autorizar y registrar» has three; «Calcular el monto a pagar» one.
+// "Review, authorize and record" has three; "Calculate the amount to pay" one.
 export function actionsIn (text, lists, conjunctions) {
   const list = tokens(text)
   let count = 0

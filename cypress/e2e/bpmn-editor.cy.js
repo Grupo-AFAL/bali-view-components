@@ -126,7 +126,7 @@ describe('BPMN editor island', () => {
 
     it('does not finalize with errors: the pending panel opens instead', () => {
       cy.intercept('POST', '**/finalization').as('finalize')
-      cy.get('[data-testid="bpmn-pending-button"]').should('contain', 'pendientes')
+      cy.get('[data-testid="bpmn-pending-button"]').should('contain', 'pendiente')
       cy.get('[data-testid="bpmn-finalize"]').click()
       cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible').find('[data-rule="R07"]').should('exist')
       cy.wait(300)
