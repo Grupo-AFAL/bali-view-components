@@ -6,6 +6,7 @@ import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import ExportDiagram from './ExportDiagram.jsx'
 import { LIVE_PAINT } from '../shapes.jsx'
+import { LETTER, pageSize, PX_PER_INCH } from '../model/page.js'
 
 // Turns the canvas' CSS colours (daisyUI variables, color-mix) into concrete
 // values, resolved inside the editor so the active theme applies.
@@ -87,8 +88,12 @@ export function downloadPng (fileName, svg) {
 
 // Prints the full diagram on its own page, scaled to the sheet, through a
 // hidden iframe: the page around the editor is not part of the printout.
-export function printSvg (svg, title) {
-  const { width, height } = svgSize(svg)
+// The sheet is `paper` (letter by default, model/page.js); a drawing already
+// laid on that sheet (data-sheet) brings its own margins.
+export function printSvg (svg, title, paper = LETTER) {
+  const sheet = pageSize(paper)
+  const onSheet = /<svg[^>]*\sdata-sheet="true"/.test(svg)
+  const size = `${sheet.width / PX_PER_INCH}in ${sheet.height / PX_PER_INCH}in`
   const frame = document.createElement('iframe')
   frame.setAttribute('aria-hidden', 'true')
   frame.style.position = 'fixed'
@@ -99,7 +104,7 @@ export function printSvg (svg, title) {
   const page = frame.contentDocument
   page.open()
   page.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title || '')}</title><style>
-    @page { size: ${width > height ? 'landscape' : 'portrait'}; margin: 10mm; }
+    @page { size: ${size}; margin: ${onSheet ? 0 : '10mm'}; }
     html, body { margin: 0; }
     svg { width: 100%; height: auto; max-height: 100vh; }
   </style></head><body>${svg.replace(/^<\?xml[^>]*>\s*/, '')}</body></html>`)

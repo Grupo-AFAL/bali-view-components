@@ -55,6 +55,23 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal({ "save" => "/flows/1/diagram" }, JSON.parse(island["data-bpmn-editor-urls-value"]))
   end
 
+  def test_the_layout_is_compact_on_a_landscape_letter_page_unless_the_host_says_otherwise
+    render_inline(component)
+    assert_equal "compact", island["data-bpmn-editor-layout-value"]
+    assert_equal({ "width" => 8.5, "height" => 11, "orientation" => "landscape" }, JSON.parse(island["data-bpmn-editor-page-value"]))
+
+    render_inline(component(layout: :straight, page: { width: 8.27, height: 11.69, orientation: :portrait }))
+    assert_equal "straight", island["data-bpmn-editor-layout-value"]
+    assert_equal({ "width" => 8.27, "height" => 11.69, "orientation" => "portrait" }, JSON.parse(island["data-bpmn-editor-page-value"]))
+  end
+
+  def test_an_unknown_layout_or_a_malformed_page_raises
+    assert_includes assert_raises(ArgumentError) { component(layout: :tidy) }.message, ":tidy"
+    assert_includes assert_raises(ArgumentError) { component(page: { width: 0 }) }.message, "page width"
+    assert_includes assert_raises(ArgumentError) { component(page: { orientation: :sideways }) }.message, "sideways"
+    assert_includes assert_raises(ArgumentError) { component(page: { margin: 1 }) }.message, ":margin"
+  end
+
   def test_an_unknown_url_key_raises
     error = assert_raises(ArgumentError) { component(urls: { safe: "/typo" }) }
     assert_includes error.message, ":safe"

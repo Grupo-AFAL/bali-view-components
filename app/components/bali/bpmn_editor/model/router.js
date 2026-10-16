@@ -86,6 +86,7 @@ function sidesFor (doc, edge, source, target, ctx) {
   const type = edgeType(edge)
   let out
   let into
+  let back = false
   const ahead = along(b) - along(a)
   const offset = across(b) - across(a)
   if (type === 'association') {
@@ -94,6 +95,12 @@ function sidesFor (doc, edge, source, target, ctx) {
   } else if (type === 'message_flow') {
     // Between participants, vertically across the lanes when it can.
     if (Math.abs(offset) > (thick(a) + thick(b)) / 2) { out = offset > 0 ? down : up; into = OPPOSITE[out] } else { out = ahead >= 0 ? forwardOut : forwardIn; into = OPPOSITE[out] }
+  } else if (ahead < -(span(a) + span(b)) / 4 && straightBack(source, target, ctx)) {
+    // The flow reading backwards — a returning band of the compact layout:
+    // a straight line between neighbours on one row.
+    out = forwardIn
+    into = forwardOut
+    back = true
   } else if (ahead < -(span(a) + span(b)) / 4) {
     // A loop back: under the flow, out and in by the bottom.
     out = down
@@ -117,7 +124,33 @@ function sidesFor (doc, edge, source, target, ctx) {
   const loop = out === down && into === down
   if (labelSide(source, orientation) === out) out = loop ? up : (out === forwardOut ? up : forwardOut)
   if (labelSide(target, orientation) === into) into = loop ? up : (into === forwardIn ? up : forwardIn)
-  return { out, into }
+  return { out, into, back }
+}
+
+// `target` lies straight behind `source` on its row with nothing in between:
+// a step of a flow that reads right to left (top to bottom in vertical lanes,
+// bottom to top), not a loop back over the elements before it.
+function straightBack (source, target, ctx) {
+  const { mainKey, crossKey } = ctx
+  const a = ctx.boxes.get(String(source.id))
+  const b = ctx.boxes.get(String(target.id))
+  const across = (box) => box[mainKey === 'y' ? 'cy' : 'cx']
+  const thick = (box) => (mainKey === 'y' ? box.h : box.w)
+  if (Math.abs(across(b) - across(a)) > Math.min(thick(a), thick(b)) / 2) return false
+  const start = (box) => (crossKey === 'x' ? box.x : box.y)
+  const end = (box) => start(box) + (crossKey === 'x' ? box.w : box.h)
+  const lo = end(b)
+  const hi = start(a)
+  const band = [across(a) - Math.min(thick(a), thick(b)) / 2, across(a) + Math.min(thick(a), thick(b)) / 2]
+  for (const [id, box] of ctx.boxes) {
+    if (id === String(source.id) || id === String(target.id)) continue
+    const node = ctx.byId.get(id)
+    if (node && node.type === 'group') continue
+    const c1 = across(box) - thick(box) / 2
+    const c2 = across(box) + thick(box) / 2
+    if (end(box) > lo && start(box) < hi && c2 > band[0] && c1 < band[1]) return false
+  }
+  return true
 }
 
 function assignPorts (doc, edges, ctx) {
@@ -196,19 +229,23 @@ function gatewayExits (edges, sides, ctx) {
     const info = outs.map((edge) => {
       const target = ctx.byId.get(String(edge.target))
       const b = ctx.boxes.get(String(edge.target))
-      return { edge, offset: across(b) - across(box), ahead: along(b) - along(box), sameLane: String(target.lane_id) === String(gateway.lane_id) }
+      return { edge, offset: across(b) - across(box), ahead: along(b) - along(box), sameLane: String(target.lane_id) === String(gateway.lane_id), back: sides.get(String(edge.id)).back }
     })
-    const free = new Set([forwardOut, up, down])
+    // A gateway on a returning band reads the other way: its straight side
+    // is the one behind it.
+    const ways = (list) => list.filter((i) => i.ahead > 0 || i.back)
+    const free = new Set([forwardOut, up, down, ctx.forwardIn])
     for (const i of info) if (pinned(i.edge)) free.delete(sides.get(String(i.edge.id)).out)
     const open = info.filter((i) => !pinned(i.edge))
-    const candidates = open.filter((i) => i.ahead > 0)
+    const candidates = ways(open)
     const main = [...candidates].sort((a, b) => (b.sameLane - a.sameLane) || (Math.abs(a.offset) - Math.abs(b.offset)) || (a.ahead - b.ahead))[0]
     const span = (b) => (crossKey === 'x' ? b.w : b.h)
     const set = (i, side) => {
       const s = sides.get(String(i.edge.id))
       const loop = s.out === s.into
       s.out = side
-      if (loop || i.ahead <= 0) s.into = loop ? side : s.into
+      if (i.back && side === ctx.forwardIn) s.into = forwardOut
+      else if (loop || i.ahead <= 0) s.into = loop ? side : s.into
       else if (side === forwardOut) s.into = ctx.forwardIn
       else s.into = Math.abs(i.ahead) < (span(box) + span(ctx.boxes.get(String(i.edge.target)))) / 2 ? OPPOSITE[side] : ctx.forwardIn
       const target = ctx.byId.get(String(i.edge.target))
@@ -217,7 +254,10 @@ function gatewayExits (edges, sides, ctx) {
       free.delete(side)
     }
     let straight = null
-    if (main && free.has(forwardOut)) { set(main, forwardOut); straight = main }
+    const straightSide = main && (main.ahead > 0 ? forwardOut : ctx.forwardIn)
+    if (main && free.has(straightSide)) { set(main, straightSide); straight = main }
+    // The side behind stays for a straight way back only.
+    if (!straight || straightSide === forwardOut) free.delete(ctx.forwardIn)
     const rest = open.filter((i) => i !== straight).sort((a, b) => Math.abs(b.offset) - Math.abs(a.offset))
     for (const i of rest) {
       const wanted = i.offset < 0 ? up : down

@@ -22,6 +22,11 @@ module Bali
       RULE_KEYS = %i[disabled enabled severities messages options].freeze
       RULE_OPTIONS = %i[min_lanes min_activities max_activities].freeze
       SEVERITIES = %w[error warning].freeze
+      # Mirrors autoLayout's modes (model/layout.js).
+      LAYOUTS = %i[compact straight].freeze
+      # Letter, inches; mirrors LETTER in model/page.js.
+      DEFAULT_PAGE = { width: 8.5, height: 11, orientation: "landscape" }.freeze
+      PAGE_ORIENTATIONS = %w[landscape portrait].freeze
       # Mirrors FIELD_TYPES in PropertiesPanel.jsx.
       FIELD_TYPES = %w[text textarea number select multi_select readonly].freeze
       # Mirrors the swatches Legend.jsx draws.
@@ -35,6 +40,11 @@ module Bali
       # @param read_only_notice [String] why it cannot be edited, shown above a read-only diagram.
       # @param autosave [Boolean] save with a debounce after each change (default) or only from
       #   the "Save draft" button.
+      # @param layout [Symbol] how "Tidy up" (and the first layout of a document without
+      #   coordinates) arranges the flow: :compact (default) folds it into bands that fit
+      #   `page:` legibly; :straight keeps the happy path in one line.
+      # @param page [Hash] { width:, height: } in inches and orientation: "landscape" |
+      #   "portrait" — the compact layout's target and the print/export sheet. Letter, landscape.
       # @param palette [Symbol, Array, Hash] see Bali::BpmnEditor::Palette.resolve.
       # @param legend [Hash, Array, false] { add: [{ key:, label:, swatch: }], remove: [keys] }, a
       #   full list of entries, or false to hide it.
@@ -51,13 +61,16 @@ module Bali
       #   { document: <a document like data:>, label: "Published v1.0" }.
       # @param i18n [Hash] island strings. Defaults to Bali::BpmnEditor::Translations.island.
       # @param id [String] DOM id; also scopes the events the host sends back.
-      def initialize(data:, editable: false, read_only_notice: nil, autosave: true, palette: nil,
+      def initialize(data:, editable: false, read_only_notice: nil, autosave: true, layout: :compact,
+                     page: DEFAULT_PAGE, palette: nil,
                      legend: nil, rules: {}, node_fields: {}, lane_fields: [], urls: {}, name: nil,
                      watermark: nil, annotation_tags: [], compare_with: nil, i18n: nil, id: nil, **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @read_only_notice = read_only_notice
         @autosave = autosave
+        @layout = validate_layout!(layout)
+        @page = validate_page!(page)
         @palette = Palette.resolve(palette)
         @legend = resolve_legend(legend)
         @rules = validate_rules!(rules)
@@ -94,6 +107,8 @@ module Bali
           bpmn_editor_editable_value: editable?.to_s,
           bpmn_editor_read_only_notice_value: @read_only_notice,
           bpmn_editor_autosave_value: (!!@autosave).to_s,
+          bpmn_editor_layout_value: @layout.to_s,
+          bpmn_editor_page_value: @page.to_json,
           bpmn_editor_palette_value: @palette.to_json,
           bpmn_editor_legend_value: @legend.to_json,
           bpmn_editor_rules_value: @rules.to_json,
@@ -111,6 +126,27 @@ module Bali
       # Editing without somewhere to save would lose the work on reload.
       def editable?
         !!@editable && @urls[:save].present?
+      end
+
+      def validate_layout!(layout)
+        return layout.to_sym if LAYOUTS.include?(layout.to_s.to_sym)
+
+        raise ArgumentError, "layout must be one of #{LAYOUTS.inspect}, got #{layout.inspect}"
+      end
+
+      def validate_page!(page)
+        page = DEFAULT_PAGE.merge((page || {}).to_h.symbolize_keys)
+        unknown = page.keys - DEFAULT_PAGE.keys
+        raise ArgumentError, "unknown page: keys #{unknown.inspect}; expected #{DEFAULT_PAGE.keys.inspect}" if unknown.any?
+
+        %i[width height].each do |side|
+          next if page[side].is_a?(Numeric) && page[side].positive?
+
+          raise ArgumentError, "page #{side}: must be a positive number of inches, got #{page[side].inspect}"
+        end
+        return page.merge(orientation: page[:orientation].to_s) if PAGE_ORIENTATIONS.include?(page[:orientation].to_s)
+
+        raise ArgumentError, "page orientation: must be one of #{PAGE_ORIENTATIONS.inspect}, got #{page[:orientation].inspect}"
       end
 
       def validate_urls!(urls)

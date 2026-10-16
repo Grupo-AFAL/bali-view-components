@@ -11,6 +11,10 @@ export class BpmnEditorController extends ReactIslandController {
     editable: { type: Boolean, default: false },
     readOnlyNotice: { type: String, default: '' },
     autosave: { type: Boolean, default: true },
+    // 'compact' | 'straight' — autoLayout's mode (model/layout.js).
+    layout: { type: String, default: 'compact' },
+    // { width, height } in inches and orientation — model/page.js.
+    page: { type: Object, default: {} },
     // { items: [{ key, state, note }], note_legend } — Bali::BpmnEditor::Palette.resolve.
     palette: { type: Object, default: {} },
     legend: { type: Array, default: [] },

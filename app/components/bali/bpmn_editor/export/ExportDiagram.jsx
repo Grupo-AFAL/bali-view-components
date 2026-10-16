@@ -11,9 +11,9 @@ import { layoutLanes, laneRect, nodeBox, contentBounds } from '../model/geometry
 import { routeAll, pathWithJumps, findJumps } from '../model/routing.js'
 import { placeEdgeLabels } from '../model/edgeLabels.js'
 import { nodeLabelBox } from '../model/labels.js'
+import { pageFit, sheetFor, EXPORT_MARGIN as MARGIN, TITLE_HEIGHT } from '../model/page.js'
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', sans-serif"
-const MARGIN = 24
 
 // Greedy word wrap by an average glyph width: good enough for labels, and
 // exportable, unlike the canvas' HTML labels.
@@ -43,24 +43,33 @@ function Text ({ x, y, text, maxChars = 22, maxLines = 3, size = 11, weight = 50
   )
 }
 
-export default function ExportDiagram ({ doc, paint, colors, title, subtitle, watermark, notes = [], tags = [] }) {
+// With `page`, a diagram that fits it legibly (model/page.js) is drawn on a
+// sheet of that size, centred inside the print margins, shrunk only as much
+// as it must; one that does not fit keeps its own size.
+export default function ExportDiagram ({ doc, paint, colors, title, subtitle, watermark, notes = [], tags = [], page = null }) {
   const layout = layoutLanes(doc)
   const routes = routeAll(doc)
   const edgeLabels = placeEdgeLabels(doc, routes)
   const jumps = findJumps(routes)
   const bounds = contentBounds(doc, layout)
-  const titleHeight = title ? 48 : 0
+  const titleHeight = title ? TITLE_HEIGHT : 0
   const x0 = bounds.x - MARGIN
   const y0 = bounds.y - MARGIN - titleHeight
   const width = Math.ceil(bounds.w + MARGIN * 2)
   const height = Math.ceil(bounds.h + MARGIN * 2 + titleHeight)
+  const fit = page ? pageFit(doc, page, { title: Boolean(title) }) : null
+  const sheet = fit && fit.fits ? sheetFor(fit, { x0, y0, width, height }) : null
   const external = new Set(layout.entries.filter((e) => e.lane.kind === 'external').map((e) => String(e.id)))
   const tagColor = (key) => (tags.find((tag) => tag.key === key) || {}).color || colors.primary
   const notesByElement = new Map()
   for (const note of notes) if (!notesByElement.has(String(note.target_id))) notesByElement.set(String(note.target_id), note)
 
   return (
-    <svg xmlns='http://www.w3.org/2000/svg' width={width} height={height} viewBox={`${x0} ${y0} ${width} ${height}`} fontFamily={FONT}>
+    <svg
+      xmlns='http://www.w3.org/2000/svg' fontFamily={FONT} data-sheet={sheet ? 'true' : undefined}
+      width={sheet ? sheet.width : width} height={sheet ? sheet.height : height}
+      viewBox={sheet ? sheet.viewBox : `${x0} ${y0} ${width} ${height}`}
+    >
       <defs>
         <marker id='x-arrow' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'>
           <path d='M0,0 L10,5 L0,10 z' fill={colors.line} />
@@ -72,7 +81,9 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
           <circle cx='5' cy='5' r='3.5' fill={colors.background} stroke={colors.line} />
         </marker>
       </defs>
-      <rect x={x0} y={y0} width={width} height={height} fill={colors.background} />
+      {sheet
+        ? <rect x={sheet.x} y={sheet.y} width={sheet.w} height={sheet.h} fill={colors.background} />
+        : <rect x={x0} y={y0} width={width} height={height} fill={colors.background} />}
       {title && (
         <g>
           <text x={x0 + MARGIN} y={y0 + MARGIN + 6} fontSize={16} fontWeight={600} fill={colors.text}>{title}</text>
@@ -167,3 +178,4 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
     </svg>
   )
 }
+
