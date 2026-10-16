@@ -16,13 +16,15 @@ const selectFour = () => {
     // The list closes on every pick, so it is reopened for the next one. Cypress
     // refuses to click an option in a closed list — it is "hidden by transform" —
     // which is the honest reading of the widget's state, so it is not forced.
-    cy.get('.ss-main').click()
+    // Reopened from the arrow: the trigger's centre can land on a pill's 24×24 delete
+    // target once pills fill the row, and that click removes a value instead.
+    cy.get('.ss-main .ss-arrow').click()
     cy.get('.ss-content .ss-list .ss-option').contains(label).click()
     cy.get('.ss-main .ss-values .ss-value').should('have.length', i + 1)
   })
   // Close the list from its own search input; clicking the page risks hitting a pill's
   // delete button and undoing a selection.
-  cy.get('.ss-main').click()
+  cy.get('.ss-main .ss-arrow').click()
   cy.get('.ss-content .ss-search input').type('{esc}')
 }
 
