@@ -50,8 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **La variante `:mobile` de `Bali::Calendar` dibuja sin `template:`, y en un renglón sus flechas
   y su título.** Sin `template:` lanzaba `ArgumentError`; ahora muestra el día sin contenido, como
   la de escritorio. Las flechas y el título se apilaban en tres renglones por debajo de 768 px, es
-  decir, en todo teléfono. Ninguna app en Bali 3 pone `request.variant = :mobile`: nada que hacer
-  en la app.
+  decir, en todo teléfono. Las flechas eran un ícono suelto de 16×22 px; ahora son el botón `ghost`
+  de las del encabezado de escritorio, en tamaño `sm`: 32×32 (WCAG 2.2 pide 24×24). Ninguna app en
+  Bali 3 pone `request.variant = :mobile`: nada que hacer en la app.
 
 - **Un rango de fechas en `es-MX`, o en cualquier idioma con región, se parte en su separador.**
   `Bali::Types::DateRangeValue` (los filtros `date_range` de `FilterForm`) y

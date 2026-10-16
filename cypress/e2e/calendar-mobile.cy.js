@@ -21,4 +21,16 @@ describe('Calendar phone template', () => {
       })
     })
   })
+
+  // WCAG 2.2 SC 2.5.8: a bare chevron link measured 16×22.
+  it('gives each arrow a target of at least 24×24px', () => {
+    cy.viewport(375, 812)
+    cy.visit('/bali/calendar/mobile?start_date=2026-10-14')
+
+    cy.get('.day-view a[title]').should('have.length', 2).each(($arrow) => {
+      const { width, height } = box($arrow[0])
+      expect(width, `${$arrow.attr('title')} width`).to.be.at.least(24)
+      expect(height, `${$arrow.attr('title')} height`).to.be.at.least(24)
+    })
+  })
 })

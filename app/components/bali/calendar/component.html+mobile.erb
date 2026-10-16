@@ -13,7 +13,8 @@
     <div class="day-view">
       <%= render(Bali::Columns::Component.new(mobile: true, middle: true)) do |c| %>
         <%= c.with_column(auto: true) do %>
-          <%= link_to render(Bali::Icon::Component.new('chevron-left')), url_for(prev_day), title: t('bali_view.calendar.header.previous') %>
+          <%= render Bali::Link::Component.new(href: url_for(prev_day), icon: 'chevron-left', variant: :ghost, size: :sm,
+                                               title: t('bali_view.calendar.header.previous')) %>
         <% end %>
         <%= c.with_column(class: 'text-center') do %>
           <span class="text-lg text-base-content/70 font-normal">
@@ -21,7 +22,8 @@
           </span>
         <% end %>
         <%= c.with_column(auto: true) do %>
-          <%= link_to render(Bali::Icon::Component.new('chevron-right')), url_for(next_day), title: t('bali_view.calendar.header.next') %>
+          <%= render Bali::Link::Component.new(href: url_for(next_day), icon: 'chevron-right', variant: :ghost, size: :sm,
+                                               title: t('bali_view.calendar.header.next')) %>
         <% end %>
       <% end %>
       <div class="divider"></div>
