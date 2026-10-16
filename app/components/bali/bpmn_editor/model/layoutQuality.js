@@ -1,6 +1,6 @@
 // How clean a laid-out diagram is, measured on the document itself — what
-// the property tests and the reference fixtures assert, and what auto-arrange
-// must keep at zero.
+// the property tests and the reference fixtures assert, and what the local
+// arrangement must keep at zero.
 //
 // HARD (must be 0 after any operation): nodes on top of each other, flow
 // nodes outside their lane or on its header, connections through a node, a
@@ -9,13 +9,16 @@
 // of a gateway with up to three ways out leaving by the same side.
 //
 // SOFT (kept low, reported): crossings, bends per connection, how far the
-// happy path strays from a straight line.
+// happy path strays from a straight line, stretches of the flow wider than a
+// column with nothing in any lane (a deletion must not leave one: see
+// arrange.js gapsLeftBy).
 import { isFlowNode, isGateway, edgeType } from './catalog.js'
 import { layoutLanes, insideLane, nodeBox, boxesOverlap } from './geometry.js'
 import { nodeLabelBox, badgeBox } from './labels.js'
 import { routeAll } from './routing.js'
 import { placeEdgeLabels } from './edgeLabels.js'
 import { GATEWAY_DISTINCT_EXITS } from './router.js'
+import { emptyStretches } from './arrange.js'
 
 const EPS = 0.5
 
@@ -113,6 +116,7 @@ export function measure (doc, { routes = routeAll(doc), edgeLabels = placeEdgeLa
     badgeOnLabel: 0,
     gatewaySharedSide: 0,
     crossings: 0,
+    emptyStretches: emptyStretches(doc).length,
     maxBends: 0,
     avgBends: 0,
     happyPathDeviation: 0

@@ -3,12 +3,12 @@ import assert from 'node:assert/strict'
 import { FIXTURES } from './fixtures.js'
 import { normalize } from '../../../app/components/bali/bpmn_editor/model/document.js'
 import { autoLayout } from '../../../app/components/bali/bpmn_editor/model/layout.js'
-import { arrange } from '../../../app/components/bali/bpmn_editor/model/arrange.js'
+import { arrange, emptyStretches, STEP } from '../../../app/components/bali/bpmn_editor/model/arrange.js'
 import { measure, sharedLength, segmentsCross } from '../../../app/components/bali/bpmn_editor/model/layoutQuality.js'
-import { setOrientation } from '../../../app/components/bali/bpmn_editor/model/operations.js'
+import { setOrientation, deleteElements } from '../../../app/components/bali/bpmn_editor/model/operations.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 
-// Ceilings for the soft measures after Auto-arrange, per fixture: what the
+// Ceilings for the soft measures after Tidy up, per fixture: what the
 // layout reaches today, so a regression shows. Crossings stay at most one
 // (the rework loop has one); bends average at most one per connection.
 const CEILING = {
@@ -21,7 +21,7 @@ const CEILING = {
 
 for (const [name, make] of Object.entries(FIXTURES)) {
   for (const orientation of ['horizontal', 'vertical']) {
-    test(`${name} (${orientation}) after Auto-arrange: no hard violation, a straight happy path, soft measures under their ceiling`, () => {
+    test(`${name} (${orientation}) after Tidy up: no hard violation, a straight happy path, soft measures under their ceiling`, () => {
       const base = normalize(make())
       const doc = autoLayout(orientation === 'vertical' ? setOrientation(base, 'vertical').doc : base)
       const m = measure(doc)
@@ -55,7 +55,7 @@ test('the metric sees what it measures', () => {
   assert.ok(measure(crowded).overlaps > 0)
 })
 
-test('the hand-placed invoice flow has violations Auto-arrange removes', () => {
+test('the hand-placed invoice flow has violations Tidy up removes', () => {
   const loaded = normalize(FIXTURES.invoice())
   assert.ok(measure(loaded).hard > 0)
   assert.equal(measure(autoLayout(loaded)).hard, 0)
@@ -94,4 +94,16 @@ test('a gateway whose branches both lie below it still sends them out by distinc
   const routes = routeAll(doc)
   assert.equal(routes.get('f4').sourceSide, 'right')
   assert.equal(routes.get('f3').sourceSide, 'bottom')
+})
+
+test('deleting an element closes the gap it leaves; what lies before it stays put', () => {
+  const laid = autoLayout(normalize(FIXTURES.large(12)))
+  const { doc: cut } = deleteElements(laid, { nodeIds: ['t3'] })
+  assert.ok(emptyStretches(cut).length > 0, 'without the arrangement a column stands empty')
+  const settled = arrange(cut, { before: laid })
+  assert.deepEqual(emptyStretches(settled), [])
+  const x = (d, id) => d.nodes.find((n) => n.id === id).x
+  assert.equal(x(settled, 't2'), x(laid, 't2'), 'before the gap: untouched')
+  assert.ok(x(laid, 't4') - x(settled, 't4') >= STEP.horizontal - 10, 'after it: one column back')
+  assert.equal(measure(settled).hard, 0)
 })

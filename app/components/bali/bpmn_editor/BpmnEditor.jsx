@@ -61,15 +61,12 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, readOnlyNotice, autosave, autoArrange, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
+  data, editable: editableProp, readOnlyNotice, autosave, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
   name, watermark, annotationTags, compare
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
-  // Auto-arrange settles every structural edit (model/arrange.js), so an
-  // overlap is resolved by moving the next elements along instead of refused.
-  const [autoArrangeOn, setAutoArrangeOn] = useState(autoArrange !== false)
-  const policy = useMemo(() => ({ ...blockPolicy(rules), ...(autoArrangeOn ? { noOverlap: false } : {}) }), [rules, autoArrangeOn])
+  const policy = useMemo(() => blockPolicy(rules), [rules])
   const [arranging, setArranging] = useState(false)
   const [legendOpen, setLegendOpen] = useState(true)
   const names = useMemo(() => ({
@@ -96,14 +93,15 @@ function Editor ({
 
   const commit = useCallback((next, options) => setState((s) => history.commit(s, next, options)), [])
   // Runs an operation against the CURRENT document; commits or shows the block.
-  // With auto-arrange on, the edit and its arrangement are ONE document, so
-  // one undo step reverts both. `arrange: false` for edits that set geometry
-  // on purpose (a lane's size, the shared length) or run per keystroke.
+  // Every edit is settled by the local arrangement (model/arrange.js) into ONE
+  // document, so one undo step reverts both. `arrange: false` for edits that
+  // set geometry on purpose (a lane's size, the shared length) or run per
+  // keystroke.
   const apply = useCallback((operation, options = {}) => {
     let result = operation(docRef.current)
     if (result.error) { block(result); return null }
-    if (autoArrangeOn && options.arrange !== false && result.doc !== docRef.current) {
-      const settled = arrange(result.doc)
+    if (options.arrange !== false && result.doc !== docRef.current) {
+      const settled = arrange(result.doc, { before: docRef.current })
       if (settled !== result.doc) {
         result = { ...result, doc: settled }
         setArranging(true)
@@ -113,7 +111,7 @@ function Editor ({
     if (result.doc !== docRef.current) commit(result.doc, options)
     docRef.current = result.doc
     return result
-  }, [block, commit, autoArrangeOn])
+  }, [block, commit])
 
   const emit = useCallback((name, detail) => {
     const target = hostElement || document
@@ -813,8 +811,6 @@ function Editor ({
                   apply((d) => ops.setOrientation(d, layout.orientation === 'horizontal' ? 'vertical' : 'horizontal'))
                   setTimeout(() => fitDiagram(flow, fit, 250), 50)
                 }}
-                autoArrange={autoArrangeOn}
-                onToggleAutoArrange={() => setAutoArrangeOn((on) => !on)}
                 onAutoLayout={() => {
                   apply((d) => ({ doc: autoLayout(d) }), { arrange: false })
                   notify(t('toast_layout'), 'success')

@@ -5,7 +5,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as ops from '../../../app/components/bali/bpmn_editor/model/operations.js'
-import { arrange } from '../../../app/components/bali/bpmn_editor/model/arrange.js'
+import { arrange, gapsLeftBy } from '../../../app/components/bali/bpmn_editor/model/arrange.js'
 import { normalize } from '../../../app/components/bali/bpmn_editor/model/document.js'
 import { measure } from '../../../app/components/bali/bpmn_editor/model/layoutQuality.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
@@ -14,7 +14,7 @@ import { isActivity, isGateway } from '../../../app/components/bali/bpmn_editor/
 
 const SEQUENCES = Number(process.env.BPMN_SEQUENCES || 200)
 const STEPS = Number(process.env.BPMN_STEPS || 30)
-// Auto-arrange is on, as in the editor by default: overlaps are resolved, not refused.
+// As in the editor: the local arrangement resolves overlaps instead of refusing them.
 const POLICY = { ...ops.DEFAULT_POLICY, noOverlap: false }
 const NAMES = { task: 'Task', gateway: 'Decision?', start: 'Begin', end: 'Done', event: 'Wait', sub_process: 'Sub' }
 const LABELS = { yes: 'Yes', no: 'No' }
@@ -109,19 +109,24 @@ export function apply (doc, op) {
   if (name === 'move') result = ops.moveNodes(doc, [args[0]], args[1], { policy: POLICY })
   if (name === 'connect') result = ops.connect(doc, args[0], args[1], { type: args[2], policy: POLICY, labels: LABELS })
   if (!result || result.error) return doc
-  return arrange(result.doc)
+  return arrange(result.doc, { before: doc })
 }
 
-function violation (doc) {
+// A hard constraint broken, or a deletion that left a stretch wider than a
+// column empty in every lane.
+function violation (before, doc) {
   const m = measure(doc)
+  const gaps = gapsLeftBy(before, doc)
+  if (gaps.length) return { ...m, details: [['gapLeftByDelete', ...gaps.map((g) => `${Math.round(g.from)}–${Math.round(g.to)}`)]] }
   return m.hard ? m : null
 }
 
 function run (orientation, sequence) {
   let doc = seedDoc(orientation)
   for (let i = 0; i < sequence.length; i++) {
+    const before = doc
     doc = apply(doc, sequence[i])
-    const failed = violation(doc)
+    const failed = violation(before, doc)
     if (failed) return { index: i, failed, doc }
   }
   return null
@@ -150,8 +155,9 @@ for (const orientation of ['horizontal', 'vertical']) {
       for (let step = 0; step < STEPS; step++) {
         const op = randomOp(random, doc)
         sequence.push(op)
+        const before = doc
         doc = apply(doc, op)
-        const failed = violation(doc)
+        const failed = violation(before, doc)
         if (failed) {
           const minimal = shrink(orientation, sequence)
           const replay = run(orientation, minimal)

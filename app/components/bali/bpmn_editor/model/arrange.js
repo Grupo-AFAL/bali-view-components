@@ -1,11 +1,14 @@
-// Incremental arrangement, run after every edit that changes the structure
-// while "Auto-arrange" is on. It keeps what the user placed where they placed
-// it and only fixes what collides:
+// The local arrangement, run after every edit that changes the structure. It
+// keeps what the user placed where they placed it and only fixes what
+// collides or what a deletion emptied:
 //
 // - Every element owns a footprint: its shape, its name and its pending badge.
 // - Walking along the flow, an element whose footprint runs into one already
 //   placed in the same row moves FORWARD along the flow until it is clear —
 //   and so do the ones after it, one collision at a time.
+// - A deletion that leaves a stretch of the flow axis empty in every lane,
+//   wider than a column, closes it: what lies beyond moves back, all lanes
+//   together, so the arrangement before the gap and across lanes is kept.
 // - Flow elements stay clear of the lane header.
 // - Each lane then fits its content, growing or shrinking, with the lanes
 //   after it moving along, and the shared length follows the content (no
@@ -24,6 +27,9 @@ export const GAP_ALONG = 80 // between neighbours on the flow axis: two port stu
 export const GAP_ACROSS = 30 // between rows
 export const LANE_PAD = 20
 export const HEADER_GAP = 40
+// Column to column along the flow in "Tidy up" (layout.js) — and the widest
+// empty stretch a deletion may leave.
+export const STEP = { horizontal: 230, vertical: 150 }
 
 const snap = (v) => Math.round(v / GRID) * GRID
 const snapCenter = (start, size) => snap(start + size / 2) - size / 2
@@ -47,14 +53,64 @@ const rangeOverlap = (a1, a2, b1, b2, margin) => a1 < b2 + margin && b1 < a2 + m
 // Arranges, then routes: a connection the router could not lay without
 // crossing a node or sharing a line means its corridor is too tight, so the
 // elements from its far end on move along the flow and it routes again.
-export function arrange (doc) {
-  let current = place(doc)
+// `before`: the document the edit started from; elements it had and `doc`
+// lacks were deleted, and the gap they leave is closed.
+export function arrange (doc, { before = null } = {}) {
+  let current = place(before ? closeGaps(before, doc) : doc)
   for (let round = 0; round < 8; round++) {
     const failed = [...routeDiagram(current).entries()].filter(([, r]) => r.failed).map(([id]) => id)
     if (!failed.length) return current
     current = place(makeRoom(current, failed))
   }
   return current
+}
+
+// Stretches of the flow axis no element covers, between the first element
+// and the last, wider than a column: [{ from, to }] in pool coordinates.
+export function emptyStretches (doc) {
+  const layout = layoutLanes(doc)
+  const orientation = layout.orientation
+  const { cross } = layout.axis
+  const spans = (doc.nodes || []).filter((n) => n.type !== 'group').map((n) => {
+    const fp = footprint(n, orientation)
+    const start = (Number(n[cross]) || 0) + (cross === 'x' ? fp.dx : fp.dy)
+    return [start, start + (cross === 'x' ? fp.w : fp.h)]
+  }).sort((a, b) => a[0] - b[0])
+  const gaps = []
+  let end = spans.length ? spans[0][1] : 0
+  for (const [from, to] of spans.slice(1)) {
+    if (from - end > STEP[orientation]) gaps.push({ from: end, to: from })
+    end = Math.max(end, to)
+  }
+  return gaps
+}
+
+// The empty stretches `doc` has where `before` had an element it no longer
+// has: what a deletion left behind.
+export function gapsLeftBy (before, doc) {
+  const kept = new Set((doc.nodes || []).map((n) => String(n.id)))
+  const removed = (before.nodes || []).filter((n) => !kept.has(String(n.id)) && n.type !== 'group')
+  if (!removed.length) return []
+  const layout = layoutLanes(before)
+  const { cross } = layout.axis
+  const centers = removed.map((n) => { const b = nodeBox(n); return cross === 'x' ? b.cx : b.cy })
+  return emptyStretches(doc).filter((gap) => centers.some((c) => c > gap.from && c < gap.to))
+}
+
+function closeGaps (before, doc) {
+  const gaps = gapsLeftBy(before, doc)
+  if (!gaps.length) return doc
+  const { cross } = layoutLanes(doc).axis
+  const orientation = orientationOf(doc)
+  const startOf = (n) => (Number(n[cross]) || 0) + (cross === 'x' ? footprint(n, orientation).dx : footprint(n, orientation).dy)
+  const moved = new Set()
+  const nodes = doc.nodes.map((n) => {
+    const by = gaps.filter((g) => startOf(n) >= g.to).reduce((sum, g) => sum + snap(g.to - g.from - GAP_ALONG), 0)
+    if (!by) return n
+    moved.add(String(n.id))
+    return { ...n, [cross]: (Number(n[cross]) || 0) - by }
+  })
+  return { ...doc, nodes, edges: doc.edges.map((e) => (moved.has(String(e.source)) || moved.has(String(e.target))) && e.waypoints && e.waypoints.length ? { ...e, waypoints: [] } : e) }
 }
 
 function makeRoom (doc, edgeIds) {

@@ -511,7 +511,9 @@ export const hasErrors = (issues) => issues.some((i) => i.severity === 'error')
 export function blockPolicy (config) {
   return {
     oneInOneOut: isRuleOn(config, 'R01') || isRuleOn(config, 'R02'),
-    noOverlap: isRuleOn(config, 'R18'),
+    // The editor's local arrangement moves the next elements along instead
+    // of refusing an overlap; R18 still reports one the host's data brings.
+    noOverlap: false,
     insideLane: isRuleOn(config, 'R26'),
     minLanes: isRuleOn(config, 'R21') ? ruleOption(config, 'min_lanes', 2) : 0,
     messageFlowParticipants: isRuleOn(config, 'B02'),

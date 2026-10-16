@@ -478,8 +478,6 @@ en:
         switch_orientation: "Switch lane orientation"
         auto_layout: "Tidy up"
         auto_layout_hint: "Arrange the whole flow: a straight happy path, aligned columns, re-routed lines"
-        auto_arrange: "Auto-arrange"
-        auto_arrange_hint: "Make room and re-route after every change"
         connect: "Connect"
         import_bpmn: "Import BPMN"
         participants: "Participants"

@@ -527,7 +527,7 @@ export function routeDiagram (doc, { order = null } = {}) {
       }
       if (!path) {
         // No clean way exists: still connect, as straight as possible, and
-        // say so — auto-arrange makes room and routes again.
+        // say so — the local arrangement makes room and routes again.
         path = [s.stub, { x: t.stub.x, y: s.stub.y }, t.stub]
         failed = true
       }

@@ -18,7 +18,7 @@
 .bpmn-canvas .react-flow__pane.dragging { cursor: grabbing; }
 .bpmn-canvas.is-placing .react-flow__pane { cursor: crosshair; }
 
-/* Auto-arrange moved things: glide them there instead of jumping. Only for a
+/* The local arrangement moved things: glide them there instead of jumping. Only for a
  * moment after the edit — a transition while dragging would make the node lag
  * the pointer. */
 .bpmn-canvas.is-arranging .react-flow__node { transition: transform .22s ease-out, width .22s ease-out, height .22s ease-out; }

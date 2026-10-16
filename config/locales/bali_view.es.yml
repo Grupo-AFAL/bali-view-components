@@ -475,8 +475,6 @@ es:
         switch_orientation: "Cambiar la orientación de los carriles"
         auto_layout: "Autoajustar"
         auto_layout_hint: "Acomoda todo el flujo: camino feliz recto, columnas alineadas y líneas re-ruteadas"
-        auto_arrange: "Ajuste automático"
-        auto_arrange_hint: "Hace lugar y re-rutea después de cada cambio"
         connect: "Conectar"
         import_bpmn: "Importar BPMN"
         participants: "Participantes"

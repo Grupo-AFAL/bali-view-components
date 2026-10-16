@@ -90,7 +90,6 @@ authorize every endpoint on the server anyway.
 | `data:` | required | The document (`Hash` or `Bali::BpmnEditor::Data`) |
 | `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save |
 | `read_only_notice:` | `nil` | Why it cannot be edited; shown above a read-only diagram |
-| `auto_arrange:` | `true` | Start with "Auto-arrange" on: each edit is followed by an incremental arrangement — see [Layout](#layout). The user can switch it off in the toolbar |
 | `autosave:` | `true` | Save with a ~1.2 s debounce after each change. `false`: only the "Save draft" button saves |
 | `palette:` | `:descriptive` | A preset, an `Array` of keys (exactly those), or a `Hash` — see [Palette](#palette) |
 | `legend:` | default entries | `{ add: [...], remove: [...] }`, a full `Array`, or `false` — see [Legend](#legend) |
@@ -412,17 +411,19 @@ sent at once, and without it the visitor is asked to confirm.
   screens). Align vertically across lanes; horizontally only inside one lane.
 - **Keyboard**: Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z), Ctrl+A, Delete/Backspace, Esc,
   arrows (10 px, Shift for 1 px). Shortcuts reach the editor last touched.
-- **Auto-arrange** (toolbar switch) and **Tidy up**: see [Layout](#layout).
+- **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
 - **Orientation**: horizontal ↔ vertical lanes, keeping lanes and reading order.
 
 ## Layout
 
-**Auto-arrange** runs after every edit that changes the structure (add, insert, connect,
-move, delete, rename) while the toolbar switch is on. It keeps what the user placed where
-they placed it and only fixes what collides: an element whose footprint — shape, name and
-pending badge — runs into another moves *forward along the flow*, and so do the ones after
-it; lanes grow and shrink to their content; connections are routed again. The edit and its
-arrangement are one undo step, and the nodes slide into place (0.22 s) instead of jumping.
+The **local arrangement** runs after every edit that changes the structure (add, insert,
+connect, move, delete, rename); neither the user nor the host can turn it off. It keeps what
+the user placed where they placed it and only fixes what collides: an element whose footprint
+— shape, name and pending badge — runs into another moves *forward along the flow*, and so do
+the ones after it. A deletion that leaves a stretch of the flow wider than a column empty in
+every lane closes it: what lies beyond moves back, all lanes together, and nothing before the
+gap moves. Lanes grow and shrink to their content; connections are routed again. The edit and
+its arrangement are one undo step, and the nodes slide into place (0.22 s) instead of jumping.
 Typing in the properties panel, resizing lanes and moving the pool are not re-arranged.
 
 **Tidy up** lays the whole diagram out again: a straight happy path, the branches of a split
@@ -434,7 +435,7 @@ The canvas reserves no room for the **legend**: when the view settles with an el
 the open legend, it folds itself to its title. Opened again by hand, it stays open until the
 view moves.
 
-What is kept at zero after any operation, with auto-arrange on:
+What is kept at zero after any operation:
 
 - elements on top of each other; a flow element outside its lane or on its header;
 - a connection through an element, an element's name or a pending badge;
@@ -464,7 +465,8 @@ Conventions, and where they come from:
 
 The measurement behind this is `model/layoutQuality.js`; `test/javascript/bpmn_editor/`
 runs it over five reference flows after Tidy up (both orientations) with these caps, and
-over 200 random sequences of 30 edits with auto-arrange on (hard violations: 0).
+over 200 random sequences of 30 edits (hard violations: 0, and no deletion leaves a stretch
+wider than a column empty).
 
 | Reference flow | Hard | Crossings | Avg. bends | Max. bends |
 |---|---|---|---|---|

@@ -55,14 +55,6 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal({ "save" => "/flows/1/diagram" }, JSON.parse(island["data-bpmn-editor-urls-value"]))
   end
 
-  def test_auto_arrange_is_on_unless_the_host_turns_it_off
-    render_inline(component)
-    assert_equal "true", island["data-bpmn-editor-auto-arrange-value"]
-
-    render_inline(component(auto_arrange: false))
-    assert_equal "false", island["data-bpmn-editor-auto-arrange-value"]
-  end
-
   def test_an_unknown_url_key_raises
     error = assert_raises(ArgumentError) { component(urls: { safe: "/typo" }) }
     assert_includes error.message, ":safe"

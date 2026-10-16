@@ -1,4 +1,4 @@
-// Auto-arrange ("Tidy the flow"): a complete layered layout that keeps every
+// "Tidy up": a complete layered layout that keeps every
 // element in its lane — the reason it is not dagre, which knows no lanes.
 //
 // 1. Columns by longest path from the sources over the sequence flows (loops
@@ -15,9 +15,8 @@
 //    routed again.
 import { isArtifactLike, isGateway, nodeSize, edgeType } from './catalog.js'
 import { layoutLanes, HEADER, orientationOf } from './geometry.js'
-import { arrange, HEADER_GAP, LANE_PAD } from './arrange.js'
+import { arrange, HEADER_GAP, LANE_PAD, STEP } from './arrange.js'
 
-const STEP = { horizontal: 230, vertical: 150 } // column to column, along the flow
 const SLOT = { horizontal: 120, vertical: 220 } // row to row, across the flow
 const COLUMN = { horizontal: 150, vertical: 64 } // an activity's extent along the flow
 const ROW = { horizontal: 64, vertical: 150 } // an activity's extent across the flow
