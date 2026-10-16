@@ -69,7 +69,9 @@ goes here.
   native method inside a `then` and measure in the same block.
 - **`scrollWidth <= clientWidth` misses a cut under a pixel.** Both are rounded integers: a
   SlimSelect value drawn «Be…» read 26 of 26, its text 26.17px wide in a 26px box. Measure the
-  text with a `Range` (`selectNodeContents`) against the box's `getBoundingClientRect().width`
+  text with a `Range` (`selectNodeContents`) against the box's content width, where
+  `text-overflow` cuts: `getBoundingClientRect().width` less the computed inline padding and
+  border, which on a chip's text (10px a side) would let a 20px cut through
   (`simple-filters-slim-select.cy.js`).
 - **A DOM change made in a `then` may not reach the page's MutationObservers before the next
   command runs.** Stimulus connects and disconnects from one: a node moved in a `then` and a

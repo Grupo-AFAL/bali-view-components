@@ -2,11 +2,14 @@
 // value resolves against a box already sized to the text, and cuts it: «Beto» was drawn in
 // 8.2 px of the 26 it needs, beside the ✕ that clears it.
 
-// With a Range, not `scrollWidth`: docs/reference/testing-traps.md.
+// With a Range against the content width, not `scrollWidth`: docs/reference/testing-traps.md.
 const expectWhole = $single => {
-  const text = $single[0].ownerDocument.createRange()
-  text.selectNodeContents($single[0])
-  expect(text.getBoundingClientRect().width, 'text width').to.be.at.most($single[0].getBoundingClientRect().width)
+  const single = $single[0]
+  const text = single.ownerDocument.createRange()
+  text.selectNodeContents(single)
+  const style = single.ownerDocument.defaultView.getComputedStyle(single)
+  const inline = ['paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth'].reduce((sum, side) => sum + parseFloat(style[side]), 0)
+  expect(text.getBoundingClientRect().width, 'text width').to.be.at.most(single.getBoundingClientRect().width - inline)
 }
 
 describe('SimpleFilters: a slim_select filter', () => {

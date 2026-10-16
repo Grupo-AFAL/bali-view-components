@@ -993,7 +993,12 @@
 }
 
 /* 24px tall in a 20px pill: the pill's height is fixed, so the ✕ overflows it 2px above and below,
-   into the trigger's 5px of padding or the 2px between rows, without growing it. */
+   into the trigger's 5px of padding, without growing it. Between rows the two overflows need 4px:
+   at 2px a ✕ in the upper row had 24×22 of its own. */
+.slim-select-sm .ss-main .ss-values {
+  row-gap: 0.25rem;
+}
+
 .slim-select-sm .ss-main .ss-values .ss-value .ss-value-delete {
   height: 1.5rem;
 }

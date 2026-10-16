@@ -79,4 +79,22 @@ describe('SlimSelect: the ✕ on a chip', () => {
       })
     })
   })
+
+  // A `sm` chip's ✕ overflows its 20px pill by 2px each side, so stacked rows must not share it.
+  it('keeps each ✕ its own 24×24 across the rows of a `sm` multiple', () => {
+    cy.viewport(1280, 600)
+    cy.visit('/bali/data_table/simple_filters/multiple')
+    pick(['USA', 'UK', 'France', 'Germany', 'Japan', 'India'])
+
+    cy.get('.ss-main').should($main => {
+      expect(running($main[0])).to.have.length(0)
+      const boxes = $main.find('.ss-value-delete').toArray().map(button => button.getBoundingClientRect())
+      expect(new Set(boxes.map(box => box.top)).size, 'rows of chips').to.be.greaterThan(1)
+      boxes.forEach((a, i) => boxes.slice(i + 1).forEach((b, j) => {
+        const width = Math.min(a.right, b.right) - Math.max(a.left, b.left)
+        const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)
+        expect(width > 0 && height > 0, `✕ ${i} and ✕ ${i + j + 1} overlap by ${width}×${height}`).to.equal(false)
+      }))
+    })
+  })
 })

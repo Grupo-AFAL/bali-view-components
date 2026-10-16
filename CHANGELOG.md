@@ -46,8 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Las ✕ de SlimSelect son blancos de 24×24 px** (WCAG 2.5.8). La que limpia el valor tenía el
   alto de su glifo: 28×12, y 24×12 en `size: :sm`. La de cada chip de un múltiple medía 18×26, y
-  18×20 en `sm`. Crecen sólo para el puntero: ni el chip ni el campo cambian de tamaño. Nada que
-  hacer en la app.
+  18×20 en `sm`. Crecen sólo para el puntero: ni el chip ni el campo cambian de tamaño, salvo un
+  múltiple `sm` de varios renglones, que deja 4 px entre ellos en vez de 2 para que las ✕ no se
+  encimen (56 px con dos renglones, antes 54). Nada que hacer en la app.
 
 - **SlimSelect ya no hereda el `gap` del `.select` de daisyUI.** Eran 6 px por hueco, encima del
   relleno de la ✕ y del margen de la flecha. Un filtro de `SimpleFilters` mide 6 px menos, 12 si
