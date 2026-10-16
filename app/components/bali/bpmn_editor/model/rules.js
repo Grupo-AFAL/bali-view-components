@@ -21,6 +21,7 @@
 import { isActivity, isGateway, isArtifactLike, isFlowNode, isBinaryDecision, edgeType, paletteKeyFor } from './catalog.js'
 import { layoutLanes, insideLane, nodeBox, boxesOverlap } from './geometry.js'
 import { flowStructure } from './flowStructure.js'
+import { pageFit, LETTER } from './page.js'
 import { plain, wordsOf, startsWith, contains, isInfinitive, isNominal, actionsIn, sameParticipant } from './wording.js'
 
 const registry = new Map()
@@ -92,6 +93,8 @@ function context (doc, config, t, options = {}) {
     no: words(t ? t('label_no') : 'no'),
     // Palette keys the host allows; null when it restricts nothing.
     allowed: options.allowed || null,
+    // The sheet the diagram is meant to print on (Component `page:`).
+    page: options.page || LETTER,
     get structure () { return structure || (structure = flowStructure(this)) }
   }
 }
@@ -687,6 +690,23 @@ export const CATALOG = [
     check: (_doc, ctx) => (ctx.allowed
       ? each(ctx.nodes, (n) => { const key = paletteKeyFor(n); return key && !ctx.allowed.has(key) }, (n) => ({ element_id: n.id, vars: { name: ctx.name(n), kind: say(ctx, `palette_${paletteKeyFor(n)}`) } }))
       : [])
+  },
+
+  {
+    // The diagram on its sheet: legible when its 11 px text prints at 6 pt or
+    // more (model/page.js). A warning — a large process may not fit, and the
+    // compact layout or a split into related procedures is the way out.
+    id: 'VIS-02',
+    section: 'layout',
+    criteria: ['VIS-02', 'VIS-08'],
+    afal: true,
+    severity: 'warning',
+    source: 'AFAL VIS-02; AFAL VIS-08',
+    check: (doc, ctx) => {
+      if (!(doc.nodes || []).length) return []
+      const fit = pageFit(doc, ctx.page)
+      return fit.fits ? [] : [{ element_id: null, vars: { scale: Math.round(fit.scale * 100), min: Math.round(fit.minScale * 100) } }]
+    }
   },
 
   // ── AFAL criteria matrix: wording (warnings; the word lists are i18n) ────

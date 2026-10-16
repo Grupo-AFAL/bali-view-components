@@ -123,6 +123,16 @@ const CASES = [
     right: () => withEvent('message', 'Confirmación de pago recibida')
   },
 
+  // ── Diseño y legibilidad ───────────────────────────────────────────────
+  // Forty activities in one row print far under the legible size on letter;
+  // two fit (each column of processOf is 200 px: start, three steps, end).
+  {
+    codes: ['VIS-02', 'VIS-08'],
+    rules: ['VIS-02'],
+    wrong: () => linear(Array.from({ length: 40 }, (_, i) => `Registrar el paso ${i + 1}`)),
+    right: () => linear(['Registrar la solicitud'])
+  },
+
   // ── Eventos de fin ─────────────────────────────────────────────────────
   { codes: ['EVF-01'], rules: ['R13', 'EST-01'], wrong: () => processOf([...opening, task('a1', 'Registrar la solicitud')], [head, ['a0', 'a1']]), right: () => linear(['Registrar la solicitud']) },
   { codes: ['EVF-02'], rules: ['R07'], wrong: () => { const d = linear(['Presentar la declaración']); d.nodes.at(-1).name = 'Fin'; return d }, right: () => { const d = linear(['Presentar la declaración']); d.nodes.at(-1).name = 'Declaración anual presentada'; return d } },
@@ -277,7 +287,7 @@ function related ([into, out]) {
 
 for (const c of CASES) {
   test(`${c.codes.join(', ')}: the matrix's wrong use raises ${c.rules.join(' or ')}, its right use does not`, () => {
-    const issues = (d) => evaluate(d, ALL, t, { allowed: c.allowed }).filter((i) => c.rules.includes(i.rule))
+    const issues = (d) => evaluate(d, ALL, t, { allowed: c.allowed, page: c.page }).filter((i) => c.rules.includes(i.rule))
     assert.ok(issues(c.wrong()).length > 0, 'the wrong use is flagged')
     assert.deepEqual(issues(c.right()).map((i) => `${i.rule}: ${i.message}`), [], 'the right use passes')
   })

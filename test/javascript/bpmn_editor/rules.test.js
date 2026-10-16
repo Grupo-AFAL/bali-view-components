@@ -23,7 +23,7 @@ function clean () {
     edges: [flow('f1', 's', 't1'), flow('f2', 't1', 'g'), flow('f3', 'g', 't2', { label: 'Yes' }), flow('f4', 'g', 'e2', { label: 'No' }), flow('f5', 't2', 'e1')]
   })
 }
-const run = (d, config = ALL_ON) => evaluate(d, config, t, { allowed: config.allowed })
+const run = (d, config = ALL_ON) => evaluate(d, config, t, { allowed: config.allowed, page: config.page })
 const rulesHit = (d, config) => new Set(run(d, config).map((i) => i.rule))
 const by = (d, id) => d.nodes.find((n) => n.id === id)
 
@@ -95,6 +95,8 @@ const BREAKS = {
     d.edges.push(flow('x', 'sp', 'e1'))
   },
   'VIS-10': (d, config) => { config.allowed = new Set(['task', 'start_event', 'end_event', 'exclusive_gateway']) },
+  // The same flow on a sheet a fifth of a letter page.
+  'VIS-02': (d, config) => { config.page = { width: 2, height: 1.7, orientation: 'portrait' } },
   'ACT-02': (d) => { by(d, 't2').name = 'Payment scheduling' },
   'ACT-07': (d) => { by(d, 't2').name = 'Send payment' },
   'ACT-09': (d) => { by(d, 't2').name = 'Follow up payment' },
@@ -160,7 +162,7 @@ test('the issue catalogue and the BPMN-grounded criteria are on by default; the 
 })
 
 test('`enabled: [\'afal\']` turns on every AFAL-only guideline, and a host still turns one off', () => {
-  assert.deepEqual([...AFAL_RULES].sort(), ['ACT-02', 'ACT-03', 'ACT-07', 'ACT-09', 'ACT-10', 'COM-22', 'EVF-04', 'LAN-08', 'SUB-05'])
+  assert.deepEqual([...AFAL_RULES].sort(), ['ACT-02', 'ACT-03', 'ACT-07', 'ACT-09', 'ACT-10', 'COM-22', 'EVF-04', 'LAN-08', 'SUB-05', 'VIS-02'])
   for (const id of AFAL_RULES) assert.ok(isRuleOn({ enabled: ['afal'] }, id), `${id} on`)
   assert.equal(isRuleOn({ enabled: ['afal'], disabled: ['ACT-02'] }, 'ACT-02'), false)
   assert.equal(isRuleOn({ enabled: ['afal'] }, 'R17'), false, 'a non-AFAL optional rule stays off')

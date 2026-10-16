@@ -430,7 +430,7 @@ Uso correcto» de cada criterio que revisa una regla.
 | LAN-07 | Regla | R10 |
 | LAN-08 | Regla | LAN-08 (`afal`, advertencia) |
 | LAN-09 | Regla | R21, que ahora cuenta carriles con actividades |
-| LAN-10 | Configuración de la app | opción de orientación fija (otra parte de BPMN-X) |
+| LAN-10 | Configuración de la app | opción `orientation: :horizontal` (fija la orientación y quita el botón «Vertical») |
 | EXT-01 | Función del componente | carril externo gris (`kind: external`) |
 | EXT-02 | Función del componente | actividad externa blanca |
 | EXT-03 | Función del componente | actividad interna azul |
@@ -514,14 +514,14 @@ Uso correcto» de cada criterio que revisa una regla.
 | EST-04 | Regla | COM-22 |
 | EST-05 | Regla | EST-05 |
 | EST-06 | Función del componente + Revisión humana | caja gris (+); el alcance, el área |
-| VIS-01 | Función del componente | acomodo compacto + indicador VIS-02 (otra parte de BPMN-X) |
-| VIS-02 | Función del componente | acomodo compacto + indicador VIS-02 (otra parte de BPMN-X) |
-| VIS-03 | Función del componente | acomodo compacto + indicador VIS-02 (otra parte de BPMN-X) |
+| VIS-01 | Función del componente | `layout: :compact` (por omisión): el flujo serpentea en bandas |
+| VIS-02 | Regla + función | regla VIS-02 (advertencia, AFAL): no cabe legible en `page:`; impresión y exportación en carta |
+| VIS-03 | Función del componente | acomodo compacto: carriles horizontales, el flujo cambia de dirección |
 | VIS-04 | Función del componente | «Autoajustar»: columnas alineadas y rejilla de 10 px |
 | VIS-05 | Función del componente | ajuste local y métrica `layoutQuality` (sin encimados) |
 | VIS-06 | Función del componente | ruteo con cruces mínimos y saltos de línea |
 | VIS-07 | Regla + Función del componente | R18; la métrica mantiene en cero etiquetas sobre líneas o nodos |
-| VIS-08 | Función del componente | acomodo compacto + indicador VIS-02 (otra parte de BPMN-X) |
+| VIS-08 | Regla | regla VIS-02: el texto de 11 px no baja de 6 pt impreso (escala ≥ 0.73) |
 | VIS-09 | Función del componente | interna azul, externa blanca en carril gris, procedimiento relacionado gris (token) |
 | VIS-10 | Regla | VIS-10 |
 | VIS-11 | Función del componente | etiquetas junto a su ruta (`edgeLabels`); la métrica las mantiene sin encimar |
