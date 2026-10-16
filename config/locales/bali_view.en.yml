@@ -227,9 +227,6 @@ en:
         clear: "Clear date"
         previous: "Previous date"
         next: "Next date"
-        # Written between the two dates of a range AND used to split them back
-        # apart, so a locale that translates it must keep it round-trippable.
-        range_separator: " to "
       # Moved out of the host's `helpers.*` namespace, which this gem had no
       # business writing into (Rails owns it for form label/submit lookups).
       coordinates_polygon:

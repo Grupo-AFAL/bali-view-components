@@ -49,6 +49,18 @@ class BaliConcernsDateRangeAttributeActiveModelTest < ActiveSupport::TestCase
     @model.date_range = ""
     assert_nil(@model.date_range)
   end
+
+  def test_date_range_setter_splits_a_regional_locale_on_the_separator_of_its_language
+    range = Time.zone.local(2023, 3, 1)..Time.zone.local(2023, 3, 10).end_of_day
+    previous = I18n.available_locales
+    I18n.available_locales += [ :"es-MX" ]
+
+    I18n.with_locale(:"es-MX") { @model.date_range = "2023-03-01 10:00:00 a 2023-03-10 12:00:00" }
+
+    assert_equal(range, @model.date_range)
+  ensure
+    I18n.available_locales = previous
+  end
 end
 
 class BaliConcernsDateRangeAttributeWorkingPeriodTest < ActiveSupport::TestCase

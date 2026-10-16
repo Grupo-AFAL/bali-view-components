@@ -41,6 +41,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
   `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
 
+- **`checkbox-toggle`, `radio-toggle` y `checkbox-reveal` siguen lo que hay en pantalla tras un
+  Turbo Stream con morph, y `checkbox-toggle` pinta todos los targets de cada lado** (hallado al
+  resolver #1495). Un `turbo_stream.replace(…, method: :morph)` conserva el elemento: el target se
+  quedaba con el `hidden` y, con `disable-hidden`, el `disabled` que mandó el servidor, y si el
+  morph cambiaba el radio o la casilla, los targets seguían la elección anterior. Ahora, tras un
+  morph, la elección es el control que se ve; el atributo de valor sólo da el estado inicial.
+  `checkbox-reveal` tampoco pintaba un `item` reemplazado sin morph, ni él ni `radio-toggle`
+  seguían una casilla target reemplazada, y un segundo `on` u `off` no se pintaba nunca. Un
+  `toggleTargets` sobrescrito en una subclase corre ahora tras cada elemento que el morph
+  transforma dentro del controlador, varias veces por stream: tiene que ser idempotente. Ninguna
+  app hace hoy nada de esto: nada que hacer en la app.
+
 - **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
   accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el
   `date.formats.long` de la app: «5 de marzo de 2026» con rails-i18n, «March 05, 2026» en inglés.
@@ -52,25 +64,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ArchivalNotice`. Las siete apps en Bali 3 la tienen: nada que hacer en la app. En
   gobierno-corporativo la vista de año toma su propio `:long`.
 
-- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda** (#1495, desde
-  v3.11.0, con SlimSelect 4). Al elegir un resultado que no venía en la semilla, SlimSelect lo
-  ponía delante del placeholder y la ✕ lo volvía a elegir: el valor no cambiaba. Afecta sólo a
-  los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
-  hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda, con la lista cerrada
+  o todavía abierta** (#1495, desde v3.11.0, con SlimSelect 4). Al elegir un resultado que no
+  venía en la semilla, SlimSelect lo ponía delante del placeholder y la ✕ lo volvía a elegir: el
+  valor no cambiaba. Con la lista todavía abierta, la ✕ vaciaba el valor pero mostraba el texto por
+  omisión («Select value») en vez del placeholder, y dejaba una segunda `<option value="">`. Afecta
+  sólo a los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app
+  escribe hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+
+- **SlimSelect remoto: un resultado que ya está en la semilla no sale dos veces**. El registro ya
+  no se repite en la lista ni en el `<select>`, y una búsqueda que encuentra el valor ya elegido no
+  vuelve a llamar a `after_change_fetch_url`. En gobierno-corporativo lo ven los cuatro
+  `PositionSelect` de las nominaciones, que ya no piden dos veces el aviso del nominado, y los
+  selects remotos cuyo endpoint responde ids numéricos: entidad y producto de las solicitudes de
+  acceso, fuentes y columnas del glosario y áreas de los recordatorios. En éstas, un área de la
+  semilla elegida en una búsqueda se lee como en la semilla al cerrar la lista: «Finanzas», no
+  «Finanzas (Dirección)». Nada que hacer en la app.
 
 - **Un filtro `slim_select` de `SimpleFilters` muestra completo el valor elegido** (#1495). «Beto»
   se veía «B»: el valor se quedaba 20 px corto dentro de una columna que se ajusta a su contenido.
   Lo ven los filtros `slim_select` de afal-apps y gobierno-corporativo. En un campo de formulario un
   valor largo se trunca junto a la ✕ o la flecha, hasta 18 px más ancho. Nada que hacer en la app.
 
-- **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante o estén
-  en grupos** (#1495). El controlador miraba sólo el primer hijo del `<select>`, que con
-  `include_blank:` o `prompt:` es el placeholder y en una lista agrupada es un `<optgroup>`. Ahora
-  SlimSelect lee el HTML de cada opción y el `<select>` ya no se reescribe al montar: sus opciones
-  conservan `id`, `class` y los demás `data-*`. En gobierno-corporativo, el selector de procesos de
-  un documento muestra la ruta de cada uno. Nada que hacer en la app. El blank con
+- **En el teléfono, un filtro `slim_select` con `icon:` deja ver el valor elegido.** Debajo de `sm`
+  se encogía a los 64 px del `select` nativo, y la ✕, la flecha, el borde, el relleno y el `gap` de
+  daisyUI ocupaban 80: el valor medía 0 px. Ahora se encoge a 100 px y deja 30 px para el valor: uno
+  corto se ve entero, uno largo se trunca. La ✕ sigue ahí. Ninguna app pasa `icon:` a un filtro
+  `slim_select`: nada que hacer.
+
+- **Las ✕ de SlimSelect son blancos de 24×24 px** (WCAG 2.5.8). La que limpia el valor tenía el
+  alto de su glifo: 28×12, y 24×12 en `size: :sm`. La de cada chip de un múltiple medía 18×26, y
+  18×20 en `sm`. Crecen sólo para el puntero: ni el chip ni el campo cambian de tamaño, salvo un
+  múltiple `sm` de varios renglones, que deja 4 px entre ellos en vez de 2 para que las ✕ no se
+  encimen (56 px con dos renglones, antes 54). Nada que hacer en la app.
+
+- **SlimSelect ya no hereda el `gap` del `.select` de daisyUI.** Eran 6 px por hueco, encima del
+  relleno de la ✕ y del margen de la flecha. Un filtro de `SimpleFilters` mide 6 px menos, 12 si
+  muestra la ✕; en un campo el valor gana lo mismo y la ✕ queda 6 px más cerca de la flecha. Nada
+  que hacer en la app.
+
+- **La variante `:mobile` de `Bali::Calendar` dibuja sin `template:`, y en un renglón sus flechas
+  y su título** (hallado al resolver #1495). Sin `template:` lanzaba `ArgumentError`; ahora muestra
+  el día sin contenido, como la de escritorio. Las flechas y el título se apilaban en tres renglones
+  por debajo de 768 px, es decir, en todo teléfono. Las flechas eran un ícono suelto de 16×22 px;
+  ahora son el botón `ghost` del encabezado de escritorio, de 40×40 (WCAG 2.2 pide 24×24), y como
+  él pasan por el `route_path` de `with_header`: conservan su query string y `drop_params`, y se
+  deshabilitan antes de salir de `min_date`/`max_date`. Sin `route_path` no hay flechas, como en
+  escritorio. Ninguna app en Bali 3 pone `request.variant = :mobile`: nada que hacer en la app.
+
+- **El encabezado de `Bali::Calendar` con `period: :day` avanza un día** (hallado al resolver
+  #1495). Sus flechas saltaban al lunes de la semana anterior o de la siguiente, como las de
+  `:week`. Ahora van al día de antes o al de después y, con `weekdays_only`, saltan el fin de
+  semana, también desde un sábado o un domingo, como las del teléfono. `:week`, `:month` y `:year`
+  no cambian. Ninguna app en Bali 3 usa `period: :day`: nada que hacer en la app.
+
+- **Un rango de fechas en `es-MX`, o en cualquier idioma con región, se parte en su separador**
+  (hallado al resolver #1495).
+  `Bali::Types::DateRangeValue` (los filtros `date_range` de `FilterForm`) y
+  `Bali::Concerns::DateRangeAttribute` sólo lo conocían para `en` y `es` exactos; en otro idioma
+  partían en los espacios, y un rango con hora («2026-01-01 10:00:00 a 2026-01-02 12:00:00»)
+  terminaba hoy. Ahora lo eligen por idioma, igual que el datepicker elige el de flatpickr: « a »
+  para `es` y cualquier `es-*`, « to » para el resto. Un rango de días sin hora ya salía bien, que
+  es lo que mandan los filtros de costa-norte en `es-MX`. El FormBuilder escribe y parte un campo
+  `mode: "range"` con ese mismo separador, y se retira la llave
+  `bali_view.form_builder.date_fields.range_separator`: con la cadena de fallbacks de la app podía
+  decir otra cosa que flatpickr. Ninguna app la sobrescribe: nada que hacer en la app.
+
+- **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante, estén
+  en grupos o lleguen después de montar** (#1495). El controlador miraba sólo el primer hijo del
+  `<select>`, que con `include_blank:` o `prompt:` es el placeholder y en una lista agrupada es un
+  `<optgroup>`, y sólo al montar. Ahora SlimSelect lee el HTML de cada opción, también de la que
+  agrega después un Turbo Stream o el JS de la app, y el `<select>` ya no se reescribe al montar:
+  sus opciones conservan `id`, `class` y los demás `data-*`. En gobierno-corporativo, el selector
+  de procesos de un documento muestra la ruta de cada uno. Nada que hacer en la app. El blank con
   `data-inner-html` propio que arman sus helpers para esquivarlo ya no hace falta; cambiarlo por
   `include_blank:` lo convierte de fila de la lista en placeholder, con ✕.
+
+- **SlimSelect: «Seleccionar todo» también elige las opciones de una lista agrupada**. Con
+  `select_all: true` sobre una lista en `<optgroup>` no elegía ninguna: leía sólo los hijos directos
+  del `<select>`. Ahora elige todas las habilitadas, en grupos o no. Deja fuera las deshabilitadas,
+  que antes salían como chip sin que el formulario las mandara, y las vacías: el placeholder de
+  `include_blank:` y la fila en blanco que Rails pone en una lista agrupada. El único uso con
+  Bali 3, los avisos de la guardería en afal-apps, es una lista plana sin deshabilitadas ni
+  `include_blank:` (`daycare/notices/_form.html.erb`, con `placeholder:`). Nada que hacer en la app.
+
+- **Un `slim_select` múltiple con `include_blank:` o `prompt:` ya no arranca con el vacío
+  elegido**. Rails elige la opción `""` mientras el valor es `nil` o vacío, y en un select múltiple
+  esa opción es el placeholder: salía como chip y el formulario mandaba un valor vacío. Lo mismo
+  con un `selected: ""`, que es lo que `SimpleFilters` pasa a un filtro sin valor. Un formulario
+  sin objeto ni `selected:` (`form_with scope:`) sigue como antes: ahí Rails lee el valor de la
+  vista. En gobierno-corporativo cambia lo que se ve en los selects múltiples `by_management_level`
+  y `by_relation` de `document_classification_types/_config_field.html.erb` (`:92` y `:105`)
+  mientras no tienen valor: su `config-field` marca el campo como inválido al cargar hasta que se
+  elige algo (antes el vacío elegido contaba como elección), y la consulta de usuarios resueltos
+  deja de mandar `value[]=`. Su modelo ya descartaba el vacío.
+
+- **SlimSelect: las opciones de un `<optgroup disabled>` ya no se pueden elegir**. SlimSelect sólo
+  lee el `disabled` de cada opción, así que se elegían y salían como chip aunque el formulario no
+  las mandara. Ahora el controlador deshabilita las opciones del grupo, también las de un grupo que
+  llega después de montar. Ninguna app tiene grupos deshabilitados. Nada que hacer en la app.
 
 ### Documentation
 

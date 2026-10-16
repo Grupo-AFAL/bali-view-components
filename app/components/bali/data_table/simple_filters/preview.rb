@@ -351,7 +351,8 @@ module Bali
         #
         # @param status select { choices: [0, 1, 2] }
         # @param country select { choices: ["", USA, UK, France, Germany] }
-        def with_icons(status: nil, country: '')
+        # @param owner select { choices: ["", ana, beto, carla] }
+        def with_icons(status: nil, country: '', owner: '')
           filters = [
             {
               attribute: :country,
@@ -360,6 +361,15 @@ module Bali
               label: 'Country',
               icon: 'globe',
               value: country.presence
+            },
+            {
+              attribute: :owner_id,
+              collection: [%w[Ana ana], %w[Beto beto], %w[Carla carla]],
+              blank: 'All owners',
+              label: 'Owner',
+              icon: 'user',
+              type: :slim_select,
+              value: owner.presence
             },
             {
               attribute: :status,
@@ -383,7 +393,7 @@ module Bali
             url: '/lookbook',
             filters: filters,
             search: search,
-            show_clear: status.present? || country.present?
+            show_clear: status.present? || country.present? || owner.present?
           )
         end
 
@@ -538,7 +548,7 @@ module Bali
         # The picker splits a range on the locale's separator (" to ", " a "), so a range
         # spelled out among the choices above keeps only its first date in the other locale.
         def explicit_range
-          %w[2026-01-01 2026-03-31].join(I18n.t('bali_view.form_builder.date_fields.range_separator'))
+          %w[2026-01-01 2026-03-31].join(Bali::Types::DateRangeValue.separator)
         end
       end
     end

@@ -7,7 +7,7 @@
  * UNLAYERED ON PURPOSE (see ../bali.css). SlimSelect copies the native
  * `<select>`'s class list onto its own `.ss-main` / `.ss-content` nodes, so
  * those elements carry daisyUI's `.select` — which lives in @layer utilities
- * and sets width, height, padding, border, radius, display, overflow and
+ * and sets width, height, padding, border, radius, display, overflow, gap and
  * background-image. Cascade layers beat specificity, so from @layer components
  * daisyUI takes the trigger over: measured on bali/form/slim_select/default,
  * `.ss-main.select` went 1248px -> 320px wide, `display: flex` -> `inline-flex`
@@ -103,8 +103,7 @@
 
   /* Hide the native select element - SlimSelect creates its own UI */
   select,
-  select.select,
-  select.select-bordered {
+  select.select {
     position: absolute !important;
     width: 1px !important;
     height: 1px !important;
@@ -331,7 +330,10 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 0 0.5rem 0 0;
+  /* 24px wide to the pointer, as the ✕ that clears the value (below): the 6px it gains reach
+     over the text's 10px of padding, and the negative margin keeps the chip its width. */
+  padding: 0 0.5rem 0 0.375rem;
+  margin-left: -0.375rem;
   cursor: pointer;
   opacity: 0.7;
   transition: opacity var(--ss-animation-timing) ease;
@@ -364,7 +366,11 @@
   justify-content: center;
   width: fit-content;
   height: auto;
-  padding: 0 var(--ss-spacing-m);
+  /* 24px tall to the pointer around its 12px glyph, the target WCAG 2.5.8 asks for. The negative
+     margin keeps it 12px to the layout: with padding alone a `sm` multiple holding chips went
+     from 32 to 36px. */
+  padding: 0.375rem var(--ss-spacing-m);
+  margin-block: -0.375rem;
   /* A control, so 3:1 (WCAG 1.4.11). At 0.5 it measured 3.05:1 on `afal`, the lowest of the six
      themes; at 0.55 the lowest is 3.52:1, still `afal`. */
   opacity: 0.55;
@@ -986,6 +992,17 @@
   line-height: 1.25rem;
 }
 
+/* 24px tall in a 20px pill: the pill's height is fixed, so the ✕ overflows it 2px above and below,
+   into the trigger's 5px of padding, without growing it. Between rows the two overflows need 4px:
+   at 2px a ✕ in the upper row had 24×22 of its own. */
+.slim-select-sm .ss-main .ss-values {
+  row-gap: 0.25rem;
+}
+
+.slim-select-sm .ss-main .ss-values .ss-value .ss-value-delete {
+  height: 1.5rem;
+}
+
 /* Compact dropdown content for small variant.
    Targets both: content inside wrapper (.slim-select-sm .ss-content)
    and content outside wrapper (.slim-select-sm-content) via JS class propagation */
@@ -1049,19 +1066,18 @@
    select arrow background-image when applied to .ss-main and .ss-content
    ============================================================================= */
 .ss-main.select,
-.ss-main.select-bordered,
-div.ss-main.select,
-div.ss-main.select-bordered {
+div.ss-main.select {
   background-image: none !important;
   background-position: unset !important;
   padding-right: var(--ss-spacing-l) !important;
+  /* daisyUI 5's `.select` sets `gap: .375rem`: 6px for each hole beside the ✕ and the arrow,
+     which their own padding and margin already space. */
+  gap: 0;
 }
 
 /* ss-content should have NO padding from DaisyUI select classes */
 .ss-content.select,
-.ss-content.select-bordered,
-div.ss-content.select,
-div.ss-content.select-bordered {
+div.ss-content.select {
   background-image: none !important;
   background-position: unset !important;
   padding: 0 !important;

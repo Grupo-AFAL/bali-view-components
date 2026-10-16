@@ -51,7 +51,7 @@ module Bali
 
         # Format Range objects to string for the input value AFTER wrapper options are built
         if opts[:value].is_a?(Range)
-          separator = I18n.t("bali_view.form_builder.date_fields.range_separator")
+          separator = Bali::Types::DateRangeValue.separator
           opts[:value] = "#{opts[:value].first.strftime("%Y-%m-%d")}#{separator}#{opts[:value].last.strftime("%Y-%m-%d")}"
         end
 
@@ -78,9 +78,7 @@ module Bali
           if options[:value].respond_to?(:first) && !options[:value].is_a?(String)
             values[:default_dates] = [ options[:value].first, options[:value].last ]
           elsif options[:value].is_a?(String) && options[:value].present?
-            # Split the range string using the localized separator
-            separator = I18n.t("bali_view.form_builder.date_fields.range_separator")
-            values[:default_dates] = options[:value].split(/#{Regexp.escape(separator)}/)
+            values[:default_dates] = options[:value].split(Bali::Types::DateRangeValue.separator)
           end
         end
 

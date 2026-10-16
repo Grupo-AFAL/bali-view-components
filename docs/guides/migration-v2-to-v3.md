@@ -3228,8 +3228,9 @@ grep -rn "label-text\|input-bordered\|textarea-bordered\|form-control" app/ test
 | `input input-bordered w-full` | `input w-full` |
 | `textarea textarea-bordered w-full` | `textarea w-full` |
 
-`select-bordered` is **not** in that table and has not been removed: it is the one class of
-the family with live definitions, in Bali's own SlimSelect stylesheet.
+`select-bordered` is **not** in that table and has not been removed: Bali still writes it on
+its own `<select>`s, always next to `select`, which is what styles them. Neither daisyUI 5 nor
+Bali defines it any more, so all it still does is give a host selector something to hold on to.
 
 ### A field with help and an error now shows both
 

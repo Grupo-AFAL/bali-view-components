@@ -21,6 +21,10 @@ class BaliCalendarComponentTest < ComponentTestCase
     Date.current.prev_occurring(:friday)
   end
 
+  def day_header(start_date, weekdays_only: false)
+    Bali::Calendar::Header::Component.new(start_date: start_date, period: :day, weekdays_only: weekdays_only)
+  end
+
   public
 
   def test_renders_calendar_component_with_the_full_week
@@ -82,38 +86,39 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector("tr > th.text-center", text: "Saturday")
     assert_selector("tr > th.text-center", text: "Sunday")
   end
-  # #prev_day
+  # #prev_day, #next_day
 
   def test_prev_day_with_weekends_returns_the_previous_day
-    @options.merge!(start_date: monday.to_s, weekdays_only: false)
-    assert_equal({ start_time: monday - 1.day }, component.prev_day)
+    assert_equal(monday - 1.day, day_header(monday).prev_day)
   end
 
   def test_prev_day_weekdays_only_returns_the_previous_friday
-    @options.merge!(start_date: monday.to_s, weekdays_only: true)
-    assert_equal({ start_time: monday - 3.days }, component.prev_day)
+    assert_equal(monday - 3.days, day_header(monday, weekdays_only: true).prev_day)
   end
 
   def test_prev_day_not_monday_returns_the_previous_day
-    @options.merge!(start_date: friday.to_s)
-    assert_equal({ start_time: friday - 1.day }, component.prev_day)
+    assert_equal(friday - 1.day, day_header(friday, weekdays_only: true).prev_day)
   end
-  # #next_day
 
   def test_next_day_with_weekends_returns_the_next_day
-    @options.merge!(start_date: friday.to_s, weekdays_only: false)
-    assert_equal({ start_time: friday + 1.day }, component.next_day)
+    assert_equal(friday + 1.day, day_header(friday).next_day)
   end
 
   def test_next_day_weekdays_only_returns_the_next_monday
-    @options.merge!(start_date: friday.to_s, weekdays_only: true)
-    assert_equal({ start_time: friday + 3.days }, component.next_day)
+    assert_equal(friday + 3.days, day_header(friday, weekdays_only: true).next_day)
   end
 
   def test_next_day_not_friday_returns_the_next_day
-    @options.merge!(start_date: monday.to_s)
-    assert_equal({ start_time: monday + 1.day }, component.next_day)
+    assert_equal(monday + 1.day, day_header(monday, weekdays_only: true).next_day)
   end
+
+  def test_weekdays_only_takes_a_weekend_day_to_the_next_monday_and_back_to_the_friday
+    saturday = Date.parse("2020-03-07")
+
+    assert_equal(Date.parse("2020-03-09"), day_header(saturday, weekdays_only: true).next_day)
+    assert_equal(Date.parse("2020-03-06"), day_header(saturday + 1.day, weekdays_only: true).prev_day)
+  end
+
   # #prev_start_date
 
   def test_prev_start_date_month_returns_first_date_of_last_month
@@ -147,6 +152,27 @@ class BaliCalendarComponentTest < ComponentTestCase
       next_date = c.with_header(start_date: "2020-03-03", period: :week).next_start_date
     end
     assert_equal(Date.parse("2020-03-09"), next_date)
+  end
+  def test_day_header_arrows_step_one_day
+    @options.merge!(start_date: "2020-03-05", period: :day)
+    render_inline(component) { |c| c.with_header(route_path: "/events") }
+
+    assert_selector(".header a[aria-label='Previous'][href='/events?period=day&start_time=2020-03-04']")
+    assert_selector(".header a[aria-label='Next'][href='/events?period=day&start_time=2020-03-06']")
+  end
+
+  def test_day_header_disables_the_previous_arrow_on_min_date
+    @options.merge!(start_date: "2020-03-05", period: :day)
+    render_inline(component) { |c| c.with_header(route_path: "/events", min_date: "2020-03-05") }
+
+    assert_selector(".header a[aria-label='Previous'][aria-disabled='true']")
+  end
+
+  def test_day_header_arrows_skip_the_weekend_under_weekdays_only
+    @options.merge!(start_date: "2020-03-09", period: :day, weekdays_only: true)
+    render_inline(component) { |c| c.with_header(route_path: "/events") }
+
+    assert_selector(".header a[aria-label='Previous'][href='/events?period=day&start_time=2020-03-06']")
   end
   # #extra_params
 
@@ -701,6 +727,40 @@ class BaliCalendarComponentTest < ComponentTestCase
     I18n.backend.store_translations(:en, date: { formats: { long: previous } })
   end
 
+  def test_mobile_day_view_renders_without_a_template_as_the_desktop_one_does
+    render_mobile_day_view(template: nil)
+
+    assert_equal("Thursday, March 05, 2020", mobile_day_title)
+  end
+
+  def test_mobile_day_arrows_keep_the_header_route_and_stop_at_its_bounds
+    @options.merge!(start_date: "2020-03-05", period: :day)
+    with_request_url("/admin/movies?category=7") do
+      with_variant(:mobile) do
+        render_inline(component) { |c| c.with_header(route_path: "/events?category=3", min_date: "2020-03-05") }
+      end
+    end
+
+    assert_selector(".day-view a[aria-label='Next'][href='/events?category=3&period=day&start_time=2020-03-06']")
+    assert_selector(".day-view a[aria-label='Previous'][aria-disabled='true']:not([href])")
+  end
+
+  def test_mobile_day_arrows_step_one_day_whatever_the_period
+    @options.merge!(start_date: "2020-03-05", period: :month)
+    with_variant(:mobile) { render_inline(component) { |c| c.with_header(route_path: "/events") } }
+
+    assert_selector(".day-view a[aria-label='Next'][href='/events?period=month&start_time=2020-03-06']")
+  end
+
+  def test_mobile_day_view_draws_arrows_only_with_a_route_as_the_desktop_one
+    @options.merge!(start_date: "2020-03-05", period: :day)
+    [ "", nil ].each do |route_path|
+      with_variant(:mobile) { render_inline(component) { |c| c.with_header(route_path: route_path) } }
+
+      assert_no_selector(".day-view a")
+    end
+  end
+
   def test_year_view_marks_the_card_with_year_view
     @options.merge!(start_date: "2020-01-01", period: :year)
     render_inline(component)
@@ -903,10 +963,9 @@ class BaliCalendarComponentTest < ComponentTestCase
     Struct.new(:start_time).new(Date.parse(date))
   end
 
-  # The day view's arrows call `url_for`, which needs a request on a real route.
-  def render_mobile_day_view
-    @options.merge!(start_date: "2020-03-05", period: :day, template: "calendar_fixtures/day")
-    with_request_url("/admin/movies") { with_variant(:mobile) { render_inline(component) } }
+  def render_mobile_day_view(template: "calendar_fixtures/day")
+    @options.merge!(start_date: "2020-03-05", period: :day, template: template)
+    with_variant(:mobile) { render_inline(component) }
   end
 
   def mobile_day_title

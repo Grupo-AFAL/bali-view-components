@@ -3,8 +3,8 @@
 require "test_helper"
 
 # daisyUI 5 defines none of these classes, so they paint nothing; all they still do is give a host
-# selector something to hold on to (#903). `select-bordered` is not among them: Bali's own
-# `slim_select.css` defines it.
+# selector something to hold on to (#903). `select-bordered` is no different, but it is not among
+# them because Bali still writes it, next to the `select` that styles the element.
 class BaliDaisyuiV4ClassesTest < ActiveSupport::TestCase
   DAISYUI_V4_CLASSES = %w[label-text label-text-alt input-bordered textarea-bordered form-control].freeze
   V4_CLASS = /(?<![\w-])(?:#{DAISYUI_V4_CLASSES.join('|')})(?![\w-])/

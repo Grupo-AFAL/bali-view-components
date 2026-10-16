@@ -221,9 +221,6 @@ es:
         clear: "Limpiar fecha"
         previous: "Fecha anterior"
         next: "Fecha siguiente"
-        # Se escribe entre las dos fechas de un rango Y se usa para volver a
-        # separarlas, así que una traducción tiene que seguir siendo reversible.
-        range_separator: " a "
       # Salen del namespace `helpers.*` del host, donde esta gema no tenía nada
       # que escribir (Rails lo usa para labels y submits de sus forms).
       coordinates_polygon:

@@ -18,6 +18,14 @@ module Bali
           'Dairy' => [%w[Milk milk], %w[Cheese cheese], %w[Yogurt yogurt]]
         }.freeze
 
+        # The disabled group goes last: Rails tells a grouped list from a flat one by its first
+        # element alone (`Tags::Select#grouped_choices?`), and a group's attributes hash would
+        # read as flat there.
+        GROUPED_OPTIONS_WITH_DISABLED = [
+          *GROUPED_OPTIONS.merge('Dairy' => [*GROUPED_OPTIONS['Dairy'], ['Butter', 'butter', { disabled: true }]]),
+          ['Frozen', [%w[Peas peas], %w[Sorbet sorbet]], { disabled: true }]
+        ].freeze
+
         # NOTE: Do NOT use html_safe on data-inner-html values - Rails must escape quotes for valid HTML attributes.
         # SlimSelect will render the escaped HTML correctly via innerHTML.
         HTML_OPTIONS = [
@@ -200,11 +208,19 @@ module Bali
         end
 
         # @label Select All
-        # Multi-select with Select All / Deselect All buttons
-        def select_all
+        # Multi-select with Select All / Deselect All buttons. `grouped` puts the options in
+        # option groups, with a disabled option and a disabled group; `blank` adds an
+        # `include_blank:`. Select All leaves all three out.
+        # @param grouped toggle
+        # @param blank toggle
+        def select_all(grouped: false, blank: false)
           render_with_template(
             template: 'bali/form/slim_select/previews/select_all',
-            locals: { model: form_record, options: OPTIONS }
+            locals: {
+              model: form_record,
+              options: grouped ? GROUPED_OPTIONS_WITH_DISABLED : OPTIONS,
+              include_blank: ('Any option' if blank)
+            }
           )
         end
 

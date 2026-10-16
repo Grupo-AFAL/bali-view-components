@@ -40,6 +40,8 @@ const TEXTS = {
   }
 }
 
+const optionsIn = data => data.flatMap(item => item.options || [item])
+
 export class SlimSelectController extends Controller {
   static values = {
     addItems: Boolean,
@@ -104,6 +106,7 @@ export class SlimSelectController extends Controller {
     // <select>, and the orphan reverts what the live one writes: the user picks an option,
     // the widget shows it, and the <select> that FormData serializes stays empty.
     const generation = (this.generation = (this.generation || 0) + 1)
+    let optionObserver
 
     try {
       const slimSelect = await import('slim-select').catch(optionalPeer('slim-select'))
@@ -146,13 +149,16 @@ export class SlimSelectController extends Controller {
         options.settings.contentWidth = this.contentWidthValue
       }
 
-      // SlimSelect reads an option's markup from `data-html`; `data-inner-html` is the name Bali
-      // documents and hosts write. Copied, not handed over as `data`: SlimSelect rebuilds the
-      // <select> from `data`, keeping only the attributes it maps, and 3.x dispatches a `change`
-      // doing it.
-      for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
-        option.dataset.html = option.dataset.innerHtml
-      }
+      // Written on the options, not handed over as `data`: SlimSelect rebuilds the <select> from
+      // `data`, keeping only the attributes it maps, and 3.x dispatches a `change` doing it.
+      this.prepareOptions()
+
+      // And on every option that arrives later — a Turbo Stream into the <select>, a host's
+      // script — before SlimSelect's own observer reads it: SlimSelect rebuilds the <select> from
+      // what it read, dropping a group's `disabled` for good. A mutation both observe reaches the
+      // one that started observing first, so this one starts before `new SlimSelect`.
+      optionObserver = new MutationObserver(() => this.prepareOptions())
+      optionObserver.observe(this.selectTarget, { childList: true, subtree: true })
 
       if (this.hasAjaxValues()) {
         options.events.search = this.search
@@ -172,11 +178,13 @@ export class SlimSelectController extends Controller {
       // nobody, and leaving it alive is what corrupts the <select>. Destroying it here is the
       // only chance to — `teardown()` already ran, and it only ever looks at `this.select`.
       if (generation !== this.generation) {
+        optionObserver.disconnect()
         instance.destroy()
         return
       }
 
       this.select = instance
+      this.optionObserver = optionObserver
 
       // After the import, not before it: `teardown()` only ever looks at
       // `this.select`, so a listener registered while it is still null buys
@@ -192,11 +200,10 @@ export class SlimSelectController extends Controller {
         this.select.disable()
       }
 
-      // Remove DaisyUI select classes from the dropdown content to prevent centering
-      // SlimSelect copies classes from the original select element, including DaisyUI's
-      // 'select' and 'select-bordered' classes which cause centering issues.
+      // SlimSelect copies the original select's classes onto the dropdown content, daisyUI's
+      // `select` among them, which centres it.
       const contentEl = this.select.render.content.main
-      contentEl.classList.remove('select', 'select-bordered')
+      contentEl.classList.remove('select')
 
       // Propagate size variant class to dropdown content (it renders outside the wrapper)
       if (this.element.classList.contains('slim-select-sm')) {
@@ -209,6 +216,7 @@ export class SlimSelectController extends Controller {
       this.announceErrors()
       this.joinTopLayerOnOpen()
     } catch (error) {
+      optionObserver?.disconnect()
       console.error('[SlimSelect] Failed to initialize:', error)
     }
   }
@@ -269,7 +277,7 @@ export class SlimSelectController extends Controller {
   }
 
   // SlimSelect counts the placeholder among the results it reads out, though it draws it
-  // hidden, and a remote search keeps it in the list because it is the selected option.
+  // hidden, and a remote search keeps it in the list: `search` hands it back with the results.
   // Measured on 4.5.0 and 4.6.0: a remote search with no matches left the list blank and read
   // out "1 results available", and four matches read "5". Reported upstream as
   // https://github.com/brianvoe/slim-select/issues/719 — this method goes once that is fixed.
@@ -282,7 +290,6 @@ export class SlimSelectController extends Controller {
   leavePlaceholderOutOfResults () {
     const render = this.select.render
     const renderOptions = render.renderOptions.bind(render)
-    const optionsIn = data => data.flatMap(item => item.options || [item])
 
     render.renderOptions = data => {
       const options = optionsIn(data)
@@ -362,8 +369,25 @@ export class SlimSelectController extends Controller {
   teardown () {
     leaveTopLayer(this.select?.render?.content?.main)
 
+    this.optionObserver?.disconnect()
     this.select?.destroy()
     this.select = null
+  }
+
+  prepareOptions () {
+    // SlimSelect reads an option's markup from `data-html`; `data-inner-html` is the name Bali
+    // documents and hosts write.
+    for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
+      if (option.dataset.html !== option.dataset.innerHtml) option.dataset.html = option.dataset.innerHtml
+    }
+
+    // SlimSelect reads an option's own `disabled`, never its group's, and its rebuild of the
+    // <select> drops the group's (3.4.3 to 4.6.0): the options of a disabled <optgroup> stayed
+    // pickable, each a chip the form does not send. One way: a group enabled again keeps its
+    // options disabled — SlimSelect replaces the group on its next read anyway.
+    for (const option of this.selectTarget.querySelectorAll('optgroup[disabled] > option:not([disabled])')) {
+      option.disabled = true
+    }
   }
 
   // Remove a SlimSelect widget left behind in a restored Turbo snapshot. The
@@ -376,11 +400,13 @@ export class SlimSelectController extends Controller {
   }
 
   selectAll () {
-    const allValues = Array.from(this.selectTarget.children).map(
-      option => option.value
-    )
+    // Not the disabled ones: selected, they show a chip, and the form does not send them. Nor a
+    // blank — the placeholder `build_select` writes for `include_blank:`, or Rails' blank row on
+    // a grouped list — which would send an empty value.
+    const values = Array.from(this.selectTarget.querySelectorAll('option:enabled'), option => option.value)
+      .filter(value => value !== '')
 
-    this.select.setSelected(allValues)
+    this.select.setSelected(values)
 
     if (this.hasSelectAllButtonTarget) {
       this.selectAllButtonTarget.classList.add('hidden')
@@ -404,7 +430,9 @@ export class SlimSelectController extends Controller {
   // Async, so that what throws while the request is still being built — an
   // `ajax_param_selectors` that is not a valid selector, an `ajax_extra_params` that is not
   // JSON — rejects too: SlimSelect has already put up "Searching..." before it calls this.
-  search = async (search, currentData, catalog) => {
+  //
+  // `catalog` arrives from 4.0; 3.x passes only the term and the selection.
+  search = async (search, currentData, catalog = []) => {
     // From 4.4 emptying the search box reaches this callback as well, and rejecting it shows
     // `ajaxPlaceholder` where the options were. The catalog is what 4.0–4.3 restored on their
     // own; 3.x never asks.
@@ -427,15 +455,26 @@ export class SlimSelectController extends Controller {
       if (!response.ok) throw new Error(response.statusCode)
 
       const data = await response.json
+      const held = optionsIn(catalog)
+
+      // A result SlimSelect already holds (a seed option, or a result chosen earlier) goes
+      // back with the id it has there. SlimSelect matches a result to it by `===` on the
+      // value, a string on the <select>, and reads a selection as changed by id: a JSON number
+      // listed the record twice and wrote it into the <select> twice, and a fresh id ran
+      // `afterChange` on every search that found the chosen record.
+      const ids = new Map(held.map(option => [option.value, option.id]))
       const options = data.map(record => {
-        return {
-          text: record[this.ajaxTextNameValue],
-          value: record[this.ajaxValueNameValue],
-          html: record.html
-        }
+        const value = String(record[this.ajaxValueNameValue])
+
+        return { id: ids.get(value), text: record[this.ajaxTextNameValue], value, html: record.html }
       })
 
-      return [{ label: this.texts.resultsText, options }]
+      // Without a placeholder in its data, SlimSelect gives the ✕ an empty one of its own,
+      // which shows `placeholderText` instead of the select's and stays behind in the
+      // <select> as a second blank once the list closes.
+      const placeholders = held.filter(option => option.placeholder)
+
+      return [...placeholders, { label: this.texts.resultsText, options }]
     } catch (error) {
       console.error('[SlimSelect] Remote search failed:', error)
       // SlimSelect paints whatever the search rejects with where the results go, an error's
