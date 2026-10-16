@@ -249,13 +249,13 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
     render_country_filter(multiple: true, predicate: :in, icon: "globe")
 
     assert_selector("select[multiple]")
-    assert_no_selector(".max-sm\\:w-16")
+    assert_no_selector("[class*='max-sm:w-']")
   end
 
   def test_a_slim_select_without_multiple_stays_single_valued
     render_country_filter(icon: "globe", value: "USA")
 
-    assert_selector("select.max-sm\\:w-16[name='q[country_eq]']:not([multiple])")
+    assert_selector("select.max-sm\\:w-28[name='q[country_eq]']:not([multiple])")
     assert_no_selector("input[type=hidden][name^='q[country']", visible: :all)
     assert_no_selector("[data-slim-select-close-on-select-value]")
   end

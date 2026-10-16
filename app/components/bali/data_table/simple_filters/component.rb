@@ -114,10 +114,12 @@ module Bali
           slim_select?(filter) && filter[:multiple].present?
         end
 
-        # Below `sm` an iconed select shrinks to 64px and leaves the icon to say what it
-        # filters. Not a multiple: its chips are the value, and at 64px each took a row.
+        # Below `sm` an iconed select shrinks and leaves the icon to say what it filters. Not to
+        # the native select's 64px: the ✕, the arrow, border, padding and daisyUI's `gap` take
+        # 80, and there the value measured 0. Not a multiple: its chips are the value, and at
+        # 64px each took a row.
         def slim_select_phone_width(filter)
-          "max-sm:w-16" if filter[:icon] && !multiple?(filter)
+          "max-sm:w-28" if filter[:icon] && !multiple?(filter)
         end
 
         def date?(filter)

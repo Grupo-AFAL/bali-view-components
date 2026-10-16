@@ -38,6 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Lo ven los filtros `slim_select` de afal-apps y gobierno-corporativo. En un campo de formulario un
   valor largo se trunca junto a la ✕ o la flecha, hasta 18 px más ancho. Nada que hacer en la app.
 
+- **En el teléfono, un filtro `slim_select` con `icon:` deja ver el valor elegido.** Debajo de `sm`
+  se encogía a los 64 px del `select` nativo, y la ✕, la flecha, el borde, el relleno y el `gap` de
+  daisyUI ocupan 80: el valor medía 0 px. Ahora se encoge a 112 px y le quedan 30 px al valor, que se
+  trunca; la ✕ sigue ahí. Ninguna app pasa `icon:` a un filtro `slim_select`: nada que hacer.
+
 - **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante o estén
   en grupos** (#1495). El controlador miraba sólo el primer hijo del `<select>`, que con
   `include_blank:` o `prompt:` es el placeholder y en una lista agrupada es un `<optgroup>`. Ahora
