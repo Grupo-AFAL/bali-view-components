@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`checkbox-toggle`: un target que un Turbo Stream reemplaza sigue a la casilla en pantalla**
+  (#1495). Se quedaba como lo pintó el servidor, con su `hidden` y, con `disable-hidden`, su
+  `disabled`, aunque la casilla dijera lo contrario. Ahora hace lo mismo que `radio-toggle` desde
+  #1214. `toggleTargets` corre cada vez que llega un target (al conectar, una vez por lado), así
+  que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
+  `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
+
 ## [v3.17.0] - 2026-10-15
 
 ### Added

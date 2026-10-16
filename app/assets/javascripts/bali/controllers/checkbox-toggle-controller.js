@@ -22,17 +22,27 @@ export class CheckboxToggleController extends Controller {
   static targets = ['on', 'off']
   static values = { checked: Boolean, disableHidden: Boolean }
 
-  connect () {
+  change (event) {
+    this.checkedValue = event.target.checked
     this.toggleTargets(this.checkedValue)
   }
 
-  change (event) {
-    this.toggleTargets(event.target.checked)
+  // Stimulus also calls these for the targets present at connect, so they are the
+  // whole initial render. A target a Turbo Stream replaces later lands here too,
+  // and takes the state on screen rather than the one the server painted. Both go
+  // through `toggleTargets`, not `toggle(element)`, so a subclass that overrides
+  // it still renders on connect.
+  onTargetConnected () {
+    this.toggleTargets(this.checkedValue)
+  }
+
+  offTargetConnected () {
+    this.toggleTargets(this.checkedValue)
   }
 
   toggleTargets (checked) {
-    this.toggle(this.onTarget, checked)
-    this.toggle(this.offTarget, !checked)
+    if (this.hasOnTarget) this.toggle(this.onTarget, checked)
+    if (this.hasOffTarget) this.toggle(this.offTarget, !checked)
   }
 
   toggle (element, visible) {
