@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`checkbox-toggle`: un target que un Turbo Stream reemplaza sigue a la casilla en pantalla**
+  (#1495). Se quedaba como lo pintó el servidor, con su `hidden` y, con `disable-hidden`, su
+  `disabled`, aunque la casilla dijera lo contrario. Ahora hace lo mismo que `radio-toggle` desde
+  #1214. `toggleTargets` corre cada vez que llega un target (al conectar, una vez por lado), así
+  que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
+  `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
+
 ### Documentation
 
 - **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).
@@ -180,9 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   **Anfitrión:** si el filtro no usa `presets:`, se puede borrar la regla
   `.sm\:max-w-56:has(> div > .flatpickr[data-datepicker-mode-value="range"])`; gobierno-corporativo,
   cuyo único `date_range` (`microsoft_graph_call_logs_filter_form.rb:24`) no usa `presets:`, borra
-  `app/assets/tailwind/application.css:178`. Quien deba bajar el mínimo escribe, fuera de toda
-  `@layer`, `.min-w-52:has(> div > .flatpickr[data-datepicker-mode-value="range"]) { min-width: 0 }`:
-  el filtro no recibe clases.
+  `app/assets/tailwind/application.css:178`. Quien deba bajar el mínimo escribe `min-w-0!`.
 
 - **SlimSelect: una búsqueda remota que falla lo dice en la lista** (#1452). Un 4xx o 5xx, una
   respuesta que no es una lista JSON o un corte de red dejaban «Buscando...» puesto para siempre
