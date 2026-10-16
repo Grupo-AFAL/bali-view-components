@@ -17,10 +17,11 @@ import {
 import { newId, findNode, outgoing, incoming } from './document.js'
 
 // What the editor refuses on the spot. The editor derives it from the
-// enabled rules (rules.js blockPolicy), so turning a rule off also lifts its block.
+// enabled rules (rules/engine.js blockPolicy), so turning a rule off also lifts
+// its block. An overlap is never refused: the local arrangement (arrange.js)
+// moves the next elements along, and R18 reports one a document arrives with.
 export const DEFAULT_POLICY = {
   oneInOneOut: true, // R01/R02
-  noOverlap: true, // R18
   insideLane: true, // R26
   minLanes: 2, // R21
   messageFlowParticipants: true, // B02
@@ -186,9 +187,7 @@ export function createNode (doc, attrs, center, { policy = DEFAULT_POLICY, names
     const entry = laneAt(layout, center)
     node = entry ? { ...draft, lane_id: entry.id } : draft
   }
-  let next = { ...doc, nodes: [...doc.nodes, node] }
-  if (policy.noOverlap && overlapping(next, new Set([String(node.id)]))) return blocked('block_overlap')
-  next = fitLanes(next)
+  const next = fitLanes({ ...doc, nodes: [...doc.nodes, node] })
   return { doc: next, id: node.id }
 }
 
@@ -230,9 +229,7 @@ export function moveNodes (doc, ids, delta, { policy = DEFAULT_POLICY } = {}) {
     return placed
   })
   if (failed) return blocked(failed)
-  let next = { ...doc, nodes, edges: clearWaypointsOf(doc.edges, idSet) }
-  if (policy.noOverlap && overlapping(next, idSet)) return blocked('block_overlap')
-  next = fitLanes(next)
+  const next = fitLanes({ ...doc, nodes, edges: clearWaypointsOf(doc.edges, idSet) })
   return { doc: next }
 }
 
@@ -466,12 +463,13 @@ export function appendNode (doc, sourceId, attrs, direction, { policy = DEFAULT_
   }
   const forward = (axis.cross === 'x' && direction === 'right') || (axis.cross === 'y' && direction === 'down')
   let created = createNode(doc, attrs, center, { policy, names })
-  if (created.error === 'block_overlap' && forward) {
+  // The spot ahead taken: what follows moves along to make room.
+  if (!created.error && forward && overlapping(created.doc, new Set([String(created.id)]))) {
     const from = (axis.cross === 'x' ? box.x + box.w : box.y + box.h) + 1
     const step = (axis.cross === 'x' ? width : height) + gap
     created = createNode(shiftAlong(doc, from, step, source.id), attrs, center, { policy, names })
   }
-  if (created.error) return blocked(created.error === 'block_overlap' || created.error === 'block_lane' ? 'block_no_space' : created.error)
+  if (created.error) return blocked(created.error === 'block_lane' ? 'block_no_space' : created.error)
   const connected = connect(created.doc, source.id, created.id, { policy, labels })
   if (connected.error) return connected
   return { doc: connected.doc, id: created.id, edgeId: connected.id }
@@ -653,7 +651,6 @@ export function alignNodes (doc, ids, direction, { policy = DEFAULT_POLICY } = {
     }),
     edges: clearWaypointsOf(doc.edges, set)
   }
-  if (policy.noOverlap && overlapping(next, set)) return blocked('block_overlap')
   if (policy.insideLane && doc.lanes.length) {
     // Only what the alignment pushes out counts (an imported node already
     // outside is a pending issue, not a reason to refuse).

@@ -591,7 +591,6 @@ es:
         lane_resize_all: "Cambiar el largo de todos los carriles"
         unnamed: "Sin nombre"
         block_connection: "La conexión no cumple la regla de entradas y salidas. Usa un gateway para bifurcar o unificar rutas."
-        block_overlap: "La operación produciría una superposición."
         block_lane: "La operación excede el espacio válido del carril."
         block_lane_has_nodes: "El carril contiene elementos. Muévelos o elimínalos antes de eliminar el carril."
         block_min_lanes: "El flujo debe conservar al menos %{count} carriles."

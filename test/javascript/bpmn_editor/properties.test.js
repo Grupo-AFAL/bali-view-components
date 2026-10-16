@@ -16,8 +16,7 @@ import { large } from './fixtures.js'
 
 const SEQUENCES = Number(process.env.BPMN_SEQUENCES || 200)
 const STEPS = Number(process.env.BPMN_STEPS || 30)
-// As in the editor: the local arrangement resolves overlaps instead of refusing them.
-const POLICY = { ...ops.DEFAULT_POLICY, noOverlap: false }
+const POLICY = ops.DEFAULT_POLICY
 const NAMES = { task: 'Task', gateway: 'Decision?', start: 'Begin', end: 'Done', event: 'Wait', sub_process: 'Sub' }
 const LABELS = { yes: 'Yes', no: 'No' }
 

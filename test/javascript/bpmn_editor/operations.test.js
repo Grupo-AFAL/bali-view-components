@@ -19,10 +19,11 @@ test('createNode places the node in the lane under the point, named by family', 
   assert.ok(insideLane(layoutLanes(d), created))
 })
 
-test('createNode is blocked outside every lane and on top of another element', () => {
+// An overlap is the local arrangement's to resolve (arrange.js), never refused.
+test('createNode is blocked outside every lane, not on top of another element', () => {
   assert.equal(ops.createNode(twoLanes(), { type: 'task' }, { x: 400, y: 900 }).error, 'block_lane')
-  assert.equal(ops.createNode(twoLanes(), { type: 'task' }, { x: 270, y: 95 }).error, 'block_overlap')
-  assert.ok(ops.createNode(twoLanes(), { type: 'task' }, { x: 270, y: 95 }, { policy: { ...ops.DEFAULT_POLICY, noOverlap: false } }).doc)
+  assert.ok(ops.createNode(twoLanes(), { type: 'task' }, { x: 270, y: 95 }).doc)
+  assert.equal('noOverlap' in ops.DEFAULT_POLICY, false)
 })
 
 test('a node that does not fit makes its lane grow and carries the next lanes along', () => {
@@ -33,10 +34,10 @@ test('a node that does not fit makes its lane grow and carries the next lanes al
   for (const n of d.nodes) assert.ok(insideLane(layout, n), `${n.id} inside its lane`)
 })
 
-test('moveNodes changes lane by the centre and blocks overlap and the header', () => {
+test('moveNodes changes lane by the centre and blocks the header, not an overlap', () => {
   const moved = ops.moveNodes(twoLanes(), ['t1'], { x: 600, y: 180 }).doc
   assert.equal(byId(moved, 't1').lane_id, 'l2')
-  assert.equal(ops.moveNodes(twoLanes(), ['t1'], { x: 200, y: 180 }).error, 'block_overlap')
+  assert.ok(ops.moveNodes(twoLanes(), ['t1'], { x: 200, y: 180 }).doc)
   assert.equal(ops.moveNodes(twoLanes(), ['t1'], { x: -230, y: 0 }).error, 'block_lane')
   assert.equal(ops.moveNodes(twoLanes(), ['t1'], { x: 0, y: 900 }).error, 'block_lane')
 })

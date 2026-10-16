@@ -19,6 +19,7 @@
     "./bpmn-editor": "./app/frontend/bali/bpmn-editor.js",
     "./bpmn-editor-entry": "./app/frontend/bali/bpmn-editor-entry.js",
     "./bpmn-editor-loader": "./app/frontend/bali/bpmn-editor-loader.js",
+    "./bpmn-editor/afal-rules": "./app/frontend/bali/bpmn-editor-afal-rules.js",
     "./react-island": "./app/frontend/bali/react-island.js",
     "./rich-text-editor": "./app/frontend/bali/rich-text-editor.js",
     "./controllers": "./app/frontend/bali/controllers/index.js",

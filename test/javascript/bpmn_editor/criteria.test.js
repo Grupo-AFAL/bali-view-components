@@ -5,7 +5,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
-import { evaluate, CATALOG } from '../../../app/components/bali/bpmn_editor/model/rules.js'
+import { evaluate, CATALOG } from '../../../app/components/bali/bpmn_editor/model/rules/engine.js'
+import { AFAL_RULES } from '../../../app/components/bali/bpmn_editor/model/rules/afal.js'
+// The matrix's guidelines run as a host that imports them does.
+import '../../../app/frontend/bali/bpmn-editor-afal-rules.js'
 import { translator } from '../../../app/components/bali/bpmn_editor/i18n.js'
 import { NODE_TYPES } from '../../../app/components/bali/bpmn_editor/model/catalog.js'
 
@@ -65,7 +68,7 @@ function splitAndClose (open, closeType, { labels = ['Sí', 'No'] } = {}) {
 }
 
 const CASES = [
-  // ── Actividades ────────────────────────────────────────────────────────
+  // ── Activities ─────────────────────────────────────────────────────────
   { codes: ['ACT-01', 'ACT-07'], rules: ['ACT-07'], wrong: () => linear(['Recibir la solicitud', 'Registrar la solicitud']), right: () => linear(['Registrar la solicitud']) },
   { codes: ['ACT-02'], rules: ['ACT-02'], wrong: () => linear(['Validación de documentos']), right: () => linear(['Registrar los documentos']) },
   { codes: ['ACT-03'], rules: ['ACT-03'], wrong: () => linear(['Realizar gestión correspondiente']), right: () => linear(['Registrar la solicitud']) },
@@ -95,7 +98,7 @@ const CASES = [
       [head, ['a0', 'm'], ['m', 'c'], ['c', 'v'], ['v', 'g'], ['g', 'e', 'Sí'], ['g', 'm', 'No']])
   })),
 
-  // ── Eventos de inicio ──────────────────────────────────────────────────
+  // ── Start events ───────────────────────────────────────────────────────
   { codes: ['EVI-01'], rules: ['R12'], wrong: () => processOf([task('a0', 'Elaborar la solicitud', 1), task('a1', 'Registrar la solicitud'), end()], [['a0', 'a1'], ['a1', 'e']]), right: () => linear(['Registrar la solicitud']) },
   { codes: ['EVI-02'], rules: ['R06'], wrong: () => { const d = linear(['Registrar la solicitud']); d.nodes[0].name = 'Inicio'; return d }, right: () => { const d = linear(['Registrar la solicitud']); d.nodes[0].name = 'Periodo de cierre iniciado'; return d } },
   { codes: ['EVI-03'], rules: ['EVI-03'], wrong: () => { const d = linear(['Registrar la solicitud']); d.nodes[0].name = 'Recibir solicitud'; return d }, right: () => linear(['Registrar la solicitud']) },
@@ -107,7 +110,7 @@ const CASES = [
   },
   { codes: ['EVI-06'], rules: ['R24'], wrong: () => { const d = linear(['Registrar la solicitud']); d.edges.push({ id: 'x', source: 'a1', target: 's' }); return d }, right: () => linear(['Registrar la solicitud']) },
 
-  // ── Eventos intermedios ────────────────────────────────────────────────
+  // ── Intermediate events ────────────────────────────────────────────────
   ...[['EVM-04', 'message', 'Mensaje', 'Confirmación de pago recibida'], ['EVM-06', 'timer', 'Tiempo', '3 meses después de la apertura']].map(([code, kind, wrong, right]) => ({
     codes: [code],
     rules: ['R08'],
@@ -123,7 +126,7 @@ const CASES = [
     right: () => withEvent('message', 'Confirmación de pago recibida')
   },
 
-  // ── Diseño y legibilidad ───────────────────────────────────────────────
+  // ── Layout and legibility ─────────────────────────────────────────────
   // Forty activities in one row print far under the legible size on letter;
   // two fit (each column of processOf is 200 px: start, three steps, end).
   {
@@ -133,7 +136,7 @@ const CASES = [
     right: () => linear(['Registrar la solicitud'])
   },
 
-  // ── Eventos de fin ─────────────────────────────────────────────────────
+  // ── End events ─────────────────────────────────────────────────────────
   { codes: ['EVF-01'], rules: ['R13', 'EST-01'], wrong: () => processOf([...opening, task('a1', 'Registrar la solicitud')], [head, ['a0', 'a1']]), right: () => linear(['Registrar la solicitud']) },
   { codes: ['EVF-02'], rules: ['R07'], wrong: () => { const d = linear(['Presentar la declaración']); d.nodes.at(-1).name = 'Fin'; return d }, right: () => { const d = linear(['Presentar la declaración']); d.nodes.at(-1).name = 'Declaración anual presentada'; return d } },
   { codes: ['EVF-03'], rules: ['EVI-03'], wrong: () => { const d = linear(['Registrar la solicitud']); d.nodes.at(-1).name = 'Enviar notificación'; return d }, right: () => { const d = linear(['Registrar la solicitud']); d.nodes.at(-1).name = 'Notificación enviada'; return d } },
@@ -145,7 +148,7 @@ const CASES = [
   },
   { codes: ['EVF-05'], rules: ['R24'], wrong: () => { const d = linear(['Registrar la solicitud']); d.edges.push({ id: 'x', source: 'e', target: 'a1' }); return d }, right: () => linear(['Registrar la solicitud']) },
 
-  // ── Compuertas ─────────────────────────────────────────────────────────
+  // ── Gateways ───────────────────────────────────────────────────────────
   {
     codes: ['COM-02'],
     rules: ['COM-02'],
@@ -204,11 +207,11 @@ const CASES = [
   },
   { codes: ['DEC-03'], rules: ['DEC-03'], wrong: () => decided('Solicitud autorizada', 'Solicitud rechazada', '¿Autorizado?', ['Continuar', 'Proceso']), right: () => decided('Solicitud autorizada', 'Solicitud rechazada', '¿Autorizado?') },
 
-  // ── Flujos de secuencia ────────────────────────────────────────────────
+  // ── Sequence flows ─────────────────────────────────────────────────────
   { codes: ['SEC-02'], rules: ['R25'], wrong: () => { const d = linear(['Registrar la solicitud']); d.edges.push({ id: 'x', source: 'a1', target: 'nada' }); return d }, right: () => linear(['Registrar la solicitud']) },
   { codes: ['SEC-04', 'EST-02'], rules: ['EST-01'], wrong: () => trapped(), right: () => decided('Solicitud autorizada', 'Solicitud rechazada') },
 
-  // ── Procedimientos relacionados ────────────────────────────────────────
+  // ── Related procedures ─────────────────────────────────────────────────
   ...[['SUB-05', ['', 'Proveedor registrado']], ['SUB-06', ['Solicitud de alta autorizada', '']], ['SUB-07', ['Alta de proveedor', 'Alta de proveedor']]].map(([code, labels]) => ({
     codes: [code],
     rules: ['SUB-05'],
@@ -222,12 +225,12 @@ const CASES = [
     right: () => related(['Solicitud de alta autorizada', 'Proveedor registrado'])
   },
 
-  // ── Carriles ───────────────────────────────────────────────────────────
+  // ── Lanes ──────────────────────────────────────────────────────────────
   { codes: ['LAN-07'], rules: ['R10'], wrong: () => processOf([start(), task('a0', 'Elaborar la solicitud', 1), task('a1', 'Registrar la solicitud', 1), end('e', 'Solicitud atendida', 1)], [head, ['a0', 'a1'], ['a1', 'e']]), right: () => linear(['Registrar la solicitud']) },
   { codes: ['LAN-08'], rules: ['LAN-08'], wrong: () => { const d = linear(['Registrar la solicitud']); d.lanes = [{ ...d.lanes[0], name: 'Gerente Jurídico' }, { ...d.lanes[1], name: 'Gte. Jurídico' }]; return d }, right: () => { const d = linear(['Registrar la solicitud']); d.lanes[0].name = 'Gerente Jurídico'; return d } },
   { codes: ['LAN-09'], rules: ['R21'], wrong: () => processOf([start(), task('a0', 'Elaborar la solicitud', 1), task('a1', 'Registrar la solicitud', 1), end('e', 'Solicitud atendida', 1)], [head, ['a0', 'a1'], ['a1', 'e']]), right: () => linear(['Registrar la solicitud']) },
 
-  // ── Estructura ─────────────────────────────────────────────────────────
+  // ── Structure ──────────────────────────────────────────────────────────
   { codes: ['EST-01'], rules: ['EST-01', 'R13'], wrong: () => trapped(), right: () => linear(['Registrar la solicitud']) },
   {
     codes: ['EST-05'],
@@ -248,7 +251,7 @@ const CASES = [
     right: () => related(['Solicitud de alta autorizada', 'Proveedor registrado'])
   },
 
-  // ── Diseño ─────────────────────────────────────────────────────────────
+  // ── Layout ─────────────────────────────────────────────────────────────
   { codes: ['VIS-07'], rules: ['R18'], wrong: () => { const d = linear(['Registrar la solicitud']); d.nodes[2].x = d.nodes[1].x + 20; d.nodes[2].lane_id = 'l1'; d.nodes[2].y = d.nodes[1].y; return d }, right: () => linear(['Registrar la solicitud']) }
 ]
 
@@ -295,6 +298,6 @@ for (const c of CASES) {
 
 test('every criterion a rule cites has an example here', () => {
   const covered = new Set(CASES.flatMap((c) => c.codes))
-  const missing = [...new Set(CATALOG.flatMap((rule) => rule.criteria || []))].filter((code) => !covered.has(code))
+  const missing = [...new Set([...CATALOG, ...AFAL_RULES].flatMap((rule) => rule.criteria || []))].filter((code) => !covered.has(code))
   assert.deepEqual(missing, [])
 })

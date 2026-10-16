@@ -17,7 +17,7 @@ import { BpmnEditorController } from '../../components/bali/bpmn_editor/index'
 import { installBpmnStreamAction } from '../../components/bali/bpmn_editor/streamAction'
 
 export { BpmnEditorController } from '../../components/bali/bpmn_editor/index'
-export { registerBpmnRule } from '../../components/bali/bpmn_editor/model/rules'
+export { registerBpmnRule } from '../../components/bali/bpmn_editor/model/rules/engine'
 
 export function registerBpmnEditor (application) {
   application.register('bpmn-editor', BpmnEditorController)
