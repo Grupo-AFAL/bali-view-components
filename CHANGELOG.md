@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   como `Bali::Gantt`, con su propio entry (`bali-view-components/bpmn-editor-entry`). Edita el
   documento que recibe (`Bali::BpmnEditor::Data`) y guarda el documento completo, con su versión,
   en `urls[:save]`; sin esa URL es un visor. Reglas de modelado configurables con ciclo
-  Borrador/Finalizar, acomodo y ruteo propios, y salidas `.bpmn`, PNG, SVG e impresión.
+  Borrador/Finalizar, acomodo y ruteo propios, y salidas `.bpmn`, PNG, SVG e impresión. Las
+  reglas que solo son lineamiento de AFAL viven aparte, en `bali-view-components/bpmn-editor/afal-rules`.
   - **Anfitrión:** nada que hacer si no lo usa. Para usarlo, los cuatro pasos de instalación de
     [la guía](docs/api/bpmn-editor.md) y sus dependencias opcionales (`react`, `react-dom`,
     `@xyflow/react`, `@rails/request.js`); la implementación de referencia está en `test/dummy`

@@ -93,6 +93,8 @@ export function isRuleOn (config, id) {
   return DEFAULT_ENABLED.has(id) || enabled.includes(id) || registry.has(id)
 }
 
+// The option keys rules read here are the list Bali::BpmnEditor::Component::RULE_OPTIONS
+// validates; test/bali/components/bpmn_editor/contract_test.rb keeps them equal.
 export function ruleOption (config, key, fallback) {
   const value = config && config.options && config.options[key]
   return value == null ? fallback : Number(value)
