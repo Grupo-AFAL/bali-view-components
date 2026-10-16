@@ -200,7 +200,7 @@ module Bali
       def rules_gallery(rule: "R01", example: "failing", optional_rules: false, locale: :es)
         rule = rule.to_s
         optional = BpmnRuleExamples.optional_rule_ids.include?(rule)
-        sample = BpmnRuleExamples.example(rule, example)
+        sample = BpmnRuleExamples.example(rule, example, locale: locale)
         flow = ProcessFlow.find_or_initialize_by(name: "Rules gallery")
         flow.update!(document: sample[:document], version: 1, finalized_at: nil)
         I18n.with_locale(locale) do

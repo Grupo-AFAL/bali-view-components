@@ -25,17 +25,20 @@ module BpmnRuleExamples
     file["rules"].select { |_id, example| example["package"] == "optional" }.keys
   end
 
-  # { document:, options:, allowed:, page: } for `rule`'s failing or passing example.
+  # { document:, options:, allowed:, page: } for `rule`'s failing or passing
+  # example, its texts in `locale` (the file keeps every text as { en, es }, so
+  # the word lists of the page's language check words of that language).
   # The options, palette and sheet are what make the failing example break the
   # rule (R19, R20, VIS-10, VIS-02 on an otherwise clean flow); the passing one
   # runs with the defaults.
-  def example(rule, which)
+  def example(rule, which, locale: I18n.locale)
     entry = file["rules"].fetch(rule.to_s)
     raise ArgumentError, "example must be one of #{EXAMPLES.inspect}, got #{which.inspect}" if EXAMPLES.exclude?(which.to_s)
 
     document = entry[which.to_s]
     document = file["documents"].fetch(document) if document.is_a?(String)
     host = which.to_s == "failing" ? entry.slice("options", "allowed", "page") : {}
-    { document: document.deep_dup, options: host["options"], allowed: host["allowed"], page: host["page"] }
+    { document: BpmnSampleFlows.localize(document, locale.to_s), options: host["options"], allowed: host["allowed"],
+      page: host["page"] }
   end
 end

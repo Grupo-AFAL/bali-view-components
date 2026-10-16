@@ -7,7 +7,7 @@ import { AFAL_RULES } from '../../../app/components/bali/bpmn_editor/model/rules
 import '../../../app/frontend/bali/bpmn-editor-afal-rules.js'
 import { translator } from '../../../app/components/bali/bpmn_editor/i18n.js'
 import { node, flow } from './helpers.js'
-import { RULE_EXAMPLES, exampleDocument, exampleOptions } from './support/ruleExamples.js'
+import { RULE_EXAMPLES, exampleDocument, exampleOptions, TRANSLATORS } from './support/ruleExamples.js'
 
 const t = translator({})
 const ALL_ON = { enabled: CATALOG.map((r) => r.id) }
@@ -60,6 +60,32 @@ for (const [id, example] of Object.entries(RULE_EXAMPLES.rules)) {
     assert.deepEqual(gallery('passing'), [])
   })
 }
+
+// Isolated examples: as the gallery shows them — the central rules on as
+// they ship, the optional package registered, the example's rule switched on
+// with its options — the failing example raises its rule and nothing else
+// (bar what its entry declares in `also`), the passing one raises nothing. In
+// both languages: each text is { en, es }, checked with that locale's lists.
+for (const [id, example] of Object.entries(RULE_EXAMPLES.rules)) {
+  for (const [locale, translate] of Object.entries(TRANSLATORS)) {
+    test(`the gallery's ${id} examples in ${locale}: the failing one raises only ${id}, the passing one nothing`, () => {
+      const raised = (which) => {
+        const { allowed, page, options } = exampleOptions(example, which)
+        const issues = evaluate(exampleDocument(example[which], locale), { enabled: [id], options }, translate, { allowed, page })
+        return [...new Set(issues.map((i) => i.rule))].sort()
+      }
+      const also = Array.isArray(example.also) ? example.also : ((example.also || {})[locale] || [])
+      assert.deepEqual(raised('failing'), [...new Set([id, ...also])].sort())
+      assert.deepEqual(raised('passing'), [])
+    })
+  }
+}
+
+test('an example that also breaks another rule says why', () => {
+  for (const [id, example] of Object.entries(RULE_EXAMPLES.rules)) {
+    if (example.also) assert.ok(example.why, `${id} lists also: without why`)
+  }
+})
 
 // The rules gallery preview reads the same file: it offers exactly the rules
 // there are, and says which come from the optional package.
