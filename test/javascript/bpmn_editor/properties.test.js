@@ -183,3 +183,20 @@ for (const suite of Object.keys(SUITES)) {
     }
   })
 }
+
+// Found by 600 compact sessions (seed 154): a gateway's "Yes" with only a
+// 60 px stretch before its target had no free spot beside it and fell back
+// onto the gateway's own badge.
+test('a crowded connection label goes further out instead of onto a badge (compact seed 154)', () => {
+  const sequence = [['move', 'end', { x: 0, y: -590 }], ['drop', { type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }, 1717, 176], ['insert', 'f12-g', { type: 'exclusive_gateway' }], ['drop', { type: 'user_task' }, 1827, 578], ['tidy'], ['insert', 'f6-no', { type: 'exclusive_gateway' }], ['drop', { type: 'user_task' }, 1770, 890], ['move', 't8', { x: 0, y: 595 }], ['delete', 't12'], ['append', 'n_50', { type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }, 'left'], ['tidy'], ['move', 'n_49', { x: 0, y: 530 }], ['append', 'n_45', { type: 'user_task' }, 'right']]
+  const failed = run('compact', sequence)
+  assert.equal(failed, null, failed && JSON.stringify(failed.failed.details))
+})
+
+// Also from 600 compact sessions: four ways out of a gateway's top side
+// spread 12 px apart ran past the corner, and two clamped onto one point.
+test('every way out of a gateway top keeps its own endpoint (compact, four exits)', () => {
+  const sequence = [['append', 'g12', { type: 'end_event' }, 'right'], ['move', 'g12', { x: 0, y: 260 }], ['append', 'g12', { type: 'end_event' }, 'up']]
+  const failed = run('compact', sequence)
+  assert.equal(failed, null, failed && JSON.stringify(failed.failed.details))
+})

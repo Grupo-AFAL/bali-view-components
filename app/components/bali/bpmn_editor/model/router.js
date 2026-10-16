@@ -181,10 +181,13 @@ function assignPorts (doc, edges, ctx) {
     const vertical = side === 'left' || side === 'right'
     list.sort((p, q) => (vertical ? p.other.cy - q.other.cy : p.other.cx - q.other.cx))
     const length = vertical ? box.h : box.w
-    const step = list.length > 1 ? Math.min(CHANNEL, (length - 12) / (list.length - 1)) : 0
     // A gateway's name sits above it, left of the top port: endpoints on
-    // its top side spread to the right only.
+    // its top side spread to the right only — over half the side, which
+    // portPoint clamps to 4 px short of the corner, so the step shrinks to
+    // keep every endpoint distinct.
     const rightOnly = side === 'top' && isGateway(node)
+    const room = rightOnly ? length / 2 - 4 : length - 12
+    const step = list.length > 1 ? Math.min(CHANNEL, room / (list.length - 1)) : 0
     list.forEach((slot, i) => {
       const offset = rightOnly ? i * step : (i - (list.length - 1) / 2) * step
       if (!ports.has(slot.edgeId)) ports.set(slot.edgeId, {})

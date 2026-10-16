@@ -27,12 +27,13 @@ function touchesSegment (box, p, q) {
 // right beside the line, then one and two label-heights further out — a short
 // stretch between close neighbours has no room right beside it. A box may run
 // past the end of the stretch; the check against every line keeps it off them.
-function * besideSegment (p, q, w, h, start = 6) {
+function * besideSegment (p, q, w, h, start = 6, { reach = 2, past = 0 } = {}) {
   const length = Math.abs(q.x - p.x) + Math.abs(q.y - p.y)
   const horizontal = Math.abs(p.y - q.y) < 0.5
   const sign = horizontal ? Math.sign(q.x - p.x) || 1 : Math.sign(q.y - p.y) || 1
-  for (const away of [GAP, GAP + h, GAP + 2 * h]) {
-    for (let d = start; d <= Math.max(start, length); d += STEP) {
+  for (let k = 0; k <= reach; k++) {
+    const away = GAP + k * h
+    for (let d = start; d <= Math.max(start, length + past); d += STEP) {
       if (horizontal) {
         const x = sign > 0 ? p.x + d : p.x - d - w
         yield { x, y: p.y - away - h, w, h }
@@ -76,9 +77,22 @@ export function placeEdgeLabels (doc, routes) {
       }
       if (chosen) break
     }
+    // Crowded (a short stretch between close neighbours): further out and
+    // past the stretch's end; failing that, the spot that touches least.
     if (!chosen) {
-      const [p, q] = segments[0]
-      chosen = [...besideSegment(p, q, w, h)][0] || { x: p.x + GAP, y: p.y - GAP - h, w, h }
+      let best = null
+      for (const [i, [p, q]] of segments.entries()) {
+        for (const box of besideSegment(p, q, w, h, i === 0 ? 10 : 4, { reach: 5, past: 3 * w })) {
+          if (free(box)) { chosen = box; break }
+          const cost = blocked.filter((b) => overlaps(box, b)).length * 2 + lines.filter(([a, c]) => touchesSegment(box, a, c)).length
+          if (!best || cost < best.cost) best = { box, cost }
+        }
+        if (chosen) break
+      }
+      if (!chosen) {
+        const [p] = segments[0]
+        chosen = best ? best.box : { x: p.x + GAP, y: p.y - GAP - h, w, h }
+      }
     }
     placed.set(String(edge.id), chosen)
     blocked.push(chosen)
