@@ -146,11 +146,16 @@ export class SlimSelectController extends Controller {
         options.settings.contentWidth = this.contentWidthValue
       }
 
-      // SlimSelect reads an option's markup from `data-html`; `data-inner-html` is the name Bali
-      // documents and hosts write. Copied, not handed over as `data`: SlimSelect rebuilds the
-      // <select> from `data`, keeping only the attributes it maps, and 3.x dispatches a `change`
-      // doing it.
-      this.copyOptionHtml()
+      // Written on the options, not handed over as `data`: SlimSelect rebuilds the <select> from
+      // `data`, keeping only the attributes it maps, and 3.x dispatches a `change` doing it.
+      this.prepareOptions()
+
+      // And on every option that arrives later — a Turbo Stream into the <select>, a host's
+      // script — before SlimSelect's own observer reads it: SlimSelect rebuilds the <select> from
+      // what it read, dropping a group's `disabled` for good. Observers are called in the order
+      // they started observing, so this one starts before `new SlimSelect`.
+      const optionObserver = new MutationObserver(() => this.prepareOptions())
+      optionObserver.observe(this.selectTarget, { childList: true, subtree: true })
 
       if (this.hasAjaxValues()) {
         options.events.search = this.search
@@ -170,18 +175,13 @@ export class SlimSelectController extends Controller {
       // nobody, and leaving it alive is what corrupts the <select>. Destroying it here is the
       // only chance to — `teardown()` already ran, and it only ever looks at `this.select`.
       if (generation !== this.generation) {
+        optionObserver.disconnect()
         instance.destroy()
         return
       }
 
       this.select = instance
-
-      // An option that arrives later — a Turbo Stream into the <select>, a host's script — is
-      // copied as it lands. SlimSelect's own observer reads it first, without the markup, and
-      // again on the attribute written here: it takes any mutation of an <option> for a change
-      // of the list (3.4.3 to 4.6.0).
-      this.optionObserver = new MutationObserver(() => this.copyOptionHtml())
-      this.optionObserver.observe(this.selectTarget, { childList: true, subtree: true })
+      this.optionObserver = optionObserver
 
       // After the import, not before it: `teardown()` only ever looks at
       // `this.select`, so a listener registered while it is still null buys
@@ -372,9 +372,18 @@ export class SlimSelectController extends Controller {
     this.select = null
   }
 
-  copyOptionHtml () {
+  prepareOptions () {
+    // SlimSelect reads an option's markup from `data-html`; `data-inner-html` is the name Bali
+    // documents and hosts write.
     for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
       if (option.dataset.html !== option.dataset.innerHtml) option.dataset.html = option.dataset.innerHtml
+    }
+
+    // SlimSelect reads an option's own `disabled`, never its group's, and its rebuild of the
+    // <select> drops the group's (3.4.3 to 4.6.0): the options of a disabled <optgroup> stayed
+    // pickable, each a chip the form does not send.
+    for (const option of this.selectTarget.querySelectorAll('optgroup[disabled] > option:not([disabled])')) {
+      option.disabled = true
     }
   }
 
@@ -388,8 +397,12 @@ export class SlimSelectController extends Controller {
   }
 
   selectAll () {
-    // Not the disabled ones: selected, they show a chip, and the form does not send them.
-    const values = Array.from(this.selectTarget.querySelectorAll('option:enabled'), option => option.value)
+    // Not the disabled ones: selected, they show a chip, and the form does not send them. Nor
+    // the placeholder `build_select` writes for `include_blank:`, which would send a blank.
+    const values = Array.from(
+      this.selectTarget.querySelectorAll('option:enabled:not([data-placeholder="true"])'),
+      option => option.value
+    )
 
     this.select.setSelected(values)
 

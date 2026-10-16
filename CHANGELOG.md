@@ -54,9 +54,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **SlimSelect: «Seleccionar todo» también elige las opciones de una lista agrupada**. Con
   `select_all: true` sobre una lista en `<optgroup>` no elegía ninguna: leía sólo los hijos directos
-  del `<select>`. Ahora elige todas las habilitadas, en grupos o no; una deshabilitada queda fuera,
-  y antes salía como chip sin que el formulario la mandara. El único uso con Bali 3, los avisos de
-  la guardería en afal-apps, es una lista plana sin deshabilitadas. Nada que hacer en la app.
+  del `<select>`. Ahora elige todas las habilitadas, en grupos o no. Deja fuera las deshabilitadas,
+  que antes salían como chip sin que el formulario las mandara, y el placeholder de
+  `include_blank:`, que mandaba un valor vacío. El único uso con Bali 3, los avisos de la guardería
+  en afal-apps, es una lista plana sin deshabilitadas ni `include_blank:`. Nada que hacer en la app.
+
+- **SlimSelect: las opciones de un `<optgroup disabled>` ya no se pueden elegir**. SlimSelect sólo
+  lee el `disabled` de cada opción, así que se elegían y salían como chip aunque el formulario no
+  las mandara. Ahora el controlador deshabilita las opciones del grupo, también las de un grupo que
+  llega después de montar. Ninguna app tiene grupos deshabilitados. Nada que hacer en la app.
 
 ### Documentation
 
