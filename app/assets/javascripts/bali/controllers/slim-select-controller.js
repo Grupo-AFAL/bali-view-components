@@ -296,10 +296,11 @@ export class SlimSelectController extends Controller {
     if (optionsIn(data).some(option => option.placeholder)) render.renderOptions(data)
   }
 
-  // SlimSelect's ✕ selects the first option in its store, its only use of `getFirstOption`. A
-  // remote result chosen outside the seed goes in AHEAD of the placeholder — `Store#setData`
-  // prepends a selected option the new data lacks — so measured on 4.5.0 and 4.6.1 the ✕ picked
-  // that result again and `10` stayed `10`.
+  // SlimSelect's ✕ selects the first option in its store, its only use of `getFirstOption`
+  // (3.4.3 to 4.6.1). A remote result chosen outside the seed goes in AHEAD of the placeholder
+  // `build_select` writes (lib/bali/form_builder/slim_select_fields.rb) — `Store#setData` prepends
+  // a selected option the new data lacks — so measured on 4.5.0 and 4.6.1 the ✕ picked that
+  // result again and `10` stayed `10`.
   deselectToPlaceholder () {
     const store = this.select.store
     const firstOption = store.getFirstOption.bind(store)

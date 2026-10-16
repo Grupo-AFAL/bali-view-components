@@ -215,7 +215,8 @@ module Bali
       # selectable list — when it carries data-placeholder="true"; otherwise it shows
       # the blank as a real, checkmarked, selectable row. When a blank is requested
       # for a flat option list, promote it to a proper SlimSelect placeholder so the
-      # "choose one" hint behaves like a placeholder instead of a pickable value.
+      # "choose one" hint behaves like a placeholder instead of a pickable value. The ✕
+      # returns to this option (slim-select-controller.js, `deselectToPlaceholder`).
       def build_select(method, values, options, html_options)
         text = placeholder_option_text(options)
         return select(method, values, options, html_options) if text.nil? || !flat_choices?(values)
