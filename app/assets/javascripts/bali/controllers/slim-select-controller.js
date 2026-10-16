@@ -205,6 +205,7 @@ export class SlimSelectController extends Controller {
 
       this.forwardAccessibility()
       this.leavePlaceholderOutOfResults()
+      this.deselectToPlaceholder()
       this.announceErrors()
       this.joinTopLayerOnOpen()
     } catch (error) {
@@ -297,6 +298,19 @@ export class SlimSelectController extends Controller {
 
     const data = this.select.store.getData(false)
     if (optionsIn(data).some(option => option.placeholder)) render.renderOptions(data)
+  }
+
+  // SlimSelect's ✕ selects the first option in its store, its only use of `getFirstOption`
+  // (3.4.3 to 4.6.1). A remote result chosen outside the seed goes in AHEAD of the placeholder
+  // `build_select` writes (lib/bali/form_builder/slim_select_fields.rb) — `Store#setData` prepends
+  // a selected option the new data lacks — so measured on 4.5.0 and 4.6.1 the ✕ picked that
+  // result again and `10` stayed `10`.
+  deselectToPlaceholder () {
+    const store = this.select.store
+    const firstOption = store.getFirstOption.bind(store)
+
+    store.getFirstOption = () =>
+      store.getDataOptions(false).find(option => option.placeholder) || firstOption()
   }
 
   // SlimSelect reads out "Searching..." when a remote search starts and nothing when it ends in

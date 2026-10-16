@@ -136,7 +136,8 @@ two-target variant of `checkbox-reveal`.
 </div>
 ```
 
-`checked` sets the initial state before the first change event.
+`checked` sets the initial state before the first change event. One target is
+enough: a controller with only `on` or only `off` toggles that one.
 
 **Hidden fields are not sent** — `data-checkbox-toggle-disable-hidden-value="true"`
 disables the hidden target, which has to be a `<fieldset>`. A disabled fieldset
@@ -144,6 +145,10 @@ sends none of its fields and the browser skips their validation, so a `required`
 field on the hidden side no longer stops the form; the fields keep their own
 `disabled` and a file already chosen. Live in the
 `bali/checkbox_toggle/required_fields` preview.
+
+**Targets that arrive later** — an `on` or `off` target a Turbo Stream replaces
+follows the checkbox on screen, not the state the server painted: its `hidden`
+class and, with `disable-hidden`, its `disabled`.
 
 ## `datepicker`
 

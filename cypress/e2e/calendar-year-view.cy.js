@@ -48,7 +48,7 @@ describe('Calendar year view', () => {
     cy.visit(`${year}?with_day_url=false`)
 
     cy.get('time.year-day[tabindex="0"]').should('have.length', 36)
-      .first().should('have.attr', 'aria-label').and('match', /^\d+ \w+ \d{4}$/)
+      .first().should('have.attr', 'aria-label').and('match', /^\w+ \d{2}, \d{4}$/)
 
     cy.get('time.year-day[tabindex="0"]').first().focus()
     cy.focused().should('have.class', 'year-day')

@@ -89,13 +89,6 @@ module Bali
           @months ||= (1..12).map { |month| Date.new(start_date.year, month, 1) }
         end
 
-        # @return [String] Localised month name. `date.month_names` is 1-indexed.
-        #   Not capitalised here: `day_label` writes it inside a date, lowercase in
-        #   rails-i18n's Spanish; only the heading takes `upcase_first`.
-        def month_name(month)
-          t("date.month_names")[month.month]
-        end
-
         # @return [Array<String>] Weekday initials, rotated to the week's first day.
         def weekday_initials
           @weekday_initials ||= t("date.abbr_day_names").rotate(first_wday)
@@ -153,10 +146,8 @@ module Bali
           )
         end
 
-        # Not `l(day, format: :long)`: the gem ships no date formats and cannot
-        # assume the host's.
         def day_label(day)
-          "#{day.day} #{month_name(day)} #{day.year}"
+          l(day, format: :long)
         end
 
         # `<time datetime>` and not an `aria-label` on the unlinked cell: a bare
