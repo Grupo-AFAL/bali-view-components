@@ -344,8 +344,8 @@ ACT-03), `nominal_endings` (ACT-02), `transition_verbs` (ACT-07), `continuous_ph
 `decision_verbs` (ACT-10), `periodic_words` (EVI-05).
 
 **Blocks on the spot** come from the same switches: with R01/R02 on, a connection
-that breaks one-in/one-out is refused with a message; R18 refuses an overlap, R26
-a drop outside a lane, R21 deleting below the minimum of lanes, B02/B03/B04 the
+that breaks one-in/one-out is refused with a message; R26 refuses a drop outside a
+lane, R21 deleting below the minimum of lanes, B02/B03/B04 the
 wrong kind of connector. Deleting a lane that holds elements is always refused.
 A document that already breaks a rule (an imported one) still opens and saves; the
 problems are listed as pending, and only the edits made on it are checked.

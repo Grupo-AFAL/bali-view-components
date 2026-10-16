@@ -1,6 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { evaluate, CATALOG, DEFAULT_ENABLED, AFAL_RULES, isRuleOn, blockPolicy, registerBpmnRule, unregisterBpmnRule, mergeIssues, issuesByElement, ruleList } from '../../../app/components/bali/bpmn_editor/model/rules.js'
+import { evaluate, CATALOG, DEFAULT_ENABLED, isRuleOn, blockPolicy, registerBpmnRule, unregisterBpmnRule, mergeIssues, issuesByElement, ruleList } from '../../../app/components/bali/bpmn_editor/model/rules/engine.js'
+import { AFAL_RULES } from '../../../app/components/bali/bpmn_editor/model/rules/afal.js'
+// AFAL's guidelines, registered as a host does (afal-package.test.js checks
+// that without this import they never run).
+import '../../../app/frontend/bali/bpmn-editor-afal-rules.js'
 import { translator } from '../../../app/components/bali/bpmn_editor/i18n.js'
 import { doc, lanes, node, flow } from './helpers.js'
 
@@ -134,7 +138,7 @@ function trap (d) {
   d.edges.push(flow('x', 'g', 't3', { label: 'Later' }), flow('y', 't3', 't4'), flow('z', 't4', 't3'))
 }
 
-for (const rule of CATALOG) {
+for (const rule of [...CATALOG, ...AFAL_RULES]) {
   test(`${rule.id} fires on the flow that breaks it, and on nothing else of it`, () => {
     assert.ok(BREAKS[rule.id], `no breaking case for ${rule.id}`)
     assert.equal(rulesHit(clean()).has(rule.id), false, 'the clean flow passes')
@@ -150,22 +154,14 @@ for (const rule of CATALOG) {
   })
 }
 
-test('the issue catalogue and the BPMN-grounded criteria are on by default; the optional and AFAL-only rules are off', () => {
+test('the issue catalogue and the BPMN-grounded criteria are on by default; the optional rules are off', () => {
   for (const id of ['R01', 'R02', 'R03', 'R05', 'R06', 'R07', 'R08', 'R09', 'R10', 'R11', 'R13', 'R18', 'R21', 'R22', 'R23', 'R24', 'R25', 'R26']) {
     assert.ok(isRuleOn({}, id), `${id} on`)
   }
   // EVI-01, ACT-06 and COM-13 of the criteria matrix turn on R12, R16 and B11.
   for (const id of ['R12', 'R16', 'B11', 'COM-19', 'COM-20', 'COM-12', 'COM-02', 'DEC-03', 'EST-05', 'EST-01', 'VIS-10', 'EVI-03', 'EVI-05']) assert.ok(isRuleOn({}, id), `${id} on`)
   for (const id of ['R04', 'R14', 'R15', 'R17', 'R19', 'R20', 'B07']) assert.equal(isRuleOn({}, id), false, `${id} off`)
-  for (const id of AFAL_RULES) assert.equal(isRuleOn({}, id), false, `${id} off`)
   assert.equal(DEFAULT_ENABLED.size, 40)
-})
-
-test('`enabled: [\'afal\']` turns on every AFAL-only guideline, and a host still turns one off', () => {
-  assert.deepEqual([...AFAL_RULES].sort(), ['ACT-02', 'ACT-03', 'ACT-07', 'ACT-09', 'ACT-10', 'COM-22', 'EVF-04', 'LAN-08', 'SUB-05', 'VIS-02'])
-  for (const id of AFAL_RULES) assert.ok(isRuleOn({ enabled: ['afal'] }, id), `${id} on`)
-  assert.equal(isRuleOn({ enabled: ['afal'], disabled: ['ACT-02'] }, 'ACT-02'), false)
-  assert.equal(isRuleOn({ enabled: ['afal'] }, 'R17'), false, 'a non-AFAL optional rule stays off')
 })
 
 test('every rule of the criteria matrix names its codes, its chapter and its source', () => {
@@ -214,7 +210,8 @@ test('an element of an external participant connected by a message flow is not d
   d.lanes[1].kind = 'external'
   d.nodes.push(node('p', 'task', 'l2', 300, 300, { name: 'Send invoice' }))
   d.edges.push(flow('m', 'p', 't1', { type: 'message_flow' }))
-  assert.deepEqual(run(d, {}).filter((i) => i.element_id === 'p'), [])
+  // The AFAL guidelines this file registers judge the activity's wording, not its connections.
+  assert.deepEqual(run(d, { disabled: AFAL_RULES.map((r) => r.id) }).filter((i) => i.element_id === 'p'), [])
 })
 
 test('registered host rules run with the built-in ones and can be removed', () => {
@@ -262,4 +259,17 @@ test('turning a rule off lifts the block that enforces it', () => {
   assert.equal(blockPolicy({ disabled: ['R01', 'R02'] }).oneInOneOut, false)
   assert.equal(blockPolicy({ options: { min_lanes: 3 } }).minLanes, 3)
   assert.equal(blockPolicy({ disabled: ['R21'] }).minLanes, 0)
+  assert.equal('noOverlap' in blockPolicy({}), false, 'an overlap is the local arrangement\'s, never a block')
+})
+
+// A misspelt id in `rules:` would be ignored without a word.
+test('a configured rule id no rule has is warned about once', (context) => {
+  const warn = context.mock.method(console, 'warn', () => {})
+  const config = { enabled: ['R99', 'R17'], disabled: ['ACT-02'], severities: { 'COM-99': 'warning' }, messages: { R01: 'Custom.' } }
+  evaluate(clean(), config, t)
+  evaluate(clean(), config, t)
+  const said = warn.mock.calls.map((call) => call.arguments[0])
+  assert.equal(said.length, 2, said.join(' | '))
+  assert.ok(said.some((line) => line.includes('"R99"')))
+  assert.ok(said.some((line) => line.includes('"COM-99"')))
 })

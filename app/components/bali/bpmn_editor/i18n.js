@@ -157,7 +157,6 @@ export const DEFAULT_I18N = {
   lane_resize_all: 'Resize every lane',
   unnamed: 'Unnamed',
   block_connection: 'The connection breaks the one-in, one-out rule. Use a gateway to split or merge paths.',
-  block_overlap: 'The operation would overlap another element.',
   block_lane: 'The operation goes beyond the lane.',
   block_lane_has_nodes: 'The lane has elements. Move or delete them before deleting the lane.',
   block_min_lanes: 'The flow must keep at least %{count} lanes.',

@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { normalize } from '../../../app/components/bali/bpmn_editor/model/document.js'
-import { evaluate } from '../../../app/components/bali/bpmn_editor/model/rules.js'
+import { evaluate } from '../../../app/components/bali/bpmn_editor/model/rules/engine.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 import { layoutLanes, insideLane, nodeBox, boxesOverlap } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
 import { translator } from '../../../app/components/bali/bpmn_editor/i18n.js'

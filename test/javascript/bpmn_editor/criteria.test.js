@@ -5,7 +5,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
-import { evaluate, CATALOG } from '../../../app/components/bali/bpmn_editor/model/rules.js'
+import { evaluate, CATALOG } from '../../../app/components/bali/bpmn_editor/model/rules/engine.js'
+import { AFAL_RULES } from '../../../app/components/bali/bpmn_editor/model/rules/afal.js'
+// The matrix's guidelines run as a host that imports them does.
+import '../../../app/frontend/bali/bpmn-editor-afal-rules.js'
 import { translator } from '../../../app/components/bali/bpmn_editor/i18n.js'
 import { NODE_TYPES } from '../../../app/components/bali/bpmn_editor/model/catalog.js'
 
@@ -295,6 +298,6 @@ for (const c of CASES) {
 
 test('every criterion a rule cites has an example here', () => {
   const covered = new Set(CASES.flatMap((c) => c.codes))
-  const missing = [...new Set(CATALOG.flatMap((rule) => rule.criteria || []))].filter((code) => !covered.has(code))
+  const missing = [...new Set([...CATALOG, ...AFAL_RULES].flatMap((rule) => rule.criteria || []))].filter((code) => !covered.has(code))
   assert.deepEqual(missing, [])
 })
