@@ -821,6 +821,7 @@ es:
         props_align: "Alineación"
         props_align_note: "Vertical alinea en columna aunque estén en carriles distintos; horizontal solo dentro del mismo carril."
         props_select_placeholder: "Elige…"
+        props_search_failed: "La búsqueda falló. Intenta de nuevo en un momento."
         props_no_results: "Sin resultados."
         props_searching: "Buscando…"
         align_vertical: "Vertical"

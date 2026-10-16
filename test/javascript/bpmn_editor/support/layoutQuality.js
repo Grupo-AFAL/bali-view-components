@@ -12,13 +12,13 @@
 // happy path strays from a straight line, stretches of the flow wider than a
 // column with nothing in any lane (a deletion must not leave one: see
 // arrange.js gapsLeftBy).
-import { isFlowNode, isGateway, edgeType } from './catalog.js'
-import { layoutLanes, insideLane, nodeBox, boxesOverlap } from './geometry.js'
-import { nodeLabelBox, badgeBox } from './labels.js'
-import { routeAll } from './routing.js'
-import { placeEdgeLabels } from './edgeLabels.js'
-import { GATEWAY_DISTINCT_EXITS } from './router.js'
-import { emptyStretches } from './arrange.js'
+import { isFlowNode, isGateway, edgeType } from '../../../../app/components/bali/bpmn_editor/model/catalog.js'
+import { layoutLanes, insideLane, nodeBox, boxesOverlap } from '../../../../app/components/bali/bpmn_editor/model/geometry.js'
+import { nodeLabelBox, badgeBox } from '../../../../app/components/bali/bpmn_editor/model/labels.js'
+import { routeAll } from '../../../../app/components/bali/bpmn_editor/model/routing.js'
+import { placeEdgeLabels } from '../../../../app/components/bali/bpmn_editor/model/edgeLabels.js'
+import { GATEWAY_DISTINCT_EXITS } from '../../../../app/components/bali/bpmn_editor/model/router.js'
+import { emptyStretches } from '../../../../app/components/bali/bpmn_editor/model/arrange.js'
 
 const EPS = 0.5
 

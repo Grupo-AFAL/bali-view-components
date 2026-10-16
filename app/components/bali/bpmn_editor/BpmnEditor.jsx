@@ -22,6 +22,9 @@ import { placeEdgeLabels } from './model/edgeLabels.js'
 import { fitOptions, fitDiagram, anchorStart } from './canvas/fit.js'
 import { blockPolicy, evaluate, mergeIssues, issuesByElement, hasErrors, ruleList } from './model/rules/engine.js'
 import useSaver from './hooks/useSaver.js'
+import useHostEvents from './hooks/useHostEvents.js'
+import useKeyboard, { claimKeyboard } from './hooks/useKeyboard.js'
+import useExports from './hooks/useExports.js'
 import { CanvasContext } from './canvas/CanvasContext.js'
 import FlowNode from './canvas/FlowNode.jsx'
 import LaneNode from './canvas/LaneNode.jsx'
@@ -39,19 +42,14 @@ import PendingPanel from './chrome/PendingPanel.jsx'
 import RulesDialog from './chrome/RulesDialog.jsx'
 import QuickMenu from './chrome/QuickMenu.jsx'
 import Stencil, { STENCIL_MIME } from './chrome/Stencil.jsx'
-import { openDrawerUrl } from './drawer.js'
+import { openDrawerUrl } from '../../../frontend/bali/utils/drawer.js'
+import { withParams } from './model/urls.js'
 import CompareView from './chrome/CompareView.jsx'
-import { toBpmnXml } from './model/bpmnXml.js'
-import { resolveColors, renderSvg, download, downloadPng, printSvg, fileName } from './export/exporters.js'
 
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
 const edgeTypes = { routed: RoutedEdge }
 const EMPTY_SELECTION = { nodes: [], edges: [], lanes: [] }
 const NOTICE_MS = 4800
-// The editor the user touched last. Keyboard shortcuts go to it while the
-// focus is inside it or nowhere (on <body>, where it lands when the focused
-// node is deleted) — with several editors on a page, only that one answers.
-let activeEditor = null
 
 export default function BpmnEditor (props) {
   return (
@@ -150,7 +148,8 @@ function Editor ({
   const [liveLength, setLiveLength] = useState(null) // shared lane length while one lane's end is dragged
   const [dialog, setDialog] = useState(null) // null | 'pending' | 'rules'
   const [compareMode, setCompareMode] = useState(null) // null | 'overlay' | 'side_by_side'
-  const [direction, setDirection] = useState(() => (normalize(data).orientation === 'vertical' ? 'down' : 'right'))
+  // The quick menu's default direction follows the reading direction.
+  const [direction, setDirection] = useState(() => (state.present.orientation === 'vertical' ? 'down' : 'right'))
   const interactive = editable && mode === 'edit'
 
   const selectedSet = useMemo(() => new Set([...selection.nodes, ...selection.edges, ...selection.lanes.map(laneNodeId)]), [selection])
@@ -178,6 +177,8 @@ function Editor ({
     const touched = new Set(liveDoc.edges.filter((e) => moving.has(String(e.source)) || moving.has(String(e.target))).map((e) => String(e.id)))
     return routeAll(liveDoc, { previous: baseRoutes, onlyIds: touched, boxes: boxesById(liveDoc) })
   }, [liveDoc, baseRoutes, dragPositions])
+  const routesRef = useRef(routes)
+  routesRef.current = routes
 
   // The rules run on every change while editing; a viewer sees no pending
   // markers. Server issues (the document's `issues`) join them.
@@ -237,7 +238,7 @@ function Editor ({
       center = l.axis.main === 'y' ? { x: o.x + 300, y: o.y + entry.offset + entry.size / 2 } : { x: o.x + entry.offset + entry.size / 2, y: o.y + 200 }
       select({ lanes: [String(id)] })
     } else if (d.edges.some((e) => String(e.id) === String(id))) {
-      const route = routeAll(d).get(String(id))
+      const route = routesRef.current.get(String(id))
       if (route) center = { x: o.x + route.label.x, y: o.y + route.label.y }
       select({ edges: [String(id)] })
     }
@@ -349,7 +350,9 @@ function Editor ({
     updateNote: (id, patch, coalesce) => apply((d) => ops.updateAnnotation(d, id, patch), { coalesce }),
     deleteNote: (id) => apply((d) => ops.deleteAnnotation(d, id)),
     deleteSelection,
-    openReference: (node) => openReference(node, hostElement),
+    // The panel's link is a real <a href> (open in a new tab works); its click
+    // only asks the host first.
+    announceOpenReference: (node) => announceOpenReference(node, hostElement),
     newReference: (nodeId) => urls.new_reference && openDrawerUrl(withParams(urls.new_reference, { client_node_id: nodeId, editor_id: hostElement && hostElement.id })),
     newLaneAssignee: (laneId) => urls.new_lane_assignee && openDrawerUrl(withParams(urls.new_lane_assignee, { client_lane_id: laneId, editor_id: hostElement && hostElement.id }))
   }), [apply, deleteSelection, hostElement, urls, selection, policy])
@@ -560,25 +563,7 @@ function Editor ({
     }
   }, [interactive, undo, redo, selectAll, deleteSelection, clearSelection, selection, apply, policy])
 
-  useEffect(() => {
-    const onDocumentKey = (event) => {
-      const wrapper = wrapperRef.current
-      if (!wrapper) return
-      const focus = document.activeElement
-      const inside = focus && wrapper.contains(focus)
-      if (inside || ((!focus || focus === document.body) && activeEditor === wrapper)) onKeyDown(event)
-    }
-    // A click anywhere else on the page hands the keyboard back to the page.
-    const onDocumentPointer = (event) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target) && activeEditor === wrapperRef.current) activeEditor = null
-    }
-    document.addEventListener('keydown', onDocumentKey)
-    document.addEventListener('pointerdown', onDocumentPointer, true)
-    return () => {
-      document.removeEventListener('keydown', onDocumentKey)
-      document.removeEventListener('pointerdown', onDocumentPointer, true)
-    }
-  }, [onKeyDown])
+  useKeyboard(wrapperRef, onKeyDown)
 
   // ── fullscreen ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -596,28 +581,7 @@ function Editor ({
 
   // ── host events ────────────────────────────────────────────────────────
   const reload = saver.reload
-  useEffect(() => {
-    // Only events dispatched on this editor's own element: one that bubbles
-    // up from another editor on the page, or one sent to document, names no
-    // editor and is not ours (two editors mint the same client ids).
-    if (!hostElement) return undefined
-    const handlers = {
-      'bali-bpmn:reload': () => reload(),
-      'bali-bpmn:reference-created': (event) => {
-        const { client_node_id: nodeId, reference } = event.detail || {}
-        if (!nodeId || !reference || !docRef.current.nodes.some((n) => String(n.id) === String(nodeId))) return
-        apply((d) => ops.updateNode(d, nodeId, { reference, name: reference.label }))
-      },
-      'bali-bpmn:lane-assignee-created': (event) => {
-        const { client_lane_id: laneId, assignee } = event.detail || {}
-        if (!laneId || !assignee || !docRef.current.lanes.some((l) => String(l.id) === String(laneId))) return
-        apply((d) => ops.updateLane(d, laneId, { assignee, name: assignee.label }))
-      }
-    }
-    const listener = (event) => { if (event.target === hostElement) handlers[event.type](event) }
-    for (const name of Object.keys(handlers)) hostElement.addEventListener(name, listener)
-    return () => { for (const name of Object.keys(handlers)) hostElement.removeEventListener(name, listener) }
-  }, [hostElement, reload, apply])
+  useHostEvents(hostElement, { reload, apply, docRef })
 
   // ── in-place rename ────────────────────────────────────────────────────
   const renderRename = useCallback((element, isLane) => (
@@ -662,16 +626,7 @@ function Editor ({
   }, [legend, tags, doc.annotations])
 
   // ── outputs ────────────────────────────────────────────────────────────
-  const exportSvg = useCallback(() => {
-    const { paint, colors } = resolveColors(wrapperRef.current)
-    return renderSvg({ doc, paint, colors, title: name || null, subtitle: doc.status_label || null, watermark: watermark || null, notes: doc.annotations || [], tags, page: layoutOptions.page })
-  }, [doc, name, watermark, tags, layoutOptions])
-  const exports = useMemo(() => ({
-    bpmn: () => download(fileName(name, 'bpmn'), toBpmnXml(doc, { name }), 'application/xml'),
-    svg: () => download(fileName(name, 'svg'), exportSvg(), 'image/svg+xml'),
-    png: () => downloadPng(fileName(name, 'png'), exportSvg()),
-    print: () => printSvg(exportSvg(), name, layoutOptions.page)
-  }), [doc, name, exportSvg, layoutOptions])
+  const exports = useExports({ doc, name, watermark, tags, page: layoutOptions.page, wrapperRef })
 
   // The quick menu shows next to the one selected flow node that can be
   // followed (not an end event, not an artifact) while nothing else is going on.
@@ -758,7 +713,7 @@ function Editor ({
       <div
         ref={wrapperRef}
         className={`bpmn-editor relative flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm outline-none ${fullscreen ? 'h-screen' : ''}`}
-        onPointerDownCapture={() => { activeEditor = wrapperRef.current }}
+        onPointerDownCapture={() => claimKeyboard(wrapperRef.current)}
         tabIndex={-1}
       >
         <TopBar
@@ -945,20 +900,19 @@ function RenameInput ({ value, className, onDone }) {
 
 // The drawer URL carries the client id of what is being created and the
 // editor's DOM id, which the host's stream answer targets.
-function withParams (url, params) {
-  const target = new URL(url, window.location.origin)
-  for (const [key, value] of Object.entries(params)) if (value) target.searchParams.set(key, value)
-  return target.pathname + target.search
-}
-
 // Read-only: a click on a node with a reference navigates; editing: a
 // double-click does. `bali-bpmn:open-reference` is cancelable so the host can
 // handle it itself (open a tab, a drawer…).
-function openReference (node, hostElement) {
+// Announces it; false when the host took it over (preventDefault).
+function announceOpenReference (node, hostElement) {
   const reference = node && node.reference
-  if (!reference || !reference.url) return
+  if (!reference || !reference.url) return false
   const event = new CustomEvent('bali-bpmn:open-reference', { bubbles: true, cancelable: true, detail: { node_id: node.id, reference } })
-  if (!(hostElement || document).dispatchEvent(event)) return
-  if (window.Turbo && typeof window.Turbo.visit === 'function') window.Turbo.visit(reference.url)
-  else window.location.assign(reference.url)
+  return (hostElement || document).dispatchEvent(event)
+}
+
+function openReference (node, hostElement) {
+  if (!announceOpenReference(node, hostElement)) return
+  if (window.Turbo && typeof window.Turbo.visit === 'function') window.Turbo.visit(node.reference.url)
+  else window.location.assign(node.reference.url)
 }

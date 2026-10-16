@@ -1,20 +1,28 @@
 import { useEffect, useState } from 'react'
 import { remoteSearch } from './remoteSearch.js'
 
-// One host-defined field (node_fields / lane_fields). Options are local
+// One host-defined field (`fields:` of the component). Options are local
 // (`options: [{ value, label }]`) or remote (`url`, queried with ?q=).
 export default function FieldInput ({ field, value, onChange, disabled, t }) {
   const [remote, setRemote] = useState(null)
+  const [failed, setFailed] = useState(false)
   const needsOptions = field.type === 'select' || field.type === 'multi_select'
   useEffect(() => {
     if (!needsOptions || !field.url) return
     let live = true
-    remoteSearch(field.url, {}).then((items) => {
-      if (live) setRemote(items.map((i) => ({ value: String(i.id ?? i.value), label: i.label })))
+    remoteSearch(field.url, {}).then((found) => {
+      if (!live) return
+      setFailed(!found.ok)
+      if (found.ok) setRemote(found.items.map((i) => ({ value: String(i.id ?? i.value), label: i.label })))
     })
     return () => { live = false }
   }, [needsOptions, field.url])
   const options = (remote || field.options || []).map((o) => (typeof o === 'object' ? { value: String(o.value ?? o.id), label: o.label ?? String(o.value) } : { value: String(o), label: String(o) }))
+
+  // Remote options that could not be fetched: said under the control.
+  const withFailure = (control) => (failed
+    ? <>{control}<p className='mt-1 text-xs text-error' role='alert'>{t('props_search_failed')}</p></>
+    : control)
 
   switch (field.type) {
     case 'readonly':
@@ -24,7 +32,7 @@ export default function FieldInput ({ field, value, onChange, disabled, t }) {
     case 'number':
       return <input type='number' className='input input-sm w-full' value={value ?? ''} disabled={disabled} min={field.min} max={field.max} step={field.step} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))} />
     case 'select':
-      return (
+      return withFailure(
         <select className='select select-sm w-full' value={value ?? ''} disabled={disabled} onChange={(e) => onChange(e.target.value || null)}>
           <option value=''>{t('props_select_placeholder')}</option>
           {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -32,7 +40,7 @@ export default function FieldInput ({ field, value, onChange, disabled, t }) {
       )
     case 'multi_select': {
       const chosen = new Set((Array.isArray(value) ? value : []).map(String))
-      return (
+      return withFailure(
         <div className='flex flex-wrap gap-1'>
           {options.map((o) => (
             <label key={o.value} className={`badge cursor-pointer gap-1 ${chosen.has(o.value) ? 'badge-primary' : 'badge-ghost'}`}>

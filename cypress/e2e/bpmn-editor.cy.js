@@ -159,6 +159,33 @@ describe('BPMN editor island', () => {
       cy.get('[data-testid="bpmn-node"]').should('have.length', 9)
     })
 
+    const placeSubProcess = () => {
+      cy.get('[data-palette-key="sub_process"]').click()
+      cy.get('[data-testid="bpmn-lane"]').eq(2).then(($lane) => {
+        const lane = $lane[0].getBoundingClientRect()
+        const pane = $lane[0].ownerDocument.querySelector('.react-flow__pane').getBoundingClientRect()
+        cy.get('.react-flow__pane').click(lane.left - pane.left + 220, lane.top - pane.top + lane.height / 2)
+      })
+    }
+
+    it('says the reference search failed instead of finding nothing', () => {
+      cy.intercept('GET', /\/references(\?.*)?$/, { statusCode: 500, body: {} })
+      placeSubProcess()
+      cy.get('[data-testid="bpmn-search-failed"]').should('contain', 'La búsqueda falló')
+    })
+
+    it('opens a linked reference through a real link the host may take over', () => {
+      placeSubProcess()
+      cy.get('[data-testid="bpmn-properties"] .max-h-48 button').first().click()
+      cy.get('[data-testid="bpmn-open-reference"]').should('have.attr', 'href').and('match', /^\//)
+      cy.document().then((doc) => doc.addEventListener('bali-bpmn:open-reference', (event) => { event.preventDefault(); doc.body.dataset.opened = event.detail.reference.label }))
+      cy.location('pathname').then((before) => {
+        cy.get('[data-testid="bpmn-open-reference"]').click()
+        cy.get('body').should('have.attr', 'data-opened')
+        cy.location('pathname').should('eq', before)
+      })
+    })
+
     it('undoes and redoes with the keyboard', () => {
       nodeNamed('¿La factura es válida?').click()
       cy.get('[data-testid="bpmn-quick-menu"] [data-quick="end_event"]').click()

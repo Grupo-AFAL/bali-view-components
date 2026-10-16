@@ -387,6 +387,7 @@ export const DEFAULT_I18N = {
   props_align: 'Alignment',
   props_align_note: 'Vertical aligns in a column across lanes; horizontal only inside one lane.',
   props_select_placeholder: 'Choose…',
+  props_search_failed: 'The search failed. Try again in a moment.',
   props_no_results: 'No results.',
   props_searching: 'Searching…',
   align_vertical: 'Vertical',

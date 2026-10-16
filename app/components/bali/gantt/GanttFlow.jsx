@@ -34,6 +34,7 @@ import GanttTable, { NAME_MIN_W } from './GanttTable'
 import Toolbar from './Toolbar'
 import GanttFooter from './GanttFooter'
 import Minimap from './Minimap'
+import { openDrawerUrl } from '../../../frontend/bali/utils/drawer.js'
 import {
   pxPerDayFor,
   initialZoomFromUrl,
@@ -69,34 +70,6 @@ function showErrorToast (message) {
   setTimeout(() => toast.remove(), 4000)
 }
 
-// Opens a URL in the Bali drawer (AppLayout) by reusing its `drawer`
-// controller with a synthetic <a href>; if the drawer is unavailable it
-// navigates as fallback. Used for item detail/edit and for creation
-// (New group / New item).
-function openDrawerUrl (url) {
-  if (!url || typeof document === 'undefined') return
-  const app = typeof window !== 'undefined' ? window.Stimulus : null
-  const host = document.querySelector('[data-controller~="drawer"]')
-  const ctrl = app && host ? app.getControllerForElementAndIdentifier(host, 'drawer') : null
-  if (ctrl && typeof ctrl.open === 'function') {
-    const a = document.createElement('a')
-    a.href = url
-    a.setAttribute('data-turbo', 'false')
-    try {
-      // `open` is ASYNC in Bali v3 (`open = async (event) => {…}`) and fetches
-      // inside, so a network failure becomes a rejected promise this
-      // synchronous `catch` never sees: hook the fallback onto the promise.
-      // `Promise.resolve` covers both shapes: if `open` ever throws
-      // synchronously again, the catch below gets it.
-      Promise.resolve(ctrl.open({ preventDefault () {}, currentTarget: a }))
-        .catch(() => window.location.assign(url))
-      return
-    } catch {
-      // drawer failed outright — fall through to plain navigation.
-    }
-  }
-  window.location.assign(url)
-}
 
 function openItemDrawer (itemUrlTemplate, itemId) {
   if (!itemUrlTemplate) return

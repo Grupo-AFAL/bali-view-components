@@ -21,10 +21,10 @@ export default function ReferencePicker ({ node, lane, api, t, editable, urls })
     let live = true
     setResults(null)
     const timer = setTimeout(() => {
-      remoteSearch(searchUrl, { q: query, group }).then((items) => {
+      remoteSearch(searchUrl, { q: query, group }).then((found) => {
         if (!live) return
-        setResults(items)
-        if (!group) setGroups([...new Set(items.map((i) => i.group).filter(Boolean))])
+        setResults(found.ok ? found.items : false)
+        if (found.ok && !group) setGroups([...new Set(found.items.map((i) => i.group).filter(Boolean))])
       })
     }, 250)
     return () => { live = false; clearTimeout(timer) }
@@ -44,9 +44,9 @@ export default function ReferencePicker ({ node, lane, api, t, editable, urls })
           <div className='flex items-start gap-2 rounded border border-base-300 p-2'>
             <span className='grow text-sm'>{current.label}{current.group && <span className='block text-xs text-base-content/60'>{current.group}</span>}</span>
             {!forLane && current.url && (
-              <button type='button' className='btn btn-ghost btn-xs' onClick={() => api.openReference(node)}>
+              <a href={current.url} className='btn btn-ghost btn-xs' data-testid='bpmn-open-reference' onClick={(event) => { if (!api.announceOpenReference(node)) event.preventDefault() }}>
                 <Icon name='external' size={12} />{t('props_open_reference')}
-              </button>
+              </a>
             )}
             {editable && (
               <button type='button' className='btn btn-ghost btn-xs' onClick={() => (forLane ? api.updateLane(lane.id, { assignee: null }) : api.updateNode(node.id, { reference: null }))}>
@@ -70,6 +70,7 @@ export default function ReferencePicker ({ node, lane, api, t, editable, urls })
           <input type='search' className='input input-sm w-full' placeholder={t(forLane ? 'props_assignee_search' : 'props_search_reference')} value={query} onChange={(e) => setQuery(e.target.value)} />
           <div className='max-h-48 overflow-y-auto rounded border border-base-300'>
             {results === null && <p className='p-2 text-xs text-base-content/60'>{t('props_searching')}</p>}
+            {results === false && <p className='p-2 text-xs text-error' role='alert' data-testid='bpmn-search-failed'>{t('props_search_failed')}</p>}
             {results && !results.length && <p className='p-2 text-xs text-base-content/60'>{t('props_no_results')}</p>}
             {results && groupBy(results).map(([name, items]) => (
               <div key={name || 'none'}>

@@ -421,7 +421,9 @@ remote `url:` answering `[{ id, label }]`), `readonly`.
 ## Extension points
 
 1. **Link a sub-process to an existing entity** — a remote search at
-   `urls[:references]?q=` answering `[{ id, label, description, url, group }]`.
+   `urls[:references]?q=` answering `[{ id, label, description, url, group }]` — an
+   array, nothing else. A request that fails, or an answer that is not an array, shows
+   "The search failed" in the panel rather than "No results".
 2. **Create the referenced entity** — "Create new" opens the app's drawer at
    `urls[:new_reference]?client_node_id=…&editor_id=…` (on its own when a
    sub-process is placed and there is no search). The app's form answers with:
@@ -565,8 +567,8 @@ Conventions, and where they come from:
 | No overlapping elements | bpmnlint, `no-overlapping-elements` |
 | Lanes fitted to their content | *Method and Style* |
 
-The measurement behind this is `model/layoutQuality.js`; `test/javascript/bpmn_editor/`
-runs it over five reference flows after Tidy up (both orientations) with these caps, and
+The measurement behind this is `test/javascript/bpmn_editor/support/layoutQuality.js`; the tests
+run it over five reference flows after Tidy up (both orientations) with these caps, and
 over 200 random sequences of 30 edits (hard violations: 0, and no deletion leaves a stretch
 wider than a column empty).
 

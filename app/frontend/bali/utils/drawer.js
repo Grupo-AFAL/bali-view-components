@@ -1,6 +1,7 @@
-// Opens a host URL in the Bali drawer of the layout, through its `drawer`
-// controller and a synthetic <a href> — the same mechanism as the Gantt's
-// openDrawerUrl (GanttFlow.jsx). Without a drawer on the page it navigates.
+// Opens a host URL in the Bali drawer of the layout (AppLayout), through its
+// `drawer` controller and a synthetic <a href>; without a drawer on the page
+// it navigates. Shared by the React islands (Gantt, BpmnEditor), which reach
+// the drawer through window.Stimulus rather than importing the main bundle.
 export function openDrawerUrl (url) {
   if (!url || typeof document === 'undefined') return
   const app = window.Stimulus

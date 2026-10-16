@@ -4,7 +4,7 @@ import { FIXTURES } from './fixtures.js'
 import { normalize } from '../../../app/components/bali/bpmn_editor/model/document.js'
 import { autoLayout } from '../../../app/components/bali/bpmn_editor/model/layout.js'
 import { arrange, emptyStretches, STEP } from '../../../app/components/bali/bpmn_editor/model/arrange.js'
-import { measure, sharedLength, segmentsCross } from '../../../app/components/bali/bpmn_editor/model/layoutQuality.js'
+import { measure, sharedLength, segmentsCross } from './support/layoutQuality.js'
 import { setOrientation, deleteElements } from '../../../app/components/bali/bpmn_editor/model/operations.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 
