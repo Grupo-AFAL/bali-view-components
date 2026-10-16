@@ -227,8 +227,9 @@ module Bali
         # holds a "": a nil value, which `Tags::Select#render` turns into one, or a blank handed in,
         # as SimpleFilters does for a filter with no value. Rails' own include_blank option is never
         # marked. On a multiple select it is a chip that sends a blank, so the "" goes — as it does
-        # from the controller's `selectAll`.
-        if html_options[:multiple]
+        # from the controller's `selectAll`. Not without an object or a `selected:`: Rails then
+        # reads the view's `@<object_name>` (`Tags::Base#retrieve_object`), which this cannot see.
+        if html_options[:multiple] && (@object || options.key?(:selected))
           selected = options.fetch(:selected) { @object.try(method) }
           options = options.merge(selected: Array(selected).map(&:to_s) - [ "" ])
         end

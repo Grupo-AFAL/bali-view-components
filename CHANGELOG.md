@@ -59,12 +59,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Un `slim_select` múltiple con `include_blank:` o `prompt:` ya no arranca con el vacío
   elegido**. Rails elige la opción `""` mientras el valor es `nil` o vacío, y en un select múltiple
   esa opción es el placeholder: salía como chip y el formulario mandaba un valor vacío. Lo mismo
-  con un `selected: ""`, que es lo que `SimpleFilters` pasa a un filtro sin valor. En
-  gobierno-corporativo cambia lo que se ve en los selects múltiples `by_management_level` y
-  `by_relation` de `document_classification_types/_config_field.html.erb` (`:92` y `:105`) mientras
-  no tienen valor: su `config-field` marca el campo como inválido al cargar hasta que se elige algo
-  (antes el vacío elegido contaba como elección), y la consulta de usuarios resueltos deja de mandar
-  `value[]=`. Su modelo ya descartaba el vacío.
+  con un `selected: ""`, que es lo que `SimpleFilters` pasa a un filtro sin valor. Un formulario
+  sin objeto ni `selected:` (`form_with scope:`) sigue como antes: ahí Rails lee el valor de la
+  vista. En gobierno-corporativo cambia lo que se ve en los selects múltiples `by_management_level`
+  y `by_relation` de `document_classification_types/_config_field.html.erb` (`:92` y `:105`)
+  mientras no tienen valor: su `config-field` marca el campo como inválido al cargar hasta que se
+  elige algo (antes el vacío elegido contaba como elección), y la consulta de usuarios resueltos
+  deja de mandar `value[]=`. Su modelo ya descartaba el vacío.
 
 - **SlimSelect: las opciones de un `<optgroup disabled>` ya no se pueden elegir**. SlimSelect sólo
   lee el `disabled` de cada opción, así que se elegían y salían como chip aunque el formulario no

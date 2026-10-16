@@ -179,6 +179,23 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     end
   end
 
+  def test_slim_select_field_multiple_include_blank_without_an_object_keeps_the_value_rails_reads
+    view_context = ActionController::Base.new.view_context
+    view_context.instance_variable_set(:@movie, Movie.new(genre: "comedy"))
+    result = Bali::FormBuilder.new("movie", nil, view_context, {})
+                              .slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true)
+
+    assert_html(result, 'option[selected][value="comedy"]')
+  end
+
+  # SimpleFilters' form: `form_with url:`, no object, and `selected: ""` for a filter with no value.
+  def test_slim_select_field_multiple_include_blank_without_an_object_drops_a_blank_selected
+    result = Bali::FormBuilder.new("q", nil, ActionController::Base.new.view_context, {})
+                              .slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true, selected: "")
+
+    assert_html(result, "option[selected]", count: 0)
+  end
+
   def test_slim_select_field_include_blank_keeps_the_real_options_selectable
     result = builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "Choose a status")
     Movie.statuses.each do |name, value|
