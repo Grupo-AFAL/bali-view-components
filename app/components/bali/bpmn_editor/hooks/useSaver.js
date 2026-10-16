@@ -1,99 +1,43 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { saveDocument, fetchDocument, finalizeDocument } from '../saveClient.js'
 import { forSave, normalize } from '../model/document.js'
+import { createSaver } from '../model/saver.js'
 
 const AUTOSAVE_DELAY = 1200
 
-// Saving the whole document (#1489 mutation contract).
-//
-// `revision` counts local changes. A save remembers the revision it carried;
-// when the 200 comes back with no change made since, the server's document
-// replaces the local one (it may have normalized ids or names). If the user
-// kept editing meanwhile, only the new `version` and `issues` are taken and
-// the newer local state is saved next — the server's copy is already older
-// than what is on screen.
-//
-// A reset (409, reload) bumps the revision by exactly one and is itself the
-// saved state. It also starts a new `generation`: an answer to a request sent
-// before the reset is ignored, or a late 200 would roll the version and the
-// saved revision back to the document the reset just replaced.
-//
-// Requests are serialized: one save or finalize at a time, each carrying the
-// version the previous answer gave. The version is tracked apart from the
-// document, so undoing to an older document never sends an older version.
+// The save state machine lives in model/saver.js (pure, tested with node
+// --test); this hook binds it to React: status, the autosave debounce, the
+// page-leave guards and the save on unmount.
 export default function useSaver ({ doc, revision, urls, editable, autosave, onAdopt, onReset, onEvent, notify, t }) {
   const [status, setStatus] = useState('saved')
   const [finalizing, setFinalizing] = useState(false)
-  const versionRef = useRef(doc.version ?? null)
-  const savedRevision = useRef(revision)
-  const generation = useRef(0)
-  const pending = useRef(null) // promise of the request in flight
-  const queued = useRef(false)
   const timer = useRef(null)
   const latest = useRef({ doc, revision })
   latest.current = { doc, revision }
-  const dirty = revision !== savedRevision.current
-  const dirtyRef = useRef(dirty)
-  dirtyRef.current = dirty
-
-  const resetTo = useCallback((fresh) => {
-    generation.current++
-    versionRef.current = fresh.version ?? null
-    onReset(normalize(fresh))
-    savedRevision.current = latest.current.revision + 1
-  }, [onReset])
-
-  const reloadAfterConflict = useCallback(async () => {
-    if (!urls.diagram) return false
-    try {
-      resetTo(await fetchDocument(urls.diagram))
-      notify(t('toast_conflict'), 'warning')
-      setStatus('saved')
-      return true
-    } catch {
-      return false
-    }
-  }, [urls.diagram, resetTo, notify, t])
-
-  const send = useCallback(async () => {
-    const { doc: sent, revision: sentRevision } = latest.current
-    if (sentRevision === savedRevision.current) return true
-    const gen = generation.current
-    setStatus('saving')
-    try {
-      const body = await saveDocument(urls.save, forSave(sent), versionRef.current)
-      if (gen !== generation.current) return false
-      versionRef.current = body.version ?? versionRef.current
-      savedRevision.current = sentRevision
-      const unchanged = latest.current.revision === sentRevision
-      onAdopt(normalize(body), { replace: unchanged })
-      setStatus(unchanged ? 'saved' : 'dirty')
-      onEvent('saved', { document: body })
-      return true
-    } catch (error) {
-      if (gen !== generation.current) return false
-      if (error.conflict && await reloadAfterConflict()) return false
-      setStatus('error')
-      notify(error.errors && error.errors.length ? error.errors.join(' ') : t('change_failed'), 'error')
-      return false
-    }
-  }, [urls.save, onAdopt, onEvent, notify, t, reloadAfterConflict])
+  const deps = {
+    client: { save: saveDocument, fetch: fetchDocument, finalize: finalizeDocument },
+    urls,
+    latest: () => latest.current,
+    onAdopt,
+    onReset,
+    onEvent,
+    notify,
+    t,
+    setStatus,
+    prepare: normalize,
+    forSave,
+    defer: (fn) => setTimeout(fn, 0)
+  }
+  const saver = useRef(null)
+  if (!saver.current) saver.current = createSaver(deps, { version: doc.version ?? null, revision })
+  saver.current.configure(deps)
+  const dirty = saver.current.isDirty(revision)
 
   const save = useCallback(async () => {
-    if (!editable || !urls.save) return false
+    if (!editable) return false
     clearTimeout(timer.current)
-    if (pending.current) { queued.current = true; return pending.current }
-    pending.current = send()
-    try {
-      return await pending.current
-    } finally {
-      pending.current = null
-      if (queued.current) {
-        queued.current = false
-        setTimeout(() => { save() }, 0)
-      }
-    }
-  }, [editable, urls.save, send])
+    return saver.current.save()
+  }, [editable])
 
   useEffect(() => {
     if (!dirty) return
@@ -129,62 +73,22 @@ export default function useSaver ({ doc, revision, urls, editable, autosave, onA
 
   // Unmounted with a change still waiting for its debounce (a Turbo visit, a
   // drawer closing): send it instead of dropping it.
-  const saveRef = useRef(save)
-  saveRef.current = save
   useEffect(() => () => {
-    if (dirtyRef.current && autosave && editable) saveRef.current()
+    clearTimeout(timer.current)
+    saver.current.leave({ autosave, editable })
   }, [autosave, editable])
 
-  // "Finalize": waits for any save in flight, then posts the current document.
-  // The server saves it either way, so a 422 still answers with the new
-  // `version` (kept on the error) and its `issues`, which open the panel.
   const finalize = useCallback(async () => {
-    if (!urls.finalize) return { ok: false }
     clearTimeout(timer.current)
     setFinalizing(true)
     try {
-      while (pending.current) await pending.current
-      const { doc: current, revision: currentRevision } = latest.current
-      const gen = generation.current
-      const request = finalizeDocument(urls.finalize, forSave(current), versionRef.current)
-      pending.current = request.catch(() => {})
-      try {
-        const body = await request
-        if (gen !== generation.current) return { ok: false }
-        versionRef.current = body.version ?? versionRef.current
-        savedRevision.current = currentRevision
-        onAdopt(normalize(body), { replace: latest.current.revision === currentRevision })
-        setStatus('finalized')
-        onEvent('finalized', { document: body })
-        return { ok: true }
-      } catch (error) {
-        if (gen !== generation.current) return { ok: false }
-        if (error.version != null) {
-          versionRef.current = error.version
-          savedRevision.current = currentRevision
-        }
-        if (error.conflict) { await reloadAfterConflict(); return { ok: false } }
-        if (error.issues) return { ok: false, issues: error.issues }
-        notify(error.errors && error.errors.length ? error.errors.join(' ') : t('change_failed'), 'error')
-        return { ok: false }
-      } finally {
-        pending.current = null
-      }
+      return await saver.current.finalize()
     } finally {
       setFinalizing(false)
     }
-  }, [urls.finalize, onAdopt, onEvent, notify, t, reloadAfterConflict])
+  }, [])
 
-  const reload = useCallback(async () => {
-    if (!urls.diagram) return
-    try {
-      resetTo(await fetchDocument(urls.diagram))
-      setStatus('saved')
-      notify(t('toast_reloaded'), 'info')
-    } catch {
-      notify(t('change_failed'), 'error')
-    }
-  }, [urls.diagram, resetTo, notify, t])
+  const reload = useCallback(() => saver.current.reload(), [])
 
   return { status: dirty && status === 'saved' ? 'dirty' : status, dirty, save, finalize, finalizing, reload }
 }

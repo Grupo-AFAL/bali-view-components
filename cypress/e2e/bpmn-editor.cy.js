@@ -1,29 +1,12 @@
 // Bali::BpmnEditor (#1489): the island through the complete host circuit
 // (loader, metas, entry, controller) and the main editing flow against the
 // dummy's reference endpoints (Admin::ProcessFlows::*). The editable preview
-// edits the seeded flow, so each test that writes resets it first through the
-// diagram endpoint itself.
+// puts the sample flow back on every visit (its `fresh` param), so each test
+// starts from it.
 
 const EDITABLE = '/bali/bpmn_editor/editable'
-// The previews live under the baseUrl; the dummy's endpoints at the root.
-const root = () => Cypress.config('baseUrl').replace(/\/lookbook\/preview\/?$/, '')
 
 const nodeNamed = (name) => cy.contains('.react-flow__node-bpmn', name)
-
-// Puts the seeded flow back to the sample every test starts from — the one
-// the read-only `default` preview draws — through the save contract itself.
-const resetFlow = () => {
-  cy.request('/bali/bpmn_editor/default').then(({ body }) => {
-    const html = new DOMParser().parseFromString(body, 'text/html')
-    const sample = JSON.parse(html.querySelector('[data-bpmn-editor-data-value]').dataset.bpmnEditorDataValue)
-    cy.request(EDITABLE).then((page) => {
-      const id = page.body.match(/bpmn_process_flow_(\d+)/)[1]
-      cy.request(`${root()}/admin/process_flows/${id}/diagram.json`).then(({ body: current }) => {
-        cy.request('PUT', `${root()}/admin/process_flows/${id}/diagram`, { diagram: sample, version: current.version })
-      })
-    })
-  })
-}
 
 describe('BPMN editor island', () => {
   it('mounts read-only from the default preview, with lanes, nodes and connections', () => {
@@ -63,7 +46,6 @@ describe('BPMN editor island', () => {
 
   describe('editing', () => {
     beforeEach(() => {
-      resetFlow()
       cy.intercept('PUT', '**/diagram').as('save')
       cy.visit(EDITABLE)
       cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
@@ -129,6 +111,24 @@ describe('BPMN editor island', () => {
       cy.get('[data-testid="bpmn-quick-menu"] [aria-label="Izquierda"]')
         .should('have.attr', 'aria-disabled', 'true')
         .and('have.attr', 'title').and('contain', 'No fue posible')
+    })
+
+    // Someone else saved first: the 409 reloads their version and says so.
+    it('reloads the server version on a 409 and says why', () => {
+      cy.intercept('PUT', '**/diagram', { statusCode: 409, body: { errors: ['stale'] } }).as('stale')
+      cy.intercept('GET', '**/diagram*').as('fetch')
+      cy.get('[data-palette-key="task"]').click()
+      cy.get('[data-testid="bpmn-lane"]').first().then(($lane) => {
+        const lane = $lane[0].getBoundingClientRect()
+        const pane = $lane[0].ownerDocument.querySelector('.react-flow__pane').getBoundingClientRect()
+        cy.get('.react-flow__pane').click(lane.left - pane.left + lane.width * 0.7, lane.top - pane.top + lane.height / 2)
+      })
+      cy.get('[data-testid="bpmn-node"]').should('have.length', 10)
+      cy.get('[data-testid="bpmn-save-draft"], button').contains('Guardar borrador').click()
+      cy.wait('@stale')
+      cy.wait('@fetch')
+      cy.get('[data-testid="bpmn-notice"]').should('contain', 'Alguien más modificó este diagrama')
+      cy.get('[data-testid="bpmn-node"]').should('have.length', 9)
     })
 
     it('undoes and redoes with the keyboard', () => {
