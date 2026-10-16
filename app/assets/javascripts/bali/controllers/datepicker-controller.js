@@ -157,6 +157,10 @@ export class DatepickerController extends Controller {
   // specifier, and importing `l10n/index.js` to index it pulls the whole 100 kB
   // table into every host's bundle to serve locales this gem has no strings for.
   // A host that needs another one calls flatpickr.localize() itself.
+  //
+  // Bali::Types::DateRangeValue::SEPARATORS splits a range on the `rangeSeparator`
+  // of the locale picked here, by the same language prefix: a locale added here
+  // is added there.
   static LOCALES = {
     es: () =>
       import('flatpickr/dist/l10n/es.js')
