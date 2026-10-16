@@ -5,8 +5,12 @@ require "test_helper"
 class BaliBpmnEditorTranslationsTest < ActiveSupport::TestCase
   JS_TABLE = Rails.root.join("../../app/components/bali/bpmn_editor/i18n.js")
 
+  # English has no infinitive ending to match: only its verb list counts.
+  EMPTY_ALLOWED = { en: %w[infinitive_endings not_infinitives] }.freeze
+
+  # Keys of the criteria-matrix rules carry a hyphen (`'rule_COM-19'`), so they are quoted.
   def js_keys
-    JS_TABLE.read[/DEFAULT_I18N = \{(.*?)\n\}/m, 1].scan(/^  ([a-z0-9_A-Z]+):/).flatten
+    JS_TABLE.read[/DEFAULT_I18N = \{(.*?)\n\}/m, 1].scan(/^  (?:'([\w-]+)'|([a-z0-9_A-Z]+)):/).flatten.compact
   end
 
   def test_both_locales_serve_exactly_the_js_keys
@@ -14,7 +18,7 @@ class BaliBpmnEditorTranslationsTest < ActiveSupport::TestCase
       table = Bali::BpmnEditor::Translations.island(locale: locale)
 
       assert_equal js_keys.sort, table.keys.sort, "locale #{locale} and DEFAULT_I18N (i18n.js) diverged"
-      table.each { |key, value| assert value.present?, "#{locale}/#{key} is empty" }
+      table.except(*EMPTY_ALLOWED.fetch(locale, [])).each { |key, value| assert value.present?, "#{locale}/#{key} is empty" }
     end
   end
 

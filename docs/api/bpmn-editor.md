@@ -263,16 +263,18 @@ On by default — the standard catalogue of #1489:
 | R01 | An activity has at most one incoming sequence flow | bpmnlint `fake-join`; Method and Style |
 | R02 | An activity has at most one outgoing sequence flow | bpmnlint `no-implicit-split` |
 | R03 | Every outgoing flow of an exclusive/inclusive split has a label | Method and Style; bpmnlint `conditional-flows` |
-| R05 | A parallel/inclusive split is merged by a gateway of its type | Method and Style |
+| R05 | Paths of a parallel/inclusive split that meet again are merged by a gateway; a path that ends in an end event needs no merge | Method and Style; AFAL COM-21 |
 | R06 | The start event names its trigger (not "Start") | Camunda modeling guidelines |
 | R07 | Each end event names the end state (not "End") | Camunda modeling guidelines |
-| R08 | Events and splitting gateways have a description | #1489 |
+| R08 | A message or timer event names the communication or the term, not just its kind («Mensaje», «Tiempo»). No element needs a description: a decision's criterion is its name (R09, B11) | AFAL EVM-04, EVM-06 |
 | R09 | Every flow element has a name (merging gateways exempt) | bpmnlint `label-required` |
 | R10 | Every lane holds at least one activity | #1489 |
 | R11 | A sub-process references something | #1489 |
+| R12 | A start event and at least one end event | bpmnlint; AFAL EVI-01 |
 | R13 | No disconnected element | bpmnlint `no-disconnected` |
+| R16 | Distinct activity names | Method and Style; AFAL ACT-06 |
 | R18 | No overlapping elements | #1489 |
-| R21 | At least `min_lanes` lanes (default 2) | #1489 |
+| R21 | At least `min_lanes` lanes with activities (default 2): an empty lane is no participant | #1489; AFAL LAN-09 |
 | R22 | Lanes have a specific name | Camunda modeling guidelines |
 | R23 | Activities and gateways have a specific name | Camunda modeling guidelines |
 | R24 | A start event has no incoming flow; an end event no outgoing | BPMN 2.0 §10.5 |
@@ -287,16 +289,57 @@ On by default — the standard catalogue of #1489:
 | B08 | At most one blank start event | bpmnlint `single-blank-start-event` |
 | B09 | No duplicate sequence flows | bpmnlint `no-duplicate-sequence-flows` |
 | B10 | An instantiating event-based gateway has no incoming flow | BPMN 2.0 §10.6.6 |
+| B11 | A decision (exclusive, Yes/No or inclusive split) is phrased as a question, and does not start with a verb («Autorizar solicitud») | Camunda modeling guidelines; AFAL COM-13, DEC-01 |
 
-The B rules are warnings. Off by default: R12 (a start and an end), R14 (gateway
-that merges and splits), R15 (unnecessary gateway), R16 (repeated names), R17 (verb
-+ object), R19 (flow too large, `max_activities`), R04 (Yes/No decision with more
-branches), R20 (`min_activities`), B07 (complex gateway), B11 (exclusive split
-phrased as a question).
+From AFAL's BPMN criteria matrix (Criterios BPMN Rev.01), the rules the matrix grounds
+in BPMN 2.0, also on by default. Their id is the code of the criterion; `criteria` lists
+every code a rule covers:
 
-The generic names R06/R07/R22/R23 look for, and the vague verbs of R17, are i18n
-entries (`generic_*_names`, `vague_verbs`, pipe-separated), so they follow the
-language of the UI.
+| ID | Rule | Criteria | Severity |
+|---|---|---|---|
+| COM-19 | A merge closes its split with the matching gateway: Yes/No → XOR, XOR → XOR, OR → OR, AND → AND (the opening is the merge's immediate dominator) | COM-15…COM-19 | error |
+| COM-20 | Nested splits close from the inside out | COM-20 | error |
+| COM-12 | A parallel split's outgoing flows carry no labels | COM-12 | error |
+| COM-02 | The Yes/No decision has exactly two ways out (R03 asks for their labels) | COM-02, COM-07 | error |
+| DEC-03 | The Yes/No decision's ways out answer its question (Yes / No) | DEC-03 | warning |
+| EST-05 | Every cycle has a way out | EST-05 | error |
+| EST-01 | Every element lies on a path from a start event to an end event | EST-01, EST-02, SEC-04, EVF-01 | error |
+| VIS-10 | No element the host's palette does not offer (an imported diagram) | EVM-01, VIS-10 | error |
+| EVI-03 | A start, end or conditional event names a fact or a state, not an action | EVI-03, EVF-03, EVM-09 | warning |
+| EVI-05 | A plain start whose name speaks of a period («Cierre mensual») should be a timer start | EVI-05 | warning |
+
+Off by default — AFAL guidelines only. `rules: { enabled: %w[afal] }` turns them all on;
+`disabled:` still turns one off:
+
+| ID | Rule | Criteria | Severity |
+|---|---|---|---|
+| COM-22 | A return to an earlier activity lands on a merging XOR placed before it, never on the activity nor on an AND | ACT-13, COM-22, EST-04 | error |
+| EVF-04 | End events have distinct names | EVF-04 | error |
+| SUB-05 | The flows into and out of a related procedure are labelled, and differ | SUB-05, SUB-06, SUB-07 | error |
+| ACT-02 | An activity is worded as infinitive + object, not a noun («Validación de…») | ACT-02 | warning |
+| ACT-07 | An activity does not only receive or pass on information («Recibir…», «Turnar…») | ACT-01, ACT-07, ACT-08 | warning |
+| ACT-09 | No ongoing responsibility as an activity («Dar seguimiento», «Garantizar») | ACT-09 | warning |
+| ACT-03 | No vague phrase, screen instruction («Dar clic») or several actions in one box | ACT-03, ACT-04, ACT-05 | warning |
+| ACT-10 | Validating, reviewing, approving or authorizing is followed by a decision | ACT-10, ACT-11, ACT-12 | warning |
+| LAN-08 | No two lanes with nearly the same name («Gerente Jurídico» / «Gte. Jurídico») | LAN-08 | warning |
+
+The «Rules» dialog groups every rule by the matrix's chapters and shows its criteria.
+VIS-10 needs to know the palette: the editor passes the palette keys the host leaves
+enabled (`palette:`); with no palette configured it checks nothing.
+
+The B rules are warnings. Off by default: R14 (gateway that merges and splits), R15
+(unnecessary gateway), R17 (verb + object), R19 (flow too large, `max_activities`),
+R04 (Yes/No decision with more branches), R20 (`min_activities`), B07 (complex
+gateway).
+
+The word lists the naming and wording rules match are i18n entries, pipe-separated,
+compared without accents or case, so they follow the language of the UI and a host
+rewrites any of them through `i18n:`: `generic_*_names` and `vague_verbs` (R06, R07,
+R08, R17, R22, R23), `action_verbs`, `infinitive_endings` (Spanish `ar|er|ir`; empty in
+English, where only `action_verbs` counts) and `not_infinitives` (EVI-03, B11, ACT-02,
+ACT-03), `nominal_endings` (ACT-02), `transition_verbs` (ACT-07), `continuous_phrases`
+(ACT-09), `vague_phrases`, `operative_phrases` and `conjunctions` (ACT-03),
+`decision_verbs` (ACT-10), `periodic_words` (EVI-05).
 
 **Blocks on the spot** come from the same switches: with R01/R02 on, a connection
 that breaks one-in/one-out is refused with a message; R18 refuses an overlap, R26

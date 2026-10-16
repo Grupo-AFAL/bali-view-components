@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { evaluate, CATALOG, DEFAULT_ENABLED, isRuleOn, blockPolicy, registerBpmnRule, unregisterBpmnRule, mergeIssues, issuesByElement, ruleList } from '../../../app/components/bali/bpmn_editor/model/rules.js'
+import { evaluate, CATALOG, DEFAULT_ENABLED, AFAL_RULES, isRuleOn, blockPolicy, registerBpmnRule, unregisterBpmnRule, mergeIssues, issuesByElement, ruleList } from '../../../app/components/bali/bpmn_editor/model/rules.js'
 import { translator } from '../../../app/components/bali/bpmn_editor/i18n.js'
 import { doc, lanes, node, flow } from './helpers.js'
 
@@ -23,7 +23,7 @@ function clean () {
     edges: [flow('f1', 's', 't1'), flow('f2', 't1', 'g'), flow('f3', 'g', 't2', { label: 'Yes' }), flow('f4', 'g', 'e2', { label: 'No' }), flow('f5', 't2', 'e1')]
   })
 }
-const run = (d, config = ALL_ON) => evaluate(d, config, t)
+const run = (d, config = ALL_ON) => evaluate(d, config, t, { allowed: config.allowed })
 const rulesHit = (d, config) => new Set(run(d, config).map((i) => i.rule))
 const by = (d, id) => d.nodes.find((n) => n.id === id)
 
@@ -38,10 +38,11 @@ const BREAKS = {
   R02: (d) => { d.edges.push(flow('x', 't1', 'e2')) },
   R03: (d) => { d.edges[3].label = '' },
   R04: (d) => { d.nodes.push(node('e3', 'end_event', 'l1', 580, 150, { name: 'Invoice on hold', documentation: '…' })); d.edges.push(flow('x', 'g', 'e3', { label: 'Maybe' })) },
-  R05: (d) => { by(d, 'g').type = 'parallel_gateway' },
+  // Both paths of the parallel split end in the same event, unmerged.
+  R05: (d) => { by(d, 'g').type = 'parallel_gateway'; d.edges[3].target = 'e1' },
   R06: (d) => { by(d, 's').name = 'Start' },
   R07: (d) => { by(d, 'e1').name = 'End' },
-  R08: (d) => { by(d, 'g').documentation = '' },
+  R08: (d) => { messageBefore(d, 'Message') },
   R09: (d) => { by(d, 't2').name = '' },
   R10: (d) => { d.lanes.push({ id: 'l3', name: 'Purchasing', order: 3, size: 180 }) },
   R11: (d) => { d.nodes.push(node('sp', 'sub_process', 'l2', 400, 300, { name: 'Supplier onboarding' })); d.edges.push(flow('x', 'sp', 'e1')); d.edges.push(flow('y', 'e2', 'sp')); by(d, 'e2').type = 'intermediate_throw_event' },
@@ -70,7 +71,65 @@ const BREAKS = {
   B08: (d) => { d.nodes.push(node('s2', 'start_event', 'l2', 400, 300, { name: 'Payment requested', documentation: '…' })); d.edges.push(flow('x', 's2', 'e1')) },
   B09: (d) => { d.edges.push(flow('dup', 't2', 'e1')) },
   B10: (d) => { d.nodes.push(node('eg', 'event_based_gateway', 'l2', 400, 300, { name: 'Wait', documentation: '…', instantiate: true })); d.edges.push(flow('x', 'eg', 'e1')); d.edges.push(flow('y', 's', 'eg')) },
-  B11: (d) => { by(d, 'g').name = 'Validity check' }
+  B11: (d) => { by(d, 'g').name = 'Validity check' },
+  // A merge of another type than its split: XOR opened, AND closes.
+  'COM-19': (d) => { mergeBoth(d, 'parallel_gateway') },
+  // An inner split's two paths reach the outer merge directly.
+  'COM-20': (d) => {
+    mergeBoth(d, 'exclusive_gateway')
+    d.nodes.push(node('g2', 'exclusive_gateway', 'l1', 640, 150, { name: 'Supplier known?' }), node('t4', 'task', 'l1', 760, 200, { name: 'Register supplier' }))
+    d.edges = d.edges.map((e) => (e.id === 'f4' ? { ...e, target: 'g2' } : e))
+    d.edges.push(flow('i1', 'g2', 't3', { label: 'Yes' }), flow('i2', 'g2', 't4', { label: 'No' }), flow('i3', 't4', 'j'))
+  },
+  'COM-12': (d) => { by(d, 'g').type = 'parallel_gateway' },
+  'COM-02': (d) => { binary(d); d.nodes.push(node('e3', 'end_event', 'l1', 580, 150, { name: 'Invoice on hold' })); d.edges.push(flow('x', 'g', 'e3', { label: 'Later' })) },
+  'DEC-03': (d) => { binary(d); d.edges[2].label = 'Continue'; d.edges[3].label = 'Stop' },
+  // The rework returns straight to the activity it repeats.
+  'COM-22': (d) => { rework(d, 't1') },
+  'EST-05': (d) => { trap(d) },
+  'EST-01': (d) => { trap(d) },
+  'EVF-04': (d) => { by(d, 'e2').name = 'Invoice paid' },
+  'SUB-05': (d) => {
+    d.nodes.push(node('sp', 'sub_process', 'l2', 700, 330, { name: 'Supplier payment', reference: { id: '7', label: 'Supplier payment' } }))
+    d.edges = d.edges.map((e) => (e.id === 'f5' ? { ...e, target: 'sp' } : e))
+    d.edges.push(flow('x', 'sp', 'e1'))
+  },
+  'VIS-10': (d, config) => { config.allowed = new Set(['task', 'start_event', 'end_event', 'exclusive_gateway']) },
+  'ACT-02': (d) => { by(d, 't2').name = 'Payment scheduling' },
+  'ACT-07': (d) => { by(d, 't2').name = 'Send payment' },
+  'ACT-09': (d) => { by(d, 't2').name = 'Follow up payment' },
+  'ACT-03': (d) => { by(d, 't2').name = 'Click the pay button' },
+  'ACT-10': (d) => { by(d, 't2').name = 'Approve payment' },
+  'EVI-03': (d) => { by(d, 'e1').name = 'Notify supplier' },
+  'EVI-05': (d) => { by(d, 's').name = 'Monthly closing started' },
+  'LAN-08': (d) => { d.lanes[1].name = 'Acct. payable' }
+}
+
+// The clean flow with a message event before its last end.
+function messageBefore (d, name) {
+  d.nodes.push(node('m', 'intermediate_catch_event', 'l2', 680, 270, { name, event_definition: { kind: 'message' } }))
+  d.edges = d.edges.map((e) => (e.id === 'f5' ? { ...e, target: 'm' } : e))
+  d.edges.push(flow('fm', 'm', 'e1'))
+}
+// Both answers of the decision continue and meet in a merge of `type`.
+function mergeBoth (d, type) {
+  d.nodes = d.nodes.filter((n) => n.id !== 'e2')
+  d.nodes.push(node('t3', 'task', 'l1', 580, 150, { name: 'Notify supplier' }), node('j', type, 'l2', 700, 270, { name: '' }))
+  d.edges = d.edges.filter((e) => e.id !== 'f5').map((e) => (e.id === 'f4' ? { ...e, target: 't3' } : e))
+  d.edges.push(flow('a', 't3', 'j'), flow('b', 't2', 'j'), flow('c', 'j', 'e1'))
+}
+const binary = (d) => { by(d, 'g').marker_visible = false }
+// "No" goes to a correction that returns to `target`.
+function rework (d, target) {
+  d.nodes = d.nodes.filter((n) => n.id !== 'e2')
+  d.nodes.push(node('t3', 'task', 'l1', 580, 150, { name: 'Correct invoice' }))
+  d.edges = d.edges.map((e) => (e.id === 'f4' ? { ...e, target: 't3' } : e))
+  d.edges.push(flow('back', 't3', target))
+}
+// A third answer leads into a loop nothing leaves.
+function trap (d) {
+  d.nodes.push(node('t3', 'task', 'l1', 580, 150, { name: 'Hold invoice' }), node('t4', 'task', 'l1', 760, 150, { name: 'Recheck invoice' }))
+  d.edges.push(flow('x', 'g', 't3', { label: 'Later' }), flow('y', 't3', 't4'), flow('z', 't4', 't3'))
 }
 
 for (const rule of CATALOG) {
@@ -89,12 +148,32 @@ for (const rule of CATALOG) {
   })
 }
 
-test('the issue catalogue is on by default; the optional rules are off', () => {
+test('the issue catalogue and the BPMN-grounded criteria are on by default; the optional and AFAL-only rules are off', () => {
   for (const id of ['R01', 'R02', 'R03', 'R05', 'R06', 'R07', 'R08', 'R09', 'R10', 'R11', 'R13', 'R18', 'R21', 'R22', 'R23', 'R24', 'R25', 'R26']) {
     assert.ok(isRuleOn({}, id), `${id} on`)
   }
-  for (const id of ['R04', 'R12', 'R14', 'R15', 'R16', 'R17', 'R19', 'R20', 'B07', 'B11']) assert.equal(isRuleOn({}, id), false, `${id} off`)
-  assert.equal(DEFAULT_ENABLED.size, 27)
+  // EVI-01, ACT-06 and COM-13 of the criteria matrix turn on R12, R16 and B11.
+  for (const id of ['R12', 'R16', 'B11', 'COM-19', 'COM-20', 'COM-12', 'COM-02', 'DEC-03', 'EST-05', 'EST-01', 'VIS-10', 'EVI-03', 'EVI-05']) assert.ok(isRuleOn({}, id), `${id} on`)
+  for (const id of ['R04', 'R14', 'R15', 'R17', 'R19', 'R20', 'B07']) assert.equal(isRuleOn({}, id), false, `${id} off`)
+  for (const id of AFAL_RULES) assert.equal(isRuleOn({}, id), false, `${id} off`)
+  assert.equal(DEFAULT_ENABLED.size, 40)
+})
+
+test('`enabled: [\'afal\']` turns on every AFAL-only guideline, and a host still turns one off', () => {
+  assert.deepEqual([...AFAL_RULES].sort(), ['ACT-02', 'ACT-03', 'ACT-07', 'ACT-09', 'ACT-10', 'COM-22', 'EVF-04', 'LAN-08', 'SUB-05'])
+  for (const id of AFAL_RULES) assert.ok(isRuleOn({ enabled: ['afal'] }, id), `${id} on`)
+  assert.equal(isRuleOn({ enabled: ['afal'], disabled: ['ACT-02'] }, 'ACT-02'), false)
+  assert.equal(isRuleOn({ enabled: ['afal'] }, 'R17'), false, 'a non-AFAL optional rule stays off')
+})
+
+test('every rule of the criteria matrix names its codes, its chapter and its source', () => {
+  for (const rule of ruleList({})) {
+    assert.ok(rule.section, `${rule.id} has a section`)
+    if (/^[A-Z]{3}-\d\d$/.test(rule.id)) {
+      assert.ok(rule.criteria.includes(rule.id), `${rule.id} lists its own code`)
+      assert.ok(rule.criteria.every((code) => rule.source.includes(code.split('-')[1]) || rule.source.includes(code)), `${rule.id} cites every code in its source: ${rule.source}`)
+    }
+  }
 })
 
 test('the host disables rules, changes severities and rewrites messages', () => {
@@ -109,9 +188,15 @@ test('the host disables rules, changes severities and rewrites messages', () => 
 
 test('messages come from the translation table', () => {
   const broken = clean()
-  by(broken, 'g').documentation = ''
-  const es = translator({ rule_R08: 'Agrega la descripción de «%{name}».' })
-  assert.equal(evaluate(broken, {}, es).find((i) => i.rule === 'R08').message, 'Agrega la descripción de «Is it valid?».')
+  messageBefore(broken, 'Message')
+  const es = translator({ rule_R08_message: 'Indica qué comunicación espera «%{name}».' })
+  assert.equal(evaluate(broken, {}, es).find((i) => i.rule === 'R08').message, 'Indica qué comunicación espera «Message».')
+})
+
+test('no element needs a description any more: a decision states its criterion in its name (R08, COM-08)', () => {
+  const d = clean()
+  for (const n of d.nodes) delete n.documentation
+  assert.deepEqual(run(d), [])
 })
 
 test('a merging gateway needs neither name nor description', () => {

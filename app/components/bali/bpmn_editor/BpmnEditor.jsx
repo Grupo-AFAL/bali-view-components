@@ -187,7 +187,9 @@ function Editor ({
   const panelOpen = panel === 'participants' || selection.nodes.length > 0 || selection.edges.length > 0 || selection.lanes.length > 0
   const fit = useMemo(() => fitOptions({ legendOpen: legendOpen && legend && legend.length > 0, panelOpen }), [legendOpen, legend, panelOpen])
 
-  const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t), doc.issues, doc) : []), [editable, doc, rules, t])
+  // The palette the host allows, for VIS-10 (an imported element it does not offer).
+  const allowed = useMemo(() => (palette && palette.items && palette.items.length ? new Set(palette.items.filter((i) => i.state === 'enabled').map((i) => i.key)) : null), [palette])
+  const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t, { allowed }), doc.issues, doc) : []), [editable, doc, rules, t, allowed])
   const issues = useMemo(() => issuesByElement(issueList), [issueList])
   const baseNodes = useMemo(() => buildRfNodes(doc, { layout, editable: interactive, issues, selected: selectedSet }), [doc, layout, interactive, issues, selectedSet])
   // Lanes share one length: while the end of one is dragged every lane
