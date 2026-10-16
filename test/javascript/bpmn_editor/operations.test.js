@@ -305,6 +305,7 @@ test('a way back into an activity that already has its way in enters through a m
   const merge = byId(next, gatewayId)
   assert.equal(merge.type, 'exclusive_gateway')
   assert.notEqual(merge.marker_visible, false, 'a plain XOR, not a Yes/No decision')
+  assert.equal(merge.name, '', 'a merge is left unnamed')
   const into = (id) => next.edges.filter((e) => e.target === id).map((e) => e.source).sort()
   assert.deepEqual(into('calc'), [gatewayId], 'the activity keeps one way in')
   assert.deepEqual(into(gatewayId), ['ok', 's'])

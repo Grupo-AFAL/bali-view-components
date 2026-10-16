@@ -539,7 +539,8 @@ function mergeBefore (doc, targetId, { policy, names }) {
     return { doc, gatewayId: String(from.id) }
   }
   const box = nodeBox(target)
-  const inserted = insertOnEdge(doc, ins[0].id, { type: 'exclusive_gateway' }, { x: box.cx, y: box.cy }, { policy, names })
+  // A merge is left unnamed (bpmnlint label-required exempts joins; R09 too).
+  const inserted = insertOnEdge(doc, ins[0].id, { type: 'exclusive_gateway', name: '' }, { x: box.cx, y: box.cy }, { policy, names })
   if (inserted.error) return inserted
   return { doc: inserted.doc, gatewayId: String(inserted.id) }
 }

@@ -402,7 +402,41 @@ nombre debajo.
 | Flujo de mensaje | línea discontinua, círculo hueco en el origen, punta hueca | correcto | Collaboration › Message Flow |
 | Asociación | línea punteada | correcto | Artifacts › Association |
 
-## BPMN-X · Cobertura de criterios AFAL
+## BPMN-X · Criterios BPMN de AFAL (Criterios_BPMN_Rev.01)
+
+**Avance BPMN-X: 100 %.** Lo hecho, por parte:
+
+- **A. Elementos y convenciones.** Decisión Sí/No (rombo azul): `exclusive_gateway` con
+  `marker_visible: false`, azul, exportada con `isMarkerVisible="false"` en el DI y primera
+  opción de «Bifurcar con». Procedimiento relacionado gris (+) desde el token
+  `--bpmn-sub-process` (paleta, lienzo, leyenda, minimapa y exportación salen de shapes.jsx).
+  SUB-02: el nombre de la caja + es el de su referencia. LAN-10: `orientation:` fija la
+  orientación. EVM-01/VIS-10: regla «elemento fuera de la paleta permitida».
+- **B y C. Reglas.** Estructurales (correspondencia apertura-cierre, anidamiento, rutas
+  completas, retrabajo por XOR de unión, ciclos con salida…) y de redacción (advertencias con
+  listas de palabras por idioma). Política: lo que el Excel marca «BPMN 2.0» queda activo; lo
+  que es solo «Lineamiento AFAL» se activa con `rules: { enabled: %w[afal] }`. R08 relajada.
+  El diálogo «Reglas» agrupa por apartado del Excel y muestra el código.
+- **Acomodo compacto (VIS-01/02/03).** `layout: :compact` por omisión (`:straight` como opción),
+  `page:` carta horizontal por omisión; el flujo serpentea en bandas. Legible = el texto de
+  11 px impreso a ≥ 6 pt (escala ≥ 0.73, márgenes de 10 mm). Indicador VIS-02/VIS-08
+  (advertencia AFAL). PNG y SVG salen en hoja carta (1056 × 816 px; el PNG al doble) e imprimir
+  pone `@page { size: 11in 8.5in }`: una página, comprobado en el navegador.
+- **D.** Conectar hacia una actividad que ya tiene entrada ofrece «Agregar XOR de unión»
+  (COM-22), a mano y desde el menú rápido («Conectar con un elemento»); el XOR queda sin nombre.
+- **E.** Minimapa con los colores de shapes.jsx; los nombres de eventos ya no se cortan (ancho
+  calculado como el navegador parte las líneas, 7 px por letra medidos).
+
+**Métricas del modo compacto:** facturas, retrabajo y paralelo caben en carta (escala 0.86); el
+de 60 actividades no cabe (0.26: el indicador lo dice) y queda con 11 cruces y 4 quiebres como
+máximo — sus carriles se repiten en ciclos de cinco pasos, así que cada banda vuelve a cruzar
+los carriles; no se encontró una mejora razonable sin romper el orden de bandas. Partners se
+queda recto (sus participantes externos van arriba y abajo).
+
+**No se pudo detectar:** el caso incorrecto de COM-21 (una ruta finalizada que se «fuerza» al
+cierre) no es distinguible de una convergencia legítima sin conocer la intención.
+
+### Cobertura de criterios AFAL
 
 Los 104 criterios de la matriz «Criterios BPMN Rev.01». **Regla**: el editor la revisa
 (el id de la regla es el código del criterio que la nombra; `criteria` lista los que
@@ -532,7 +566,9 @@ Conteo (un criterio puede tener dos coberturas): Configuración de la app 3, Fun
 
 - **Importar BPMN en el cliente:** no se hizo; el botón abre el drawer de la app (`urls[:import]`)
   y la app responde `bali_bpmn_reload`. Si se quiere en el cliente, el siguiente paso es un
-  `fromBpmnXml` con `DOMParser` en `model/bpmnXml.js` (el inverso de `toBpmnXml`).
+  `fromBpmnXml` con `DOMParser` en `model/bpmnXml.js` (el inverso de `toBpmnXml`). Ese importador
+  tiene que leer `isMarkerVisible="false"` del DI como `marker_visible: false` (decisión Sí/No);
+  hoy lo exporta el editor y lo debe leer la app que importa.
 - **Rutas manuales (waypoints):** se dibujan y se exportan si vienen en el documento, pero no hay
   manijas para editarlas en el lienzo; se puede fijar el puerto o recalcular.
 - **Bordes intermedios (boundary events), subprocesos expandidos y pools múltiples internos:** no

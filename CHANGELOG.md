@@ -22,7 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   líneas que atraviesen elementos o nombres, tramos compartidos ni etiquetas encimadas —, que
   por omisión dobla el flujo en bandas hasta caber legible en carta (`layout: :compact`,
   `:straight` para una sola línea; la hoja en `page:`), reglas de modelado R01–R26 y B01–B11
-  configurables con panel de pendientes y ciclo Borrador/Finalizar, notas de revisión,
+  configurables, más las de la matriz de criterios BPMN de AFAL (las de BPMN 2.0 activas; las
+  que solo son lineamiento AFAL con `rules: { enabled: %w[afal] }`), con panel de pendientes y
+  ciclo Borrador/Finalizar, decisión Sí/No (rombo azul), orientación fija (`orientation:`),
+  procedimiento relacionado gris (+) con su color en el token CSS `--bpmn-sub-process`, notas de revisión,
   comparación entre versiones y salidas `.bpmn`, PNG, SVG e impresión con marca de agua, en
   hoja tamaño carta cuando cabe. Sin `urls[:save]` o sin `editable:` es un visor.
   - **Anfitrión:** nada que hacer si no lo usa. Para usarlo, los cuatro pasos de instalación de
