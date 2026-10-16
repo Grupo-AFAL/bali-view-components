@@ -119,8 +119,8 @@ them otherwise. The hiding class defaults to `hidden`; override it with
 
 ## `checkbox-toggle`
 
-Toggles an `on` and an `off` target from the state of a single checkbox — the
-two-target variant of `checkbox-reveal`.
+Toggles its `on` and `off` targets from the state of a single checkbox — the
+two-sided variant of `checkbox-reveal`.
 
 ```html
 <div data-controller="checkbox-toggle" data-checkbox-toggle-checked-value="true">
@@ -130,19 +130,20 @@ two-target variant of `checkbox-reveal`.
 </div>
 ```
 
-`checked` sets the initial state before the first change event. One target is
-enough: a controller with only `on` or only `off` toggles that one.
+`checked` sets the initial state before the first change event. Each side takes
+any number of targets, and one side is enough: a controller with only `on` or only
+`off` targets toggles those.
 
 **Hidden fields are not sent** — `data-checkbox-toggle-disable-hidden-value="true"`
-disables the hidden target, which has to be a `<fieldset>`. A disabled fieldset
-sends none of its fields and the browser skips their validation, so a `required`
-field on the hidden side no longer stops the form; the fields keep their own
-`disabled` and a file already chosen. Live in the
+disables the targets of the hidden side, which have to be `<fieldset>`s. A
+disabled fieldset sends none of its fields and the browser skips their validation,
+so a `required` field on the hidden side no longer stops the form; the fields keep
+their own `disabled` and a file already chosen. Live in the
 `bali/checkbox_toggle/required_fields` preview.
 
 **Targets that arrive later** — an `on` or `off` target a Turbo Stream replaces
-follows the checkbox on screen, not the state the server painted: its `hidden`
-class and, with `disable-hidden`, its `disabled`.
+or morphs follows the checkbox on screen, not the state the server painted: its
+`hidden` class and, with `disable-hidden`, its `disabled`.
 
 ## `datepicker`
 
@@ -510,9 +511,9 @@ value (comma-separated to match several) — the single-level sibling of
   disables every hidden target, which has to be a `<fieldset>`. A disabled
   fieldset sends none of its fields, keeps their own `disabled` and a file already
   chosen, and covers fields a Turbo Stream adds to it later.
-- **Targets that arrive later** — a target a Turbo Stream adds or replaces takes
-  the visibility of the choice on screen at that moment, not the one the server
-  painted.
+- **Targets that arrive later** — a target a Turbo Stream adds, replaces or
+  morphs takes the visibility of the choice on screen at that moment, not the one
+  the server painted.
 
 All three are live in the `bali/radio_toggle/dependent_fields` preview.
 

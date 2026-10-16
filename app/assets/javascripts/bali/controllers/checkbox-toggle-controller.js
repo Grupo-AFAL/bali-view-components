@@ -14,13 +14,23 @@ import { Controller } from '@hotwired/stimulus'
  * </div>
  *
  *
- * `data-checkbox-toggle-disable-hidden-value="true"` disables the hidden target, so
+ * `data-checkbox-toggle-disable-hidden-value="true"` disables the hidden side, so
  * the form does not send its fields. The targets have to be `<fieldset>`s.
  */
 
 export class CheckboxToggleController extends Controller {
   static targets = ['on', 'off']
   static values = { checked: Boolean, disableHidden: Boolean }
+
+  // A stream with `method="morph"` keeps the target, so no `*TargetConnected`
+  // runs for it and it would keep what the server painted.
+  connect () {
+    this.element.addEventListener('turbo:morph-element', this.retoggle)
+  }
+
+  disconnect () {
+    this.element.removeEventListener('turbo:morph-element', this.retoggle)
+  }
 
   change (event) {
     this.checkedValue = event.target.checked
@@ -40,9 +50,11 @@ export class CheckboxToggleController extends Controller {
     this.toggleTargets(this.checkedValue)
   }
 
+  retoggle = () => this.toggleTargets(this.checkedValue)
+
   toggleTargets (checked) {
-    if (this.hasOnTarget) this.toggle(this.onTarget, checked)
-    if (this.hasOffTarget) this.toggle(this.offTarget, !checked)
+    this.onTargets.forEach(element => this.toggle(element, checked))
+    this.offTargets.forEach(element => this.toggle(element, !checked))
   }
 
   toggle (element, visible) {

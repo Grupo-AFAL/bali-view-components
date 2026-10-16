@@ -48,6 +48,16 @@ export class RadioToggleController extends Controller {
   static targets = ['element', 'checkbox']
   static values = { current: String, disableHidden: Boolean }
 
+  // A stream with `method="morph"` keeps the target, so no `elementTargetConnected`
+  // runs for it and it would keep what the server painted.
+  connect () {
+    this.element.addEventListener('turbo:morph-element', this.retoggle)
+  }
+
+  disconnect () {
+    this.element.removeEventListener('turbo:morph-element', this.retoggle)
+  }
+
   change (event) {
     if (event.target.type !== 'checkbox') this.currentValue = event.target.value
 
@@ -60,6 +70,8 @@ export class RadioToggleController extends Controller {
   elementTargetConnected (element) {
     this.toggle(element)
   }
+
+  retoggle = () => this.toggleTargets()
 
   toggleTargets () {
     const active = this.activeTokens
