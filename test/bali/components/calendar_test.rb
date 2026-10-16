@@ -682,11 +682,23 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_equal("jueves, 5 de marzo de 2020", mobile_day_title)
   end
 
-  # rails-i18n's es-MX `:long`.
+  # rails-i18n's es-MX `:long`, and one that abbreviates the weekday as its `ja` does.
   def test_mobile_day_view_does_not_repeat_a_weekday_the_long_format_already_names
-    with_rails_i18n_dates(long: "%A, %d de %B de %Y") { render_mobile_day_view }
+    { "%A, %d de %B de %Y" => "jueves, 05 de marzo de 2020",
+      "%-d de %B de %Y (%a)" => "5 de marzo de 2020 (jue)" }.each do |long, title|
+      with_rails_i18n_dates(long: long) { render_mobile_day_view }
 
-    assert_equal("jueves, 05 de marzo de 2020", mobile_day_title)
+      assert_equal(title, mobile_day_title, long)
+    end
+  end
+
+  def test_mobile_day_view_raises_like_the_year_view_without_a_long_format
+    previous = I18n.t("date.formats.long", locale: :en)
+    I18n.backend.store_translations(:en, date: { formats: { long: nil } })
+
+    assert_raises(I18n::MissingTranslationData) { render_mobile_day_view }
+  ensure
+    I18n.backend.store_translations(:en, date: { formats: { long: previous } })
   end
 
   def test_year_view_marks_the_card_with_year_view
@@ -905,11 +917,12 @@ class BaliCalendarComponentTest < ComponentTestCase
   # a date, and a `:long` that does not pad the day as the dummy's does. The dummy's es.yml
   # capitalises the names, so a test of their case rendering plain `:es` passes without the fix.
   def with_rails_i18n_dates(long: "%-d de %B de %Y", &block)
-    previous = I18n.t("date", locale: :es).slice(:month_names, :day_names, :formats)
+    previous = I18n.t("date", locale: :es).slice(:month_names, :day_names, :abbr_day_names, :formats)
     I18n.backend.store_translations(:es, date: {
       month_names: [ nil ] + %w[enero febrero marzo abril mayo junio julio agosto septiembre
                                octubre noviembre diciembre],
       day_names: %w[domingo lunes martes miércoles jueves viernes sábado],
+      abbr_day_names: %w[dom lun mar mié jue vie sáb],
       formats: { long: long }
     })
     I18n.with_locale(:es, &block)

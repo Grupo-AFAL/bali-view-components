@@ -139,10 +139,11 @@ module Bali
 
       # @return [String] The phone day view's title: the locale's `date.formats.long`, which
       #   Rails and all 123 rails-i18n locales define, with the weekday in front — unless
-      #   `:long` names it already, as 16 of those locales do (es-MX and 11 more Spanish).
+      #   `:long` names it already, as 17 of those locales do (es-MX and 11 more Spanish).
+      #   `raise:` because without it a missing key comes back as a translation_missing span.
       def day_title
-        long = t("date.formats.long")
-        l(start_date, format: long.include?("%A") ? long : "%A, #{long}")
+        long = t("date.formats.long", raise: true)
+        l(start_date, format: long.match?(/%[-_^#0-9]*[aA]/) ? long : "%A, #{long}")
       end
 
       # View helper methods

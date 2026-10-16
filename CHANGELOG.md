@@ -15,8 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   La vista de día de la variante `:mobile` pedía un formato `:long_with_day` que ni Rails ni
   rails-i18n definen y lanzaba `I18n::MissingTranslationData`; ahora antepone el día de la semana
   al `:long` («jueves, 5 de marzo de 2026»), salvo si éste ya lo trae, como el `es-MX` de
-  rails-i18n. Nada que hacer en la app; en gobierno-corporativo la vista de año toma su propio
-  `:long`.
+  rails-i18n. Las dos leen `date.formats.long` del idioma activo: Rails la trae para `en` y
+  rails-i18n para todos sus idiomas; una app sin rails-i18n la define en su YAML, como ya lo pide
+  `ArchivalNotice`. Las siete apps en Bali 3 la tienen: nada que hacer en la app. En
+  gobierno-corporativo la vista de año toma su propio `:long`.
 
 ## [v3.17.0] - 2026-10-15
 
