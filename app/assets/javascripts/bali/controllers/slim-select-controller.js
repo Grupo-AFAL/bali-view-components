@@ -146,8 +146,11 @@ export class SlimSelectController extends Controller {
         options.settings.contentWidth = this.contentWidthValue
       }
 
-      if (this.hasInnerHTML()) {
-        options.data = this.dataWithHTML()
+      // SlimSelect reads an option's markup from `data-html`; `data-inner-html` is the name Bali
+      // documents and hosts write. Copied, not handed over as `data`: that rewrites the <select>
+      // and drops every attribute SlimSelect does not map, the placeholder flag and the groups too.
+      for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
+        option.dataset.html = option.dataset.innerHtml
       }
 
       if (this.hasAjaxValues()) {
@@ -355,30 +358,6 @@ export class SlimSelectController extends Controller {
     this.element
       .querySelectorAll('.ss-main')
       .forEach(widget => widget.remove())
-  }
-
-  // `data` stands in for SlimSelect's own reading of the <select>, so what it would have read
-  // there comes along: the groups, and the placeholder `build_select` puts first
-  // (slim_select_fields.rb) — an option that never carries `data-inner-html` itself.
-  dataWithHTML () {
-    const optionData = option => ({
-      text: option.text,
-      value: option.value,
-      html: option.dataset.innerHtml, // SlimSelect v3 uses 'html' instead of 'innerHTML'
-      selected: option.selected,
-      disabled: option.disabled,
-      placeholder: option.dataset.placeholder === 'true'
-    })
-
-    return Array.from(this.selectTarget.children, node =>
-      node.tagName === 'OPTGROUP'
-        ? { label: node.label, options: Array.from(node.children, optionData) }
-        : optionData(node)
-    )
-  }
-
-  hasInnerHTML () {
-    return this.selectTarget.querySelector('option[data-inner-html]') !== null
   }
 
   selectAll () {
