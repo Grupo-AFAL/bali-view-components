@@ -71,7 +71,14 @@ export class RadioToggleController extends Controller {
     this.toggle(element)
   }
 
-  retoggle = () => this.toggleTargets()
+  // A morph that checks another radio fires no `change`, and the radio it leaves
+  // checked is the one the form sends.
+  retoggle = () => {
+    const radio = this.element.querySelector(`input[type="radio"][data-action*="${this.identifier}#change"]:checked`)
+    if (radio) this.currentValue = radio.value
+
+    this.toggleTargets()
+  }
 
   toggleTargets () {
     const active = this.activeTokens

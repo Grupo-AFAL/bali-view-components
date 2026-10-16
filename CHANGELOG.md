@@ -16,13 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
   `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
 
-- **`checkbox-toggle` y `radio-toggle`: un target que un Turbo Stream transforma con morph sigue
-  la elección en pantalla, y `checkbox-toggle` pinta todos los targets de cada lado.** Un
-  `turbo_stream.replace(…, method: :morph)` conserva el elemento y no lo volvía a pintar: se
-  quedaba con el `hidden` y, con `disable-hidden`, el `disabled` que mandó el servidor. Ahora
-  `toggleTargets` corre también tras cada morph dentro del controlador. Y un segundo `on` u `off`
-  no se pintaba nunca, ni al conectar ni al cambiar la casilla. Ninguna app hace hoy ninguna de
-  las dos cosas: nada que hacer en la app.
+- **`checkbox-toggle`, `radio-toggle` y `checkbox-reveal` siguen lo que hay en pantalla tras un
+  Turbo Stream con morph, y `checkbox-toggle` pinta todos los targets de cada lado.** Un
+  `turbo_stream.replace(…, method: :morph)` conserva el elemento y no lo volvía a pintar: un
+  target se quedaba con el `hidden` y, con `disable-hidden`, el `disabled` que mandó el servidor.
+  Si el morph marcaba otro radio, `radio-toggle` seguía mostrando los campos del anterior aunque
+  el formulario enviara el nuevo. Ahora los tres vuelven a pintar tras cada morph dentro del
+  controlador, con la elección que el morph deja en pantalla; en los dos toggles, por
+  `toggleTargets`. Y un segundo `on` u `off` no se pintaba nunca, ni al conectar ni al cambiar la
+  casilla. Ninguna app hace hoy nada de esto: nada que hacer en la app.
 
 - **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
   accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el

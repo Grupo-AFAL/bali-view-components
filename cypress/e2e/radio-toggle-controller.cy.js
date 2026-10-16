@@ -7,6 +7,15 @@ describe('RadioToggleController', () => {
   const stream = html => cy.window().then(win => win.Turbo.renderStreamMessage(html))
   // A morph keeps the element, so no target callback runs for it.
   const streams = { replaces: '', morphs: 'method="morph"' }
+  // The server re-renders the radio group: the same markup with another radio checked.
+  // A morph checks it without a `change`.
+  const rerenderRadios = (field, value) => cy.get(`#${field}`).then(($field) => {
+    const copy = $field[0].cloneNode(true)
+    copy.querySelectorAll('input[type="radio"]').forEach(radio => radio.toggleAttribute('checked', radio.value === value))
+    copy.setAttribute('data-streamed', '')
+    return stream(`<turbo-stream action="replace" method="morph" target="${field}"><template>${copy.outerHTML}</template></turbo-stream>`)
+  })
+  const checkedOnScreen = (field, value) => cy.get(`#${field}[data-streamed] input[value="${value}"]`).should('be.checked')
 
   context('the base case', () => {
     beforeEach(() => cy.visit('/bali/radio_toggle/default'))
@@ -44,6 +53,15 @@ describe('RadioToggleController', () => {
 
       cy.get('[data-testid="address"][data-streamed]').should('not.have.class', 'hidden')
       cy.get('[data-testid="pickup"][data-streamed]').should('have.class', 'hidden')
+    })
+
+    it('follows the radio a Turbo Stream morph leaves checked', () => {
+      radio('Courier').check()
+      rerenderRadios('order_delivery_field', 'pickup')
+
+      checkedOnScreen('order_delivery_field', 'pickup')
+      target('pickup').should('not.have.class', 'hidden')
+      target('address').should('have.class', 'hidden')
     })
   })
 
@@ -143,6 +161,17 @@ describe('RadioToggleController', () => {
         cy.get('[data-testid="lost"][data-streamed]').should('have.class', 'hidden')
         allDisabled('lost')
       })
+    })
+
+    it('follows the radio a Turbo Stream morph leaves checked', () => {
+      radio('Damaged').check()
+      rerenderRadios('terminal_status_field', 'lost')
+
+      checkedOnScreen('terminal_status_field', 'lost')
+      target('lost').should('not.have.class', 'hidden')
+      allEnabled('lost')
+      target('damaged').should('have.class', 'hidden')
+      allDisabled('damaged')
     })
 
     it('leaves a field the server disabled disabled when its target shows', () => {
