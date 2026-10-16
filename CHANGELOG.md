@@ -78,15 +78,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   muestra la ✕; en un campo el valor gana lo mismo y la ✕ queda 6 px más cerca de la flecha. Nada
   que hacer en la app.
 
-- **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante o estén
-  en grupos** (#1495). El controlador miraba sólo el primer hijo del `<select>`, que con
-  `include_blank:` o `prompt:` es el placeholder y en una lista agrupada es un `<optgroup>`. Ahora
-  SlimSelect lee el HTML de cada opción y el `<select>` ya no se reescribe al montar: sus opciones
-  conservan `id`, `class` y los demás `data-*`. En gobierno-corporativo, el selector de procesos de
-  un documento muestra la ruta de cada uno. Nada que hacer en la app. El blank con
-  `data-inner-html` propio que arman sus helpers para esquivarlo ya no hace falta; cambiarlo por
-  `include_blank:` lo convierte de fila de la lista en placeholder, con ✕.
-
 - **La variante `:mobile` de `Bali::Calendar` dibuja sin `template:`, y en un renglón sus flechas
   y su título** (hallado al resolver #1495). Sin `template:` lanzaba `ArgumentError`; ahora muestra
   el día sin contenido, como la de escritorio. Las flechas y el título se apilaban en tres renglones
@@ -113,12 +104,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mode: "range"` con ese mismo separador, y se retira la llave
   `bali_view.form_builder.date_fields.range_separator`: con la cadena de fallbacks de la app podía
   decir otra cosa que flatpickr. Ninguna app la sobrescribe: nada que hacer en la app.
-
-- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda** (#1495, desde
-  v3.11.0, con SlimSelect 4). Al elegir un resultado que no venía en la semilla, SlimSelect lo
-  ponía delante del placeholder y la ✕ lo volvía a elegir: el valor no cambiaba. Afecta sólo a
-  los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
-  hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
 
 - **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante, estén
   en grupos o lleguen después de montar** (#1495). El controlador miraba sólo el primer hijo del
