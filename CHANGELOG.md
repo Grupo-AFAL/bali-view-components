@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.17.1] - 2026-10-15
+
 ### Fixed
 
 - **`checkbox-toggle`: un target que un Turbo Stream reemplaza sigue a la casilla en pantalla**
