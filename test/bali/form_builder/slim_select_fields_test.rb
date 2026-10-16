@@ -154,6 +154,48 @@ class BaliFormBuilderSlimSelectFieldsTest < FormBuilderTestCase
     assert_html(result, "option[data-placeholder]", count: 0)
   end
 
+  GENRES = [ %w[Drama drama], %w[Comedy comedy] ].freeze
+
+  def multiple_genre_field(resource = Movie.new, **options)
+    movie_form_builder(resource).slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true, **options)
+  end
+
+  def test_slim_select_field_include_blank_selects_the_placeholder_while_there_is_no_value
+    result = builder.slim_select_field(:genre, GENRES, include_blank: "Any genre")
+    assert_html(result, 'option[data-placeholder="true"][selected]')
+  end
+
+  def test_slim_select_field_multiple_include_blank_never_selects_the_placeholder
+    assert_html(multiple_genre_field, "option[selected]", count: 0)
+    assert_html(multiple_genre_field(Movie.new(genre: "")), "option[selected]", count: 0)
+    # What SimpleFilters passes for a filter with no value.
+    assert_html(multiple_genre_field(selected: ""), "option[selected]", count: 0)
+  end
+
+  def test_slim_select_field_multiple_include_blank_keeps_the_values_it_is_given
+    [ multiple_genre_field(Movie.new(genre: "comedy")), multiple_genre_field(selected: [ "", "comedy" ]) ].each do |result|
+      assert_html(result, "option[selected]", count: 1)
+      assert_html(result, 'option[selected][value="comedy"]')
+    end
+  end
+
+  def test_slim_select_field_multiple_include_blank_without_an_object_keeps_the_value_rails_reads
+    view_context = ActionController::Base.new.view_context
+    view_context.instance_variable_set(:@movie, Movie.new(genre: "comedy"))
+    result = Bali::FormBuilder.new("movie", nil, view_context, {})
+                              .slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true)
+
+    assert_html(result, 'option[selected][value="comedy"]')
+  end
+
+  # SimpleFilters' form: `form_with url:`, no object, and `selected: ""` for a filter with no value.
+  def test_slim_select_field_multiple_include_blank_without_an_object_drops_a_blank_selected
+    result = Bali::FormBuilder.new("q", nil, ActionController::Base.new.view_context, {})
+                              .slim_select_field(:genre, GENRES, include_blank: "Any genre", multiple: true, selected: "")
+
+    assert_html(result, "option[selected]", count: 0)
+  end
+
   def test_slim_select_field_include_blank_keeps_the_real_options_selectable
     result = builder.slim_select_field(:status, Movie.statuses.to_a, include_blank: "Choose a status")
     Movie.statuses.each do |name, value|

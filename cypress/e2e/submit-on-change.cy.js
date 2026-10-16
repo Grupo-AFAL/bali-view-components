@@ -5,37 +5,54 @@
 // "submitted" is the query string on the request. Asserting on the rendered value would
 // pass on the initial render too.
 //
-// The preview's select carries `data-inner-html`, which on SlimSelect 3.x made the
-// slim-select controller rewrite the native <select> during initialization, and the rewrite
-// dispatched a `change` on it: measured then with `skip-initial-value="false"`, the page
-// navigated to `?form_record[select]=1&form_record[text]=` on its own. Measured on 4.5.0, with
-// and without #1495, no `change` fires at all, so the first test holds the contract rather than
-// catching a path that still exists.
+// The connect guard is for the `change` SlimSelect 3.x dispatched on the native <select> while
+// it built its widget over the preview's `data-inner-html` options: measured then with
+// `skip-initial-value="false"`, the page navigated to `?form_record[select]=1&form_record[text]=`
+// on its own. 4.5.0 dispatches none, so loading the page no longer reaches the guard, and the
+// first two tests dispatch that `change` themselves.
 const PREVIEW = '/bali/submit_on_change/default'
 
 // Only a submit carries a query string — `cy.visit(PREVIEW)` does not, so the initial
 // page load never matches.
 const spyOnSubmits = () => cy.intercept('GET', '**/bali/submit_on_change/default?*').as('submit')
 
+const form = () => cy.get('form[data-controller="submit-on-change"]')
+
+// Moving the form connects its controller again, and the `change` goes out before the frame the
+// guard waits for: Stimulus connects from a MutationObserver, whose callback runs ahead of the
+// `await`.
+const changeAsTheFormConnects = () =>
+  form().then(async ([element]) => {
+    element.parentNode.append(element)
+    await Promise.resolve()
+
+    const { Event } = element.ownerDocument.defaultView
+    element.querySelector('#form_record_select').dispatchEvent(new Event('change', { bubbles: true }))
+  })
+
 describe('SubmitOnChangeController', () => {
-  it('does not submit while SlimSelect initializes', () => {
+  beforeEach(() => {
     spyOnSubmits()
     cy.visit(PREVIEW)
-
-    // The widget being built is what would have fired the phantom change; wait for it
-    // rather than for a bare timeout, so the assertion cannot pass by arriving early.
     cy.get('.ss-main').should('exist')
+  })
+
+  it('drops a change fired in the frame the form connects in', () => {
+    changeAsTheFormConnects()
     cy.wait(500)
 
     cy.get('@submit.all').should('have.length', 0)
     cy.location('search').should('eq', '')
   })
 
-  it('submits as soon as the select changes', () => {
-    spyOnSubmits()
-    cy.visit(PREVIEW)
-    cy.get('.ss-main').should('exist')
+  it('submits that change with skip-initial off', () => {
+    form().invoke('attr', 'data-submit-on-change-skip-initial-value', 'false')
+    changeAsTheFormConnects()
 
+    cy.wait('@submit').its('request.url').should('include', 'form_record%5Bselect%5D=1')
+  })
+
+  it('submits as soon as the select changes', () => {
     cy.get('.ss-main').click()
     cy.get('.ss-content .ss-list .ss-option').contains('Comedy').click()
 
@@ -44,10 +61,6 @@ describe('SubmitOnChangeController', () => {
   })
 
   it('submits once after the delay when typing, not once per keystroke', () => {
-    spyOnSubmits()
-    cy.visit(PREVIEW)
-    cy.get('.ss-main').should('exist')
-
     // Four keystrokes well inside the 300ms default: without the debounce this is four
     // submits, and the count below is what tells them apart.
     cy.get('#form_record_text').type('noir')

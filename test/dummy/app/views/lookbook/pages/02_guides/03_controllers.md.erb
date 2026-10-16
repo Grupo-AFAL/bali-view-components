@@ -656,7 +656,8 @@ filter forms. Two actions, so a select and a search box can share one controller
 </form>
 ```
 
-Both actions and the guard are live in the `bali/submit_on_change/default` preview.
+Both actions are live in the `bali/submit_on_change/default` preview. The guard has
+nothing to drop there: SlimSelect 4.5 and 4.6 dispatch no `change` while they mount.
 
 If your app carries a local `auto_submit_controller.js`, this controller replaces
 it — see [Do you have a local copy?](#do-you-have-a-local-copy)
