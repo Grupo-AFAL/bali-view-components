@@ -5,30 +5,13 @@
 // test/fixtures/bpmn_editor/criteria_examples.json.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import fs from 'node:fs'
 import { evaluate, CATALOG } from '../../../app/components/bali/bpmn_editor/model/rules/engine.js'
 import { AFAL_RULES } from '../../../app/components/bali/bpmn_editor/model/rules/afal.js'
 // The optional rule package, registered as a host that imports it does.
 import '../../../app/frontend/bali/bpmn-editor-afal-rules.js'
-import { translator } from '../../../app/components/bali/bpmn_editor/i18n.js'
-import { CRITERIA_EXAMPLES, exampleDocument } from './support/ruleExamples.js'
+import { CRITERIA_EXAMPLES, exampleDocument, TRANSLATORS } from './support/ruleExamples.js'
 
-// The Spanish island table, read from the locale file the gem ships.
-function spanish () {
-  const lines = fs.readFileSync(new URL('../../../config/locales/bali_view.es.yml', import.meta.url), 'utf8').split('\n')
-  const start = lines.indexOf('    bpmn_editor:')
-  const table = {}
-  let inside = false
-  for (const line of lines.slice(start + 1)) {
-    if (line === '      island:') { inside = true; continue }
-    if (!inside) continue
-    const match = line.match(/^ {8}([\w-]+): (".*")$/)
-    if (!match) { if (!/^ {8}/.test(line) && line.trim()) break; continue }
-    table[match[1]] = JSON.parse(match[2])
-  }
-  return table
-}
-const t = translator(spanish())
+const t = TRANSLATORS.es
 const ALL = { enabled: [...CATALOG.map((r) => r.id)] }
 
 for (const c of CRITERIA_EXAMPLES) {
@@ -37,6 +20,20 @@ for (const c of CRITERIA_EXAMPLES) {
     const issues = (d) => evaluate(exampleDocument(d), ALL, t, { allowed, page: c.page }).filter((i) => c.rules.includes(i.rule))
     assert.ok(issues(c.failing).length > 0, 'the wrong use is flagged')
     assert.deepEqual(issues(c.passing).map((i) => `${i.rule}: ${i.message}`), [], 'the right use passes')
+  })
+}
+
+// Each use raises nothing but its own rules: the central rules on as they
+// ship, the optional package registered, the example's rules switched on.
+// The examples are Spanish, so the Spanish word lists check them.
+for (const c of CRITERIA_EXAMPLES) {
+  test(`${c.codes.join(', ')}: the wrong use raises only ${c.rules.join(' or ')}, the right use nothing`, () => {
+    const allowed = c.allowed ? new Set(c.allowed) : undefined
+    const raised = (d) => [...new Set(evaluate(exampleDocument(d), { enabled: c.rules }, t, { allowed, page: c.page }).map((i) => i.rule))].sort()
+    const failing = raised(c.failing)
+    assert.ok(failing.some((id) => c.rules.includes(id)), 'the wrong use is flagged')
+    assert.deepEqual(failing.filter((id) => !c.rules.includes(id) && !(c.also || []).includes(id)), [], 'and nothing else')
+    assert.deepEqual(raised(c.passing), [], 'the right use raises nothing')
   })
 }
 

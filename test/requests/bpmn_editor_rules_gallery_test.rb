@@ -27,6 +27,28 @@ class BpmnEditorRulesGalleryTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # The failing example raises its rule; a rule it cannot help breaking too
+  # is said on the page, with the reason the example file gives.
+  def test_a_failing_example_names_the_rule_it_cannot_help_breaking_too
+    get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "COM-22", example: "failing", locale: "en" }
+    assert_select "[data-testid='bpmn-rules-gallery-also']", text: /R01:.*second way in/
+
+    get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "COM-22", example: "passing", locale: "en" }
+    assert_select "[data-testid='bpmn-rules-gallery-also']", count: 0
+
+    get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "R17", example: "failing", locale: "en" }
+    assert_select "[data-testid='bpmn-rules-gallery-also']", count: 0, message: "ACT-02 is the optional package's, not loaded"
+  end
+
+  def test_the_examples_come_in_the_language_of_the_page
+    get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "R16", example: "failing", locale: "es" }
+    names = JSON.parse(island["data-bpmn-editor-data-value"])["nodes"].pluck("name")
+    assert_includes names, "Programar el pago"
+
+    get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "R16", example: "failing", locale: "en" }
+    assert_includes JSON.parse(island["data-bpmn-editor-data-value"])["nodes"].pluck("name"), "Schedule payment"
+  end
+
   def test_the_rule_select_offers_every_example
     preview = Bali::BpmnEditor::Preview.new
     assert_equal BpmnRuleExamples.rule_ids, preview.send(:gallery_rules)

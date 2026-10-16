@@ -11,6 +11,12 @@
     <p class="text-xs text-base-content/70">
       <%= example == "failing" ? "This flow breaks the rule: the panel lists it." : "This flow follows the rule: the panel does not list it." %>
     </p>
+    <% also = sample[:also].reject { |id| BpmnRuleExamples.optional_rule_ids.include?(id) && !optional_rules } %>
+    <% if also.any? %>
+      <p class="text-xs text-base-content/70" data-testid="bpmn-rules-gallery-also">
+        It also raises <%= also.join(", ") %>: <%= sample[:why] %>
+      </p>
+    <% end %>
   </div>
   <% if optional && !optional_rules %>
     <%= render Bali::Alert::Component.new(color: :info, size: :sm, data: { testid: "bpmn-rules-gallery-optional" }) do %>

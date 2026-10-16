@@ -25,7 +25,7 @@ module BpmnRuleExamples
     file["rules"].select { |_id, example| example["package"] == "optional" }.keys
   end
 
-  # { document:, options:, allowed:, page: } for `rule`'s failing or passing
+  # { document:, options:, allowed:, page:, also:, why: } for `rule`'s failing or passing
   # example, its texts in `locale` (the file keeps every text as { en, es }, so
   # the word lists of the page's language check words of that language).
   # The options, palette and sheet are what make the failing example break the
@@ -38,7 +38,8 @@ module BpmnRuleExamples
     document = entry[which.to_s]
     document = file["documents"].fetch(document) if document.is_a?(String)
     host = which.to_s == "failing" ? entry.slice("options", "allowed", "page") : {}
+    also = which.to_s == "failing" ? BpmnSampleFlows.localize(entry["also"] || [], locale.to_s) : []
     { document: BpmnSampleFlows.localize(document, locale.to_s), options: host["options"], allowed: host["allowed"],
-      page: host["page"] }
+      page: host["page"], also: also, why: (entry["why"] if also.any?) }
   end
 end
