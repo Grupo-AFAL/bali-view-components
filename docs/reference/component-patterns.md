@@ -182,7 +182,9 @@ end
   (`test/requests/topbar_previews_test.rb` is the model) turns a broken preview into
   a red build.
 - The annotations (`@label`, `@param`, `@!group`, `@hidden`, `@display`) are
-  Lookbook's own: https://lookbook.build/guide/previews/annotations. The `/component`
+  Lookbook's own: https://lookbook.build/guide/previews/annotations, except
+  `@display variant mobile`, which the dummy's `ComponentPreviewsController` turns into
+  `request.variant` to render a `+mobile` template. The `/component`
   command's preview template (`.claude/commands/component.md`) shows a playground and
   groups written the way this repo writes them.
 

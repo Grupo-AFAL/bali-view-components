@@ -1,10 +1,11 @@
 import { Controller } from '@hotwired/stimulus'
+import { wiredInputs } from '../utils/wired-inputs.js'
 
 /**
  * Toggles ON and OFF different elements based on the state of a checkbox
  *
  * <div data-controller="checkbox-toggle" data-checkbox-toggle-checked-value="true">
- *   <input data-action="checkbox-toggle#change" type="checkbox">
+ *   <input data-action="checkbox-toggle#change" type="checkbox" checked>
  *   <div data-checkbox-toggle-target="off">
  *     Off content
  *   </div>
@@ -14,13 +15,23 @@ import { Controller } from '@hotwired/stimulus'
  * </div>
  *
  *
- * `data-checkbox-toggle-disable-hidden-value="true"` disables the hidden target, so
+ * `data-checkbox-toggle-disable-hidden-value="true"` disables the hidden side, so
  * the form does not send its fields. The targets have to be `<fieldset>`s.
  */
 
 export class CheckboxToggleController extends Controller {
   static targets = ['on', 'off']
   static values = { checked: Boolean, disableHidden: Boolean }
+
+  // A stream with `method="morph"` keeps the target, so no `*TargetConnected`
+  // runs for it and it would keep what the server painted.
+  connect () {
+    this.element.addEventListener('turbo:morph-element', this.retoggle)
+  }
+
+  disconnect () {
+    this.element.removeEventListener('turbo:morph-element', this.retoggle)
+  }
 
   change (event) {
     this.checkedValue = event.target.checked
@@ -40,9 +51,18 @@ export class CheckboxToggleController extends Controller {
     this.toggleTargets(this.checkedValue)
   }
 
+  // A morph that unchecks the box, or checks it, fires no `change`, and the box as
+  // it leaves it is what the form sends.
+  retoggle = () => {
+    const [box] = wiredInputs(this, 'checkbox')
+    if (box) this.checkedValue = box.checked
+
+    this.toggleTargets(this.checkedValue)
+  }
+
   toggleTargets (checked) {
-    if (this.hasOnTarget) this.toggle(this.onTarget, checked)
-    if (this.hasOffTarget) this.toggle(this.offTarget, !checked)
+    this.onTargets.forEach(element => this.toggle(element, checked))
+    this.offTargets.forEach(element => this.toggle(element, !checked))
   }
 
   toggle (element, visible) {

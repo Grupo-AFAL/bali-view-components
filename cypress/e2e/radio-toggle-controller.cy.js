@@ -2,6 +2,21 @@ describe('RadioToggleController', () => {
   const target = name => cy.get(`[data-testid="${name}"]`)
   const radio = label => cy.contains('label', label).find('input[type="radio"]')
 
+  // Turbo applies a stream on the next frame, so a test waits for the replacement
+  // (`data-streamed`) before asserting on it — the old node would pass just as well.
+  const stream = html => cy.window().then(win => win.Turbo.renderStreamMessage(html))
+  // A morph keeps the element, so no target callback runs for it.
+  const streams = { replaces: '', morphs: 'method="morph"' }
+  // The server re-renders the radio group: the same markup with another radio checked.
+  // A morph checks it without a `change`.
+  const rerenderRadios = (field, value) => cy.get(`#${field}`).then(($field) => {
+    const copy = $field[0].cloneNode(true)
+    copy.querySelectorAll('input[type="radio"]').forEach(radio => radio.toggleAttribute('checked', radio.value === value))
+    copy.setAttribute('data-streamed', '')
+    return stream(`<turbo-stream action="replace" method="morph" target="${field}"><template>${copy.outerHTML}</template></turbo-stream>`)
+  })
+  const checkedOnScreen = (field, value) => cy.get(`#${field}[data-streamed] input[value="${value}"]`).should('be.checked')
+
   context('the base case', () => {
     beforeEach(() => cy.visit('/bali/radio_toggle/default'))
 
@@ -21,6 +36,33 @@ describe('RadioToggleController', () => {
       target('delivery').should('not.have.class', 'hidden')
       target('address').should('not.have.class', 'hidden')
     })
+
+    // The server repaints both targets as it last saw the choice ("Pick up in store").
+    it('applies the current choice to a target a Turbo Stream morphs', () => {
+      radio('Courier').check()
+
+      stream(`
+        <turbo-stream action="replace" method="morph" targets="[data-testid='address']"><template>
+          <div data-testid="address" data-streamed class="hidden"
+               data-radio-toggle-target="element" data-radio-toggle-value="delivery,courier">Confirm the address.</div>
+        </template></turbo-stream>
+        <turbo-stream action="replace" method="morph" targets="[data-testid='pickup']"><template>
+          <div data-testid="pickup" data-streamed
+               data-radio-toggle-target="element" data-radio-toggle-value="pickup">Ready at the store.</div>
+        </template></turbo-stream>`)
+
+      cy.get('[data-testid="address"][data-streamed]').should('not.have.class', 'hidden')
+      cy.get('[data-testid="pickup"][data-streamed]').should('have.class', 'hidden')
+    })
+
+    it('follows the radio a Turbo Stream morph leaves checked', () => {
+      radio('Courier').check()
+      rerenderRadios('order_delivery_field', 'pickup')
+
+      checkedOnScreen('order_delivery_field', 'pickup')
+      target('pickup').should('not.have.class', 'hidden')
+      target('address').should('have.class', 'hidden')
+    })
   })
 
   context('dependent fields', () => {
@@ -28,10 +70,6 @@ describe('RadioToggleController', () => {
     const fields = name => target(name).find('input:not([type="hidden"]), textarea')
     const allDisabled = name => fields(name).each($field => expect($field, name).to.be.disabled)
     const allEnabled = name => fields(name).each($field => expect($field, name).to.be.enabled)
-
-    // Turbo applies a stream on the next frame, so a test waits for the replacement
-    // (`data-streamed`) before asserting on it — the old node would pass just as well.
-    const stream = html => cy.window().then(win => win.Turbo.renderStreamMessage(html))
 
     beforeEach(() => cy.visit('/bali/radio_toggle/dependent_fields'))
 
@@ -99,28 +137,70 @@ describe('RadioToggleController', () => {
 
     // The server repaints both targets as it last saw the form ("Working"): the photo
     // hidden and the lost panel shown, both behind the radio on screen.
-    it('applies the current choice to a target a Turbo Stream replaces', () => {
+    Object.entries(streams).forEach(([verb, method]) => {
+      it(`applies the current choice to a target a Turbo Stream ${verb}`, () => {
+        radio('Damaged').check()
+        box().check()
+
+        stream(`
+          <turbo-stream action="replace" ${method} target="terminal-label-photo"><template>
+            <fieldset id="terminal-label-photo" data-testid="label-photo" data-streamed class="hidden" disabled
+                      data-radio-toggle-target="element" data-radio-toggle-value="damaged+serial_unknown">
+              <input type="file" name="terminal[label_photo]">
+            </fieldset>
+          </template></turbo-stream>
+          <turbo-stream action="replace" ${method} target="terminal-lost"><template>
+            <fieldset id="terminal-lost" data-testid="lost" data-streamed
+                      data-radio-toggle-target="element" data-radio-toggle-value="lost">
+              <textarea name="terminal[last_seen]">from the server</textarea>
+            </fieldset>
+          </template></turbo-stream>`)
+
+        cy.get('[data-testid="label-photo"][data-streamed]').should('not.have.class', 'hidden')
+        allEnabled('label-photo')
+        cy.get('[data-testid="lost"][data-streamed]').should('have.class', 'hidden')
+        allDisabled('lost')
+      })
+    })
+
+    it('follows the radio a Turbo Stream morph leaves checked', () => {
       radio('Damaged').check()
-      box().check()
+      rerenderRadios('terminal_status_field', 'lost')
 
-      stream(`
-        <turbo-stream action="replace" target="terminal-label-photo"><template>
-          <fieldset id="terminal-label-photo" data-testid="label-photo" data-streamed class="hidden" disabled
-                    data-radio-toggle-target="element" data-radio-toggle-value="damaged+serial_unknown">
-            <input type="file" name="terminal[label_photo]">
-          </fieldset>
-        </template></turbo-stream>
-        <turbo-stream action="replace" target="terminal-lost"><template>
-          <fieldset id="terminal-lost" data-testid="lost" data-streamed
-                    data-radio-toggle-target="element" data-radio-toggle-value="lost">
-            <textarea name="terminal[last_seen]">from the server</textarea>
-          </fieldset>
-        </template></turbo-stream>`)
+      checkedOnScreen('terminal_status_field', 'lost')
+      target('lost').should('not.have.class', 'hidden')
+      allEnabled('lost')
+      target('damaged').should('have.class', 'hidden')
+      allDisabled('damaged')
+    })
 
-      cy.get('[data-testid="label-photo"][data-streamed]').should('not.have.class', 'hidden')
-      allEnabled('label-photo')
-      cy.get('[data-testid="lost"][data-streamed]').should('have.class', 'hidden')
-      allDisabled('lost')
+    // The server repaints the checkbox as it last saw the form, unchecked.
+    Object.entries(streams).forEach(([verb, method]) => {
+      it(`follows a checkbox a Turbo Stream ${verb}`, () => {
+        radio('Damaged').check()
+        box().check()
+        target('label-photo').should('not.have.class', 'hidden')
+
+        cy.get('#terminal_serial_unknown_field').then(($field) => {
+          const copy = $field[0].cloneNode(true)
+          copy.querySelector('input[type="checkbox"]').removeAttribute('checked')
+          copy.setAttribute('data-streamed', '')
+          return stream(`<turbo-stream action="replace" ${method} target="${copy.id}"><template>${copy.outerHTML}</template></turbo-stream>`)
+        })
+
+        cy.get('#terminal_serial_unknown_field[data-streamed]').find('input[type="checkbox"]').should('not.be.checked')
+        target('label-photo').should('have.class', 'hidden')
+        allDisabled('label-photo')
+      })
+    })
+
+    it('clears the choice when a Turbo Stream morph leaves no radio checked', () => {
+      radio('Damaged').check()
+      rerenderRadios('terminal_status_field', '')
+
+      cy.get('#terminal_status_field[data-streamed]').find('input:checked').should('not.exist')
+      target('damaged').should('have.class', 'hidden')
+      allDisabled('damaged')
     })
 
     it('leaves a field the server disabled disabled when its target shows', () => {

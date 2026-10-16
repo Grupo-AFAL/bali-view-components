@@ -62,14 +62,10 @@ module Bali
 
       private
 
-      def date_range_separator
-        { en: " to ", es: "a " }[I18n.locale]
-      end
-
       def normalize_date_range(range)
         return range unless range.is_a? String
 
-        result = range.split(date_range_separator)
+        result = range.split(Bali::Types::DateRangeValue.separator)
 
         # Searching in a day instead of date range
         result = [ result.first, result.first ] if result.size == 1
