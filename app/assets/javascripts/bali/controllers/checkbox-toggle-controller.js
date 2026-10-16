@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { wiredInputs } from '../utils/wired-inputs.js'
 
 /**
  * Toggles ON and OFF different elements based on the state of a checkbox
@@ -53,7 +54,7 @@ export class CheckboxToggleController extends Controller {
   // A morph that unchecks the box, or checks it, fires no `change`, and the box as
   // it leaves it is what the form sends.
   retoggle = () => {
-    const box = this.element.querySelector(`input[type="checkbox"][data-action*="${this.identifier}#change"]`)
+    const [box] = wiredInputs(this, 'checkbox')
     if (box) this.checkedValue = box.checked
 
     this.toggleTargets(this.checkedValue)

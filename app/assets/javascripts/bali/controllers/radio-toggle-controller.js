@@ -1,4 +1,5 @@
 import { Controller } from '@hotwired/stimulus'
+import { wiredInputs } from '../utils/wired-inputs.js'
 
 /**
  * Shows different elements based on the value of a radio button
@@ -71,11 +72,11 @@ export class RadioToggleController extends Controller {
     this.toggle(element)
   }
 
-  // A morph that checks another radio fires no `change`, and the radio it leaves
-  // checked is the one the form sends.
+  // A morph that checks another radio, or none, fires no `change`, and the radios
+  // as it leaves them are what the form sends.
   retoggle = () => {
-    const radio = this.element.querySelector(`input[type="radio"][data-action*="${this.identifier}#change"]:checked`)
-    if (radio) this.currentValue = radio.value
+    const radios = wiredInputs(this, 'radio')
+    if (radios.length) this.currentValue = radios.find(radio => radio.checked)?.value ?? ''
 
     this.toggleTargets()
   }

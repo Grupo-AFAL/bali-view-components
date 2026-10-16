@@ -536,8 +536,9 @@ value (comma-separated to match several) — the single-level sibling of
   chosen, and covers fields a Turbo Stream adds to it later.
 - **Targets that arrive later** — a target a Turbo Stream adds, replaces or
   morphs takes the visibility of the choice on screen at that moment, not the one
-  the server painted. A morph that checks another radio makes that radio the
-  choice, as the form will send it.
+  the server painted. A morph of the radios makes the one it leaves checked the
+  choice, or no choice if it leaves none, as the form will send it. Only radios are
+  read again: a `<select>` wired to `change` keeps the choice of its last `change`.
 
 All three are live in the `bali/radio_toggle/dependent_fields` preview.
 

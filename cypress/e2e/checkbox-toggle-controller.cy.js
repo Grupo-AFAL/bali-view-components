@@ -127,6 +127,52 @@ describe('CheckboxToggleController', () => {
     })
   })
 
+  context('reading its own checkbox after a morph', () => {
+    beforeEach(() => cy.visit('/bali/checkbox_toggle/required_fields'))
+
+    const insert = html => cy.document().then(doc => doc.body.insertAdjacentHTML('beforeend', html))
+    const morph = id => cy.window().then(win => win.Turbo.renderStreamMessage(`
+      <turbo-stream action="replace" method="morph" target="${id}"><template>
+        <div id="${id}" data-checkbox-toggle-target="on" data-streamed></div>
+      </template></turbo-stream>`))
+
+    // A whole controller in a target, its box after its targets as in the preview: the
+    // inner box comes first in the document, and a morph inside bubbles to both.
+    it('repaints from its own checkbox, not a nested controller\'s', () => {
+      insert(`
+        <div data-controller="checkbox-toggle">
+          <fieldset data-checkbox-toggle-target="on" data-testid="outer-on">
+            <div data-controller="checkbox-toggle">
+              <div id="inner-on" data-checkbox-toggle-target="on"></div>
+              <input type="checkbox" data-action="checkbox-toggle#change">
+            </div>
+          </fieldset>
+          <fieldset data-checkbox-toggle-target="off" data-testid="outer-off"></fieldset>
+          <input type="checkbox" data-action="checkbox-toggle#change" data-testid="outer-box">
+        </div>`)
+      target('outer-box').check()
+      target('outer-on').should('not.have.class', 'hidden')
+
+      morph('inner-on')
+      cy.get('#inner-on[data-streamed]').should('have.class', 'hidden')
+      target('outer-on').should('not.have.class', 'hidden')
+      target('outer-off').should('have.class', 'hidden')
+    })
+
+    it('repaints from the checkbox wired to it, not one whose action only contains its name', () => {
+      insert(`
+        <div data-controller="checkbox-toggle">
+          <input type="checkbox" checked data-action="input->other-checkbox-toggle#change">
+          <div id="decoy-on" data-checkbox-toggle-target="on"></div>
+          <input type="checkbox" data-action="checkbox-toggle#change">
+        </div>`)
+      cy.get('#decoy-on').should('have.class', 'hidden')
+
+      morph('decoy-on')
+      cy.get('#decoy-on[data-streamed]').should('have.class', 'hidden')
+    })
+  })
+
   context('with several targets on each side', () => {
     beforeEach(() => cy.visit('/bali/checkbox_toggle/required_fields'))
 

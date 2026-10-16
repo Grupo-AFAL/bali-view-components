@@ -174,6 +174,15 @@ describe('RadioToggleController', () => {
       allDisabled('damaged')
     })
 
+    it('clears the choice when a Turbo Stream morph leaves no radio checked', () => {
+      radio('Damaged').check()
+      rerenderRadios('terminal_status_field', '')
+
+      cy.get('#terminal_status_field[data-streamed]').find('input:checked').should('not.exist')
+      target('damaged').should('have.class', 'hidden')
+      allDisabled('damaged')
+    })
+
     it('leaves a field the server disabled disabled when its target shows', () => {
       stream(`
         <turbo-stream action="replace" target="terminal-lost"><template>
