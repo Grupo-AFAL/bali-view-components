@@ -101,6 +101,7 @@ module BpmnSampleFlows
       "sub_process" => { type: "sub_process", reference: { id: "catalog", label: "Subproceso" } }
     },
     "gateways" => {
+      "binary_decision" => { type: "exclusive_gateway", marker_visible: false },
       "exclusive_gateway" => { type: "exclusive_gateway" }, "parallel_gateway" => { type: "parallel_gateway" },
       "inclusive_gateway" => { type: "inclusive_gateway" }, "complex_gateway" => { type: "complex_gateway" },
       "event_based_gateway" => { type: "event_based_gateway" },

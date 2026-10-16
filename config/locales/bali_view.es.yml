@@ -519,6 +519,7 @@ es:
         palette_business_rule_task: "Tarea de regla de negocio"
         palette_manual_task: "Tarea manual"
         palette_sub_process: "Subproceso"
+        palette_binary_decision: "Decisión Sí/No"
         palette_exclusive_gateway: "Gateway exclusivo"
         palette_parallel_gateway: "Gateway paralelo"
         palette_inclusive_gateway: "Gateway inclusivo"

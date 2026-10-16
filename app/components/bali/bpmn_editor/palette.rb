@@ -22,7 +22,7 @@ module Bali
     module Palette
       KEYS = %w[
         task user_task service_task send_task receive_task script_task business_rule_task manual_task sub_process
-        exclusive_gateway parallel_gateway inclusive_gateway complex_gateway event_based_gateway
+        binary_decision exclusive_gateway parallel_gateway inclusive_gateway complex_gateway event_based_gateway
         event_based_start_gateway parallel_event_based_gateway
         lane
         sequence_flow message_flow association
@@ -37,7 +37,7 @@ module Bali
 
       DESCRIPTIVE = %w[
         task user_task service_task sub_process
-        exclusive_gateway parallel_gateway
+        binary_decision exclusive_gateway parallel_gateway
         lane
         sequence_flow message_flow association
         text_annotation group data_object data_store

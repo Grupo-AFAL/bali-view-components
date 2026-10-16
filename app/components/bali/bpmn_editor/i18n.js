@@ -79,6 +79,7 @@ export const DEFAULT_I18N = {
   palette_business_rule_task: 'Business rule task',
   palette_manual_task: 'Manual task',
   palette_sub_process: 'Sub-process',
+  palette_binary_decision: 'Yes/No decision',
   palette_exclusive_gateway: 'Exclusive gateway',
   palette_parallel_gateway: 'Parallel gateway',
   palette_inclusive_gateway: 'Inclusive gateway',

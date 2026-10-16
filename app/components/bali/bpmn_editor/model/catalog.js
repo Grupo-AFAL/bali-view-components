@@ -53,6 +53,9 @@ export const typeInfo = (type) => NODE_TYPES[type] || UNKNOWN
 export const categoryOf = (node) => typeInfo(node && node.type).category
 export const isActivity = (node) => categoryOf(node) === CATEGORY.activity
 export const isGateway = (node) => categoryOf(node) === CATEGORY.gateway
+// The binary decision ("blue diamond"): an exclusive gateway drawn without
+// its X (BPMN DI isMarkerVisible="false"), two answers to one question.
+export const isBinaryDecision = (node) => Boolean(node) && node.type === 'exclusive_gateway' && node.marker_visible === false
 export const isEvent = (node) => categoryOf(node) === CATEGORY.event
 export const isStart = (node) => node && node.type === 'start_event'
 export const isEnd = (node) => node && node.type === 'end_event'
@@ -101,6 +104,7 @@ export const PALETTE_ITEMS = {
   business_rule_task: { group: 'activities', node: { type: 'business_rule_task' } },
   manual_task: { group: 'activities', node: { type: 'manual_task' } },
   sub_process: { group: 'activities', node: { type: 'sub_process' } },
+  binary_decision: { group: 'gateways', node: { type: 'exclusive_gateway', marker_visible: false } },
   exclusive_gateway: { group: 'gateways', node: { type: 'exclusive_gateway' } },
   parallel_gateway: { group: 'gateways', node: { type: 'parallel_gateway' } },
   inclusive_gateway: { group: 'gateways', node: { type: 'inclusive_gateway' } },
@@ -157,6 +161,7 @@ export function paletteKeyFor (node) {
     if (!item.node || item.node.type !== node.type) continue
     const itemKind = item.node.event_definition && item.node.event_definition.kind
     if ((itemKind || null) !== (kind || null)) continue
+    if (item.node.type === 'exclusive_gateway' && (item.node.marker_visible === false) !== (node.marker_visible === false)) continue
     if (item.node.type === 'event_based_gateway') {
       const instantiate = !!node.instantiate
       const parallel = node.event_gateway_type === 'parallel'
