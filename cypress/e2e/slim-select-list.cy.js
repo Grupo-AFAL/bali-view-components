@@ -109,6 +109,13 @@ describe('SlimSelect list', () => {
     // What `after_change_fetch_url` fetches on.
     const spyOnAfterChange = () =>
       cy.get('@select').then(([select]) => { select.slim.events.afterChange = cy.stub().as('afterChange') })
+    // Then a real change: the spy hears the path it was just found silent on, so a SlimSelect
+    // that stops reading `events` there cannot pass for silence.
+    const expectNoAfterChange = () => {
+      cy.get('@afterChange').should('not.have.been.called')
+      cy.get('@select').then(([select]) => select.slim.setSelected('3'))
+      cy.get('@afterChange').should('have.been.calledOnce')
+    }
 
     beforeEach(() => {
       cy.intercept('GET', '/users.json*').as('remoteSearch')
@@ -133,7 +140,7 @@ describe('SlimSelect list', () => {
       cy.contains('.ss-content.ss-open .ss-optgroup .ss-option', 'John Doe')
       close()
 
-      cy.get('@afterChange').should('not.have.been.called')
+      expectNoAfterChange()
     })
 
     it('leaves the value alone on a search that finds the one chosen before', () => {
@@ -145,7 +152,7 @@ describe('SlimSelect list', () => {
       cy.contains('.ss-content.ss-open .ss-optgroup .ss-option', 'Peter Jackson')
       close()
 
-      cy.get('@afterChange').should('not.have.been.called')
+      expectNoAfterChange()
     })
   })
 })

@@ -40,6 +40,8 @@ const TEXTS = {
   }
 }
 
+const optionsIn = data => data.flatMap(item => item.options || [item])
+
 export class SlimSelectController extends Controller {
   static values = {
     addItems: Boolean,
@@ -282,7 +284,6 @@ export class SlimSelectController extends Controller {
   leavePlaceholderOutOfResults () {
     const render = this.select.render
     const renderOptions = render.renderOptions.bind(render)
-    const optionsIn = data => data.flatMap(item => item.options || [item])
 
     render.renderOptions = data => {
       const options = optionsIn(data)
@@ -429,7 +430,7 @@ export class SlimSelectController extends Controller {
       if (!response.ok) throw new Error(response.statusCode)
 
       const data = await response.json
-      const held = catalog.flatMap(item => item.options || [item])
+      const held = optionsIn(catalog)
 
       // A result SlimSelect already holds (a seed option, or a result chosen earlier) goes
       // back with the id it has there. SlimSelect matches a result to it by `===` on the
@@ -446,9 +447,9 @@ export class SlimSelectController extends Controller {
       // Without a placeholder in its data, SlimSelect gives the ✕ an empty one of its own,
       // which shows `placeholderText` instead of the select's and stays behind in the
       // <select> as a second blank once the list closes.
-      const placeholder = held.filter(option => option.placeholder)
+      const placeholders = held.filter(option => option.placeholder)
 
-      return [...placeholder, { label: this.texts.resultsText, options }]
+      return [...placeholders, { label: this.texts.resultsText, options }]
     } catch (error) {
       console.error('[SlimSelect] Remote search failed:', error)
       // SlimSelect paints whatever the search rejects with where the results go, an error's

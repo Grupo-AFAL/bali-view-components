@@ -27,22 +27,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ArchivalNotice`. Las siete apps en Bali 3 la tienen: nada que hacer en la app. En
   gobierno-corporativo la vista de año toma su propio `:long`.
 
-- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda** (#1495, desde
-  v3.11.0, con SlimSelect 4). Al elegir un resultado que no venía en la semilla, SlimSelect lo
-  ponía delante del placeholder y la ✕ lo volvía a elegir: el valor no cambiaba. Afecta sólo a
-  los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
-  hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda, con la lista cerrada
+  o todavía abierta** (#1495, desde v3.11.0, con SlimSelect 4). Al elegir un resultado que no
+  venía en la semilla, SlimSelect lo ponía delante del placeholder y la ✕ lo volvía a elegir: el
+  valor no cambiaba. Con la lista todavía abierta, la ✕ vaciaba el valor pero mostraba el texto por
+  omisión («Select value») en vez del placeholder, y dejaba una segunda `<option value="">`. Afecta
+  sólo a los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app
+  escribe hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
 
-- **SlimSelect remoto: un resultado que ya está en la semilla no sale dos veces**. El controlador
-  pasaba el id del JSON como número, y SlimSelect lo compara con los valores de la semilla, que son
-  texto: el registro salía dos veces en la lista y quedaba dos veces en el `<select>`, y una búsqueda
-  que volvía a encontrar el valor elegido en otra volvía a llamar a `after_change_fetch_url`. Lo ven
-  los selects remotos de gobierno-corporativo cuyo endpoint responde ids numéricos (entidad y
-  producto de las solicitudes de acceso, fuentes y columnas del glosario, áreas de los
-  recordatorios). Además, con `allow_deselect_option: true`, que ningún select remoto de las apps
-  usa, la ✕ oprimida con una búsqueda en la lista mostraba el texto por omisión («Select value») en
-  vez del placeholder del select y dejaba una segunda `<option value="">`. Nada que hacer en la
-  app; un endpoint ya no necesita responder el id como texto.
+- **SlimSelect remoto: un resultado que ya está en la semilla no sale dos veces**. El registro ya
+  no se repite en la lista ni en el `<select>`, y una búsqueda que encuentra el valor ya elegido no
+  vuelve a llamar a `after_change_fetch_url`. En gobierno-corporativo lo ven los cuatro
+  `PositionSelect` de las nominaciones, que ya no piden dos veces el aviso del nominado, y los
+  selects remotos cuyo endpoint responde ids numéricos: entidad y producto de las solicitudes de
+  acceso, fuentes y columnas del glosario y áreas de los recordatorios. En éstas, un área de la
+  semilla elegida en una búsqueda se lee como en la semilla al cerrar la lista: «Finanzas», no
+  «Finanzas (Dirección)». Nada que hacer en la app.
 
 - **Un filtro `slim_select` de `SimpleFilters` muestra completo el valor elegido** (#1495). «Beto»
   se veía «B»: el valor se quedaba 20 px corto dentro de una columna que se ajusta a su contenido.
