@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`checkbox-toggle`: un target que un Turbo Stream reemplaza sigue a la casilla en pantalla**
+  (#1495). Se quedaba como lo pintó el servidor, con su `hidden` y, con `disable-hidden`, su
+  `disabled`, aunque la casilla dijera lo contrario. Ahora hace lo mismo que `radio-toggle` desde
+  #1214. `toggleTargets` corre cada vez que llega un target (al conectar, una vez por lado), así
+  que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
+  `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
+
 - **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
   accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el
   `date.formats.long` de la app: «5 de marzo de 2026» con rails-i18n, «March 05, 2026» en inglés.
@@ -19,6 +26,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rails-i18n para todos sus idiomas; una app sin rails-i18n la define en su YAML, como ya lo pide
   `ArchivalNotice`. Las siete apps en Bali 3 la tienen: nada que hacer en la app. En
   gobierno-corporativo la vista de año toma su propio `:long`.
+
+### Documentation
+
+- **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).
+  Su `form_with` sin bloque dejaba el formulario abierto, y la lista quedaba dentro de él, oculta
+  con él. Con bloque tampoco servía: el formulario de afuera no llevaba `selected_ids`. Ahora lo
+  cierra y le apunta, con el atributo `form`, el campo que el controlador llena. Ninguna app sigue
+  la receta: nada que hacer.
+
+- **La entrada de v3.16.0 del filtro `date_range` (#1461) recomendaba `min-w-0!`**, pero el filtro
+  no recibe clases; ahora da la regla CSS que sí baja el mínimo (#1495).
 
 ## [v3.17.0] - 2026-10-15
 
