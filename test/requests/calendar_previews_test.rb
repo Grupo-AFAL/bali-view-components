@@ -2,8 +2,8 @@
 
 require "test_helper"
 
-# The `+mobile` template is only reached through a request variant, and no preview set one: it
-# raised without `template:` and nothing went red.
+# A preview reaches the `+mobile` template only through `@display variant mobile`, which the dummy's
+# ComponentPreviewsController turns into `request.variant`.
 class CalendarPreviewsTest < ActionDispatch::IntegrationTest
   def test_the_mobile_preview_renders_the_phone_template_without_events
     get "/lookbook/preview/bali/calendar/mobile"

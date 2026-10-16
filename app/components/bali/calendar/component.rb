@@ -123,18 +123,14 @@ module Bali
         show_weekends? ? week : week.select(&:on_weekday?)
       end
 
-      # @return [Hash] Parameters for previous day navigation
+      # @return [Date] The day the phone's previous arrow goes to
       def prev_day
-        date = start_date
-        date = date.monday? && weekdays_only? ? date.prev_occurring(:friday) : date - 1.day
-        { start_attribute => date }
+        start_date.monday? && weekdays_only? ? start_date.prev_occurring(:friday) : start_date - 1.day
       end
 
-      # @return [Hash] Parameters for next day navigation
+      # @return [Date] The day the phone's next arrow goes to
       def next_day
-        date = start_date
-        date = date.friday? && weekdays_only? ? date.next_occurring(:monday) : date + 1.day
-        { start_attribute => date }
+        start_date.friday? && weekdays_only? ? start_date.next_occurring(:monday) : start_date + 1.day
       end
 
       # @return [String] The phone day view's title: the locale's `date.formats.long`, which

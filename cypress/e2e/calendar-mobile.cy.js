@@ -1,5 +1,6 @@
-// The phone template's arrows and title sat in a Columns that stacks under 768px, so on every
-// phone they took three rows. 320px is where the Spanish title wraps onto two lines.
+// The preview reaches the `+mobile` template through `@display variant mobile`, which the dummy's
+// ComponentPreviewsController turns into `request.variant`. At 320px the Spanish title takes two
+// lines.
 describe('Calendar phone template', () => {
   const box = (el) => el.getBoundingClientRect()
 
@@ -9,7 +10,7 @@ describe('Calendar phone template', () => {
       cy.visit('/bali/calendar/mobile?start_date=2026-10-14&locale=es')
 
       cy.get('.day-view').should(($view) => {
-        const [prev, next] = [...$view.find('a[title]')].map(box)
+        const [prev, next] = [...$view.find('a[aria-label]')].map(box)
         const title = box($view.find('span.text-lg')[0])
 
         expect(prev.right, 'previous arrow ends before the title').to.be.at.most(title.left)
@@ -27,10 +28,10 @@ describe('Calendar phone template', () => {
     cy.viewport(375, 812)
     cy.visit('/bali/calendar/mobile?start_date=2026-10-14')
 
-    cy.get('.day-view a[title]').should('have.length', 2).each(($arrow) => {
+    cy.get('.day-view a[aria-label]').should('have.length', 2).each(($arrow) => {
       const { width, height } = box($arrow[0])
-      expect(width, `${$arrow.attr('title')} width`).to.be.at.least(24)
-      expect(height, `${$arrow.attr('title')} height`).to.be.at.least(24)
+      expect(width, `${$arrow.attr('aria-label')} width`).to.be.at.least(24)
+      expect(height, `${$arrow.attr('aria-label')} height`).to.be.at.least(24)
     })
   })
 })

@@ -66,13 +66,14 @@ module Bali
         # Disabled rather than left out: measured at 1440px, removing one arrow
         # moves the title 25px, half the arrow's 50px.
         def arrow_options(type)
-          in_range = type == :prev ? prev_in_range? : next_in_range?
-          label = t("bali_view.calendar.header.#{type == :prev ? 'previous' : 'next'}")
+          link_options(type, extra_params(type), type == :prev ? prev_in_range? : next_in_range?)
+        end
 
-          {
-            href: route(extra_params(type)), variant: :ghost, disabled: !in_range,
-            aria: { label: label, disabled: (true unless in_range) }.compact
-          }
+        # The calendar's phone template steps one day, to the `day` it picks, with the
+        # route and the bounds of these arrows.
+        def day_arrow_options(type, day)
+          in_range = type == :prev ? min_date.nil? || day >= min_date : max_date.nil? || day <= max_date
+          link_options(type, extra_params(type).merge(start_attribute => day), in_range)
         end
 
         # @return [Array<Symbol>] The periods the switch offers, in render order.
@@ -122,6 +123,17 @@ module Bali
         end
 
         private
+
+        # `I18n.t` and not `t`: the phone template never renders this header, and a
+        # component's `t` raises before render.
+        def link_options(type, params, in_range)
+          label = I18n.t("bali_view.calendar.header.#{type == :prev ? 'previous' : 'next'}")
+
+          {
+            href: route(params), variant: :ghost, disabled: !in_range,
+            aria: { label: label, disabled: (true unless in_range) }.compact
+          }
+        end
 
         def period_start(date)
           case period
