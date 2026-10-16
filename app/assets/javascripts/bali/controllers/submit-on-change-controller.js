@@ -32,10 +32,11 @@ export class SubmitOnChangeController extends Controller {
   }
 
   connect () {
-    // Skip change events fired during SlimSelect initialization: it emits one on the
-    // native <select> while it builds itself over it, which submitted a form nobody had
-    // touched. `skip-initial-value="false"` opts back into the old behavior for a host
-    // that does submit as the form connects.
+    // Skip change events fired in the frame the form connects in: SlimSelect 3.x emitted one
+    // on the native <select> when it rewrote it from `data` — the slim-select controller no
+    // longer hands it any (#1495) — which submitted a form nobody had touched.
+    // `skip-initial-value="false"` opts back into the old behavior for a host that does submit
+    // as the form connects.
     this.ready = !this.skipInitialValue
     if (!this.ready) this.becomeReadyAfterFirstFrame()
 

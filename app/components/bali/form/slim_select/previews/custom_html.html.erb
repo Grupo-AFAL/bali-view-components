@@ -1,3 +1,8 @@
 <%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
-  <%= form.slim_select_field :name, html_options %>
+  <div class="grid gap-4 max-w-sm">
+    <%= form.slim_select_group :name, html_options, label: 'Status' %>
+    <%= form.slim_select_group :text, html_options, label: 'Status, after a blank', include_blank: 'Any status' %>
+    <%= form.slim_select_group :email, { 'Current' => html_options.first(2), 'Former' => html_options.last(1) },
+          label: 'Status, in groups' %>
+  </div>
 <% end %>

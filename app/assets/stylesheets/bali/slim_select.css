@@ -272,7 +272,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1 1 auto;
-  max-width: calc(100% - 20px);
+  /* No room reserved beside the value: the ✕ and the arrow are siblings of `.ss-values`
+     (SlimSelect's `Render#mainDiv`), not children. The 20 px a `calc(100% - 20px)` max-width
+     kept for nothing drew «Beto» in 8.2 px of its 26 in a SimpleFilters column, which sizes to
+     this text. */
 }
 
 /* Max selected indicator */

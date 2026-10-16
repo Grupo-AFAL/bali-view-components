@@ -33,6 +33,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
   hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
 
+- **Un filtro `slim_select` de `SimpleFilters` muestra completo el valor elegido** (#1495). «Beto»
+  se veía «B»: el valor se quedaba 20 px corto dentro de una columna que se ajusta a su contenido.
+  Lo ven los filtros `slim_select` de afal-apps y gobierno-corporativo. En un campo de formulario un
+  valor largo se trunca junto a la ✕ o la flecha, hasta 18 px más ancho. Nada que hacer en la app.
+
+- **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante o estén
+  en grupos** (#1495). El controlador miraba sólo el primer hijo del `<select>`, que con
+  `include_blank:` o `prompt:` es el placeholder y en una lista agrupada es un `<optgroup>`. Ahora
+  SlimSelect lee el HTML de cada opción y el `<select>` ya no se reescribe al montar: sus opciones
+  conservan `id`, `class` y los demás `data-*`. En gobierno-corporativo, el selector de procesos de
+  un documento muestra la ruta de cada uno. Nada que hacer en la app. El blank con
+  `data-inner-html` propio que arman sus helpers para esquivarlo ya no hace falta; cambiarlo por
+  `include_blank:` lo convierte de fila de la lista en placeholder, con ✕.
+
 ### Documentation
 
 - **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).
