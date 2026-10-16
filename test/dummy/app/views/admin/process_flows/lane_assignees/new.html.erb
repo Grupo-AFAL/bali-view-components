@@ -1,0 +1,12 @@
+<% en = params[:locale] == "en" %>
+<% groups = %w[area role external].map { |key| ProcessFlowReferences.group_label(key, params[:locale] || :es) } %>
+<%= form_with url: admin_process_flow_lane_assignees_path(params[:process_flow_id]), scope: :assignee,
+              builder: Bali::FormBuilder, data: { turbo: true }, class: "space-y-4 p-4" do |f| %>
+  <h3 class="text-lg font-semibold"><%= en ? "New assignee" : "Nuevo responsable" %></h3>
+  <%= hidden_field_tag :client_lane_id, params[:client_lane_id] %>
+  <%= hidden_field_tag :editor_id, params[:editor_id] %>
+  <%= f.text_group :label, label: (en ? "Name" : "Nombre"), required: true,
+                           placeholder: (en ? "E.g. Treasury analyst" : "Ej. Analista de tesorería") %>
+  <%= f.select_group :group, groups, label: (en ? "Group" : "Grupo") %>
+  <%= f.submit_group(en ? "Create and assign" : "Crear y asignar") %>
+<% end %>

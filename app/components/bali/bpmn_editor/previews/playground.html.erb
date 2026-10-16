@@ -1,0 +1,39 @@
+<%# locals: flow, locale, theme, optional_rules, server, options %>
+<%# What an app writes: one render call with its endpoints in `urls:`. The
+    `server` and `locale` query parameters on the URLs are the dummy's
+    demonstration switch (Admin::ProcessFlows::DemoServer), not part of the
+    contract. The optional rule package runs only in the bundle that imports
+    it, so with `optional_rules` this page loads that second bundle. %>
+<% bundle = optional_rules ? "bpmn-editor-island-with-rules" : "bpmn-editor-island" %>
+<%= react_island_meta_tags("bpmn-editor", js: "#{bundle}.js", css: "#{bundle}.css") %>
+<% demo = { server: (server unless server == "normal"), locale: locale }.compact %>
+<% en = locale.to_s == "en" %>
+<%= tag.div(data: { theme: (theme if theme == "dark") }, class: "bg-base-100 p-2 text-base-content") do %>
+  <%= I18n.with_locale(locale) { render Bali::BpmnEditor::Component.new(
+        data: flow.to_diagram(locale: locale),
+        editable: true,
+        **options,
+        fields: {
+          nodes: {
+            "*" => [ { key: "owner_note", label: en ? "Owner's note" : "Nota del responsable", type: "textarea" } ],
+            user_task: [
+              { key: "duration", label: en ? "Duration (minutes)" : "Duración (minutos)", type: "number", min: 0 },
+              { key: "systems", label: en ? "Systems" : "Sistemas", type: "multi_select",
+                options: [ { value: "erp", label: "ERP" }, { value: "portal", label: en ? "Supplier portal" : "Portal de proveedores" },
+                           { value: "bank", label: en ? "Online banking" : "Banca en línea" } ] }
+            ]
+          },
+          lanes: [ { key: "notes", label: en ? "Notes" : "Notas", type: "textarea" } ]
+        },
+        urls: {
+          save: admin_process_flow_diagram_path(flow, **demo),
+          diagram: admin_process_flow_diagram_path(flow, **demo),
+          finalize: admin_process_flow_finalization_path(flow, **demo),
+          references: admin_process_flow_references_path(flow, locale: locale),
+          new_reference: new_admin_process_flow_reference_path(flow, locale: locale),
+          lane_assignees: admin_process_flow_lane_assignees_path(flow, locale: locale),
+          new_lane_assignee: new_admin_process_flow_lane_assignee_path(flow, locale: locale),
+          import: new_admin_process_flow_import_path(flow, locale: locale)
+        },
+        id: dom_id(flow, :bpmn)) } %>
+<% end %>

@@ -48,7 +48,10 @@ const config = {
   entryPoints: [
     'app/javascript/application.js',
     'app/javascript/island-demo.js',
-    'app/javascript/gantt-island.js'
+    'app/javascript/gantt-island.js',
+    'app/javascript/bpmn-editor-island.js',
+    // The same island plus the optional rule package: the rules gallery only.
+    'app/javascript/bpmn-editor-island-with-rules.js'
   ],
   bundle: true,
   sourcemap: true,
@@ -66,6 +69,7 @@ const config = {
     'bali/block-editor': path.join(baliGemPath, 'app/frontend/bali/block-editor.js'),
     'bali/gantt': path.join(baliGemPath, 'app/frontend/bali/gantt.js'),
     'bali/gantt-entry': path.join(baliGemPath, 'app/frontend/bali/gantt-entry.js'),
+    'bali/bpmn-editor-entry': path.join(baliGemPath, 'app/frontend/bali/bpmn-editor-entry.js'),
     'bali/react-island': path.join(baliGemPath, 'app/frontend/bali/react-island.js'),
     'bali/rich-text-editor': path.join(baliGemPath, 'app/frontend/bali/rich-text-editor.js'),
     // Force a single React instance — @blocknote/xl-ai bundles react 19 as a

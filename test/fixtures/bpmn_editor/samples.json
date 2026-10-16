@@ -1,0 +1,1845 @@
+{
+  "invoice": {
+    "version": 1,
+    "orientation": "horizontal",
+    "pool": {
+      "x": 0,
+      "y": 0
+    },
+    "lanes": [
+      {
+        "id": "l1",
+        "name": {
+          "en": "Supplier",
+          "es": "Proveedor"
+        },
+        "kind": "external",
+        "order": 1,
+        "size": 160
+      },
+      {
+        "id": "l2",
+        "name": {
+          "en": "Accounts payable",
+          "es": "Cuentas por pagar"
+        },
+        "kind": "internal",
+        "order": 2,
+        "size": 180
+      },
+      {
+        "id": "l3",
+        "name": {
+          "en": "Treasury",
+          "es": "Tesorería"
+        },
+        "kind": "internal",
+        "order": 3,
+        "size": 160
+      }
+    ],
+    "nodes": [
+      {
+        "id": "p1",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Issue invoice",
+          "es": "Emitir factura"
+        },
+        "x": 70,
+        "y": 48
+      },
+      {
+        "id": "s1",
+        "type": "start_event",
+        "lane_id": "l2",
+        "name": {
+          "en": "Invoice received",
+          "es": "Factura recibida"
+        },
+        "event_definition": {
+          "kind": "message"
+        },
+        "x": 127,
+        "y": 232,
+        "documentation": {
+          "en": "Arrives through the supplier portal.",
+          "es": "Llega por el portal de proveedores."
+        }
+      },
+      {
+        "id": "t1",
+        "type": "user_task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Validate invoice",
+          "es": "Validar factura"
+        },
+        "x": 220,
+        "y": 218
+      },
+      {
+        "id": "g1",
+        "type": "exclusive_gateway",
+        "lane_id": "l2",
+        "name": {
+          "en": "Is the invoice valid?",
+          "es": "¿La factura es válida?"
+        },
+        "x": 430,
+        "y": 225
+      },
+      {
+        "id": "e2",
+        "type": "end_event",
+        "lane_id": "l2",
+        "name": {
+          "en": "End",
+          "es": "Fin"
+        },
+        "x": 600,
+        "y": 232
+      },
+      {
+        "id": "t3",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Record payment",
+          "es": "Registrar pago"
+        },
+        "x": 530,
+        "y": 388
+      },
+      {
+        "id": "t4",
+        "type": "service_task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Schedule transfer",
+          "es": "Programar transferencia"
+        },
+        "x": 740,
+        "y": 388
+      },
+      {
+        "id": "e1",
+        "type": "end_event",
+        "lane_id": "l3",
+        "name": {
+          "en": "Payment made",
+          "es": "Pago realizado"
+        },
+        "x": 960,
+        "y": 402,
+        "documentation": {
+          "en": "The transfer is scheduled at the bank.",
+          "es": "La transferencia queda programada en el banco."
+        }
+      },
+      {
+        "id": "a1",
+        "type": "text_annotation",
+        "name": {
+          "en": "Check tax ID, amounts and purchase order",
+          "es": "Revisar datos fiscales, montos y orden de compra"
+        },
+        "x": 300,
+        "y": 30
+      }
+    ],
+    "edges": [
+      {
+        "id": "m1",
+        "type": "message_flow",
+        "source": "p1",
+        "target": "s1"
+      },
+      {
+        "id": "f1",
+        "source": "s1",
+        "target": "t1"
+      },
+      {
+        "id": "f2",
+        "source": "t1",
+        "target": "g1"
+      },
+      {
+        "id": "f3",
+        "source": "g1",
+        "target": "t3",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f4",
+        "source": "g1",
+        "target": "e2",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f5",
+        "source": "t3",
+        "target": "t4"
+      },
+      {
+        "id": "f6",
+        "source": "t4",
+        "target": "e1"
+      },
+      {
+        "id": "as1",
+        "type": "association",
+        "source": "a1",
+        "target": "t1"
+      }
+    ],
+    "status_label": {
+      "en": "Draft v0.3",
+      "es": "Borrador v0.3"
+    }
+  },
+  "rework": {
+    "version": 1,
+    "lanes": [
+      {
+        "id": "a",
+        "name": {
+          "en": "Requester",
+          "es": "Solicitante"
+        },
+        "order": 1
+      },
+      {
+        "id": "b",
+        "name": {
+          "en": "Reviewer",
+          "es": "Revisor"
+        },
+        "order": 2
+      }
+    ],
+    "nodes": [
+      {
+        "id": "s",
+        "type": "start_event",
+        "lane_id": "a",
+        "name": {
+          "en": "Request needed",
+          "es": "Solicitud necesaria"
+        }
+      },
+      {
+        "id": "t1",
+        "type": "task",
+        "lane_id": "a",
+        "name": {
+          "en": "Fill in request",
+          "es": "Llenar la solicitud"
+        }
+      },
+      {
+        "id": "t2",
+        "type": "task",
+        "lane_id": "b",
+        "name": {
+          "en": "Review request",
+          "es": "Revisar la solicitud"
+        }
+      },
+      {
+        "id": "g",
+        "type": "exclusive_gateway",
+        "lane_id": "b",
+        "name": {
+          "en": "Complete?",
+          "es": "¿Completa?"
+        }
+      },
+      {
+        "id": "t3",
+        "type": "task",
+        "lane_id": "a",
+        "name": {
+          "en": "Fix request",
+          "es": "Corregir la solicitud"
+        }
+      },
+      {
+        "id": "t4",
+        "type": "task",
+        "lane_id": "b",
+        "name": {
+          "en": "Approve request",
+          "es": "Aprobar la solicitud"
+        }
+      },
+      {
+        "id": "e",
+        "type": "end_event",
+        "lane_id": "b",
+        "name": {
+          "en": "Request approved",
+          "es": "Solicitud aprobada"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "f1",
+        "source": "s",
+        "target": "t1"
+      },
+      {
+        "id": "f2",
+        "source": "t1",
+        "target": "t2"
+      },
+      {
+        "id": "f3",
+        "source": "t2",
+        "target": "g"
+      },
+      {
+        "id": "f4",
+        "source": "g",
+        "target": "t4",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f5",
+        "source": "g",
+        "target": "t3",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f6",
+        "source": "t3",
+        "target": "t2"
+      },
+      {
+        "id": "f7",
+        "source": "t4",
+        "target": "e"
+      }
+    ]
+  },
+  "parallel": {
+    "version": 1,
+    "lanes": [
+      {
+        "id": "a",
+        "name": {
+          "en": "Purchasing",
+          "es": "Compras"
+        },
+        "order": 1
+      },
+      {
+        "id": "b",
+        "name": {
+          "en": "Warehouse",
+          "es": "Almacén"
+        },
+        "order": 2
+      }
+    ],
+    "nodes": [
+      {
+        "id": "s",
+        "type": "start_event",
+        "lane_id": "a",
+        "name": {
+          "en": "Order placed",
+          "es": "Pedido realizado"
+        }
+      },
+      {
+        "id": "split",
+        "type": "parallel_gateway",
+        "lane_id": "a",
+        "name": ""
+      },
+      {
+        "id": "b1",
+        "type": "task",
+        "lane_id": "a",
+        "name": {
+          "en": "Confirm supplier",
+          "es": "Confirmar proveedor"
+        }
+      },
+      {
+        "id": "b2",
+        "type": "task",
+        "lane_id": "a",
+        "name": {
+          "en": "Book carrier",
+          "es": "Reservar transportista"
+        }
+      },
+      {
+        "id": "b3",
+        "type": "task",
+        "lane_id": "b",
+        "name": {
+          "en": "Reserve space",
+          "es": "Reservar espacio"
+        }
+      },
+      {
+        "id": "join",
+        "type": "parallel_gateway",
+        "lane_id": "a",
+        "name": ""
+      },
+      {
+        "id": "t",
+        "type": "task",
+        "lane_id": "a",
+        "name": {
+          "en": "Close order",
+          "es": "Cerrar pedido"
+        }
+      },
+      {
+        "id": "e",
+        "type": "end_event",
+        "lane_id": "a",
+        "name": {
+          "en": "Order ready",
+          "es": "Pedido listo"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "f1",
+        "source": "s",
+        "target": "split"
+      },
+      {
+        "id": "f2",
+        "source": "split",
+        "target": "b1"
+      },
+      {
+        "id": "f3",
+        "source": "split",
+        "target": "b2"
+      },
+      {
+        "id": "f4",
+        "source": "split",
+        "target": "b3"
+      },
+      {
+        "id": "f5",
+        "source": "b1",
+        "target": "join"
+      },
+      {
+        "id": "f6",
+        "source": "b2",
+        "target": "join"
+      },
+      {
+        "id": "f7",
+        "source": "b3",
+        "target": "join"
+      },
+      {
+        "id": "f8",
+        "source": "join",
+        "target": "t"
+      },
+      {
+        "id": "f9",
+        "source": "t",
+        "target": "e"
+      }
+    ]
+  },
+  "partners": {
+    "version": 1,
+    "lanes": [
+      {
+        "id": "c",
+        "name": {
+          "en": "Customer",
+          "es": "Cliente"
+        },
+        "kind": "external",
+        "order": 1
+      },
+      {
+        "id": "a",
+        "name": {
+          "en": "Sales",
+          "es": "Ventas"
+        },
+        "order": 2
+      },
+      {
+        "id": "b",
+        "name": {
+          "en": "Billing",
+          "es": "Facturación"
+        },
+        "order": 3
+      },
+      {
+        "id": "k",
+        "name": {
+          "en": "Bank",
+          "es": "Banco"
+        },
+        "kind": "external",
+        "order": 4
+      }
+    ],
+    "nodes": [
+      {
+        "id": "c1",
+        "type": "send_task",
+        "lane_id": "c",
+        "name": {
+          "en": "Send order",
+          "es": "Enviar pedido"
+        }
+      },
+      {
+        "id": "s",
+        "type": "start_event",
+        "lane_id": "a",
+        "name": {
+          "en": "Order received",
+          "es": "Pedido recibido"
+        },
+        "event_definition": {
+          "kind": "message"
+        }
+      },
+      {
+        "id": "t1",
+        "type": "task",
+        "lane_id": "a",
+        "name": {
+          "en": "Check stock",
+          "es": "Verificar existencias"
+        }
+      },
+      {
+        "id": "t2",
+        "type": "task",
+        "lane_id": "b",
+        "name": {
+          "en": "Issue invoice",
+          "es": "Emitir factura"
+        }
+      },
+      {
+        "id": "t3",
+        "type": "receive_task",
+        "lane_id": "b",
+        "name": {
+          "en": "Receive payment",
+          "es": "Recibir pago"
+        }
+      },
+      {
+        "id": "k1",
+        "type": "task",
+        "lane_id": "k",
+        "name": {
+          "en": "Confirm transfer",
+          "es": "Confirmar transferencia"
+        }
+      },
+      {
+        "id": "e",
+        "type": "end_event",
+        "lane_id": "b",
+        "name": {
+          "en": "Order paid",
+          "es": "Pedido pagado"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "m1",
+        "type": "message_flow",
+        "source": "c1",
+        "target": "s"
+      },
+      {
+        "id": "f1",
+        "source": "s",
+        "target": "t1"
+      },
+      {
+        "id": "f2",
+        "source": "t1",
+        "target": "t2"
+      },
+      {
+        "id": "f3",
+        "source": "t2",
+        "target": "t3"
+      },
+      {
+        "id": "m2",
+        "type": "message_flow",
+        "source": "k1",
+        "target": "t3"
+      },
+      {
+        "id": "f4",
+        "source": "t3",
+        "target": "e"
+      }
+    ]
+  },
+  "large": {
+    "version": 1,
+    "lanes": [
+      {
+        "id": "l1",
+        "name": {
+          "en": "Requester",
+          "es": "Solicitante"
+        },
+        "order": 1
+      },
+      {
+        "id": "l2",
+        "name": {
+          "en": "Purchasing",
+          "es": "Compras"
+        },
+        "order": 2
+      },
+      {
+        "id": "l3",
+        "name": {
+          "en": "Warehouse",
+          "es": "Almacén"
+        },
+        "order": 3
+      },
+      {
+        "id": "l4",
+        "name": {
+          "en": "Finance",
+          "es": "Finanzas"
+        },
+        "order": 4
+      }
+    ],
+    "nodes": [
+      {
+        "id": "start",
+        "type": "start_event",
+        "lane_id": "l1",
+        "name": {
+          "en": "Need detected",
+          "es": "Necesidad detectada"
+        }
+      },
+      {
+        "id": "t1",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 1",
+          "es": "Paso 1 de la compra"
+        }
+      },
+      {
+        "id": "t2",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 2",
+          "es": "Paso 2 de la compra"
+        }
+      },
+      {
+        "id": "t3",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 3",
+          "es": "Paso 3 de la compra"
+        }
+      },
+      {
+        "id": "t4",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 4",
+          "es": "Paso 4 de la compra"
+        }
+      },
+      {
+        "id": "t5",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 5",
+          "es": "Paso 5 de la compra"
+        }
+      },
+      {
+        "id": "t6",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 6",
+          "es": "Paso 6 de la compra"
+        }
+      },
+      {
+        "id": "g6",
+        "type": "exclusive_gateway",
+        "lane_id": "l2",
+        "name": {
+          "en": "Step 6 approved?",
+          "es": "¿Paso 6 aprobado?"
+        }
+      },
+      {
+        "id": "x6",
+        "type": "end_event",
+        "lane_id": "l2",
+        "name": {
+          "en": "Cancelled at 6",
+          "es": "Compra cancelada en el paso 6"
+        }
+      },
+      {
+        "id": "t7",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 7",
+          "es": "Paso 7 de la compra"
+        }
+      },
+      {
+        "id": "t8",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 8",
+          "es": "Paso 8 de la compra"
+        }
+      },
+      {
+        "id": "t9",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 9",
+          "es": "Paso 9 de la compra"
+        }
+      },
+      {
+        "id": "t10",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 10",
+          "es": "Paso 10 de la compra"
+        }
+      },
+      {
+        "id": "t11",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 11",
+          "es": "Paso 11 de la compra"
+        }
+      },
+      {
+        "id": "t12",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 12",
+          "es": "Paso 12 de la compra"
+        }
+      },
+      {
+        "id": "g12",
+        "type": "exclusive_gateway",
+        "lane_id": "l3",
+        "name": {
+          "en": "Step 12 approved?",
+          "es": "¿Paso 12 aprobado?"
+        }
+      },
+      {
+        "id": "x12",
+        "type": "end_event",
+        "lane_id": "l3",
+        "name": {
+          "en": "Cancelled at 12",
+          "es": "Compra cancelada en el paso 12"
+        }
+      },
+      {
+        "id": "t13",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 13",
+          "es": "Paso 13 de la compra"
+        }
+      },
+      {
+        "id": "t14",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 14",
+          "es": "Paso 14 de la compra"
+        }
+      },
+      {
+        "id": "t15",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 15",
+          "es": "Paso 15 de la compra"
+        }
+      },
+      {
+        "id": "t16",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 16",
+          "es": "Paso 16 de la compra"
+        }
+      },
+      {
+        "id": "t17",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 17",
+          "es": "Paso 17 de la compra"
+        }
+      },
+      {
+        "id": "t18",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 18",
+          "es": "Paso 18 de la compra"
+        }
+      },
+      {
+        "id": "g18",
+        "type": "exclusive_gateway",
+        "lane_id": "l4",
+        "name": {
+          "en": "Step 18 approved?",
+          "es": "¿Paso 18 aprobado?"
+        }
+      },
+      {
+        "id": "x18",
+        "type": "end_event",
+        "lane_id": "l4",
+        "name": {
+          "en": "Cancelled at 18",
+          "es": "Compra cancelada en el paso 18"
+        }
+      },
+      {
+        "id": "t19",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 19",
+          "es": "Paso 19 de la compra"
+        }
+      },
+      {
+        "id": "t20",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 20",
+          "es": "Paso 20 de la compra"
+        }
+      },
+      {
+        "id": "t21",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 21",
+          "es": "Paso 21 de la compra"
+        }
+      },
+      {
+        "id": "t22",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 22",
+          "es": "Paso 22 de la compra"
+        }
+      },
+      {
+        "id": "t23",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 23",
+          "es": "Paso 23 de la compra"
+        }
+      },
+      {
+        "id": "t24",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 24",
+          "es": "Paso 24 de la compra"
+        }
+      },
+      {
+        "id": "g24",
+        "type": "exclusive_gateway",
+        "lane_id": "l1",
+        "name": {
+          "en": "Step 24 approved?",
+          "es": "¿Paso 24 aprobado?"
+        }
+      },
+      {
+        "id": "x24",
+        "type": "end_event",
+        "lane_id": "l1",
+        "name": {
+          "en": "Cancelled at 24",
+          "es": "Compra cancelada en el paso 24"
+        }
+      },
+      {
+        "id": "t25",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 25",
+          "es": "Paso 25 de la compra"
+        }
+      },
+      {
+        "id": "t26",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 26",
+          "es": "Paso 26 de la compra"
+        }
+      },
+      {
+        "id": "t27",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 27",
+          "es": "Paso 27 de la compra"
+        }
+      },
+      {
+        "id": "t28",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 28",
+          "es": "Paso 28 de la compra"
+        }
+      },
+      {
+        "id": "t29",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 29",
+          "es": "Paso 29 de la compra"
+        }
+      },
+      {
+        "id": "t30",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 30",
+          "es": "Paso 30 de la compra"
+        }
+      },
+      {
+        "id": "g30",
+        "type": "exclusive_gateway",
+        "lane_id": "l2",
+        "name": {
+          "en": "Step 30 approved?",
+          "es": "¿Paso 30 aprobado?"
+        }
+      },
+      {
+        "id": "x30",
+        "type": "end_event",
+        "lane_id": "l2",
+        "name": {
+          "en": "Cancelled at 30",
+          "es": "Compra cancelada en el paso 30"
+        }
+      },
+      {
+        "id": "t31",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 31",
+          "es": "Paso 31 de la compra"
+        }
+      },
+      {
+        "id": "t32",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 32",
+          "es": "Paso 32 de la compra"
+        }
+      },
+      {
+        "id": "t33",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 33",
+          "es": "Paso 33 de la compra"
+        }
+      },
+      {
+        "id": "t34",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 34",
+          "es": "Paso 34 de la compra"
+        }
+      },
+      {
+        "id": "t35",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 35",
+          "es": "Paso 35 de la compra"
+        }
+      },
+      {
+        "id": "t36",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 36",
+          "es": "Paso 36 de la compra"
+        }
+      },
+      {
+        "id": "g36",
+        "type": "exclusive_gateway",
+        "lane_id": "l4",
+        "name": {
+          "en": "Step 36 approved?",
+          "es": "¿Paso 36 aprobado?"
+        }
+      },
+      {
+        "id": "x36",
+        "type": "end_event",
+        "lane_id": "l4",
+        "name": {
+          "en": "Cancelled at 36",
+          "es": "Compra cancelada en el paso 36"
+        }
+      },
+      {
+        "id": "t37",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 37",
+          "es": "Paso 37 de la compra"
+        }
+      },
+      {
+        "id": "t38",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 38",
+          "es": "Paso 38 de la compra"
+        }
+      },
+      {
+        "id": "t39",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 39",
+          "es": "Paso 39 de la compra"
+        }
+      },
+      {
+        "id": "t40",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 40",
+          "es": "Paso 40 de la compra"
+        }
+      },
+      {
+        "id": "t41",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 41",
+          "es": "Paso 41 de la compra"
+        }
+      },
+      {
+        "id": "t42",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 42",
+          "es": "Paso 42 de la compra"
+        }
+      },
+      {
+        "id": "g42",
+        "type": "exclusive_gateway",
+        "lane_id": "l1",
+        "name": {
+          "en": "Step 42 approved?",
+          "es": "¿Paso 42 aprobado?"
+        }
+      },
+      {
+        "id": "x42",
+        "type": "end_event",
+        "lane_id": "l1",
+        "name": {
+          "en": "Cancelled at 42",
+          "es": "Compra cancelada en el paso 42"
+        }
+      },
+      {
+        "id": "t43",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 43",
+          "es": "Paso 43 de la compra"
+        }
+      },
+      {
+        "id": "t44",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 44",
+          "es": "Paso 44 de la compra"
+        }
+      },
+      {
+        "id": "t45",
+        "type": "task",
+        "lane_id": "l1",
+        "name": {
+          "en": "Purchase step 45",
+          "es": "Paso 45 de la compra"
+        }
+      },
+      {
+        "id": "t46",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 46",
+          "es": "Paso 46 de la compra"
+        }
+      },
+      {
+        "id": "t47",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 47",
+          "es": "Paso 47 de la compra"
+        }
+      },
+      {
+        "id": "t48",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 48",
+          "es": "Paso 48 de la compra"
+        }
+      },
+      {
+        "id": "g48",
+        "type": "exclusive_gateway",
+        "lane_id": "l2",
+        "name": {
+          "en": "Step 48 approved?",
+          "es": "¿Paso 48 aprobado?"
+        }
+      },
+      {
+        "id": "x48",
+        "type": "end_event",
+        "lane_id": "l2",
+        "name": {
+          "en": "Cancelled at 48",
+          "es": "Compra cancelada en el paso 48"
+        }
+      },
+      {
+        "id": "t49",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 49",
+          "es": "Paso 49 de la compra"
+        }
+      },
+      {
+        "id": "t50",
+        "type": "task",
+        "lane_id": "l2",
+        "name": {
+          "en": "Purchase step 50",
+          "es": "Paso 50 de la compra"
+        }
+      },
+      {
+        "id": "t51",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 51",
+          "es": "Paso 51 de la compra"
+        }
+      },
+      {
+        "id": "t52",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 52",
+          "es": "Paso 52 de la compra"
+        }
+      },
+      {
+        "id": "t53",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 53",
+          "es": "Paso 53 de la compra"
+        }
+      },
+      {
+        "id": "t54",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 54",
+          "es": "Paso 54 de la compra"
+        }
+      },
+      {
+        "id": "g54",
+        "type": "exclusive_gateway",
+        "lane_id": "l3",
+        "name": {
+          "en": "Step 54 approved?",
+          "es": "¿Paso 54 aprobado?"
+        }
+      },
+      {
+        "id": "x54",
+        "type": "end_event",
+        "lane_id": "l3",
+        "name": {
+          "en": "Cancelled at 54",
+          "es": "Compra cancelada en el paso 54"
+        }
+      },
+      {
+        "id": "t55",
+        "type": "task",
+        "lane_id": "l3",
+        "name": {
+          "en": "Purchase step 55",
+          "es": "Paso 55 de la compra"
+        }
+      },
+      {
+        "id": "t56",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 56",
+          "es": "Paso 56 de la compra"
+        }
+      },
+      {
+        "id": "t57",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 57",
+          "es": "Paso 57 de la compra"
+        }
+      },
+      {
+        "id": "t58",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 58",
+          "es": "Paso 58 de la compra"
+        }
+      },
+      {
+        "id": "t59",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 59",
+          "es": "Paso 59 de la compra"
+        }
+      },
+      {
+        "id": "t60",
+        "type": "task",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase step 60",
+          "es": "Paso 60 de la compra"
+        }
+      },
+      {
+        "id": "end",
+        "type": "end_event",
+        "lane_id": "l4",
+        "name": {
+          "en": "Purchase closed",
+          "es": "Compra cerrada"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "f1",
+        "source": "start",
+        "target": "t1"
+      },
+      {
+        "id": "f2",
+        "source": "t1",
+        "target": "t2"
+      },
+      {
+        "id": "f3",
+        "source": "t2",
+        "target": "t3"
+      },
+      {
+        "id": "f4",
+        "source": "t3",
+        "target": "t4"
+      },
+      {
+        "id": "f5",
+        "source": "t4",
+        "target": "t5"
+      },
+      {
+        "id": "f6",
+        "source": "t5",
+        "target": "t6"
+      },
+      {
+        "id": "f6-g",
+        "source": "t6",
+        "target": "g6"
+      },
+      {
+        "id": "f6-no",
+        "source": "g6",
+        "target": "x6",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f7",
+        "source": "g6",
+        "target": "t7",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f8",
+        "source": "t7",
+        "target": "t8"
+      },
+      {
+        "id": "f9",
+        "source": "t8",
+        "target": "t9"
+      },
+      {
+        "id": "f10",
+        "source": "t9",
+        "target": "t10"
+      },
+      {
+        "id": "f11",
+        "source": "t10",
+        "target": "t11"
+      },
+      {
+        "id": "f12",
+        "source": "t11",
+        "target": "t12"
+      },
+      {
+        "id": "f12-g",
+        "source": "t12",
+        "target": "g12"
+      },
+      {
+        "id": "f12-no",
+        "source": "g12",
+        "target": "x12",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f13",
+        "source": "g12",
+        "target": "t13",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f14",
+        "source": "t13",
+        "target": "t14"
+      },
+      {
+        "id": "f15",
+        "source": "t14",
+        "target": "t15"
+      },
+      {
+        "id": "f16",
+        "source": "t15",
+        "target": "t16"
+      },
+      {
+        "id": "f17",
+        "source": "t16",
+        "target": "t17"
+      },
+      {
+        "id": "f18",
+        "source": "t17",
+        "target": "t18"
+      },
+      {
+        "id": "f18-g",
+        "source": "t18",
+        "target": "g18"
+      },
+      {
+        "id": "f18-no",
+        "source": "g18",
+        "target": "x18",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f19",
+        "source": "g18",
+        "target": "t19",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f20",
+        "source": "t19",
+        "target": "t20"
+      },
+      {
+        "id": "f21",
+        "source": "t20",
+        "target": "t21"
+      },
+      {
+        "id": "f22",
+        "source": "t21",
+        "target": "t22"
+      },
+      {
+        "id": "f23",
+        "source": "t22",
+        "target": "t23"
+      },
+      {
+        "id": "f24",
+        "source": "t23",
+        "target": "t24"
+      },
+      {
+        "id": "f24-g",
+        "source": "t24",
+        "target": "g24"
+      },
+      {
+        "id": "f24-no",
+        "source": "g24",
+        "target": "x24",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f25",
+        "source": "g24",
+        "target": "t25",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f26",
+        "source": "t25",
+        "target": "t26"
+      },
+      {
+        "id": "f27",
+        "source": "t26",
+        "target": "t27"
+      },
+      {
+        "id": "f28",
+        "source": "t27",
+        "target": "t28"
+      },
+      {
+        "id": "f29",
+        "source": "t28",
+        "target": "t29"
+      },
+      {
+        "id": "f30",
+        "source": "t29",
+        "target": "t30"
+      },
+      {
+        "id": "f30-g",
+        "source": "t30",
+        "target": "g30"
+      },
+      {
+        "id": "f30-no",
+        "source": "g30",
+        "target": "x30",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f31",
+        "source": "g30",
+        "target": "t31",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f32",
+        "source": "t31",
+        "target": "t32"
+      },
+      {
+        "id": "f33",
+        "source": "t32",
+        "target": "t33"
+      },
+      {
+        "id": "f34",
+        "source": "t33",
+        "target": "t34"
+      },
+      {
+        "id": "f35",
+        "source": "t34",
+        "target": "t35"
+      },
+      {
+        "id": "f36",
+        "source": "t35",
+        "target": "t36"
+      },
+      {
+        "id": "f36-g",
+        "source": "t36",
+        "target": "g36"
+      },
+      {
+        "id": "f36-no",
+        "source": "g36",
+        "target": "x36",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f37",
+        "source": "g36",
+        "target": "t37",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f38",
+        "source": "t37",
+        "target": "t38"
+      },
+      {
+        "id": "f39",
+        "source": "t38",
+        "target": "t39"
+      },
+      {
+        "id": "f40",
+        "source": "t39",
+        "target": "t40"
+      },
+      {
+        "id": "f41",
+        "source": "t40",
+        "target": "t41"
+      },
+      {
+        "id": "f42",
+        "source": "t41",
+        "target": "t42"
+      },
+      {
+        "id": "f42-g",
+        "source": "t42",
+        "target": "g42"
+      },
+      {
+        "id": "f42-no",
+        "source": "g42",
+        "target": "x42",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f43",
+        "source": "g42",
+        "target": "t43",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f44",
+        "source": "t43",
+        "target": "t44"
+      },
+      {
+        "id": "f45",
+        "source": "t44",
+        "target": "t45"
+      },
+      {
+        "id": "f46",
+        "source": "t45",
+        "target": "t46"
+      },
+      {
+        "id": "f47",
+        "source": "t46",
+        "target": "t47"
+      },
+      {
+        "id": "f48",
+        "source": "t47",
+        "target": "t48"
+      },
+      {
+        "id": "f48-g",
+        "source": "t48",
+        "target": "g48"
+      },
+      {
+        "id": "f48-no",
+        "source": "g48",
+        "target": "x48",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f49",
+        "source": "g48",
+        "target": "t49",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f50",
+        "source": "t49",
+        "target": "t50"
+      },
+      {
+        "id": "f51",
+        "source": "t50",
+        "target": "t51"
+      },
+      {
+        "id": "f52",
+        "source": "t51",
+        "target": "t52"
+      },
+      {
+        "id": "f53",
+        "source": "t52",
+        "target": "t53"
+      },
+      {
+        "id": "f54",
+        "source": "t53",
+        "target": "t54"
+      },
+      {
+        "id": "f54-g",
+        "source": "t54",
+        "target": "g54"
+      },
+      {
+        "id": "f54-no",
+        "source": "g54",
+        "target": "x54",
+        "label": {
+          "en": "No",
+          "es": "No"
+        }
+      },
+      {
+        "id": "f55",
+        "source": "g54",
+        "target": "t55",
+        "label": {
+          "en": "Yes",
+          "es": "Sí"
+        }
+      },
+      {
+        "id": "f56",
+        "source": "t55",
+        "target": "t56"
+      },
+      {
+        "id": "f57",
+        "source": "t56",
+        "target": "t57"
+      },
+      {
+        "id": "f58",
+        "source": "t57",
+        "target": "t58"
+      },
+      {
+        "id": "f59",
+        "source": "t58",
+        "target": "t59"
+      },
+      {
+        "id": "f60",
+        "source": "t59",
+        "target": "t60"
+      },
+      {
+        "id": "f-end",
+        "source": "t60",
+        "target": "end"
+      }
+    ]
+  }
+}

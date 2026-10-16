@@ -59,8 +59,9 @@ module Bali
 
     # isolate_namespace keeps engine helpers out of the host app, but these are
     # meant for the HOST layout: the island meta tags publish the digested paths
-    # of the app's own island bundles, `bali_theme` fills its `<html>`, and the
-    # Google Maps meta tags its `<head>`.
+    # of the app's own island bundles, `bali_theme` fills its `<html>`, the
+    # Google Maps meta tags its `<head>`, and the BPMN editor's stream helpers
+    # answer the host's own drawer forms.
     #
     # to_prepare, NOT on_load(:action_controller_base): a host that loads
     # ActionController::Base during boot (any gem requiring it does) fires that
@@ -71,6 +72,7 @@ module Bali
       ActionController::Base.helper(Bali::BlockEditorHelper)
       ActionController::Base.helper(Bali::ThemeHelper)
       ActionController::Base.helper(Bali::GoogleMapsHelper)
+      ActionController::Base.helper(Bali::BpmnEditorHelper)
     end
 
     # Host-injected controller concerns (#710) — see docs/guides/engines.md. In a

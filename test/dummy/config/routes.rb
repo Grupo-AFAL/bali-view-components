@@ -54,6 +54,19 @@ Rails.application.routes.draw do
       resources :dependencies, only: %i[create destroy], module: :projects
     end
 
+    # Reference host of Bali::BpmnEditor (#1489): the save, finalize and
+    # search endpoints of docs/api/bpmn-editor.md.
+    resources :process_flows, only: :show do
+      scope module: :process_flows do
+        resource :diagram, only: %i[show update]
+        resource :finalization, only: :create
+        resource :import, only: %i[new create]
+        resource :host_event, only: :create
+        resources :references, only: %i[index new create]
+        resources :lane_assignees, only: %i[index new create]
+      end
+    end
+
     resources :analytics, only: :index
     resources :revenue, only: :index
     resource :settings, only: %i[show update]

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::BpmnEditor`: editor de diagramas BPMN 2.0 con carriles** (#1489). Isla de React Flow,
+  como `Bali::Gantt`, con su propio entry (`bali-view-components/bpmn-editor-entry`). Edita el
+  documento que recibe (`Bali::BpmnEditor::Data`) y guarda el documento completo, con su versión,
+  en `urls[:save]`; sin esa URL es un visor. Reglas de modelado configurables con ciclo
+  Borrador/Finalizar, acomodo y ruteo propios, y salidas `.bpmn`, PNG, SVG e impresión. Las
+  reglas que solo son lineamiento de AFAL viven aparte, en `bali-view-components/bpmn-editor/afal-rules`.
+  Cada elemento de la paleta explica qué es y cuándo usarlo en un tooltip (textos `palette_<key>_*`,
+  reemplazables con `i18n:`). En Lookbook, el Playground prueba cada opción (y las respuestas 409, 422 y lentas del servidor),
+  la galería de reglas muestra cada regla con un ejemplo que falla y uno que pasa, e «Integración
+  con la app» muestra los eventos y los helpers de Turbo Stream.
+  - **Anfitrión:** nada que hacer si no lo usa. Para usarlo, los cuatro pasos de instalación de
+    [la guía](docs/api/bpmn-editor.md) y sus dependencias opcionales (`react`, `react-dom`,
+    `@xyflow/react`, `@rails/request.js`); la implementación de referencia está en `test/dummy`
+    (`ProcessFlow` y `Admin::ProcessFlows::*`).
+
 ## [v3.18.0] - 2026-10-15
 
 ### Removed
