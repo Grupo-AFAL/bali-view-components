@@ -114,6 +114,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `bali_view.form_builder.date_fields.range_separator`: con la cadena de fallbacks de la app podía
   decir otra cosa que flatpickr. Ninguna app la sobrescribe: nada que hacer en la app.
 
+- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda** (#1495, desde
+  v3.11.0, con SlimSelect 4). Al elegir un resultado que no venía en la semilla, SlimSelect lo
+  ponía delante del placeholder y la ✕ lo volvía a elegir: el valor no cambiaba. Afecta sólo a
+  los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
+  hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+
+- **Las opciones con `data-inner-html` dibujan su HTML aunque un placeholder vaya delante, estén
+  en grupos o lleguen después de montar** (#1495). El controlador miraba sólo el primer hijo del
+  `<select>`, que con `include_blank:` o `prompt:` es el placeholder y en una lista agrupada es un
+  `<optgroup>`, y sólo al montar. Ahora SlimSelect lee el HTML de cada opción, también de la que
+  agrega después un Turbo Stream o el JS de la app, y el `<select>` ya no se reescribe al montar:
+  sus opciones conservan `id`, `class` y los demás `data-*`. En gobierno-corporativo, el selector
+  de procesos de un documento muestra la ruta de cada uno. Nada que hacer en la app. El blank con
+  `data-inner-html` propio que arman sus helpers para esquivarlo ya no hace falta; cambiarlo por
+  `include_blank:` lo convierte de fila de la lista en placeholder, con ✕.
+
+- **SlimSelect: «Seleccionar todo» también elige las opciones de una lista agrupada**. Con
+  `select_all: true` sobre una lista en `<optgroup>` no elegía ninguna: leía sólo los hijos directos
+  del `<select>`. Ahora elige todas las habilitadas, en grupos o no. Deja fuera las deshabilitadas,
+  que antes salían como chip sin que el formulario las mandara, y las vacías: el placeholder de
+  `include_blank:` y la fila en blanco que Rails pone en una lista agrupada. El único uso con
+  Bali 3, los avisos de la guardería en afal-apps, es una lista plana sin deshabilitadas ni
+  `include_blank:` (`daycare/notices/_form.html.erb`, con `placeholder:`). Nada que hacer en la app.
+
+- **Un `slim_select` múltiple con `include_blank:` o `prompt:` ya no arranca con el vacío
+  elegido**. Rails elige la opción `""` mientras el valor es `nil` o vacío, y en un select múltiple
+  esa opción es el placeholder: salía como chip y el formulario mandaba un valor vacío. Lo mismo
+  con un `selected: ""`, que es lo que `SimpleFilters` pasa a un filtro sin valor. Un formulario
+  sin objeto ni `selected:` (`form_with scope:`) sigue como antes: ahí Rails lee el valor de la
+  vista. En gobierno-corporativo cambia lo que se ve en los selects múltiples `by_management_level`
+  y `by_relation` de `document_classification_types/_config_field.html.erb` (`:92` y `:105`)
+  mientras no tienen valor: su `config-field` marca el campo como inválido al cargar hasta que se
+  elige algo (antes el vacío elegido contaba como elección), y la consulta de usuarios resueltos
+  deja de mandar `value[]=`. Su modelo ya descartaba el vacío.
+
+- **SlimSelect: las opciones de un `<optgroup disabled>` ya no se pueden elegir**. SlimSelect sólo
+  lee el `disabled` de cada opción, así que se elegían y salían como chip aunque el formulario no
+  las mandara. Ahora el controlador deshabilita las opciones del grupo, también las de un grupo que
+  llega después de montar. Ninguna app tiene grupos deshabilitados. Nada que hacer en la app.
+
 ### Documentation
 
 - **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).

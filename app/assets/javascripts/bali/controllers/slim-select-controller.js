@@ -106,6 +106,7 @@ export class SlimSelectController extends Controller {
     // <select>, and the orphan reverts what the live one writes: the user picks an option,
     // the widget shows it, and the <select> that FormData serializes stays empty.
     const generation = (this.generation = (this.generation || 0) + 1)
+    let optionObserver
 
     try {
       const slimSelect = await import('slim-select').catch(optionalPeer('slim-select'))
@@ -148,13 +149,16 @@ export class SlimSelectController extends Controller {
         options.settings.contentWidth = this.contentWidthValue
       }
 
-      // SlimSelect reads an option's markup from `data-html`; `data-inner-html` is the name Bali
-      // documents and hosts write. Copied, not handed over as `data`: SlimSelect rebuilds the
-      // <select> from `data`, keeping only the attributes it maps, and 3.x dispatches a `change`
-      // doing it.
-      for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
-        option.dataset.html = option.dataset.innerHtml
-      }
+      // Written on the options, not handed over as `data`: SlimSelect rebuilds the <select> from
+      // `data`, keeping only the attributes it maps, and 3.x dispatches a `change` doing it.
+      this.prepareOptions()
+
+      // And on every option that arrives later — a Turbo Stream into the <select>, a host's
+      // script — before SlimSelect's own observer reads it: SlimSelect rebuilds the <select> from
+      // what it read, dropping a group's `disabled` for good. A mutation both observe reaches the
+      // one that started observing first, so this one starts before `new SlimSelect`.
+      optionObserver = new MutationObserver(() => this.prepareOptions())
+      optionObserver.observe(this.selectTarget, { childList: true, subtree: true })
 
       if (this.hasAjaxValues()) {
         options.events.search = this.search
@@ -174,11 +178,13 @@ export class SlimSelectController extends Controller {
       // nobody, and leaving it alive is what corrupts the <select>. Destroying it here is the
       // only chance to — `teardown()` already ran, and it only ever looks at `this.select`.
       if (generation !== this.generation) {
+        optionObserver.disconnect()
         instance.destroy()
         return
       }
 
       this.select = instance
+      this.optionObserver = optionObserver
 
       // After the import, not before it: `teardown()` only ever looks at
       // `this.select`, so a listener registered while it is still null buys
@@ -210,6 +216,7 @@ export class SlimSelectController extends Controller {
       this.announceErrors()
       this.joinTopLayerOnOpen()
     } catch (error) {
+      optionObserver?.disconnect()
       console.error('[SlimSelect] Failed to initialize:', error)
     }
   }
@@ -362,8 +369,25 @@ export class SlimSelectController extends Controller {
   teardown () {
     leaveTopLayer(this.select?.render?.content?.main)
 
+    this.optionObserver?.disconnect()
     this.select?.destroy()
     this.select = null
+  }
+
+  prepareOptions () {
+    // SlimSelect reads an option's markup from `data-html`; `data-inner-html` is the name Bali
+    // documents and hosts write.
+    for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
+      if (option.dataset.html !== option.dataset.innerHtml) option.dataset.html = option.dataset.innerHtml
+    }
+
+    // SlimSelect reads an option's own `disabled`, never its group's, and its rebuild of the
+    // <select> drops the group's (3.4.3 to 4.6.0): the options of a disabled <optgroup> stayed
+    // pickable, each a chip the form does not send. One way: a group enabled again keeps its
+    // options disabled — SlimSelect replaces the group on its next read anyway.
+    for (const option of this.selectTarget.querySelectorAll('optgroup[disabled] > option:not([disabled])')) {
+      option.disabled = true
+    }
   }
 
   // Remove a SlimSelect widget left behind in a restored Turbo snapshot. The
@@ -376,11 +400,13 @@ export class SlimSelectController extends Controller {
   }
 
   selectAll () {
-    const allValues = Array.from(this.selectTarget.children).map(
-      option => option.value
-    )
+    // Not the disabled ones: selected, they show a chip, and the form does not send them. Nor a
+    // blank — the placeholder `build_select` writes for `include_blank:`, or Rails' blank row on
+    // a grouped list — which would send an empty value.
+    const values = Array.from(this.selectTarget.querySelectorAll('option:enabled'), option => option.value)
+      .filter(value => value !== '')
 
-    this.select.setSelected(allValues)
+    this.select.setSelected(values)
 
     if (this.hasSelectAllButtonTarget) {
       this.selectAllButtonTarget.classList.add('hidden')

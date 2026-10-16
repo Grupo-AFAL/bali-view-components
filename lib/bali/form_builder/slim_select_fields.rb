@@ -222,7 +222,18 @@ module Bali
         return select(method, values, options, html_options) if text.nil? || !flat_choices?(values)
 
         values = [ [ text, "", { data: { placeholder: true } } ], *values ]
-        select(method, values, options.except(:include_blank, :prompt), html_options)
+        options = options.except(:include_blank, :prompt)
+        # The placeholder is one of the choices, so Rails marks it selected whenever what it selects
+        # holds a "": a nil value, which `Tags::Select#render` turns into one, or a blank handed in,
+        # as SimpleFilters does for a filter with no value. Rails' own include_blank option is never
+        # marked. On a multiple select it is a chip that sends a blank, so the "" goes — as it does
+        # from the controller's `selectAll`. Not without an object or a `selected:`: Rails then
+        # reads the view's `@<object_name>` (`Tags::Base#retrieve_object`), which this cannot see.
+        if html_options[:multiple] && (@object || options.key?(:selected))
+          selected = options.fetch(:selected) { @object.try(method) }
+          options = options.merge(selected: Array(selected).map(&:to_s) - [ "" ])
+        end
+        select(method, values, options, html_options)
       end
 
       # Rails' select decides between options_for_select and grouped_options_for_select
