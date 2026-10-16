@@ -159,17 +159,22 @@ describe('CheckboxToggleController', () => {
       target('outer-off').should('have.class', 'hidden')
     })
 
+    // Each checked box is wired in a spelling the descriptor has to parse: a bare action
+    // after another one, with options, and one bound to an explicit event. Ahead of each,
+    // an unchecked decoy whose action only contains the identifier.
     it('repaints from the checkbox wired to it, not one whose action only contains its name', () => {
-      insert(`
+      ;['focus->other#noop checkbox-toggle#change:stop', 'change->checkbox-toggle#change'].forEach((action, i) => insert(`
         <div data-controller="checkbox-toggle">
-          <input type="checkbox" checked data-action="input->other-checkbox-toggle#change">
-          <div id="decoy-on" data-checkbox-toggle-target="on"></div>
-          <input type="checkbox" data-action="checkbox-toggle#change">
-        </div>`)
-      cy.get('#decoy-on').should('have.class', 'hidden')
+          <input type="checkbox" data-action="input->other-checkbox-toggle#change">
+          <div id="wired-${i}" data-checkbox-toggle-target="on"></div>
+          <input type="checkbox" checked data-action="${action}">
+        </div>`))
+      cy.get('#wired-0, #wired-1').should($ons => expect($ons.not('.hidden')).to.have.length(0))
 
-      morph('decoy-on')
-      cy.get('#decoy-on[data-streamed]').should('have.class', 'hidden')
+      morph('wired-0')
+      morph('wired-1')
+      cy.get('#wired-0[data-streamed]').should('not.have.class', 'hidden')
+      cy.get('#wired-1[data-streamed]').should('not.have.class', 'hidden')
     })
   })
 

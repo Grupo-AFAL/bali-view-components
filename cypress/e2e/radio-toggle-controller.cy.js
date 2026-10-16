@@ -174,6 +174,26 @@ describe('RadioToggleController', () => {
       allDisabled('damaged')
     })
 
+    // The server repaints the checkbox as it last saw the form, unchecked.
+    Object.entries(streams).forEach(([verb, method]) => {
+      it(`follows a checkbox a Turbo Stream ${verb}`, () => {
+        radio('Damaged').check()
+        box().check()
+        target('label-photo').should('not.have.class', 'hidden')
+
+        cy.get('#terminal_serial_unknown_field').then(($field) => {
+          const copy = $field[0].cloneNode(true)
+          copy.querySelector('input[type="checkbox"]').removeAttribute('checked')
+          copy.setAttribute('data-streamed', '')
+          return stream(`<turbo-stream action="replace" ${method} target="${copy.id}"><template>${copy.outerHTML}</template></turbo-stream>`)
+        })
+
+        cy.get('#terminal_serial_unknown_field[data-streamed]').find('input[type="checkbox"]').should('not.be.checked')
+        target('label-photo').should('have.class', 'hidden')
+        allDisabled('label-photo')
+      })
+    })
+
     it('clears the choice when a Turbo Stream morph leaves no radio checked', () => {
       radio('Damaged').check()
       rerenderRadios('terminal_status_field', '')

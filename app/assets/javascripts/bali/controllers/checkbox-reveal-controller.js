@@ -21,6 +21,11 @@ export class CheckboxRevealController extends Controller {
     this.toggle()
   }
 
+  // A checkbox a Turbo Stream replaces brings its own state, and no event says so.
+  checkboxTargetConnected () {
+    this.toggle()
+  }
+
   retoggle = () => this.toggle()
 
   toggle () {

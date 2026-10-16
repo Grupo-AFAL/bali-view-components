@@ -5,7 +5,7 @@ import { wiredInputs } from '../utils/wired-inputs.js'
  * Shows different elements based on the value of a radio button
  *
  * <div data-controller="radio-toggle" data-radio-toggle-current-value="one">
- *   <input type="radio" data-action="radio-toggle#change" value="one">
+ *   <input type="radio" data-action="radio-toggle#change" value="one" checked>
  *   <input type="radio" data-action="radio-toggle#change" value="two">
  *
  *   <div data-radio-toggle-target="element" data-radio-toggle-value="one">
@@ -21,7 +21,7 @@ import { wiredInputs } from '../utils/wired-inputs.js'
  * Shows the same result with multiple radio buttons value
  *
  * <div data-controller="radio-toggle" data-radio-toggle-current-value="one">
- *   <input type="radio" data-action="radio-toggle#change" value="one">
+ *   <input type="radio" data-action="radio-toggle#change" value="one" checked>
  *   <input type="radio" data-action="radio-toggle#change" value="two">
  *
  *   <div data-radio-toggle-target="element" data-radio-toggle-value="one">
@@ -70,6 +70,11 @@ export class RadioToggleController extends Controller {
   // and takes the choice on screen rather than the one the server painted.
   elementTargetConnected (element) {
     this.toggle(element)
+  }
+
+  // A checkbox a Turbo Stream replaces brings its own state, and no event says so.
+  checkboxTargetConnected () {
+    this.toggleTargets()
   }
 
   // A morph that checks another radio, or none, fires no `change`, and the radios

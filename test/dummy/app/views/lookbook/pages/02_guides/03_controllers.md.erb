@@ -123,8 +123,8 @@ them otherwise. The hiding class defaults to `hidden`; override it with
 </div>
 ```
 
-An `item` a Turbo Stream replaces or morphs follows the checkboxes on screen, not
-the class the server painted.
+When a Turbo Stream replaces or morphs an `item` or a `checkbox`, the items follow
+the checkboxes on screen, not the class the server painted.
 
 ## `checkbox-toggle`
 
@@ -139,9 +139,10 @@ two-sided variant of `checkbox-reveal`.
 </div>
 ```
 
-`checked` sets the initial state before the first change event. Each side takes
-any number of targets, and one side is enough: a controller with only `on` or only
-`off` targets toggles those.
+`checked` sets the initial state only: after a change event, or after any morph
+inside the controller, the choice is the checkbox on screen, which is what the form
+sends. Each side takes any number of targets, and one side is enough: a controller
+with only `on` or only `off` targets toggles those.
 
 **Hidden fields are not sent** — `data-checkbox-toggle-disable-hidden-value="true"`
 disables the targets of the hidden side, which have to be `<fieldset>`s. A
@@ -152,9 +153,7 @@ their own `disabled` and a file already chosen. Live in the
 
 **Targets that arrive later** — an `on` or `off` target a Turbo Stream replaces
 or morphs follows the checkbox on screen, not the state the server painted: its
-`hidden` class and, with `disable-hidden`, its `disabled`. A morph of the checkbox
-itself moves the targets with it: they follow the box as the morph leaves it, which
-is what the form sends.
+`hidden` class and, with `disable-hidden`, its `disabled`.
 
 ## `datepicker`
 
@@ -536,11 +535,13 @@ value (comma-separated to match several) — the single-level sibling of
   chosen, and covers fields a Turbo Stream adds to it later.
 - **Targets that arrive later** — a target a Turbo Stream adds, replaces or
   morphs takes the visibility of the choice on screen at that moment, not the one
-  the server painted. A morph of the radios makes the one it leaves checked the
-  choice, or no choice if it leaves none, as the form will send it. Only radios are
-  read again: a `<select>` wired to `change` keeps the choice of its last `change`.
+  the server painted, and a `checkbox` a stream replaces counts as it arrives.
+- **The choice is what is on screen** — `current-value` sets the initial state
+  only. After any morph inside the controller, the choice is the radio checked on
+  screen, or none if none is, as the form will send it. Only radios are read again:
+  a `<select>` wired to `change` keeps the choice of its last `change`.
 
-All three are live in the `bali/radio_toggle/dependent_fields` preview.
+The first two are live in the `bali/radio_toggle/dependent_fields` preview.
 
 ## `slim-select`
 

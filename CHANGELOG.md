@@ -20,11 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Turbo Stream con morph, y `checkbox-toggle` pinta todos los targets de cada lado** (hallado al
   resolver #1495). Un `turbo_stream.replace(…, method: :morph)` conserva el elemento: el target se
   quedaba con el `hidden` y, con `disable-hidden`, el `disabled` que mandó el servidor, y si el
-  morph cambiaba el radio o la casilla, los targets seguían la elección anterior. `checkbox-reveal` tampoco pintaba un `item`
-  reemplazado sin morph, y un segundo `on` u `off` no se pintaba nunca. Un `toggleTargets`
-  sobrescrito en una subclase corre ahora tras cada elemento que el morph transforma dentro del
-  controlador, varias veces por stream: tiene que ser idempotente. Ninguna app hace hoy nada de
-  esto: nada que hacer en la app.
+  morph cambiaba el radio o la casilla, los targets seguían la elección anterior. Ahora, tras un
+  morph, la elección es el control que se ve; el atributo de valor sólo da el estado inicial.
+  `checkbox-reveal` tampoco pintaba un `item` reemplazado sin morph, ni él ni `radio-toggle`
+  seguían una casilla target reemplazada, y un segundo `on` u `off` no se pintaba nunca. Un
+  `toggleTargets` sobrescrito en una subclase corre ahora tras cada elemento que el morph
+  transforma dentro del controlador, varias veces por stream: tiene que ser idempotente. Ninguna
+  app hace hoy nada de esto: nada que hacer en la app.
 
 - **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
   accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el
