@@ -139,6 +139,29 @@ export function ruleList (config) {
   }))
 }
 
+// The rules an element is held to, by palette key (a rule's `appliesTo`,
+// rules/applies.js): [{ id, severity, optional }] — `optional` for a rule that
+// is not in the built-in catalogue (the optional package's, or the host's).
+// `rules` defaults to every rule this bundle knows.
+export function rulesFor (key, rules = [...CATALOG, ...registeredRules()]) {
+  return rules.filter((rule) => (rule.appliesTo || []).includes(key))
+    .map((rule) => ({ id: rule.id, severity: rule.severity || 'error', optional: !CATALOG.includes(rule) }))
+}
+
+// What the Lookbook catalog preview reads (test/fixtures/bpmn_editor/
+// rule_catalog.json, printed by test/javascript/bpmn_editor/bin/rule_catalog.js).
+export function ruleCatalog (rules = [...CATALOG, ...registeredRules()]) {
+  return {
+    rules: rules.map((rule) => ({
+      id: rule.id,
+      severity: rule.severity || 'error',
+      section: rule.section || 'app',
+      appliesTo: rule.appliesTo || [],
+      optional: !CATALOG.includes(rule)
+    }))
+  }
+}
+
 // Issues of a document: [{ rule, element_id, severity, message, source }].
 // `options.allowed`: the palette keys the host enables (VIS-10); `options.page`:
 // the sheet it prints on.

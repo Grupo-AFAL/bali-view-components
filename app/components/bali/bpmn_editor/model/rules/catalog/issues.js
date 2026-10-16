@@ -4,6 +4,7 @@ import { isActivity, isGateway, isFlowNode, edgeType } from '../../catalog.js'
 import { insideLane, nodeBox, boxesOverlap } from '../../geometry.js'
 import { wordsOf } from '../../wording.js'
 import { words, isJoin, isSplit, kind, generic, each } from '../helpers.js'
+import { ACTIVITY_KEYS, CONNECTOR_KEYS, DECISION_KEYS, END_KEYS, FLOW_NODE_KEYS, GATEWAY_KEYS, LANE, NODE_KEYS, START_KEYS, TASK_KEYS, byKind, byType } from '../applies.js'
 
 export const ISSUE_RULES = [
   {
@@ -11,6 +12,7 @@ export const ISSUE_RULES = [
     section: 'sequence_flows',
     criteria: ['SEC-05', 'COM-14'],
     severity: 'error',
+    appliesTo: ACTIVITY_KEYS,
     source: 'bpmnlint: fake-join; Method and Style',
     check: (_doc, ctx) => each(ctx.nodes, (n) => isActivity(n) && ctx.inc(n).length > 1, (n) => ({ element_id: n.id, vars: { name: ctx.name(n) } }))
   },
@@ -19,6 +21,7 @@ export const ISSUE_RULES = [
     section: 'gateways',
     criteria: ['COM-01'],
     severity: 'error',
+    appliesTo: ACTIVITY_KEYS,
     source: 'bpmnlint: no-implicit-split; Method and Style',
     check: (_doc, ctx) => each(ctx.nodes, (n) => isActivity(n) && ctx.out(n).length > 1, (n) => ({ element_id: n.id, vars: { name: ctx.name(n) } }))
   },
@@ -27,6 +30,7 @@ export const ISSUE_RULES = [
     section: 'decisions',
     criteria: ['COM-07', 'COM-09', 'DEC-02'],
     severity: 'error',
+    appliesTo: DECISION_KEYS,
     source: 'Method and Style: label the gates of a split; bpmnlint: conditional-flows',
     check: (_doc, ctx) => each(ctx.nodes,
       (n) => (n.type === 'exclusive_gateway' || n.type === 'inclusive_gateway') && isSplit(ctx, n) && ctx.out(n).some((e) => !words(e.label)),
@@ -37,6 +41,7 @@ export const ISSUE_RULES = [
     section: 'gateways',
     criteria: ['COM-02'],
     severity: 'error',
+    appliesTo: byType('exclusive_gateway'),
     source: '#1489 (optional)',
     check: (_doc, ctx) => each(ctx.nodes, (n) => {
       if (n.type !== 'exclusive_gateway' || ctx.out(n).length <= 2) return false
@@ -49,6 +54,7 @@ export const ISSUE_RULES = [
     section: 'gateways',
     criteria: ['COM-17', 'COM-18', 'COM-21'],
     severity: 'error',
+    appliesTo: byType('parallel_gateway', 'inclusive_gateway'),
     // Only paths that meet again need a merge: a branch that ends in an end
     // event has finished (COM-21). A merge of the wrong type is COM-19's.
     source: 'Method and Style: a parallel or inclusive split is merged by a gateway of its type; AFAL COM-21',
@@ -66,6 +72,7 @@ export const ISSUE_RULES = [
     section: 'start_events',
     criteria: ['EVI-02'],
     severity: 'error',
+    appliesTo: START_KEYS,
     source: 'Camunda modeling guidelines: name start events after their trigger',
     check: (_doc, ctx) => each(ctx.nodes, (n) => n.type === 'start_event' && generic(n.name, ctx.list('generic_start_names')), (n) => ({ element_id: n.id }))
   },
@@ -74,6 +81,7 @@ export const ISSUE_RULES = [
     section: 'end_events',
     criteria: ['EVF-02'],
     severity: 'error',
+    appliesTo: END_KEYS,
     source: 'Camunda modeling guidelines: name end events after the end state',
     check: (_doc, ctx) => each(ctx.nodes, (n) => n.type === 'end_event' && generic(n.name, ctx.list('generic_end_names')), (n) => ({ element_id: n.id }))
   },
@@ -85,6 +93,7 @@ export const ISSUE_RULES = [
     section: 'intermediate_events',
     criteria: ['EVM-04', 'EVM-06'],
     severity: 'error',
+    appliesTo: byKind(['intermediate_catch_event', 'intermediate_throw_event'], ['message', 'timer']),
     source: 'AFAL EVM-04; BPMN 2.0, AFAL EVM-06',
     check: (_doc, ctx) => {
       const generics = ctx.plainList('generic_event_names')
@@ -100,6 +109,7 @@ export const ISSUE_RULES = [
     section: 'decisions',
     criteria: ['COM-06', 'COM-08', 'DEC-01'],
     severity: 'error',
+    appliesTo: FLOW_NODE_KEYS,
     source: 'bpmnlint: label-required',
     check: (_doc, ctx) => each(ctx.nodes, (n) => isFlowNode(n) && !(isGateway(n) && isJoin(ctx, n)) && !words(n.name), (n) => ({ element_id: n.id }))
   },
@@ -108,6 +118,7 @@ export const ISSUE_RULES = [
     section: 'lanes',
     criteria: ['LAN-07'],
     severity: 'error',
+    appliesTo: LANE,
     source: '#1489',
     check: (_doc, ctx) => each(ctx.doc.lanes || [],
       (l) => !ctx.nodes.some((n) => String(n.lane_id) === String(l.id) && isActivity(n)),
@@ -118,6 +129,7 @@ export const ISSUE_RULES = [
     section: 'subprocesses',
     criteria: ['SUB-01'],
     severity: 'error',
+    appliesTo: byType('sub_process'),
     source: '#1489',
     check: (_doc, ctx) => each(ctx.nodes, (n) => n.type === 'sub_process' && !(n.reference && n.reference.id), (n) => ({ element_id: n.id, vars: { name: ctx.name(n) } }))
   },
@@ -126,6 +138,7 @@ export const ISSUE_RULES = [
     section: 'start_events',
     criteria: ['EVI-01'],
     severity: 'error',
+    appliesTo: [...START_KEYS, ...END_KEYS],
     source: 'bpmnlint: start-event-required, end-event-required',
     check: (_doc, ctx) => (ctx.nodes.some((n) => n.type === 'start_event') && ctx.nodes.some((n) => n.type === 'end_event') ? [] : [{ element_id: null }])
   },
@@ -137,6 +150,7 @@ export const ISSUE_RULES = [
     section: 'sequence_flows',
     criteria: ['SEC-02'],
     severity: 'error',
+    appliesTo: FLOW_NODE_KEYS,
     source: 'bpmnlint: no-disconnected',
     check: (_doc, ctx) => {
       const found = []
@@ -156,6 +170,7 @@ export const ISSUE_RULES = [
     id: 'R14',
     section: 'gateways',
     severity: 'error',
+    appliesTo: GATEWAY_KEYS,
     source: 'bpmnlint: no-gateway-join-fork',
     check: (_doc, ctx) => each(ctx.nodes, (n) => isGateway(n) && ctx.inc(n).length > 1 && ctx.out(n).length > 1, (n) => ({ element_id: n.id, vars: { name: ctx.name(n) } }))
   },
@@ -163,6 +178,7 @@ export const ISSUE_RULES = [
     id: 'R15',
     section: 'gateways',
     severity: 'warning',
+    appliesTo: GATEWAY_KEYS,
     source: 'bpmnlint: superfluous-gateway',
     check: (_doc, ctx) => each(ctx.nodes, (n) => isGateway(n) && ctx.inc(n).length === 1 && ctx.out(n).length === 1, (n) => ({ element_id: n.id, vars: { name: ctx.name(n) } }))
   },
@@ -171,6 +187,7 @@ export const ISSUE_RULES = [
     section: 'activities',
     criteria: ['ACT-06'],
     severity: 'warning',
+    appliesTo: TASK_KEYS,
     source: 'Method and Style: distinct activity names',
     check: (_doc, ctx) => {
       const groups = new Map()
@@ -188,6 +205,7 @@ export const ISSUE_RULES = [
     section: 'activities',
     criteria: ['ACT-02'],
     severity: 'warning',
+    appliesTo: TASK_KEYS,
     source: 'Camunda modeling guidelines: activities as verb + object',
     check: (_doc, ctx) => {
       const verbs = ctx.list('vague_verbs')
@@ -199,6 +217,7 @@ export const ISSUE_RULES = [
     section: 'layout',
     criteria: ['VIS-07'],
     severity: 'error',
+    appliesTo: NODE_KEYS.filter((key) => key !== 'group'),
     source: '#1489 (legibility)',
     check: (_doc, ctx) => {
       const found = []
@@ -215,6 +234,7 @@ export const ISSUE_RULES = [
     id: 'R19',
     section: 'structure',
     severity: 'warning',
+    appliesTo: ACTIVITY_KEYS,
     source: 'Method and Style: hierarchical modelling',
     check: (_doc, ctx) => {
       const count = ctx.nodes.filter(isActivity).length
@@ -225,6 +245,7 @@ export const ISSUE_RULES = [
     id: 'R20',
     section: 'structure',
     severity: 'error',
+    appliesTo: ACTIVITY_KEYS,
     source: '#1489 (optional)',
     check: (_doc, ctx) => {
       const min = ctx.option('min_activities', 2)
@@ -236,6 +257,7 @@ export const ISSUE_RULES = [
     section: 'lanes',
     criteria: ['LAN-09'],
     severity: 'error',
+    appliesTo: LANE,
     // Lanes that take part: an empty lane is no second participant (LAN-09).
     source: '#1489; AFAL LAN-09',
     check: (_doc, ctx) => {
@@ -249,6 +271,7 @@ export const ISSUE_RULES = [
     section: 'lanes',
     criteria: ['LAN-02'],
     severity: 'error',
+    appliesTo: LANE,
     source: 'Camunda modeling guidelines: name lanes after their role',
     check: (_doc, ctx) => each(ctx.doc.lanes || [], (l) => !words(l.name) || generic(l.name, ctx.list('generic_lane_names')), (l) => ({ element_id: l.id }))
   },
@@ -257,6 +280,7 @@ export const ISSUE_RULES = [
     section: 'activities',
     criteria: ['ACT-03'],
     severity: 'error',
+    appliesTo: [...ACTIVITY_KEYS, ...GATEWAY_KEYS],
     source: 'Camunda modeling guidelines: specific names',
     check: (_doc, ctx) => each(ctx.nodes,
       (n) => (isActivity(n) && generic(n.name, ctx.list('generic_task_names'))) || (isGateway(n) && generic(n.name, ctx.list('generic_gateway_names'))),
@@ -267,6 +291,7 @@ export const ISSUE_RULES = [
     section: 'start_events',
     criteria: ['EVI-06', 'EVF-05'],
     severity: 'error',
+    appliesTo: [...START_KEYS, ...END_KEYS],
     source: 'BPMN 2.0 §10.5.2 and §10.5.3',
     check: (_doc, ctx) => [
       ...each(ctx.nodes, (n) => n.type === 'start_event' && ctx.inc(n).length > 0, (n) => ({ element_id: n.id, key: 'in', vars: { name: ctx.name(n) } })),
@@ -278,6 +303,7 @@ export const ISSUE_RULES = [
     section: 'sequence_flows',
     criteria: ['SEC-02'],
     severity: 'error',
+    appliesTo: CONNECTOR_KEYS,
     source: 'BPMN 2.0 §8.4.13 (sourceRef and targetRef)',
     check: (_doc, ctx) => each(ctx.doc.edges || [], (e) => !ctx.byId.has(String(e.source)) || !ctx.byId.has(String(e.target)), (e) => ({ element_id: e.id }))
   },
@@ -286,6 +312,7 @@ export const ISSUE_RULES = [
     section: 'lanes',
     criteria: ['LAN-06'],
     severity: 'error',
+    appliesTo: FLOW_NODE_KEYS,
     source: 'BPMN 2.0 §10.8 (lanes partition the flow elements)',
     check: (_doc, ctx) => (ctx.layout.entries.length
       ? each(ctx.nodes, (n) => isFlowNode(n) && !insideLane(ctx.layout, n), (n) => ({ element_id: n.id, vars: { name: ctx.name(n) } }))

@@ -1,0 +1,1052 @@
+{
+  "rules": [
+    {
+      "id": "R01",
+      "severity": "error",
+      "section": "sequence_flows",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R02",
+      "severity": "error",
+      "section": "gateways",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R03",
+      "severity": "error",
+      "section": "decisions",
+      "appliesTo": [
+        "binary_decision",
+        "exclusive_gateway",
+        "inclusive_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R04",
+      "severity": "error",
+      "section": "gateways",
+      "appliesTo": [
+        "binary_decision",
+        "exclusive_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R05",
+      "severity": "error",
+      "section": "gateways",
+      "appliesTo": [
+        "parallel_gateway",
+        "inclusive_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R06",
+      "severity": "error",
+      "section": "start_events",
+      "appliesTo": [
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R07",
+      "severity": "error",
+      "section": "end_events",
+      "appliesTo": [
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R08",
+      "severity": "error",
+      "section": "intermediate_events",
+      "appliesTo": [
+        "timer_event",
+        "message_event",
+        "message_throw_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R09",
+      "severity": "error",
+      "section": "decisions",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process",
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway",
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "timer_event",
+        "message_event",
+        "message_throw_event",
+        "escalation_event",
+        "compensation_event",
+        "conditional_event",
+        "link_event",
+        "link_throw_event",
+        "signal_event",
+        "signal_throw_event",
+        "multiple_event",
+        "parallel_multiple_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R10",
+      "severity": "error",
+      "section": "lanes",
+      "appliesTo": [
+        "lane"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R11",
+      "severity": "error",
+      "section": "subprocesses",
+      "appliesTo": [
+        "sub_process"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R12",
+      "severity": "error",
+      "section": "start_events",
+      "appliesTo": [
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R13",
+      "severity": "error",
+      "section": "sequence_flows",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process",
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway",
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "timer_event",
+        "message_event",
+        "message_throw_event",
+        "escalation_event",
+        "compensation_event",
+        "conditional_event",
+        "link_event",
+        "link_throw_event",
+        "signal_event",
+        "signal_throw_event",
+        "multiple_event",
+        "parallel_multiple_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R14",
+      "severity": "error",
+      "section": "gateways",
+      "appliesTo": [
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R15",
+      "severity": "warning",
+      "section": "gateways",
+      "appliesTo": [
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R16",
+      "severity": "warning",
+      "section": "activities",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R17",
+      "severity": "warning",
+      "section": "activities",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R18",
+      "severity": "error",
+      "section": "layout",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process",
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway",
+        "text_annotation",
+        "data_object",
+        "data_collection",
+        "data_input",
+        "data_output",
+        "data_store",
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "timer_event",
+        "message_event",
+        "message_throw_event",
+        "escalation_event",
+        "compensation_event",
+        "conditional_event",
+        "link_event",
+        "link_throw_event",
+        "signal_event",
+        "signal_throw_event",
+        "multiple_event",
+        "parallel_multiple_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R19",
+      "severity": "warning",
+      "section": "structure",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R20",
+      "severity": "error",
+      "section": "structure",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R21",
+      "severity": "error",
+      "section": "lanes",
+      "appliesTo": [
+        "lane"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R22",
+      "severity": "error",
+      "section": "lanes",
+      "appliesTo": [
+        "lane"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R23",
+      "severity": "error",
+      "section": "activities",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process",
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R24",
+      "severity": "error",
+      "section": "start_events",
+      "appliesTo": [
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R25",
+      "severity": "error",
+      "section": "sequence_flows",
+      "appliesTo": [
+        "sequence_flow",
+        "message_flow",
+        "association"
+      ],
+      "optional": false
+    },
+    {
+      "id": "R26",
+      "severity": "error",
+      "section": "lanes",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process",
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway",
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "timer_event",
+        "message_event",
+        "message_throw_event",
+        "escalation_event",
+        "compensation_event",
+        "conditional_event",
+        "link_event",
+        "link_throw_event",
+        "signal_event",
+        "signal_throw_event",
+        "multiple_event",
+        "parallel_multiple_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B01",
+      "severity": "warning",
+      "section": "gateways",
+      "appliesTo": [
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B02",
+      "severity": "warning",
+      "section": "external",
+      "appliesTo": [
+        "message_flow"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B03",
+      "severity": "warning",
+      "section": "artifacts",
+      "appliesTo": [
+        "association"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B04",
+      "severity": "warning",
+      "section": "artifacts",
+      "appliesTo": [
+        "text_annotation",
+        "group",
+        "data_object",
+        "data_collection",
+        "data_input",
+        "data_output",
+        "data_store"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B05",
+      "severity": "warning",
+      "section": "intermediate_events",
+      "appliesTo": [
+        "link_event",
+        "link_throw_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B06",
+      "severity": "warning",
+      "section": "end_events",
+      "appliesTo": [
+        "error_end_event",
+        "cancel_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B07",
+      "severity": "warning",
+      "section": "gateways",
+      "appliesTo": [
+        "complex_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B08",
+      "severity": "warning",
+      "section": "start_events",
+      "appliesTo": [
+        "start_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B09",
+      "severity": "warning",
+      "section": "sequence_flows",
+      "appliesTo": [
+        "sequence_flow"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B10",
+      "severity": "warning",
+      "section": "gateways",
+      "appliesTo": [
+        "event_based_start_gateway",
+        "parallel_event_based_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "B11",
+      "severity": "warning",
+      "section": "decisions",
+      "appliesTo": [
+        "binary_decision",
+        "exclusive_gateway",
+        "inclusive_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "COM-19",
+      "severity": "error",
+      "section": "gateways",
+      "appliesTo": [
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "COM-20",
+      "severity": "error",
+      "section": "gateways",
+      "appliesTo": [
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "COM-12",
+      "severity": "error",
+      "section": "gateways",
+      "appliesTo": [
+        "parallel_gateway"
+      ],
+      "optional": false
+    },
+    {
+      "id": "COM-02",
+      "severity": "error",
+      "section": "gateways",
+      "appliesTo": [
+        "binary_decision"
+      ],
+      "optional": false
+    },
+    {
+      "id": "DEC-03",
+      "severity": "warning",
+      "section": "decisions",
+      "appliesTo": [
+        "binary_decision"
+      ],
+      "optional": false
+    },
+    {
+      "id": "EST-05",
+      "severity": "error",
+      "section": "structure",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process",
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway",
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "timer_event",
+        "message_event",
+        "message_throw_event",
+        "escalation_event",
+        "compensation_event",
+        "conditional_event",
+        "link_event",
+        "link_throw_event",
+        "signal_event",
+        "signal_throw_event",
+        "multiple_event",
+        "parallel_multiple_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "EST-01",
+      "severity": "error",
+      "section": "structure",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process",
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway",
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "timer_event",
+        "message_event",
+        "message_throw_event",
+        "escalation_event",
+        "compensation_event",
+        "conditional_event",
+        "link_event",
+        "link_throw_event",
+        "signal_event",
+        "signal_throw_event",
+        "multiple_event",
+        "parallel_multiple_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "VIS-10",
+      "severity": "error",
+      "section": "layout",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task",
+        "sub_process",
+        "binary_decision",
+        "exclusive_gateway",
+        "parallel_gateway",
+        "inclusive_gateway",
+        "complex_gateway",
+        "event_based_gateway",
+        "event_based_start_gateway",
+        "parallel_event_based_gateway",
+        "text_annotation",
+        "group",
+        "data_object",
+        "data_collection",
+        "data_input",
+        "data_output",
+        "data_store",
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "timer_event",
+        "message_event",
+        "message_throw_event",
+        "escalation_event",
+        "compensation_event",
+        "conditional_event",
+        "link_event",
+        "link_throw_event",
+        "signal_event",
+        "signal_throw_event",
+        "multiple_event",
+        "parallel_multiple_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "EVI-03",
+      "severity": "warning",
+      "section": "start_events",
+      "appliesTo": [
+        "start_event",
+        "timer_start_event",
+        "message_start_event",
+        "conditional_start_event",
+        "signal_start_event",
+        "multiple_start_event",
+        "parallel_multiple_start_event",
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event",
+        "conditional_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "EVI-05",
+      "severity": "warning",
+      "section": "start_events",
+      "appliesTo": [
+        "start_event"
+      ],
+      "optional": false
+    },
+    {
+      "id": "COM-22",
+      "severity": "error",
+      "section": "gateways",
+      "appliesTo": [
+        "sequence_flow"
+      ],
+      "optional": true
+    },
+    {
+      "id": "EVF-04",
+      "severity": "error",
+      "section": "end_events",
+      "appliesTo": [
+        "end_event",
+        "message_end_event",
+        "error_end_event",
+        "cancel_end_event",
+        "compensation_end_event",
+        "signal_end_event",
+        "terminate_end_event",
+        "multiple_end_event",
+        "escalation_end_event"
+      ],
+      "optional": true
+    },
+    {
+      "id": "SUB-05",
+      "severity": "error",
+      "section": "subprocesses",
+      "appliesTo": [
+        "sub_process"
+      ],
+      "optional": true
+    },
+    {
+      "id": "VIS-02",
+      "severity": "warning",
+      "section": "layout",
+      "appliesTo": [
+        "lane"
+      ],
+      "optional": true
+    },
+    {
+      "id": "ACT-02",
+      "severity": "warning",
+      "section": "activities",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task"
+      ],
+      "optional": true
+    },
+    {
+      "id": "ACT-07",
+      "severity": "warning",
+      "section": "activities",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task"
+      ],
+      "optional": true
+    },
+    {
+      "id": "ACT-09",
+      "severity": "warning",
+      "section": "activities",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task"
+      ],
+      "optional": true
+    },
+    {
+      "id": "ACT-03",
+      "severity": "warning",
+      "section": "activities",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task"
+      ],
+      "optional": true
+    },
+    {
+      "id": "ACT-10",
+      "severity": "warning",
+      "section": "activities",
+      "appliesTo": [
+        "task",
+        "user_task",
+        "service_task",
+        "send_task",
+        "receive_task",
+        "script_task",
+        "business_rule_task",
+        "manual_task"
+      ],
+      "optional": true
+    },
+    {
+      "id": "LAN-08",
+      "severity": "warning",
+      "section": "lanes",
+      "appliesTo": [
+        "lane"
+      ],
+      "optional": true
+    }
+  ]
+}
