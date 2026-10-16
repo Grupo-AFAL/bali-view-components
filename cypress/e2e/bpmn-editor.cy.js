@@ -44,6 +44,23 @@ describe('BPMN editor island', () => {
     cy.get('[data-testid="bpmn-legend"]').should('not.exist')
   })
 
+  // Two editors mint the same client ids: an event the host sends to one
+  // must not change the other.
+  it('delivers a host event to the editor it names and to no other', () => {
+    // Two canvases sizing themselves on one page: the browser's benign notice.
+    cy.on('uncaught:exception', (error) => !error.message.includes('ResizeObserver loop'))
+    cy.visit('/bali/bpmn_editor/pair')
+    cy.get('#second_bpmn .react-flow__node-bpmn').should('contain', 'Procedimiento')
+    cy.get('#first_bpmn').then(($el) => {
+      $el[0].dispatchEvent(new CustomEvent('bali-bpmn:reference-created', {
+        bubbles: true, detail: { client_node_id: 'sp', reference: { id: '7', label: 'Alta de proveedores' } }
+      }))
+    })
+    cy.get('#first_bpmn .react-flow__node-bpmn').should('contain', 'Alta de proveedores')
+    cy.wait(300)
+    cy.get('#second_bpmn .react-flow__node-bpmn').should('contain', 'Procedimiento').and('not.contain', 'Alta de proveedores')
+  })
+
   describe('editing', () => {
     beforeEach(() => {
       resetFlow()

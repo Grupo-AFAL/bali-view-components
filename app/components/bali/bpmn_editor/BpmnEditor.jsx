@@ -597,11 +597,12 @@ function Editor ({
   // ── host events ────────────────────────────────────────────────────────
   const reload = saver.reload
   useEffect(() => {
-    // The stream action targets the editor element; an event dispatched on
-    // document reaches every editor, so it may name one with `editor_id`.
-    const forMe = (event) => !event.detail || !event.detail.editor_id || (hostElement && event.detail.editor_id === hostElement.id)
+    // Only events dispatched on this editor's own element: one that bubbles
+    // up from another editor on the page, or one sent to document, names no
+    // editor and is not ours (two editors mint the same client ids).
+    if (!hostElement) return undefined
     const handlers = {
-      'bali-bpmn:reload': (event) => { if (forMe(event)) reload() },
+      'bali-bpmn:reload': () => reload(),
       'bali-bpmn:reference-created': (event) => {
         const { client_node_id: nodeId, reference } = event.detail || {}
         if (!nodeId || !reference || !docRef.current.nodes.some((n) => String(n.id) === String(nodeId))) return
@@ -613,15 +614,9 @@ function Editor ({
         apply((d) => ops.updateLane(d, laneId, { assignee, name: assignee.label }))
       }
     }
-    const seen = new WeakSet()
-    const listener = (event) => {
-      if (seen.has(event)) return
-      seen.add(event)
-      handlers[event.type](event)
-    }
-    const targets = hostElement ? [hostElement, document] : [document]
-    for (const el of targets) for (const name of Object.keys(handlers)) el.addEventListener(name, listener)
-    return () => { for (const el of targets) for (const name of Object.keys(handlers)) el.removeEventListener(name, listener) }
+    const listener = (event) => { if (event.target === hostElement) handlers[event.type](event) }
+    for (const name of Object.keys(handlers)) hostElement.addEventListener(name, listener)
+    return () => { for (const name of Object.keys(handlers)) hostElement.removeEventListener(name, listener) }
   }, [hostElement, reload, apply])
 
   // ── in-place rename ────────────────────────────────────────────────────

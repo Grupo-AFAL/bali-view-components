@@ -14,31 +14,36 @@ module Bali
   module BpmnEditorHelper
     EVENTS = %w[reference-created lane-assignee-created reload].freeze
 
+    # The generic form the three helpers below write; a host may call it for
+    # an event of EVENTS with its own detail.
+    #
     # @param event [String] one of EVENTS
-    # @param target [String] DOM id of the editor (its `id:`); without it the
-    #   event goes to `document` and reaches every editor on the page.
-    def bali_bpmn_event(event, target: nil, **detail)
+    # @param target [String] DOM id of the editor (its `id:`, which the
+    #   editor passes to the drawer as `editor_id`). Required: two editors on
+    #   a page mint the same client ids, so an event must name its editor.
+    def bali_bpmn_event(event, target:, **detail)
       event = event.to_s
       raise ArgumentError, "unknown BPMN editor event #{event.inspect}; expected #{EVENTS.inspect}" if EVENTS.exclude?(event)
+      raise ArgumentError, "a BPMN editor event needs the editor's DOM id as target:" if target.blank?
 
       # Written out rather than through turbo-rails' turbo_stream_action_tag:
       # this file is eager-loaded in every host and the gemspec does not
       # declare turbo-rails (test/bali/packaging/dependency_contract_test.rb).
-      content_tag("turbo-stream", tag.template, action: "bali_bpmn_event", target: target.presence,
+      content_tag("turbo-stream", tag.template, action: "bali_bpmn_event", target: target,
                                                  event: event, detail: detail.to_json)
     end
 
-    def bali_bpmn_reference_created(client_node_id:, reference:, target: nil)
+    def bali_bpmn_reference_created(client_node_id:, reference:, target:)
       bali_bpmn_event("reference-created", target: target, client_node_id: client_node_id.to_s,
                                            reference: normalize_reference(reference))
     end
 
-    def bali_bpmn_lane_assignee_created(client_lane_id:, assignee:, target: nil)
+    def bali_bpmn_lane_assignee_created(client_lane_id:, assignee:, target:)
       bali_bpmn_event("lane-assignee-created", target: target, client_lane_id: client_lane_id.to_s,
                                                assignee: normalize_reference(assignee))
     end
 
-    def bali_bpmn_reload(target: nil)
+    def bali_bpmn_reload(target:)
       bali_bpmn_event("reload", target: target)
     end
 

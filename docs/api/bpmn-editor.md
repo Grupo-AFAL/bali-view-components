@@ -49,7 +49,8 @@ import 'bali-view-components/bpmn-editor-loader'
 ```
 
 The entry also installs the `bali_bpmn_event` Turbo Stream action (see
-[Extension points](#extension-points)).
+[Extension points](#extension-points)) — on `window.Turbo` if it is there, or on the
+first `turbo:load` when Turbo is loaded after the island's entry.
 
 ---
 
@@ -444,7 +445,11 @@ remote `url:` answering `[{ id, label }]`), `readonly`.
    first (`event.preventDefault()` to handle it yourself).
 
 The helpers (`Bali::BpmnEditorHelper`) render the `bali_bpmn_event` Turbo Stream
-action; without `target:` the event goes to `document` and reaches every editor.
+action: `bali_bpmn_reference_created`, `bali_bpmn_lane_assignee_created`,
+`bali_bpmn_reload`, and `bali_bpmn_event(event, target:, **detail)`, the generic form they
+write. `target:` is required — the editor's DOM id, which it hands the drawer as
+`editor_id` — and the event reaches that editor only: two editors on a page mint the same
+client ids. A target that is not on the page is reported on the console and dropped.
 
 ### Events
 

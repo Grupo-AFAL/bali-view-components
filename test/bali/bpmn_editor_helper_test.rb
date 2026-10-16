@@ -21,17 +21,25 @@ class BaliBpmnEditorHelperTest < ActionView::TestCase
   end
 
   def test_lane_assignee_created_and_reload
-    tag = stream(bali_bpmn_lane_assignee_created(client_lane_id: "l2", assignee: { id: "role:1", label: "Buyer", group: "Role" }))
+    tag = stream(bali_bpmn_lane_assignee_created(target: "flow_1_bpmn", client_lane_id: "l2",
+                                                 assignee: { id: "role:1", label: "Buyer", group: "Role" }))
 
-    assert_nil tag["target"], "without a target the event goes to document"
     assert_equal "lane-assignee-created", tag["event"]
     assert_equal "Role", JSON.parse(tag["detail"]).dig("assignee", "group")
     assert_equal "reload", stream(bali_bpmn_reload(target: "x"))["event"]
   end
 
   def test_unknown_events_and_incomplete_references_raise
-    assert_raises(ArgumentError) { bali_bpmn_event("node-deleted") }
+    assert_raises(ArgumentError) { bali_bpmn_event("node-deleted", target: "x") }
     assert_raises(ArgumentError) { bali_bpmn_reference_created(client_node_id: "n1", reference: { label: "No id" }) }
+  end
+
+  # Two editors on a page mint the same client ids: an event that names no
+  # editor would change whichever editor caught it.
+  def test_every_event_names_its_editor
+    assert_raises(ArgumentError) { bali_bpmn_reload(target: "") }
+    assert_raises(ArgumentError) { bali_bpmn_event("reload", target: nil) }
+    assert_raises(ArgumentError) { bali_bpmn_reference_created(client_node_id: "n1", reference: { id: 1, label: "x" }) }
   end
 
   # The island reads these names (streamAction.js STREAM_ACTION and the

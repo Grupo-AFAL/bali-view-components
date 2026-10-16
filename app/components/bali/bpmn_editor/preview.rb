@@ -94,6 +94,22 @@ module Bali
 
       # An empty document still mounts the island and its empty canvas.
       # @param locale select { choices: [es, en] }
+      # @label Two editors on one page
+      # Two editors of the same flow: an event a host sends to one (a linked
+      # sub-process, a reload) reaches that one only.
+      # @param locale select { choices: [es, en] }
+      def pair(locale: :es)
+        data = BpmnSampleFlows.invoice
+        data[:nodes] << { id: "sp", type: "sub_process", lane_id: "l3", name: "Procedimiento", x: 1150, y: 388 }
+        I18n.with_locale(locale) do
+          render_with_template(
+            template: "bali/bpmn_editor/previews/pair",
+            locals: { first: Bali::BpmnEditor::Component.new(data: data, id: "first_bpmn"),
+                      second: Bali::BpmnEditor::Component.new(data: data, id: "second_bpmn") }
+          )
+        end
+      end
+
       def empty(locale: :es)
         island(locale, data: { version: 1, lanes: [], nodes: [], edges: [] })
       end
