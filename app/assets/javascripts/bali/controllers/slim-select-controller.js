@@ -200,11 +200,10 @@ export class SlimSelectController extends Controller {
         this.select.disable()
       }
 
-      // Remove DaisyUI select classes from the dropdown content to prevent centering
-      // SlimSelect copies classes from the original select element, including DaisyUI's
-      // 'select' and 'select-bordered' classes which cause centering issues.
+      // SlimSelect copies the original select's classes onto the dropdown content, daisyUI's
+      // `select` among them, which centres it.
       const contentEl = this.select.render.content.main
-      contentEl.classList.remove('select', 'select-bordered')
+      contentEl.classList.remove('select')
 
       // Propagate size variant class to dropdown content (it renders outside the wrapper)
       if (this.element.classList.contains('slim-select-sm')) {
