@@ -9,6 +9,7 @@
 // the export margin on every side and the title band on top.
 import { contentBounds, layoutLanes } from './geometry.js'
 
+// Mirrors Bali::BpmnEditor::Component::DEFAULT_PAGE (contract_test.rb).
 export const LETTER = { width: 8.5, height: 11, orientation: 'landscape' }
 export const MIN_TEXT_PT = 6
 export const TEXT_PX = 11

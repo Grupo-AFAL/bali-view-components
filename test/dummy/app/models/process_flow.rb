@@ -54,10 +54,15 @@ class ProcessFlow < ApplicationRecord
   end
 
   # Saves a new draft when `expected_version` is the current one; false on a
-  # stale version (the caller answers 409).
+  # stale version (the caller answers 409). One conditional UPDATE: reading the
+  # version first and writing after would let two saves of the same version
+  # both pass the check.
   def save_draft(diagram, expected_version)
-    return false unless expected_version.to_i == version
-
-    update!(document: diagram.except(:version, :status_label, :issues, :stencil), version: version + 1, finalized_at: nil)
+    saved = self.class.where(id: id, version: expected_version.to_i).update_all(
+      document: diagram.except(:version, :status_label, :issues, :stencil),
+      version: expected_version.to_i + 1, finalized_at: nil, updated_at: Time.current
+    )
+    reload
+    saved == 1
   end
 end

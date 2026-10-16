@@ -20,18 +20,18 @@ module Bali
     class Component < ApplicationViewComponent
       URL_KEYS = %i[save diagram finalize references new_reference lane_assignees new_lane_assignee import].freeze
       RULE_KEYS = %i[disabled enabled severities messages options].freeze
-      # Mirrors RULE_OPTIONS in model/rules.js; contract_test.rb compares them.
+      # The option keys the rules read (`ctx.option('…')` in model/); contract_test.rb compares them.
       RULE_OPTIONS = %i[min_lanes min_activities max_activities].freeze
-      # Mirrors LAYOUTS in model/layout.js.
+      # Mirrors LAYOUTS in model/layout.js (contract_test.rb).
       LAYOUTS = %i[compact straight].freeze
-      # Letter, inches; mirrors LETTER in model/page.js.
+      # Letter, inches; mirrors LETTER in model/page.js (contract_test.rb).
       DEFAULT_PAGE = { width: 8.5, height: 11, orientation: "landscape" }.freeze
       PAGE_ORIENTATIONS = %w[landscape portrait].freeze
       FIELD_KEYS = %i[nodes lanes].freeze
       REVIEW_KEYS = %i[tags compare_with].freeze
-      # Mirrors FIELD_TYPES in chrome/FieldInput.jsx.
+      # Mirrors FIELD_TYPES in chrome/PropertiesPanel.jsx (contract_test.rb).
       FIELD_TYPES = %w[text textarea number select multi_select readonly].freeze
-      # Mirrors LEGEND_SWATCHES in chrome/Legend.jsx.
+      # Mirrors LEGEND_SWATCHES in chrome/Legend.jsx (contract_test.rb).
       LEGEND_SWATCHES = %w[task sub_process gateway start_event end_event external_lane external_task issue color].freeze
       DEFAULT_LEGEND = %w[task sub_process external_lane external_task issue].freeze
       EXTERNAL_LEGEND = %w[external_lane external_task].freeze

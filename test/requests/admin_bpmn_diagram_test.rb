@@ -46,6 +46,17 @@ class AdminBpmnDiagramTest < ActionDispatch::IntegrationTest
     assert_equal "First", @flow.reload.document["nodes"].find { |n| n["id"] == "t1" }["name"]
   end
 
+  # Two saves of version 1 that both read the row before either writes: the
+  # second must lose, not overwrite the first.
+  def test_two_saves_racing_on_one_version_let_only_one_through
+    first = ProcessFlow.find(@flow.id)
+    second = ProcessFlow.find(@flow.id)
+
+    assert first.save_draft(document_with("First"), 1)
+    assert_not second.save_draft(document_with("Second"), 1)
+    assert_equal [ 2, "First" ], [ @flow.reload.version, @flow.document["nodes"].find { |n| n["id"] == "t1" }["name"] ]
+  end
+
   def test_put_with_a_malformed_document_is_unprocessable
     put diagram_path, params: { diagram: { nodes: [ { id: "n1" } ] }, version: 1 }, as: :json
 

@@ -35,12 +35,14 @@ class BaliBpmnEditorHelperTest < ActionView::TestCase
   end
 
   # The island reads these names (streamAction.js STREAM_ACTION and the
-  # `bali-bpmn:` listeners in BpmnEditor.jsx).
+  # `bali-bpmn:` listeners). Read with comments stripped: a name left in a
+  # comment after its listener went away must not pass.
   def test_the_names_match_the_island
-    stream_js = Rails.root.join("../../app/components/bali/bpmn_editor/streamAction.js").read
-    editor_js = Rails.root.join("../../app/components/bali/bpmn_editor/BpmnEditor.jsx").read
+    island = Dir[Bali::Engine.root.join("app/components/bali/bpmn_editor/**/*.{js,jsx}")].map do |file|
+      File.read(file).gsub(%r{/\*.*?\*/}m, "").gsub(%r{^\s*//.*$}, "").gsub(%r{\s//\s.*$}, "")
+    end.join("\n")
 
-    assert_includes stream_js, "STREAM_ACTION = 'bali_bpmn_event'"
-    Bali::BpmnEditorHelper::EVENTS.each { |event| assert_includes editor_js, "'bali-bpmn:#{event}'" }
+    assert_match(/STREAM_ACTION = 'bali_bpmn_event'/, island)
+    Bali::BpmnEditorHelper::EVENTS.each { |event| assert_includes island, "'bali-bpmn:#{event}'" }
   end
 end

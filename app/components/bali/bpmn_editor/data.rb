@@ -42,7 +42,7 @@ module Bali
 
       ORIENTATIONS = %w[horizontal vertical].freeze
       LANE_KINDS = %w[internal external].freeze
-      # Mirrors EDGE_TYPES in model/catalog.js.
+      # Mirrors EDGE_TYPES in model/catalog.js (contract_test.rb).
       EDGE_TYPES = %w[sequence_flow message_flow association].freeze
       PORTS = %w[auto top right bottom left].freeze
       SEVERITIES = %w[error warning].freeze

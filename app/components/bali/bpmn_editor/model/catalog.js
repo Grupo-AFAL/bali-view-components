@@ -82,6 +82,7 @@ export const nodeSize = (node) => {
 // room the box does not include (lanes grow by it, overlap counts it).
 export const labelExtent = (node) => (isEvent(node) || isGateway(node) || categoryOf(node) === CATEGORY.data ? 30 : 0)
 
+// Mirrors Bali::BpmnEditor::Data::EDGE_TYPES (contract_test.rb).
 export const EDGE_TYPES = ['sequence_flow', 'message_flow', 'association']
 export const edgeType = (edge) => (EDGE_TYPES.includes(edge && edge.type) ? edge.type : 'sequence_flow')
 

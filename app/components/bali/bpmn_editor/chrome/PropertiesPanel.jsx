@@ -5,7 +5,7 @@ import FieldInput from './FieldInput.jsx'
 import ReferencePicker from './ReferencePicker.jsx'
 import NotesEditor from './NotesEditor.jsx'
 
-// Mirrors Bali::BpmnEditor::Component::FIELD_TYPES.
+// Mirrors Bali::BpmnEditor::Component::FIELD_TYPES (contract_test.rb).
 export const FIELD_TYPES = ['text', 'textarea', 'number', 'select', 'multi_select', 'readonly']
 const PORTS = ['auto', 'top', 'right', 'bottom', 'left']
 
