@@ -62,3 +62,68 @@ describe('Attachments with a badge, in a narrow row', () => {
     noPageScroll()
   })
 })
+
+// A remove button inside the record's form is a `DeleteLink` rendered `in_form: true`: its own
+// form waits in a <template> and is placed before the record's form when the button is pressed.
+describe('Attachments inside a form', () => {
+  const firstItem = () => cy.get('.attachments-component > li[id^="attachment_"]').first()
+  const placedForms = () => cy.get('form[id^="delete-link-form-"]')
+
+  beforeEach(() => {
+    cy.intercept('POST', '/lookbook/noop').as('outer')
+    cy.intercept('POST', '/lookbook/attachments/*', req => {
+      const id = req.url.split('/').pop()
+      req.reply({
+        headers: { 'Content-Type': 'text/vnd.turbo-stream.html' },
+        body: `<turbo-stream action="remove" target="attachment_${id}"></turbo-stream>`
+      })
+    }).as('remove')
+    cy.visit('/bali/attachments/in_a_form')
+  })
+
+  const removeFirst = () => firstItem().then($item => {
+    const id = $item[0].id.replace('attachment_', '')
+    cy.wrap($item).find('button').click()
+    cy.get('#bali-confirm-title').should('have.text', 'Confirm deletion')
+    cy.get('#bali-confirm-accept-btn').should('have.class', 'btn-error').click()
+
+    cy.wait('@remove').its('request').should(request => {
+      expect(request.url).to.match(new RegExp(`/lookbook/attachments/${id}$`))
+      expect(request.body).to.include('_method=delete')
+    })
+    cy.get(`#${$item[0].id}`).should('not.exist')
+    cy.get('@outer.all').should('have.length', 0)
+  })
+
+  it('keeps the fields and the Save button after the list in the outer form', () => {
+    cy.get('#record-form').should($form => {
+      const controls = [...$form[0].elements].map(el => el.name || el.textContent.trim())
+      expect(controls).to.include('notes')
+      expect(controls).to.include('Save')
+    })
+  })
+
+  it('removes a file with its own DELETE after the confirm, and the form it placed leaves with it', () => {
+    removeFirst()
+    placedForms().should('not.exist')
+  })
+
+  // A refresh morph rewrites the template and removes a placed form, while the button's
+  // controller stays connected.
+  it('still removes a file after a refresh morph', () => {
+    firstItem().find('button').click()
+    cy.get('#bali-confirm-cancel-btn').click()
+    placedForms().should('exist')
+
+    cy.window().then(win => new Cypress.Promise(resolve => {
+      const meta = win.document.createElement('meta')
+      meta.name = 'turbo-refresh-method'
+      meta.content = 'morph'
+      win.document.head.append(meta)
+      win.document.addEventListener('turbo:morph', resolve, { once: true })
+      win.Turbo.visit(win.location.href, { action: 'replace' })
+    }))
+
+    removeFirst()
+  })
+})

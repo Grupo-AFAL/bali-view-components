@@ -63,7 +63,7 @@ module Bali
       def slim_select_field(method, values, *legacy, html: {}, **options)
         options, html_options = legacy_option_hashes(:slim_select_field, legacy, html, options)
         merged_html = apply_input_name_options(options, build_html_options(html_options, options))
-        merged_options = drop_unenforceable_required(build_options(options), merged_html)
+        merged_options = drop_unenforceable_required(build_options(options, merged_html, values), merged_html)
         # `merged_html` carries the real HTML attributes — the Stimulus target
         # among them — so it stays untouched. The caption keys travel separately.
         group = group_options(options, merged_html)
@@ -153,12 +153,28 @@ module Bali
         options.except(:required)
       end
 
-      def build_options(options)
+      def build_options(options, html_options, values)
         texts = TEXT_KEYS.to_h do |option, key|
           [ option, options.fetch(option) { I18n.t(key, scope: "bali_view.form_builder.slim_select") } ]
         end
 
-        DEFAULT_OPTIONS.merge(options).merge(texts)
+        DEFAULT_OPTIONS.merge(allow_deselect_option: blank_needs_deselect?(options, html_options, values))
+                       .merge(options).merge(texts)
+      end
+
+      # `include_blank:` says the blank is a value the field takes; `prompt:` is a hint shown
+      # until there is one. On a flat list #build_select makes both SlimSelect's placeholder,
+      # which its list leaves out, so on a single select the ✕ is the only way back to the
+      # blank (#1484). A grouped list keeps the blank as a row of its own.
+      #
+      # Not on a remote select: nearly every one in the apps writes `include_blank:` as a hint
+      # ("Select a position", "Type to search..."), and a ✕ would appear on screens nobody
+      # asked to change. `allow_deselect_option: true` still turns it on.
+      def blank_needs_deselect?(options, html_options, values)
+        return false unless options[:include_blank] && flat_choices?(values)
+        return false if options[:ajax_url]
+
+        !(options[:required] || html_options[:required] || html_options[:multiple])
       end
 
       # The `multiple` key is always seeded on the element so the widget can read it — but
@@ -199,7 +215,8 @@ module Bali
       # selectable list — when it carries data-placeholder="true"; otherwise it shows
       # the blank as a real, checkmarked, selectable row. When a blank is requested
       # for a flat option list, promote it to a proper SlimSelect placeholder so the
-      # "choose one" hint behaves like a placeholder instead of a pickable value.
+      # "choose one" hint behaves like a placeholder instead of a pickable value. The ✕
+      # returns to this option (slim-select-controller.js, `deselectToPlaceholder`).
       def build_select(method, values, options, html_options)
         text = placeholder_option_text(options)
         return select(method, values, options, html_options) if text.nil? || !flat_choices?(values)

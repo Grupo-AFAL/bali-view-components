@@ -250,7 +250,7 @@ module Bali
         # array to pick and order them. Only `date_range` takes them: "this week" is not a
         # value a single date can hold.
         #
-        # @param created_at select { choices: ["", today, this_week, this_month, last_7_days, last_30_days, "2026-01-01 to 2026-03-31"] }
+        # @param created_at select { choices: ["", today, this_week, this_month, last_7_days, last_30_days, explicit_range] }
         def date_range_presets(created_at: '')
           filters = [
             {
@@ -259,7 +259,7 @@ module Bali
               type: :date_range,
               icon: 'calendar',
               presets: %i[today this_week this_month last_7_days last_30_days],
-              value: created_at.presence
+              value: created_at == 'explicit_range' ? explicit_range : created_at.presence
             }
           ]
 
@@ -531,6 +531,14 @@ module Bali
             storage_id: 'lookbook_simple_filters',
             persist_enabled: persist_enabled
           )
+        end
+
+        private
+
+        # The picker splits a range on the locale's separator (" to ", " a "), so a range
+        # spelled out among the choices above keeps only its first date in the other locale.
+        def explicit_range
+          %w[2026-01-01 2026-03-31].join(I18n.t('bali_view.form_builder.date_fields.range_separator'))
         end
       end
     end

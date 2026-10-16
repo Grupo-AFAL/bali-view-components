@@ -202,6 +202,10 @@ export class BulkActionsController extends Controller {
   // In select-all-filtered mode the ids are emptied on purpose: the server re-derives the
   // scope from the `q[...]` travelling in the same POST, so a list of ids from the visible
   // page could only contradict it.
+  //
+  // Hosts write the `bulkAction` target by hand, on links of their own and on an
+  // `<input form>` outside the bar (components guide § Nested forms): renaming it, or
+  // narrowing the else branch to the bar's own fields, breaks them.
   updateBulkActionsSelectedIds = () => {
     const ids = JSON.stringify(this.selectAllFilteredValue ? [] : this.selectedIdsValue)
 

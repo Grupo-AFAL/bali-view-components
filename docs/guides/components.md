@@ -2435,11 +2435,9 @@ Each item is `<li id="<%= dom_id(attachment) %>">`, so the destroy action answer
 `turbo_stream.remove attachment`. The empty text is an item that shows only while it is alone
 in the list, so the stream that removes the last file brings it up with nothing else to send.
 
-**Not inside a form with `remove_path:`.** Each remove button is a `button_to`, which is a
-`<form>` of its own, and HTML has no nested forms: the browser drops the first button's `<form>`
-tag, so that button submits the outer form, and its `</form>` closes the outer one, leaving
-every field and the submit button after the list outside it. Inside a form, leave
-`remove_path:` out and put the list outside the form when it needs the buttons.
+**Inside a form too.** The list can sit in the record's own form, between its fields and its
+submit button: each remove button is a `DeleteLink` rendered `in_form: true` (see DeleteLink),
+so it sends its own DELETE and the form keeps every field after the list.
 
 A file Active Storage can resize (`variable?`) is a thumbnail drawn from a variant of at most
 512×256, so it stays sharp on a 2x screen in its 256×128 box. That needs a working variant
@@ -4208,20 +4206,38 @@ the `<form target>` of a form action and the `<a target>` of a GET one.
 
 ##### Nested forms
 
-Every action is its own `<form>`. If the listing already lives inside a form of yours, the
-HTML parser hoists the inner ones out and the action silently stops working. Render that
-action's form **outside** the listing and point a plain submit at it with the HTML `form`
-attribute:
+Every form action is its own `<form>`. If the listing already lives inside a form of yours,
+the HTML parser drops the inner `<form>` start tag, so the action submits yours, and its
+`</form>` closes yours early. Leave those actions out of `with_action` (a `method: :get`
+action is a link and can stay): render each one's form **outside** the listing, empty, and
+point at it, with the HTML `form` attribute, a plain submit and the `selected_ids` field the
+controller fills. That field goes inside the component's block, because the controller only
+fills the `bulkAction` targets under its own element. The example is a bare `BulkActions`: a
+`DataTable` with filters or saved views renders forms of its own and cannot sit inside
+another form.
 
 ```erb
-<%= form_with url: bulk_archive_movies_path, id: 'bulk-archive', class: 'hidden' %>
+<%= form_with url: bulk_archive_movies_path, id: 'bulk-archive', class: 'hidden' do %><% end %>
 
 <%= form_with model: @report do |f| %>
-  <%# ... the DataTable lives here ... %>
+  <%= render Bali::BulkActions::Component.new do |c| %>
+    <% @movies.each do |movie| %>
+      <% c.with_item(record_id: movie.id, class: 'flex items-center gap-3 p-3') do %>
+        <input type="checkbox" class="checkbox checkbox-sm">
+        <p><%= movie.name %></p>
+      <% end %>
+    <% end %>
+    <%= hidden_field_tag :selected_ids, '[]', id: nil, form: 'bulk-archive',
+                         data: { bulk_actions_target: 'bulkAction' } %>
+  <% end %>
   <%= render Bali::Button::Component.new(name: 'Archive', form: 'bulk-archive',
                                          type: :submit) %>
 <% end %>
 ```
+
+With no `with_action` left the bar is not rendered (no counter, no announcement);
+`bulk-actions:change` carries the count. A single record's delete button inside a form needs
+none of this: `Bali::DeleteLink` takes `in_form: true`.
 
 ##### Acting on the whole filtered result
 
@@ -4511,7 +4527,25 @@ Delete button that submits a DELETE request and automatically triggers the style
 - `icon` - `true` for the trash icon, or the name of any other icon (default: `false`)
 - `authorized` - When `false`, the component does not render (default: `true`)
 - `plain` - Render as a plain text link instead of a button (default: `false`)
-- `form_class` - Extra classes for the wrapping form (default: `nil`)
+- `form_class` - Extra classes for the wrapping form; there is none with `in_form:` (default: `nil`)
+- `in_form` - `true` when the button sits inside another form (default: `false`)
+
+**Inside another form, pass `in_form: true`.** HTML has no nested forms: the parser drops the
+inner `<form>` start tag, so the button submits the outer form, and the inner `</form>` closes
+the outer one early, leaving every field and the submit button after it outside. With
+`in_form:` the button renders on its own and names its form with the `form` attribute; the
+form waits in a `<template>`, and the `delete-link` controller (registered by `registerAll`)
+places it before the outer form when the button is pressed. The confirm dialog is the same. The
+button carries `data-turbo="true"` unless you pass `turbo:` in its `data:`, so an outer
+`data-turbo="false"`, usual on an upload form, does not send the DELETE without the confirm.
+
+```erb
+<%= form_with model: @movie do |f| %>
+  <%= f.text_field :title %>
+  <%= render Bali::DeleteLink::Component.new(href: movie_poster_path(@movie), in_form: true) %>
+  <%= f.submit %>
+<% end %>
+```
 
 The destructive red is `text-soft-error` on top of `variant: :ghost`, the default. It also
 applies to `variant: :link`; those two are the variants with no colour of their own. Name

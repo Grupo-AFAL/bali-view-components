@@ -9,14 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`checkbox-toggle` deshabilita la parte oculta con `data-checkbox-toggle-disable-hidden-value="true"`**
-  (#1486), como ya hacía `radio-toggle`. El target oculto, que tiene que ser un `<fieldset>`,
-  queda deshabilitado: el navegador no valida ni manda sus campos, así que un `required` del lado
-  oculto —un `file_group` lo respeta desde v3.12.0— ya no detiene el formulario sin aviso. Sin el
-  valor, nada cambia. Nada que hacer en `main` de ninguna app. Para usarlo, los targets pasan a
-  `<fieldset>` y el valor va en el elemento del controlador. Una subclase local que deshabilita
-  campo por campo, como la que afal-apps escribió para Becas, se borra.
-
 - **`Bali::BpmnEditor`: editor de diagramas BPMN 2.0 con carriles** (#1489). Isla de React Flow
   construida como `Bali::Gantt` (entry propio `bali-view-components/bpmn-editor-entry`, loader y
   dependencias opcionales `react`, `react-dom`, `@xyflow/react`, `@rails/request.js`). Recibe un
@@ -26,40 +18,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `bali_bpmn_reload`) y los eventos `bali-bpmn:*`. Trae paleta con presets (`:descriptive`,
   `:analytic`, `:full`) y notas de la app, leyenda configurable, carril externo, menú rápido con
   dirección, insertar sobre una conexión, deshacer y rehacer, ruteo ortogonal que rodea elementos,
-  acomodo automático tras cada edición (`auto_arrange:`, encendido por omisión) y «Autoajustar»
-  — sin elementos encimados, líneas que atraviesen elementos o nombres, tramos compartidos ni
-  etiquetas encimadas —, reglas de modelado R01–R26 y B01–B11 configurables con panel de
-  pendientes y ciclo Borrador/Finalizar, notas de revisión, comparación entre versiones y salidas
+  acomodo local tras cada edición (siempre activo) y «Autoajustar» — sin elementos encimados,
+  líneas que atraviesen elementos o nombres, tramos compartidos ni etiquetas encimadas —,
+  reglas de modelado R01–R26 y B01–B11 configurables con panel de pendientes y ciclo
+  Borrador/Finalizar, notas de revisión, comparación entre versiones y salidas
   `.bpmn`, PNG, SVG e impresión con marca de agua. Sin `urls[:save]` o sin `editable:` es un
   visor.
   - **Anfitrión:** nada que hacer si no lo usa. Para usarlo, los cuatro pasos de instalación de
     `docs/api/bpmn-editor.md`; la implementación de referencia está en `test/dummy`
     (`ProcessFlow` y `Admin::ProcessFlows::*`).
 
+### Fixed
+
+- **`checkbox-toggle`: un target que un Turbo Stream reemplaza sigue a la casilla en pantalla**
+  (#1495). Se quedaba como lo pintó el servidor, con su `hidden` y, con `disable-hidden`, su
+  `disabled`, aunque la casilla dijera lo contrario. Ahora hace lo mismo que `radio-toggle` desde
+  #1214. `toggleTargets` corre cada vez que llega un target (al conectar, una vez por lado), así
+  que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
+  `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
+
+- **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
+  accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el
+  `date.formats.long` de la app: «5 de marzo de 2026» con rails-i18n, «March 05, 2026» en inglés.
+  La vista de día de la variante `:mobile` pedía un formato `:long_with_day` que ni Rails ni
+  rails-i18n definen y lanzaba `I18n::MissingTranslationData`; ahora antepone el día de la semana
+  al `:long` («jueves, 5 de marzo de 2026»), salvo si éste ya lo trae, como el `es-MX` de
+  rails-i18n. Las dos leen `date.formats.long` del idioma activo: Rails la trae para `en` y
+  rails-i18n para todos sus idiomas; una app sin rails-i18n la define en su YAML, como ya lo pide
+  `ArchivalNotice`. Las siete apps en Bali 3 la tienen: nada que hacer en la app. En
+  gobierno-corporativo la vista de año toma su propio `:long`.
+
+- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda** (#1495, desde
+  v3.11.0, con SlimSelect 4). Al elegir un resultado que no venía en la semilla, SlimSelect lo
+  ponía delante del placeholder y la ✕ lo volvía a elegir: el valor no cambiaba. Afecta sólo a
+  los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
+  hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+
+### Documentation
+
+- **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).
+  Su `form_with` sin bloque dejaba el formulario abierto, y la lista quedaba dentro de él, oculta
+  con él. Con bloque tampoco servía: el formulario de afuera no llevaba `selected_ids`. Ahora lo
+  cierra y le apunta, con el atributo `form`, el campo que el controlador llena. Ninguna app sigue
+  la receta: nada que hacer.
+
+- **La entrada de v3.16.0 del filtro `date_range` (#1461) recomendaba `min-w-0!`**, pero el filtro
+  no recibe clases; ahora da la regla CSS que sí baja el mínimo (#1495).
+
+## [v3.17.0] - 2026-10-15
+
+### Added
+
+- **`checkbox-toggle` deshabilita la parte oculta con `data-checkbox-toggle-disable-hidden-value="true"`**
+  (#1486), como ya hacía `radio-toggle`. El target oculto, que tiene que ser un `<fieldset>`,
+  queda deshabilitado: el navegador no valida ni manda sus campos, así que un `required` del lado
+  oculto —un `file_group` lo respeta desde v3.12.0— ya no detiene el formulario sin aviso. Sin el
+  valor, nada cambia. Nada que hacer en `main` de ninguna app. Para usarlo, los targets pasan a
+  `<fieldset>` y el valor va en el elemento del controlador. Una subclase local que deshabilita
+  campo por campo, como la que afal-apps escribió para Becas, se borra.
+
+- **`Bali::DeleteLink` toma `in_form: true` para un botón dentro de otro formulario** (#1473). El
+  botón se pinta solo y nombra su formulario con el atributo `form`; ese formulario espera en un
+  `<template>` y el controlador nuevo `delete-link` lo coloca antes del de afuera al presionar el
+  botón. La confirmación es la misma, también si el formulario de afuera lleva
+  `data-turbo="false"`. Sin la opción, un `DeleteLink` se pinta igual que antes. Una app que
+  registra con `registerAll` no hace nada; la que registre controlador por controlador agrega
+  `delete-link`.
+
 ### Changed
-
-- **El layout de la aplicación se renderiza más rápido, con el mismo HTML** (#1487).
-  `Bali::Icon` guarda ya armado el `<svg>` de cada ícono de Lucide, por nombre y tamaño, y lo
-  reusa en las páginas siguientes. `SideMenu::Item` calcula una sola vez su coincidencia con la
-  ruta actual (antes, hasta ocho veces por renglón) y renderiza su ícono una vez para la fila y
-  para el riel colapsado. En afal-apps y gobierno-corporativo, el layout tarda entre 19 y 21 %
-  menos. El marcado no cambia ni un byte: `test/bali/components/layout_markup_golden_test.rb` lo
-  compara entero contra `test/fixtures/layout_markup`, en los previews de AppLayout, SideMenu,
-  Command, Topbar, Tooltip e Icon y en los casos que éstos no cubren.
-  - **Anfitrión:** nada que hacer. `LucideRails.default_options` se lee la primera vez que se
-    dibuja cada ícono, así que cambiarlo después del arranque ya no alcanza a los ya dibujados.
-    Ninguna app lo cambia.
-  - **En la gema:** un preview nuevo de esos seis componentes, o un cambio deliberado de su
-    marcado, pide reescribir los archivos con `GOLDEN=update bin/rails test
-    test/bali/components/layout_markup_golden_test.rb` y revisar su diff.
-
-- **Los renglones del menú lateral y de la paleta, el tooltip del riel y el envoltorio de cada
-  ícono se escriben sin pasar por `tag`, con el mismo HTML** (#1488). La copia de cada hoja en
-  el riel colapsado ya no renderiza un `Bali::Tooltip`, y las listas de clases fijas dejan de
-  pasar por `class_names`. Sumado a #1487, el layout tarda entre 34 y 43 % menos que en v3.16.2
-  (de 3 a 13 ms menos por página en afal-apps y gobierno-corporativo). Un renglón o un ícono con
-  atributos propios del anfitrión (`data:`, `id:`, `title:`…) se sigue armando con `tag`.
-  - **Anfitrión:** nada que hacer.
 
 - **El layout de la aplicación se renderiza más rápido, con el mismo HTML** (#1487).
   `Bali::Icon` guarda ya armado el `<svg>` de cada ícono de Lucide, por nombre y tamaño, y lo
@@ -98,6 +124,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   medias. Ahora el filtro toma el ancho de los dos, y el selector, el mismo mínimo de 13 rem que un
   `date_range` sin `presets:`. Con un periodo elegido mide lo mismo que antes mientras la etiqueta y
   las opciones quepan en esos 224 px, como en garita y afal-apps. Nada que hacer en la app.
+
+- **`Bali::Attachments` dentro de un formulario: quitar un archivo ya no envía el formulario de
+  afuera** (#1473, desde v3.16.0). Cada botón de quitar es un `DeleteLink`, que pintaba un
+  `button_to`: un `<form>` anidado, cuya apertura descartaba el navegador, así que el primer botón
+  enviaba el formulario del registro y su `</form>` dejaba fuera los campos y el botón «Guardar» de
+  después de la lista. Ahora lo pinta con la nueva opción `in_form: true`. En afal-apps lo arregla
+  la subida en los formularios de proyecto, entregable y líneas del caso de negocio. Sin el
+  `<form>` alrededor, cada renglón de chip mide 24 px en vez de 26 y el botón queda alineado con el
+  chip. Nada que hacer en la app.
+
+- **`slim_select_group`: un campo opcional con `include_blank:` puede volver al vacío** (#1484,
+  desde v2.16.0). En una lista plana el vacío es el placeholder de SlimSelect, que no sale en la
+  lista, así que un valor elegido ya no se podía quitar. Ahora `include_blank:` en un select
+  sencillo y local que no es `required:` enciende la ✕ (`allow_deselect_option`), que regresa al
+  vacío; también en los filtros `type: :slim_select` con `blank:` de `SimpleFilters`. `prompt:`,
+  `required:`, `multiple:`, las listas agrupadas y los selects remotos (`ajax_url:`) quedan igual.
+  Para conservar el aspecto de antes, `allow_deselect_option: false`; si el campo es
+  obligatorio, `required: true` también apaga la ✕ y además marca la etiqueta. Donde la ✕ ya
+  sale por omisión, un `allow_deselect_option: true` explícito sobra y se puede borrar.
 
 ## [v3.16.2] - 2026-10-14
 

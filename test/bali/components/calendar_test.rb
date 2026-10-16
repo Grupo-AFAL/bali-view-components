@@ -475,7 +475,7 @@ class BaliCalendarComponentTest < ComponentTestCase
 
     assert_selector("a.year-day[href='/days/2020-03-05']", count: 1)
     assert_selector("a.year-day", count: 1)
-    assert_selector("a.year-day[aria-label='5 March 2020']", count: 1)
+    assert_selector("a.year-day[aria-label='March 05, 2020']", count: 1)
   end
 
   def test_year_view_carries_the_machine_readable_date_on_every_unlinked_day
@@ -533,7 +533,7 @@ class BaliCalendarComponentTest < ComponentTestCase
     render_inline(component)
 
     assert_selector("time.year-day[tabindex='0']", count: 2)
-    assert_selector("time.year-day[tabindex='0'][aria-label='5 March 2020']", count: 1)
+    assert_selector("time.year-day[tabindex='0'][aria-label='March 05, 2020']", count: 1)
   end
 
   def test_year_view_gives_no_tab_stop_without_a_template
@@ -552,7 +552,7 @@ class BaliCalendarComponentTest < ComponentTestCase
     )
     render_inline(component)
 
-    assert_selector("a.year-day[aria-label='5 March 2020']", count: 1)
+    assert_selector("a.year-day[aria-label='March 05, 2020']", count: 1)
     assert_no_selector("time.year-day[tabindex]")
   end
 
@@ -640,7 +640,7 @@ class BaliCalendarComponentTest < ComponentTestCase
   end
 
   def test_month_header_capitalises_a_lowercase_month_name
-    with_rails_i18n_month_names do
+    with_rails_i18n_dates do
       render_inline(component) do |c|
         c.with_header(start_date: "2026-10-01", period: :month)
       end
@@ -654,11 +654,11 @@ class BaliCalendarComponentTest < ComponentTestCase
       start_date: "2020-01-01", period: :year, events: [ year_event("2020-03-05") ],
       day_url: ->(day, events) { "/days/#{day}" if events.any? }
     )
-    with_rails_i18n_month_names { render_inline(component) }
+    with_rails_i18n_dates { render_inline(component) }
 
     assert_equal(%w[Enero Febrero Marzo Abril Mayo Junio Julio Agosto Septiembre Octubre
                     Noviembre Diciembre], page.all(".year-month h4").map(&:text))
-    assert_selector("a.year-day[aria-label='5 marzo 2020']", count: 1)
+    assert_selector("a.year-day[aria-label='5 de marzo de 2020']", count: 1)
   end
 
   def test_year_view_is_drawn_on_mobile_too
@@ -668,6 +668,37 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector(".year-view")
     assert_selector(".year-month", count: 12)
     assert_no_selector(".day-view")
+  end
+
+  def test_mobile_day_view_titles_the_day_with_its_weekday_and_long_date
+    render_mobile_day_view
+
+    assert_equal("Thursday, March 05, 2020", mobile_day_title)
+  end
+
+  def test_mobile_day_view_writes_the_weekday_as_the_locale_does
+    with_rails_i18n_dates { render_mobile_day_view }
+
+    assert_equal("jueves, 5 de marzo de 2020", mobile_day_title)
+  end
+
+  # rails-i18n's es-MX `:long`, and one that abbreviates the weekday as its `ja` does.
+  def test_mobile_day_view_does_not_repeat_a_weekday_the_long_format_already_names
+    { "%A, %d de %B de %Y" => "jueves, 05 de marzo de 2020",
+      "%-d de %B de %Y (%a)" => "5 de marzo de 2020 (jue)" }.each do |long, title|
+      with_rails_i18n_dates(long: long) { render_mobile_day_view }
+
+      assert_equal(title, mobile_day_title, long)
+    end
+  end
+
+  def test_mobile_day_view_raises_like_the_year_view_without_a_long_format
+    previous = I18n.t("date.formats.long", locale: :en)
+    I18n.backend.store_translations(:en, date: { formats: { long: nil } })
+
+    assert_raises(I18n::MissingTranslationData) { render_mobile_day_view }
+  ensure
+    I18n.backend.store_translations(:en, date: { formats: { long: previous } })
   end
 
   def test_year_view_marks_the_card_with_year_view
@@ -872,16 +903,31 @@ class BaliCalendarComponentTest < ComponentTestCase
     Struct.new(:start_time).new(Date.parse(date))
   end
 
-  # rails-i18n 8.1's `es.date.month_names`, lowercase because `%B` writes them inside a
-  # date. The dummy's es.yml capitalises them, so a test rendering plain `:es` passes
-  # without the fix.
-  def with_rails_i18n_month_names(&block)
-    previous = I18n.t("date.month_names", locale: :es)
-    I18n.backend.store_translations(:es, date: { month_names: [ nil ] + %w[enero febrero marzo abril
-      mayo junio julio agosto septiembre octubre noviembre diciembre] })
+  # The day view's arrows call `url_for`, which needs a request on a real route.
+  def render_mobile_day_view
+    @options.merge!(start_date: "2020-03-05", period: :day, template: "calendar_fixtures/day")
+    with_request_url("/admin/movies") { with_variant(:mobile) { render_inline(component) } }
+  end
+
+  def mobile_day_title
+    page.find(".day-view span.text-lg").text.squish
+  end
+
+  # rails-i18n 8.1's `es.date`: names in lowercase, because `%A` and `%B` write them inside
+  # a date, and a `:long` that does not pad the day as the dummy's does. The dummy's es.yml
+  # capitalises the names, so a test of their case rendering plain `:es` passes without the fix.
+  def with_rails_i18n_dates(long: "%-d de %B de %Y", &block)
+    previous = I18n.t("date", locale: :es).slice(:month_names, :day_names, :abbr_day_names, :formats)
+    I18n.backend.store_translations(:es, date: {
+      month_names: [ nil ] + %w[enero febrero marzo abril mayo junio julio agosto septiembre
+                               octubre noviembre diciembre],
+      day_names: %w[domingo lunes martes miércoles jueves viernes sábado],
+      abbr_day_names: %w[dom lun mar mié jue vie sáb],
+      formats: { long: long }
+    })
     I18n.with_locale(:es, &block)
   ensure
-    I18n.backend.store_translations(:es, date: { month_names: previous }) if previous
+    I18n.backend.store_translations(:es, date: previous) if previous
   end
 end
 
