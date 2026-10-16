@@ -12,7 +12,7 @@
   <div class="calendar-component">
     <div class="day-view">
       <%= render(Bali::Columns::Component.new(mobile: true, middle: true)) do |c| %>
-        <% if header? %>
+        <% if header&.arrows? %>
           <%= c.with_column(auto: true) do %>
             <%= render Bali::Link::Component.new(icon: 'chevron-left', **header.day_arrow_options(:prev)) %>
           <% end %>
@@ -22,7 +22,7 @@
             <%= day_title %>
           </span>
         <% end %>
-        <% if header? %>
+        <% if header&.arrows? %>
           <%= c.with_column(auto: true) do %>
             <%= render Bali::Link::Component.new(icon: 'chevron-right', **header.day_arrow_options(:next)) %>
           <% end %>

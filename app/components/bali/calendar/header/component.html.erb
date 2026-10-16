@@ -1,6 +1,6 @@
 <div class="header mb-4 flex items-center justify-between">
   <div class="flex-none">
-    <% if route_path.present? %>
+    <% if arrows? %>
       <%= render Bali::Link::Component.new(**arrow_options(:prev)) do %>
         <%= render Bali::Icon::Component.new('arrow-left') %>
       <% end %>
@@ -26,7 +26,7 @@
     <% end %>
   </div>
   <div class="flex-none">
-    <% if route_path.present? %>
+    <% if arrows? %>
       <%= render Bali::Link::Component.new(**arrow_options(:next)) do %>
         <%= render Bali::Icon::Component.new('arrow-right') %>
       <% end %>

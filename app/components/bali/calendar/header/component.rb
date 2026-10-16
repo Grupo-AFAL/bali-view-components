@@ -57,11 +57,13 @@ module Bali
         end
 
         def prev_day
-          start_date.monday? && @weekdays_only ? start_date.prev_occurring(:friday) : start_date - 1.day
+          day = start_date - 1.day
+          @weekdays_only && day.on_weekend? ? day.prev_occurring(:friday) : day
         end
 
         def next_day
-          start_date.friday? && @weekdays_only ? start_date.next_occurring(:monday) : start_date + 1.day
+          day = start_date + 1.day
+          @weekdays_only && day.on_weekend? ? day.next_occurring(:monday) : day
         end
 
         # Compared on the period, not the day: `min_date: "2020-06-15"` still lets a
@@ -72,6 +74,11 @@ module Bali
 
         def next_in_range?
           max_date.nil? || next_start_date <= period_start(max_date)
+        end
+
+        # The rule both calendar templates draw their arrows by.
+        def arrows?
+          route_path.present?
         end
 
         # Disabled rather than left out: measured at 1440px, removing one arrow

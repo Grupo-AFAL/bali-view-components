@@ -112,6 +112,13 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_equal(monday + 1.day, day_header(monday, weekdays_only: true).next_day)
   end
 
+  def test_weekdays_only_takes_a_weekend_day_to_the_next_monday_and_back_to_the_friday
+    saturday = Date.parse("2020-03-07")
+
+    assert_equal(Date.parse("2020-03-09"), day_header(saturday, weekdays_only: true).next_day)
+    assert_equal(Date.parse("2020-03-06"), day_header(saturday + 1.day, weekdays_only: true).prev_day)
+  end
+
   # #prev_start_date
 
   def test_prev_start_date_month_returns_first_date_of_last_month
@@ -152,6 +159,13 @@ class BaliCalendarComponentTest < ComponentTestCase
 
     assert_selector(".header a[aria-label='Previous'][href='/events?period=day&start_time=2020-03-04']")
     assert_selector(".header a[aria-label='Next'][href='/events?period=day&start_time=2020-03-06']")
+  end
+
+  def test_day_header_disables_the_previous_arrow_on_min_date
+    @options.merge!(start_date: "2020-03-05", period: :day)
+    render_inline(component) { |c| c.with_header(route_path: "/events", min_date: "2020-03-05") }
+
+    assert_selector(".header a[aria-label='Previous'][aria-disabled='true']")
   end
 
   def test_day_header_arrows_skip_the_weekend_under_weekdays_only
@@ -731,11 +745,20 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector(".day-view a[aria-label='Previous'][aria-disabled='true']:not([href])")
   end
 
-  def test_mobile_day_view_has_no_arrows_without_a_header_as_the_desktop_one
-    @options.merge!(start_date: "2020-03-05", period: :day)
-    with_request_url("/admin/movies") { with_variant(:mobile) { render_inline(component) } }
+  def test_mobile_day_arrows_step_one_day_whatever_the_period
+    @options.merge!(start_date: "2020-03-05", period: :month)
+    with_variant(:mobile) { render_inline(component) { |c| c.with_header(route_path: "/events") } }
 
-    assert_no_selector(".day-view a")
+    assert_selector(".day-view a[aria-label='Next'][href='/events?period=month&start_time=2020-03-06']")
+  end
+
+  def test_mobile_day_view_draws_arrows_only_with_a_route_as_the_desktop_one
+    @options.merge!(start_date: "2020-03-05", period: :day)
+    [ "", nil ].each do |route_path|
+      with_variant(:mobile) { render_inline(component) { |c| c.with_header(route_path: route_path) } }
+
+      assert_no_selector(".day-view a")
+    end
   end
 
   def test_year_view_marks_the_card_with_year_view
