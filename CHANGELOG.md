@@ -33,6 +33,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
   hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
 
+- **SlimSelect remoto: un resultado que ya está en la semilla no sale dos veces**. El controlador
+  pasaba el id del JSON como número, y SlimSelect lo compara con los valores de la semilla, que son
+  texto: el registro salía dos veces en la lista y quedaba dos veces en el `<select>`, y una búsqueda
+  que volvía a encontrar el valor elegido en otra volvía a llamar a `after_change_fetch_url`. Lo ven
+  los selects remotos de gobierno-corporativo cuyo endpoint responde ids numéricos (entidad y
+  producto de las solicitudes de acceso, fuentes y columnas del glosario, áreas de los
+  recordatorios). Además, con `allow_deselect_option: true`, que ningún select remoto de las apps
+  usa, la ✕ oprimida con una búsqueda en la lista mostraba el texto por omisión («Select value») en
+  vez del placeholder del select y dejaba una segunda `<option value="">`. Nada que hacer en la
+  app; un endpoint ya no necesita responder el id como texto.
+
 - **Un filtro `slim_select` de `SimpleFilters` muestra completo el valor elegido** (#1495). «Beto»
   se veía «B»: el valor se quedaba 20 px corto dentro de una columna que se ajusta a su contenido.
   Lo ven los filtros `slim_select` de afal-apps y gobierno-corporativo. En un campo de formulario un

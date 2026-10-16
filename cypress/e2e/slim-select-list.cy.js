@@ -93,4 +93,59 @@ describe('SlimSelect list', () => {
       cy.get('.ss-content.ss-open .ss-status').should('have.text', '4 results available')
     })
   })
+
+  // The dummy's /users.json answers its ids as JSON numbers, and 1 to 5 are also the values of
+  // the seed's "Option 1" to "Option 5". Closing the list puts the seed back.
+  describe('after a remote search that finds a value the seed has', () => {
+    const search = term => {
+      cy.get('.ss-main').click()
+      cy.get('.ss-content.ss-open .ss-search input').type(term)
+      cy.wait('@remoteSearch')
+    }
+    const close = () => {
+      cy.get('.ss-content.ss-open .ss-search input').type('{esc}')
+      cy.get('.ss-content.ss-open').should('not.exist')
+    }
+    // What `after_change_fetch_url` fetches on.
+    const spyOnAfterChange = () =>
+      cy.get('@select').then(([select]) => { select.slim.events.afterChange = cy.stub().as('afterChange') })
+
+    beforeEach(() => {
+      cy.intercept('GET', '/users.json*').as('remoteSearch')
+      cy.visit('/bali/form/slim_select/remote')
+      cy.get('select[name="form_record[name]"]').as('select').should('have.value', '1')
+    })
+
+    it('writes the chosen result into the <select> once', () => {
+      search('jane')
+      cy.contains('.ss-content.ss-open .ss-optgroup .ss-option', 'Jane Smith').click()
+      cy.get('.ss-content.ss-open').should('not.exist')
+
+      cy.get('@select').should($select => {
+        expect($select.val()).to.equal('4')
+        expect([...$select[0].options].map(option => option.value)).to.deep.equal(['1', '2', '3', '4', '5'])
+      })
+    })
+
+    it('leaves the value alone on a search that finds the seeded one', () => {
+      spyOnAfterChange()
+      search('john')
+      cy.contains('.ss-content.ss-open .ss-optgroup .ss-option', 'John Doe')
+      close()
+
+      cy.get('@afterChange').should('not.have.been.called')
+    })
+
+    it('leaves the value alone on a search that finds the one chosen before', () => {
+      search('peter')
+      cy.contains('.ss-content.ss-open .ss-optgroup .ss-option', 'Peter Jackson').click()
+      cy.get('.ss-content.ss-open').should('not.exist')
+      spyOnAfterChange()
+      search('peter')
+      cy.contains('.ss-content.ss-open .ss-optgroup .ss-option', 'Peter Jackson')
+      close()
+
+      cy.get('@afterChange').should('not.have.been.called')
+    })
+  })
 })
