@@ -4,6 +4,7 @@ import { NodeShape, IssueMarker } from '../shapes.jsx'
 import { categoryOf, nodeSize, CATEGORY } from '../model/catalog.js'
 import { nodeBox } from '../model/geometry.js'
 import { nodeLabelBox, badgeBox } from '../model/labels.js'
+import { textOn } from '../model/contrast.js'
 import { useCanvas } from './CanvasContext.js'
 
 const SIDES = [['top', Position.Top], ['right', Position.Right], ['bottom', Position.Bottom], ['left', Position.Left]]
@@ -77,7 +78,7 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
       {renaming
         ? canvas.renderRename(node)
         : name && <Label node={node} name={name} orientation={canvas.orientation} category={category} />}
-      {note && <span className='bpmn-note-number' style={{ '--bpmn-note-color': note.color }} title={note.text}>{note.number}</span>}
+      {note && <span className='bpmn-note-number' style={{ '--bpmn-note-color': note.color, '--bpmn-note-text': textOn(note.color) || undefined }} title={note.text}>{note.number}</span>}
       {linked && !canvas.editable && <span className='bpmn-node-link' aria-hidden='true'>↗</span>}
       {canvas.quickMenuId === id && (
         <QuickMenuToolbar x={positionAbsoluteX} width={box.w} panelOpen={canvas.panelOpen}>

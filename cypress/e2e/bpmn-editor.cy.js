@@ -27,6 +27,34 @@ describe('BPMN editor island', () => {
     cy.get('[data-testid="bpmn-legend"]').should('not.exist')
   })
 
+  // An image or a printout lands on white paper: the outputs take the light
+  // theme of the pair even while the page shows the dark one.
+  it('exports in the light theme while the page is dark', () => {
+    cy.visit('/bali/bpmn_editor/default')
+    cy.get('[data-testid="bpmn-node"]').should('have.length', 9)
+    cy.document().then((doc) => {
+      doc.documentElement.setAttribute('data-theme', 'dark')
+      const color = (theme) => {
+        const probe = doc.createElement('span')
+        probe.setAttribute('data-theme', theme)
+        probe.style.color = 'var(--color-base-100)'
+        doc.body.appendChild(probe)
+        const value = getComputedStyle(probe).color
+        probe.remove()
+        return value
+      }
+      cy.wrap({ light: color('light'), dark: color('dark') }).as('base')
+    })
+    cy.get('button[aria-label="Descargar SVG"]').click()
+    cy.get('@base').then(({ light, dark }) => {
+      expect(light).not.to.eq(dark)
+      cy.readFile(`${Cypress.config('downloadsFolder')}/diagram.svg`).then((svg) => {
+        expect(svg).to.contain(`fill="${light}"`)
+        expect(svg).not.to.contain(`fill="${dark}"`)
+      })
+    })
+  })
+
   // Two editors mint the same client ids: an event the host sends to one
   // must not change the other.
   it('delivers a host event to the editor it names and to no other', () => {

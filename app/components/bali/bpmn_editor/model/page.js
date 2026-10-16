@@ -59,3 +59,11 @@ export function sheetFor (fit, content) {
   const y = content.y0 + content.height / 2 - h / 2
   return { width: Math.round(fit.page.width), height: Math.round(fit.page.height), x, y, w, h, viewBox: `${x} ${y} ${w} ${h}` }
 }
+
+// What leaves the screen (image, SVG, print) is drawn in the light theme of
+// the page's pair: Bali's themes come in pairs (`afal` / `afal-dark`),
+// daisyUI's as `light` / `dark`.
+export function lightThemeOf (theme) {
+  if (!theme || theme === 'dark') return 'light'
+  return theme.endsWith('-dark') ? theme.slice(0, -'-dark'.length) : theme
+}

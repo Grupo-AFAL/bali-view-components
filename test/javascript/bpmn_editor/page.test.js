@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { pageSize, pageFit, exportSize, sheetFor, LETTER, MIN_SCALE, PAGE_MARGIN, PX_PER_INCH } from '../../../app/components/bali/bpmn_editor/model/page.js'
+import { pageSize, pageFit, exportSize, sheetFor, LETTER, MIN_SCALE, PAGE_MARGIN, PX_PER_INCH, lightThemeOf } from '../../../app/components/bali/bpmn_editor/model/page.js'
 import { doc, lanes, node } from './helpers.js'
 
 test('legible means 11 px text at 6 pt or more: the diagram may shrink to about 0.73', () => {
@@ -43,4 +43,12 @@ test('an export that fits is drawn on a sheet of the page size, content centred 
   const scaled = (content.width / sheet.w) * sheet.width
   assert.ok(scaled <= sheet.width - PAGE_MARGIN * 2 + 1e-6, 'inside the margins')
   assert.equal(sheetFor({ scale: 2, page: pageSize(LETTER) }, content).w, 1056, 'a small diagram is not enlarged')
+})
+
+test('the outputs are drawn in the light theme of the pair in force', () => {
+  assert.equal(lightThemeOf('afal-dark'), 'afal')
+  assert.equal(lightThemeOf('costa-norte-dark'), 'costa-norte')
+  assert.equal(lightThemeOf('dark'), 'light')
+  assert.equal(lightThemeOf('afal'), 'afal')
+  assert.equal(lightThemeOf(null), 'light')
 })

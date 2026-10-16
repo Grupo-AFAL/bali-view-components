@@ -6,13 +6,17 @@ import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import ExportDiagram from './ExportDiagram.jsx'
 import { LIVE_PAINT } from '../shapes.jsx'
-import { LETTER, pageSize, PX_PER_INCH } from '../model/page.js'
+import { LETTER, pageSize, PX_PER_INCH, lightThemeOf } from '../model/page.js'
 
 // Turns the canvas' CSS colours (daisyUI variables, color-mix) into concrete
-// values, resolved inside the editor so the active theme applies.
+// values. Always in the LIGHT theme of the page's pair: an image, an SVG or a
+// printout leaves the screen, and lands on white paper or a light document
+// whatever theme the viewer had on.
 export function resolveColors (scope) {
   const probe = document.createElement('span')
   probe.style.display = 'none'
+  const themed = scope && scope.closest ? scope.closest('[data-theme]') : null
+  probe.setAttribute('data-theme', lightThemeOf(themed && themed.getAttribute('data-theme')))
   ;(scope || document.body).appendChild(probe)
   const resolve = (value) => {
     probe.style.color = ''

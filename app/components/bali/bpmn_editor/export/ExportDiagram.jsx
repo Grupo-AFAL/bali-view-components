@@ -12,6 +12,7 @@ import { routeAll, pathWithJumps, findJumps } from '../model/routing.js'
 import { placeEdgeLabels } from '../model/edgeLabels.js'
 import { nodeLabelBox } from '../model/labels.js'
 import { pageFit, sheetFor, EXPORT_MARGIN as MARGIN, TITLE_HEIGHT } from '../model/page.js'
+import { textOn } from '../model/contrast.js'
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', sans-serif"
 
@@ -159,7 +160,7 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
             {note && (
               <g transform={`translate(${box.x - 2} ${box.y - 2})`}>
                 <circle r={10} fill={tagColor(note.tag)} />
-                <text textAnchor='middle' dominantBaseline='central' fontSize={11} fontWeight={700} fill={colors.background}>{note.number}</text>
+                <text textAnchor='middle' dominantBaseline='central' fontSize={11} fontWeight={700} fill={textOn(tagColor(note.tag)) || colors.background}>{note.number}</text>
               </g>
             )}
           </g>

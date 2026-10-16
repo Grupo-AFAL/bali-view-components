@@ -1,7 +1,10 @@
 import Icon from './icons.jsx'
+import { textOn } from '../model/contrast.js'
+
+const noteStyle = (color) => ({ '--bpmn-note-color': color, '--bpmn-note-text': textOn(color) || undefined })
 
 // Review notes of one element: numbered markers on the canvas, the text and
-// a tag here. The tags are the host's (`annotation_tags:`).
+// a tag here. The tags are the host's (`review: { tags: }`).
 export default function NotesEditor ({ t, notes, tags, editable, onAdd, onChange, onDelete }) {
   return (
     <section className='flex flex-col gap-2'>
@@ -17,7 +20,7 @@ export default function NotesEditor ({ t, notes, tags, editable, onAdd, onChange
       {notes.map((note) => (
         <div key={note.id} className='flex flex-col gap-1 rounded border border-base-300 p-2'>
           <div className='flex items-center gap-2'>
-            <span className='bpmn-note-number' style={{ '--bpmn-note-color': (tags.find((tag) => tag.key === note.tag) || {}).color }}>{note.number}</span>
+            <span className='bpmn-note-number' style={noteStyle((tags.find((tag) => tag.key === note.tag) || {}).color)}>{note.number}</span>
             {tags.length > 0 && (
               <select className='select select-xs grow' value={note.tag || ''} disabled={!editable} aria-label={t('notes_tag')} onChange={(e) => onChange(note.id, { tag: e.target.value || null })}>
                 <option value=''>{t('notes_none_tag')}</option>

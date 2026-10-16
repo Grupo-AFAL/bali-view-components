@@ -144,7 +144,7 @@
 .bpmn-canvas .react-flow__panel.bpmn-stencil { top: 52px; }
 .bpmn-note-number {
   display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 9999px;
-  background: var(--bpmn-note-color, var(--color-primary)); color: var(--color-base-100); font-size: 11px; font-weight: 700;
+  background: var(--bpmn-note-color, var(--color-primary)); color: var(--bpmn-note-text, var(--color-primary-content)); font-size: 11px; font-weight: 700;
 }
 .bpmn-node .bpmn-note-number { position: absolute; top: -10px; left: -10px; pointer-events: none; }
 /* Compare mode. */
