@@ -11,6 +11,8 @@ export class BpmnEditorController extends ReactIslandController {
     editable: { type: Boolean, default: false },
     readOnlyNotice: { type: String, default: '' },
     autosave: { type: Boolean, default: true },
+    // 'horizontal' | 'vertical' fixes the lanes' orientation; '' lets the user switch.
+    orientation: { type: String, default: '' },
     // { items: [{ key, state, note }], note_legend } — Bali::BpmnEditor::Palette.resolve.
     palette: { type: Object, default: {} },
     legend: { type: Array, default: [] },

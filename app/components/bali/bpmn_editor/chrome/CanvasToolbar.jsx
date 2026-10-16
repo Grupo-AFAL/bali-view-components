@@ -22,7 +22,7 @@ export function CanvasToolbar ({ t, editable, orientation, onAddLane, onToggleOr
   return (
     <Panel position='top-left' className='bpmn-chrome flex flex-wrap items-center gap-0.5 rounded-lg border border-base-300 bg-base-100 p-1 shadow-sm'>
       <Tool icon='lane' label={t('add_lane')} onClick={onAddLane} testId='bpmn-add-lane' />
-      <Tool icon='swap' label={t(`orientation_${next}`)} title={t('switch_orientation')} onClick={onToggleOrientation} testId='bpmn-orientation' />
+      {onToggleOrientation && <Tool icon='swap' label={t(`orientation_${next}`)} title={t('switch_orientation')} onClick={onToggleOrientation} testId='bpmn-orientation' />}
       <Tool icon='layout' label={t('auto_layout')} title={t('auto_layout_hint')} onClick={onAutoLayout} testId='bpmn-auto-layout' />
       <Tool icon='arrowRight' label={t('connect')} onClick={onConnect} active={connecting} testId='bpmn-connect' />
       {onImport && (

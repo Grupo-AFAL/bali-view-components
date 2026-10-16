@@ -55,6 +55,15 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal({ "save" => "/flows/1/diagram" }, JSON.parse(island["data-bpmn-editor-urls-value"]))
   end
 
+  def test_the_host_can_fix_the_orientation
+    render_inline(component(orientation: :horizontal))
+    assert_equal "horizontal", island["data-bpmn-editor-orientation-value"]
+
+    render_inline(component)
+    assert_nil island["data-bpmn-editor-orientation-value"]
+    assert_raises(ArgumentError) { component(orientation: :diagonal) }
+  end
+
   def test_an_unknown_url_key_raises
     error = assert_raises(ArgumentError) { component(urls: { safe: "/typo" }) }
     assert_includes error.message, ":safe"

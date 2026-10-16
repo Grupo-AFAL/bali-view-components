@@ -77,7 +77,7 @@ describe('BPMN editor island', () => {
       cy.get('[data-testid="bpmn-quick-menu"] [aria-label="Derecha"]').click()
       cy.get('[data-testid="bpmn-quick-menu"] [data-quick="task"]').click()
       cy.get('[data-testid="bpmn-branch-with"]').should('contain', 'Bifurcar con')
-        .find('[data-branch="exclusive_gateway"]').should('contain', 'Decisión').click()
+        .find('[data-branch="binary_decision"]').should('contain', 'Decisión Sí/No').click()
       cy.get('[data-testid="bpmn-notice"]').should('not.exist')
       cy.get('[data-testid="bpmn-node"]').should('have.length', 11)
       cy.get('.react-flow__edge').should('have.length', 10)
@@ -92,6 +92,17 @@ describe('BPMN editor island', () => {
       nodeNamed('Fin').click()
       cy.get('[data-testid="bpmn-notice"]').should('contain', 'regla de entradas y salidas')
       cy.get('[data-testid="bpmn-notice-action"]').should('contain', 'Agregar gateway').click()
+      cy.get('[data-testid="bpmn-node"]').should('have.length', 10)
+      cy.get('.react-flow__edge').should('have.length', 10)
+    })
+
+    // Rework (AFAL COM-22): the way back into an activity that already has its
+    // way in goes through a merging XOR, offered on the spot.
+    it('offers the merging XOR on a way back into an activity', () => {
+      cy.get('[data-testid="bpmn-connect"]').click()
+      nodeNamed('¿La factura es válida?').click({ position: 'center' })
+      nodeNamed('Validar factura').click()
+      cy.get('[data-testid="bpmn-notice-action"]').should('contain', 'Agregar XOR de unión').click()
       cy.get('[data-testid="bpmn-node"]').should('have.length', 10)
       cy.get('.react-flow__edge').should('have.length', 10)
     })

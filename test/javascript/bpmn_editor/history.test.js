@@ -48,3 +48,10 @@ test('the history keeps at most HISTORY_LIMIT steps', () => {
   for (let i = 1; i <= h.HISTORY_LIMIT + 20; i++) s = h.commit(s, { n: i })
   assert.equal(s.past.length, h.HISTORY_LIMIT)
 })
+
+test('a linked related procedure arrives named after its reference (AFAL SUB-02)', async () => {
+  const { normalize } = await import('../../../app/components/bali/bpmn_editor/model/document.js')
+  const doc = normalize({ lanes: [], edges: [], nodes: [{ id: 's', type: 'sub_process', name: 'Typed by hand', x: 0, y: 0, reference: { id: '7', label: 'Supplier onboarding' } }, { id: 'u', type: 'sub_process', name: 'Unlinked', x: 300, y: 0 }] })
+  assert.equal(doc.nodes[0].name, 'Supplier onboarding')
+  assert.equal(doc.nodes[1].name, 'Unlinked')
+})

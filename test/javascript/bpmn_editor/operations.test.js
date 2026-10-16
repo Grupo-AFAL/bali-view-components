@@ -280,3 +280,35 @@ test('a connection refused for that reason can be made through a gateway', () =>
   assert.ok(next.edges.some((e) => e.source === gatewayId && e.target === 'e'))
   assert.ok(next.edges.some((e) => e.source === gatewayId && e.target === 'up'))
 })
+
+test('the Yes/No decision can be the gateway a split inserts', () => {
+  const { doc: next, gatewayId } = ops.branchNode(recordPayment(), 't3', { type: 'task' }, 'right', { gateway: { type: 'exclusive_gateway', marker_visible: false } })
+  assert.deepEqual(byId(next, gatewayId).marker_visible, false)
+  assert.equal(byId(next, gatewayId).type, 'exclusive_gateway')
+})
+
+// Rework (AFAL ACT-13, COM-22): Calculate → Validate → ¿Correct? → No goes
+// back to Calculate, which already has its way in.
+const rework = () => doc({
+  lanes: lanes('Payroll'),
+  nodes: [node('s', 'start_event', 'l1', 80, 90), node('calc', 'task', 'l1', 260, 90, { name: 'Calculate' }),
+    node('val', 'task', 'l1', 460, 90, { name: 'Validate' }), node('ok', 'exclusive_gateway', 'l1', 640, 90, { marker_visible: false, name: 'Correct?' }),
+    node('e', 'end_event', 'l1', 800, 90)],
+  edges: [flow('f1', 's', 'calc'), flow('f2', 'calc', 'val'), flow('f3', 'val', 'ok'), flow('f4', 'ok', 'e', { label: 'Yes' })]
+})
+
+test('a way back into an activity that already has its way in enters through a merging XOR placed before it', () => {
+  const d = rework()
+  assert.equal(ops.connectionError(d, 'ok', 'calc'), 'block_connection')
+  assert.deepEqual(ops.gatewaysNeeded(d, 'ok', 'calc'), { split: false, merge: true })
+  const { doc: next, gatewayId } = ops.connectThroughGateway(d, 'ok', 'calc')
+  const merge = byId(next, gatewayId)
+  assert.equal(merge.type, 'exclusive_gateway')
+  assert.notEqual(merge.marker_visible, false, 'a plain XOR, not a Yes/No decision')
+  const into = (id) => next.edges.filter((e) => e.target === id).map((e) => e.source).sort()
+  assert.deepEqual(into('calc'), [gatewayId], 'the activity keeps one way in')
+  assert.deepEqual(into(gatewayId), ['ok', 's'])
+  // A second return reuses that XOR.
+  const again = ops.connectThroughGateway({ ...next, edges: next.edges.filter((e) => e.source !== 'ok' || e.target !== gatewayId) }, 'ok', 'calc')
+  assert.equal(again.gatewayId, gatewayId)
+})

@@ -8,7 +8,7 @@ import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, Edge
 import '@xyflow/react/dist/style.css'
 import './flow.css'
 import { translator } from './i18n.js'
-import { normalize } from './model/document.js'
+import { normalize, namedByReference } from './model/document.js'
 import { layoutLanes, nodeBox, poolOrigin } from './model/geometry.js'
 import { routeAll, boxesById, distanceToRoute, findJumps } from './model/routing.js'
 import { buildRfNodes, buildRfEdges, isLaneNodeId, laneIdOf, laneNodeId } from './model/flow.js'
@@ -61,7 +61,7 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, readOnlyNotice, autosave, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
+  data, editable: editableProp, readOnlyNotice, autosave, orientation: fixedOrientation, palette, legend, rules, nodeFields, laneFields, urls, i18n, hostElement,
   name, watermark, annotationTags, compare
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
@@ -78,7 +78,11 @@ function Editor ({
   const wrapperRef = useRef(null)
 
   // ── document & history ─────────────────────────────────────────────────
-  const [state, setState] = useState(() => history.initialHistory(normalize(data)))
+  // An orientation the host fixed (AFAL LAN-10) applies to every document
+  // that arrives, and the toolbar offers no switch.
+  const fixed = fixedOrientation === 'horizontal' || fixedOrientation === 'vertical' ? fixedOrientation : null
+  const load = useCallback((d) => (fixed && d.orientation !== fixed ? ops.setOrientation(d, fixed).doc : d), [fixed])
+  const [state, setState] = useState(() => history.initialHistory(load(normalize(data))))
   const doc = state.present
   const docRef = useRef(doc)
   docRef.current = doc
@@ -125,9 +129,9 @@ function Editor ({
     editable,
     autosave,
     onAdopt: useCallback((serverDoc, { replace }) => {
-      setState((s) => (replace ? history.adopt(s, serverDoc) : history.adopt(s, { ...s.present, issues: serverDoc.issues, version: serverDoc.version })))
-    }, []),
-    onReset: useCallback((serverDoc) => setState((s) => history.reset(s, serverDoc)), []),
+      setState((s) => (replace ? history.adopt(s, load(serverDoc)) : history.adopt(s, { ...s.present, issues: serverDoc.issues, version: serverDoc.version })))
+    }, [load]),
+    onReset: useCallback((serverDoc) => setState((s) => history.reset(s, load(serverDoc))), [load]),
     onEvent: emit,
     notify,
     t
@@ -147,7 +151,7 @@ function Editor ({
   const [liveLength, setLiveLength] = useState(null) // shared lane length while one lane's end is dragged
   const [dialog, setDialog] = useState(null) // null | 'pending' | 'rules'
   const [compareMode, setCompareMode] = useState(null) // null | 'overlay' | 'side_by_side'
-  const [direction, setDirection] = useState(() => (normalize(data).orientation === 'vertical' ? 'down' : 'right'))
+  const [direction, setDirection] = useState(() => (load(normalize(data)).orientation === 'vertical' ? 'down' : 'right'))
   const interactive = editable && mode === 'edit'
 
   const selectedSet = useMemo(() => new Set([...selection.nodes, ...selection.edges, ...selection.lanes.map(laneNodeId)]), [selection])
@@ -289,7 +293,7 @@ function Editor ({
   const appendFrom = useCallback((sourceId, key, gateway) => {
     const item = PALETTE_ITEMS[key]
     if (!item || !item.node) return
-    const result = apply((d) => quickAdd(d, sourceId, item.node, direction, gateway))
+    const result = apply((d) => quickAdd(d, sourceId, item.node, direction, gateway && PALETTE_ITEMS[gateway].node))
     if (result) select({ nodes: [String(result.id)] })
   }, [apply, quickAdd, direction, select])
 
@@ -297,10 +301,12 @@ function Editor ({
   // the block stays, and the notice offers the split that makes it valid.
   const blockConnection = useCallback((source, target, type, error) => {
     const through = (d) => ops.connectThroughGateway(d, source, target, { policy, names, labels })
-    const offer = type === 'sequence_flow' && error === 'block_connection' && !through(docRef.current).error
+    const needed = ops.gatewaysNeeded(docRef.current, source, target, { policy })
+    const offer = type === 'sequence_flow' && error === 'block_connection' && needed && !through(docRef.current).error
     if (!offer) { block({ error }); return }
     notify(t(error), 'block', {
-      label: t('add_gateway'),
+      // A way back into an activity that already has its way in: the merging XOR (AFAL COM-22).
+      label: t(needed.merge && !needed.split ? 'add_merge' : 'add_gateway'),
       run: () => {
         const result = apply(through)
         if (result) select({ edges: [String(result.id)] })
@@ -476,7 +482,7 @@ function Editor ({
     if (rfNode.type !== 'bpmn') return
     const node = rfNode.data.node
     if (node.type === 'sub_process' && node.reference && node.reference.url) { openReference(node, hostElement); return }
-    if (interactive) setRenamingId(rfNode.id)
+    if (interactive && !namedByReference(node)) setRenamingId(rfNode.id)
   }, [interactive, hostElement])
 
   const onEdgeClick = useCallback((event, rfEdge) => {
@@ -678,7 +684,7 @@ function Editor ({
   const renderQuickMenu = useCallback((node) => {
     const d = doc
     const point = policy.oneInOneOut ? ops.branchPoint(d, node.id) : null
-    const splits = ['exclusive_gateway', 'parallel_gateway', 'inclusive_gateway'].filter((k) => enabledKeys.has(k))
+    const splits = ['binary_decision', 'exclusive_gateway', 'parallel_gateway', 'inclusive_gateway'].filter((k) => enabledKeys.has(k))
     const needsGateway = Boolean(point && !point.split)
     // Each direction tried on the side, so one that cannot work is disabled
     // and says why instead of failing after the click.
@@ -686,13 +692,14 @@ function Editor ({
     for (const dir of ['up', 'down', 'left', 'right']) {
       const tried = needsGateway && !splits.length
         ? { error: 'block_connection' }
-        : quickAdd(d, node.id, { type: 'task' }, dir, splits[0])
+        : quickAdd(d, node.id, { type: 'task' }, dir, splits[0] && PALETTE_ITEMS[splits[0]].node)
       if (tried.error) blocked[dir] = t(tried.error, tried.vars)
     }
     return (
       <QuickMenu
         t={t} enabled={enabledKeys} direction={direction} onDirection={setDirection} blocked={blocked} needsGateway={needsGateway}
         onAdd={(key, gateway) => appendFrom(node.id, key, gateway)}
+        onConnect={() => setTool({ kind: 'connect', edge: 'sequence_flow', source: String(node.id) })}
       />
     )
   }, [t, enabledKeys, direction, appendFrom, policy, quickAdd, doc])
@@ -850,7 +857,7 @@ function Editor ({
                 editable={interactive}
                 orientation={layout.orientation}
                 onAddLane={addLane}
-                onToggleOrientation={() => {
+                onToggleOrientation={fixed ? null : () => {
                   apply((d) => ops.setOrientation(d, layout.orientation === 'horizontal' ? 'vertical' : 'horizontal'))
                   setTimeout(() => fitDiagram(flow, fit, 250), 50)
                 }}

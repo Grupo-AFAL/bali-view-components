@@ -42,3 +42,10 @@ test('a lane needs room for the label under its events', () => {
   const d = doc({ lanes: lanes('A'), nodes: [node('e', 'end_event', 'l1', 200, 160)] })
   assert.ok(laneRequiredSize(d, layoutLanes(d), 'l1') >= 160 + 18 + 30)
 })
+
+test('a name gets the width the browser needs for it: 6.9 px a glyph measured, so no name is cut off', async () => {
+  const { textBlock } = await import('../../../app/components/bali/bpmn_editor/model/labels.js')
+  assert.ok(textBlock('Tiempo (captura)').w >= 16 * 6.9)
+  assert.equal(textBlock('Tiempo (captura)').lines, 1)
+  assert.equal(textBlock('Compensación (lanzamiento)').lines, 2, 'breaks at the space, as the browser does')
+})

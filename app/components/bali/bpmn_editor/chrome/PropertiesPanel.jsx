@@ -1,4 +1,5 @@
 import { paletteKeyFor, isActivity, isEvent, isGateway } from '../model/catalog.js'
+import { namedByReference } from '../model/document.js'
 import Icon from './icons.jsx'
 import FieldInput from './FieldInput.jsx'
 import ReferencePicker from './ReferencePicker.jsx'
@@ -52,8 +53,10 @@ function NodeProperties ({ node, doc, api, t, editable, nodeFields, urls }) {
     <>
       <p className='text-xs text-base-content/60'>{key ? t(`palette_${key}`) : node.type}{lane ? ` · ${lane.name || t('lane_unnamed')}` : ''}</p>
       <Field label={t('props_name')}>
-        <input className='input input-sm w-full' value={node.name || ''} disabled={!editable}
+        <input className='input input-sm w-full' value={node.name || ''} disabled={!editable || namedByReference(node)}
+          title={namedByReference(node) ? t('props_name_from_reference') : undefined}
           onChange={(e) => api.updateNode(node.id, { name: e.target.value }, `name:${node.id}`)} />
+        {namedByReference(node) && <span className='text-xs text-base-content/60'>{t('props_name_from_reference')}</span>}
       </Field>
       {describe && (
         <Field label={t('props_documentation')}>

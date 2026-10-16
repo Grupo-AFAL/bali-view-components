@@ -33,7 +33,7 @@ export default function ReferencePicker ({ node, lane, api, t, editable, urls })
   const pick = (item) => {
     const value = { id: String(item.id), label: item.label, url: item.url || null, group: item.group || null }
     if (forLane) api.updateLane(lane.id, { assignee: value, name: lane.name || item.label })
-    else api.updateNode(node.id, { reference: value, name: node.name && node.name !== t('new_sub_process') ? node.name : item.label })
+    else api.updateNode(node.id, { reference: value, name: item.label })
   }
 
   return (

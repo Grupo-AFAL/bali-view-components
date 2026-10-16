@@ -9,7 +9,7 @@
 // extension on a plain task, so nothing is lost on the way out.
 import { layoutLanes, laneRect, nodeBox, poolOrigin } from './geometry.js'
 import { routeAll } from './routing.js'
-import { edgeType, isFlowNode } from './catalog.js'
+import { edgeType, isFlowNode, isBinaryDecision } from './catalog.js'
 
 const TAGS = {
   task: 'task',
@@ -165,7 +165,9 @@ export function toBpmnXml (doc, { name = '' } = {}) {
     internalBox && `      <bpmndi:BPMNShape id="Participant_main_di" bpmnElement="Participant_main" isHorizontal="${horizontal}">${bounds(internalBox)}</bpmndi:BPMNShape>`,
     ...externalLanes.map((e) => `      <bpmndi:BPMNShape id="Participant_${xmlId(e.id)}_di" bpmnElement="Participant_${xmlId(e.id)}" isHorizontal="${horizontal}">${bounds(laneRect(layout, e))}</bpmndi:BPMNShape>`),
     ...internalLanes.map((e) => `      <bpmndi:BPMNShape id="${laneXmlId(e.id)}_di" bpmnElement="${laneXmlId(e.id)}" isHorizontal="${horizontal}">${bounds(laneRect(layout, e))}</bpmndi:BPMNShape>`),
-    ...(doc.nodes || []).map((n) => `      <bpmndi:BPMNShape id="${xmlId(n.id)}_di" bpmnElement="${xmlId(n.id)}">${bounds(nodeBox(n))}</bpmndi:BPMNShape>`)
+    // The Yes/No decision is an exclusive gateway whose X is hidden: BPMN DI
+    // says so with isMarkerVisible, the one place the standard keeps it.
+    ...(doc.nodes || []).map((n) => `      <bpmndi:BPMNShape id="${xmlId(n.id)}_di" bpmnElement="${xmlId(n.id)}"${n.type === 'exclusive_gateway' ? ` isMarkerVisible="${!isBinaryDecision(n)}"` : ''}>${bounds(nodeBox(n))}</bpmndi:BPMNShape>`)
   ].filter(Boolean)
   const edges = flows.map((e) => {
     const route = routes.get(String(e.id))

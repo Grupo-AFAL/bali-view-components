@@ -9,7 +9,7 @@
 // Node coordinates are pool-relative and lanes stack, so anything that
 // changes a lane's size or position on the main axis has to carry the nodes of
 // the lanes after it along: `resizeLane` and `reorderLanes` do.
-import { nodeSize, isActivity, isArtifactLike, isFlowNode, isStart, isEnd, edgeType, categoryOf, CATEGORY } from './catalog.js'
+import { nodeSize, isActivity, isArtifactLike, isFlowNode, isStart, isEnd, edgeType, categoryOf, CATEGORY, isBinaryDecision } from './catalog.js'
 import {
   layoutLanes, laneAt, nodeBox, boxesOverlap, laneRequiredSize, axisFor, sortedLanes, laneSize, insideLane,
   HEADER, LANE_PADDING, DEFAULT_LANE_SIZE, MIN_LANE_SIZE, orientationOf
@@ -500,14 +500,16 @@ function splitAfter (doc, sourceId, gateway, { policy, names }) {
   if (!point) return blocked('block_connection')
   if (point.split) return { doc, gatewayId: String(point.split.id), existing: true }
   if (!gateway) return blocked('block_needs_gateway')
+  // `gateway`: a gateway type, or the attributes of one (the Yes/No decision).
+  const attrs = typeof gateway === 'string' ? { type: gateway } : gateway
   // Right after the activity along the flow, whichever way its target lies.
   const orientation = orientationOf(doc)
   const box = nodeBox(findNode(doc, sourceId))
-  const size = nodeSize({ type: gateway })
+  const size = nodeSize(attrs)
   const at = axisFor(orientation).cross === 'x'
     ? { x: box.x + box.w + GAP[orientation] + size.width / 2, y: box.cy }
     : { x: box.cx, y: box.y + box.h + GAP[orientation] + size.height / 2 }
-  const inserted = insertOnEdge(doc, point.edge.id, { type: gateway }, at, { policy, names })
+  const inserted = insertOnEdge(doc, point.edge.id, attrs, at, { policy, names })
   if (inserted.error) return inserted
   return { doc: inserted.doc, gatewayId: String(inserted.id), existing: false }
 }
@@ -524,14 +526,63 @@ export function branchNode (doc, sourceId, attrs, direction, { gateway, policy =
   return { ...appended, gatewayId: split.gatewayId }
 }
 
-// A connection refused because the activity already has its way out, made
-// through a gateway instead (the same split as branchNode).
+// An activity has one way in, too: a second one — a return for rework, a
+// path joining — enters through a merging XOR placed before the activity
+// (AFAL COM-22, SEC-05). The XOR the way in already comes from is reused when
+// it leads only there. { doc, gatewayId } or a block.
+function mergeBefore (doc, targetId, { policy, names }) {
+  const target = findNode(doc, targetId)
+  const ins = target && isActivity(target) ? incoming(doc, target.id).filter((e) => edgeType(e) === 'sequence_flow') : []
+  if (ins.length !== 1) return blocked('block_connection')
+  const from = findNode(doc, ins[0].source)
+  if (from && from.type === 'exclusive_gateway' && !isBinaryDecision(from) && outgoing(doc, from.id).filter((e) => edgeType(e) === 'sequence_flow').length === 1) {
+    return { doc, gatewayId: String(from.id) }
+  }
+  const box = nodeBox(target)
+  const inserted = insertOnEdge(doc, ins[0].id, { type: 'exclusive_gateway' }, { x: box.cx, y: box.cy }, { policy, names })
+  if (inserted.error) return inserted
+  return { doc: inserted.doc, gatewayId: String(inserted.id) }
+}
+
+// What a refused connection needs to become valid: a split after a source
+// activity that already has its way out, a merging XOR before a target
+// activity that already has its way in, or both. null when neither applies.
+export function gatewaysNeeded (doc, sourceId, targetId, { policy = DEFAULT_POLICY } = {}) {
+  if (!policy.oneInOneOut) return null
+  const flows = (list) => list.filter((e) => edgeType(e) === 'sequence_flow')
+  const source = findNode(doc, sourceId)
+  const target = findNode(doc, targetId)
+  if (!source || !target) return null
+  const split = isActivity(source) && flows(outgoing(doc, source.id)).length === 1
+  const merge = isActivity(target) && flows(incoming(doc, target.id)).length === 1
+  return split || merge ? { split, merge } : null
+}
+
+// A connection refused by the one-in, one-out rule, made through the gateways
+// it needs instead: the split as in branchNode, the merge as in mergeBefore.
 export function connectThroughGateway (doc, sourceId, targetId, { gateway = 'exclusive_gateway', policy = DEFAULT_POLICY, names = {}, labels = {} } = {}) {
-  const split = splitAfter(doc, sourceId, gateway, { policy, names })
-  if (split.error) return split
-  const connected = connect(split.doc, split.gatewayId, targetId, { policy, labels: split.existing ? labels : {} })
+  const needed = gatewaysNeeded(doc, sourceId, targetId, { policy })
+  if (!needed) return blocked('block_connection')
+  let current = doc
+  let from = String(sourceId)
+  let to = String(targetId)
+  let keepLabels = true
+  if (needed.split) {
+    const split = splitAfter(current, sourceId, gateway, { policy, names })
+    if (split.error) return split
+    current = split.doc
+    from = split.gatewayId
+    keepLabels = split.existing
+  }
+  if (needed.merge) {
+    const merge = mergeBefore(current, targetId, { policy, names })
+    if (merge.error) return merge
+    current = merge.doc
+    to = merge.gatewayId
+  }
+  const connected = connect(current, from, to, { policy, labels: keepLabels ? labels : {} })
   if (connected.error) return connected
-  return { ...connected, gatewayId: split.gatewayId }
+  return { ...connected, gatewayId: needed.split ? from : to }
 }
 
 // Drops a node onto an existing sequence flow: source → new → target, the

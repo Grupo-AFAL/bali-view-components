@@ -10,18 +10,32 @@
 import { categoryOf, CATEGORY } from './catalog.js'
 import { nodeBox } from './geometry.js'
 
-const CHAR = 6.4 // average glyph width of the 11.5px label font
+// Average glyph width of the 11.5 px semibold label font. 6.4 cut names off:
+// «Tiempo (captura)» measured 6.9 px a glyph in Chromium and wrapped into a
+// line its box did not have.
+const CHAR = 7
 const LINE = 14
 const MAX_WIDTH = 140
 const GAP = 4
 
+// Lines as the browser breaks them — at spaces, a word too long for one line
+// running over as many as it needs — up to 3.
 export function textBlock (text, maxWidth = MAX_WIDTH) {
-  const length = String(text || '').trim().length
-  if (!length) return null
-  const raw = length * CHAR
-  const w = Math.min(maxWidth, Math.max(24, Math.ceil(raw)))
-  const lines = Math.min(3, Math.ceil(raw / maxWidth))
-  return { w, h: lines * LINE, lines }
+  const words = String(text || '').trim().split(/\s+/).filter(Boolean)
+  if (!words.length) return null
+  let lines = 1
+  let line = 0
+  let widest = 0
+  for (const word of words) {
+    const width = word.length * CHAR
+    if (line && line + CHAR + width <= maxWidth) { line += CHAR + width; continue }
+    if (line) { widest = Math.max(widest, line); lines++ }
+    lines += Math.max(0, Math.ceil(width / maxWidth) - 1)
+    line = Math.min(width, maxWidth)
+  }
+  widest = Math.max(widest, line)
+  lines = Math.min(3, lines)
+  return { w: Math.min(maxWidth, Math.max(24, Math.ceil(widest))), h: lines * LINE, lines }
 }
 
 export const hasExternalLabel = (node) => {

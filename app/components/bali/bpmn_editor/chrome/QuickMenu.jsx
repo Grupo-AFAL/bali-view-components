@@ -13,14 +13,14 @@ const PICKS = [
 ]
 const DIRECTIONS = [['up', 'arrowUp'], ['left', 'arrowLeft'], ['right', 'arrowRight'], ['down', 'arrowDown']]
 const MORE_GROUPS = ['activities', 'gateways', 'intermediate_events', 'end_events']
-const SPLITS = ['exclusive_gateway', 'parallel_gateway', 'inclusive_gateway']
+const SPLITS = ['binary_decision', 'exclusive_gateway', 'parallel_gateway', 'inclusive_gateway']
 
 // "Add the next element", already connected, in the chosen direction.
 // `blocked` maps a direction to why nothing can be added there (its button is
 // disabled and says so). `needsGateway`: the element already has its way
 // out, so the new one is a branch and the menu first asks which gateway
 // splits the path.
-export default function QuickMenu ({ t, enabled, direction, onDirection, onAdd, blocked = {}, needsGateway = false }) {
+export default function QuickMenu ({ t, enabled, direction, onDirection, onAdd, onConnect, blocked = {}, needsGateway = false }) {
   const [more, setMore] = useState(false)
   const [pending, setPending] = useState(null)
   const splits = SPLITS.filter((k) => enabled.has(k))
@@ -45,6 +45,12 @@ export default function QuickMenu ({ t, enabled, direction, onDirection, onAdd, 
             <Icon name='more' size={16} />
           </button>
         )}
+        {onConnect && (
+          // To an element already on the canvas — a way back for rework among them.
+          <button type='button' className='btn btn-ghost btn-xs btn-square h-8 w-8' title={t('quick_connect')} aria-label={t('quick_connect')} data-quick-connect onClick={onConnect}>
+            <Icon name='arrowRight' size={16} />
+          </button>
+        )}
         <span className='mx-0.5 h-6 w-px bg-base-300' />
         <div className='grid grid-cols-3 grid-rows-3 gap-px' role='group' aria-label={t('quick_direction')}>
           {DIRECTIONS.map(([dir, icon]) => (
@@ -62,7 +68,7 @@ export default function QuickMenu ({ t, enabled, direction, onDirection, onAdd, 
         </div>
       </div>
       {pending && (
-        <div className='flex items-center gap-1 border-t border-base-300 px-1 pt-1 text-xs' role='group' aria-label={t('branch_with')} data-testid='bpmn-branch-with'>
+        <div className='flex max-w-64 flex-wrap items-center gap-1 border-t border-base-300 px-1 pt-1 text-xs' role='group' aria-label={t('branch_with')} data-testid='bpmn-branch-with'>
           <span className='text-base-content/70'>{t('branch_with')}:</span>
           {splits.map((gateway) => (
             <button key={gateway} type='button' className='btn btn-ghost btn-xs gap-1 font-normal' data-branch={gateway} onClick={() => { onAdd(pending, gateway); setPending(null) }}>

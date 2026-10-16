@@ -40,6 +40,18 @@ class BaliBpmnXmlExportTest < ActiveSupport::TestCase
   end
 
   # The contract keeps ids unique per kind only; the file has one namespace.
+  # The Yes/No decision is an exclusive gateway with its X hidden (BPMN DI).
+  def test_the_yes_no_decision_exports_with_its_marker_hidden
+    flow = BpmnSampleFlows.invoice
+    flow[:nodes] << { id: "yn", type: "exclusive_gateway", marker_visible: false, lane_id: "l2", name: "¿Completa?",
+                      x: 700, y: 300 }
+    xml = export(flow)
+
+    assert_equal "false", xml.at_xpath("//bpmndi:BPMNShape[@bpmnElement='yn']", NS)["isMarkerVisible"]
+    assert_equal "true", xml.at_xpath("//bpmndi:BPMNShape[@bpmnElement='g1']", NS)["isMarkerVisible"]
+    assert xml.at_xpath("//bpmn:exclusiveGateway[@id='yn']", NS)
+  end
+
   def test_ids_shared_across_kinds_stay_unique_and_artifacts_follow_flows
     xml = export(lanes: [ { id: "1", name: "A" }, { id: "2", name: "B" } ],
                  nodes: [ { id: "1", type: "task", lane_id: "1", name: "Do", x: 80, y: 40 },

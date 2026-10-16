@@ -6,17 +6,20 @@
 // are daisyUI variables (theme-aware); the export resolves them first,
 // because an SVG rasterised through <img> has no access to the page's custom
 // properties.
-import { categoryOf, CATEGORY } from './model/catalog.js'
+import { categoryOf, CATEGORY, isBinaryDecision } from './model/catalog.js'
 
 const soft = (token, amount = 12) => `color-mix(in oklab, var(${token}) ${amount}%, var(--color-base-100))`
+// The related procedure (collapsed sub-process): grey with its [+] unless the
+// host sets `--bpmn-sub-process` on the editor (AFAL SUB-01, VIS-09).
+const SUB_PROCESS = 'var(--bpmn-sub-process, color-mix(in oklab, var(--color-base-content) 55%, var(--color-base-100)))'
 
 export const LIVE_PAINT = {
   activity: { fill: soft('--color-primary', 10), stroke: 'var(--color-primary)' },
   externalActivity: { fill: 'var(--color-base-100)', stroke: 'var(--color-primary)' },
-  // Violet between the activity's primary and the theme's secondary: a
-  // sub-process reads as an activity, set apart (the design's purple).
-  subProcess: { fill: 'color-mix(in oklab, color-mix(in oklab, var(--color-primary) 60%, var(--color-secondary)) 10%, var(--color-base-100))', stroke: 'color-mix(in oklab, var(--color-primary) 60%, var(--color-secondary))' },
+  subProcess: { fill: `color-mix(in oklab, ${SUB_PROCESS} 14%, var(--color-base-100))`, stroke: SUB_PROCESS },
   gateway: { fill: soft('--color-warning', 12), stroke: 'var(--color-warning)' },
+  // The Yes/No decision, blue and without its X (AFAL COM-02).
+  decision: { fill: soft('--color-info', 14), stroke: 'var(--color-info)' },
   start: { fill: soft('--color-success', 12), stroke: 'var(--color-success)' },
   intermediate: { fill: 'var(--color-base-100)', stroke: 'var(--color-warning)' },
   end: { fill: soft('--color-error', 10), stroke: 'var(--color-error)' },
@@ -29,6 +32,7 @@ function paintFor (node, paint, external) {
   const category = categoryOf(node)
   if (node.type === 'sub_process') return paint.subProcess
   if (category === CATEGORY.activity) return external ? paint.externalActivity : paint.activity
+  if (isBinaryDecision(node)) return paint.decision
   if (category === CATEGORY.gateway) return paint.gateway
   if (node.type === 'start_event') return paint.start
   if (node.type === 'end_event') return paint.end
@@ -105,6 +109,7 @@ function GatewayShape ({ node, w, h, paint }) {
   let inner = null
   switch (node.type) {
     case 'exclusive_gateway':
+      if (isBinaryDecision(node)) break
       inner = <path d={`M${cx - 7 * k},${cy - 7 * k} L${cx + 7 * k},${cy + 7 * k} M${cx + 7 * k},${cy - 7 * k} L${cx - 7 * k},${cy + 7 * k}`} {...mark} />
       break
     case 'parallel_gateway':
@@ -233,6 +238,9 @@ function ArtifactShape ({ node, w, h, paint }) {
   }
   return <path d={`M14,1 L1,1 L1,${h - 1} L14,${h - 1}`} fill='none' style={{ stroke }} strokeWidth={1.5} />
 }
+
+// The colour an element is outlined in — the minimap paints with it.
+export const strokeOf = (node, external = false) => paintFor(node, LIVE_PAINT, external).stroke
 
 export function NodeShape ({ node, width, height, paint = LIVE_PAINT, external = false }) {
   const props = { node, w: width, h: height, paint, external }

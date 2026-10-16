@@ -10,8 +10,13 @@ export function normalize (data) {
   for (const key of COLLECTIONS) doc[key] = Array.isArray(doc[key]) ? doc[key] : []
   doc.orientation = doc.orientation === 'vertical' ? 'vertical' : 'horizontal'
   doc.pool = { x: 0, y: 0, ...(doc.pool || {}) }
+  doc.nodes = doc.nodes.map((n) => (namedByReference(n) && n.name !== n.reference.label ? { ...n, name: n.reference.label } : n))
   return needsLayout(doc) ? autoLayout(doc) : doc
 }
+
+// A related procedure carries the official name of the one it cites (AFAL
+// SUB-02): while linked, its name is the reference's label, not typed.
+export const namedByReference = (node) => node.type === 'sub_process' && Boolean(node.reference && node.reference.label)
 
 // Ids minted on the client: `prefix` + the first free number, so the same
 // edits always mint the same ids (the property tests replay sessions by
