@@ -25,4 +25,20 @@ describe('SlimSelect HTML options', () => {
     cy.get('@list').find('.ss-optgroup').should('have.length', 2)
     cy.get('@list').find('.ss-optgroup .ss-option .badge').should('have.length', 3)
   })
+
+  // What a Turbo Stream into the <select>, or a host's script, does.
+  it('draws the markup of an option added after the widget mounted', () => {
+    cy.get('#form_record_name_select_div .ss-main').should('exist')
+    cy.get('#form_record_name').then(([select]) => {
+      const option = select.ownerDocument.createElement('option')
+      option.value = 'late'
+      option.text = 'Late User'
+      option.dataset.innerHtml = '<span class="badge badge-info badge-xs"></span> Late User'
+      select.append(option)
+    })
+
+    open('name')
+
+    cy.get('@list').contains('.ss-option', 'Late User').find('.badge').should('have.length', 1)
+  })
 })

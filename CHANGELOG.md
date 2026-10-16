@@ -47,6 +47,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `data-inner-html` propio que arman sus helpers para esquivarlo ya no hace falta; cambiarlo por
   `include_blank:` lo convierte de fila de la lista en placeholder, con ✕.
 
+- **SlimSelect: una opción con `data-inner-html` que llega después de montar también dibuja su
+  HTML**. La que agrega un Turbo Stream dentro del `<select>`, o el JS de la app, salía en texto
+  plano: SlimSelect sólo lee `data-html`, y el controlador lo copiaba únicamente al montar. Ninguna
+  app agrega opciones así hoy. Nada que hacer en la app.
+
 ### Documentation
 
 - **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).

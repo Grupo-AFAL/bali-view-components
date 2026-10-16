@@ -150,9 +150,7 @@ export class SlimSelectController extends Controller {
       // documents and hosts write. Copied, not handed over as `data`: SlimSelect rebuilds the
       // <select> from `data`, keeping only the attributes it maps, and 3.x dispatches a `change`
       // doing it.
-      for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
-        option.dataset.html = option.dataset.innerHtml
-      }
+      this.copyOptionHtml()
 
       if (this.hasAjaxValues()) {
         options.events.search = this.search
@@ -177,6 +175,13 @@ export class SlimSelectController extends Controller {
       }
 
       this.select = instance
+
+      // An option that arrives later — a Turbo Stream into the <select>, a host's script — is
+      // copied as it lands. SlimSelect's own observer reads it first, without the markup, and
+      // again on the attribute written here: it takes any mutation of an <option> for a change
+      // of the list (3.4.3 to 4.6.0).
+      this.optionObserver = new MutationObserver(() => this.copyOptionHtml())
+      this.optionObserver.observe(this.selectTarget, { childList: true, subtree: true })
 
       // After the import, not before it: `teardown()` only ever looks at
       // `this.select`, so a listener registered while it is still null buys
@@ -362,8 +367,15 @@ export class SlimSelectController extends Controller {
   teardown () {
     leaveTopLayer(this.select?.render?.content?.main)
 
+    this.optionObserver?.disconnect()
     this.select?.destroy()
     this.select = null
+  }
+
+  copyOptionHtml () {
+    for (const option of this.selectTarget.querySelectorAll('option[data-inner-html]')) {
+      if (option.dataset.html !== option.dataset.innerHtml) option.dataset.html = option.dataset.innerHtml
+    }
   }
 
   // Remove a SlimSelect widget left behind in a restored Turbo snapshot. The
