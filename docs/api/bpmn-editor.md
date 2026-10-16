@@ -94,6 +94,7 @@ authorize every endpoint on the server anyway.
 | `autosave:` | `true` | Save with a ~1.2 s debounce after each change. `false`: only the "Save draft" button saves |
 | `lock_orientation:` | `false` | `true` keeps the document's own orientation (`data[:orientation]`, the one source of it) and the toolbar offers no switch — e.g. a host whose lanes are always horizontal |
 | `external_lanes:` | `true` | Lanes may be marked as external participants (grey lane, white activities, joined by message flows). `false` hides that checkbox in the lane panel and the external entries of the default legend |
+| `open_issues:` | `false` | Open the pending-issues panel on load (editable only): for a page whose purpose is to show what a diagram still has to fix |
 | `layout:` | `:compact` | How "Tidy up" (and the first layout of a document without coordinates) arranges the flow: `:compact` folds it to fit `page:` legibly, `:straight` keeps the happy path in one line — see [Layout](#layout). An unknown value raises |
 | `page:` | `{ width: 8.5, height: 11, orientation: "landscape" }` | The sheet, in inches: the compact layout's target, and what the image, SVG and print outputs are laid on. `orientation:` is `"landscape"` or `"portrait"`; anything else, or a non-positive size, raises |
 | `palette:` | `:descriptive` | A preset, an `Array` of keys (exactly those), or a `Hash` — see [Palette](#palette) |
@@ -619,6 +620,7 @@ focus, documented shortcuts, and a `<noscript>` notice in the mount.
 | `bali/bpmn_editor/large` | 60 activities and 10 decisions over four lanes |
 | `bali/bpmn_editor/empty` | An empty document |
 | `bali/bpmn_editor/catalog` | Every palette element as its icon draws it and as the canvas does, with its name |
+| `bali/bpmn_editor/rules_gallery` | One rule at a time: a flow that breaks it (`example=failing`) or follows it (`passing`), with the issues panel open. `optional_rules` loads the optional rule package — in the dummy, a second island bundle (`test/dummy/app/javascript/bpmn-editor-island-with-rules.js`) only this preview uses. The examples are `test/fixtures/bpmn_editor/rule_examples.json`, shared with the JS tests |
 
 `/admin/process_flows/:id` in the dummy is the editor in a real layout, with the
 drawers of the extension points working.

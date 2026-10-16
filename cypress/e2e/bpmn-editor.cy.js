@@ -250,3 +250,14 @@ describe('BPMN editor island', () => {
     })
   })
 })
+
+// The rules gallery preview: one rule at a time, its failing example listed in
+// the pending-issues panel the preview opens on load, its passing one not.
+describe('BPMN editor rules gallery', () => {
+  it('rules gallery with example=failing shows the rule in the pending panel', () => {
+    cy.visit('/bali/bpmn_editor/rules_gallery?rule=R06&example=failing')
+    cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible').find('[data-rule="R06"]').should('exist')
+    cy.visit('/bali/bpmn_editor/rules_gallery?rule=R06&example=passing')
+    cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible').find('[data-rule="R06"]').should('not.exist')
+  })
+})

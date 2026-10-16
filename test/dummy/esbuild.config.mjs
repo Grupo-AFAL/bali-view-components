@@ -49,7 +49,9 @@ const config = {
     'app/javascript/application.js',
     'app/javascript/island-demo.js',
     'app/javascript/gantt-island.js',
-    'app/javascript/bpmn-editor-island.js'
+    'app/javascript/bpmn-editor-island.js',
+    // The same island plus the optional rule package: the rules gallery only.
+    'app/javascript/bpmn-editor-island-with-rules.js'
   ],
   bundle: true,
   sourcemap: true,

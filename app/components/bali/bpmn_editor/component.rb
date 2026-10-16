@@ -46,6 +46,8 @@ module Bali
       #   the toolbar offers no switch.
       # @param external_lanes [Boolean] offer marking a lane as an external participant (default);
       #   false hides that checkbox and the external entries of the default legend.
+      # @param open_issues [Boolean] open the pending-issues panel on load (editable only), for a
+      #   page whose purpose is to show what a diagram still has to fix.
       # @param layout [Symbol] how "Tidy up" (and the first layout of a document without
       #   coordinates) arranges the flow: :compact (default) folds it into bands that fit
       #   `page:` legibly; :straight keeps the happy path in one line.
@@ -68,13 +70,15 @@ module Bali
       # @param id [String] DOM id; also scopes the events the host sends back. Generated when
       #   omitted, so two editors on one page never share it.
       def initialize(data:, editable: false, autosave: true, lock_orientation: false, external_lanes: true,
-                     layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil, rules: {}, fields: {},
-                     urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil, **options)
+                     open_issues: false, layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil,
+                     rules: {}, fields: {}, urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil,
+                     **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @autosave = autosave
         @lock_orientation = lock_orientation
         @external_lanes = external_lanes
+        @open_issues = open_issues
         @layout = resolve_layout(layout)
         @page = resolve_page(page)
         @palette = Palette.resolve(palette)
@@ -115,6 +119,7 @@ module Bali
           bpmn_editor_autosave_value: (!!@autosave).to_s,
           bpmn_editor_lock_orientation_value: (!!@lock_orientation).to_s,
           bpmn_editor_external_lanes_value: (!!@external_lanes).to_s,
+          bpmn_editor_open_issues_value: (!!@open_issues).to_s,
           bpmn_editor_layout_value: @layout.to_s,
           bpmn_editor_page_value: @page.to_json,
           bpmn_editor_palette_value: @palette.to_json,

@@ -114,7 +114,40 @@ module Bali
         island(locale, data: { version: 1, lanes: [], nodes: [], edges: [] })
       end
 
+      # @label Rules gallery
+      # One modelling rule at a time: a small flow that breaks it (`failing`) or
+      # one that does not (`passing`), with the pending-issues panel open. Pick a
+      # rule and compare both; open «Reglas» to see every rule and its state. The
+      # rules marked as optional only run when the optional rule package is on —
+      # in a host, that is importing `bali-view-components/bpmn-editor/afal-rules`
+      # in the island's entry (here, a second island bundle loaded only by this
+      # preview). Rules and their options: docs/api/bpmn-editor.md#rules
+      # @param rule select :gallery_rules
+      # @param example select { choices: [failing, passing] }
+      # @param optional_rules toggle "Load the optional rule package"
+      # @param locale select { choices: [es, en] }
+      def rules_gallery(rule: "R01", example: "failing", optional_rules: false, locale: :es)
+        rule = rule.to_s
+        optional = BpmnRuleExamples.optional_rule_ids.include?(rule)
+        sample = BpmnRuleExamples.example(rule, example)
+        flow = ProcessFlow.find_or_initialize_by(name: "Rules gallery")
+        flow.update!(document: sample[:document], version: 1, finalized_at: nil)
+        I18n.with_locale(locale) do
+          render_with_template(
+            template: "bali/bpmn_editor/previews/rules_gallery",
+            locals: { flow: flow, rule: rule, example: example.to_s, optional: optional,
+                      optional_rules: optional_rules, sample: sample }
+          )
+        end
+      end
+
       private
+
+      # The rules the gallery has an example for: every rule of the editor and
+      # of the optional rule package (test/fixtures/bpmn_editor/rule_examples.json).
+      def gallery_rules
+        BpmnRuleExamples.rule_ids
+      end
 
       # The island's strings follow the locale the component is built in
       # (Component#island_i18n), so none are passed.

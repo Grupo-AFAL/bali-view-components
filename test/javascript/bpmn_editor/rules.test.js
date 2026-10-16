@@ -47,6 +47,29 @@ for (const rule of [...CATALOG, ...AFAL_RULES]) {
   })
 }
 
+// The rules gallery preview shows each example with only its own rule switched
+// on (`rules: { enabled: [id], options }`), the palette it allows and its sheet:
+// with that much, the failing example raises the rule and the passing one not.
+for (const [id, example] of Object.entries(RULE_EXAMPLES.rules)) {
+  test(`the gallery's ${id} examples: the failing one raises it with only it switched on, the passing one does not`, () => {
+    const gallery = (which) => {
+      const { allowed, page, options } = exampleOptions(example, which)
+      return evaluate(exampleDocument(example[which]), { enabled: [id], options }, t, { allowed, page }).filter((i) => i.rule === id)
+    }
+    assert.ok(gallery('failing').length > 0, `${id} did not fire`)
+    assert.deepEqual(gallery('passing'), [])
+  })
+}
+
+// The rules gallery preview reads the same file: it offers exactly the rules
+// there are, and says which come from the optional package.
+test('every example in rule_examples.json belongs to a rule, and the optional package is marked as such', () => {
+  const ids = [...CATALOG, ...AFAL_RULES].map((rule) => rule.id).sort()
+  assert.deepEqual(Object.keys(RULE_EXAMPLES.rules).sort(), ids)
+  const optional = Object.entries(RULE_EXAMPLES.rules).filter(([, example]) => example.package === 'optional').map(([id]) => id).sort()
+  assert.deepEqual(optional, AFAL_RULES.map((rule) => rule.id).sort())
+})
+
 test('the issue catalogue and the BPMN-grounded criteria are on by default; the optional rules are off', () => {
   for (const id of ['R01', 'R02', 'R03', 'R05', 'R06', 'R07', 'R08', 'R09', 'R10', 'R11', 'R13', 'R18', 'R21', 'R22', 'R23', 'R24', 'R25', 'R26']) {
     assert.ok(isRuleOn({}, id), `${id} on`)

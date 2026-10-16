@@ -14,6 +14,8 @@ export class BpmnEditorController extends ReactIslandController {
     lockOrientation: { type: Boolean, default: false },
     // Lanes may be marked as external participants (the lane panel's checkbox).
     externalLanes: { type: Boolean, default: true },
+    // Opens the pending-issues panel on load (Component `open_issues:`).
+    openIssues: { type: Boolean, default: false },
     // 'compact' | 'straight' — autoLayout's mode (model/layout.js).
     layout: { type: String, default: 'compact' },
     // { width, height } in inches and orientation — model/page.js.

@@ -74,6 +74,14 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal "false", island["data-bpmn-editor-lock-orientation-value"]
   end
 
+  def test_the_pending_issues_panel_can_open_on_load
+    render_inline(component)
+    assert_equal "false", island["data-bpmn-editor-open-issues-value"]
+
+    render_inline(component(open_issues: true))
+    assert_equal "true", island["data-bpmn-editor-open-issues-value"]
+  end
+
   def test_external_lanes_can_be_turned_off_and_take_their_legend_entries_along
     render_inline(component)
     assert_equal "true", island["data-bpmn-editor-external-lanes-value"]

@@ -60,7 +60,7 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, autosave, lockOrientation, externalLanes = true, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
+  data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
   name, watermark, review
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
@@ -146,7 +146,7 @@ function Editor ({
   const [fullscreen, setFullscreen] = useState(false)
   const [dragPositions, setDragPositions] = useState(null) // id → absolute position while dragging
   const [liveLength, setLiveLength] = useState(null) // shared lane length while one lane's end is dragged
-  const [dialog, setDialog] = useState(null) // null | 'pending' | 'rules'
+  const [dialog, setDialog] = useState(() => (openIssues && editable ? 'pending' : null)) // null | 'pending' | 'rules'
   const [compareMode, setCompareMode] = useState(null) // null | 'overlay' | 'side_by_side'
   // The quick menu's default direction follows the reading direction.
   const [direction, setDirection] = useState(() => (state.present.orientation === 'vertical' ? 'down' : 'right'))
