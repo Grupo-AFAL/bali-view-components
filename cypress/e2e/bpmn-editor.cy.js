@@ -68,6 +68,17 @@ describe('BPMN editor island', () => {
     })
   })
 
+  // A read-only diagram in a long page: scrolling over it scrolls the page, it
+  // does not zoom the canvas out to React Flow's 10 % floor.
+  it('lets the page scroll over a read-only diagram', () => {
+    cy.visit('/bali/bpmn_editor/catalog?locale=es')
+    cy.get('.bpmn-editor [aria-live="polite"]').should('have.text', '40%')
+    cy.get('.react-flow__pane').trigger('wheel', { deltaY: 600, bubbles: true })
+    cy.get('.react-flow__pane').trigger('wheel', { deltaY: 600, bubbles: true })
+    cy.wait(300)
+    cy.get('.bpmn-editor [aria-live="polite"]').should('have.text', '40%')
+  })
+
   // The playground's `server` parameter: the dummy answering like a host in
   // trouble (Admin::ProcessFlows::DemoServer).
   describe('playground server modes', () => {

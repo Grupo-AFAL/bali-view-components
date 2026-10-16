@@ -25,17 +25,17 @@
           <tbody>
             <% group[:items].each do |item| %>
               <tr data-catalog-key="<%= item[:key] %>">
-                <td class="font-semibold"><%= item[:name] %><br><code class="text-xs font-normal text-base-content/60"><%= item[:key] %></code></td>
-                <td data-text="summary"><%= item[:summary] %></td>
-                <td data-text="when"><%= item[:when] %></td>
-                <td data-text="editor"><%= item[:editor] %></td>
-                <td class="text-xs">
+                <td class="align-top font-semibold"><%= item[:name] %><br><code class="text-xs font-normal text-base-content/60"><%= item[:key] %></code></td>
+                <td class="align-top" data-text="summary"><%= item[:summary] %></td>
+                <td class="align-top" data-text="when"><%= item[:when] %></td>
+                <td class="align-top" data-text="editor"><%= item[:editor] %></td>
+                <td class="align-top text-xs">
                   <% item[:rules].each do |rule| %>
                     <span class="block" data-rule="<%= rule[:id] %>"><code><%= rule[:id] %></code> <%= rule[:title] %><%= rule[:optional] ? (en ? " (optional package)" : " (paquete opcional)") : "" %></span>
                   <% end %>
                   <% if item[:rules].empty? %><span class="text-base-content/50">—</span><% end %>
                 </td>
-                <td class="text-xs"><%= item[:presets].join(", ") %></td>
+                <td class="align-top text-xs"><%= item[:presets].join(", ") %></td>
               </tr>
             <% end %>
           </tbody>

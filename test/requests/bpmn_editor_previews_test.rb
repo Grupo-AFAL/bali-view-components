@@ -150,6 +150,8 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
       assert_match task_summary, css_select("tr[data-catalog-key='task'] td[data-text='summary']").first.text
     end
     assert_select "tr[data-catalog-key='task'] [data-rule='R01']"
+    # Tall rows read from the top: every cell starts there.
+    css_select("tr[data-catalog-key] td").each { |cell| assert_includes cell["class"].to_s.split, "align-top" }
   end
 
   def test_the_configured_preview_hands_over_palette_notes_and_legend_on_its_own_record

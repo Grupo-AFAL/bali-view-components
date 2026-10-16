@@ -519,6 +519,8 @@ sent at once, and without it the visitor is asked to confirm.
   arrows move the selection (10 px a press, Shift for 1 px; a run of presses is one undo
   step, and the local arrangement runs when the key goes up — a Shift nudge keeps its pixel).
   Shortcuts reach the editor last touched.
+- **Wheel**: zooms an editable canvas. Over a read-only diagram it scrolls the page, as
+  anywhere else on it; the zoom bar and a pinch still zoom.
 - **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
 - **Orientation**: horizontal ↔ vertical lanes, keeping lanes and reading order.
 

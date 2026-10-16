@@ -817,6 +817,11 @@ function Editor ({
               minZoom={0.1}
               maxZoom={2.5}
               zoomOnDoubleClick={false}
+              // A read-only diagram sits inside a page the reader scrolls: the
+              // wheel scrolls the page, as anywhere else, instead of zooming the
+              // canvas down to 10 %; the zoom bar and pinch still zoom.
+              zoomOnScroll={editable}
+              preventScrolling={editable}
             >
               <Background gap={20} size={1} />
               <MiniMap className='bpmn-chrome' nodeColor={minimapColor} pannable zoomable ariaLabel={t('minimap')} />
