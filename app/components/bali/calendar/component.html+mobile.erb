@@ -11,21 +11,27 @@
 <% else %>
   <div class="calendar-component">
     <div class="day-view">
-      <%= render(Bali::Columns::Component.new(class: 'gap-0')) do |c| %>
-        <%= c.with_column(class: 'flex-none') do %>
-          <%= link_to render(Bali::Icon::Component.new('chevron-left')), url_for(prev_day), title: t('bali_view.calendar.header.previous') %>
+      <%= render(Bali::Columns::Component.new(mobile: true, middle: true)) do |c| %>
+        <% if header&.arrows? %>
+          <%= c.with_column(auto: true) do %>
+            <%= render Bali::Link::Component.new(icon: 'chevron-left', **header.day_arrow_options(:prev)) %>
+          <% end %>
         <% end %>
         <%= c.with_column(class: 'text-center') do %>
           <span class="text-lg text-base-content/70 font-normal">
             <%= day_title %>
           </span>
         <% end %>
-        <%= c.with_column(class: 'flex-none') do %>
-          <%= link_to render(Bali::Icon::Component.new('chevron-right')), url_for(next_day), title: t('bali_view.calendar.header.next') %>
+        <% if header&.arrows? %>
+          <%= c.with_column(auto: true) do %>
+            <%= render Bali::Link::Component.new(icon: 'chevron-right', **header.day_arrow_options(:next)) %>
+          <% end %>
         <% end %>
       <% end %>
       <div class="divider"></div>
-      <%= render template, events: sorted_events[start_date], period: :day, day: start_date %>
+      <% if template.present? %>
+        <%= render template, events: sorted_events[start_date], period: :day, day: start_date %>
+      <% end %>
     </div>
   </div>
 <% end %>

@@ -40,6 +40,8 @@ const TEXTS = {
   }
 }
 
+const optionsIn = data => data.flatMap(item => item.options || [item])
+
 export class SlimSelectController extends Controller {
   static values = {
     addItems: Boolean,
@@ -268,7 +270,7 @@ export class SlimSelectController extends Controller {
   }
 
   // SlimSelect counts the placeholder among the results it reads out, though it draws it
-  // hidden, and a remote search keeps it in the list because it is the selected option.
+  // hidden, and a remote search keeps it in the list: `search` hands it back with the results.
   // Measured on 4.5.0 and 4.6.0: a remote search with no matches left the list blank and read
   // out "1 results available", and four matches read "5". Reported upstream as
   // https://github.com/brianvoe/slim-select/issues/719 — this method goes once that is fixed.
@@ -281,7 +283,6 @@ export class SlimSelectController extends Controller {
   leavePlaceholderOutOfResults () {
     const render = this.select.render
     const renderOptions = render.renderOptions.bind(render)
-    const optionsIn = data => data.flatMap(item => item.options || [item])
 
     render.renderOptions = data => {
       const options = optionsIn(data)
@@ -403,7 +404,9 @@ export class SlimSelectController extends Controller {
   // Async, so that what throws while the request is still being built — an
   // `ajax_param_selectors` that is not a valid selector, an `ajax_extra_params` that is not
   // JSON — rejects too: SlimSelect has already put up "Searching..." before it calls this.
-  search = async (search, currentData, catalog) => {
+  //
+  // `catalog` arrives from 4.0; 3.x passes only the term and the selection.
+  search = async (search, currentData, catalog = []) => {
     // From 4.4 emptying the search box reaches this callback as well, and rejecting it shows
     // `ajaxPlaceholder` where the options were. The catalog is what 4.0–4.3 restored on their
     // own; 3.x never asks.
@@ -426,15 +429,26 @@ export class SlimSelectController extends Controller {
       if (!response.ok) throw new Error(response.statusCode)
 
       const data = await response.json
+      const held = optionsIn(catalog)
+
+      // A result SlimSelect already holds (a seed option, or a result chosen earlier) goes
+      // back with the id it has there. SlimSelect matches a result to it by `===` on the
+      // value, a string on the <select>, and reads a selection as changed by id: a JSON number
+      // listed the record twice and wrote it into the <select> twice, and a fresh id ran
+      // `afterChange` on every search that found the chosen record.
+      const ids = new Map(held.map(option => [option.value, option.id]))
       const options = data.map(record => {
-        return {
-          text: record[this.ajaxTextNameValue],
-          value: record[this.ajaxValueNameValue],
-          html: record.html
-        }
+        const value = String(record[this.ajaxValueNameValue])
+
+        return { id: ids.get(value), text: record[this.ajaxTextNameValue], value, html: record.html }
       })
 
-      return [{ label: this.texts.resultsText, options }]
+      // Without a placeholder in its data, SlimSelect gives the ✕ an empty one of its own,
+      // which shows `placeholderText` instead of the select's and stays behind in the
+      // <select> as a second blank once the list closes.
+      const placeholders = held.filter(option => option.placeholder)
+
+      return [...placeholders, { label: this.texts.resultsText, options }]
     } catch (error) {
       console.error('[SlimSelect] Remote search failed:', error)
       // SlimSelect paints whatever the search rejects with where the results go, an error's

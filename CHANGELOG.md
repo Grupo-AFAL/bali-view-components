@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
   `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
 
+- **`checkbox-toggle`, `radio-toggle` y `checkbox-reveal` siguen lo que hay en pantalla tras un
+  Turbo Stream con morph, y `checkbox-toggle` pinta todos los targets de cada lado** (hallado al
+  resolver #1495). Un `turbo_stream.replace(…, method: :morph)` conserva el elemento: el target se
+  quedaba con el `hidden` y, con `disable-hidden`, el `disabled` que mandó el servidor, y si el
+  morph cambiaba el radio o la casilla, los targets seguían la elección anterior. Ahora, tras un
+  morph, la elección es el control que se ve; el atributo de valor sólo da el estado inicial.
+  `checkbox-reveal` tampoco pintaba un `item` reemplazado sin morph, ni él ni `radio-toggle`
+  seguían una casilla target reemplazada, y un segundo `on` u `off` no se pintaba nunca. Un
+  `toggleTargets` sobrescrito en una subclase corre ahora tras cada elemento que el morph
+  transforma dentro del controlador, varias veces por stream: tiene que ser idempotente. Ninguna
+  app hace hoy nada de esto: nada que hacer en la app.
+
 - **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
   accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el
   `date.formats.long` de la app: «5 de marzo de 2026» con rails-i18n, «March 05, 2026» en inglés.
@@ -27,11 +39,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `ArchivalNotice`. Las siete apps en Bali 3 la tienen: nada que hacer en la app. En
   gobierno-corporativo la vista de año toma su propio `:long`.
 
-- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda** (#1495, desde
-  v3.11.0, con SlimSelect 4). Al elegir un resultado que no venía en la semilla, SlimSelect lo
-  ponía delante del placeholder y la ✕ lo volvía a elegir: el valor no cambiaba. Afecta sólo a
-  los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app escribe
-  hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+- **SlimSelect remoto: la ✕ regresa al vacío también después de una búsqueda, con la lista cerrada
+  o todavía abierta** (#1495, desde v3.11.0, con SlimSelect 4). Al elegir un resultado que no
+  venía en la semilla, SlimSelect lo ponía delante del placeholder y la ✕ lo volvía a elegir: el
+  valor no cambiaba. Con la lista todavía abierta, la ✕ vaciaba el valor pero mostraba el texto por
+  omisión («Select value») en vez del placeholder, y dejaba una segunda `<option value="">`. Afecta
+  sólo a los selects con `ajax_url:` y `allow_deselect_option: true` explícito, que ninguna app
+  escribe hoy; un select remoto sigue sin ✕ por omisión. Nada que hacer en la app.
+
+- **SlimSelect remoto: un resultado que ya está en la semilla no sale dos veces**. El registro ya
+  no se repite en la lista ni en el `<select>`, y una búsqueda que encuentra el valor ya elegido no
+  vuelve a llamar a `after_change_fetch_url`. En gobierno-corporativo lo ven los cuatro
+  `PositionSelect` de las nominaciones, que ya no piden dos veces el aviso del nominado, y los
+  selects remotos cuyo endpoint responde ids numéricos: entidad y producto de las solicitudes de
+  acceso, fuentes y columnas del glosario y áreas de los recordatorios. En éstas, un área de la
+  semilla elegida en una búsqueda se lee como en la semilla al cerrar la lista: «Finanzas», no
+  «Finanzas (Dirección)». Nada que hacer en la app.
 
 - **Un filtro `slim_select` de `SimpleFilters` muestra completo el valor elegido** (#1495). «Beto»
   se veía «B»: el valor se quedaba 20 px corto dentro de una columna que se ajusta a su contenido.
@@ -63,6 +86,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   un documento muestra la ruta de cada uno. Nada que hacer en la app. El blank con
   `data-inner-html` propio que arman sus helpers para esquivarlo ya no hace falta; cambiarlo por
   `include_blank:` lo convierte de fila de la lista en placeholder, con ✕.
+
+- **La variante `:mobile` de `Bali::Calendar` dibuja sin `template:`, y en un renglón sus flechas
+  y su título** (hallado al resolver #1495). Sin `template:` lanzaba `ArgumentError`; ahora muestra
+  el día sin contenido, como la de escritorio. Las flechas y el título se apilaban en tres renglones
+  por debajo de 768 px, es decir, en todo teléfono. Las flechas eran un ícono suelto de 16×22 px;
+  ahora son el botón `ghost` del encabezado de escritorio, de 40×40 (WCAG 2.2 pide 24×24), y como
+  él pasan por el `route_path` de `with_header`: conservan su query string y `drop_params`, y se
+  deshabilitan antes de salir de `min_date`/`max_date`. Sin `route_path` no hay flechas, como en
+  escritorio. Ninguna app en Bali 3 pone `request.variant = :mobile`: nada que hacer en la app.
+
+- **El encabezado de `Bali::Calendar` con `period: :day` avanza un día** (hallado al resolver
+  #1495). Sus flechas saltaban al lunes de la semana anterior o de la siguiente, como las de
+  `:week`. Ahora van al día de antes o al de después y, con `weekdays_only`, saltan el fin de
+  semana, también desde un sábado o un domingo, como las del teléfono. `:week`, `:month` y `:year`
+  no cambian. Ninguna app en Bali 3 usa `period: :day`: nada que hacer en la app.
+
+- **Un rango de fechas en `es-MX`, o en cualquier idioma con región, se parte en su separador**
+  (hallado al resolver #1495).
+  `Bali::Types::DateRangeValue` (los filtros `date_range` de `FilterForm`) y
+  `Bali::Concerns::DateRangeAttribute` sólo lo conocían para `en` y `es` exactos; en otro idioma
+  partían en los espacios, y un rango con hora («2026-01-01 10:00:00 a 2026-01-02 12:00:00»)
+  terminaba hoy. Ahora lo eligen por idioma, igual que el datepicker elige el de flatpickr: « a »
+  para `es` y cualquier `es-*`, « to » para el resto. Un rango de días sin hora ya salía bien, que
+  es lo que mandan los filtros de costa-norte en `es-MX`. El FormBuilder escribe y parte un campo
+  `mode: "range"` con ese mismo separador, y se retira la llave
+  `bali_view.form_builder.date_fields.range_separator`: con la cadena de fallbacks de la app podía
+  decir otra cosa que flatpickr. Ninguna app la sobrescribe: nada que hacer en la app.
 
 ### Documentation
 

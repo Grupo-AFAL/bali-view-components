@@ -325,8 +325,8 @@ export class ConditionController extends Controller {
 
   /**
    * Sync the Flatpickr range dates to hidden fields for form submission.
-   * Flatpickr range mode returns dates separated by " to " in the input value,
-   * but we need separate _gteq and _lteq params for Ransack.
+   * Flatpickr range mode writes both dates into one input value, joined by the
+   * locale's rangeSeparator, but we need separate _gteq and _lteq params for Ransack.
    */
   syncRangeDates (event) {
     const input = event.target

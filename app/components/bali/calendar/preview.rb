@@ -72,6 +72,27 @@ module Bali
         end
       end
 
+      # Phone
+      # -----
+      # What a host that sets `request.variant = :mobile` gets for a month, a week or a day:
+      # that one day, with an arrow either side of its title that steps a day through the
+      # header's route. A year stays a year.
+      #
+      # @display variant mobile
+      # @param start_date text "Any string; unparseable input falls back to today"
+      # @param with_events toggle "Display sample events"
+      def mobile(start_date: nil, with_events: false)
+        with_events = ActiveModel::Type::Boolean.new.cast(with_events)
+
+        render(Bali::Calendar::Component.new(
+                 start_date: start_date,
+                 events: with_events ? sample_events : [],
+                 template: with_events ? 'bali/calendar/previews/template' : nil
+               )) do |c|
+          c.with_header(route_path: '/lookbook')
+        end
+      end
+
       # Calendar with footer
       # --------------------
       # Demonstrates the footer slot for custom content below the calendar.

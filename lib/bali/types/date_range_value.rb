@@ -5,6 +5,15 @@ require_relative "../date_range_presets"
 module Bali
   module Types
     class DateRangeValue < ActiveRecord::Type::String
+      # flatpickr joins a range with its locale's `rangeSeparator`, and the datepicker controller
+      # loads that locale by language (`DatepickerController.LOCALES`): Spanish for `es` and every
+      # `es-*`, flatpickr's own English for the rest. A language added there is added here.
+      SEPARATORS = { "es" => " a " }.freeze
+
+      def self.separator
+        SEPARATORS.fetch(I18n.locale.to_s.downcase.split(/[-_]/).first, " to ")
+      end
+
       def cast(value)
         normalize_date_range(value)
       end
@@ -14,10 +23,6 @@ module Bali
       end
 
       private
-
-      def date_range_separator
-        { en: " to ", es: " a " }[I18n.locale.to_sym]
-      end
 
       def normalize_date_range(range)
         return if range.blank?
@@ -39,7 +44,7 @@ module Bali
 
         return parse_stringify_range(range) if range.include?("..")
 
-        result = range.split(date_range_separator)
+        result = range.split(self.class.separator)
 
         # Searching in a day instead of date range
         result = [ result.first, result.first ] if result.size == 1
