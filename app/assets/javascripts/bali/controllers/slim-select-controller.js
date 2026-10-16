@@ -388,11 +388,10 @@ export class SlimSelectController extends Controller {
   }
 
   selectAll () {
-    const allValues = Array.from(this.selectTarget.children).map(
-      option => option.value
-    )
+    // Not the disabled ones: selected, they show a chip, and the form does not send them.
+    const values = Array.from(this.selectTarget.querySelectorAll('option:enabled'), option => option.value)
 
-    this.select.setSelected(allValues)
+    this.select.setSelected(values)
 
     if (this.hasSelectAllButtonTarget) {
       this.selectAllButtonTarget.classList.add('hidden')

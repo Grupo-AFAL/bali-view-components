@@ -52,6 +52,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   plano: SlimSelect sólo lee `data-html`, y el controlador lo copiaba únicamente al montar. Ninguna
   app agrega opciones así hoy. Nada que hacer en la app.
 
+- **SlimSelect: «Seleccionar todo» también elige las opciones de una lista agrupada**. Con
+  `select_all: true` sobre una lista en `<optgroup>` no elegía ninguna: leía sólo los hijos directos
+  del `<select>`. Ahora elige todas las habilitadas, en grupos o no; una deshabilitada queda fuera,
+  y antes salía como chip sin que el formulario la mandara. El único uso con Bali 3, los avisos de
+  la guardería en afal-apps, es una lista plana sin deshabilitadas. Nada que hacer en la app.
+
 ### Documentation
 
 - **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).
