@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   que una subclase que lo sobrescribe tiene que ser idempotente. Basta con un solo target, `on` u
   `off`: antes, el que faltaba lanzaba `Missing target element`. Nada que hacer en la app.
 
+- **`Bali::Calendar` escribe sus fechas con el formato largo del idioma** (#1495). La etiqueta
+  accesible de cada día de la vista de año decía «5 marzo 2026», sin los «de»; ahora es el
+  `date.formats.long` de la app: «5 de marzo de 2026» con rails-i18n, «March 05, 2026» en inglés.
+  La vista de día de la variante `:mobile` pedía un formato `:long_with_day` que ni Rails ni
+  rails-i18n definen y lanzaba `I18n::MissingTranslationData`; ahora antepone el día de la semana
+  al `:long` («jueves, 5 de marzo de 2026»), salvo si éste ya lo trae, como el `es-MX` de
+  rails-i18n. Las dos leen `date.formats.long` del idioma activo: Rails la trae para `en` y
+  rails-i18n para todos sus idiomas; una app sin rails-i18n la define en su YAML, como ya lo pide
+  `ArchivalNotice`. Las siete apps en Bali 3 la tienen: nada que hacer en la app. En
+  gobierno-corporativo la vista de año toma su propio `:long`.
+
 ### Documentation
 
 - **BulkActions: la receta «Nested forms» de la guía de componentes manda la selección** (#1495).

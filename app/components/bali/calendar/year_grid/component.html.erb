@@ -4,7 +4,7 @@
       <%# Not `justify-between`: at 1440px (328px columns) it parked the badge 280px
           from its own title, against the next month's heading. %>
       <div class="flex items-baseline gap-2 mb-2">
-        <h4 class="font-semibold text-base-content"><%= month_name(month).upcase_first %></h4>
+        <h4 class="font-semibold text-base-content"><%= t('date.month_names')[month.month].upcase_first %></h4>
         <% summary = month_summary_for(month) %>
         <% if summary.present? %>
           <%= render Bali::Tag::Component.new(text: summary, color: :ghost, size: :sm) %>
