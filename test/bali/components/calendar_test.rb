@@ -21,6 +21,10 @@ class BaliCalendarComponentTest < ComponentTestCase
     Date.current.prev_occurring(:friday)
   end
 
+  def day_header(start_date, weekdays_only: false)
+    Bali::Calendar::Header::Component.new(start_date: start_date, period: :day, weekdays_only: weekdays_only)
+  end
+
   public
 
   def test_renders_calendar_component_with_the_full_week
@@ -82,38 +86,32 @@ class BaliCalendarComponentTest < ComponentTestCase
     assert_selector("tr > th.text-center", text: "Saturday")
     assert_selector("tr > th.text-center", text: "Sunday")
   end
-  # #prev_day
+  # #prev_day, #next_day
 
   def test_prev_day_with_weekends_returns_the_previous_day
-    @options.merge!(start_date: monday.to_s, weekdays_only: false)
-    assert_equal(monday - 1.day, component.prev_day)
+    assert_equal(monday - 1.day, day_header(monday).prev_day)
   end
 
   def test_prev_day_weekdays_only_returns_the_previous_friday
-    @options.merge!(start_date: monday.to_s, weekdays_only: true)
-    assert_equal(monday - 3.days, component.prev_day)
+    assert_equal(monday - 3.days, day_header(monday, weekdays_only: true).prev_day)
   end
 
   def test_prev_day_not_monday_returns_the_previous_day
-    @options.merge!(start_date: friday.to_s)
-    assert_equal(friday - 1.day, component.prev_day)
+    assert_equal(friday - 1.day, day_header(friday, weekdays_only: true).prev_day)
   end
-  # #next_day
 
   def test_next_day_with_weekends_returns_the_next_day
-    @options.merge!(start_date: friday.to_s, weekdays_only: false)
-    assert_equal(friday + 1.day, component.next_day)
+    assert_equal(friday + 1.day, day_header(friday).next_day)
   end
 
   def test_next_day_weekdays_only_returns_the_next_monday
-    @options.merge!(start_date: friday.to_s, weekdays_only: true)
-    assert_equal(friday + 3.days, component.next_day)
+    assert_equal(friday + 3.days, day_header(friday, weekdays_only: true).next_day)
   end
 
   def test_next_day_not_friday_returns_the_next_day
-    @options.merge!(start_date: monday.to_s)
-    assert_equal(monday + 1.day, component.next_day)
+    assert_equal(monday + 1.day, day_header(monday, weekdays_only: true).next_day)
   end
+
   # #prev_start_date
 
   def test_prev_start_date_month_returns_first_date_of_last_month
@@ -147,6 +145,20 @@ class BaliCalendarComponentTest < ComponentTestCase
       next_date = c.with_header(start_date: "2020-03-03", period: :week).next_start_date
     end
     assert_equal(Date.parse("2020-03-09"), next_date)
+  end
+  def test_day_header_arrows_step_one_day
+    @options.merge!(start_date: "2020-03-05", period: :day)
+    render_inline(component) { |c| c.with_header(route_path: "/events") }
+
+    assert_selector(".header a[aria-label='Previous'][href='/events?period=day&start_time=2020-03-04']")
+    assert_selector(".header a[aria-label='Next'][href='/events?period=day&start_time=2020-03-06']")
+  end
+
+  def test_day_header_arrows_skip_the_weekend_under_weekdays_only
+    @options.merge!(start_date: "2020-03-09", period: :day, weekdays_only: true)
+    render_inline(component) { |c| c.with_header(route_path: "/events") }
+
+    assert_selector(".header a[aria-label='Previous'][href='/events?period=day&start_time=2020-03-06']")
   end
   # #extra_params
 

@@ -14,7 +14,7 @@
       <%= render(Bali::Columns::Component.new(mobile: true, middle: true)) do |c| %>
         <% if header? %>
           <%= c.with_column(auto: true) do %>
-            <%= render Bali::Link::Component.new(icon: 'chevron-left', **header.day_arrow_options(:prev, prev_day)) %>
+            <%= render Bali::Link::Component.new(icon: 'chevron-left', **header.day_arrow_options(:prev)) %>
           <% end %>
         <% end %>
         <%= c.with_column(class: 'text-center') do %>
@@ -24,7 +24,7 @@
         <% end %>
         <% if header? %>
           <%= c.with_column(auto: true) do %>
-            <%= render Bali::Link::Component.new(icon: 'chevron-right', **header.day_arrow_options(:next, next_day)) %>
+            <%= render Bali::Link::Component.new(icon: 'chevron-right', **header.day_arrow_options(:next)) %>
           <% end %>
         <% end %>
       <% end %>

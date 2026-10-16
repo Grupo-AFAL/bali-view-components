@@ -18,6 +18,7 @@ module Bali
           route_path: route_path,
           period_switch: period_switch,
           start_attribute: @start_attribute,
+          weekdays_only: @weekdays_only,
           **options
         )
       end
@@ -121,16 +122,6 @@ module Bali
       # @return [Array<Date>] Filtered days based on weekdays_only setting
       def filter_week(week)
         show_weekends? ? week : week.select(&:on_weekday?)
-      end
-
-      # @return [Date] The day the phone's previous arrow goes to
-      def prev_day
-        start_date.monday? && weekdays_only? ? start_date.prev_occurring(:friday) : start_date - 1.day
-      end
-
-      # @return [Date] The day the phone's next arrow goes to
-      def next_day
-        start_date.friday? && weekdays_only? ? start_date.next_occurring(:monday) : start_date + 1.day
       end
 
       # @return [String] The phone day view's title: the locale's `date.formats.long`, which

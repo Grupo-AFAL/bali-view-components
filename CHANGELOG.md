@@ -56,6 +56,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deshabilitan antes de salir de `min_date`/`max_date`. Sin `with_header` no hay flechas, como en
   escritorio. Ninguna app en Bali 3 pone `request.variant = :mobile`: nada que hacer en la app.
 
+- **El encabezado de `Bali::Calendar` con `period: :day` avanza un día** (hallado al resolver
+  #1495). Sus flechas saltaban al lunes de la semana anterior o de la siguiente, como las de
+  `:week`. Ahora van al día de antes o al de después y, con `weekdays_only`, saltan el fin de
+  semana, como las del teléfono. `:week`, `:month` y `:year` no cambian. Ninguna app en Bali 3 usa
+  `period: :day`: nada que hacer en la app.
+
 - **Un rango de fechas en `es-MX`, o en cualquier idioma con región, se parte en su separador**
   (hallado al resolver #1495).
   `Bali::Types::DateRangeValue` (los filtros `date_range` de `FilterForm`) y

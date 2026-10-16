@@ -29,10 +29,12 @@ module Bali
         # @param max_date [Date, String, nil] Latest date, the mirror of `min_date`.
         # @param drop_params [Array<Symbol, String>] Keys of `route_path`'s query string
         #   that the header's links leave out.
+        # @param weekdays_only [Boolean] A day's arrows skip the weekend. The calendar
+        #   passes its own.
         # rubocop:disable Metrics/ParameterLists
         def initialize(start_date:, period: :month, route_path: "", period_switch: true,
                        start_attribute: :start_time, min_date: nil, max_date: nil,
-                       drop_params: [], **options)
+                       drop_params: [], weekdays_only: false, **options)
           # rubocop:enable Metrics/ParameterLists
           @start_date = normalize_date(start_date)
           @period = normalize_period(period)
@@ -42,15 +44,24 @@ module Bali
           @min_date = min_date&.to_date
           @max_date = max_date&.to_date
           @drop_params = Array(drop_params).map(&:to_s)
+          @weekdays_only = weekdays_only
           @options = options
         end
 
         def prev_start_date
-          period_start(start_date) - period_step
+          period == :day ? prev_day : period_start(start_date) - period_step
         end
 
         def next_start_date
-          period_start(start_date) + period_step
+          period == :day ? next_day : period_start(start_date) + period_step
+        end
+
+        def prev_day
+          start_date.monday? && @weekdays_only ? start_date.prev_occurring(:friday) : start_date - 1.day
+        end
+
+        def next_day
+          start_date.friday? && @weekdays_only ? start_date.next_occurring(:monday) : start_date + 1.day
         end
 
         # Compared on the period, not the day: `min_date: "2020-06-15"` still lets a
@@ -69,9 +80,10 @@ module Bali
           link_options(type, extra_params(type), type == :prev ? prev_in_range? : next_in_range?)
         end
 
-        # The calendar's phone template steps one day, to the `day` it picks, with the
-        # route and the bounds of these arrows.
-        def day_arrow_options(type, day)
+        # The calendar's phone template steps one day whatever the period, with the route
+        # and the bounds of these arrows.
+        def day_arrow_options(type)
+          day = type == :prev ? prev_day : next_day
           in_range = type == :prev ? min_date.nil? || day >= min_date : max_date.nil? || day <= max_date
           link_options(type, extra_params(type).merge(start_attribute => day), in_range)
         end
@@ -139,6 +151,7 @@ module Bali
           case period
           when :year then date.beginning_of_year
           when :month then date.beginning_of_month
+          when :day then date
           else date.beginning_of_week
           end
         end
