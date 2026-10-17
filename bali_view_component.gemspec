@@ -52,7 +52,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "rails", ">= 8.1", "< 9.0"
   # 5.0.2 is the first 5.x patched for both GHSA-vxc9-rm8f-p56j and GHSA-j3f8-w227-4hh8, which a
   # FilterForm's `q[...]` reaches. Raise the cap only after running this suite against 6.x.
-  spec.add_dependency "ransack", ">= 5.0.2", "< 6.0"
+  spec.add_dependency "ransack", ">= 5.0.2", "< 7.0"
   spec.add_dependency "simple_command"
 
   spec.add_dependency "view_component", [ ">= 4.0.0", "< 5.0" ]
