@@ -43,8 +43,10 @@ module Bali
 
       def announcing_kinds = kinds.values.select(&:announces).map(&:name)
 
-      def mark_all_read!(recipient)
-        unread.addressed_to(recipient).update_all(read_at: Time.current, updated_at: Time.current)
+      def mark_all_read!(recipient) = mark_read!(addressed_to(recipient))
+
+      def mark_read!(notices)
+        notices.unread.update_all(read_at: Time.current, updated_at: Time.current)
       end
     end
 

@@ -48,7 +48,28 @@ module Bali
         record && provider.build_items([ record ], user: user).first.with(module_key: module_key)
       end
 
+      # `[notifiable_type, notifiable_id]` of every item here with an unread notice that announces
+      # it — the «Nuevo» marks — in one query.
+      def fresh_keys(items)
+        return Set.new if items.empty? || Bali::Notice.announcing_kinds.empty?
+
+        announcing_notices_about(items.map(&:record)).pluck(:notifiable_type, :notifiable_id).to_set
+      end
+
+      # Viewing an item is reading what announced it.
+      def mark_seen!(item)
+        Bali::Notice.mark_read!(announcing_notices_about([ item.record ]))
+      end
+
       private
+
+      def announcing_notices_about(records)
+        by_type = records.group_by { |record| record.class.polymorphic_name }
+        about = by_type.map { |type, typed| Bali::Notice.where(notifiable_type: type, notifiable_id: typed.map(&:id)) }
+                       .reduce(:or)
+
+        Bali::Notice.unread.addressed_to(user).where(kind: Bali::Notice.announcing_kinds).merge(about)
+      end
 
       def matches?(entry_module, provider, module_key, kind)
         (module_key.nil? || entry_module == module_key.to_sym) && (kind.nil? || provider.kind.to_sym == kind.to_sym)
