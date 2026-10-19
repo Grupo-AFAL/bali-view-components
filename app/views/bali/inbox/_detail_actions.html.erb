@@ -15,7 +15,9 @@
       <%= render Bali::Icon::Component.new("check", class: "size-4") %>
       <span><%= t("bali_view.inbox.detail.copied") %></span>
     <% end %>
-    <%# sr-only, not hidden: the controller copies its innerText, which a display:none node does not have. %>
-    <% clipboard.with_source(url_for(action: :item, kind: item.kind, gid: item.gid, only_path: false), class: "sr-only") %>
+    <%# sr-only, not hidden: the controller copies its innerText, which a display:none node does not
+        have. aria-hidden, so a screen reader does not spell out the URL the button already names. %>
+    <% clipboard.with_source(url_for(action: :item, kind: item.kind, gid: item.gid, only_path: false),
+                             class: "sr-only", "aria-hidden": true) %>
   <% end %>
 </div>

@@ -101,6 +101,19 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_select ".bali-inbox-detail-generic", /Policy/
   end
 
+  # Beside the tabs, not on a row of its own above the list: it scopes «Te toca» alone.
+  def test_the_module_filter_sits_on_the_tab_row_of_te_toca_only
+    task("Ship it")
+
+    get "/inbox"
+    assert_select ".bali-inbox-tabs [data-controller~='dropdown']" do
+      assert_select ".sr-only", text: I18n.t("bali_view.inbox.modules.all")
+    end
+
+    get "/inbox", params: { tab: "notices" }
+    assert_select ".bali-inbox [data-controller~='dropdown']", false
+  end
+
   # A square trigger is sized for an icon: the text spilled out of it and the icon over «Open».
   def test_the_copy_link_button_is_sized_for_its_text_and_named_by_it
     get item_path_for(task("Ship it"))
@@ -108,6 +121,8 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     trigger = css_select(".bali-inbox-detail .clipboard-trigger").sole
     assert_not_includes trigger["class"].split, "btn-square"
     assert_equal I18n.t("bali_view.inbox.detail.copy"), trigger["aria-label"]
+    assert_equal "true", css_select(".bali-inbox-detail .clipboard-source").sole["aria-hidden"],
+                 "a screen reader would read the whole URL, gid and all"
   end
 
   # The list is a card, so the pane beside it is one too, whatever it holds.

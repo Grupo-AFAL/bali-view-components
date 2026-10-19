@@ -1,19 +1,4 @@
-<% modules = inbox_query.modules %>
 <% counts = inbox_query.counts_by_kind %>
-<% if modules.size > 1 %>
-  <div class="flex justify-end">
-    <%= render Bali::Dropdown::Component.new(align: :end) do |dropdown| %>
-      <% dropdown.with_trigger(class: "btn btn-sm btn-ghost") do %>
-        <%= @module_key ? inbox_module_label(@module_key) : t("bali_view.inbox.modules.all") %>
-        <%= render Bali::Icon::Component.new("chevron-down", class: "size-4") %>
-      <% end %>
-      <% dropdown.with_item(name: t("bali_view.inbox.modules.all"), href: url_for(action: :show, kind: @kind)) %>
-      <% modules.each do |module_key| %>
-        <% dropdown.with_item(name: inbox_module_label(module_key), href: url_for(action: :show, kind: @kind, module: module_key)) %>
-      <% end %>
-    <% end %>
-  </div>
-<% end %>
 
 <%= render Bali::SplitView::Component.new(frame_id: "bali-inbox-detail") do |split| %>
   <% split.with_list(selected: (inbox_item_key(@item) if @item),
