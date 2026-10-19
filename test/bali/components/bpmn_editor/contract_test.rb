@@ -14,6 +14,19 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     body.scan(/'([^']+)'/).flatten
   end
 
+  # Component#i18n_table_tag writes the strings table once per render;
+  # islandStrings (i18n.js) finds it by the same attribute, and index.js reads
+  # the key the editors carry.
+  def test_the_strings_table_is_found_by_the_attribute_ruby_writes
+    html = ApplicationController.render(Bali::BpmnEditor::Component.new(data: {}), layout: false)
+    attribute = html[/<script type="application\/json" (data-[\w-]+)="\h{16}"/, 1] or flunk "no strings table in #{html[0, 200]}"
+
+    assert_includes ROOT.join("i18n.js").read, %([#{attribute}="${key}"])
+    assert_match(/data-bpmn-editor-i18n-key-value="\h{16}"/, html)
+    assert_match(/^\s+i18nKey: \{ type: String/, ROOT.join("index.js").read)
+    assert_includes ROOT.join("i18n.js").read, %(I18N_TABLES_HEADER = '#{Bali::BpmnEditor::Component::I18N_TABLES_HEADER}')
+  end
+
   def test_edge_types
     assert_equal Bali::BpmnEditor::Data::EDGE_TYPES, js_list("model/catalog.js", "EDGE_TYPES")
   end

@@ -59,6 +59,27 @@ module BpmnProcessMap
     end
   end
 
+  # The boxes as the split view's detail names them: id, name, lane name and
+  # the flow behind it (nil for the faded one).
+  def boxes(locale)
+    lanes = map(locale: locale, reference_url: ->(_) { "" })[:lanes].to_h { |lane| [ lane[:id], lane[:name] ] }
+    BOXES.map { |id, lane, en, es, _look, flow| { id: id, name: text(locale, en, es), lane: lanes[lane], flow: flow } }
+  end
+
+  # The flows behind the boxes as records, so their review notes are saved:
+  # { key => [{ number:, flow: ProcessFlow }] }, newest version first. `fresh`
+  # puts every one back to its sample (the preview, on each load); otherwise
+  # the record as the notes left it.
+  def flow_records(locale, fresh: false)
+    flows(locale).to_h do |key, versions|
+      [ key, versions.each_with_index.map do |doc, i|
+        number = versions.size - i
+        name = "Split view #{key} v#{number} (#{locale})"
+        { number: number, flow: (ProcessFlow.find_by(name: name) unless fresh) || ProcessFlow.reset!(name, doc) }
+      end ]
+    end
+  end
+
   # The flows behind the boxes, each with its versions, newest first.
   def flows(locale)
     {

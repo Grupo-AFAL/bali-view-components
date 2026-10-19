@@ -760,11 +760,14 @@ function Editor ({
   const comparisons = useMemo(() => {
     const raw = review && review.compare_with
     return (Array.isArray(raw) ? raw : raw ? [raw] : []).filter((c) => c && c.document)
-      .map((c) => ({ ...c, match: c.match || 'auto', document: normalize(c.document) }))
+      .map((c) => ({ ...c, match: c.match || 'auto' }))
   }, [review])
   const [comparisonIndex, setComparisonIndex] = useState(0)
   const compare = comparisons[comparisonIndex] || comparisons[0] || null
-  const compareBase = compare ? compare.document : null
+  // Normalized when the comparison opens, not on load: normalize lays out a
+  // document without coordinates, for a view most readers never open.
+  const comparing = Boolean(compareMode)
+  const compareBase = useMemo(() => (compare && comparing ? normalize(compare.document) : null), [compare, comparing])
 
   // ── the wheel (Component `wheel_zoom:`) ────────────────────────────────
   // 'zoom': it zooms. 'modifier': it scrolls the page, and Ctrl + wheel (a
@@ -955,7 +958,7 @@ function Editor ({
             onFinalize={finalize}
             finalizing={saver.finalizing}
             exports={exports}
-            onCompare={compareBase ? () => setCompareMode((m) => (m ? null : 'side_by_side')) : null}
+            onCompare={compare ? () => setCompareMode((m) => (m ? null : 'side_by_side')) : null}
             comparing={Boolean(compareMode)}
           />
         )}

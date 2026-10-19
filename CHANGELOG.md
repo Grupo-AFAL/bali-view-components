@@ -110,6 +110,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     el patrón está en la guía. La preview «Split view» del editor lo usa: el mapa y el flujo son la
     misma caja (mismo borde superior, inferior y ancho).
 
+- **`Bali::SplitView` con `collapsible: true`: estado de carga y de error del detalle.** El panel
+  se abre en cuanto el frame empieza a pedir el detalle (no al llegar la respuesta) y muestra un
+  spinner con «Cargando…» en una región `role="status"`, con `aria-busy` en el panel; sobre un
+  detalle ya abierto queda encima, sin bloquear el puntero. Con `prefers-reduced-motion` el spinner
+  no gira. El slot `loading` lo reemplaza (un esqueleto propio, por ejemplo). Si la petición falla
+  (error de red, respuesta que no es HTML o sin el frame) muestra «No se pudo cargar el detalle.»
+  con «Reintentar», que vuelve a pedir la misma URL. «Cerrar» y Esc funcionan mientras carga y
+  cancelan la petición.
+  - **Anfitrión:** nada que hacer; sin `collapsible:` el HTML es el mismo. Con él, una respuesta de
+    error sin el frame ya no deja el detalle anterior junto a la fila nueva: muestra el error. El
+    patrón perezoso (`src` del frame al hacer clic) está en [la guía](docs/guides/master-detail.md).
+    La preview «Split view» del editor BPMN ahora pide cada flujo a `/bpmn_flows/:box` del dummy, con
+    un `delay` opcional para ver la carga.
+
+- **`Bali::BpmnEditor`: la tabla de textos viaja una vez por render, no una vez por editor.** El
+  primer editor del render la escribe en un `<script type="application/json"
+  data-bali-bpmn-i18n="<clave>">` y cada editor lleva solo la clave
+  (`data-bpmn-editor-i18n-key-value`); la isla la lee una vez y la guarda para toda la página. Cada
+  petición de Turbo dice qué tablas ya tiene la página (cabecera `X-Bali-Bpmn-I18n`) y la respuesta
+  las omite. La preview «Split view» pasó de 611 KB a 69 KB de HTML, y cada detalle pedido pesa 9 KB.
+  - **Anfitrión:** nada que hacer. `i18n:` sigue igual (otra tabla, otra clave). Una prueba que leía
+    `data-bpmn-editor-i18n-value` lee ahora el `<script>` que nombra la clave; ese atributo se sigue
+    leyendo si un elemento no trae clave. Sin la tabla, la isla usa los textos en inglés y avisa una
+    vez en la consola.
+
+- **`ReactIslandController` funciona con code splitting.** Con `splitting: true`,
+  `import('react-dom/client')` entrega solo `default`; la isla fallaba con «createRoot is not a
+  function». Ahora acepta las dos formas.
+  - **Anfitrión:** nada que hacer. La guía del editor BPMN recomienda compilar las islas minificadas
+    (React de producción) y, en Propshaft, nombrar los chunks `[name]-[hash].digested`. El dummy
+    compila así (`BALI_DEV_BUILD=1` para depurar sin minificar): `application.js` pasó de 25 MB a
+    0.39 MB.
+
 ## [v3.19.2] - 2026-10-19
 
 ### Fixed

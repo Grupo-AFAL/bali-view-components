@@ -48,6 +48,19 @@ import 'bali-view-components/bpmn-editor-loader'
 <%= react_island_meta_tags('bpmn-editor', js: 'bpmn-editor-island.js', css: 'bpmn-editor-island.css') %>
 ```
 
+Build the island minified, so the bundler defines `process.env.NODE_ENV` as
+`"production"` and React's production build is the one bundled: esbuild does
+both with `minify: true` (or `define: { 'process.env.NODE_ENV': '"production"' }`).
+Measured in the dummy app: the island entry with React's development build,
+unminified, is 2.1 MB; minified with React's production build, 695 KB. With
+`splitting: true` (ESM) the editor's chunks are shared with any other island; on
+Propshaft, name them `chunkNames: '[name]-[hash].digested'` so they are served
+under the name the entry imports. In development Propshaft globs its whole load
+path on every request: hundreds of chunks there (the block editor's code
+highlighting brings some 800) cost tens of milliseconds a request. The dummy app
+writes its chunks to `public/` and points `publicPath` at them instead
+(`test/dummy/esbuild.config.mjs`).
+
 The entry also installs the `bali_bpmn_event` Turbo Stream action (see
 [Extension points](#extension-points)) — on `window.Turbo` if it is there, or on the
 first `turbo:load` when Turbo is loaded after the island's entry.
@@ -112,13 +125,31 @@ authorize every endpoint on the server anyway.
 | `badges:` | `true` | Whether the nodes' `appearance.badge` show on load. Only the badge: the colour and the fading stay. The exports (SVG, PNG, print) and the nodes' accessible names follow what is shown. The app changes it later with `bali-bpmn:badges` |
 | `badge_toggle:` | `true` | Offer «Show badges» (`badges_toggle`, replaceable with `i18n:`), the switch that shows and hides them: in the view toolbar, or beside the zoom with `chrome: :minimal`. Only when a node of the document shown has a badge — re-read when the document changes. A String is the switch's own label (`"Show status"`, at most 32 characters): its text, its accessible name, and its title when a narrow canvas shows only the switch. `false` leaves the state to the app |
 | `wheel_zoom:` | `:auto` | What the mouse wheel does on the canvas. `:auto`: it zooms an editable diagram, a `chrome: :minimal` one (the host sized its container for it), full screen and the comparison; a read-only diagram among the page's content scrolls the page instead, and Ctrl + wheel (⌘ + wheel on a Mac) zooms, with a brief «Use Ctrl + scroll to zoom» over it. `true`: the wheel always zooms — a page that gives a read-only editor a box of its own (two editors side by side, a fixed height) says so. `false`: never; the zoom buttons only, not even the pinch. A trackpad pinch zooms in every other case |
-| `i18n:` | `Translations.island` | Flat string table; Spanish and English ship with the gem, in the locale the component is built in |
+| `i18n:` | `Translations.island` | Flat string table; Spanish and English ship with the gem, in the locale the component is built in. It travels once per render, not once per editor — see [The strings table](#the-strings-table) |
 | `id:` | generated | DOM id. The host's stream answers target it; generated (`bpmn-editor-<hex>`) when omitted, so two editors on one page never share one |
 
 Any other option (`class:`, `aria:`…) lands on the wrapper element. `data:` is the document,
 so HTML data attributes go on a wrapper of your own.
 
 ---
+
+### The strings table
+
+The island's strings are some 630 keys, 70 KB in Spanish. The first editor of a
+render writes the table in a `<script type="application/json"
+data-bali-bpmn-i18n="<key>">`, the key being its content's digest; every editor
+carries only that key (`data-bpmn-editor-i18n-key-value`), and the island reads
+the table once and keeps it for the rest of the page's life. A host's `i18n:`
+is another table with its own key.
+
+- **Turbo**: every Turbo fetch (a frame, a stream, a visit) tells the server
+  which tables the page holds in the `X-Bali-Bpmn-I18n` header, and the
+  response leaves them out. A Turbo Frame request without it writes the table
+  in each editor, since Turbo keeps only the frame's part of the response.
+- **A table that never arrives** (HTML cut out of a response by hand, say):
+  the island shows the English defaults and warns once in the console.
+- **Inline**: `data-bpmn-editor-i18n-value`, the whole table as JSON, is still
+  read when an element carries no key.
 
 ## The data contract
 
@@ -557,14 +588,16 @@ report, and the app to decide:
 - **Minimal chrome**: the container gives the height; the editor fills it and fits again
   on every frame its size changes (no easing of its own, so an animated container never
   leaves it cut off). The page still scrolls over a read-only diagram: the wheel does not zoom it.
-- **Swapping the document**: the app renders another editor — a Turbo Frame, or (as the
-  preview's own Stimulus controller does) a `<template>` per document cloned into place.
+- **Swapping the document**: the app renders another editor — a Turbo Frame (the preview's
+  own Stimulus controller points the frame's `src` at the flow's URL), or a `<template>` per
+  document cloned into place.
 - **A flow that slides in beside the map**: the preview puts the map in a
   `Bali::SplitView` with `collapsible: true` ([guide](../guides/master-detail.md#a-detail-that-slides-in-collapsible-true)).
   The preview uses `master_width: :equal` (map and flow the same width) and `height: :screen`
   (both as tall as the window leaves them); a minimal-chrome editor fills its pane's height and
-  refits. The map has the whole width until a box is clicked; filling the frame opens the flow beside
-  it, and «Close» or Esc give the width back. On `split-view:close` the app sends
+  refits. The map has the whole width until a box is clicked; the frame's fetch opens the pane at
+  once with its loading state, the flow lands beside the map, and «Close» or Esc give the width
+  back. While the island's JavaScript loads, each editor shows a skeleton of its own. On `split-view:close` the app sends
   `bali-bpmn:select` `{ node_id: null }` so the map drops the selection too. An editor mounted
   in a pane that has no size yet waits for one before drawing. The detail is laid out at its
   open width from the first frame, so its diagram is fitted once; the map follows its

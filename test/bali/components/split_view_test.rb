@@ -277,6 +277,39 @@ class BaliSplitViewComponentTest < ComponentTestCase
     assert_selector("[data-testid='split-view-back'][data-action='split-view-collapse#close']", text: "Back", visible: :all)
   end
 
+  def test_collapsible_carries_a_hidden_loading_state_and_a_load_error_with_retry
+    I18n.with_locale(:es) do
+      render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", collapsible: true)) { |split| split.with_master { "MASTER" } }
+    end
+
+    loading = page.find(".split-view-detail-pane [role='status'] > [data-split-view-collapse-target='loading'][hidden]", visible: :all)
+    assert_includes loading.native.text, "Cargando…"
+    assert loading.has_css?("svg.split-view-spinner[aria-hidden='true']", visible: :all)
+    error = page.find(".split-view-detail-pane > [data-split-view-collapse-target='error'][role='alert'][hidden]", visible: :all)
+    assert_includes error.native.text, "No se pudo cargar el detalle."
+    assert error.has_css?("[data-action='split-view-collapse#retry']", text: "Reintentar", visible: :all)
+  end
+
+  def test_the_loading_slot_replaces_the_default_spinner
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail", collapsible: true)) do |split|
+      split.with_master { "MASTER" }
+      split.with_loading { "FETCHING THE RECORD" }
+    end
+
+    loading = page.find("[data-split-view-collapse-target='loading']", visible: :all)
+    assert_includes loading.native.text, "FETCHING THE RECORD"
+    assert_no_selector(".split-view-spinner", visible: :all)
+  end
+
+  def test_without_collapsible_there_is_no_loading_state
+    render_inline(Bali::SplitView::Component.new(frame_id: "inbox-detail")) do |split|
+      split.with_master { "MASTER" }
+      split.with_loading { "FETCHING THE RECORD" }
+    end
+
+    assert_no_selector(".split-view-loading, .split-view-load-error, [role='status']", visible: :all)
+  end
+
   # The controller opens the pane when the frame holds something other than
   # this marker, so an empty state must carry it or the pane opens on load.
   def test_collapsible_marks_the_empty_detail

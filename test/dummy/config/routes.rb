@@ -97,6 +97,9 @@ Rails.application.routes.draw do
   # `height: :full` needs a bounded parent to fill, so its reference page is the
   # pairing the guide documents: an AppLayout with `viewport_locked: true`.
   get "split-view/full", to: "split_views#full", as: :split_view_full
+  # The detail of Bali::BpmnEditor's «split view» preview, fetched into the
+  # SplitView's frame: the flow behind a box of the map.
+  get "bpmn_flows/:box", to: "bpmn_flows#show", as: :bpmn_flow
   get "embed/feedback_posts", to: "pages#feedback_embed" # Stand-in for Opina's embed page
   get "api/v1/projects/:project_slug/badge", to: "pages#feedback_badge" # ...and for its badge
   post "api/v1/projects/:project_slug/badge/read", to: "pages#feedback_badge_read"

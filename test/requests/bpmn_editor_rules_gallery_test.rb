@@ -12,6 +12,12 @@ class BpmnEditorRulesGalleryTest < ActionDispatch::IntegrationTest
     css_select("[data-controller='bpmn-editor']").first
   end
 
+  # The strings table the editor names (Component#i18n_table_tag).
+  def island_strings
+    key = island["data-bpmn-editor-i18n-key-value"]
+    JSON.parse(css_select("script[type='application/json'][data-bali-bpmn-i18n='#{key}']").first.text)
+  end
+
   BpmnRuleExamples.rule_ids.each do |rule|
     BpmnRuleExamples::EXAMPLES.each do |example|
       define_method("test_#{rule.tr('-', '_')}_#{example}_example_renders") do
@@ -71,13 +77,11 @@ class BpmnEditorRulesGalleryTest < ActionDispatch::IntegrationTest
   # The editor's own strings follow the gallery's locale, like its example.
   def test_the_editor_speaks_the_gallery_locale
     get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "R06", locale: "en" }
-    i18n = JSON.parse(css_select("[data-controller='bpmn-editor']").first["data-bpmn-editor-i18n-value"])
-    assert_equal "Rules", i18n["rules_button"]
+    assert_equal "Rules", island_strings["rules_button"]
 
     # No `locale` in the query: the preview's own default (es), whatever the app's is.
     get "/lookbook/preview/bali/bpmn_editor/rules_gallery", params: { rule: "R06" }
-    i18n = JSON.parse(css_select("[data-controller='bpmn-editor']").first["data-bpmn-editor-i18n-value"])
-    assert_equal "Reglas", i18n["rules_button"]
+    assert_equal "Reglas", island_strings["rules_button"]
   end
 
   def test_the_gallery_texts_follow_the_locale

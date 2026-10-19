@@ -1391,6 +1391,8 @@ es:
       close: "Cerrar"
       back: "Volver"
       detail: "Detalle"
+      loading: "Cargando…"
+      detail_error: "No se pudo cargar el detalle."
       end_of_list: "No hay más resultados"
       load_error: "No se pudieron cargar más resultados."
       retry: "Reintentar"

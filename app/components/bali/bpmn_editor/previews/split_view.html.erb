@@ -1,28 +1,26 @@
-<%# locals: records, locale, selected, height, master_width, badges %>
+<%# locals: locale, selected, height, master_width, badges, delay %>
 <%# The «50/50» view: what the app writes around two editors, inside a
-    collapsible Bali::SplitView. The selection, the swap of the right-hand
-    document, «Previous» / «Next» and the version picker are the dummy's own
-    Stimulus controller
-    (bpmn_split_view_controller.js) — the component only draws and reports. %>
+    collapsible Bali::SplitView. The selection, «Previous» / «Next» and the
+    version picker are the dummy's own Stimulus controller
+    (bpmn_split_view_controller.js), which points the SplitView's frame at the
+    dummy's /bpmn_flows/:box — the component only draws and reports. %>
 <%= react_island_meta_tags("bpmn-editor", js: "bpmn-editor-island.js", css: "bpmn-editor-island.css") %>
 <% en = locale.to_s == "en" %>
-<% helpers = Rails.application.routes.url_helpers %>
-<% lane_names = BpmnProcessMap.map(locale: locale, reference_url: ->(_) { "" })[:lanes].to_h { |l| [ l[:id], l[:name] ] } %>
-<% boxes = BpmnProcessMap::BOXES.map { |id, lane, box_en, box_es, _look, flow| { id: id, name: en ? box_en : box_es, flow: flow, lane: lane_names[lane] } } %>
+<% boxes = BpmnProcessMap.boxes(locale) %>
 <% height = local_assigns.fetch(:height, :screen) %>
 <% filled = height != :content %>
 <%# Filled (`:screen`, `:full`, a length), the map and the flow take the
     pane's height; with `:content` they keep a height of their own. %>
 <% pane_height = filled ? "h-[380px] lg:h-auto lg:min-h-0 lg:flex-1" : "h-[380px] lg:h-[560px]" %>
-<% tags = [ { key: "question", label: en ? "Question" : "Pregunta", color: "#2563eb" },
-            { key: "keep", label: en ? "Keep" : "Mantener", color: "#16a34a" } ] %>
+<%# The detail's URL for a box; the controller adds `version` when one is picked. %>
+<% detail_url = Rails.application.routes.url_helpers.bpmn_flow_path(
+     "BOX", locale: locale, filled: (filled ? 1 : nil), delay: (delay if delay.to_i.positive?)) %>
 <div class="flex flex-col gap-3 p-4" data-controller="bpmn-split-view"
-     data-bpmn-split-view-boxes-value="<%= boxes.to_json %>" data-testid="bpmn-split-view">
-  <%# Bali::SplitView with `collapsible:`: the map alone until a box is picked,
-      then the flow slides in beside it; «Cerrar» or Esc bring the map back.
-      In an app the detail would be a Turbo Frame the box's link targets; here
-      the dummy's controller fills the frame from a <template> (no server
-      round trip in Lookbook), which opens the pane just the same. %>
+     data-bpmn-split-view-boxes-value="<%= boxes.to_json %>" data-bpmn-split-view-url-value="<%= detail_url %>"
+     data-testid="bpmn-split-view">
+  <%# Bali::SplitView with `collapsible:`: the map alone until a box is picked;
+      the pane opens with the frame's fetch, showing its loading state, and the
+      flow lands in it. «Cerrar» or Esc bring the map back. %>
   <% I18n.with_locale(locale) do %>
   <%= render Bali::SplitView::Component.new(frame_id: "split_flow_detail", collapsible: true,
                                             master_width: local_assigns.fetch(:master_width, :equal), height: height,
@@ -34,7 +32,7 @@
         <div class="flex flex-col justify-center lg:h-14" data-testid="bpmn-split-map-header">
           <h3 class="font-semibold"><%= en ? "Process map" : "Mapa de procesos" %></h3>
           <span class="text-xs text-base-content/60">
-            <%= en ? "#{boxes.size} processes in #{lane_names.size} areas" : "#{boxes.size} procesos en #{lane_names.size} áreas" %>
+            <%= en ? "#{boxes.size} processes in #{boxes.pluck(:lane).uniq.size} areas" : "#{boxes.size} procesos en #{boxes.pluck(:lane).uniq.size} áreas" %>
           </span>
         </div>
         <div class="<%= pane_height %>" data-bpmn-split-view-target="map" data-testid="bpmn-split-map">
@@ -49,56 +47,7 @@
   <% end %>
   <% end %>
   <p class="text-xs text-base-content/60">
-    <%= en ? "Click a box: the map only selects it (the app took bali-bpmn:open-reference over) and its flow slides in beside it. «Close» or Esc bring the map back; on the right, select an element to add a note." :
-             "Haz clic en una caja: el mapa solo la selecciona (la app tomó bali-bpmn:open-reference) y su flujo entra a la derecha. «Cerrar» o Esc vuelven al mapa; a la derecha, selecciona un elemento para agregar una nota." %>
+    <%= en ? "Click a box: the map only selects it (the app took bali-bpmn:open-reference over) and its flow is fetched into the pane beside it. «Close» or Esc bring the map back; on the right, select an element to add a note." :
+             "Haz clic en una caja: el mapa solo la selecciona (la app tomó bali-bpmn:open-reference) y su flujo se carga en el panel de la derecha. «Cerrar» o Esc vuelven al mapa; a la derecha, selecciona un elemento para agregar una nota." %>
   </p>
-
-  <%# What the detail shows above the flow: the box, its lane, the way through
-      the boxes and its own «Close» — a detail with a close of its own takes the
-      SplitView's bar out, so its header lines up with the map's. %>
-  <template data-bpmn-split-view-target="header">
-    <div class="mb-2 flex flex-wrap items-center gap-2 lg:h-14 lg:flex-nowrap" data-testid="bpmn-split-header">
-      <div class="flex grow flex-col">
-        <h3 class="font-semibold" data-bpmn-split-view-target="title" data-testid="bpmn-split-title"></h3>
-        <span class="text-xs text-base-content/60" data-bpmn-split-view-target="lane" data-testid="bpmn-split-lane"></span>
-      </div>
-      <label class="flex items-center gap-1 text-sm">
-        <span class="text-base-content/70"><%= en ? "Version" : "Versión" %></span>
-        <select class="select select-sm w-auto" data-bpmn-split-view-target="version"
-                data-action="bpmn-split-view#pickVersion" data-testid="bpmn-split-version"></select>
-      </label>
-      <%= render Bali::Button::Component.new(name: en ? "Previous" : "Anterior", variant: :ghost, size: :sm,
-            data: { action: "bpmn-split-view#previous", testid: "bpmn-split-previous" }) %>
-      <%= render Bali::Button::Component.new(name: en ? "Next" : "Siguiente", variant: :ghost, size: :sm,
-            data: { action: "bpmn-split-view#next", testid: "bpmn-split-next" }) %>
-      <%= render Bali::Button::Component.new(name: en ? "Close" : "Cerrar", variant: :ghost, size: :sm, class: "hidden lg:inline-flex",
-            data: { action: "split-view-collapse#close", testid: "bpmn-split-close" }) %>
-      <%= render Bali::Button::Component.new(name: en ? "← Back" : "← Volver", variant: :ghost, size: :sm, class: "order-first lg:hidden",
-            data: { action: "split-view-collapse#close", testid: "bpmn-split-back" }) %>
-    </div>
-    <div class="<%= pane_height %>" data-bpmn-split-view-target="flow" data-testid="bpmn-split-flow"></div>
-  </template>
-
-  <%# One editor per flow and version, mounted only when the app shows it. %>
-  <% records.each do |key, versions| %>
-    <% versions.each_with_index do |entry, index| %>
-      <% flow = entry[:flow] %>
-      <% latest = index.zero? %>
-      <template data-bpmn-split-view-target="template" data-flow="<%= key %>" data-version="<%= entry[:number] %>"
-                data-label="v<%= entry[:number] %><%= latest ? (en ? " · current" : " · vigente") : "" %>">
-        <%= I18n.with_locale(locale) { render Bali::BpmnEditor::Component.new(
-              data: flow.to_diagram(locale: locale), chrome: :minimal, rules: false, min_zoom: 0.2,
-              annotatable: latest,
-              urls: latest ? { annotations: helpers.admin_process_flow_annotations_path(flow, locale: locale),
-                               diagram: helpers.admin_process_flow_diagram_path(flow, locale: locale) } : {},
-              review: { tags: tags }, id: "split_flow_#{key}_v#{entry[:number]}") } %>
-      </template>
-    <% end %>
-  <% end %>
-  <template data-bpmn-split-view-target="empty">
-    <%= render Bali::EmptyState::Component.new(
-          title: en ? "No flow drawn for this box yet" : "Esta caja aún no tiene flujo dibujado",
-          description: en ? "The app decides what each box opens." : "La app decide qué abre cada caja.",
-          icon: "workflow") %>
-  </template>
 </div>

@@ -645,6 +645,67 @@ export const DEFAULT_I18N = {
   rename: 'Rename'
 }
 
+// The tables the server wrote once per render (Component#i18n_table_tag:
+// <script type="application/json" data-bali-bpmn-i18n="<key>">), by key.
+// Module scope: a table read once serves every later editor that names it — one
+// in a Turbo Stream, a <template> clone, a frame whose response had no table
+// because the page already had it.
+const tables = new Map()
+const missing = new Set()
+
+// The keys this page already holds travel with every Turbo fetch (a frame, a
+// stream, a visit), so the response leaves those tables out
+// (Component#write_i18n_table?, which names this header too). Same origin only:
+// a custom header makes a cross-origin fetch send a CORS preflight.
+export const I18N_TABLES_HEADER = 'X-Bali-Bpmn-I18n'
+
+export function announceTables (event) {
+  const { url, fetchOptions } = event.detail || {}
+  if (!tables.size || !fetchOptions?.headers || url?.origin !== window.location.origin) return
+  fetchOptions.headers[I18N_TABLES_HEADER] = [...tables.keys()].join(',')
+}
+
+if (typeof document !== 'undefined') document.addEventListener('turbo:before-fetch-request', announceTables)
+
+const tableSelector = (key) => `script[type="application/json"][data-bali-bpmn-i18n="${key}"]`
+
+// <template> contents are not in the document: an editor cloned from one may
+// name a table written inside another template.
+function findTable (root, selector) {
+  const found = root.querySelector(selector)
+  if (found) return found
+  for (const template of root.querySelectorAll('template')) {
+    const inside = findTable(template.content, selector)
+    if (inside) return inside
+  }
+  return null
+}
+
+// The strings table named `key`, looked up near `element` first. Without one
+// (a page that lost it), `fallback` — the inline `i18n` value, else {} and so
+// DEFAULT_I18N — and a warning, once per key.
+export function islandStrings (key, { element, fallback = {} } = {}) {
+  if (!key) return fallback
+  if (tables.has(key)) return tables.get(key)
+
+  const selector = tableSelector(key)
+  const script = element?.querySelector(selector) || findTable(document, selector)
+  if (script) {
+    try {
+      const table = JSON.parse(script.textContent)
+      tables.set(key, table)
+      return table
+    } catch (error) {
+      console.warn(`Bali BpmnEditor: the strings table ${key} is not valid JSON.`, error)
+    }
+  }
+  if (!missing.has(key)) {
+    missing.add(key)
+    console.warn(`Bali BpmnEditor: no strings table ${key} on the page (${selector}); the island shows its English defaults.`)
+  }
+  return fallback
+}
+
 export function translator (overrides) {
   const table = { ...DEFAULT_I18N, ...(overrides || {}) }
   const t = (key, vars) => interpolate(String(table[key] ?? key), vars)

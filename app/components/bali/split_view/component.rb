@@ -66,6 +66,11 @@ module Bali
       # is present.
       renders_one :empty_detail
 
+      # `collapsible:` only: what the pane shows while the frame fetches a
+      # detail, in place of the default spinner and «Loading…». It sits inside
+      # the pane's `role="status"` region, so its text is announced.
+      renders_one :loading
+
       DEFAULT_MASTER_WIDTH = "420px"
 
       HEIGHTS = %i[content full screen].freeze
@@ -122,7 +127,10 @@ module Bali
       #             shrinks, and «Close» or Esc slide it out and empty it.
       #             Below `lg` the detail covers the master, with «Back». The
       #             container emits `split-view:open` and `split-view:close`.
-      #             Off by default: without it nothing changes.
+      #             A frame fetch opens the pane at once with a loading state
+      #             (the `loading` slot replaces it), and a failed one shows an
+      #             error with «Retry»; Close or Esc while it loads cancel the
+      #             fetch. Off by default: without it nothing changes.
       def initialize(frame_id:, master_width: DEFAULT_MASTER_WIDTH, advance: true,
                      height: :content, frame_options: {}, collapsible: false, **options)
         @frame_id = frame_id

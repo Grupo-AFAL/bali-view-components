@@ -54,6 +54,8 @@ module Bali
       LEGEND_SWATCHES = %w[task sub_process gateway start_event end_event external_lane external_task issue color].freeze
       DEFAULT_LEGEND = %w[task sub_process external_lane external_task issue].freeze
       EXTERNAL_LEGEND = %w[external_lane external_task].freeze
+      # Mirrors I18N_TABLES_HEADER in i18n.js (contract_test.rb).
+      I18N_TABLES_HEADER = "X-Bali-Bpmn-I18n"
 
       attr_reader :data
 
@@ -112,6 +114,7 @@ module Bali
       #   Ctrl (⌘ on a Mac) + wheel zooms, with a hint that says so. `true`: always zooms. `false`:
       #   never — the zoom buttons and the pinch only, and not the pinch either.
       # @param i18n [Hash] island strings. Defaults to Bali::BpmnEditor::Translations.island.
+      #   The table travels once per render, not once per editor (#i18n_table_tag).
       # @param id [String] DOM id; also scopes the events the host sends back. Generated when
       #   omitted, so two editors on one page never share it.
       def initialize(data:, editable: false, autosave: true, lock_orientation: false, external_lanes: true,
@@ -159,6 +162,25 @@ module Bali
         @island_i18n ||= @i18n || Translations.island(locale: @locale)
       end
 
+      # The table's key: its content's digest, so a host's `i18n:` and each
+      # locale have their own, and the same table is one key on any page.
+      # Mirrors `data-bali-bpmn-i18n` in i18n.js (islandStrings).
+      def i18n_key
+        @i18n_key ||= Digest::SHA256.hexdigest(island_i18n_json)[0, 16]
+      end
+
+      # The strings table, written by the first editor of a render that uses
+      # it; the others name it by `i18n_key`. Measured: 70 KB per editor in
+      # Spanish (628 keys) — 556 KB of a 619 KB page with eight editors. A
+      # Turbo Frame response gets it in every editor: Turbo keeps only the
+      # frame's part of the response, and the first editor may be outside it.
+      def i18n_table_tag
+        return unless write_i18n_table?
+
+        tag.script(ERB::Util.json_escape(island_i18n_json).html_safe,
+                   type: "application/json", data: { bali_bpmn_i18n: i18n_key })
+      end
+
       def wrapper_attributes
         @options.except(:class).merge(
           id: @id,
@@ -191,7 +213,7 @@ module Bali
           bpmn_editor_name_value: @name,
           bpmn_editor_watermark_value: @watermark,
           bpmn_editor_review_value: @review.to_json,
-          bpmn_editor_i18n_value: island_i18n.to_json,
+          bpmn_editor_i18n_key_value: i18n_key,
           bpmn_editor_selected_id_value: @selected_id,
           bpmn_editor_chrome_value: (@chrome.to_s unless @chrome == :full),
           bpmn_editor_min_zoom_value: (@min_zoom unless @min_zoom == DEFAULT_MIN_ZOOM),
@@ -202,6 +224,23 @@ module Bali
           bpmn_editor_badge_toggle_label_value: (@badge_toggle if @badge_toggle.is_a?(String)),
           bpmn_editor_wheel_zoom_value: (@wheel_zoom unless @wheel_zoom == "auto")
         }.compact
+      end
+
+      def island_i18n_json
+        @island_i18n_json ||= island_i18n.to_json
+      end
+
+      # One view context per render: ViewComponent hands every component of
+      # the render the same one through `helpers`. A Turbo fetch names the
+      # tables the page already holds in I18N_TABLES_HEADER (i18n.js).
+      def write_i18n_table?
+        headers = helpers.request&.headers
+        return false if headers && headers[I18N_TABLES_HEADER].to_s.split(",").include?(i18n_key)
+        return true if headers && headers["Turbo-Frame"].present?
+
+        written = helpers.instance_variable_get(:@bali_bpmn_i18n_written) ||
+                  helpers.instance_variable_set(:@bali_bpmn_i18n_written, Set.new)
+        !!written.add?(i18n_key)
       end
 
       # Editing without somewhere to save would lose the work on reload.

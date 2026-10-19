@@ -83,12 +83,34 @@ describe('BPMN editor embedded in an app page', () => {
       cy.get(`${MAP} .bpmn-node.is-selected`).should('not.exist')
     })
 
+    // The flow is fetched into the SplitView's frame: the pane opens on the
+    // request, with its loading state, and the version picker fetches too.
+    it('fetches the flow lazily, showing the loading state until it lands', () => {
+      cy.intercept({ method: 'GET', pathname: /^\/bpmn_flows\// }).as('flow')
+      cy.visit(`${SPLIT}?delay=800`)
+      box('Pago a proveedores').click()
+      cy.get('.split-view-component--collapsible').should('have.attr', 'data-split-state', 'open')
+      cy.get('.split-view-detail-pane').should('have.attr', 'data-split-load', 'loading')
+      cy.get('.split-view-loading').should('be.visible').and('contain', 'Cargando')
+      cy.wait('@flow').its('request.url').should('include', '/bpmn_flows/b4')
+      cy.get('[data-testid="bpmn-split-title"]').should('have.text', 'Pago a proveedores')
+      cy.get('.split-view-detail-pane').should('not.have.attr', 'data-split-load')
+      cy.get(`${FLOW} .bali-bpmn-editor`).should('have.id', 'split_flow_payments_v2')
+      cy.get('[data-testid="bpmn-split-version"]').select('1')
+      cy.wait('@flow').its('request.url').should('include', 'version=1')
+      cy.get(`${FLOW} .bali-bpmn-editor`).should('have.id', 'split_flow_payments_v1')
+      // The strings table the page already holds is not sent again.
+      cy.get('@flow').its('request.headers').should('have.property', 'x-bali-bpmn-i18n')
+      cy.get(`${FLOW} script[data-bali-bpmn-i18n]`).should('not.exist')
+      cy.get(`${FLOW} button[aria-label="Centrar flujo"]`).should('exist')
+    })
+
     // The detail slides in over 300 ms while the map's column shrinks: the map
     // follows it frame by frame, and the flow is fitted once, to the size it
-    // has open.
+    // has open. 1.6 s: the flow is fetched first (~250 ms on the dev server).
     it('keeps the map whole and the flow at one zoom while the detail slides in and out', () => {
       let frames
-      cy.window().then((win) => { frames = sampleFrames(win, 900) })
+      cy.window().then((win) => { frames = sampleFrames(win, 1600) })
       box('Alta de proveedor').click()
       cy.then(() => frames).then((list) => {
         expect(list.length, 'frames sampled').to.be.greaterThan(20)

@@ -1411,6 +1411,8 @@ en:
       close: "Close"
       back: "Back"
       detail: "Detail"
+      loading: "Loading…"
+      detail_error: "The detail could not be loaded."
       # The three states of the infinite-scroll sentinel. They ship translated
       # because a `default:` in the template is exactly what hid the missing
       # scope: the fallback rendered, in Spanish, for every host on earth, and

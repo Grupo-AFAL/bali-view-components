@@ -19,8 +19,8 @@
 // `'straight'` keeps one band, the happy path in one line.
 import { isArtifactLike, isGateway, isActivity, nodeSize, edgeType } from './catalog.js'
 import { layoutLanes, HEADER, orientationOf } from './geometry.js'
-import { arrange, footprint, HEADER_GAP, LANE_PAD, STEP } from './arrange.js'
-import { pageFit, LETTER } from './page.js'
+import { arrange, place, footprint, HEADER_GAP, LANE_PAD, STEP } from './arrange.js'
+import { pageFit, LETTER, MIN_SCALE } from './page.js'
 
 // The modes; mirrors Bali::BpmnEditor::Component::LAYOUTS (contract_test.rb).
 export const LAYOUTS = ['compact', 'straight']
@@ -270,19 +270,56 @@ export function autoLayout (doc, { mode = 'straight', page = LETTER } = {}) {
   // largest. Fit is measured on the arranged result, what will be drawn.
   // Horizontal lanes only (VIS-03 keeps lanes horizontal); vertical lanes
   // are laid out straight.
-  if (mode === 'compact' && !vertical && columns > 2) {
-    const loose = arrange(position(columns))
-    if (pageFit(loose, page).fits) return loose
-    let best = null
-    for (let perBand = columns; perBand >= 2; perBand--) {
-      const candidate = arrange(position(perBand, true))
-      const fit = pageFit(candidate, page)
-      if (fit.fits) return candidate
-      if (!best || fit.scale > best.scale + 1e-9) best = { candidate, scale: fit.scale }
-    }
-    return best.candidate
-  }
+  if (mode === 'compact' && !vertical && columns > 2) return compactLayout(position, columns, page)
   return arrange(position(columns))
+}
+
+// The compact choice, as if every candidate were arranged in turn — loose,
+// then perBand from `columns` down to 2, the first that fits or else the
+// first with the largest scale — but arranging (and so routing) only those
+// that can decide it. `place` without routing bounds a candidate's scale
+// from above (arrange.js), which rules most of them out: the 80-activity flow
+// fits nowhere, and arranging all ~90 candidates took 9 s.
+function compactLayout (position, columns, page) {
+  const bound = (doc) => pageFit(place(doc), page).scale
+  const loose = position(columns)
+  if (bound(loose) >= MIN_SCALE) {
+    const arranged = arrange(loose)
+    if (pageFit(arranged, page).fits) return arranged
+  }
+  const candidates = []
+  for (let perBand = columns; perBand >= 2; perBand--) {
+    const doc = position(perBand, true)
+    candidates.push({ doc, bound: bound(doc), arranged: null, scale: null })
+  }
+  const evaluate = (c) => {
+    if (!c.arranged) {
+      c.arranged = arrange(c.doc)
+      c.scale = pageFit(c.arranged, page).scale
+    }
+    return c
+  }
+  for (const c of candidates) {
+    if (c.bound >= MIN_SCALE && evaluate(c).scale >= MIN_SCALE) return c.arranged
+  }
+  // None fits: the sequential pick keeps a candidate when its scale beats
+  // the best so far by more than 1e-9. A pivot every candidate before which
+  // scores 1e-9 under it is kept whatever came first; from there on, one
+  // whose bound cannot beat the best is not arranged.
+  const EPS = 1e-9
+  let pivot = candidates.reduce((top, c, i) => (c.bound > candidates[top].bound ? i : top), 0)
+  evaluate(candidates[pivot])
+  for (;;) {
+    const s = candidates[pivot].scale
+    const rival = candidates.findIndex((c, i) => i < pivot && c.bound >= s - EPS && evaluate(c).scale >= s - EPS)
+    if (rival < 0) break
+    pivot = rival
+  }
+  let best = candidates[pivot]
+  for (const c of candidates.slice(pivot + 1)) {
+    if (c.bound > best.scale + EPS && evaluate(c).scale > best.scale + EPS) best = c
+  }
+  return best.arranged
 }
 
 // Whether the document arrived without a position for some flow node — the

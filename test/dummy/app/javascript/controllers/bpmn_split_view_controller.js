@@ -2,28 +2,27 @@ import { Controller } from '@hotwired/stimulus'
 
 // The Lookbook «Split view» preview's own controller (not Bali's): the app
 // side of a map of processes and the flow behind the selected box, inside a
-// collapsible `Bali::SplitView`. A host writes the same thing with its own
-// data — a Turbo Frame the box's link targets instead of the <template>s here
-// does as well, and opens the detail the same way. It only uses what the
-// components offer:
-//   - `bali-bpmn:selection-change` { node_id, reference } from the map;
+// collapsible `Bali::SplitView`. The detail is fetched, as in an app: a pick
+// points the SplitView's Turbo Frame at the dummy's /bpmn_flows/:box, which
+// opens the pane with its loading state until the response lands. It only
+// uses what the components offer:
+//   - `bali-bpmn:selection-change` { node_id } from the map;
 //   - `bali-bpmn:open-reference`, taken over (preventDefault) so a click on a
 //     box selects it instead of following its link;
 //   - `bali-bpmn:select` { node_id } sent to the map, from «Previous» / «Next»
 //     and, with null, when the detail closes;
-//   - the SplitView opens when its frame gets content and says
-//     `split-view:close` when the person closes it.
+//   - the SplitView opens on its frame's fetch and says `split-view:close`
+//     when the person closes it.
 export default class extends Controller {
-  static targets = ['split', 'map', 'header', 'flow', 'template', 'empty', 'title', 'version', 'lane']
-  static values = { boxes: Array }
+  static targets = ['split', 'map']
+  // `url`: the detail's URL with BOX where the box id goes.
+  static values = { boxes: Array, url: String }
 
   connect () {
     this.map = this.mapTarget.querySelector('.bali-bpmn-editor')
     this.frame = this.splitTarget.querySelector('[data-split-view-collapse-target="frame"]')
     this.onSelection = (event) => {
-      if (event.target !== this.map) return
-      const detail = event.detail || {}
-      this.pick(detail.node_id, detail.lane_name)
+      if (event.target === this.map) this.pick((event.detail || {}).node_id)
     }
     this.onOpenReference = (event) => { if (event.target === this.map) event.preventDefault() }
     // Closed, the box the detail showed is no longer «the one open»: the map
@@ -47,25 +46,17 @@ export default class extends Controller {
 
   // A box picked on the map (null: the person cleared the selection — the
   // flow on the right stays, as an app may well decide).
-  // `lane`: the lane the map put the box in — `selection-change` says so, and
-  // the boxes list knows it for the picks the app makes itself.
-  pick (boxId, lane) {
+  pick (boxId, version) {
     const box = this.boxesValue.find((b) => b.id === boxId)
     if (!box) return
-    // Closed (or still sliding out, about to be emptied): a fresh detail,
-    // which is what opens the pane again.
-    if (this.splitTarget.dataset.splitState !== 'open') this.frame.replaceChildren(this.headerTarget.content.cloneNode(true))
     this.box = box
-    this.titleTarget.textContent = box.name
-    this.laneTarget.textContent = lane || box.lane || ''
-    const versions = this.templateTargets.filter((t) => t.dataset.flow === box.flow)
-    this.versionTarget.replaceChildren(...versions.map((t) => new window.Option(t.dataset.label, t.dataset.version)))
-    this.versionTarget.disabled = versions.length < 2
-    this.show(versions[0] || null)
+    const url = new URL(this.urlValue.replace('BOX', encodeURIComponent(box.id)), window.location.href)
+    if (version) url.searchParams.set('version', version)
+    this.frame.src = url.pathname + url.search
   }
 
-  pickVersion () {
-    this.show(this.templateTargets.find((t) => t.dataset.flow === this.box.flow && t.dataset.version === this.versionTarget.value))
+  pickVersion (event) {
+    if (this.box) this.pick(this.box.id, event.target.value)
   }
 
   previous () { this.step(-1) }
@@ -77,10 +68,5 @@ export default class extends Controller {
     const box = boxes[(index + delta + boxes.length) % boxes.length]
     this.map.dispatchEvent(new CustomEvent('bali-bpmn:select', { detail: { node_id: box.id } }))
     this.pick(box.id)
-  }
-
-  // A new editor for the chosen document; the one it replaces disconnects.
-  show (template) {
-    this.flowTarget.replaceChildren((template || this.emptyTarget).content.cloneNode(true))
   }
 }

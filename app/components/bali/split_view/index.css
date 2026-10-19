@@ -361,10 +361,64 @@
   display: none;
 }
 
+/* While the frame fetches a detail (`data-split-load`, collapse.js): over the
+   pane, below its bar so «Close» stays reachable. Loading lets the pointer
+   through to a detail already shown (its own «Close», «Next»); the error
+   takes it, for «Retry». An empty pane is held tall enough to show either. */
+.split-view-detail-pane {
+  position: relative;
+}
+
+.split-view-detail-pane[data-split-load] {
+  min-height: 16rem;
+}
+
+.split-view-detail-pane > .split-view-detail-bar {
+  position: relative;
+  z-index: 2;
+}
+
+.split-view-loading,
+.split-view-load-error {
+  @apply absolute inset-0 z-[1] flex flex-col items-center justify-center gap-3 rounded-box p-4 text-center;
+}
+
+.split-view-loading {
+  @apply pointer-events-none bg-base-100/70;
+}
+
+.split-view-load-error {
+  @apply bg-base-100;
+}
+
+/* Legible over a detail already shown, which stays beneath it. */
+.split-view-loading-card {
+  @apply flex flex-col items-center gap-2 rounded-box border border-base-300 bg-base-100 px-5 py-4 shadow-sm;
+}
+
+.split-view-spinner {
+  @apply size-8 text-primary;
+  animation: split-view-spin 0.8s linear infinite;
+}
+
+@keyframes split-view-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* A failed load shows the pane's bar even under a detail with its own
+   «Close»: the error covers that one. */
+.split-view-component--collapsible > .split-view-detail-pane[data-split-load="error"] > .split-view-detail-bar {
+  display: flex;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .split-view-component--collapsible,
   .split-view-detail-pane,
   .split-view-component--collapsible[data-split-state="closed"] > .split-view-detail-pane {
     transition: none;
+  }
+
+  .split-view-spinner {
+    animation: none;
   }
 }

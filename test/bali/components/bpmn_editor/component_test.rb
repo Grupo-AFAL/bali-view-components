@@ -33,7 +33,8 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
 
     assert_selector("[data-controller='bpmn-editor'] .bali-bpmn-editor-mount .bali-bpmn-editor-skeleton[aria-busy='true']")
     assert_includes page.find("noscript", visible: :all).native.to_html, "needs JavaScript"
-    assert_no_text("Validate invoice")
+    # The mount only: the strings table beside it is a script, which rack_test reads as text.
+    refute_includes page.find(".bali-bpmn-editor-mount").text, "Validate invoice"
   end
 
   def test_the_noscript_notice_is_translated
@@ -171,10 +172,55 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_raises(ArgumentError) { component(legend: [ { key: "x", label: "X", swatch: "color" } ]) }
   end
 
+  # The table the editor names by `data-bpmn-editor-i18n-key-value`.
+  def strings_table(key = island["data-bpmn-editor-i18n-key-value"])
+    JSON.parse(page.find("script[type='application/json'][data-bali-bpmn-i18n='#{key}']", visible: false).native.text)
+  end
+
   def test_it_serves_the_island_strings_in_the_current_locale
     I18n.with_locale(:es) { render_inline(component) }
 
-    assert_equal "Elementos", JSON.parse(island["data-bpmn-editor-i18n-value"]).fetch("palette_title")
+    assert_equal "Elementos", strings_table.fetch("palette_title")
+    refute island["data-bpmn-editor-i18n-value"], "the table travels once, not in every editor"
+  end
+
+  def test_the_strings_table_is_written_once_per_render_and_per_table
+    render_in_view_context(Bali::BpmnEditor::Component) do |editor|
+      safe_join([ editor.new(data: {}, id: "a"), editor.new(data: {}, id: "b"),
+                  editor.new(data: {}, id: "c", i18n: { "palette_title" => "Shapes" }) ].map { |one| render(one) })
+    end
+
+    keys = page.all(".bali-bpmn-editor").map { |one| one["data-bpmn-editor-i18n-key-value"] }
+    assert_equal keys[0], keys[1]
+    refute_equal keys[0], keys[2], "a host's i18n: is a table of its own"
+    assert_equal 2, page.all("script[data-bali-bpmn-i18n]", visible: false).size
+    assert_equal({ "palette_title" => "Shapes" }, strings_table(keys[2]))
+  end
+
+  def test_every_editor_of_a_turbo_frame_response_writes_the_table
+    vc_test_request.headers["Turbo-Frame"] = "detail"
+    render_in_view_context(Bali::BpmnEditor::Component) do |editor|
+      safe_join([ render(editor.new(data: {}, id: "a")), render(editor.new(data: {}, id: "b")) ])
+    end
+
+    assert_equal 2, page.all("script[data-bali-bpmn-i18n]", visible: false).size
+  end
+
+  def test_a_table_the_page_already_holds_is_left_out
+    held = I18n.with_locale(:es) { component.i18n_key }
+    vc_test_request.headers["Turbo-Frame"] = "detail"
+    vc_test_request.headers["X-Bali-Bpmn-I18n"] = "0000000000000000,#{held}"
+    I18n.with_locale(:es) { render_inline(component) }
+
+    assert_equal held, island["data-bpmn-editor-i18n-key-value"]
+    assert_no_selector("script[data-bali-bpmn-i18n]", visible: false)
+  end
+
+  def test_the_table_is_json_a_script_cannot_be_closed_from
+    render_inline(component(i18n: { "palette_title" => "</script><b>x</b>" }))
+
+    assert_equal "</script><b>x</b>", strings_table.fetch("palette_title")
+    refute_includes rendered_content, "</script><b>"
   end
 
   # Lookbook builds the component inside `I18n.with_locale` and renders it
@@ -183,7 +229,7 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     built = I18n.with_locale(:es) { component }
     render_inline(built)
 
-    assert_equal "Elementos", JSON.parse(island["data-bpmn-editor-i18n-value"]).fetch("palette_title")
+    assert_equal "Elementos", strings_table.fetch("palette_title")
   end
 
   # `data:` is the document, so HTML data attributes cannot ride along.

@@ -727,10 +727,20 @@ one item at a time, the detail need not take its column until there is one:
 ```
 
 - **Closed**, the master takes the whole width and the detail pane is `inert`.
-- **What opens it is the frame getting content**: a row's Turbo Frame load, or
-  anything the app puts into the frame itself (the frame's children are
-  watched). The rows need nothing new. A server-rendered detail (a deep link)
-  starts open.
+- **What opens it is the frame fetching or getting content**: a row's Turbo
+  Frame load opens it the moment the request starts, or anything the app puts
+  into the frame itself (the frame's children are watched). The rows need
+  nothing new. A server-rendered detail (a deep link) starts open.
+- **Loading**: while the frame fetches, the pane shows a spinner and
+  «Loading…» (`bali_view.split_view.loading`) in a `role="status"` region, with
+  `aria-busy` on the pane; over a detail already shown it sits on top of it,
+  letting the pointer through. Reduced motion stops the spinner. The `loading`
+  slot replaces it (a skeleton of the detail, say). «Close» and Esc work while
+  it loads, and cancel the request (Turbo aborts it when the frame loses its
+  `src`), so a late response cannot open it again.
+- **A failed load** (a network error, or a response without the frame) shows
+  «The detail could not be loaded.» with «Retry», which fetches the same URL
+  again.
 - **Open**, the master shrinks to `master_width` while the detail slides in
   from the right and fades in (300 ms); focus moves to the detail's first
   heading, else its first focusable element.
@@ -773,19 +783,34 @@ forward keep working, since a URL that selects no row resets the frame to its
 empty state, which closes the pane. A drill-down that is not a location of its
 own wants `advance: false`.
 
-The detail does not have to come from the server. The BPMN editor's «Split
-view» preview fills the frame from a `<template>` per document, as a Turbo
-Frame response would:
+**A lazy detail.** The detail need not be a link either: anything that sets
+the frame's `src` fetches it, and the pane opens with its loading state until
+the response lands. The BPMN editor's «Split view» preview does that from a
+click on a diagram, whose boxes are no links:
 
 ```js
-frame.replaceChildren(template.content.cloneNode(true)) // opens the pane
+// on the master's own event (a box picked, a marker clicked…)
+frame.src = `/flows/${id}?version=${version}` // opens the pane, loading
 container.addEventListener('split-view:close', () => map.dispatchEvent(
   new CustomEvent('bali-bpmn:select', { detail: { node_id: null } })))
 ```
 
-The Turbo Frame equivalent is a link on each box targeting the frame
-(`data-turbo-frame="flow-detail"`) whose response renders the flow inside a
-`<turbo-frame id="flow-detail">`.
+The response renders the detail inside a `<turbo-frame id="flow-detail">`, and
+whatever in it acts on the app's controller («Next», a version picker) sets
+`src` again. A loading state of the app's own:
+
+```erb
+<%= render Bali::SplitView::Component.new(frame_id: "flow-detail", collapsible: true, advance: false) do |split| %>
+  <% split.with_master do %>…<% end %>
+  <% split.with_loading do %>
+    <%= render Bali::Skeleton::Component.new(size: :md) %>
+    <span class="sr-only"><%= t("bali_view.split_view.loading") %></span>
+  <% end %>
+<% end %>
+```
+
+Filling the frame directly (`frame.replaceChildren(…)`, a `<template>` clone)
+still opens it, without a loading state: there is nothing to wait for.
 
 ---
 
@@ -895,6 +920,11 @@ until the next click. Three ways out, cheapest first:
 
 Bali does not choose for you, because the right answer depends on whether a
 failing detail is an expected outcome on that screen or a defect.
+
+`collapsible: true` is the exception: its pane takes the third way itself,
+showing «The detail could not be loaded.» and «Retry» instead of keeping a
+detail that disagrees with the row. The first two still apply before it — a
+frame in the response is rendered, and `turbo-visit-control` still reloads.
 
 ---
 

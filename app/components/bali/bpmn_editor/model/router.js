@@ -22,8 +22,8 @@
 // this routes into a layout the user owns. Measured on the 60-activity fixture:
 // see routing.test.js.
 import { categoryOf, CATEGORY, edgeType, isGateway } from './catalog.js'
-import { layoutLanes, nodeBox } from './geometry.js'
-import { nodeLabelBox, badgeBox, labelSide } from './labels.js'
+import { layoutLanes, nodeBox, orientationOf } from './geometry.js'
+import { nodeLabelBox, badgeBox, labelSide, textBlock } from './labels.js'
 
 export const STUB = 18
 const CLEARANCE = 10
@@ -276,8 +276,12 @@ function occupancy () {
   const h = new Map() // y → [[x1, x2]]
   const v = new Map() // x → [[y1, y2]]
   const key = (n) => Math.round(n * 2) / 2
+  // Each map's keys in ascending order, rebuilt after an add: the search
+  // counts crossings by bisecting them instead of walking every line.
+  let sorted = null
   return {
     add (p, q) {
+      sorted = null
       if (Math.abs(p.y - q.y) < EPS) {
         const k = key(p.y)
         if (!h.has(k)) h.set(k, [])
@@ -295,63 +299,134 @@ function occupancy () {
       if (!list) return false
       const lo = horizontal ? Math.min(p.x, q.x) : Math.min(p.y, q.y)
       const hi = horizontal ? Math.max(p.x, q.x) : Math.max(p.y, q.y)
-      return list.some(([a, b]) => Math.min(hi, b) - Math.max(lo, a) > EPS)
+      return overlapsAny(list, lo, hi)
     },
     // Does p→q cross a drawn line at a right angle (inside both)?
     crossings (p, q) {
       const horizontal = Math.abs(p.y - q.y) < EPS
       const lo = horizontal ? Math.min(p.x, q.x) : Math.min(p.y, q.y)
       const hi = horizontal ? Math.max(p.x, q.x) : Math.max(p.y, q.y)
-      const at = horizontal ? p.y : p.x
-      let count = 0
-      for (const [c, list] of horizontal ? v : h) {
-        if (c <= lo + EPS || c >= hi - EPS) continue
-        if (list.some(([a, b]) => at > a + EPS && at < b - EPS)) count++
-      }
-      return count
+      const { hKeys, vKeys } = this.sortedKeys()
+      return horizontal ? crossingsAt(vKeys, v, lo, hi, p.y) : crossingsAt(hKeys, h, lo, hi, p.x)
     },
-    lines () { return { h, v } }
+    lines () { return { h, v } },
+    sortedKeys () {
+      if (!sorted) sorted = { hKeys: Float64Array.from(h.keys()).sort(), vKeys: Float64Array.from(v.keys()).sort() }
+      return sorted
+    }
   }
+}
+
+const overlapsAny = (list, lo, hi) => {
+  for (let i = 0; i < list.length; i++) if (Math.min(hi, list[i][1]) - Math.max(lo, list[i][0]) > EPS) return true
+  return false
+}
+
+// Lines at a coordinate strictly between lo and hi (± EPS) that span `at`.
+function crossingsAt (keys, lines, lo, hi, at) {
+  let i = firstAbove(keys, lo + EPS)
+  let count = 0
+  for (; i < keys.length && keys[i] < hi - EPS; i++) {
+    const list = lines.get(keys[i])
+    for (let k = 0; k < list.length; k++) {
+      if (at > list[k][0] + EPS && at < list[k][1] - EPS) { count++; break }
+    }
+  }
+  return count
+}
+
+// The index of the first value above `limit` in an ascending array.
+function firstAbove (values, limit) {
+  let lo = 0
+  let hi = values.length
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (values[mid] > limit) hi = mid
+    else lo = mid + 1
+  }
+  return lo
 }
 
 // ── search ─────────────────────────────────────────────────────────────────
 
-class Heap {
-  constructor () { this.items = [] }
-  push (item) {
-    const a = this.items
-    a.push(item)
-    let i = a.length - 1
-    while (i > 0) {
-      const parent = (i - 1) >> 1
-      if (a[parent][0] <= a[i][0]) break
-      ;[a[parent], a[i]] = [a[i], a[parent]]
-      i = parent
+// Scratch memory shared by every search, grown on demand. An entry belongs to
+// the current search only when its stamp is the current generation, so no
+// array is cleared between searches (a full-bounds grid of the 160-activity
+// flow has ~10⁶ states; a search may visit a few dozen of them).
+const scratch = { states: 0, edges: 0, heap: 0, generation: 0xffffffff }
+function prepare (states, edges) {
+  if (states > scratch.states) {
+    scratch.states = Math.max(states, scratch.states * 2)
+    scratch.best = new Float64Array(scratch.states)
+    scratch.from = new Int32Array(scratch.states)
+    scratch.seen = new Uint32Array(scratch.states)
+    scratch.generation = 0xffffffff
+  }
+  if (edges > scratch.edges) {
+    scratch.edges = Math.max(edges, scratch.edges * 2)
+    scratch.edgeCost = new Int32Array(scratch.edges * 2)
+    scratch.edgeSeen = new Uint32Array(scratch.edges * 2)
+    scratch.generation = 0xffffffff
+  }
+  if (scratch.generation === 0xffffffff) {
+    scratch.seen.fill(0)
+    scratch.edgeSeen.fill(0)
+    scratch.generation = 0
+  }
+  return ++scratch.generation
+}
+
+// A binary min-heap on f over three parallel arrays: [f, cost, state]. Pushes
+// and pops compare and swap exactly as a heap of [f, cost, ...] tuples does,
+// so equal f values come out in the same order.
+const heap = { f: new Float64Array(1024), cost: new Float64Array(1024), state: new Int32Array(1024), size: 0 }
+
+function heapPush (f, cost, state) {
+  if (heap.size === heap.f.length) {
+    const grow = (a) => { const b = new a.constructor(a.length * 2); b.set(a); return b }
+    heap.f = grow(heap.f); heap.cost = grow(heap.cost); heap.state = grow(heap.state)
+  }
+  const F = heap.f
+  const C = heap.cost
+  const S = heap.state
+  let i = heap.size++
+  F[i] = f; C[i] = cost; S[i] = state
+  while (i > 0) {
+    const parent = (i - 1) >> 1
+    if (F[parent] <= F[i]) break
+    swap(F, C, S, parent, i)
+    i = parent
+  }
+}
+
+// Removes the top; its cost and state are left in `heap.top`.
+function heapPop () {
+  const F = heap.f
+  const C = heap.cost
+  const S = heap.state
+  heap.topCost = C[0]
+  heap.topState = S[0]
+  const n = --heap.size
+  if (n) {
+    F[0] = F[n]; C[0] = C[n]; S[0] = S[n]
+    let i = 0
+    for (;;) {
+      const l = 2 * i + 1
+      const r = l + 1
+      let m = i
+      if (l < n && F[l] < F[m]) m = l
+      if (r < n && F[r] < F[m]) m = r
+      if (m === i) break
+      swap(F, C, S, m, i)
+      i = m
     }
   }
+}
 
-  pop () {
-    const a = this.items
-    const top = a[0]
-    const last = a.pop()
-    if (a.length) {
-      a[0] = last
-      let i = 0
-      for (;;) {
-        const l = 2 * i + 1
-        const r = l + 1
-        let m = i
-        if (l < a.length && a[l][0] < a[m][0]) m = l
-        if (r < a.length && a[r][0] < a[m][0]) m = r
-        if (m === i) break
-        ;[a[m], a[i]] = [a[i], a[m]]
-        i = m
-      }
-    }
-    return top
-  }
-
-  get size () { return this.items.length }
+function swap (F, C, S, a, b) {
+  const f = F[a]; F[a] = F[b]; F[b] = f
+  const c = C[a]; C[a] = C[b]; C[b] = c
+  const s = S[a]; S[a] = S[b]; S[b] = s
 }
 
 const uniqueSorted = (values) => [...new Set(values.map((v) => Math.round(v * 2) / 2))].sort((a, b) => a - b)
@@ -365,17 +440,34 @@ function withMidpoints (values) {
   return out
 }
 
-function blockedSegment (p, q, obstacles) {
-  for (const r of obstacles) {
-    if (Math.abs(p.x - q.x) < EPS) {
-      if (p.x > r.x + EPS && p.x < r.x + r.w - EPS && Math.max(p.y, q.y) > r.y + EPS && Math.min(p.y, q.y) < r.y + r.h - EPS) return true
-    } else if (p.y > r.y + EPS && p.y < r.y + r.h - EPS && Math.max(p.x, q.x) > r.x + EPS && Math.min(p.x, q.x) < r.x + r.w - EPS) return true
+// The grid edges an obstacle forbids, stamped with `generation`: the edge
+// from (i, j) to its right neighbour is `2 * (j * W + i)`, to the one below
+// `+ 1`. The same comparisons as the segment test, cell by cell, over the
+// rows and columns the obstacle can reach.
+function stampObstacle (r, X, Y, generation) {
+  const W = X.length
+  const H = Y.length
+  const cost = scratch.edgeCost
+  const seen = scratch.edgeSeen
+  const forbid = (k) => { seen[k] = generation; cost[k] = -1 }
+  // Vertical edges (i; j → j + 1): X[i] inside, Y[j + 1] below the top, Y[j] above the bottom.
+  for (let i = firstAbove(X, r.x + EPS); i < W && X[i] < r.x + r.w - EPS; i++) {
+    for (let j = Math.max(0, firstAbove(Y, r.y + EPS) - 1); j < H - 1 && Y[j] < r.y + r.h - EPS; j++) {
+      if (Y[j + 1] > r.y + EPS) forbid(2 * (j * W + i) + 1)
+    }
   }
-  return false
+  // Horizontal edges (i → i + 1; j).
+  for (let j = firstAbove(Y, r.y + EPS); j < H && Y[j] < r.y + r.h - EPS; j++) {
+    for (let i = Math.max(0, firstAbove(X, r.x + EPS) - 1); i < W - 1 && X[i] < r.x + r.w - EPS; i++) {
+      if (X[i + 1] > r.x + EPS) forbid(2 * (j * W + i))
+    }
+  }
 }
 
 // A* from `start` (leaving in direction `startDir`) to `goal` (arriving in
 // direction `goalDir`) over the grid built from the region's coordinates.
+// States are (x, y, direction) cells of typed arrays; each grid edge's cost
+// (forbidden, or how many lines it crosses) is worked out once per search.
 function search (start, startDir, goal, goalDir, obstacles, occupied, region) {
   const inRegion = (r) => r.x < region.x2 && r.x + r.w > region.x1 && r.y < region.y2 && r.y + r.h > region.y1
   const local = obstacles.filter(inRegion)
@@ -394,47 +486,82 @@ function search (start, startDir, goal, goalDir, obstacles, occupied, region) {
   const gx = xi.get(Math.round(goal.x * 2) / 2)
   const gy = yi.get(Math.round(goal.y * 2) / 2)
   if (sx == null || sy == null || gx == null || gy == null) return null
-  const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]]
-  const dirIndex = (d) => DIRS.findIndex(([a, b]) => a === d.dx && b === d.dy)
+  const DX = [1, -1, 0, 0]
+  const DY = [0, 0, 1, -1]
+  const dirIndex = (d) => DX.findIndex((a, i) => a === d.dx && DY[i] === d.dy)
   const W = X.length
-  const id = (x, y, d) => ((y * W + x) << 2) | d
-  const best = new Map()
-  const from = new Map()
-  const heap = new Heap()
+  const H = Y.length
+  const generation = prepare(W * H * 4, W * H)
+  const { best, from, seen, edgeCost, edgeSeen } = scratch
+  for (const r of local) stampObstacle(r, X, Y, generation)
+  // The drawn lines on each grid line, and every line's position, for the
+  // edges' overlap and crossing tests.
+  const { hKeys, vKeys } = occupied.sortedKeys()
+  const rowLines = Y.map((y) => h.get(Math.round(y * 2) / 2) || null)
+  const columnLines = X.map((x) => v.get(Math.round(x * 2) / 2) || null)
+  // -1 when the edge from (x, y) towards `nd` is forbidden, else its crossings.
+  const edgeOf = (x, y, nd) => {
+    const horizontal = nd < 2
+    const ex = nd === 1 ? x - 1 : x
+    const ey = nd === 3 ? y - 1 : y
+    const k = 2 * (ey * W + ex) + (horizontal ? 0 : 1)
+    if (edgeSeen[k] === generation) return edgeCost[k]
+    edgeSeen[k] = generation
+    let c
+    if (horizontal) {
+      const list = rowLines[ey]
+      c = list && overlapsAny(list, X[ex], X[ex + 1]) ? -1 : crossingsAt(vKeys, v, X[ex], X[ex + 1], Y[ey])
+    } else {
+      const list = columnLines[ex]
+      c = list && overlapsAny(list, Y[ey], Y[ey + 1]) ? -1 : crossingsAt(hKeys, h, Y[ey], Y[ey + 1], X[ex])
+    }
+    edgeCost[k] = c
+    return c
+  }
   const sd = dirIndex(startDir)
   const gd = dirIndex(goalDir)
-  const heuristic = (x, y) => Math.abs(X[x] - X[gx]) + Math.abs(Y[y] - Y[gy])
-  best.set(id(sx, sy, sd), 0)
-  heap.push([heuristic(sx, sy), 0, sx, sy, sd])
-  let found = null
+  const GX = X[gx]
+  const GY = Y[gy]
+  const startKey = ((sy * W + sx) << 2) | sd
+  seen[startKey] = generation
+  best[startKey] = 0
+  from[startKey] = -1
+  heap.size = 0
+  heapPush(Math.abs(X[sx] - GX) + Math.abs(Y[sy] - GY), 0, startKey)
+  let found = -1
   let expanded = 0
   while (heap.size) {
-    const [, cost, x, y, d] = heap.pop()
-    const key = id(x, y, d)
-    if (cost > (best.get(key) ?? Infinity)) continue
+    heapPop()
+    const cost = heap.topCost
+    const key = heap.topState
+    if (seen[key] === generation && cost > best[key]) continue
+    const d = key & 3
+    const cell = key >> 2
+    const x = cell % W
+    const y = (cell - x) / W
     if (x === gx && y === gy && d === gd) { found = key; break }
     if (++expanded > 60000) break
     for (let nd = 0; nd < 4; nd++) {
       if (nd === (d ^ 1)) continue // no U-turn on the spot
-      const nx = x + DIRS[nd][0]
-      const ny = y + DIRS[nd][1]
-      if (nx < 0 || ny < 0 || nx >= W || ny >= Y.length) continue
-      const p = { x: X[x], y: Y[y] }
-      const q = { x: X[nx], y: Y[ny] }
-      if (blockedSegment(p, q, local) || occupied.overlaps(p, q)) continue
-      const step = Math.abs(q.x - p.x) + Math.abs(q.y - p.y) + (nd !== d ? BEND : 0) + occupied.crossings(p, q) * CROSS
+      const nx = x + DX[nd]
+      const ny = y + DY[nd]
+      if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue
+      const crossings = edgeOf(x, y, nd)
+      if (crossings < 0) continue
+      const step = Math.abs(X[nx] - X[x]) + Math.abs(Y[ny] - Y[y]) + (nd !== d ? BEND : 0) + crossings * CROSS
       const next = cost + step
-      const nkey = id(nx, ny, nd)
-      if (next < (best.get(nkey) ?? Infinity)) {
-        best.set(nkey, next)
-        from.set(nkey, key)
-        heap.push([next + heuristic(nx, ny), next, nx, ny, nd])
+      const nkey = ((ny * W + nx) << 2) | nd
+      if (seen[nkey] !== generation || next < best[nkey]) {
+        seen[nkey] = generation
+        best[nkey] = next
+        from[nkey] = key
+        heapPush(next + Math.abs(X[nx] - GX) + Math.abs(Y[ny] - GY), next, nkey)
       }
     }
   }
-  if (found == null) return null
+  if (found < 0) return null
   const path = []
-  for (let k = found; k != null; k = from.get(k)) {
+  for (let k = found; k >= 0; k = from[k]) {
     const cell = k >> 2
     path.push({ x: X[cell % W], y: Y[Math.floor(cell / W)] })
   }
@@ -460,7 +587,71 @@ function simplify (points) {
 
 const ORDER = { sequence_flow: 0, message_flow: 1, association: 2 }
 
+// The routes of a document, kept by its identity: arrange.js routes the
+// document it settles on, and the editor then routes that same object to
+// draw it (an undo returns to one already routed). Documents are never
+// changed in place — every operation returns a new one — so a hit is exact.
+// Callers read the routes; none changes them.
+// The last document routed is kept too: a name typed in the properties
+// panel makes a new document per keystroke that routes exactly like the one
+// before it (sameRouting), and full routing took 60 ms per keystroke on the
+// 160-activity flow.
+const routed = new WeakMap()
+let last = null
+
 export function routeDiagram (doc, { order = null } = {}) {
+  if (order) return routeAfresh(doc, order)
+  let routes = routed.get(doc)
+  if (!routes) {
+    routes = last && sameRouting(last.doc, doc) ? last.routes : routeAfresh(doc, null)
+    routed.set(doc, routes)
+  }
+  last = { doc, routes }
+  return routes
+}
+
+// What the router reads of a node and of a connection, besides a node's
+// name; a name counts only through its label's box and the side it takes
+// (labels.js). Two documents that agree on all of it, and on the lanes'
+// measures, are routed alike.
+const NODE_KEYS = ['id', 'type', 'x', 'y', 'width', 'height', 'lane_id']
+const EDGE_KEYS = ['id', 'source', 'target', 'type', 'ports', 'waypoints']
+
+export function sameRouting (a, b) {
+  if (a === b) return true
+  const orientation = orientationOf(a)
+  if (orientation !== orientationOf(b)) return false
+  const nodesA = a.nodes || []
+  const nodesB = b.nodes || []
+  const edgesA = a.edges || []
+  const edgesB = b.edges || []
+  if (nodesA.length !== nodesB.length || edgesA.length !== edgesB.length) return false
+  for (let i = 0; i < nodesA.length; i++) {
+    const n = nodesA[i]
+    const m = nodesB[i]
+    if (n === m) continue
+    if (NODE_KEYS.some((k) => n[k] !== m[k])) return false
+    if (n.name !== m.name && (labelSide(n, orientation) !== labelSide(m, orientation) || !sameBlock(n, m))) return false
+  }
+  for (let i = 0; i < edgesA.length; i++) {
+    if (edgesA[i] !== edgesB[i] && EDGE_KEYS.some((k) => edgesA[i][k] !== edgesB[i][k])) return false
+  }
+  const la = layoutLanes(a)
+  const lb = layoutLanes(b)
+  return la.entries.length === lb.entries.length && la.header === lb.header && la.thickness === lb.thickness && la.length === lb.length
+}
+
+const sameBlock = (n, m) => {
+  const p = nodeLabelBox(n)
+  const q = nodeLabelBox(m)
+  if (!p || !q) return !p && !q
+  const s = textBlock(n.name)
+  const t = textBlock(m.name)
+  return s.w === t.w && s.h === t.h && s.lines === t.lines
+}
+
+// Routes without the memo above: what an edit that moves something pays.
+export function routeAfresh (doc, order = null) {
   const layout = layoutLanes(doc)
   const orientation = layout.orientation
   const horizontal = orientation === 'horizontal'
@@ -538,10 +729,8 @@ export function routeDiagram (doc, { order = null } = {}) {
     } else {
       const own = [String(edge.source), String(edge.target)]
       // The stubs leave through the clearance of their own nodes.
-      const stubFree = obstacles.filter((r) => !own.some((nid) => {
-        const b = boxes.get(nid)
-        return r.x === b.x - CLEARANCE && r.y === b.y - CLEARANCE && r.w === b.w + CLEARANCE * 2
-      }))
+      const clear = own.map((nid) => { const b = boxes.get(nid); return [b.x - CLEARANCE, b.y - CLEARANCE, b.w + CLEARANCE * 2] })
+      const stubFree = obstacles.filter((r) => !clear.some(([x, y, w]) => r.x === x && r.y === y && r.w === w))
       const ownBlocks = own.map((nid) => { const b = boxes.get(nid); return { x: b.x + 1, y: b.y + 1, w: b.w - 2, h: b.h - 2 } })
       const blockers = [...stubFree, ...ownBlocks]
       const startDir = DIR[s.side]

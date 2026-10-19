@@ -65,6 +65,68 @@ describe('SplitView collapsible', () => {
       open()
     })
 
+    // The response is held until `release()`: what shows before it is the
+    // loading state, not a detail that has already landed.
+    const holdDetail = () => {
+      const held = {}
+      cy.intercept({ method: 'GET', pathname: '/split-view' }, (req) => new Promise((resolve) => {
+        held.release = resolve
+      }).then(() => req.continue())).as('detail')
+      return held
+    }
+
+    it('opens at once with a loading state while the detail is fetched', () => {
+      const held = holdDetail()
+      row(1).click()
+      // Shorter than the intercept's own timeout, so a pane that does not open fails here.
+      cy.get('.split-view-component--collapsible', { timeout: 2000 }).should('have.attr', 'data-split-state', 'open')
+      pane().should('have.attr', 'data-split-load', 'loading').and('have.attr', 'aria-busy', 'true')
+      cy.get('[data-split-view-collapse-target="loading"]').should('be.visible')
+        .and('contain', 'Loading…').closest('[role="status"]').should('exist')
+      cy.get('[data-testid="split-view-close"]').should('be.visible')
+      cy.get('[data-testid="detail-title"]').should('not.exist')
+      cy.then(() => held.release())
+      cy.wait('@detail')
+      cy.get('[data-testid="detail-title"]').should('be.visible')
+      pane().should('not.have.attr', 'data-split-load')
+      cy.get('[data-split-view-collapse-target="loading"]').should('not.be.visible')
+      cy.focused().should('have.attr', 'data-testid', 'detail-title')
+    })
+
+    it('discards the response that lands after «Close»', () => {
+      const held = holdDetail()
+      row(1).click()
+      cy.get('.split-view-detail-pane', { timeout: 2000 }).should('have.attr', 'data-split-load', 'loading')
+      cy.get('[data-testid="split-view-close"]').click()
+      split().should('have.attr', 'data-split-state', 'closed')
+      cy.then(() => held.release())
+      cy.wait(800)
+      split().should('have.attr', 'data-split-state', 'closed')
+      cy.get('[data-testid="detail-title"]').should('not.exist')
+      pane().should('not.have.attr', 'data-split-load')
+    })
+
+    it('shows the error with «Retry» when the detail fails, and retries it', () => {
+      let fail = true
+      cy.intercept({ method: 'GET', pathname: '/split-view' }, (req) => {
+        if (fail) req.reply({ statusCode: 500, body: 'boom' })
+        else req.continue()
+      }).as('detail')
+      row(1).click()
+      cy.wait('@detail')
+      split().should('have.attr', 'data-split-state', 'open')
+      pane().should('have.attr', 'data-split-load', 'error')
+      cy.get('[data-split-view-collapse-target="error"]').should('be.visible').and('have.attr', 'role', 'alert')
+        .and('contain', 'The detail could not be loaded.')
+      cy.get('[data-testid="split-view-close"]').should('be.visible')
+      cy.then(() => { fail = false })
+      cy.get('[data-testid="split-view-retry"]').click()
+      cy.wait('@detail')
+      cy.get('[data-testid="detail-title"]').should('be.visible')
+      pane().should('not.have.attr', 'data-split-load')
+      cy.get('[data-split-view-collapse-target="error"]').should('not.be.visible')
+    })
+
     it('leaves Esc to an open dialog', () => {
       open()
       cy.document().then((doc) => {

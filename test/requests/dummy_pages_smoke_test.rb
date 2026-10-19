@@ -161,6 +161,7 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
       "admin/process_flows/lane_assignees" => { "process_flow_id" => @process_flow.to_param },
       "admin/process_flows/imports" => { "process_flow_id" => @process_flow.to_param },
       "documents" => { "id" => @document.to_param },
+      "bpmn_flows" => { "box" => "b3" },
       "pages" => { "project_slug" => "bali-demo" },
       # A movie is no task, so this renders the «ya no está» detail: still the whole page.
       "inboxes" => { "kind" => "task", "gid" => @movie.to_gid_param }

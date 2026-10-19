@@ -3,6 +3,7 @@
 // and @xyflow/react are imported here so the bundler attributes them to the
 // island's entry and the main bundle stays React-free.
 import { ReactIslandController } from '../../../frontend/bali/react-island'
+import { islandStrings } from './i18n.js'
 
 // The `rules` the island takes: false (Component `rules: false`, its own
 // value), a profile's name (`rules: :structure` arrives as { profile }), or
@@ -43,6 +44,9 @@ export class BpmnEditorController extends ReactIslandController {
     watermark: { type: String, default: '' },
     // { tags: [{ key, label, color }], compare_with: { document, label } } — review notes and comparison.
     review: { type: Object, default: {} },
+    // The key of the strings table the server wrote once per render
+    // (Component#i18n_key); `i18n` still takes a table inline.
+    i18nKey: { type: String, default: '' },
     i18n: { type: Object, default: {} },
     // The node selected on load, read-only too (Component `selected_id:`).
     selectedId: { type: String, default: '' },
@@ -67,8 +71,12 @@ export class BpmnEditorController extends ReactIslandController {
   }
 
   componentProps () {
-    const { validate, ...props } = super.componentProps()
-    return { ...props, rules: rulesProp(validate, props.rules), hostElement: this.element }
+    const { validate, i18nKey, ...props } = super.componentProps()
+    return { ...props, i18n: this.strings(), rules: rulesProp(validate, props.rules), hostElement: this.element }
+  }
+
+  strings () {
+    return islandStrings(this.i18nKeyValue, { element: this.element, fallback: this.i18nValue })
   }
 
   async loadComponent () {
@@ -82,6 +90,6 @@ export class BpmnEditorController extends ReactIslandController {
   }
 
   errorFallback () {
-    return this.i18nValue.load_error || 'The diagram failed to load.'
+    return this.strings().load_error || 'The diagram failed to load.'
   }
 }

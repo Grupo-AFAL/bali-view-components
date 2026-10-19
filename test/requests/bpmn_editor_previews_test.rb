@@ -196,8 +196,8 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     assert_includes island_value("legend").pluck("swatch"), "color"
   end
 
-  def test_the_split_view_has_a_minimal_map_and_one_editor_per_flow_version
-    get "#{PREVIEW}/split_view"
+  def test_the_split_view_has_a_minimal_map_and_fetches_the_flows
+    get "#{PREVIEW}/split_view", params: { delay: 800 }
 
     assert_response :ok
     map = css_select(".split-view-component--collapsible[data-split-state='closed'] .split-view-master #split_map_bpmn").first
@@ -205,12 +205,25 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     assert_equal({ "profile" => "structure" }, JSON.parse(map["data-bpmn-editor-rules-value"]))
     assert_nil map["data-bpmn-editor-selected-id-value"], "the map starts alone, nothing selected"
     assert(JSON.parse(map["data-bpmn-editor-data-value"])["nodes"].all? { |n| n["appearance"] })
-    assert_equal %w[split_flow_billing_v1 split_flow_close_v1 split_flow_customer_v1 split_flow_payments_v1 split_flow_payments_v2
-                    split_flow_supplier_v1 split_flow_supplier_v2],
-                 css_select("template [data-controller='bpmn-editor']").pluck("id").sort
-    annotatable = css_select("template [data-bpmn-editor-annotatable-value='true']").pluck("id").sort
-    assert_equal %w[split_flow_billing_v1 split_flow_close_v1 split_flow_customer_v1 split_flow_payments_v2 split_flow_supplier_v2],
-                 annotatable, "only the newest version takes notes"
+    assert_equal 1, css_select("[data-controller='bpmn-editor']").size, "the flows are fetched, not in the page"
+    url = css_select("[data-controller='bpmn-split-view']").first["data-bpmn-split-view-url-value"]
+    assert_equal "/bpmn_flows/BOX?delay=800&filled=1&locale=es", url
+  end
+
+  # Each version of a flow is an editor of its own; only the newest takes notes.
+  def test_the_split_view_detail_serves_each_version
+    { "b4" => %w[2 1], "b3" => %w[2 1], "b1" => %w[1] }.each do |box, versions|
+      versions.each do |version|
+        get "/bpmn_flows/#{box}", params: { version: version, locale: "es" }, headers: { "Turbo-Frame" => "split_flow_detail" }
+
+        assert_response :ok
+        assert_select "turbo-frame#split_flow_detail [data-testid='bpmn-split-header'] [data-testid='bpmn-split-version'] option",
+                      versions.size
+        editor = css_select("turbo-frame#split_flow_detail [data-controller='bpmn-editor']").first
+        assert_match(/\Asplit_flow_\w+_v#{version}\z/, editor["id"])
+        assert_equal version == versions.first, editor["data-bpmn-editor-annotatable-value"] == "true", "#{box} v#{version} takes notes"
+      end
+    end
   end
 
   # Every box the map draws as having a flow opens one; only the faded box is empty.
@@ -218,15 +231,18 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     get "#{PREVIEW}/split_view"
 
     boxes = JSON.parse(css_select("[data-controller='bpmn-split-view']").first["data-bpmn-split-view-boxes-value"])
-    flows = css_select("template[data-flow]").pluck("data-flow").uniq
     nodes = JSON.parse(css_select("#split_map_bpmn").first["data-bpmn-editor-data-value"])["nodes"]
     faded = nodes.select { |n| n.dig("appearance", "dimmed") }.pluck("id")
     assert_equal [ "b5" ], faded
     boxes.each do |box|
+      get "/bpmn_flows/#{box['id']}", params: { locale: "es" }
+      editors = css_select("[data-testid='bpmn-split-flow'] [data-controller='bpmn-editor']")
       if faded.include?(box["id"])
         assert_nil box["flow"], "#{box['id']} is faded: no flow"
+        assert_empty editors
+        assert_select "[data-testid='bpmn-split-flow'] .empty-state-component"
       else
-        assert_includes flows, box["flow"], "#{box['id']} (#{box['name']}) has no flow to open"
+        assert_equal 1, editors.size, "#{box['id']} (#{box['name']}) has no flow to open"
       end
     end
   end

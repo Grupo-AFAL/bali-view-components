@@ -9,6 +9,10 @@ import { Controller } from '@hotwired/stimulus'
 // `<template>` cloned by the app and a server-rendered deep link all open it
 // the same way. Emptied, it closes.
 //
+// A frame fetch opens it at once, with the loading state (`data-split-load`
+// on the pane: "loading", then "error" with «Retry» if it fails). Closing it
+// while it loads cancels the fetch: Turbo aborts it when `src` goes.
+//
 // The look lives in index.css, keyed on `data-split-state`; this only moves
 // the state, the focus and the `inert` of the pane that is out of view.
 // Events, on the container: `split-view:open` and `split-view:close`.
@@ -16,7 +20,7 @@ const MOTION_MS = 300
 const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
 
 export class SplitViewCollapseController extends Controller {
-  static targets = ['pane', 'frame']
+  static targets = ['pane', 'frame', 'loading', 'error']
 
   connect () {
     this.opener = null
@@ -36,15 +40,88 @@ export class SplitViewCollapseController extends Controller {
     this.element.addEventListener('pointerdown', this.onPointer, true)
     this.observer = new window.MutationObserver(() => this.sync())
     this.observer.observe(this.frameTarget, { childList: true })
+    // Turbo dispatches these on the frame itself (a nested frame's bubble up:
+    // only this frame's own count).
+    this.frameEvents = {
+      'turbo:before-fetch-request': (event) => this.fetchStarted(event),
+      'turbo:before-fetch-response': (event) => this.fetchAnswered(event),
+      'turbo:frame-load': (event) => this.fetchEnded(event),
+      'turbo:fetch-request-error': (event) => this.fetchFailed(event),
+      'turbo:frame-missing': (event) => this.fetchFailed(event)
+    }
+    for (const [name, handler] of Object.entries(this.frameEvents)) this.frameTarget.addEventListener(name, handler)
     this.apply(this.hasDetail, { initial: true })
   }
 
   disconnect () {
     document.removeEventListener('keydown', this.onKey)
     this.element.removeEventListener('pointerdown', this.onPointer, true)
+    for (const [name, handler] of Object.entries(this.frameEvents)) this.frameTarget.removeEventListener(name, handler)
     this.observer.disconnect()
     clearTimeout(this.timer)
   }
+
+  // --- The frame's fetch ---
+
+  ownEvent (event) { return event.target === this.frameTarget }
+
+  fetchStarted (event) {
+    if (!this.ownEvent(event)) return
+    this.url = event.detail?.url?.href || this.frameTarget.src
+    this.setLoad('loading')
+    if (!this.isOpen) {
+      this.loadOpened = true
+      this.apply(true)
+    }
+  }
+
+  fetchEnded (event) {
+    if (!this.ownEvent(event)) return
+    this.setLoad(null)
+    // Opened empty by the fetch: the focus waited in the pane for the detail.
+    if (this.loadOpened && this.isOpen && (this.paneTarget.contains(document.activeElement) || document.activeElement === document.body)) {
+      this.focusDetail()
+    }
+    this.loadOpened = false
+  }
+
+  // Turbo renders nothing from a response that is not HTML (a bare 500, JSON)
+  // and says nothing either: no frame-load follows.
+  fetchAnswered (event) {
+    if (!this.ownEvent(event)) return
+    const response = event.detail?.fetchResponse
+    if (response && !response.isHTML) this.fetchFailed(event)
+  }
+
+  // A network error, a response that is not HTML, or one without this frame
+  // (an error page).
+  fetchFailed (event) {
+    if (!this.ownEvent(event)) return
+    // The error state says it; Turbo's own would write «Content missing» into the frame and throw.
+    if (event.type === 'turbo:frame-missing') event.preventDefault()
+    if (!this.isOpen) {
+      this.setLoad(null)
+      return
+    }
+    this.setLoad('error')
+    this.loadOpened = false
+  }
+
+  retry () {
+    const frame = this.frameTarget
+    if (frame.src && typeof frame.reload === 'function') frame.reload()
+    else if (this.url) frame.src = this.url
+  }
+
+  setLoad (state) {
+    if (state) this.paneTarget.dataset.splitLoad = state
+    else delete this.paneTarget.dataset.splitLoad
+    this.paneTarget.setAttribute('aria-busy', String(state === 'loading'))
+    if (this.hasLoadingTarget) this.loadingTarget.hidden = state !== 'loading'
+    if (this.hasErrorTarget) this.errorTarget.hidden = state !== 'error'
+  }
+
+  get loadState () { return this.paneTarget.dataset.splitLoad || null }
 
   get isOpen () { return this.element.dataset.splitState === 'open' }
 
@@ -54,14 +131,19 @@ export class SplitViewCollapseController extends Controller {
   }
 
   sync () {
+    // Opened by a fetch, the pane is empty until the response lands.
+    if (!this.hasDetail && this.loadState) return
     if (this.hasDetail !== this.isOpen) this.apply(this.hasDetail)
   }
 
   close () {
     if (!this.isOpen) return
+    this.setLoad(null)
+    this.loadOpened = false
     this.apply(false)
-    // A closed frame points nowhere, at once: a `src` left behind is reloaded
-    // when Turbo restores the page, which would open the pane again, and a
+    // A closed frame points nowhere, at once. Without `src`, Turbo aborts a
+    // fetch in flight, so a late response cannot open the pane again; a `src`
+    // left behind is reloaded when Turbo restores the page, which would open the pane again, and a
     // click on the same row while it slides out set that same `src` again,
     // which Turbo does not load. The stash is what split-view's traversal
     // reads as «the pane shows this» (index.js).

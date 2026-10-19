@@ -269,13 +269,16 @@ module Bali
       # :minimal` and `annotatable:` (select an element and add a note: it is
       # saved to `urls[:annotations]`).
       #
-      # The wiring is the dummy app's own Stimulus controller, as a host would
-      # write it: it listens to `bali-bpmn:selection-change` on the map, takes
-      # `bali-bpmn:open-reference` over so a click only selects, fills the
-      # SplitView's frame (which opens it), and moves the map with
-      # `bali-bpmn:select` from «Previous» / «Next». The version picker swaps
-      # the document too. `selected` is a deep link: the map's `selected_id:`,
-      # whose flow the controller opens on load.
+      # The detail is lazy, as in an app: a click points the SplitView's frame
+      # at the dummy's `/bpmn_flows/:box` (the flow, its versions and the
+      # header), and the pane opens at once with its loading state until the
+      # response lands. The wiring is the dummy app's own Stimulus controller:
+      # it listens to `bali-bpmn:selection-change` on the map, takes
+      # `bali-bpmn:open-reference` over so a click only selects, and moves the
+      # map with `bali-bpmn:select` from «Previous» / «Next»; those and the
+      # version picker fetch too. `selected` is a deep link: the map's
+      # `selected_id:`, whose flow the controller opens on load. `delay` holds
+      # every response back, to watch the loading state.
       # docs/api/bpmn-editor.md#embedding-a-diagram
       # `master_width: :equal` and `height: :screen` by default: the two panes
       # the same width, and as tall as the window leaves them.
@@ -284,17 +287,15 @@ module Bali
       # @param height select { choices: [screen, full, content, 640px] }
       # @param master_width select { choices: [equal, 50%, 420px] }
       # @param badges toggle "The map's badges shown on load (the flows on the right have none, so they offer no switch)"
-      def split_view(locale: :es, selected: nil, height: "screen", master_width: "equal", badges: true)
-        records = BpmnProcessMap.flows(locale).to_h do |key, versions|
-          [ key, versions.each_with_index.map do |doc, i|
-            { number: versions.size - i, flow: ProcessFlow.reset!("Split view #{key} v#{versions.size - i} (#{locale})", doc) }
-          end ]
-        end
+      # @param delay select "Milliseconds each detail response is held back" { choices: [0, 300, 800, 2000] }
+      def split_view(locale: :es, selected: nil, height: "screen", master_width: "equal", badges: true, delay: 0)
+        # Every load starts from the samples: notes added before are dropped.
+        BpmnProcessMap.flow_records(locale, fresh: true)
         I18n.with_locale(locale) do
           render_with_template(template: "bali/bpmn_editor/previews/split_view",
-                               locals: { records: records, locale: locale, selected: selected.presence,
+                               locals: { locale: locale, selected: selected.presence,
                                          height: split_option(height), master_width: split_option(master_width),
-                                         badges: badges })
+                                         badges: badges, delay: delay.to_i })
         end
       end
 

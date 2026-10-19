@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { routeEdge, routeAll, autoSides } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 import { nodeBox } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
+import { routeAfresh } from '../../../app/components/bali/bpmn_editor/model/router.js'
 import { doc, node, flow } from './helpers.js'
 
 const orthogonal = (points) => points.every((p, i) => i === 0 || p.x === points[i - 1].x || p.y === points[i - 1].y)
@@ -63,18 +64,19 @@ test('routeAll skips edges whose ends are missing and lets lines cross groups', 
 
 // One cold run measured 115 ms on a CI runner against ~23 ms locally: the first
 // call pays for JIT warm-up and the runner is shared. The median of warm runs is
-// what the editor pays on every edit (~11 ms locally).
+// what the editor pays on every edit (~11 ms locally). routeAll keeps the
+// routes of the document it last saw, so the runs route afresh.
 test('routing sixty connections takes well under 100 ms', () => {
   const nodes = []
   const edges = []
   for (let i = 0; i < 61; i++) nodes.push(node(`n${i}`, 'task', null, 100 + (i % 12) * 200, 100 + Math.floor(i / 12) * 140))
   for (let i = 0; i < 60; i++) edges.push(flow(`e${i}`, `n${i}`, `n${i + 1}`))
   const diagram = doc({ nodes, edges })
-  routeAll(diagram)
+  routeAfresh(diagram)
   const runs = []
   for (let i = 0; i < 5; i++) {
     const started = performance.now()
-    routeAll(diagram)
+    routeAfresh(diagram)
     runs.push(performance.now() - started)
   }
   const median = runs.sort((a, b) => a - b)[2]

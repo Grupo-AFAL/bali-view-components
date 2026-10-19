@@ -129,7 +129,11 @@ function makeRoom (doc, edgeIds) {
   return { ...doc, nodes: doc.nodes.map((n) => (along(n) >= from ? { ...n, [cross]: (Number(n[cross]) || 0) + GAP_ALONG / 2 } : n)) }
 }
 
-function place (doc, keep = null) {
+// The first step of `arrange`, without routing. What arrange does after it
+// only moves elements forward along the flow (makeRoom, collisions) and
+// leaves every lane as thick as this fits it, so the arranged document is
+// never smaller than this one — layout.js bounds a candidate's page fit by it.
+export function place (doc, keep = null) {
   if (!doc.nodes || !doc.nodes.length) return fitLanesToContent(doc)
   const orientation = orientationOf(doc)
   const layout = layoutLanes(doc)
