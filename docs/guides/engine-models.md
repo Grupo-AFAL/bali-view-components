@@ -608,7 +608,7 @@ end
   - The detail for an item that is no longer the person's is the same whether it was resolved, is someone else's or never existed.
 - **Opening is reading.** `item`, `open_item` and `open_notice` mark notices read.
   - Their links carry `data-turbo-prefetch="false"`, so a hover does not read them.
-  - `open_notice` follows only a relative `action_url`. Anything else lands on the «Avisos» tab.
+  - `open_notice` follows an `action_url` on this site — a path, or a URL with this host (Rails' `url_from`). Anything else lands on the «Avisos» tab.
 - **The badge.** The icon's number is `Query#count`; its dot means unread notices that announce nothing. Both are cached per person for one minute.
   - A new notice, a mark-read through the engine, and any request of the person's that is not a GET expire the cache.
   - Someone else's action that changes your items without a notice shows within the minute.
