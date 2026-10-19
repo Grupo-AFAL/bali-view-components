@@ -29,10 +29,7 @@ module Bali
       def kinds
         Bali.notice_kinds.to_h do |name, options|
           options = options.to_h
-          unless EMAIL_MODES.include?(options[:email])
-            raise ArgumentError, "Bali.notice_kinds[:#{name}]: email: must be nil, :immediate " \
-                                 "or :digest, not #{options[:email].inspect}"
-          end
+          check_email!(name, options[:email])
 
           [ name.to_s, Kind.new(name: name.to_s, email: options[:email], queue: options[:queue],
                                 announces: options[:announces]&.to_sym) ]
@@ -49,6 +46,19 @@ module Bali
 
       def mark_read!(notices)
         notices.unread.update_all(read_at: Time.current, updated_at: Time.current)
+      end
+
+      private
+
+      def check_email!(name, email)
+        unless EMAIL_MODES.include?(email)
+          raise ArgumentError, "Bali.notice_kinds[:#{name}]: email: must be nil, :immediate or :digest, " \
+                               "not #{email.inspect}"
+        end
+        return unless email == :immediate && Bali.notices_mailer.blank?
+
+        raise ArgumentError, "Bali.notice_kinds[:#{name}] sends email: :immediate, which needs " \
+                             "Bali.notices_mailer (the host mailer whose `notify(notice)` sends it)"
       end
     end
 

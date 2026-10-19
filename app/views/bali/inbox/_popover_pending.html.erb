@@ -12,7 +12,7 @@
 <% else %>
   <% @items.group_by(&:band).each do |band, items| %>
     <section aria-labelledby="bali-inbox-band-<%= band %>">
-      <h3 id="bali-inbox-band-<%= band %>" class="bali-inbox-band bali-inbox-band-<%= band %> px-4 pt-3 pb-1 text-xs font-semibold">
+      <h3 id="bali-inbox-band-<%= band %>" class="<%= class_names("px-4 pt-3 pb-1 text-xs font-semibold", inbox_band_color(band)) %>">
         <%= inbox_band_label(band) %> · <%= items.size %>
       </h3>
       <% items.each do |item| %>

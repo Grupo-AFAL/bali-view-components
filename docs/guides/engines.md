@@ -503,7 +503,8 @@ Bali.notices_deliver_if = ->(_notice) { !DataImport.running? }
 
 - `inbox_providers` names classes by string, so a reload never keeps a stale class.
 - `notice_kinds` lists every kind a notice may have; a notice of any other kind is invalid.
-- `notices_mailer` is required as soon as one kind has `email:`.
+- `notices_mailer` is required as soon as one kind is `email: :immediate`; `Bali::Notice.kinds`
+  raises naming it otherwise. A `:digest` kind needs only `notices_parent_mailer`.
 - `notices_deliver_if` returning false writes no delivery row at all.
 
 ## Block Editor comments (#706)

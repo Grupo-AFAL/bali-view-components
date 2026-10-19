@@ -70,7 +70,7 @@ class BaliInboxBadgeTest < ActiveSupport::TestCase
     assert_broadcasts(stream, 1) { release_notice }
 
     message = ActiveSupport::JSON.decode(broadcasts(stream).last)
-    assert_match %(target="#{Bali::Inbox::Badge::SIGNAL_ID}"), message
+    assert_match %(target="#{Bali::Topbar::Inbox::Component::SIGNAL_ID}"), message
     refute_match(/\d+ pendientes|>1</, message)
   end
 

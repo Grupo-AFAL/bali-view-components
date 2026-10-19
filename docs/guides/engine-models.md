@@ -547,7 +547,7 @@ Bali.inbox_providers = { governance: %w[SignaturesProvider ApprovalsProvider] }
 | Method | Returns |
 |---|---|
 | `count`, `counts_by_kind` | What the badge and the filter pills show |
-| `items(module_key: nil, kind: nil)` | Sorted into «Vencidos» (past due), «Esta semana» (due within 7 days) and «Después» (later or undated). At most `FETCH_CAP` (100) per provider |
+| `items(module_key: nil, kind: nil)` | Sorted into «Vencidos» (past due), «Esta semana» (due within 7 days) and «Después» (later or undated). At most `FETCH_CAP` (100) per provider, the first in `pending_for`'s own order — a provider that can pass 100 orders it by due date, or an overdue item can fall past the cap |
 | `capped?` | Whether a provider hit the cap, once `items` ran |
 | `find(kind, gid)` | The item, or `nil` when it is not pending for this user. The gid is only ever matched inside that kind's own `pending_for`, so a forged one reaches nothing |
 | `fresh_keys(items)`, `mark_seen!(item)` | The «Nuevo» marks, and reading them |
@@ -613,7 +613,8 @@ end
   - A new notice, a mark-read through the engine, and any request of the person's that is not a GET expire the cache.
   - Someone else's action that changes your items without a notice shows within the minute.
   - With a warm cache a page runs one cache read and no provider or notice query.
-- **The stream.** `stream:` subscribes the page to `[owner, :bali_inbox]`. Each new notice broadcasts a signal that carries no count, and the icon fetches `badge_url` again. That needs turbo-rails and Action Cable; without `stream:` the icon refreshes on the next page.
+- **turbo-rails.** The popover and «Marcar todos como leídos» answer with Turbo Streams, so the inbox needs turbo-rails, as dashboard widgets do; Bali's gemspec does not declare it.
+- **The stream.** `stream:` subscribes the page to `[owner, :bali_inbox]`. Each new notice broadcasts a signal that carries no count, and the icon fetches `badge_url` again. That needs Action Cable too; without `stream:` the icon refreshes on the next page.
 - **Layouts where the icon must stay silent.** In a layout an engine renders too (bali-auth's screens), use `try(:inbox_badge)` and `main_app.` route helpers.
 
 ### Porting from afal-apps

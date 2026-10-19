@@ -1,4 +1,4 @@
-<%# The popover's «Avisos» tab, loaded the first time it is clicked; `read_all` re-renders it. %>
+<%# The popover's «Avisos» tab, loaded the first time it is clicked. %>
 <div id="bali-inbox-popover-notices">
   <% if notices.empty? %>
     <div class="p-6">
@@ -11,8 +11,10 @@
   <% end %>
   <div class="flex items-center justify-between gap-2 border-t border-base-300 px-4 py-3 text-sm">
     <% if unread_count.positive? %>
-      <%= button_to t("bali_view.inbox.notices.mark_all"), url_for(action: :read_all),
-                    class: "btn btn-ghost btn-xs", form: { data: { turbo_stream: true } } %>
+      <%= form_with url: url_for(action: :read_all, from: "popover"), method: :post do %>
+        <%= render Bali::Button::Component.new(name: t("bali_view.inbox.notices.mark_all"), type: :submit,
+                                               variant: :ghost, size: :xs) %>
+      <% end %>
     <% else %>
       <span></span>
     <% end %>

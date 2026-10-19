@@ -19,21 +19,29 @@ export class TopbarInboxController extends Controller {
     this.panel = this.panelTarget
     this.frame = this.frameTarget
     this.ready = true
+    document.addEventListener('turbo:before-cache', this.teardown)
   }
 
   disconnect () {
+    document.removeEventListener('turbo:before-cache', this.teardown)
+    this.teardown()
+    this.ready = false
+  }
+
+  // Before Turbo snapshots the page too: a row clicked in the open popover navigates with the
+  // panel hanging off <body>, and Back would restore that ghost beside an icon whose panel is
+  // gone. destroy() leaves the panel inside the popper it throws away, so it goes back home here.
+  teardown = () => {
     this.stopListening()
-    // destroy() leaves the panel inside the popper it is about to throw away; a Turbo render that
-    // reconnects this controller would come back without one.
     if (this.tippy) {
       this.tippy.destroy()
       this.tippy = null
-      if (!this.element.contains(this.panel)) {
-        this.panel.hidden = true
-        this.element.appendChild(this.panel)
-      }
     }
-    this.ready = false
+    if (!this.element.contains(this.panel)) {
+      this.panel.hidden = true
+      this.element.appendChild(this.panel)
+    }
+    this.triggerTarget.setAttribute('aria-expanded', 'false')
   }
 
   toggle (event) {
@@ -77,8 +85,9 @@ export class TopbarInboxController extends Controller {
     }
   }
 
-  // A new notice arrived on the stream: the server sent a fresh signal element in place of the
-  // old one, carrying no count, and the icon asks for its own.
+  // A new notice arrived on the stream: Bali::Inbox::Badge.refresh broadcast a fresh element in
+  // place of Bali::Topbar::Inbox::Component::SIGNAL_ID, carrying no count, and the icon asks for
+  // its own — the badge frame, BADGE_FRAME_ID, which the `badge` action answers.
   signalTargetConnected () {
     if (!this.ready || !this.hasBadgeTarget || !this.badgeUrlValue) return
 

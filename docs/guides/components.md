@@ -439,12 +439,13 @@ or no JavaScript, follows the link to the full page. The pages and the badge com
 - `href` (required) - the full page
 - `popover_url` (required) - what the popover's frame loads on its first open; later opens reload it
 - `badge_url` - what the icon fetches when a new notice arrives on `stream:`
-- `stream` - the owner; renders `turbo_stream_from owner, :bali_inbox` (needs turbo-rails)
+- `stream` - the owner; renders `turbo_stream_from owner, :bali_inbox`
 
 The link's accessible name is the badge's own text («Bandeja: 6 pendientes, hay avisos sin
 leer»), so a refresh updates the number, the dot and the name together. The popover is a
-`role="dialog"` positioned by tippy on `<body>`: Escape and a click outside close it and the
-focus returns to the icon.
+`role="dialog"` positioned by tippy on `<body>`. Escape closes it and gives the focus back to the
+icon; a click outside closes it and leaves the focus where the click put it. The trigger is never
+prefetched: a hover would load the whole page for a click that opens the popover instead.
 
 ##### Topbar::ToolsMenu
 

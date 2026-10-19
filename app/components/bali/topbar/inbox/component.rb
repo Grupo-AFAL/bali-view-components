@@ -21,6 +21,9 @@ module Bali
         BADGE_FRAME_ID = "bali-inbox-badge"
         POPOVER_FRAME_ID = "bali-inbox-popover"
         PANEL_ID = "bali-inbox-panel"
+        # Replaced by Bali::Inbox::Badge.refresh's broadcast; the controller's
+        # `signalTargetConnected` (index.js) is what reacts to the new one.
+        SIGNAL_ID = "bali-inbox-signal"
 
         SKELETON_ROWS = 3
 
@@ -38,14 +41,25 @@ module Bali
           @options = prepend_class_name(options, "bali-topbar-inbox")
         end
 
-        # `!nil?`, not `present?`: a badge with nothing in it is `empty?`, and `present?` reads that.
-        def render? = !@badge.nil?
+        def render? = @badge.present?
+
+        # A fresh element each time it is broadcast: its arrival is the whole message.
+        def self.signal_tag
+          ActionController::Base.helpers.tag.span(id: SIGNAL_ID, hidden: true, data: { topbar_inbox_target: "signal" })
+        end
+
+        def self.notices_tab_title(unread)
+          [ I18n.t("bali_view.inbox.tabs.notices"),
+            (I18n.t("bali_view.inbox.tabs.unread", count: unread) if unread.positive?) ].compact.join(" · ")
+        end
 
         private
 
-        def root_data
-          { controller: "topbar-inbox", topbar_inbox_popover_url_value: @popover_url,
-            topbar_inbox_badge_url_value: @badge_url }.compact
+        def root_attributes
+          @options.merge(data: (@options[:data] || {}).merge(
+            controller: "topbar-inbox", topbar_inbox_popover_url_value: @popover_url,
+            topbar_inbox_badge_url_value: @badge_url
+          ).compact)
         end
       end
     end

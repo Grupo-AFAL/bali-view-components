@@ -41,6 +41,19 @@ class BaliNoticeTest < ActiveSupport::TestCase
     assert_match "movie_assigned", error.message
   end
 
+  # Otherwise every immediate notice fails five times, a NoMethodError at a time, before the log
+  # says why.
+  def test_an_immediate_kind_without_a_mailer_raises_naming_the_setting
+    mailer = Bali.notices_mailer
+    Bali.notices_mailer = nil
+
+    error = assert_raises(ArgumentError) { Bali::Notice.kinds }
+    assert_match "Bali.notices_mailer", error.message
+    assert_match "movie_assigned", error.message
+  ensure
+    Bali.notices_mailer = mailer
+  end
+
   def test_listed_leaves_out_the_kinds_that_announce
     released = notice(:movie_released)
     notice(:movie_assigned)

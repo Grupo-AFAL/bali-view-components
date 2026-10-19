@@ -819,7 +819,7 @@ es:
       all: "Todo"
       fresh: "Nuevo"
       expand: "Abrir la bandeja completa"
-      capped: "Se muestran los %{count} más urgentes de cada tipo."
+      capped: "Se muestran los primeros %{count} de cada tipo."
       modules:
         all: "Todos los módulos"
       bands:

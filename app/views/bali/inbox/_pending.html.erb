@@ -30,7 +30,8 @@
         <% items.each do |item| %>
           <% group.with_item(id: inbox_item_key(item), href: inbox_item_url(item), title: item.title,
                              subtitle: [ inbox_kind_label(item.kind), inbox_module_label(item.module_key) ].join(" · "),
-                             meta: inbox_due_text(item), meta_color: (:error if item.overdue?)) do |row| %>
+                             meta: inbox_due_text(item), meta_color: (:error if item.overdue?),
+                             data: { turbo_prefetch: "false" }) do |row| %>
             <% if inbox_fresh?(item, @fresh) %>
               <% row.with_tag(text: t("bali_view.inbox.fresh"), color: :primary) %>
             <% end %>

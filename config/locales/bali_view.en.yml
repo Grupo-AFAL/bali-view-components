@@ -843,7 +843,7 @@ en:
       all: "All"
       fresh: "New"
       expand: "Open the full inbox"
-      capped: "Showing the %{count} most urgent of each kind."
+      capped: "Showing the first %{count} of each kind."
       modules:
         all: "All modules"
       bands:

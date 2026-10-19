@@ -68,10 +68,7 @@ module Bali
         def popover
           return render(partial: "popover_notices", locals: popover_notices) if inbox_tab == "notices"
 
-          @items = inbox_query.items.first(POPOVER_LIMIT)
-          @fresh = inbox_query.fresh_keys(@items)
-          @badge = Bali::Inbox::Badge.new(pending: inbox_query.count, unread: unread_notices.count)
-          Bali::Inbox::Badge.write(inbox_owner, @badge)
+          load_popover
           render :popover, layout: false
         end
 
@@ -95,12 +92,16 @@ module Bali
           redirect_to local_path(notice.action_url) || url_for(action: :show, tab: "notices"), status: :see_other
         end
 
+        # From the popover it re-renders the popover on its «Avisos» tab; from the page it goes
+        # back to the page. A param and not `respond_to`: Turbo asks every form submission for a
+        # stream first, the page's too.
         def read_all
           Bali::Notice.mark_all_read!(inbox_owner)
-          respond_to do |format|
-            format.turbo_stream { render :read_all, locals: popover_notices }
-            format.html { redirect_to url_for(action: :show, tab: "notices"), status: :see_other }
-          end
+          return redirect_to(url_for(action: :show, tab: "notices"), status: :see_other) unless params[:from] == "popover"
+
+          load_popover
+          @notices = popover_notices[:notices]
+          render :read_all, formats: :turbo_stream
         end
 
         private
@@ -134,6 +135,15 @@ module Bali
           @unread_count = unread_notices.count
         end
 
+        # The popover's numbers are live, so they also become the icon's: the cache, and the badge
+        # frame the popover's stream updates.
+        def load_popover
+          @items = inbox_query.items.first(POPOVER_LIMIT)
+          @fresh = inbox_query.fresh_keys(@items)
+          @badge = Bali::Inbox::Badge.new(pending: inbox_query.count, unread: unread_notices.count)
+          Bali::Inbox::Badge.write(inbox_owner, @badge)
+        end
+
         def popover_notices
           { notices: Bali::Notice.listed.addressed_to(inbox_owner).recent.limit(POPOVER_LIMIT).to_a,
             unread_count: unread_notices.count }
@@ -141,10 +151,10 @@ module Bali
 
         def page_param = [ params[:page].to_i, 1 ].max
 
-        # Only a path on this site: a notice's `action_url` is data, and `//host` or `/\host`
-        # read as another site to a browser.
+        # Only a path on this site: a notice's `action_url` is data. Rails would refuse the rest
+        # (`raise_on_open_redirects`), as a 500; this sends it to the Avisos tab instead.
         def local_path(url)
-          url if url.is_a?(String) && url.start_with?("/") && !url.start_with?("//") && !url.include?("\\")
+          url if url.is_a?(String) && url.start_with?("/") && !url.start_with?("//")
         end
       end
     end

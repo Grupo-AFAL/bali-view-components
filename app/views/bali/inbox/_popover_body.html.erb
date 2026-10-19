@@ -1,0 +1,30 @@
+<%# What the popover's frame holds, for its first open (`tab` "pending") and after every notice
+    is marked read (`tab` "notices"). The stream hands the icon the numbers this request computed. %>
+<%= turbo_stream.update Bali::Topbar::Inbox::Component::BADGE_FRAME_ID do %>
+  <%= render Bali::Topbar::Inbox::Badge::Component.new(badge: @badge) %>
+<% end %>
+
+<div class="bali-inbox-popover-header">
+  <span class="font-semibold"><%= t("bali_view.inbox.title") %></span>
+  <%= render Bali::Link::Component.new(href: url_for(action: :show), icon: "maximize-2", variant: :ghost, size: :xs,
+                                       title: t("bali_view.inbox.expand"), aria: { label: t("bali_view.inbox.expand") }) %>
+</div>
+
+<%= render Bali::Tabs::Component.new(style: :border, size: :sm, label: t("bali_view.inbox.title")) do |tabs| %>
+  <% tabs.with_tab(title: t("bali_view.inbox.tabs.pending"), count: @badge.pending, active: tab == "pending") do %>
+    <%= render "popover_pending" %>
+  <% end %>
+  <% notices_title = Bali::Topbar::Inbox::Component.notices_tab_title(@badge.unread) %>
+  <% if tab == "notices" %>
+    <% tabs.with_tab(title: notices_title, active: true) do %>
+      <%= render "popover_notices", notices: @notices, unread_count: @badge.unread %>
+    <% end %>
+  <% else %>
+    <% tabs.with_tab(title: notices_title, src: url_for(action: :popover, tab: "notices")) do %>
+      <div class="flex flex-col gap-3 p-4">
+        <%= render Bali::Skeleton::Component.new(variant: :text, lines: 2) %>
+        <%= render Bali::Skeleton::Component.new(variant: :text, lines: 2) %>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

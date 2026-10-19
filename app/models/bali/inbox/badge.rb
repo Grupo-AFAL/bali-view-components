@@ -7,7 +7,6 @@ module Bali
     # read and no provider or notice query.
     class Badge < Data.define(:pending, :unread)
       TTL = 1.minute
-      SIGNAL_ID = "bali-inbox-signal"
 
       class << self
         # Cached as a Hash, not the object: an entry written by the previous deploy still reads.
@@ -30,21 +29,14 @@ module Bali
           expire(owner)
           return unless defined?(Turbo::StreamsChannel)
 
-          Turbo::StreamsChannel.broadcast_replace_to(owner, :bali_inbox, target: SIGNAL_ID, html: signal_tag)
-        end
-
-        # A fresh element each time: its arrival is what the icon's controller reacts to.
-        def signal_tag
-          ActionController::Base.helpers.tag.span(id: SIGNAL_ID, hidden: true,
-                                                  data: { topbar_inbox_target: "signal" })
+          signal = Bali::Topbar::Inbox::Component
+          Turbo::StreamsChannel.broadcast_replace_to(owner, :bali_inbox, target: signal::SIGNAL_ID, html: signal.signal_tag)
         end
 
         def key(owner) = "bali/inbox/badge/#{owner.to_gid_param}"
       end
 
       def unread? = unread.positive?
-
-      def empty? = pending.zero? && !unread?
     end
   end
 end

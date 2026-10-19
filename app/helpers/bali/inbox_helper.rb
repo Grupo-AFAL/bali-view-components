@@ -14,6 +14,8 @@ module Bali
 
     def inbox_band_label(band) = t("bali_view.inbox.bands.#{band}")
 
+    def inbox_band_color(band) = { overdue: "text-soft-error", this_week: "text-soft-warning" }.fetch(band, "text-base-content/70")
+
     # One address per item, shared by the list's selection and the detail's frame.
     def inbox_item_key(item) = "#{item.kind}-#{item.gid}"
 

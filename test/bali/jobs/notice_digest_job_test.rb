@@ -26,7 +26,8 @@ class BaliNoticeDigestJobTest < ActiveJob::TestCase
                   action_url: "/movies")
   end
 
-  def test_two_runs_claim_disjoint_rows
+  # Run one after the other; overlapping runs rest on the row lock, which SQLite does not have.
+  def test_a_second_run_finds_nothing_the_first_claimed
     notify
     notify(@luis)
 

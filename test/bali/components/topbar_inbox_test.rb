@@ -68,11 +68,13 @@ class BaliTopbarInboxComponentTest < ComponentTestCase
     assert_selector('.bali-topbar-inbox-dot[aria-hidden="true"]')
   end
 
+  # Not prefetched: a hover would GET the whole page — every provider — for a click that opens
+  # the popover instead.
   def test_it_is_a_link_to_the_page_that_opens_a_dialog
     inbox
 
     assert_selector('a.bali-topbar-inbox-trigger[href="/inbox"][aria-haspopup="dialog"]' \
-                    '[aria-expanded="false"][aria-controls="bali-inbox-panel"]')
+                    '[aria-expanded="false"][aria-controls="bali-inbox-panel"][data-turbo-prefetch="false"]')
     assert_selector('#bali-inbox-panel[role="dialog"][aria-label="Bandeja"][hidden]', visible: :all)
   end
 
@@ -95,7 +97,7 @@ class BaliTopbarInboxComponentTest < ComponentTestCase
 
     assert_selector("turbo-frame#bali-inbox-badge .bali-topbar-badge", text: "6")
     assert_selector("[data-topbar-inbox-badge-url-value='/inbox/badge']")
-    assert_selector("##{Bali::Inbox::Badge::SIGNAL_ID}[data-topbar-inbox-target='signal']", visible: :all)
+    assert_selector("##{Bali::Topbar::Inbox::Component::SIGNAL_ID}[data-topbar-inbox-target='signal']", visible: :all)
   end
 
   def test_stream_subscribes_to_the_owners_inbox_stream

@@ -101,7 +101,7 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_select ".bali-inbox-detail-generic", /Policy/
   end
 
-  def test_the_gone_body_is_the_same_whatever_the_reason
+  def test_every_kind_of_stale_address_gets_the_same_gone_detail
     done = task("Ship", status: :done)
     deleted = task("Gone").tap(&:destroy!)
     other_model = Document.create!(id: task("Pending").id + 1000, title: "Policy", author_name: "Ana")
@@ -168,14 +168,25 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert theirs.reload.unread?
   end
 
-  def test_read_all_from_the_popover_answers_a_turbo_stream_with_the_badge
+  # The whole popover again, on «Avisos»: the list and that tab's title lose their unread count,
+  # and the icon its dot.
+  def test_read_all_from_the_popover_re_renders_it_on_the_notices_tab
     released
 
-    post "/inbox/read_all", as: :turbo_stream
+    post "/inbox/read_all", params: { from: "popover" }
 
     assert_response :success
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %(target="#{Bali::Topbar::Inbox::Component::POPOVER_FRAME_ID}"), response.body
     assert_match %(target="#{Bali::Topbar::Inbox::Component::BADGE_FRAME_ID}"), response.body
-    assert_match %(target="bali-inbox-popover-notices"), response.body
+    assert_no_match(/sin leer|unread/, response.body)
+  end
+
+  # Turbo asks a form for a stream first; the page's still has to land back on the page.
+  def test_read_all_from_the_page_redirects_even_when_the_request_takes_a_stream
+    post "/inbox/read_all", as: :turbo_stream
+
+    assert_redirected_to "/inbox?tab=notices"
   end
 
   def test_the_popover_shows_at_most_ten_and_marks_the_folded_one_new
@@ -209,16 +220,23 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_select ".bali-inbox-notice-message", "Alien is out"
   end
 
-  def test_open_links_are_never_prefetched
-    task("Write")
+  # Every GET that marks something read: the open links, and the page's rows, which load the
+  # item's detail (`item` reads its folded notices). Turbo prefetches a frame link too.
+  def test_no_link_that_marks_read_is_ever_prefetched
+    assigned(task("Write"))
     released
 
     get "/inbox/popover"
+    assert_select "a[href*='/open']", minimum: 1
     assert_select "a[href*='/open']:not([data-turbo-prefetch=false])", 0
 
     get "/inbox/popover", params: { tab: "notices" }
     assert_select "a[href*='/open']", minimum: 1
     assert_select "a[href*='/open']:not([data-turbo-prefetch=false])", 0
+
+    get "/inbox"
+    assert_select "a[href*='/inbox/items/']", minimum: 1
+    assert_select "a[href*='/inbox/items/']:not([data-turbo-prefetch=false])", 0
   end
 
   def test_without_an_owner_every_action_answers_401
@@ -226,14 +244,22 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
       routes.draw do
         resource :inbox, only: :show, controller: "inbox_request_test/ownerless_inboxes" do
           get :popover
+          get :badge
+          get "items/:kind/:gid", action: :item
+          get "items/:kind/:gid/open", action: :open_item
+          get "notices/:id/open", action: :open_notice
+          post :read_all
         end
       end
 
-      get "/inbox"
-      assert_response :unauthorized
+      gid = task("Write").to_gid_param
+      [ [ :get, "/inbox" ], [ :get, "/inbox/popover" ], [ :get, "/inbox/badge" ],
+        [ :get, "/inbox/items/task/#{gid}" ], [ :get, "/inbox/items/task/#{gid}/open" ],
+        [ :get, "/inbox/notices/#{released.id}/open" ], [ :post, "/inbox/read_all" ] ].each do |verb, path|
+        send(verb, path)
 
-      get "/inbox/popover"
-      assert_response :unauthorized
+        assert_response :unauthorized, "#{verb.upcase} #{path}"
+      end
     end
   end
 
