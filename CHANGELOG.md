@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   con su trabajo ya guardado: en un alta, la persona reenviaba y quedaba duplicada. Ahora va a
   `Rails.error`: la siguiente página cuenta de nuevo (la que ya estaba abierta conserva el número
   viejo hasta que navega) y el barrido de cada hora reenvía el correo. Nada que hacer en la app.
+- **En un teléfono, el título de un pendiente ya no queda en una palabra por renglón** (#1512,
+  hallado al adoptarla en gobierno-corporativo). La fecha en palabras del popover («venció hace
+  alrededor de 2 meses») tomaba todo su ancho; ahora ocupa a lo más 40% del renglón y se parte en
+  dos. A 390px, el título pasa de 77px y cuatro renglones a 138px y dos.
 - **La guía ya no pide `try(:inbox_badge)` en las pantallas de bali-auth**: sus controladores, los de
   bali-analytics y los de Flightdeck heredan el `ApplicationController` de la app.
 
