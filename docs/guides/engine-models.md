@@ -610,6 +610,7 @@ end
   - The detail for an item that is no longer the person's is the same whether it was resolved, is someone else's or never existed.
 - **Opening is reading.** `item`, `open_item` and `open_notice` mark notices read.
   - Their links carry `data-turbo-prefetch="false"`, so a hover does not read them.
+  - Not while someone acts as the owner. When the controller answers `impersonating?` (bali-auth's helper) with `true`, `owner_reading?` is false: nothing is marked read and «Marcar todos como leídos» is not offered. An admin looking at someone's inbox leaves their «Nuevo», their dot and their digest email as they were. A host action of its own that marks read asks `owner_reading?` first.
   - `open_notice` follows an `action_url` on this site — a path, or a URL with this host (Rails' `url_from`). Anything else lands on the «Avisos» tab.
 - **The badge.** The icon's number is `Query#count`; its dot means unread notices that announce nothing. Both are cached per person for one minute.
   - A new notice, a mark-read through the engine, and any request of the person's that is not a GET expire the cache.

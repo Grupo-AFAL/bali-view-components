@@ -31,6 +31,12 @@ module Bali
       # `item`, `open_item` and `open_notice` are GETs that mark notices read, because viewing
       # is reading. Every link to them carries `data-turbo-prefetch="false"`: Turbo prefetches
       # a link on hover, and these would mark it read on hover.
+      #
+      # Seam: `owner_reading?`, false while someone acts as the owner (bali-auth's
+      # `impersonating?`). Then nothing is marked read and «Marcar todos como leídos» is not
+      # offered: a read notice also skips its digest email, so an admin looking at a driver's
+      # inbox would take the «Nuevo» marks, the dot and the emails the driver never saw. A host
+      # action of its own that marks read asks it first.
       module Inbox
         extend ActiveSupport::Concern
 
@@ -41,7 +47,7 @@ module Bali
           include InboxBadge
 
           helper Bali::InboxHelper
-          helper_method :inbox_query, :inbox_tab
+          helper_method :inbox_query, :inbox_tab, :owner_reading?
 
           before_action :require_inbox_owner
         end
@@ -58,7 +64,7 @@ module Bali
         def item
           @item = inbox_query.find(params[:kind], params[:gid])
           @gone = @item.nil?
-          inbox_query.mark_seen!(@item) if @item
+          inbox_query.mark_seen!(@item) if @item && owner_reading?
           return render(:item, layout: false) if request.headers["Turbo-Frame"].present?
 
           load_pending
@@ -82,13 +88,13 @@ module Bali
             return redirect_to(url_for(action: :item, kind: params[:kind], gid: params[:gid]), status: :see_other)
           end
 
-          inbox_query.mark_seen!(item)
+          inbox_query.mark_seen!(item) if owner_reading?
           redirect_to item.href, status: :see_other
         end
 
         def open_notice
           notice = Bali::Notice.addressed_to(inbox_owner).find(params[:id])
-          notice.mark_read!
+          notice.mark_read! if owner_reading?
           redirect_to url_from(notice.action_url) || url_for(action: :show, tab: "notices"), status: :see_other
         end
 
@@ -96,7 +102,7 @@ module Bali
         # back to the page. A param and not `respond_to`: Turbo asks every form submission for a
         # stream first, the page's too.
         def read_all
-          Bali::Notice.mark_all_read!(inbox_owner)
+          Bali::Notice.mark_all_read!(inbox_owner) if owner_reading?
           return redirect_to(url_for(action: :show, tab: "notices"), status: :see_other) unless params[:from] == "popover"
 
           load_popover
@@ -113,6 +119,8 @@ module Bali
         def require_inbox_owner
           head :unauthorized unless inbox_owner
         end
+
+        def owner_reading? = !(respond_to?(:impersonating?, true) && impersonating?)
 
         def unread_notices = Bali::Notice.unread.listed.addressed_to(inbox_owner)
 
