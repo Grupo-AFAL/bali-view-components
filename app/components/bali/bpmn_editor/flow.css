@@ -67,14 +67,11 @@
 .bpmn-lane.is-highlighted .bpmn-lane-header { box-shadow: inset 0 0 0 2px var(--bpmn-select); }
 .bpmn-lane-name { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; line-height: 1.2; overflow: hidden; }
 .bpmn-lane-horizontal .bpmn-lane-name { writing-mode: vertical-rl; transform: rotate(180deg); max-height: 100%; }
-.bpmn-lane-external { font-size: 9.5px; font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); }
 /* The pending marker is laid out beside the name, never over it: across the
  * upright name of a horizontal lane (the header is wide enough for both),
  * after the name of a vertical lane — so the name keeps its whole length. */
 .bpmn-lane-issue { flex: none; }
 .bpmn-lane-header { gap: 2px; }
-/* An external lane's name takes two lines across the header: its marker goes under it. */
-.bpmn-lane-horizontal.is-external .bpmn-lane-header { flex-direction: column; padding: 3px 0; }
 .bpmn-lane-header > .bpmn-lane-name { min-width: 0; min-height: 0; }
 /* A name longer than its header ends in an ellipsis (the whole name is the header's title). */
 .bpmn-lane-title { max-width: 100%; max-height: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -269,6 +266,13 @@
   box-shadow: 0 2px 8px color-mix(in oklab, var(--color-base-content) 20%, transparent); white-space: nowrap;
 }
 .bpmn-connect-banner .btn { color: inherit; }
+/* «Use Ctrl + scroll to zoom»: over the canvas the wheel went past, gone
+   1.5 s after the last turn; it takes no pointer, so the page scrolls on. */
+.bpmn-wheel-hint {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 6; pointer-events: none;
+  padding: 8px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600;
+  background: color-mix(in oklab, var(--color-base-content) 78%, transparent); color: var(--color-base-100);
+}
 .bpmn-connect-guide { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; overflow: visible; }
 .bpmn-connect-guide line { stroke: var(--bpmn-select); stroke-width: 2; stroke-dasharray: 6 4; }
 .bpmn-canvas.is-connecting .react-flow__pane,
@@ -301,5 +305,8 @@
   /* React Flow paints panels over the node toolbar: the legend would cover
      the quick menu, which on a phone opens below the element. */
   .bpmn-canvas.has-quick-menu .react-flow__panel.bpmn-legend { display: none; }
+  /* Minimal, the zoom bar carries «Show badges» too: the legend no longer
+     fits beside it, and goes above it. */
+  .bpmn-editor.is-minimal .bpmn-canvas:has(.bpmn-badge-switch) .react-flow__panel.bpmn-legend { bottom: 44px; max-width: calc(100% - 1.5rem); }
   .bpmn-canvas .bpmn-connect-banner { top: 96px; width: max-content; max-width: calc(100% - 1rem); white-space: normal; border-radius: 12px; }
 }

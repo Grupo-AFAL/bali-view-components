@@ -4,11 +4,11 @@ import { resolveColors, renderSvg, download, downloadPng, printSvg, fileName } f
 
 // The top bar's outputs: the .bpmn file, and the diagram as SVG, PNG and
 // print — drawn from the document, not from the canvas on screen.
-export default function useExports ({ doc, name, watermark, tags, page, wrapperRef }) {
+export default function useExports ({ doc, name, watermark, tags, page, wrapperRef, badges = true }) {
   const exportSvg = useCallback(() => {
     const { paint, colors } = resolveColors(wrapperRef.current)
-    return renderSvg({ doc, paint, colors, title: name || null, subtitle: doc.status_label || null, watermark: watermark || null, notes: doc.annotations || [], tags, page })
-  }, [doc, name, watermark, tags, page, wrapperRef])
+    return renderSvg({ doc, paint, colors, title: name || null, subtitle: doc.status_label || null, watermark: watermark || null, notes: doc.annotations || [], tags, page, badges })
+  }, [doc, name, watermark, tags, page, wrapperRef, badges])
   return useMemo(() => ({
     bpmn: () => download(fileName(name, 'bpmn'), toBpmnXml(doc, { name }), 'application/xml'),
     svg: () => download(fileName(name, 'svg'), exportSvg(), 'image/svg+xml'),

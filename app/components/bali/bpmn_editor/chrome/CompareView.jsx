@@ -14,6 +14,7 @@ import LaneNode from '../canvas/LaneNode.jsx'
 import RoutedEdge, { EdgeMarkers } from '../canvas/RoutedEdge.jsx'
 import ZoomBar from './ZoomBar.jsx'
 import Icon from './icons.jsx'
+import BadgeSwitch from './BadgeSwitch.jsx'
 
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
 const edgeTypes = { routed: RoutedEdge }
@@ -27,7 +28,7 @@ const sameViewport = (a, b) => a && b && Math.abs(a.x - b.x) < 0.5 && Math.abs(a
 //   peerId: the element the other pane points at (its counterpart), highlighted;
 //   onPoint (id | null): the person points at an element (hover, click);
 //   onInstance / onViewport: for keeping two panes' views together.
-function Diagram ({ doc, diff, t, caption, focus, peerId, onPoint = noop, onInstance = noop, onViewport = noop, side }) {
+function Diagram ({ doc, diff, t, caption, focus, peerId, onPoint = noop, onInstance = noop, onViewport = noop, side, badgesVisible = true, wheelZoom = true }) {
   const layout = useMemo(() => layoutLanes(doc), [doc])
   const routes = useMemo(() => routeAll(doc), [doc])
   const nodes = useMemo(() => buildRfNodes(doc, { layout, diff }), [doc, layout, diff])
@@ -38,8 +39,8 @@ function Diagram ({ doc, diff, t, caption, focus, peerId, onPoint = noop, onInst
     t, routes, origin: poolOrigin(doc), orientation: layout.orientation, editable: false, connectable: false,
     renamingId: null, highlightId, startRename: noop, renderRename: noop, renderEdgeRename: noop,
     onLaneResize: noop, onLaneResizing: noop, quickMenuId: null, renderQuickMenu: noop,
-    edgeLabels: placeEdgeLabels(doc, routes), jumps: findJumps(routes)
-  }), [t, routes, doc, layout.orientation, highlightId])
+    edgeLabels: placeEdgeLabels(doc, routes), jumps: findJumps(routes), badgesVisible
+  }), [t, routes, doc, layout.orientation, highlightId, badgesVisible])
   // Two panes split the width after they mount (and again whenever the
   // editor resizes): each fits its diagram to the size it really got.
   const pane = useRef(null)
@@ -80,6 +81,8 @@ function Diagram ({ doc, diff, t, caption, focus, peerId, onPoint = noop, onInst
           onNodeMouseLeave={() => onPoint(null)}
           onNodeClick={(_event, node) => onPoint(node.id, true)}
           minZoom={0.1} maxZoom={2.5}
+          // A comparison is a viewer of its own: the wheel zooms (and, synced, both panes), unless `wheel_zoom: false`.
+          zoomOnScroll={wheelZoom} zoomOnPinch={wheelZoom}
         >
           <Background gap={20} size={1} />
           <ZoomBar t={t} fit={FIT} />
@@ -154,7 +157,7 @@ function counterpartOf (id, side, diff) {
 // highlights its counterpart in the other pane; «Only changes» fades what did
 // not change. The summary lists every change with its detail; picking one
 // brings it to the middle and highlights it. Read-only while it is on.
-export default function CompareView ({ t, base, current, label, match = 'auto', mode, onMode, onExit, options = [], picked = 0, onPick = noop }) {
+export default function CompareView ({ t, base, current, label, match = 'auto', mode, onMode, onExit, options = [], picked = 0, onPick = noop, badges = null, badgesVisible = true, wheelZoom = true }) {
   const diff = useMemo(() => diffDocuments(base, current, { match }), [base, current, match])
   const overlay = useMemo(() => overlayView(base, current, diff), [base, current, diff])
   const entries = useMemo(() => changesOf(base, current, diff, overlay), [base, current, diff, overlay])
@@ -229,6 +232,7 @@ export default function CompareView ({ t, base, current, label, match = 'auto', 
           ))}
         </span>
         <span className='grow' />
+        {badges && <BadgeSwitch t={t} label={badges.label} visible={badges.visible} onToggle={badges.onToggle} />}
         <label className='flex cursor-pointer items-center gap-1 text-xs'>
           <input type='checkbox' className='toggle toggle-xs' checked={onlyChanges} onChange={(e) => setOnlyChanges(e.target.checked)} data-testid='bpmn-compare-only-changes' />
           {t('compare_only_changes')}
@@ -254,21 +258,21 @@ export default function CompareView ({ t, base, current, label, match = 'auto', 
           ? (
             <>
               <ReactFlowProvider key={`base-${picked}`}>
-                <Diagram
+                <Diagram badgesVisible={badgesVisible} wheelZoom={wheelZoom}
                   doc={base} diff={diff.base} t={t} side='base' caption={`${t('compare_base')} · ${label}`} focus={focusFor('base')}
                   peerId={peerFor('base')} onPoint={pointOf.base} onInstance={instanceOf.base} onViewport={followOf.base}
                 />
               </ReactFlowProvider>
               <span className='h-px bg-base-300 sm:h-auto sm:w-px' />
               <ReactFlowProvider key='current'>
-                <Diagram
+                <Diagram badgesVisible={badgesVisible} wheelZoom={wheelZoom}
                   doc={current} diff={diff.current} t={t} side='current' caption={t('compare_current')} focus={focusFor('current')}
                   peerId={peerFor('current')} onPoint={pointOf.current} onInstance={instanceOf.current} onViewport={followOf.current}
                 />
               </ReactFlowProvider>
             </>
             )
-          : <ReactFlowProvider><Diagram doc={overlay.doc} diff={overlay.diff} t={t} side='overlay' focus={focusFor('overlay')} /></ReactFlowProvider>}
+          : <ReactFlowProvider><Diagram badgesVisible={badgesVisible} wheelZoom={wheelZoom} doc={overlay.doc} diff={overlay.diff} t={t} side='overlay' focus={focusFor('overlay')} /></ReactFlowProvider>}
       </div>
     </div>
   )

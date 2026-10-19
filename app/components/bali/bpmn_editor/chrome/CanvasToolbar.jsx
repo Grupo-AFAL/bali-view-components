@@ -1,5 +1,6 @@
 import { Panel } from '@xyflow/react'
 import Icon from './icons.jsx'
+import BadgeSwitch from './BadgeSwitch.jsx'
 
 function Tool ({ icon, label, title, onClick, active, disabled, testId }) {
   return (
@@ -37,9 +38,10 @@ export function CanvasToolbar ({ t, editable, orientation, onAddLane, onToggleOr
   )
 }
 
-export function ViewToolbar ({ t, editable, onParticipants, participantsOpen, onProperties, propertiesOpen, navigating, onNavigate, fullscreen, onFullscreen }) {
+export function ViewToolbar ({ t, editable, onParticipants, participantsOpen, onProperties, propertiesOpen, navigating, onNavigate, fullscreen, onFullscreen, badges }) {
   return (
     <Panel position='top-right' className='bpmn-chrome bpmn-view-toolbar flex items-center gap-1'>
+      {badges && <BadgeSwitch t={t} label={badges.label} visible={badges.visible} onToggle={badges.onToggle} className='h-8 rounded-field border border-base-300 bg-base-100 px-2 shadow-sm' />}
       {onProperties && (
         <button type='button' className={`btn btn-sm gap-1 border-base-300 bg-base-100 font-normal shadow-sm ${propertiesOpen ? 'btn-active' : ''}`} onClick={onProperties} aria-pressed={String(Boolean(propertiesOpen))} title={t('properties')} data-testid='bpmn-properties-toggle'>
           <Icon name='pencil' size={15} /><span className='bpmn-tool-label'>{t('properties')}</span>

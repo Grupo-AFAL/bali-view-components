@@ -109,6 +109,9 @@ authorize every endpoint on the server anyway.
 | `chrome:` | `:full` | `:minimal`: only the zoom controls and "Center the flow" — no top bar, toolbars, palette, minimap or help line, the legend folded — and the editor takes its container's height and fits again when that changes. For read-only diagrams: with `editable:` it raises. Anything else raises |
 | `min_zoom:` | `0.4` | The floor of "Center the flow" and of the first view, `0.05..1`. Below it a large diagram scrolls instead of shrinking; a small embedded one may rather be whole (e.g. `0.2`) |
 | `annotatable:` | `false` | With `editable: false` and `urls[:annotations]`: the diagram stays read-only but review notes can be added, edited and deleted, and are saved on their own — see [The save contract](#the-save-contract). Without that URL, or while editing, it has no effect |
+| `badges:` | `true` | Whether the nodes' `appearance.badge` show on load. Only the badge: the colour and the fading stay. The exports (SVG, PNG, print) and the nodes' accessible names follow what is shown. The app changes it later with `bali-bpmn:badges` |
+| `badge_toggle:` | `true` | Offer «Show badges» (`badges_toggle`, replaceable with `i18n:`), the switch that shows and hides them: in the view toolbar, or beside the zoom with `chrome: :minimal`. Only when a node of the document shown has a badge — re-read when the document changes. A String is the switch's own label (`"Show status"`, at most 32 characters): its text, its accessible name, and its title when a narrow canvas shows only the switch. `false` leaves the state to the app |
+| `wheel_zoom:` | `:auto` | What the mouse wheel does on the canvas. `:auto`: it zooms an editable diagram, a `chrome: :minimal` one (the host sized its container for it), full screen and the comparison; a read-only diagram among the page's content scrolls the page instead, and Ctrl + wheel (⌘ + wheel on a Mac) zooms, with a brief «Use Ctrl + scroll to zoom» over it. `true`: the wheel always zooms — a page that gives a read-only editor a box of its own (two editors side by side, a fixed height) says so. `false`: never; the zoom buttons only, not even the pinch. A trackpad pinch zooms in every other case |
 | `i18n:` | `Translations.island` | Flat string table; Spanish and English ship with the gem, in the locale the component is built in |
 | `id:` | generated | DOM id. The host's stream answers target it; generated (`bpmn-editor-<hex>`) when omitted, so two editors on one page never share one |
 
@@ -506,13 +509,15 @@ Dispatched on the component element, bubbling:
 | `bali-bpmn:saved` | `{ document }` |
 | `bali-bpmn:finalized` | `{ document }` |
 | `bali-bpmn:open-reference` | `{ node_id, reference }` — cancelable |
+| `bali-bpmn:badges-change` | `{ visible }` — the person switched «Show badges» |
 | `bali-bpmn:selection-change` | `{ node_id, reference, type, lane_id, lane_name }` — the person picked a node (a click, or Enter / Space on a focused node): its id, its `reference` (or `null`), its element type and its lane (`null`s outside one). `{ node_id: null, reference: null }` when they cleared it (a click on the empty canvas, Escape) |
 
 Listened for: `bali-bpmn:reload`, `bali-bpmn:reference-created`
 (`{ client_node_id, reference }`), `bali-bpmn:lane-assignee-created`
 (`{ client_lane_id, assignee }`), `bali-bpmn:select` (`{ node_id }`, `null` to clear —
 the node is selected and brought into view if it is not; it is not echoed back as a
-`selection-change`). Like the others, only when dispatched on the component element.
+`selection-change`), `bali-bpmn:badges` (`{ visible }` — shows or hides the badges, with
+no `badges-change` back). Like the others, only when dispatched on the component element.
 
 Several flows in tabs: render one editor per `Bali::Tabs` panel, each with its own
 `id:`, and listen for `dirty-change` on each. Leaving with unsaved changes: a full page
@@ -538,6 +543,10 @@ report, and the app to decide:
 ```
 
 - **The app's look**: each node's `appearance` (colour, dimmed, badge), explained in the legend.
+  The wheel zooms a `chrome: :minimal` editor (`wheel_zoom: :auto`): its container is a box of
+  its own. The badges show on load unless `badges: false`; «Show badges» lets the person hide them
+  (`badge_toggle: false` takes it away), and `bali-bpmn:badges` `{ visible }` sets them from the
+  app — say, one switch for every diagram of a screen, listening to `badges-change`.
 - **Selection both ways**: `selected_id:` on load; `bali-bpmn:select` `{ node_id }` to move it;
   `bali-bpmn:selection-change` `{ node_id, reference }` when the person picks a node. In a
   read-only diagram the selection shows solid and haloed, with no handles, quick menu or

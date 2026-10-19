@@ -249,11 +249,205 @@ describe('BPMN editor embedded in an app page', () => {
     it('carries the colour and the badge into the exported SVG', () => {
       cy.get('[data-testid="bpmn-node-badge"]').should('have.length', 2)
       cy.get('button[aria-label="Descargar SVG"]').click()
-      cy.readFile(`${Cypress.config('downloadsFolder')}/diagram.svg`).then((svg) => {
+      // `should`: an earlier test's diagram.svg may still be there when this reads.
+      cy.readFile(`${Cypress.config('downloadsFolder')}/diagram.svg`).should((svg) => {
         expect(svg).to.contain('data-appearance="#E9A23B"')
         expect(svg).to.contain('>En proceso</text>')
         expect(svg).to.contain('opacity="0.45"')
       })
+    })
+  })
+
+  // `badges:` and «Show badges»: only the badge comes and goes — the colour
+  // and the fading stay — and the switch is there only when a node has one.
+  describe('showing and hiding the badges', () => {
+    const DEFAULT = '/bali/bpmn_editor/default?appearance=true'
+    const toggle = () => cy.get('[data-testid="bpmn-badge-toggle"]')
+    const badges = () => cy.get('.react-flow [data-testid="bpmn-node-badge"]')
+    const recordBadges = () => cy.window().then((win) => {
+      win.badgeEvents = []
+      win.document.addEventListener('bali-bpmn:badges-change', (event) => win.badgeEvents.push(event.detail))
+    })
+
+    it('switches them off and on, says so, and keeps the colour and the fading', () => {
+      cy.visit(DEFAULT)
+      badges().should('have.length', 2)
+      recordBadges()
+      toggle().should('be.visible').and('have.attr', 'role', 'switch').and('be.checked')
+      cy.contains('label', 'Mostrar etiquetas').should('exist')
+      cy.contains('.react-flow__node-bpmn', 'Validar factura').find('.bpmn-node').invoke('attr', 'aria-label').should('contain', 'En proceso')
+      toggle().click()
+      badges().should('not.exist')
+      toggle().should('not.be.checked')
+      cy.contains('.react-flow__node-bpmn', 'Validar factura').within(() => {
+        cy.get('[data-appearance="#E9A23B"]').should('exist')
+        cy.get('.bpmn-node').invoke('attr', 'aria-label').should('not.contain', 'En proceso')
+      })
+      cy.contains('.react-flow__node-bpmn', 'Emitir factura').find('.bpmn-node').should('have.class', 'is-dimmed')
+      toggle().click()
+      badges().should('have.length', 2)
+      cy.window().its('badgeEvents').should('deep.equal', [{ visible: false }, { visible: true }])
+    })
+
+    it('starts hidden with badges: false and leaves the exported SVG without them', () => {
+      cy.visit(`${DEFAULT}&badges=false`)
+      cy.get('.react-flow__node-bpmn').should('have.length.greaterThan', 3)
+      badges().should('not.exist')
+      toggle().should('not.be.checked')
+      cy.get('button[aria-label="Descargar SVG"]').click()
+      // `should`, not `then`: the previous test downloaded a diagram.svg with
+      // the badges, and the read may land before this download replaces it.
+      cy.readFile(`${Cypress.config('downloadsFolder')}/diagram.svg`).should((svg) => {
+        expect(svg).to.contain('data-appearance="#E9A23B"')
+        expect(svg).not.to.contain('>En proceso</text>')
+      })
+    })
+
+    it('follows bali-bpmn:badges from the app, without answering it', () => {
+      cy.visit(DEFAULT)
+      badges().should('have.length', 2)
+      recordBadges()
+      cy.get('.bali-bpmn-editor').then(($editor) => {
+        $editor[0].dispatchEvent(new CustomEvent('bali-bpmn:badges', { detail: { visible: false } }))
+      })
+      badges().should('not.exist')
+      toggle().should('not.be.checked')
+      cy.window().its('badgeEvents').should('have.length', 0)
+    })
+
+    it('takes the app’s own label for the switch', () => {
+      cy.visit(`${DEFAULT}&badge_toggle_label=Mostrar%20estatus`)
+      cy.contains('label', 'Mostrar estatus').should('have.attr', 'title', 'Mostrar estatus')
+        .find('[data-testid="bpmn-badge-toggle"]').should('be.visible').click()
+      badges().should('not.exist')
+      cy.contains('label', 'Mostrar etiquetas').should('not.exist')
+    })
+
+    it('offers no switch with badge_toggle: false, nor where no node has a badge', () => {
+      cy.visit(`${DEFAULT}&badge_toggle=false`)
+      badges().should('have.length', 2)
+      toggle().should('not.exist')
+      cy.visit('/bali/bpmn_editor/default')
+      cy.get('.react-flow__node-bpmn').should('have.length.greaterThan', 3)
+      toggle().should('not.exist')
+    })
+
+    it('puts the switch beside the zoom on the split view map, and none on its flows', () => {
+      cy.viewport(1440, 900)
+      cy.visit(SPLIT)
+      cy.get(`${MAP} .bpmn-zoom-bar [data-testid="bpmn-badge-toggle"], ${MAP} .react-flow__panel.bottom.left [data-testid="bpmn-badge-toggle"]`).should('be.visible')
+      box('Alta de proveedor').click()
+      cy.get(`${FLOW} .react-flow__node-bpmn`).should('have.length.greaterThan', 3)
+      cy.get(`${FLOW} [data-testid="bpmn-badge-toggle"]`).should('not.exist')
+      cy.get(`${MAP} [data-testid="bpmn-badge-toggle"]`).click()
+      cy.get(`${MAP} [data-testid="bpmn-node-badge"]`).should('not.exist')
+    })
+  })
+
+  // `wheel_zoom:` — what the wheel does on the canvas. A wheel dispatched by
+  // hand: whether React Flow took it is the zoom that moved, and whether the
+  // page would have scrolled is whether the event was left undefaulted.
+  describe('the wheel', () => {
+    const zoom = (scope) => cy.get(`${scope} [aria-live="polite"]`).first().invoke('text').then((text) => parseInt(text, 10))
+    // A query and an assertion, so it retries until React has drawn the zoom.
+    const zoomShould = (scope, check) => cy.get(`${scope} [aria-live="polite"]`).first().invoke('text').should((text) => check(parseInt(text, 10)))
+    const wheel = (selector, init = {}) => cy.get(selector).first().then(($el) => {
+      const box = $el[0].getBoundingClientRect()
+      // The page's own WheelEvent: one built in the spec's window is not a
+      // WheelEvent to the page's listeners.
+      const { WheelEvent } = $el[0].ownerDocument.defaultView
+      const event = new WheelEvent('wheel', { deltaY: -400, deltaMode: 0, bubbles: true, cancelable: true, clientX: box.left + box.width / 2, clientY: box.top + box.height / 2, ...init })
+      $el[0].dispatchEvent(event)
+      return event.defaultPrevented
+    })
+    const zoomsWith = (scope, init) => zoom(scope).then((before) => {
+      wheel(`${scope} .react-flow__pane`, init)
+      zoomShould(scope, (now) => expect(now).to.be.greaterThan(before))
+    })
+    const staysWith = (scope, init) => zoom(scope).then((before) => {
+      wheel(`${scope} .react-flow__pane`, init).should('equal', false)
+      cy.wait(300)
+      zoomShould(scope, (now) => expect(now).to.equal(before))
+    })
+
+    beforeEach(() => cy.viewport(1440, 900))
+
+    it('zooms the split view map (chrome: :minimal fills a box of its own)', () => {
+      cy.visit(SPLIT)
+      box('Alta de proveedor').should('be.visible')
+      zoomsWith(MAP)
+    })
+
+    it('zooms each editor of the pair (wheel_zoom: true)', () => {
+      cy.visit('/bali/bpmn_editor/pair')
+      cy.get('#first_bpmn .react-flow__node-bpmn').should('have.length.greaterThan', 3)
+      zoomsWith('#first_bpmn')
+    })
+
+    // A read-only flow the preview gives the whole page (`wheel_zoom: true`):
+    // before «Comparar», with only the one diagram on screen.
+    it('zooms the one flow of compare_flows before comparing, and the review', () => {
+      cy.visit('/bali/bpmn_editor/compare_flows')
+      cy.get('#compare_flows_bpmn .react-flow__node-bpmn').should('have.length.greaterThan', 3)
+      cy.get('[data-testid="bpmn-compare-pane"]').should('not.exist')
+      cy.wait(400)
+      zoomsWith('#compare_flows_bpmn')
+      cy.visit('/bali/bpmn_editor/review')
+      cy.get('.react-flow__node-bpmn').should('have.length.greaterThan', 3)
+      cy.wait(400)
+      zoomsWith('.bali-bpmn-editor')
+    })
+
+    it('zooms the panes of the comparison, together while synced', () => {
+      cy.visit('/bali/bpmn_editor/compare_flows')
+      cy.get('[data-testid="bpmn-compare-button"]').click()
+      const base = '[data-testid="bpmn-compare-pane"][data-side="base"]'
+      const current = '[data-testid="bpmn-compare-pane"][data-side="current"]'
+      cy.get(`${current} .react-flow__node-bpmn`).should('have.length.greaterThan', 3)
+      cy.wait(400)
+      zoom(current).then((before) => {
+        zoomsWith(base)
+        zoomShould(current, (now) => expect(now).to.be.greaterThan(before))
+      })
+    })
+
+    it('scrolls the page over a read-only diagram in it, and zooms with Ctrl + wheel', () => {
+      cy.visit('/bali/bpmn_editor/catalog')
+      cy.get('.react-flow__node-bpmn').should('have.length.greaterThan', 3)
+      cy.wait(400)
+      staysWith('.bali-bpmn-editor')
+      cy.get('[data-testid="bpmn-wheel-hint"]').should('be.visible').and('contain', 'para hacer zoom')
+      cy.get('[data-testid="bpmn-wheel-hint"]').should('not.exist')
+      zoomsWith('.bali-bpmn-editor', { ctrlKey: true })
+    })
+
+    it('never zooms with wheel_zoom: false, pinch included, and always with true', () => {
+      cy.visit('/bali/bpmn_editor/default?wheel_zoom=false')
+      cy.get('.react-flow__node-bpmn').should('have.length.greaterThan', 3)
+      cy.wait(400)
+      zoom('.bali-bpmn-editor').then((before) => {
+        wheel('.bali-bpmn-editor .react-flow__pane')
+        wheel('.bali-bpmn-editor .react-flow__pane', { ctrlKey: true })
+        cy.wait(300)
+        zoomShould('.bali-bpmn-editor', (now) => expect(now).to.equal(before))
+      })
+      cy.get('[data-testid="bpmn-wheel-hint"]').should('not.exist')
+      cy.visit('/bali/bpmn_editor/default?wheel_zoom=true')
+      cy.get('.react-flow__node-bpmn').should('have.length.greaterThan', 3)
+      cy.wait(400)
+      zoomsWith('.bali-bpmn-editor')
+    })
+  })
+
+  describe('an external lane', () => {
+    it('says it is external without a line of its own', () => {
+      cy.visit('/bali/bpmn_editor/default')
+      cy.get('.bpmn-lane.is-external [data-testid="bpmn-lane-external-name"]').should(($said) => {
+        expect($said.text()).to.equal(', participante externo')
+        expect($said[0].getBoundingClientRect().width, 'drawn width').to.be.at.most(1)
+      })
+      cy.get('.bpmn-lane.is-external .bpmn-lane-header').should('have.attr', 'title', 'Proveedor, participante externo')
+        .and(($header) => expect($header[0].textContent).to.equal('Proveedor, participante externo'))
     })
   })
 

@@ -1,10 +1,11 @@
 import { Panel, useReactFlow, useViewport } from '@xyflow/react'
 import Icon from './icons.jsx'
+import BadgeSwitch from './BadgeSwitch.jsx'
 import { fitDiagram } from '../canvas/fit.js'
 
 // Zoom with a visible percentage, "Center the flow", and — when editing —
 // "Select all" with the selection counter (the tablet path to multi-select).
-export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect, onBoxSelect, fit = { padding: 0.12 } }) {
+export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect, onBoxSelect, fit = { padding: 0.12 }, badges = null }) {
   const flow = useReactFlow()
   const { zoomIn, zoomOut } = flow
   const { zoom } = useViewport()
@@ -34,6 +35,7 @@ export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect,
         </button>
       )}
       {selectedCount > 0 && <span className='text-xs text-base-content/70'>{t('selected_count', { count: selectedCount })}</span>}
+      {badges && <BadgeSwitch t={t} label={badges.label} visible={badges.visible} onToggle={badges.onToggle} className='h-7 rounded-lg border border-base-300 bg-base-100 px-2 shadow-sm' />}
     </Panel>
   )
 }

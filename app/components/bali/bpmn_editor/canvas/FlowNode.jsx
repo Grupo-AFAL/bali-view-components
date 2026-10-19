@@ -86,13 +86,15 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
   const name = node.name || ''
   const linked = node.type === 'sub_process' && node.reference && node.reference.url
   const look = appearanceOf(node)
+  // Hidden with «Show badges» off (BpmnEditor `badgesVisible`): in the name too.
+  const badge = look && canvas.badgesVisible !== false ? look.badge : null
   // Focusable, and Enter or Space act as a click (BpmnEditor's onNodeActivate).
   const activate = canvas.onNodeActivate
   const mark = diff ? DIFF_MARKS[diffMark(diff, diffReasons)] : null
   // What the eye gets from colour, fading, badge and mark, in words: the
   // name, the app's badge, «faded» (`appearance_dimmed`, which the app may
   // reword — the meaning is the app's), and what a comparison found.
-  const spoken = [name || node.type, look && look.badge, look && look.dimmed && canvas.t('appearance_dimmed'), mark && canvas.t(mark.label)].filter(Boolean).join(', ')
+  const spoken = [name || node.type, badge, look && look.dimmed && canvas.t('appearance_dimmed'), mark && canvas.t(mark.label)].filter(Boolean).join(', ')
   return (
     <div
       className={`bpmn-node bpmn-node-${category}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}${look && look.dimmed ? ' is-dimmed' : ''}${canvas.connectSource === id ? ' is-connect-source' : ''}${canvas.connectInvalid && canvas.connectInvalid.has(id) ? ' is-connect-invalid' : ''}`}
@@ -121,8 +123,8 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
         ? canvas.renderRename(node)
         : name && <Label node={node} name={name} orientation={canvas.orientation} category={category} />}
       {mark && <span className={`bpmn-diff-mark bpmn-diff-chip is-${mark.tone}`} data-testid='bpmn-diff-mark' data-mark={diffMark(diff, diffReasons)} aria-hidden='true'>{mark.symbol}</span>}
-      {look && look.badge && (
-        <span className='bpmn-node-badge' data-testid='bpmn-node-badge' style={look.color ? { '--bpmn-badge': look.color, '--bpmn-badge-text': textOn(look.color) } : undefined}>{look.badge}</span>
+      {badge && (
+        <span className='bpmn-node-badge' data-testid='bpmn-node-badge' style={look.color ? { '--bpmn-badge': look.color, '--bpmn-badge-text': textOn(look.color) } : undefined}>{badge}</span>
       )}
       {note && <span className='bpmn-note-number' style={{ '--bpmn-note-color': note.color, '--bpmn-note-text': textOn(note.color) || undefined }} title={note.text}>{note.number}</span>}
       {linked && !canvas.editable && <span className='bpmn-node-link' aria-hidden='true'>↗</span>}

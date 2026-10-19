@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { appearanceOf, BADGE_MAX } from '../../../app/components/bali/bpmn_editor/model/appearance.js'
+import { appearanceOf, hasBadges, BADGE_MAX } from '../../../app/components/bali/bpmn_editor/model/appearance.js'
 import { forSave, normalize } from '../../../app/components/bali/bpmn_editor/model/document.js'
 import { doc, lanes, node } from './helpers.js'
 
@@ -32,4 +32,14 @@ test('the .bpmn export carries the colour, and only the colour', async () => {
   assert.match(xml, new RegExp(`xmlns:bioc="${COLOR_NAMESPACES.bioc}" xmlns:color="${COLOR_NAMESPACES.color}"`))
   assert.match(xml, /bpmnElement="t" bioc:stroke="#2563eb" bioc:fill="#dce6fc" color:border-color="#2563eb" color:background-color="#dce6fc">/)
   assert.doesNotMatch(xml, /bpmnElement="u"[^>]*bioc/)
+})
+
+test('hasBadges: only a badge the node would draw counts', () => {
+  const withB = (appearance) => ({ nodes: [{ id: 'a', type: 'task' }, { id: 'b', type: 'task', appearance }] })
+  assert.equal(hasBadges(withB({ badge: 'Current' })), true)
+  assert.equal(hasBadges(withB({ badge: '   ' })), false)
+  assert.equal(hasBadges(withB({ color: '#16a34a', dimmed: true })), false)
+  assert.equal(hasBadges(withB(undefined)), false)
+  assert.equal(hasBadges({ nodes: [] }), false)
+  assert.equal(hasBadges(null), false)
 })

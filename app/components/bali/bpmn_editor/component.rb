@@ -41,6 +41,10 @@ module Bali
       COMPARE_MATCHES = %i[auto id name].freeze
       # Mirrors CHROMES in BpmnEditor.jsx (contract_test.rb).
       CHROMES = %i[full minimal].freeze
+      # What the mouse wheel does on the canvas. Mirror WHEEL_ZOOMS in BpmnEditor.jsx (contract_test.rb).
+      WHEEL_ZOOMS = %w[auto true false].freeze
+      # The longest label `badge_toggle:` takes. Mirror BADGE_TOGGLE_MAX in chrome/BadgeSwitch.jsx.
+      BADGE_TOGGLE_MAX = 32
       # The floor of "Fit to view" (canvas/fit.js MIN_FIT_ZOOM); `min_zoom:` lowers or raises it.
       DEFAULT_MIN_ZOOM = 0.4
       MIN_ZOOM_RANGE = (0.05..1.0)
@@ -95,13 +99,26 @@ module Bali
       # @param min_zoom [Numeric] the floor of «Fit to view», 0.05..1 (default 0.4).
       # @param annotatable [Boolean] with `editable: false` and `urls[:annotations]`: the diagram
       #   stays read-only but review notes can be added, edited and deleted.
+      # @param badges [Boolean] whether the nodes' `appearance.badge` show on load (default true).
+      #   Only the badge: the colour and the fading stay. The exports and the nodes' accessible
+      #   names follow what is shown. The app changes it later with `bali-bpmn:badges` { visible }.
+      # @param badge_toggle [Boolean, String] offer «Show badges», the switch that shows and hides
+      #   them — in the view toolbar, or beside the zoom with `chrome: :minimal` — whenever a node of
+      #   the document has a badge (default true). A String is its label instead of the default one
+      #   («Show status», at most BADGE_TOGGLE_MAX characters). `false` leaves the state to the app.
+      # @param wheel_zoom [Symbol, Boolean] what the mouse wheel does on the canvas. `:auto` (default):
+      #   it zooms an editable diagram, one with `chrome: :minimal` (its container is sized for it),
+      #   full screen and the comparison; a read-only diagram in a page scrolls the page, and
+      #   Ctrl (⌘ on a Mac) + wheel zooms, with a hint that says so. `true`: always zooms. `false`:
+      #   never — the zoom buttons and the pinch only, and not the pinch either.
       # @param i18n [Hash] island strings. Defaults to Bali::BpmnEditor::Translations.island.
       # @param id [String] DOM id; also scopes the events the host sends back. Generated when
       #   omitted, so two editors on one page never share it.
       def initialize(data:, editable: false, autosave: true, lock_orientation: false, external_lanes: true,
                      open_issues: false, layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil,
                      rules: {}, fields: {}, urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil,
-                     selected_id: nil, chrome: :full, min_zoom: DEFAULT_MIN_ZOOM, annotatable: false, **options)
+                     selected_id: nil, chrome: :full, min_zoom: DEFAULT_MIN_ZOOM, annotatable: false,
+                     badges: true, badge_toggle: true, wheel_zoom: :auto, **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @autosave = autosave
@@ -122,6 +139,9 @@ module Bali
         @chrome = resolve_chrome(chrome)
         @min_zoom = resolve_min_zoom(min_zoom)
         @annotatable = annotatable
+        @badges = resolve_boolean(:badges, badges)
+        @badge_toggle = resolve_badge_toggle(badge_toggle)
+        @wheel_zoom = resolve_wheel_zoom(wheel_zoom)
         @i18n = i18n
         # The locale it was built in: Lookbook builds a component inside
         # `I18n.with_locale` and renders it after that block returns.
@@ -175,7 +195,12 @@ module Bali
           bpmn_editor_selected_id_value: @selected_id,
           bpmn_editor_chrome_value: (@chrome.to_s unless @chrome == :full),
           bpmn_editor_min_zoom_value: (@min_zoom unless @min_zoom == DEFAULT_MIN_ZOOM),
-          bpmn_editor_annotatable_value: (annotatable? ? "true" : nil)
+          bpmn_editor_annotatable_value: (annotatable? ? "true" : nil),
+          # Only when off: the island's defaults are true (index.js).
+          bpmn_editor_badges_value: ("false" unless @badges),
+          bpmn_editor_badge_toggle_value: ("false" unless @badge_toggle),
+          bpmn_editor_badge_toggle_label_value: (@badge_toggle if @badge_toggle.is_a?(String)),
+          bpmn_editor_wheel_zoom_value: (@wheel_zoom unless @wheel_zoom == "auto")
         }.compact
       end
 
@@ -187,6 +212,28 @@ module Bali
       # Notes on a read-only diagram, saved to their own endpoint.
       def annotatable?
         !!@annotatable && !editable? && @urls[:annotations].present?
+      end
+
+      def resolve_boolean(name, value)
+        return value if value == true || value == false
+
+        raise ArgumentError, "#{name} must be true or false, got #{value.inspect}"
+      end
+
+      def resolve_badge_toggle(value)
+        return value if value == true || value == false
+
+        label = value.is_a?(String) ? value.strip : nil
+        return label if label.present? && label.length <= BADGE_TOGGLE_MAX
+
+        raise ArgumentError, "badge_toggle must be true, false or a label of at most #{BADGE_TOGGLE_MAX} characters, " \
+                             "got #{value.inspect}"
+      end
+
+      def resolve_wheel_zoom(value)
+        return value.to_s if WHEEL_ZOOMS.include?(value.to_s) && [ true, false, :auto, "auto" ].include?(value)
+
+        raise ArgumentError, "wheel_zoom must be :auto, true or false, got #{value.inspect}"
       end
 
       def resolve_chrome(chrome)

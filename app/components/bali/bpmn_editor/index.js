@@ -51,7 +51,15 @@ export class BpmnEditorController extends ReactIslandController {
     // The floor of "Fit to view" (Component `min_zoom:`, canvas/fit.js).
     minZoom: { type: Number, default: 0.4 },
     // Review notes on a read-only diagram, saved to urls.annotations.
-    annotatable: { type: Boolean, default: false }
+    annotatable: { type: Boolean, default: false },
+    // The nodes' `appearance.badge` shown on load (Component `badges:`), and
+    // the switch that shows and hides them (`badge_toggle:`).
+    badges: { type: Boolean, default: true },
+    badgeToggle: { type: Boolean, default: true },
+    // The switch's own label (Component `badge_toggle: "…"`), else the i18n one.
+    badgeToggleLabel: { type: String, default: '' },
+    // 'auto' | 'true' | 'false' (Component `wheel_zoom:`) — BpmnEditor.jsx WHEEL_ZOOMS.
+    wheelZoom: { type: String, default: 'auto' }
   }
 
   mountElement () {

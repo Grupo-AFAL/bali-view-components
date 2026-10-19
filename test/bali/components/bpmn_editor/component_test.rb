@@ -234,7 +234,7 @@ class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
     render_inline(Bali::BpmnEditor::Component.new(data: payload, **options))
   end
 
-  NEW_VALUES = %w[selected-id chrome min-zoom annotatable validate].freeze
+  NEW_VALUES = %w[selected-id chrome min-zoom annotatable validate badges badge-toggle badge-toggle-label wheel-zoom].freeze
 
   def test_without_the_new_options_none_of_their_values_is_rendered
     render_with
@@ -282,6 +282,60 @@ class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
 
     render_with(annotatable: true, editable: true, urls: { save: "/d", annotations: "/a" })
     assert_nil island["data-bpmn-editor-annotatable-value"]
+  end
+
+  def test_badges_and_their_switch_reach_the_island_only_when_off
+    render_with(badges: false, badge_toggle: false)
+
+    assert_equal "false", island["data-bpmn-editor-badges-value"]
+    assert_equal "false", island["data-bpmn-editor-badge-toggle-value"]
+
+    render_with(badges: true, badge_toggle: true)
+    assert_nil island["data-bpmn-editor-badges-value"]
+    assert_nil island["data-bpmn-editor-badge-toggle-value"]
+  end
+
+  def test_badges_is_a_boolean
+    [ nil, "false", 0, :off ].each do |value|
+      error = assert_raises(ArgumentError, value.inspect) { Bali::BpmnEditor::Component.new(data: payload, badges: value) }
+      assert_match(/badges must be true or false/, error.message)
+    end
+  end
+
+  def test_badge_toggle_takes_the_apps_label
+    render_with(badge_toggle: "  Mostrar estatus ")
+
+    assert_equal "Mostrar estatus", island["data-bpmn-editor-badge-toggle-label-value"]
+    assert_nil island["data-bpmn-editor-badge-toggle-value"]
+  end
+
+  def test_badge_toggle_is_true_false_or_a_short_label
+    max = Bali::BpmnEditor::Component::BADGE_TOGGLE_MAX
+    render_with(badge_toggle: "x" * max)
+    assert_equal "x" * max, island["data-bpmn-editor-badge-toggle-label-value"]
+
+    [ nil, 0, :off, "", "   ", "x" * (max + 1) ].each do |value|
+      error = assert_raises(ArgumentError, value.inspect) { Bali::BpmnEditor::Component.new(data: payload, badge_toggle: value) }
+      assert_match(/badge_toggle must be true, false or a label of at most #{max} characters/, error.message)
+    end
+  end
+
+  def test_wheel_zoom_crosses_only_when_not_auto
+    render_with(wheel_zoom: :auto)
+    assert_nil island["data-bpmn-editor-wheel-zoom-value"]
+    render_with(wheel_zoom: "auto")
+    assert_nil island["data-bpmn-editor-wheel-zoom-value"]
+    render_with(wheel_zoom: true)
+    assert_equal "true", island["data-bpmn-editor-wheel-zoom-value"]
+    render_with(wheel_zoom: false)
+    assert_equal "false", island["data-bpmn-editor-wheel-zoom-value"]
+  end
+
+  def test_wheel_zoom_rejects_anything_else
+    [ nil, "true", "false", :on, 1 ].each do |value|
+      error = assert_raises(ArgumentError, value.inspect) { Bali::BpmnEditor::Component.new(data: payload, wheel_zoom: value) }
+      assert_match(/wheel_zoom must be :auto, true or false/, error.message)
+    end
   end
 
   def test_rules_false_reaches_the_island_as_its_own_flag

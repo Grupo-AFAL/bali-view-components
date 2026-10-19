@@ -75,6 +75,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     «A detail that slides in» de [la guía](docs/guides/master-detail.md); un drill-down que no es
     una ubicación propia va con `advance: false`.
 
+- **`Bali::BpmnEditor`: `badges:` y el interruptor «Mostrar etiquetas».** `badges: false` oculta
+  al cargar las etiquetas de `appearance.badge` (solo la etiqueta: el color y el atenuado se
+  quedan); el interruptor, en la barra de vista o junto al zoom con `chrome: :minimal`, aparece
+  solo si algún nodo del documento tiene etiqueta, y `badge_toggle: false` lo quita. La app las
+  cambia con `bali-bpmn:badges` `{ visible }` y oye `bali-bpmn:badges-change` cuando la persona
+  usa el interruptor. Las salidas (SVG, PNG, impresión), el nombre accesible del nodo y la
+  comparación siguen lo que se ve.
+  - **Anfitrión:** nada que hacer; por omisión se ven como antes y el interruptor aparece donde
+    hay etiquetas. Para fijar el estado: `badges:` y `badge_toggle: false`.
+  - `badge_toggle:` también acepta un texto: la etiqueta propia del interruptor («Mostrar
+    estatus», hasta 32 caracteres), su nombre accesible y su `title` en angosto.
+  - **`wheel_zoom:`** (`:auto` por omisión, `true`, `false`): qué hace la rueda sobre el lienzo. Con
+    `:auto` hace zoom si el editor es editable, `chrome: :minimal`, pantalla completa o la
+    comparación; un diagrama de solo lectura dentro de la página deja que la rueda la desplace y
+    hace zoom con Ctrl (⌘) + rueda, con un aviso breve. Antes, la rueda nunca hacía zoom en solo
+    lectura; ahora sí lo hace en `chrome: :minimal` (por ejemplo en `Bali::SplitView`).
+  - El carril externo ya no escribe «Participante externo» bajo su nombre (el gris y la leyenda lo
+    dicen); el nombre accesible y el `title` lo conservan («Proveedor, participante externo»).
+  - La leyenda que la persona abre justo después de que se plegó sola ya no se vuelve a plegar
+    por la revisión pendiente de su montaje (fallaba en CI, «hides the external participant…»).
+
 - **`Bali::SplitView`: `master_width: :equal` y `height: :screen` o una medida CSS.** `:equal` deja
   las dos columnas del mismo ancho al píxel (con `"50%"` el detalle quedaba más angosto por el gap;
   el gap se cambia con `--bali-split-gap`). `height: :screen` llena desde el borde superior del split

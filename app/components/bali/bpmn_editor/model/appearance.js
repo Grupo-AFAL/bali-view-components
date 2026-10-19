@@ -20,6 +20,15 @@ export function appearanceOf (node) {
   return color || dimmed || badge ? { color, dimmed, badge } : null
 }
 
+// Whether any node of the document has a badge to show — what the «Show
+// badges» switch needs before it is offered at all.
+export function hasBadges (doc) {
+  return Boolean(doc && (doc.nodes || []).some((node) => {
+    const look = appearanceOf(node)
+    return look && look.badge
+  }))
+}
+
 export function withoutAppearance (node) {
   if (!node || !('appearance' in node)) return node
   const { appearance, ...rest } = node

@@ -40,6 +40,18 @@ describe('BPMN editor island', () => {
     cy.get('[data-testid="bpmn-legend"]').should('not.exist')
   })
 
+  // Its first fit folds the legend (~690 ms at 1000×660); a fold check queued
+  // for 400 ms after it mounted (~1000 ms) folded it again under a person who
+  // had opened it in between — CI's failure in «hides the external participant
+  // checkbox and its legend entries», which opens it at that moment.
+  it('keeps open a legend the person opens right after it folded itself', () => {
+    cy.viewport(1000, 660)
+    cy.visit(`${EDITABLE}?external_lanes=false`)
+    cy.get('.bpmn-legend button[aria-expanded="false"]').click()
+    cy.wait(800)
+    cy.get('[data-testid="bpmn-legend"]').should('contain', 'Actividad')
+  })
+
   // An image or a printout lands on white paper: the outputs take the light
   // theme of the pair even while the page shows the dark one.
   it('exports in the light theme while the page is dark', () => {
@@ -61,7 +73,8 @@ describe('BPMN editor island', () => {
     cy.get('button[aria-label="Descargar SVG"]').click()
     cy.get('@base').then(({ light, dark }) => {
       expect(light).not.to.eq(dark)
-      cy.readFile(`${Cypress.config('downloadsFolder')}/diagram.svg`).then((svg) => {
+      // `should`: another test's diagram.svg may still be there when this reads.
+      cy.readFile(`${Cypress.config('downloadsFolder')}/diagram.svg`).should((svg) => {
         expect(svg).to.contain(`fill="${light}"`)
         expect(svg).not.to.contain(`fill="${dark}"`)
       })

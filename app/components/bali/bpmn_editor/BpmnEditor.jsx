@@ -5,7 +5,7 @@
 // saved to the host (hooks/useSaver.js). Contracts: docs/api/bpmn-editor.md.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, EdgeLabelRenderer, useReactFlow, getViewportForBounds } from '@xyflow/react'
+import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, EdgeLabelRenderer, useReactFlow, useKeyPress, getViewportForBounds } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import './flow.css'
 import { translator } from './i18n.js'
@@ -21,6 +21,7 @@ import { LETTER } from './model/page.js'
 import { arrange } from './model/arrange.js'
 import { placeEdgeLabels } from './model/edgeLabels.js'
 import { fitOptions, fitDiagram, anchorStart, MIN_FIT_ZOOM } from './canvas/fit.js'
+import { hasBadges } from './model/appearance.js'
 import useRefitOnResize from './hooks/useRefitOnResize.js'
 import { blockPolicy, evaluate, mergeIssues, issuesByElement, hasErrors, ruleList } from './model/rules/engine.js'
 import useSaver from './hooks/useSaver.js'
@@ -57,6 +58,9 @@ const MAX_ZOOM = 2.5
 export const NARROW_WIDTH = 768
 // Mirrors Bali::BpmnEditor::Component::CHROMES (contract_test.rb).
 export const CHROMES = ['full', 'minimal']
+// What the wheel does. Mirror Bali::BpmnEditor::Component::WHEEL_ZOOMS (contract_test.rb).
+export const WHEEL_ZOOMS = ['auto', 'true', 'false']
+const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '')
 
 export default function BpmnEditor (props) {
   return (
@@ -68,7 +72,8 @@ export default function BpmnEditor (props) {
 
 function Editor ({
   data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
-  name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false
+  name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false,
+  badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto'
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
@@ -160,6 +165,20 @@ function Editor ({
     const target = hostElement || document
     target.dispatchEvent(new CustomEvent(`bali-bpmn:${name}`, { bubbles: true, detail }))
   }, [hostElement])
+
+  // The nodes' `appearance.badge`: shown or not (Component `badges:`), by the
+  // person with the switch — which says so, `bali-bpmn:badges-change` — or by
+  // the app, `bali-bpmn:badges` { visible }. Only the badge: the colour and
+  // the fading stay. The canvas, the exports and the nodes' names follow it.
+  const [badgesVisible, setBadgesVisible] = useState(badges !== false)
+  const toggleBadges = useCallback(() => {
+    setBadgesVisible(!badgesVisible)
+    emit('badges-change', { visible: !badgesVisible })
+  }, [badgesVisible, emit])
+  // Offered only when there is something to show — re-read with each document
+  // (a split view swaps the one on the right) — and unless the app fixed it.
+  const docHasBadges = useMemo(() => hasBadges(doc), [doc])
+  const badgeSwitch = badgeToggle !== false && docHasBadges ? { visible: badgesVisible, onToggle: toggleBadges, label: badgeToggleLabel } : null
 
   const saver = useSaver({
     doc,
@@ -708,7 +727,7 @@ function Editor ({
     select({ nodes: [String(node.id)] })
     revealNode(flow, wrapperRef.current, node, poolOrigin(docRef.current))
   }, [clearSelection, select, flow])
-  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost })
+  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost, onBadges: setBadgesVisible })
 
   // ── in-place rename ────────────────────────────────────────────────────
   const renderRename = useCallback((element, isLane) => (
@@ -747,6 +766,29 @@ function Editor ({
   const compare = comparisons[comparisonIndex] || comparisons[0] || null
   const compareBase = compare ? compare.document : null
 
+  // ── the wheel (Component `wheel_zoom:`) ────────────────────────────────
+  // 'zoom': it zooms. 'modifier': it scrolls the page, and Ctrl + wheel (a
+  // trackpad pinch arrives as that too) or ⌘ + wheel zooms. 'off': it never
+  // does, the pinch included. `auto` decides by what the editor knows of its
+  // own box, not by measuring the page: editable, `chrome: :minimal` (the
+  // host sized the container for it) and full screen zoom; a read-only
+  // diagram among the page's content scrolls the page. A page that gives a
+  // read-only full-chrome editor a box of its own says so with `true`.
+  const wheelMode = wheelZoom === 'true' ? 'zoom' : wheelZoom === 'false' ? 'off' : (editable || minimal || fullscreen) ? 'zoom' : 'modifier'
+  // ⌘ is not a pinch for React Flow, which only zooms a modified wheel with
+  // Ctrl: held, it turns the wheel's zoom on for as long as it is.
+  const metaHeld = useKeyPress('Meta')
+  const wheelZooms = wheelMode === 'zoom' || (wheelMode === 'modifier' && metaHeld)
+  const [wheelHint, setWheelHint] = useState(false)
+  const wheelHintTimer = useRef(null)
+  const onCanvasWheel = useCallback((event) => {
+    if (wheelMode !== 'modifier' || event.ctrlKey || event.metaKey) return
+    setWheelHint(true)
+    clearTimeout(wheelHintTimer.current)
+    wheelHintTimer.current = setTimeout(() => setWheelHint(false), 1500)
+  }, [wheelMode])
+  useEffect(() => () => clearTimeout(wheelHintTimer.current), [])
+
   // Minimal chrome: the editor fills its container and fits again when that
   // container changes size (a split pane dragged, a drawer opened) — on every
   // frame of it, with no animation of its own: a fit that waited for the size
@@ -776,7 +818,7 @@ function Editor ({
   }, [legend, tags, doc.annotations])
 
   // ── outputs ────────────────────────────────────────────────────────────
-  const exports = useExports({ doc, name, watermark, tags, page: layoutOptions.page, wrapperRef })
+  const exports = useExports({ doc, name, watermark, tags, page: layoutOptions.page, wrapperRef, badges: badgesVisible })
 
   // The quick menu shows next to the one selected flow node that can be
   // followed (not an end event, not an artifact) while nothing else is going on.
@@ -856,8 +898,9 @@ function Editor ({
     panelOpen: Boolean(showPanel),
     onNodeActivate: (id) => activateNode(id, { byKeyboard: true }),
     connectSource,
-    connectInvalid
-  }), [edgeLabels, jumps, t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel, activateNode, connectSource, connectInvalid])
+    connectInvalid,
+    badgesVisible
+  }), [edgeLabels, jumps, t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel, activateNode, connectSource, connectInvalid, badgesVisible])
 
   // ── finalize ───────────────────────────────────────────────────────────
   // The draft always saves; finalizing needs a flow without errors, checked
@@ -921,6 +964,9 @@ function Editor ({
             <CompareView
               t={t} base={compareBase} current={doc} label={compare.label} match={compare.match} mode={compareMode} onMode={setCompareMode} onExit={() => setCompareMode(null)}
               options={comparisons.map((c) => c.label)} picked={comparisonIndex} onPick={setComparisonIndex}
+              badgesVisible={badgesVisible}
+              wheelZoom={wheelZoom !== 'false'}
+              badges={badgeToggle !== false && (docHasBadges || hasBadges(compareBase)) ? { visible: badgesVisible, onToggle: toggleBadges, label: badgeToggleLabel } : null}
             />
           </div>
         )}
@@ -948,8 +994,14 @@ function Editor ({
             onDrop={onDrop}
             onPointerDown={(e) => { if (!/^(input|textarea|select|button)$/i.test(e.target.tagName)) wrapperRef.current?.focus({ preventScroll: true }) }}
             onPointerMove={connectSource ? (e) => { const r = e.currentTarget.getBoundingClientRect(); setPointer({ x: e.clientX - r.left, y: e.clientY - r.top }) } : undefined}
+            onWheel={onCanvasWheel}
           >
             <EdgeMarkers />
+            {wheelHint && (
+              <div className='bpmn-chrome bpmn-wheel-hint' role='status' data-testid='bpmn-wheel-hint'>
+                {t(IS_MAC ? 'wheel_hint_meta' : 'wheel_hint_ctrl')}
+              </div>
+            )}
             {connecting && (
               <div className='bpmn-chrome bpmn-connect-banner' role='status' data-testid='bpmn-connect-banner'>
                 <Icon name='arrowRight' size={13} />
@@ -999,11 +1051,9 @@ function Editor ({
               minZoom={Math.min(0.1, minZoom)}
               maxZoom={MAX_ZOOM}
               zoomOnDoubleClick={false}
-              // A read-only diagram sits inside a page the reader scrolls: the
-              // wheel scrolls the page, as anywhere else, instead of zooming the
-              // canvas down to 10 %; the zoom bar and pinch still zoom.
-              zoomOnScroll={editable}
-              preventScrolling={editable}
+              zoomOnScroll={wheelZooms}
+              preventScrolling={wheelZooms}
+              zoomOnPinch={wheelMode !== 'off'}
             >
               <Background gap={20} size={1} />
               {!minimal && <MiniMap className='bpmn-chrome' nodeColor={minimapColor} pannable zoomable ariaLabel={t('minimap')} />}
@@ -1039,11 +1089,12 @@ function Editor ({
                   onNavigate={() => { setMode((m) => (m === 'navigate' ? 'edit' : 'navigate')); setTool(null) }}
                   fullscreen={fullscreen}
                   onFullscreen={toggleFullscreen}
+                  badges={badgeSwitch}
                 />
               )}
               <Legend t={t} entries={legendEntries} open={legendOpen} onToggle={setLegendOpen} />
               {interactive && !showPanel && !minimal && <Stencil t={t} items={doc.stencil} startOpen={!narrow} />}
-              <ZoomBar t={t} fit={fit} onSelectAll={interactive && !minimal ? selectAll : null} selectedCount={interactive ? selectedCount : 0} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} />
+              <ZoomBar t={t} fit={fit} onSelectAll={interactive && !minimal ? selectAll : null} selectedCount={interactive ? selectedCount : 0} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} badges={minimal ? badgeSwitch : null} />
             </ReactFlow>
             )}
             <Notices notices={notices} t={t} onDismiss={(id) => setNotices((list) => list.filter((n) => n.id !== id))} />

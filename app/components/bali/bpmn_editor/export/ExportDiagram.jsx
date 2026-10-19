@@ -61,7 +61,7 @@ function Badge ({ text, color, right, bottom, colors }) {
 // With `page`, a diagram that fits it legibly (model/page.js) is drawn on a
 // sheet of that size, centred inside the print margins, shrunk only as much
 // as it must; one that does not fit keeps its own size.
-export default function ExportDiagram ({ doc, paint, colors, title, subtitle, watermark, notes = [], tags = [], page = null }) {
+export default function ExportDiagram ({ doc, paint, colors, title, subtitle, watermark, notes = [], tags = [], page = null, badges = true }) {
   const layout = layoutLanes(doc, { print: true })
   const routes = routeAll(doc)
   const edgeLabels = placeEdgeLabels(doc, routes)
@@ -173,7 +173,7 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
               const x = anchor === 'end' ? lb.x + lb.w : anchor === 'start' ? lb.x : lb.x + lb.w / 2
               return <Text x={x} y={lb.y + lb.h / 2} anchor={anchor} text={node.name} maxChars={Math.max(4, Math.floor(lb.w / 6.4))} maxLines={lb.lines} size={11} fill={colors.text} />
             })()}
-            {look && look.badge && <Badge text={look.badge} color={look.color} right={box.x + box.w} bottom={box.y + box.h} colors={colors} />}
+            {badges && look && look.badge && <Badge text={look.badge} color={look.color} right={box.x + box.w} bottom={box.y + box.h} colors={colors} />}
             {note && (
               <g transform={`translate(${box.x - 2} ${box.y - 2})`}>
                 <circle r={10} fill={tagColor(note.tag)} />

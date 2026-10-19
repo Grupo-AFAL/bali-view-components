@@ -28,7 +28,7 @@ function LaneNode ({ id, data, selected, width, height }) {
       <div
         className='bpmn-lane-header'
         style={horizontal ? { width: header } : { height: header }}
-        title={editable ? canvas.t('lane_drag') : name}
+        title={editable ? canvas.t('lane_drag') : external ? `${name}, ${canvas.t('lane_external').toLowerCase()}` : name}
         onDoubleClick={editable ? (event) => { event.stopPropagation(); canvas.startRename(id) } : undefined}
       >
         {renaming
@@ -37,7 +37,9 @@ function LaneNode ({ id, data, selected, width, height }) {
             <span className='bpmn-lane-name'>
               {mark && <span className={`bpmn-diff-chip is-${mark.tone}`} data-testid='bpmn-diff-mark' title={canvas.t(mark.label)}>{mark.symbol}</span>}
               <span className='bpmn-lane-title'>{name}</span>
-              {external && <span className='bpmn-lane-external'>{canvas.t('lane_external')}</span>}
+              {/* Said, not shown: the grey lane and the legend already show it,
+                  and its line took room from the lane's name. */}
+              {external && <span className='sr-only' data-testid='bpmn-lane-external-name'>{`, ${canvas.t('lane_external').toLowerCase()}`}</span>}
             </span>
             )}
         {issue && (

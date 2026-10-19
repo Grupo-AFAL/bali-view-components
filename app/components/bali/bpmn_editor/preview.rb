@@ -87,19 +87,32 @@ module Bali
       # «Pantalla completa», the outputs, and clicking a sub-process with a link.
       # With `appearance` on, the app colours three elements, fades one and
       # badges two (`node.appearance`), and explains its colours in the legend;
-      # the outputs carry them too. docs/api/bpmn-editor.md
+      # the outputs carry them too. With badges, «Show badges» beside the
+      # canvas shows and hides them (`badges:` — shown on load or not —,
+      # `badge_toggle:` — the switch offered or not). docs/api/bpmn-editor.md
       # @param appearance toggle "The app's colours, fading and badges on some elements"
+      # @param badges toggle "Badges shown on load"
+      # `badge_toggle_label` gives the switch the app's own words. `wheel_zoom`:
+      # the editor is the page here, so the wheel zooms it (`true`); `auto` is
+      # what a read-only diagram among a page's content gets — the wheel
+      # scrolls the page and Ctrl (⌘) + wheel zooms, as in the catalog — and
+      # `false` never zooms with the wheel.
+      # @param badge_toggle toggle "Offer «Show badges»"
+      # @param badge_toggle_label text "The switch's own label (empty: the default one)"
+      # @param wheel_zoom select { choices: [true, auto, false] }
       # @param locale select { choices: [es, en] }
-      def default(appearance: false, locale: :es)
+      def default(appearance: false, badges: true, badge_toggle: true, badge_toggle_label: "", wheel_zoom: "true", locale: :es)
         data = BpmnSampleFlows.invoice(locale: locale)
-        return island(locale, data: data) unless appearance
+        wheel = { "true" => true, "false" => false }.fetch(wheel_zoom.to_s, :auto)
+        return island(locale, data: data, wheel_zoom: wheel) unless appearance
 
         en = locale.to_s == "en"
         looks = { "t1" => { color: "#E9A23B", badge: en ? "In progress" : "En proceso" },
                   "t3" => { color: "#16a34a", badge: en ? "Done" : "Hecho" },
                   "t4" => { color: "#2563eb" }, "p1" => { dimmed: true } }
         data[:nodes] = data[:nodes].map { |n| looks[n[:id]] ? n.merge(appearance: looks[n[:id]]) : n }
-        island(locale, data: data, legend: { add: [
+        toggle = badge_toggle && badge_toggle_label.present? ? badge_toggle_label : badge_toggle
+        island(locale, data: data, badges: badges, badge_toggle: toggle, wheel_zoom: wheel, legend: { add: [
                  { key: "app_progress", label: en ? "In progress" : "En proceso", swatch: "color", color: "#E9A23B" },
                  { key: "app_done", label: en ? "Done" : "Hecho", swatch: "color", color: "#16a34a" },
                  { key: "app_automated", label: en ? "Automated" : "Automatizado", swatch: "color", color: "#2563eb" }
@@ -114,7 +127,9 @@ module Bali
       # id, the read-only pattern (an alert the app composes above a locked
       # editor) and two flows in tabs whose label marks unsaved changes from
       # `bali-bpmn:dirty-change`. The console and the tabs' mark are the dummy's
-      # own Stimulus controller, not the component's.
+      # own Stimulus controller, not the component's. The editors sit among
+      # the page's content, so the wheel scrolls the page over the read-only
+      # one (`wheel_zoom: :auto`; Ctrl or ⌘ + wheel zooms it).
       # docs/api/bpmn-editor.md#extension-points
       # @param locale select { choices: [es, en] }
       def host_integration(locale: :es)
@@ -144,7 +159,8 @@ module Bali
       # version to compare against: «Comparar» shows what was added, removed
       # and changed, over one canvas or side by side. The outputs carry the
       # watermark. With `editable` on, select an element and add notes in the
-      # properties panel; they are saved to this preview's own record.
+      # properties panel; they are saved to this preview's own record. The
+      # editor is the page, so the wheel zooms it (`wheel_zoom: true`).
       # docs/api/bpmn-editor.md#outputs-notes-and-comparison
       # @param editable toggle "Let notes be added and edited"
       # @param locale select { choices: [es, en] }
@@ -168,7 +184,7 @@ module Bali
         urls = { save: path, diagram: path }
         island(locale, data: flow.to_diagram(locale: locale), editable: editable, urls: editable ? urls : {},
                        name: en ? "Supplier payments" : "Pago a proveedores",
-                       watermark: en ? "Draft" : "Borrador",
+                       watermark: en ? "Draft" : "Borrador", wheel_zoom: true,
                        review: {
                          tags: [ { key: "question", label: en ? "Question" : "Pregunta", color: "#2563eb" },
                                  { key: "keep", label: en ? "Keep" : "Mantener", color: "#16a34a" } ],
@@ -199,6 +215,8 @@ module Bali
       # @label Two editors on one page
       # Two editors of the same flow, each with its own id: an event the app
       # sends to one (a linked sub-process, a reload) reaches that one only.
+      # Each sits in a box of its own, so the page tells them the wheel zooms
+      # (`wheel_zoom: true`).
       # docs/api/bpmn-editor.md#extension-points
       # @param locale select { choices: [es, en] }
       def pair(locale: :es)
@@ -207,8 +225,8 @@ module Bali
         I18n.with_locale(locale) do
           render_with_template(
             template: "bali/bpmn_editor/previews/pair",
-            locals: { first: Bali::BpmnEditor::Component.new(data: data, id: "first_bpmn"),
-                      second: Bali::BpmnEditor::Component.new(data: data, id: "second_bpmn") }
+            locals: { first: Bali::BpmnEditor::Component.new(data: data, id: "first_bpmn", wheel_zoom: true),
+                      second: Bali::BpmnEditor::Component.new(data: data, id: "second_bpmn", wheel_zoom: true) }
           )
         end
       end
@@ -265,7 +283,8 @@ module Bali
       # @param selected select { choices: [~, b1, b2, b3, b4, b5, b6] }
       # @param height select { choices: [screen, full, content, 640px] }
       # @param master_width select { choices: [equal, 50%, 420px] }
-      def split_view(locale: :es, selected: nil, height: "screen", master_width: "equal")
+      # @param badges toggle "The map's badges shown on load (the flows on the right have none, so they offer no switch)"
+      def split_view(locale: :es, selected: nil, height: "screen", master_width: "equal", badges: true)
         records = BpmnProcessMap.flows(locale).to_h do |key, versions|
           [ key, versions.each_with_index.map do |doc, i|
             { number: versions.size - i, flow: ProcessFlow.reset!("Split view #{key} v#{versions.size - i} (#{locale})", doc) }
@@ -274,7 +293,8 @@ module Bali
         I18n.with_locale(locale) do
           render_with_template(template: "bali/bpmn_editor/previews/split_view",
                                locals: { records: records, locale: locale, selected: selected.presence,
-                                         height: split_option(height), master_width: split_option(master_width) })
+                                         height: split_option(height), master_width: split_option(master_width),
+                                         badges: badges })
         end
       end
 
@@ -288,6 +308,9 @@ module Bali
       # still pairs. Side by side by default, zoom and panning in sync; the
       # overlay is offered only for versions of one process. Hover an element
       # to see its counterpart; «Solo cambios» fades what did not change.
+      # The editor is the page here, so the wheel zooms it before comparing
+      # too (`wheel_zoom: true`; with `:auto` a read-only diagram leaves the
+      # wheel to the page).
       # docs/api/bpmn-editor.md#outputs-notes-and-comparison
       # @param locale select { choices: [es, en] }
       def compare_flows(locale: :es)
@@ -305,7 +328,8 @@ module Bali
             locals: { locale: locale,
                       component: Bali::BpmnEditor::Component.new(
                         data: BpmnProcessMap.supplier(locale), rules: false, id: "compare_flows_bpmn",
-                        name: en ? "Supplier onboarding" : "Alta de proveedor", review: { compare_with: options }
+                        name: en ? "Supplier onboarding" : "Alta de proveedor", review: { compare_with: options },
+                        wheel_zoom: true
                       ) }
           )
         end

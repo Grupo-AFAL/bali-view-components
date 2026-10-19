@@ -50,6 +50,17 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_equal Bali::BpmnEditor::Component::COMPARE_MATCHES.map(&:to_s), js_list("model/diff.js", "COMPARE_MATCHES")
   end
 
+  def test_wheel_zooms
+    assert_equal Bali::BpmnEditor::Component::WHEEL_ZOOMS, js_list("BpmnEditor.jsx", "WHEEL_ZOOMS")
+    assert_match(/wheelZoom: \{ type: String, default: 'auto' \}/, ROOT.join("index.js").read)
+  end
+
+  def test_the_badge_toggle_label_has_one_limit
+    assert_equal Bali::BpmnEditor::Component::BADGE_TOGGLE_MAX,
+                 ROOT.join("chrome/BadgeSwitch.jsx").read[/export const BADGE_TOGGLE_MAX = (\d+)/, 1].to_i
+    assert_match(/badgeToggleLabel: \{ type: String, default: '' \}/, ROOT.join("index.js").read)
+  end
+
   def test_chromes
     assert_equal Bali::BpmnEditor::Component::CHROMES.map(&:to_s), js_list("BpmnEditor.jsx", "CHROMES")
   end
@@ -67,6 +78,19 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
 
     assert_equal Bali::BpmnEditor::Component::DEFAULT_MIN_ZOOM, floor.to_f
     assert_equal Bali::BpmnEditor::Component::DEFAULT_MIN_ZOOM, controller.to_f
+  end
+
+  # `badges:` and `badge_toggle:` cross only when false (component_test pins
+  # that), so the island's own defaults have to be true, as Ruby's are.
+  def test_badges_default_to_shown_on_both_sides
+    source = ROOT.join("index.js").read
+    ruby = Bali::BpmnEditor::Component.instance_method(:initialize).parameters
+
+    assert_match(/badges: \{ type: Boolean, default: true \}/, source)
+    assert_match(/badgeToggle: \{ type: Boolean, default: true \}/, source)
+    assert_match(/badges = true, badgeToggle = true/, ROOT.join("BpmnEditor.jsx").read)
+    assert_includes ruby, [ :key, :badges ]
+    assert_includes ruby, [ :key, :badge_toggle ]
   end
 
   # `rules: false` travels as the `validate` value (a Stimulus Object value

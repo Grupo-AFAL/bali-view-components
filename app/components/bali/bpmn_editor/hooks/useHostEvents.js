@@ -7,7 +7,7 @@ import * as ops from '../model/operations.js'
 // Only events dispatched on this editor's own element: one that bubbles up
 // from another editor on the page, or one sent to document, names no editor
 // and is not ours (two editors mint the same client ids).
-export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect }) {
+export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect, onBadges }) {
   useEffect(() => {
     if (!hostElement) return undefined
     const handlers = {
@@ -15,6 +15,12 @@ export default function useHostEvents (hostElement, { reload, apply, docRef, onS
       'bali-bpmn:select': (event) => {
         const detail = event.detail || {}
         if (onSelect) onSelect(detail.node_id == null ? null : String(detail.node_id))
+      },
+      // `bali-bpmn:badges` { visible }: the app shows or hides the badges, and
+      // no `badges-change` answers it.
+      'bali-bpmn:badges': (event) => {
+        const detail = event.detail || {}
+        if (onBadges && typeof detail.visible === 'boolean') onBadges(detail.visible)
       },
       'bali-bpmn:reference-created': (event) => {
         const { client_node_id: nodeId, reference } = event.detail || {}

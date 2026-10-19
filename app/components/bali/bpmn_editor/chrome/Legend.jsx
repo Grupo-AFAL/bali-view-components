@@ -48,17 +48,21 @@ export default function Legend ({ t, entries, className = '', open: controlled, 
     if (open && coversContent(panel.current)) setOpen(false)
   }, [open, setOpen])
   useOnViewportChange({ onEnd: foldIfCovering })
-  // Once, after the first fit has settled.
+  // Once, after the first fit has settled — unless the person has opened or
+  // folded it in the meantime: the first fit's own end usually folds it
+  // first, and a legend opened right after was folded again under them
+  // (measured at 1000×660: the fit ends at ~690 ms, this ran at ~1000).
+  const touched = useRef(false)
   const latest = useRef(foldIfCovering)
   latest.current = foldIfCovering
   useEffect(() => {
-    const timer = setTimeout(() => latest.current(), 400)
+    const timer = setTimeout(() => { if (!touched.current) latest.current() }, 400)
     return () => clearTimeout(timer)
   }, [])
   if (!entries || !entries.length) return null
   return (
     <Panel ref={panel} position='bottom-right' className={`bpmn-chrome bpmn-legend w-60 rounded-lg border border-base-300 bg-base-100 text-xs shadow-sm ${className}`}>
-      <button type='button' className='flex w-full items-center justify-between px-3 py-1.5 font-semibold uppercase tracking-wide text-base-content/70' aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <button type='button' className='flex w-full items-center justify-between px-3 py-1.5 font-semibold uppercase tracking-wide text-base-content/70' aria-expanded={open} onClick={() => { touched.current = true; setOpen((o) => !o) }}>
         {t('legend_title')}
         <Icon name={open ? 'chevronDown' : 'chevronRight'} size={12} />
       </button>

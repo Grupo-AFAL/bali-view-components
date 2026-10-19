@@ -1,4 +1,4 @@
-<%# locals: records, locale, selected, height, master_width %>
+<%# locals: records, locale, selected, height, master_width, badges %>
 <%# The «50/50» view: what the app writes around two editors, inside a
     collapsible Bali::SplitView. The selection, the swap of the right-hand
     document, «Previous» / «Next» and the version picker are the dummy's own
@@ -41,7 +41,8 @@
           <%= render Bali::BpmnEditor::Component.new(
                 data: BpmnProcessMap.map(locale: locale, reference_url: ->(id) { "/lookbook/preview/bali/bpmn_editor/default?box=#{id}" }),
                 chrome: :minimal, rules: :structure, min_zoom: 0.2,
-                legend: BpmnProcessMap.legend(locale), selected_id: local_assigns[:selected], id: "split_map_bpmn") %>
+                legend: BpmnProcessMap.legend(locale), selected_id: local_assigns[:selected],
+                badges: local_assigns.fetch(:badges, true), id: "split_map_bpmn") %>
         </div>
       </section>
     <% end %>
