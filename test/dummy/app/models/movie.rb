@@ -11,6 +11,9 @@ class Movie < ApplicationRecord
   include Bali::Archivable
   archivable successor_required_for: %i[replaced], reversible: true
 
+  # #1512 — notices about a movie (the inbox demo's «Avisos»).
+  include Bali::Notifiable
+
   # Active Storage attachment for DirectUpload demo
   has_one_attached :poster
 
