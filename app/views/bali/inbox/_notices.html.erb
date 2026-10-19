@@ -1,0 +1,46 @@
+<% today, earlier = @notices.partition { |notice| notice.created_at.to_date == Date.current } %>
+<%= render Bali::Card::Component.new(style: :bordered) do %>
+  <div class="flex flex-wrap items-center justify-between gap-2 border-b border-base-300 px-4 py-3">
+    <span class="text-sm text-base-content/70">
+      <% if @notice_total.positive? %>
+        <%= t("bali_view.inbox.notices.range", from: (@page - 1) * Bali::Concerns::Controllers::Inbox::PER_PAGE + 1,
+                                              to: (@page - 1) * Bali::Concerns::Controllers::Inbox::PER_PAGE + @notices.size,
+                                              total: @notice_total) %>
+      <% end %>
+    </span>
+    <% if @unread_count.positive? %>
+      <%= form_with url: url_for(action: :read_all), method: :post do %>
+        <%= render Bali::Button::Component.new(name: t("bali_view.inbox.notices.mark_all"), type: :submit,
+                                               variant: :ghost, size: :sm) %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if @notices.empty? %>
+    <%= render Bali::EmptyState::Component.new(title: t("bali_view.inbox.notices.empty"), icon: "bell-off") %>
+  <% end %>
+
+  <% [ [ :today, today ], [ :earlier, earlier ] ].each do |when_key, notices| %>
+    <% next if notices.empty? %>
+    <section aria-labelledby="bali-inbox-notices-<%= when_key %>">
+      <h2 id="bali-inbox-notices-<%= when_key %>" class="px-4 pt-3 pb-1 text-xs font-semibold text-base-content/70">
+        <%= t("bali_view.inbox.notices.#{when_key}") %>
+      </h2>
+      <% notices.each do |notice| %>
+        <%= render "notice_row", notice: notice %>
+      <% end %>
+    </section>
+  <% end %>
+
+  <% pages = (@notice_total.to_f / Bali::Concerns::Controllers::Inbox::PER_PAGE).ceil %>
+  <% if pages > 1 %>
+    <nav class="flex justify-between border-t border-base-300 px-4 py-3" aria-label="<%= t("bali_view.inbox.notices.pages") %>">
+      <% if @page > 1 %>
+        <%= render Bali::Link::Component.new(name: t("bali_view.inbox.notices.previous"), href: url_for(action: :show, tab: "notices", page: @page - 1), variant: :ghost, size: :sm) %>
+      <% else %><span></span><% end %>
+      <% if @page < pages %>
+        <%= render Bali::Link::Component.new(name: t("bali_view.inbox.notices.next"), href: url_for(action: :show, tab: "notices", page: @page + 1), variant: :ghost, size: :sm) %>
+      <% end %>
+    </nav>
+  <% end %>
+<% end %>

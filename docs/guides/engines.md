@@ -482,6 +482,31 @@ to `return_to` (a path or URL of your host, through Rails' `url_from`) or to the
 invalid archival answers `422` and re-renders the form in the drawer; a malformed `archival`
 parameter answers `400`; reopening a model that is not reversible answers `404`.
 
+## Inbox and notices (#1512)
+
+Unlike the features above, the inbox has no engine controller: its pages are actions of **your**
+`InboxesController`, through `Bali::Concerns::Controllers::Inbox`, so your authentication and
+layout apply and no authorize lambda exists. The badge comes from
+`Bali::Concerns::Controllers::InboxBadge` in your `ApplicationController`. The adoption guide is
+in [Engine models](engine-models.md#inbox-and-notices-bali_notices).
+
+Five settings:
+
+```ruby
+# config/initializers/bali.rb
+Bali.inbox_providers = { governance: %w[SignaturesProvider ApprovalsProvider] }
+Bali.notice_kinds = { signature_assigned: { email: :immediate, announces: :signature }, story_assigned: {} }
+Bali.notices_mailer = "NotificationMailer"           # `notify(notice)`, for :immediate kinds
+Bali.notices_parent_mailer = "ApplicationMailer"     # what the hourly digest's mailer inherits
+Bali.notices_deliver_if = ->(_notice) { !DataImport.running? }
+```
+
+- `inbox_providers` names classes by string, so a reload never keeps a stale class.
+- `notice_kinds` lists every kind a notice may have; a notice of any other kind is invalid.
+- `notices_mailer` is required as soon as one kind is `email: :immediate`; `Bali::Notice.kinds`
+  raises naming it otherwise. A `:digest` kind needs only `notices_parent_mailer`.
+- `notices_deliver_if` returning false writes no delivery row at all.
+
 ## Block Editor comments (#706)
 
 The engine ships the storage behind the editor's inline comments: three tables, three

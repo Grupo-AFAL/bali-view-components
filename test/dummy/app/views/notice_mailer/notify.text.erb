@@ -1,0 +1,5 @@
+<%= @notice.message %>
+<% if @notice.action_url %>
+
+<%= URI.join(root_url, @notice.action_url) %>
+<% end %>

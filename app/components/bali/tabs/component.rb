@@ -37,12 +37,21 @@ module Bali
       # @param label [String, nil] Accessible name of the `<nav>` in navigation
       #   mode. Two navs on one page need telling apart; pass it whenever there
       #   is more than one. Ignored when the tabs have panels.
-      def initialize(style: :border, size: :md, label: nil, **options)
+      # @param id_prefix [String, nil] Prefix for the tab and panel ids
+      #   (`<prefix>-tab-0`, `<prefix>-tabpanel-0`). Two sets of panel tabs on one
+      #   page need one each, or the second set's `aria-controls` names the first
+      #   set's panels. Without it the ids are `tab-0` and `tabpanel-0`.
+      def initialize(style: :border, size: :md, label: nil, id_prefix: nil, **options)
         @style = style&.to_sym
         @size = size&.to_sym
         @label = label
+        @id_prefix = id_prefix
         @options = prepend_class_name(options, "tabs-component")
       end
+
+      def tab_id(index) = [ @id_prefix, "tab-#{index}" ].compact.join("-")
+
+      def panel_id(index) = [ @id_prefix, "tabpanel-#{index}" ].compact.join("-")
 
       def before_render
         reject_mixed_triggers!

@@ -280,4 +280,24 @@ end
 User.demo
 puts "Demo user: #{User::DEMO_NAME}"
 
+# #1512 — the inbox demo: a notice that folds into its task (it shows as «New» there, not in
+# «Notices»), and a few that are only notices.
+demo = User.demo
+unless Bali::Notice.addressed_to(demo).exists?
+  if (assigned = Task.where.not(status: :done).order(:id).first)
+    assigned.notify(recipient: demo, kind: :task_assigned, message: "You were assigned #{assigned.title}",
+                    action_url: "/admin/projects/#{assigned.project_id}")
+  end
+
+  if (movie = Movie.order(:id).first)
+    movie.notify(recipient: demo, kind: :movie_released, message: "Luis approved the release of #{movie.name}",
+                 action_url: "/admin/movies/#{movie.id}")
+    movie.notify(recipient: demo, kind: :movie_review_requested, message: "#{movie.name} is waiting for your review",
+                 action_url: "/admin/movies/#{movie.id}")
+    movie.notify(recipient: demo, kind: :studio_created, message: "A new studio joined the catalog",
+                 action_url: "/admin/studios").mark_read!
+  end
+  puts "Inbox demo: #{Bali::Notice.addressed_to(demo).count} notices"
+end
+
 puts "Seed data complete!"

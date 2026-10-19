@@ -60,6 +60,19 @@ class BaliTabsComponentTest < ComponentTestCase
     assert_selector('[role="tabpanel"][aria-labelledby="tab-1"]')
   end
 
+  # Two tab sets on one page — a host's and the topbar inbox's popover — would otherwise share
+  # `tab-0` and `tabpanel-0`, and one set's aria-controls would name the other's panel.
+  def test_id_prefix_keeps_two_tab_sets_on_one_page_apart
+    render_inline(Bali::Tabs::Component.new(id_prefix: "inbox")) do |c|
+      c.with_tab(title: "Tab 1", active: true) { "Content 1" }
+      c.with_tab(title: "Tab 2") { "Content 2" }
+    end
+
+    assert_selector('[role="tab"]#inbox-tab-1[aria-controls="inbox-tabpanel-1"]')
+    assert_selector('[role="tabpanel"]#inbox-tabpanel-1[aria-labelledby="inbox-tab-1"]')
+    assert_no_selector("#tab-0, #tabpanel-0")
+  end
+
   def test_basic_rendering_sets_up_stimulus_controller
     render_inline(Bali::Tabs::Component.new) do |c|
       c.with_tab(title: "Tab", active: true) { "Content" }

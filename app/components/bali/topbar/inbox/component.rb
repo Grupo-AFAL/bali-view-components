@@ -1,0 +1,70 @@
+# frozen_string_literal: true
+
+module Bali
+  module Topbar
+    module Inbox
+      # #1512 — the one topbar icon for «Te toca» and «Avisos», in place of an inbox and a bell.
+      # A plain click opens a popover over the page and loads it then; a modified click, or no
+      # JavaScript, follows the link to the full page.
+      #
+      #   <% topbar.with_action do %>
+      #     <%= render Bali::Topbar::Inbox::Component.new(
+      #           badge: inbox_badge, href: inbox_path, popover_url: popover_inbox_path,
+      #           badge_url: badge_inbox_path, stream: current_user) %>
+      #   <% end %>
+      #
+      # `badge` is `Bali::Inbox::Badge` (`inbox_badge` from
+      # Bali::Concerns::Controllers::InboxBadge); without one nothing renders. `stream:` subscribes
+      # the page to the owner's notices, and each new one makes the icon fetch `badge_url` again.
+      class Component < ApplicationViewComponent
+        # The topbar-inbox controller reads these from the DOM it is given, never by name.
+        BADGE_FRAME_ID = "bali-inbox-badge"
+        POPOVER_FRAME_ID = "bali-inbox-popover"
+        PANEL_ID = "bali-inbox-panel"
+        # Replaced by Bali::Inbox::Badge.refresh's broadcast; the controller's
+        # `signalTargetConnected` (index.js) is what reacts to the new one.
+        SIGNAL_ID = "bali-inbox-signal"
+
+        SKELETON_ROWS = 3
+        SKELETON_TABS_CLASSES = "tabs #{Bali::Tabs::Component::STYLES[:border]} #{Bali::Tabs::Component::SIZES[:sm]}".freeze
+        # The popover's tab set shares the page with the host's; Bali::Tabs' ids would collide.
+        TABS_ID_PREFIX = "bali-inbox"
+
+        # @param badge [Bali::Inbox::Badge, nil] the two numbers; nil renders nothing.
+        # @param href [String] the full page.
+        # @param popover_url [String] what the popover loads on its first open.
+        # @param badge_url [String, nil] what the icon fetches when a new notice arrives.
+        # @param stream [Object, nil] the owner, for `turbo_stream_from owner, :bali_inbox`.
+        def initialize(badge:, href:, popover_url:, badge_url: nil, stream: nil, **options)
+          @badge = badge
+          @href = href
+          @popover_url = popover_url
+          @badge_url = badge_url
+          @stream = stream
+          @options = prepend_class_name(options, "bali-topbar-inbox")
+        end
+
+        def render? = @badge.present?
+
+        # A fresh element each time it is broadcast: its arrival is the whole message.
+        def self.signal_tag
+          ActionController::Base.helpers.tag.span(id: SIGNAL_ID, hidden: true, data: { topbar_inbox_target: "signal" })
+        end
+
+        def self.notices_tab_title(unread)
+          [ I18n.t("bali_view.inbox.tabs.notices"),
+            (I18n.t("bali_view.inbox.tabs.unread", count: unread) if unread.positive?) ].compact.join(" · ")
+        end
+
+        private
+
+        def root_attributes
+          @options.merge(data: (@options[:data] || {}).merge(
+            controller: "topbar-inbox", topbar_inbox_popover_url_value: @popover_url,
+            topbar_inbox_badge_url_value: @badge_url
+          ).compact)
+        end
+      end
+    end
+  end
+end

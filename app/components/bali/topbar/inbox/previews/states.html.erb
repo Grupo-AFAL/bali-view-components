@@ -1,0 +1,11 @@
+<div class="flex flex-wrap items-center gap-6">
+  <% [ [ 0, 0 ], [ 6, 0 ], [ 0, 2 ], [ 6, 2 ], [ 120, 3 ] ].each do |pending, unread| %>
+    <div class="flex flex-col items-center gap-2">
+      <%= render Bali::Topbar::Inbox::Component.new(
+        badge: Bali::Inbox::Badge.new(pending: pending, unread: unread),
+        href: "/inbox", popover_url: "/inbox/popover"
+      ) %>
+      <span class="text-xs text-base-content/70"><%= pending %> / <%= unread %></span>
+    </div>
+  <% end %>
+</div>

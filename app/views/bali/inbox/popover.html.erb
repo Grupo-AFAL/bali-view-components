@@ -1,0 +1,4 @@
+<%# The popover's frame. Its links leave the frame (`target="_top"`). %>
+<%= tag.turbo_frame(id: Bali::Topbar::Inbox::Component::POPOVER_FRAME_ID, target: "_top") do %>
+  <%= render "popover_body", tab: "pending" %>
+<% end %>

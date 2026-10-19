@@ -1,0 +1,12 @@
+<%# The same for an item that was resolved, one that is someone else's and an address that names
+    nothing, so the URL tells nothing about records the person cannot see. %>
+<div class="bali-inbox-gone flex h-full items-center justify-center p-6">
+  <%= render Bali::EmptyState::Component.new(title: t("bali_view.inbox.gone.title"),
+                                             description: t("bali_view.inbox.gone.description"),
+                                             icon: "circle-check-big") do |empty| %>
+    <% empty.with_cta do %>
+      <%= render Bali::Link::Component.new(name: t("bali_view.inbox.gone.back"), href: url_for(action: :show),
+                                           style: :outline, data: { turbo_frame: "_top" }) %>
+    <% end %>
+  <% end %>
+</div>

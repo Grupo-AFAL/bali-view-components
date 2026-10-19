@@ -1,0 +1,13 @@
+<%# `-m-4` cancels the preview body's `p-4`, so the popover anchors where it would in an app. %>
+<div class="-m-4 min-h-[44rem]">
+  <%= render Bali::Topbar::Component.new do |topbar| %>
+    <% topbar.with_action do %>
+      <%= render Bali::Topbar::Inbox::Component.new(
+        badge: badge, href: "/inbox", popover_url: "/inbox/popover", badge_url: "/inbox/badge"
+      ) %>
+    <% end %>
+    <% topbar.with_user_menu do %>
+      <%= render Bali::Topbar::UserMenu::Component.new(name: "Ana García", email: "ana@example.com") %>
+    <% end %>
+  <% end %>
+</div>

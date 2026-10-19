@@ -1,0 +1,18 @@
+<%# Bali's inbox page (#1512). A host replaces it with its own app/views/<controller>/show.html.erb,
+    or keeps it and replaces only the per-kind detail with inbox/items/_<kind>. %>
+<div class="bali-inbox flex flex-col gap-4">
+  <div class="flex flex-col gap-3">
+    <h1 class="text-2xl font-bold"><%= t("bali_view.inbox.title") %></h1>
+    <div class="bali-inbox-tabs flex items-center justify-between gap-2">
+      <%= render Bali::Tabs::Component.new(label: t("bali_view.inbox.title")) do |tabs| %>
+        <% tabs.with_tab(title: t("bali_view.inbox.tabs.pending"), href: url_for(action: :show),
+                         active: inbox_tab == "pending", count: inbox_query.count) %>
+        <% tabs.with_tab(title: t("bali_view.inbox.tabs.notices"), href: url_for(action: :show, tab: "notices"),
+                         active: inbox_tab == "notices") %>
+      <% end %>
+      <%= render "module_filter" if inbox_tab == "pending" %>
+    </div>
+  </div>
+
+  <%= render(inbox_tab == "notices" ? "notices" : "pending") %>
+</div>

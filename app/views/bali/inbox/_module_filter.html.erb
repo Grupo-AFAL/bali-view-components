@@ -1,0 +1,16 @@
+<%# «Te toca»'s scope, on the tabs' row. Below `sm` the label is only for screen readers: with it
+    visible the tabs and the label each broke onto two lines at 375px. %>
+<% modules = inbox_query.modules %>
+<% if modules.size > 1 %>
+  <%= render Bali::Dropdown::Component.new(align: :end) do |dropdown| %>
+    <% dropdown.with_trigger(class: "btn btn-sm btn-ghost whitespace-nowrap") do %>
+      <%= render Bali::Icon::Component.new("list-filter", class: "size-4 sm:hidden") %>
+      <span class="sr-only sm:not-sr-only"><%= @module_key ? inbox_module_label(@module_key) : t("bali_view.inbox.modules.all") %></span>
+      <%= render Bali::Icon::Component.new("chevron-down", class: "size-4") %>
+    <% end %>
+    <% dropdown.with_item(name: t("bali_view.inbox.modules.all"), href: url_for(action: :show, kind: @kind)) %>
+    <% modules.each do |module_key| %>
+      <% dropdown.with_item(name: inbox_module_label(module_key), href: url_for(action: :show, kind: @kind, module: module_key)) %>
+    <% end %>
+  <% end %>
+<% end %>

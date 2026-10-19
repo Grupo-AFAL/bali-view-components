@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.19.0] - 2026-10-18
+
+### Added
+
+- **Bandeja y avisos: un solo ícono, un popover y una página** (#1512). Sustituyen al par que cada
+  app armaba por su cuenta:
+  - «Te toca»: lo que espera a la persona. Se lee en vivo de los modelos de la app, a través de
+    providers que la app registra en `Bali.inbox_providers`.
+  - «Avisos»: lo que pasó, en la tabla nueva `bali_notices`.
+
+  Un aviso sobre algo que también es un pendiente no sale dos veces: queda como la marca «Nuevo»
+  en ese pendiente (`announces:` en `Bali.notice_kinds`).
+
+  El correo lleva bitácora (`bali_notice_deliveries`). Un kind se manda al momento
+  (`email: :immediate`) o se junta en un correo por hora (`email: :digest`, con
+  `Bali::NoticeDigestJob`).
+
+  La app hace cuatro cosas:
+  - instala la tabla con `bin/rails bali:install:migrations:notices`;
+  - incluye `Bali::Concerns::Controllers::InboxBadge` en su `ApplicationController` y
+    `Bali::Concerns::Controllers::Inbox` en un `InboxesController`, con las rutas de la guía;
+  - cambia la campana del topbar por `Bali::Topbar::Inbox`;
+  - programa `Bali::NoticeDigestJob` cada hora si algún kind tiene `email:`. Además de mandar el
+    agrupado, reenvía las entregas inmediatas que quedaron pendientes más de una hora.
+
+  La falla definitiva de un correo, inmediato o agrupado, queda en la bitácora y se reporta a
+  `Rails.error`. Sentry la recibe con `config.rails.register_error_subscriber`, que bali-runtime
+  enciende.
+
+  Las apps que no lo adopten no tienen nada que hacer. Guía: `docs/guides/engine-models.md`
+  («Inbox and notices»).
+
+- **`Bali::Tabs` acepta `id_prefix:`** (hallado al resolver #1512). Las pestañas con panel se
+  llamaban siempre `tab-0` y `tabpanel-0`, así que dos juegos en una misma página compartían ids,
+  y el `aria-controls` del segundo apuntaba a los paneles del primero. Sin `id_prefix:` los ids
+  quedan igual. Una página con dos juegos de pestañas con panel le pone un prefijo a uno.
+
+### Security
+
+- **`css_parser` 3.3.0 en el entorno de desarrollo de Bali** (avisos de bundler-audit que pedían
+  `>= 3.2.0` y `>= 3.3.0`). Lo trae Lookbook, que sólo corre en la dummy. Nada que hacer en la app.
+
 ## [v3.18.0] - 2026-10-15
 
 ### Removed
