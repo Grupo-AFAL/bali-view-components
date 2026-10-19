@@ -1,0 +1,4 @@
+<%= turbo_stream.replace "bali-inbox-popover-notices", partial: "popover_notices", locals: { notices: notices, unread_count: unread_count } %>
+<%= turbo_stream.update Bali::Topbar::Inbox::Component::BADGE_FRAME_ID do %>
+  <%= render Bali::Topbar::Inbox::Badge::Component.new(badge: inbox_badge) %>
+<% end %>

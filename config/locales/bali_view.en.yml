@@ -840,6 +840,54 @@ en:
     inbox:
       title: "Inbox"
       loading: "Loading your inbox…"
+      all: "All"
+      fresh: "New"
+      expand: "Open the full inbox"
+      capped: "Showing the %{count} most urgent of each kind."
+      modules:
+        all: "All modules"
+      bands:
+        overdue: "Overdue"
+        this_week: "This week"
+        later: "Later"
+      due:
+        none: "no due date"
+        overdue: "due %{time} ago"
+        today: "due today"
+        "on": "due %{day}"
+      empty:
+        title: "Nothing is waiting on you"
+        notices:
+          one: "See the unread notice →"
+          other: "See the %{count} unread notices →"
+      footer:
+        pending:
+          one: "1 pending"
+          other: "%{count} pending"
+        see_all: "See the whole inbox →"
+      detail:
+        empty: "Pick an item to see its detail."
+        open: "Open and resolve"
+        copy: "Copy link"
+        due: "Due"
+        requested_by: "Requested by"
+        about: "About"
+      gone:
+        title: "This is no longer waiting on you"
+        description: "It may have been resolved, or it is now someone else's turn. There is nothing for you to do."
+        back: "Back to what is waiting on you"
+      notices:
+        ago: "%{time} ago"
+        unread: "unread"
+        range: "%{from}–%{to} of %{total}"
+        mark_all: "Mark all as read"
+        empty: "You have no notices"
+        today: "Today"
+        earlier: "Earlier"
+        pages: "Notice pages"
+        previous: "← Previous"
+        next: "Next →"
+        see_all: "See all notices →"
       icon:
         pending:
           one: "Inbox: 1 pending"

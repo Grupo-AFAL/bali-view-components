@@ -816,6 +816,54 @@ es:
     inbox:
       title: "Bandeja"
       loading: "Cargando tu bandeja…"
+      all: "Todo"
+      fresh: "Nuevo"
+      expand: "Abrir la bandeja completa"
+      capped: "Se muestran los %{count} más urgentes de cada tipo."
+      modules:
+        all: "Todos los módulos"
+      bands:
+        overdue: "Vencidos"
+        this_week: "Esta semana"
+        later: "Después"
+      due:
+        none: "sin fecha"
+        overdue: "venció hace %{time}"
+        today: "vence hoy"
+        "on": "vence el %{day}"
+      empty:
+        title: "No tienes nada pendiente"
+        notices:
+          one: "Ver el aviso sin leer →"
+          other: "Ver los %{count} avisos sin leer →"
+      footer:
+        pending:
+          one: "1 pendiente"
+          other: "%{count} pendientes"
+        see_all: "Ver toda la bandeja →"
+      detail:
+        empty: "Elige un pendiente para ver su detalle."
+        open: "Abrir y resolver"
+        copy: "Copiar liga"
+        due: "Vence"
+        requested_by: "Lo pidió"
+        about: "Sobre"
+      gone:
+        title: "Esto ya no está en tus pendientes"
+        description: "Puede que ya se haya resuelto o que ahora le toque a otra persona. No tienes que hacer nada."
+        back: "Volver a lo que te toca"
+      notices:
+        ago: "hace %{time}"
+        unread: "sin leer"
+        range: "%{from}–%{to} de %{total}"
+        mark_all: "Marcar todos como leídos"
+        empty: "No tienes avisos"
+        today: "Hoy"
+        earlier: "Antes"
+        pages: "Páginas de avisos"
+        previous: "← Anteriores"
+        next: "Siguientes →"
+        see_all: "Ver todos los avisos →"
       icon:
         pending:
           one: "Bandeja: 1 pendiente"

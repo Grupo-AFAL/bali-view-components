@@ -31,6 +31,7 @@ require "bali/concerns/date_range_attribute"
 # it resolved this constant in development and raised NameError in test.)
 require "bali/concerns/controllers/dashboard_widgets"
 require "bali/concerns/controllers/inbox_badge"
+require "bali/concerns/controllers/inbox"
 
 # Non-UI concerns (SoftDelete, GlobalIdAccessors, etc.) are opt-in.
 # See lib/bali/extras.rb

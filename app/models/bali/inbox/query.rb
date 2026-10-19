@@ -24,6 +24,10 @@ module Bali
 
       def modules = @providers.map(&:first).uniq
 
+      def icon(kind)
+        @providers.find { |_module_key, provider| provider.kind.to_s == kind.to_s }&.last&.icon || "inbox"
+      end
+
       def items(module_key: nil, kind: nil)
         @providers
           .select { |entry_module, provider| matches?(entry_module, provider, module_key, kind) }

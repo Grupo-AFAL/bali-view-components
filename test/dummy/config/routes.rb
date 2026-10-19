@@ -119,7 +119,14 @@ Rails.application.routes.draw do
   # itself uses `url_for(action:)` and does not care what this is called.
   # #1512 — the inbox page. Its actions come from Bali::Concerns::Controllers::Inbox, and the
   # digest email links here by name (`inbox_url`).
-  resource :inbox, only: :show
+  resource :inbox, only: :show do
+    get :popover
+    get :badge
+    get "items/:kind/:gid", action: :item, as: :item
+    get "items/:kind/:gid/open", action: :open_item, as: :open_item
+    get "notices/:id/open", action: :open_notice, as: :open_notice
+    post :read_all
+  end
 
   resource :dashboard_widgets, only: %i[show create edit update destroy] do
     patch :arrange

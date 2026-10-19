@@ -1,0 +1,22 @@
+<%# The popover's «Avisos» tab, loaded the first time it is clicked; `read_all` re-renders it. %>
+<div id="bali-inbox-popover-notices">
+  <% if notices.empty? %>
+    <div class="p-6">
+      <%= render Bali::EmptyState::Component.new(title: t("bali_view.inbox.notices.empty"), icon: "bell-off") %>
+    </div>
+  <% else %>
+    <% notices.each do |notice| %>
+      <%= render "notice_row", notice: notice %>
+    <% end %>
+  <% end %>
+  <div class="flex items-center justify-between gap-2 border-t border-base-300 px-4 py-3 text-sm">
+    <% if unread_count.positive? %>
+      <%= button_to t("bali_view.inbox.notices.mark_all"), url_for(action: :read_all),
+                    class: "btn btn-ghost btn-xs", form: { data: { turbo_stream: true } } %>
+    <% else %>
+      <span></span>
+    <% end %>
+    <%= render Bali::Link::Component.new(name: t("bali_view.inbox.notices.see_all"), href: url_for(action: :show, tab: "notices"),
+                                         variant: :link, data: { turbo_frame: "_top" }) %>
+  </div>
+</div>
