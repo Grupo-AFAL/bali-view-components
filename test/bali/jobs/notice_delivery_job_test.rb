@@ -13,6 +13,8 @@ class BaliNoticeDeliveryJobTest < ActiveJob::TestCase
   include ActionMailer::TestHelper
 
   def setup
+    # ActiveJob::TestCase does not empty it between tests the way ActionMailer::TestCase does.
+    ActionMailer::Base.deliveries.clear
     @kinds = Bali.notice_kinds
     @mailer = Bali.notices_mailer
     Bali.notice_kinds = { movie_assigned: { email: :immediate },

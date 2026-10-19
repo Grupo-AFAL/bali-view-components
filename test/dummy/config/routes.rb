@@ -117,6 +117,10 @@ Rails.application.routes.draw do
   # above. A SINGULAR resource — there is one dashboard per user, not a collection.
   # Named `dashboard_widgets` so the path helper keeps that name; the concern
   # itself uses `url_for(action:)` and does not care what this is called.
+  # #1512 — the inbox page. Its actions come from Bali::Concerns::Controllers::Inbox, and the
+  # digest email links here by name (`inbox_url`).
+  resource :inbox, only: :show
+
   resource :dashboard_widgets, only: %i[show create edit update destroy] do
     patch :arrange
     get :refresh

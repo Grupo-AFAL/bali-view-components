@@ -835,3 +835,25 @@ en:
         failed: "Couldn't save your changes"
         editing_on: "Editing dashboard"
         editing_off: "Done editing"
+
+    # Inbox and notices (#1512)
+    notices:
+      digest:
+        subject:
+          one: "1 new notice in %{app}"
+          other: "%{count} new notices in %{app}"
+        heading:
+          one: "%{name}, you have 1 new notice"
+          other: "%{name}, you have %{count} new notices"
+        heading_no_name:
+          one: "You have 1 new notice"
+          other: "You have %{count} new notices"
+        day_format: "%A, %B %-d"
+        window: "%{day}, from %{from} to %{to}."
+        window_days: "From %{from} to %{to}."
+        more:
+          one: "and 1 more in your inbox"
+          other: "and %{count} more in your inbox"
+        others: "Other notices"
+        open: "Open my inbox"
+        footer: "We gather these notices into one email, once an hour and only when there is something new. The ones that cannot wait reach you right away."

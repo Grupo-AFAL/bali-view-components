@@ -1,0 +1,50 @@
+<%# Email clients drop stylesheets, so the look is inline. Colours are the afal theme's. %>
+<div style="font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1F2937; max-width: 600px;">
+  <h1 style="margin: 0; font-size: 22px; line-height: 1.3;">
+    <%= @heading %>
+  </h1>
+  <p style="margin: 6px 0 20px; font-size: 14px; color: #626973;">
+    <%= @window %>
+  </p>
+
+  <% @groups.each do |group| %>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #E5E7EB; border-radius: 8px; border-collapse: separate; margin-bottom: 16px;">
+      <tr>
+        <td colspan="2" style="padding: 12px 16px; background: #F3F4F6; font-size: 13px; font-weight: 700;">
+          <%= group.label %> · <%= group.notices.size %>
+        </td>
+      </tr>
+      <% group.notices.first(Bali::NoticeDigestMailer::LISTED_PER_GROUP).each do |notice| %>
+        <tr>
+          <td style="padding: 12px 16px; border-top: 1px solid #E5E7EB; font-size: 14px;">
+            <% if notice.action_url %>
+              <a href="<%= absolute_url(notice.action_url) %>" style="color: #1F2937; text-decoration: none;"><%= notice.message %></a>
+            <% else %>
+              <%= notice.message %>
+            <% end %>
+          </td>
+          <td style="padding: 12px 16px; border-top: 1px solid #E5E7EB; font-size: 13px; color: #626973; text-align: right; white-space: nowrap;">
+            <%= l(notice.created_at, format: "%H:%M") %>
+          </td>
+        </tr>
+      <% end %>
+      <% if group.notices.size > Bali::NoticeDigestMailer::LISTED_PER_GROUP %>
+        <tr>
+          <td colspan="2" style="padding: 12px 16px; border-top: 1px solid #E5E7EB; font-size: 13px; color: #626973;">
+            <%= t("bali_view.notices.digest.more", count: group.notices.size - Bali::NoticeDigestMailer::LISTED_PER_GROUP) %>
+          </td>
+        </tr>
+      <% end %>
+    </table>
+  <% end %>
+
+  <p style="margin: 20px 0;">
+    <a href="<%= main_app.inbox_url(tab: "notices") %>" style="display: inline-block; padding: 12px 20px; border-radius: 6px; background: #155DFC; color: #FFFFFF; font-size: 14px; font-weight: 700; text-decoration: none;">
+      <%= t("bali_view.notices.digest.open") %>
+    </a>
+  </p>
+
+  <p style="margin: 0; padding-top: 16px; border-top: 1px solid #E5E7EB; font-size: 12px; line-height: 1.5; color: #626973;">
+    <%= t("bali_view.notices.digest.footer") %>
+  </p>
+</div>

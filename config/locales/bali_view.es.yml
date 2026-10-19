@@ -811,3 +811,25 @@ es:
         failed: "No se pudieron guardar los cambios"
         editing_on: "Editando el tablero"
         editing_off: "Edición terminada"
+
+    # Inbox and notices (#1512)
+    notices:
+      digest:
+        subject:
+          one: "1 aviso nuevo en %{app}"
+          other: "%{count} avisos nuevos en %{app}"
+        heading:
+          one: "%{name}, tienes 1 aviso nuevo"
+          other: "%{name}, tienes %{count} avisos nuevos"
+        heading_no_name:
+          one: "Tienes 1 aviso nuevo"
+          other: "Tienes %{count} avisos nuevos"
+        day_format: "%A %-d de %B"
+        window: "Del %{day}, de %{from} a %{to}."
+        window_days: "Del %{from} al %{to}."
+        more:
+          one: "y 1 más en tu bandeja"
+          other: "y %{count} más en tu bandeja"
+        others: "Otros avisos"
+        open: "Abrir mi bandeja"
+        footer: "Te juntamos estos avisos en un solo correo, una vez por hora y sólo cuando hay algo nuevo. Los que no pueden esperar te llegan al momento."
