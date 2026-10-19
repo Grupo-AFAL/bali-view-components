@@ -62,6 +62,21 @@ class BaliInboxBadgeTest < ActiveSupport::TestCase
     assert_equal 1, Bali::Inbox::Badge.for(@ana).unread
   end
 
+  # After the commit, so a broadcast that fails must not turn the writer's request into a 500 —
+  # its step is already saved, and a person resubmitting it writes it twice.
+  def test_a_broadcast_that_fails_is_reported_and_the_notice_stands
+    # Turbo extends the channel with it, so removing the override brings Turbo's back.
+    channel = Turbo::StreamsChannel.singleton_class
+    channel.define_method(:broadcast_replace_to) { |*| raise IOError, "solid_cable is down" }
+
+    notice = nil
+    assert_error_reported(IOError) { notice = release_notice }
+
+    assert_predicate notice, :persisted?
+  ensure
+    channel.remove_method :broadcast_replace_to
+  end
+
   def test_a_new_notice_tells_the_recipients_open_pages_to_refetch_carrying_no_count
     # Turbo's own name for `turbo_stream_from ana, :bali_inbox`, which `broadcasting_for` would
     # prefix with the channel's.

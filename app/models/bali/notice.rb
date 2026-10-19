@@ -82,9 +82,12 @@ module Bali
       create_delivery!(mode: mode.to_s)
     end
 
+    # After the commit, so neither may fail whoever wrote the notice, whose work is already saved:
+    # the hourly sweep resends a delivery whose job never went in, and the cache is expired before
+    # the broadcast, so only a page already open keeps its old number.
     def announce
-      Bali::NoticeDeliveryJob.enqueue(delivery) if delivery&.mode == "immediate"
-      Bali::Inbox::Badge.refresh(recipient)
+      Rails.error.handle(context: { notice_id: id }) { Bali::NoticeDeliveryJob.enqueue(delivery) } if delivery&.mode == "immediate"
+      Rails.error.handle(context: { notice_id: id }) { Bali::Inbox::Badge.refresh(recipient) }
     end
   end
 end

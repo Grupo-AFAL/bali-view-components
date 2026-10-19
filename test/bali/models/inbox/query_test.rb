@@ -25,6 +25,41 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     def build_item(document, user:) = item(document, title: document.title)
   end
 
+  # What must be seen first whatever its date — an emergency before an alert.
+  class UrgentProvider
+    include Bali::Inbox::Provider
+
+    def kind = :urgent
+
+    def priority = 1
+
+    def pending_for(_user) = Task.done.order(:id)
+
+    def build_item(task, user:) = item(task, title: task.title, due_at: task.due_date)
+  end
+
+  # One kind across modules: the module comes from each record.
+  class SpreadProvider
+    include Bali::Inbox::Provider
+
+    def kind = :spread
+
+    def pending_for(_user) = Task.in_progress.order(:id)
+
+    def build_item(task, user:) = item(task, title: task.title, module_key: :docs)
+  end
+
+  # Built by hand, with the module read off a record column: both arrive as Strings.
+  class ColumnProvider
+    include Bali::Inbox::Provider
+
+    def kind = :column
+
+    def pending_for(_user) = Task.in_progress.order(:id)
+
+    def build_item(task, user:) = Bali::Inbox::Item.new(kind: "column", record: task, title: task.title, module_key: "docs")
+  end
+
   def setup
     @providers = Bali.inbox_providers
     @kinds = Bali.notice_kinds
@@ -73,6 +108,42 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     end
   end
 
+  # The bands still lead — the page and the popover group by them —; within a band, a provider with
+  # a higher priority comes first: Centinela's fresh emergency before its older alerts.
+  def test_within_a_band_a_provider_with_a_higher_priority_comes_first
+    Bali.inbox_providers = { demo: [ TasksProvider.name, UrgentProvider.name ] }
+    travel_to Time.zone.local(2026, 10, 18, 12) do
+      task("Old overdue", due: Date.new(2026, 10, 1))
+      task("Fresh urgent", due: Date.new(2026, 10, 17), status: :done)
+      task("Urgent, undated", status: :done)
+
+      items = query.items
+
+      assert_equal [ "Fresh urgent", "Old overdue", "Urgent, undated" ], items.map(&:title)
+      assert_equal %i[overdue overdue later], items.map(&:band)
+    end
+  end
+
+  def test_an_item_naming_its_own_module_keeps_it
+    Bali.inbox_providers = { demo: [ TasksProvider.name, SpreadProvider.name ], docs: [] }
+    spread = task("Spread", status: :in_progress)
+    task("Write")
+
+    assert_equal :docs, query.items(kind: :spread).sole.module_key
+    assert_equal :docs, query.find(:spread, spread.to_gid_param).module_key
+    assert_equal [ [ :spread, "Spread" ] ], query.items(module_key: :docs).map { [ it.kind, it.title ] }
+    assert_equal [ [ :task, "Spread" ], [ :task, "Write" ] ], query.items(module_key: :demo).map { [ it.kind, it.title ] }
+    assert_equal %i[demo docs], query.modules
+  end
+
+  def test_an_item_built_with_strings_is_filtered_and_sorted_like_any_other
+    Bali.inbox_providers = { demo: [ TasksProvider.name, ColumnProvider.name ], docs: [] }
+    task("Spread", status: :in_progress)
+
+    assert_equal [ [ :column, "Spread" ] ], query.items(module_key: :docs).map { [ it.kind, it.title ] }
+    assert_equal [ :column ], query.items(kind: :column).map(&:kind)
+  end
+
   def test_items_filter_by_kind_and_by_module
     task("Write")
     document("Policy")
@@ -99,6 +170,19 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     assert_equal Bali::Inbox::Query::FETCH_CAP, inbox.items.size
     assert inbox.capped?
     assert_equal Bali::Inbox::Query::FETCH_CAP + 1, inbox.count
+  end
+
+  def test_a_module_filter_is_not_capped_by_another_modules_provider
+    now = Time.current
+    Task.insert_all(Array.new(Bali::Inbox::Query::FETCH_CAP + 1) do |n|
+      { project_id: @project.id, title: "T#{n}", status: 1, created_at: now, updated_at: now }
+    end)
+    document("Policy")
+
+    inbox = query
+
+    assert_equal [ "Policy" ], inbox.items(module_key: :docs).map(&:title)
+    assert_not inbox.capped?
   end
 
   def test_find_returns_the_item_for_a_pending_record

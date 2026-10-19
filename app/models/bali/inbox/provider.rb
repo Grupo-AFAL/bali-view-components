@@ -31,6 +31,10 @@ module Bali
 
       def icon = "inbox"
 
+      # Higher first, unlike Solid Queue's. Within each band only: the page and the popover group by
+      # band.
+      def priority = 0
+
       # A COUNT on a relation. A provider that can count more cheaply than it lists overrides it.
       def pending_count_for(user) = pending_for(user).size
 

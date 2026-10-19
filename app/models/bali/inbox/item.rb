@@ -7,7 +7,8 @@ module Bali
     Item = Data.define(:kind, :record, :title, :subtitle, :href, :due_at, :requested_by, :module_key) do
       def initialize(kind:, record:, title:, subtitle: nil, href: nil, due_at: nil, requested_by: nil,
                      module_key: nil)
-        super
+        super(kind: kind.to_sym, record:, title:, subtitle:, href:, due_at:, requested_by:,
+              module_key: module_key.presence&.to_sym)
       end
 
       def gid = record.to_gid_param

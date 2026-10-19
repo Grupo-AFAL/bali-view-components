@@ -29,7 +29,9 @@
               <%= inbox_kind_label(item.kind) %> · <%= inbox_module_label(item.module_key) %>
             </span>
           </span>
-          <span class="flex shrink-0 flex-col items-end gap-1">
+          <%# The Spanish due text for two months overdue is 191px at text-xs. Uncapped, it left a
+              title 77px and four lines at 390px wide; capped, the title gets 138px and two. %>
+          <span class="flex max-w-[40%] shrink-0 flex-col items-end gap-1 text-right">
             <% if fresh %>
               <%= render Bali::Tag::Component.new(text: t("bali_view.inbox.fresh"), color: :primary, size: :xs) %>
             <% end %>

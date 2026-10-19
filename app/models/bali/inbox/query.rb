@@ -22,17 +22,22 @@ module Bali
         @counts_by_kind ||= @providers.to_h { |_module_key, provider| [ provider.kind.to_sym, provider.pending_count_for(user) ] }
       end
 
-      def modules = @providers.map(&:first).uniq
+      # A provider's items may name a module of their own, so a module with no provider of its own
+      # is still one to filter by.
+      def modules = Bali.inbox_providers.keys.map(&:to_sym)
 
       def icon(kind)
         @providers.find { |_module_key, provider| provider.kind.to_s == kind.to_s }&.last&.icon || "inbox"
       end
 
       def items(module_key: nil, kind: nil)
-        @providers
-          .select { |entry_module, provider| matches?(entry_module, provider, module_key, kind) }
+        @capped = []
+        found = @providers
+          .select { |_module_key, provider| kind.nil? || provider.kind.to_sym == kind.to_sym }
           .flat_map { |entry_module, provider| fetch(entry_module, provider) }
-          .sort_by { |item| sort_key(item) }
+          .select { |item| module_key.nil? || item.module_key == module_key.to_sym }
+        @capped &= found.map(&:kind)
+        found.sort_by { |item| sort_key(item) }
       end
 
       # Known once `items` has run.
@@ -49,7 +54,7 @@ module Bali
         scope = provider.pending_for(user)
         candidates = scope.respond_to?(:where) ? scope.where(id: gid.model_id) : scope
         record = candidates.detect { |candidate| candidate.to_global_id.to_s == gid.to_s }
-        record && provider.build_items([ record ], user: user).first.with(module_key: module_key)
+        record && in_module(provider.build_items([ record ], user: user).first, module_key)
       end
 
       # `[notifiable_type, notifiable_id]` of every item here with an unread notice that announces
@@ -75,21 +80,22 @@ module Bali
         Bali::Notice.unread.addressed_to(user).where(kind: Bali::Notice.announcing_kinds).merge(about)
       end
 
-      def matches?(entry_module, provider, module_key, kind)
-        (module_key.nil? || entry_module == module_key.to_sym) && (kind.nil? || provider.kind.to_sym == kind.to_sym)
-      end
-
       def fetch(module_key, provider)
         records = provider.pending_for(user).first(FETCH_CAP + 1)
-        (@capped ||= []) << provider.kind if records.size > FETCH_CAP
+        @capped << provider.kind.to_sym if records.size > FETCH_CAP
 
-        provider.build_items(records.first(FETCH_CAP), user: user).map { |item| item.with(module_key: module_key) }
+        provider.build_items(records.first(FETCH_CAP), user: user).map { |item| in_module(item, module_key) }
       end
+
+      # A provider whose kind spans modules names each item's own.
+      def in_module(item, module_key) = item.module_key ? item : item.with(module_key: module_key)
 
       def sort_key(item)
         due = item.due_time
-        [ BANDS.index(item.band), due ? 0 : 1, due.to_f, item.title.to_s ]
+        [ BANDS.index(item.band), -priorities.fetch(item.kind), due ? 0 : 1, due.to_f, item.title.to_s ]
       end
+
+      def priorities = @priorities ||= @providers.to_h { |_module_key, provider| [ provider.kind.to_sym, provider.priority ] }
     end
   end
 end
