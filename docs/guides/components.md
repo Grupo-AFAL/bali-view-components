@@ -1045,6 +1045,10 @@ Stimulus controller.
 <% end %>
 ```
 
+The triggers and panels are `tab-0` / `tabpanel-0`, and so on. Two sets of panel tabs on one
+page need `id_prefix:` on one of them (`id_prefix: "activity"` gives `activity-tab-0`), or the
+second set's `aria-controls` names the first set's panels.
+
 **Tabs that navigate** — every trigger has an `href:`, so the click leaves the page. There is
 no panel to control, so this renders `<nav aria-label>` with plain links and
 `aria-current="page"` on the active one, and no Stimulus controller.

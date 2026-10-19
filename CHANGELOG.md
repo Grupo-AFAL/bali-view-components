@@ -32,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Las apps que no lo adopten no tienen nada que hacer. Guía: `docs/guides/engine-models.md`
   («Inbox and notices»).
 
+- **`Bali::Tabs` acepta `id_prefix:`** (hallado al resolver #1512). Las pestañas con panel se
+  llamaban siempre `tab-0` y `tabpanel-0`, así que dos juegos en una misma página compartían ids,
+  y el `aria-controls` del segundo apuntaba a los paneles del primero. Sin `id_prefix:` los ids
+  quedan igual. Una página con dos juegos de pestañas con panel le pone un prefijo a uno.
+
 ## [v3.18.0] - 2026-10-15
 
 ### Removed
