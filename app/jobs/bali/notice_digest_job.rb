@@ -27,9 +27,10 @@ module Bali
 
     # A worker of the previous deploy can take a delivery job whose class it does not have yet, and
     # fail it: the row stays `pending` with no job behind it. Enqueued again, its job sends it or —
-    # if it was only slow in the queue and went out meanwhile — finds it delivered and does nothing.
+    # if it was only an hour behind in the queue and went out meanwhile — finds it delivered and
+    # does nothing. That holds one copy at a time: the check and the send are not one step.
     def resend_stranded
-      NoticeDelivery.pending.where(mode: "immediate").where(updated_at: ...STALE_AFTER.ago)
+      NoticeDelivery.pending.where(mode: "immediate").where(updated_at: ...STALE_AFTER.ago).includes(:notice)
                     .find_each { |delivery| NoticeDeliveryJob.enqueue(delivery) }
     end
 
