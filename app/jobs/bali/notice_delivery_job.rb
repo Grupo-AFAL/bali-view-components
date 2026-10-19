@@ -6,10 +6,13 @@ module Bali
   class NoticeDeliveryJob < ApplicationJob
     ATTEMPTS = 5
 
-    # Past the last attempt the error is recorded, not raised: the row is the record of it.
+    # Past the last attempt the error is recorded in the row and reported to Rails.error, which is
+    # what an error tracker listens to: swallowed into the row alone, a lost email is silent.
     retry_on StandardError, wait: :polynomially_longer, attempts: ATTEMPTS do |job, error|
-      job.arguments.first.update!(status: "failed", failed_at: Time.current,
-                                  failure_reason: "#{error.class}: #{error.message}".truncate(255))
+      delivery = job.arguments.first
+      delivery.update!(status: "failed", failed_at: Time.current,
+                       failure_reason: "#{error.class}: #{error.message}".truncate(255))
+      Rails.error.report(error, handled: false, context: { notice_delivery_id: delivery.id })
     end
 
     # The notice, and its delivery with it, may be gone by the time the job runs.

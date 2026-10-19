@@ -82,6 +82,33 @@ class BaliNoticeDigestJobTest < ActiveJob::TestCase
     assert_match "Bali::NoticeDigestMailer::MissingRecipientEmail", delivery.failure_reason
   end
 
+  def test_the_fifth_failed_digest_is_reported_to_the_error_reporter
+    delivery = notify(User.create!(name: "")).delivery
+    4.times { Bali::NoticeDigestJob.perform_now }
+
+    assert_error_reported(Bali::NoticeDigestMailer::MissingRecipientEmail) { Bali::NoticeDigestJob.perform_now }
+    assert_equal "failed", delivery.reload.status
+  end
+
+  # An immediate delivery whose job never ran — a worker of the previous deploy took it and did
+  # not know the class — waits for nothing. The hourly run sends it again.
+  def test_an_immediate_delivery_stuck_pending_for_over_an_hour_is_enqueued_again
+    Bali.notice_kinds = Bali.notice_kinds.merge(movie_assigned: { email: :immediate })
+    stuck = @movie.notify(recipient: @ana, kind: :movie_assigned, message: "Review Alien").delivery
+    stuck.update_columns(updated_at: 61.minutes.ago)
+    clear_enqueued_jobs
+
+    assert_enqueued_with(job: Bali::NoticeDeliveryJob, args: [ stuck ]) { Bali::NoticeDigestJob.perform_now }
+  end
+
+  def test_an_immediate_delivery_pending_for_less_than_an_hour_is_left_to_its_job
+    Bali.notice_kinds = Bali.notice_kinds.merge(movie_assigned: { email: :immediate })
+    @movie.notify(recipient: @ana, kind: :movie_assigned, message: "Review Alien").delivery.update_columns(updated_at: 10.minutes.ago)
+    clear_enqueued_jobs
+
+    assert_no_enqueued_jobs(only: Bali::NoticeDeliveryJob) { Bali::NoticeDigestJob.perform_now }
+  end
+
   def test_one_recipient_failing_does_not_hold_back_the_others
     notify(User.create!(name: ""))
     notify

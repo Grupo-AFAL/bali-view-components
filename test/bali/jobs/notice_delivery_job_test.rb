@@ -58,6 +58,14 @@ class BaliNoticeDeliveryJobTest < ActiveJob::TestCase
     assert delivery.failed_at
   end
 
+  # A failure the log swallows would be a lost email nobody hears about: the last attempt goes to
+  # Rails.error, which is what an error tracker listens to.
+  def test_the_last_failure_is_reported_to_the_error_reporter
+    Bali.notices_mailer = RefusingMailer.name
+
+    assert_error_reported(RuntimeError) { perform_enqueued_jobs { notify } }
+  end
+
   def test_a_recipient_with_no_email_ends_failed_and_the_notice_survives
     nobody = User.create!(name: "")
 

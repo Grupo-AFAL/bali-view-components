@@ -31,13 +31,14 @@ module Bali
       where(status: "sending").where(updated_at: ...before).update_all(status: "pending", updated_at: Time.current)
     end
 
-    # One more attempt, `failed` at the last.
+    # One more attempt, `failed` at the last. Returns the ids that just failed for good.
     def self.record_failure!(ids, error, attempts:)
-      where(id: ids).find_each do |delivery|
+      where(id: ids).find_each.filter_map do |delivery|
         failed = delivery.attempts + 1 >= attempts
         delivery.update!(attempts: delivery.attempts + 1, status: failed ? "failed" : "pending",
                          failed_at: (Time.current if failed),
                          failure_reason: "#{error.class}: #{error.message}".truncate(255))
+        delivery.id if failed
       end
     end
   end

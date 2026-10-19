@@ -29,7 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - incluye `Bali::Concerns::Controllers::InboxBadge` en su `ApplicationController` y
     `Bali::Concerns::Controllers::Inbox` en un `InboxesController`, con las rutas de la guía;
   - cambia la campana del topbar por `Bali::Topbar::Inbox`;
-  - programa el job del correo agrupado si usa `:digest`.
+  - programa `Bali::NoticeDigestJob` cada hora si algún kind tiene `email:`. Además de mandar el
+    agrupado, reenvía las entregas inmediatas que quedaron pendientes más de una hora.
+
+  La falla definitiva de un correo, inmediato o agrupado, queda en la bitácora y se reporta a
+  `Rails.error`. Sentry la recibe con `config.rails.register_error_subscriber`, que bali-runtime
+  enciende.
 
   Las apps que no lo adopten no tienen nada que hacer. Guía: `docs/guides/engine-models.md`
   («Inbox and notices»).

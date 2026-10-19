@@ -473,9 +473,9 @@ The model is `Bali::Notice`. `Bali::Notification` is the deprecated alert compon
 - **Writing the row.** An `email:` kind writes its delivery row in the notice's own transaction, unless `Bali.notices_deliver_if` says no. A crash between the two cannot drop an email silently.
 - **`:immediate`.** These go through `Bali::NoticeDeliveryJob`, which calls `Bali.notices_mailer.constantize.notify(notice).deliver_now`. Your mailer keeps every template it has.
   - The job retries five times with `polynomially_longer`.
-  - The row ends `delivered`, or `failed` with the exception's class and message.
+  - The row ends `delivered`, or `failed` with the exception's class and message, and that last failure goes to `Rails.error`. An error tracker hears it when it subscribes there: sentry-rails does with `config.rails.register_error_subscriber = true`, which bali-runtime sets for the fleet.
   - A delivered row is never sent again.
-- **`:digest`.** These wait for `Bali::NoticeDigestJob`, which you schedule hourly:
+- **`:digest`.** These wait for `Bali::NoticeDigestJob`. Schedule it hourly as soon as any kind has `email:`, digest or not, because each run also enqueues again every `:immediate` delivery left `pending` for over an hour. That is the case of a job a worker of the previous deploy took without knowing its class.
 
   ```yaml
   # config/recurring.yml (Solid Queue)
@@ -492,6 +492,7 @@ The model is `Bali::Notice`. `Bali::Notification` is the deprecated alert compon
   - A kind with three or more notices gets its own block; the rest share «Otros avisos».
   - Rows link to each notice's `action_url`, made absolute, and never to an endpoint that marks it read: mail scanners fetch every link.
   - A run killed mid-send leaves rows in `sending`. They go back to `pending` after an hour, so a digest can go out twice but never gets lost.
+  - A digest that fails for the fifth time goes to `Rails.error` too.
 
 The digest's recipient must answer `email`, and `first_name` or `name` for the greeting. Its copy
 is under `bali_view.notices.digest`. Override `app_name`, and give each digest kind its heading:
