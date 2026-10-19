@@ -16,7 +16,7 @@
 <% end %>
 
 <%= render Bali::SplitView::Component.new(frame_id: "bali-inbox-detail") do |split| %>
-  <% split.with_list(count: @total, selected: (inbox_item_key(@item) if @item),
+  <% split.with_list(selected: (inbox_item_key(@item) if @item),
                      next_url: (url_for(action: :show, kind: @kind, module: @module_key, page: @next_page) if @next_page)) do |list| %>
     <% list.with_filter(label: t("bali_view.inbox.all"), href: url_for(action: :show, module: @module_key),
                         active: @kind.nil?, count: counts.values.sum) %>

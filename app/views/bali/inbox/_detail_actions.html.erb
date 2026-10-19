@@ -4,13 +4,15 @@
                                          variant: :primary, data: { turbo_prefetch: "false", turbo_frame: "_top" }) %>
   <% end %>
   <%= render Bali::Clipboard::Component.new(class: "max-w-xs") do |clipboard| %>
-    <% clipboard.with_trigger do %>
+    <%# Its left corners are square for the source it sits beside, hidden here. %>
+    <% clipboard.with_trigger(class: "rounded-l-lg whitespace-nowrap") do %>
       <%= render Bali::Icon::Component.new("link", class: "size-4") %>
       <span><%= t("bali_view.inbox.detail.copy") %></span>
     <% end %>
     <% clipboard.with_success_content do %>
       <%= render Bali::Icon::Component.new("check", class: "size-4") %>
     <% end %>
-    <% clipboard.with_source(url_for(action: :item, kind: item.kind, gid: item.gid, only_path: false)) %>
+    <%# sr-only, not hidden: the controller copies its innerText, which a display:none node does not have. %>
+    <% clipboard.with_source(url_for(action: :item, kind: item.kind, gid: item.gid, only_path: false), class: "sr-only") %>
   <% end %>
 </div>

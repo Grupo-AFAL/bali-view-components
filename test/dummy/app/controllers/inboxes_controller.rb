@@ -5,4 +5,7 @@
 # InboxBadge, which is `current_user`.
 class InboxesController < ApplicationController
   include Bali::Concerns::Controllers::Inbox
+
+  # The admin shell, so the page sits under the topbar whose icon opens it.
+  self.conditional_layout = "admin"
 end
