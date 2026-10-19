@@ -49,7 +49,7 @@ module Bali
         scope = provider.pending_for(user)
         candidates = scope.respond_to?(:where) ? scope.where(id: gid.model_id) : scope
         record = candidates.detect { |candidate| candidate.to_global_id.to_s == gid.to_s }
-        record && provider.build_items([ record ], user: user).first.with(module_key: module_key)
+        record && in_module(provider.build_items([ record ], user: user).first, module_key)
       end
 
       # `[notifiable_type, notifiable_id]` of every item here with an unread notice that announces
@@ -83,13 +83,18 @@ module Bali
         records = provider.pending_for(user).first(FETCH_CAP + 1)
         (@capped ||= []) << provider.kind if records.size > FETCH_CAP
 
-        provider.build_items(records.first(FETCH_CAP), user: user).map { |item| item.with(module_key: module_key) }
+        provider.build_items(records.first(FETCH_CAP), user: user).map { |item| in_module(item, module_key) }
       end
+
+      # A provider whose kind spans modules names each item's own.
+      def in_module(item, module_key) = item.module_key ? item : item.with(module_key: module_key)
 
       def sort_key(item)
         due = item.due_time
-        [ BANDS.index(item.band), due ? 0 : 1, due.to_f, item.title.to_s ]
+        [ -priorities.fetch(item.kind, 0), BANDS.index(item.band), due ? 0 : 1, due.to_f, item.title.to_s ]
       end
+
+      def priorities = @priorities ||= @providers.to_h { |_module_key, provider| [ provider.kind.to_sym, provider.priority ] }
     end
   end
 end

@@ -25,6 +25,30 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     def build_item(document, user:) = item(document, title: document.title)
   end
 
+  # What must be seen first whatever its date — an emergency before an alert.
+  class UrgentProvider
+    include Bali::Inbox::Provider
+
+    def kind = :urgent
+
+    def priority = 1
+
+    def pending_for(_user) = Task.done.order(:id)
+
+    def build_item(task, user:) = item(task, title: task.title, due_at: task.due_date)
+  end
+
+  # One kind across modules: the module comes from each record.
+  class SpreadProvider
+    include Bali::Inbox::Provider
+
+    def kind = :spread
+
+    def pending_for(_user) = Task.in_progress.order(:id)
+
+    def build_item(task, user:) = item(task, title: task.title, module_key: :elsewhere)
+  end
+
   def setup
     @providers = Bali.inbox_providers
     @kinds = Bali.notice_kinds
@@ -71,6 +95,24 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
       assert_equal [ "Overdue", "Today", "Friday", "Later", "Undated a", "Undated b" ], items.map(&:title)
       assert_equal %i[overdue this_week this_week later later later], items.map(&:band)
     end
+  end
+
+  def test_a_provider_with_a_higher_priority_comes_first_whatever_the_dates
+    Bali.inbox_providers = { demo: [ TasksProvider.name, UrgentProvider.name ] }
+    travel_to Time.zone.local(2026, 10, 18, 12) do
+      task("Overdue", due: Date.new(2026, 10, 10))
+      task("Urgent, undated", status: :done)
+
+      assert_equal [ "Urgent, undated", "Overdue" ], query.items.map(&:title)
+    end
+  end
+
+  def test_an_item_naming_its_own_module_keeps_it
+    Bali.inbox_providers = { demo: [ TasksProvider.name, SpreadProvider.name ] }
+    spread = task("Spread", status: :in_progress)
+
+    assert_equal :elsewhere, query.items(kind: :spread).sole.module_key
+    assert_equal :elsewhere, query.find(:spread, spread.to_gid_param).module_key
   end
 
   def test_items_filter_by_kind_and_by_module

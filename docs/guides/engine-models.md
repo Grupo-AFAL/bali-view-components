@@ -538,7 +538,8 @@ Bali.inbox_providers = { governance: %w[SignaturesProvider ApprovalsProvider] }
 - `pending_count_for(user)` defaults to `pending_for(user).size`, which is a `COUNT` on a relation. Override it when you can count more cheaply than you list.
 - `build_items(records, user:)` maps `build_item`. Override it for one lookup over the whole batch.
 - `item(record, **fields)` fills in `kind` and `record`.
-- The item's other fields are `title` (required), `subtitle`, `href`, `due_at` (a `Date` is due at the end of its day) and `requested_by`.
+- The item's other fields are `title` (required), `subtitle`, `href`, `due_at` (a `Date` is due at the end of its day), `requested_by` and `module_key`. An item takes its provider's module unless it names its own — for a kind whose records span modules, like gobierno-corporativo's workflow steps.
+- `priority` (`0` by default) puts a provider's items before every item of a provider with a lower one, whatever their dates: Centinela's emergencies before its alerts. Within a priority, items sort by band and due date.
 - An item's address is its kind and its record's GlobalID: `/inbox/items/:kind/:gid`.
 - A kind registered twice raises on first use.
 - Providers are named by class, so a development reload never keeps a stale one.
@@ -614,9 +615,10 @@ end
   - A new notice, a mark-read through the engine, and any request of the person's that is not a GET expire the cache.
   - Someone else's action that changes your items without a notice shows within the minute.
   - With a warm cache a page runs one cache read and no provider or notice query.
+  - Writing a notice never fails on account of the badge or the email. Both happen after the commit, so a failure there — Action Cable's database down, the queue unreachable — goes to `Rails.error` instead of raising into whoever wrote it: the badge is stale for a minute at most, and the hourly sweep resends an email whose job never went in.
 - **turbo-rails.** The popover and «Marcar todos como leídos» answer with Turbo Streams, so the inbox needs turbo-rails, as dashboard widgets do; Bali's gemspec does not declare it.
 - **The stream.** `stream:` subscribes the page to `[owner, :bali_inbox]`. Each new notice broadcasts a signal that carries no count, and the icon fetches `badge_url` again. That needs Action Cable too; without `stream:` the icon refreshes on the next page.
-- **Layouts where the icon must stay silent.** In a layout an engine renders too (bali-auth's screens), use `try(:inbox_badge)` and `main_app.` route helpers.
+- **Layouts an engine renders too.** bali-auth's, bali-analytics' and Flightdeck's controllers inherit the host's `ApplicationController`, so `inbox_badge` is there on their screens; the layout only needs `main_app.` route helpers.
 
 ### Porting from afal-apps
 

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.19.1] - 2026-10-19
+
+### Added
+
+- **`priority` en los providers de la bandeja** (#1512, hallado al adoptarla en Centinela). Los items
+  de un provider con prioridad mayor van antes que los de cualquier otro, sin importar sus fechas: las
+  emergencias de Centinela antes que sus alertas. Vale `0` si el provider no la declara, así que nada
+  cambia en las apps que ya la usan.
+- **Un item puede traer su propio `module_key`** (#1512, hallado en gobierno-corporativo). Si no lo
+  trae, toma el del provider como hasta ahora. Sirve para un kind cuyos registros son de varios
+  módulos, como los pasos de flujo de GC.
+
+### Fixed
+
+- **Escribir un aviso ya no tumba la petición si falla lo que viene después del commit** (#1512,
+  hallado al adoptarla en costa-norte). Si el broadcast del contador o el encolado del correo
+  fallaban (Action Cable sin su base, la cola caída), la excepción salía de quien escribió el aviso
+  con su trabajo ya guardado: en un alta, la persona reenviaba y quedaba duplicada. Ahora va a
+  `Rails.error`: el contador se pone al día en un minuto y el barrido de cada hora reenvía el
+  correo. Nada que hacer en la app.
+- **La guía ya no pide `try(:inbox_badge)` en las pantallas de bali-auth**: sus controladores, los de
+  bali-analytics y los de Flightdeck heredan el `ApplicationController` de la app.
+
 ## [v3.19.0] - 2026-10-18
 
 ### Added

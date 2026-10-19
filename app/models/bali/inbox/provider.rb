@@ -31,6 +31,10 @@ module Bali
 
       def icon = "inbox"
 
+      # Higher comes first, before any lower one's item whatever the dates: Centinela's emergencies
+      # before its alerts.
+      def priority = 0
+
       # A COUNT on a relation. A provider that can count more cheaply than it lists overrides it.
       def pending_count_for(user) = pending_for(user).size
 
