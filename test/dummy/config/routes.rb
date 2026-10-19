@@ -59,6 +59,7 @@ Rails.application.routes.draw do
     resources :process_flows, only: :show do
       scope module: :process_flows do
         resource :diagram, only: %i[show update]
+        resource :annotations, only: :update
         resource :finalization, only: :create
         resource :import, only: %i[new create]
         resource :host_event, only: :create

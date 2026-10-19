@@ -19,7 +19,7 @@ export const CRITERIA_RULES = [
     criteria: ['COM-15', 'COM-16', 'COM-17', 'COM-18', 'COM-19'],
     severity: 'error',
     appliesTo: GATEWAY_KEYS,
-    source: 'AFAL COM-15; BPMN 2.0, AFAL COM-16, COM-17, COM-19; BPMN 2.0 COM-18',
+    source: 'ORG COM-15; BPMN 2.0, ORG COM-16, COM-17, COM-19; BPMN 2.0 COM-18',
     check: (_doc, ctx) => ctx.nodes.filter((n) => isGateway(n) && ctx.structure.forwardIn(n).length > 1).flatMap((join) => {
       const opening = ctx.structure.opening(join)
       const expected = opening && CLOSING[opening.type]
@@ -36,7 +36,7 @@ export const CRITERIA_RULES = [
     criteria: ['COM-20'],
     severity: 'error',
     appliesTo: GATEWAY_KEYS,
-    source: 'BPMN 2.0, AFAL COM-20',
+    source: 'BPMN 2.0, ORG COM-20',
     check: (_doc, ctx) => ctx.nodes.filter((n) => isGateway(n) && ctx.structure.forwardIn(n).length > 1).flatMap((join) => {
       const opening = ctx.structure.opening(join)
       if (!opening) return []
@@ -69,7 +69,7 @@ export const CRITERIA_RULES = [
     criteria: ['COM-02', 'COM-07'],
     severity: 'error',
     appliesTo: YES_NO_KEYS,
-    source: 'AFAL COM-02, COM-07',
+    source: 'ORG COM-02, COM-07',
     check: (_doc, ctx) => each(ctx.nodes, (n) => isBinaryDecision(n) && !isJoin(ctx, n) && ctx.out(n).length !== 2, (n) => ({ element_id: n.id, vars: { name: ctx.name(n), count: ctx.out(n).length } }))
   },
   {
@@ -78,7 +78,7 @@ export const CRITERIA_RULES = [
     criteria: ['DEC-03'],
     severity: 'warning',
     appliesTo: YES_NO_KEYS,
-    source: 'AFAL DEC-03',
+    source: 'ORG DEC-03',
     check: (_doc, ctx) => each(ctx.nodes,
       (n) => isBinaryDecision(n) && ctx.out(n).length === 2 && ctx.out(n).every((e) => words(e.label)) &&
         !ctx.out(n).every((e) => [ctx.yes, ctx.no].includes(words(e.label))),
@@ -91,7 +91,7 @@ export const CRITERIA_RULES = [
     criteria: ['EST-05'],
     severity: 'error',
     appliesTo: FLOW_NODE_KEYS,
-    source: 'BPMN 2.0, AFAL EST-05',
+    source: 'BPMN 2.0, ORG EST-05',
     check: (_doc, ctx) => ctx.structure.cycles().flatMap((members) => {
       const inside = new Set(members)
       const exits = ctx.flows.some((e) => inside.has(String(e.source)) && !inside.has(String(e.target)))
@@ -109,7 +109,7 @@ export const CRITERIA_RULES = [
     criteria: ['EST-01', 'EST-02', 'SEC-04', 'EVF-01'],
     severity: 'error',
     appliesTo: FLOW_NODE_KEYS,
-    source: 'BPMN 2.0, AFAL EST-01, EVF-01; AFAL EST-02, SEC-04',
+    source: 'BPMN 2.0, ORG EST-01, EVF-01; ORG EST-02, SEC-04',
     check: (_doc, ctx) => {
       const starts = ctx.nodes.filter((n) => n.type === 'start_event')
       const ends = ctx.nodes.filter((n) => n.type === 'end_event')
@@ -145,7 +145,7 @@ export const CRITERIA_RULES = [
     criteria: ['EVM-01', 'VIS-10'],
     severity: 'error',
     appliesTo: NODE_KEYS,
-    source: 'AFAL EVM-01; BPMN 2.0, AFAL VIS-10',
+    source: 'ORG EVM-01; BPMN 2.0, ORG VIS-10',
     check: (_doc, ctx) => (ctx.allowed
       ? each(ctx.nodes, (n) => { const key = paletteKeyFor(n); return key && !ctx.allowed.has(key) }, (n) => ({ element_id: n.id, vars: { name: ctx.name(n), kind: say(ctx, `palette_${paletteKeyFor(n)}`) } }))
       : [])
@@ -157,7 +157,7 @@ export const CRITERIA_RULES = [
     criteria: ['EVI-03', 'EVF-03', 'EVM-09'],
     severity: 'warning',
     appliesTo: [...START_KEYS, ...END_KEYS, ...byKind(['intermediate_catch_event'], ['conditional'])],
-    source: 'BPMN 2.0, AFAL EVI-03, EVF-03, EVM-09',
+    source: 'BPMN 2.0, ORG EVI-03, EVF-03, EVM-09',
     check: (_doc, ctx) => {
       const lists = ctx.verbs()
       return each(ctx.nodes,
@@ -172,7 +172,7 @@ export const CRITERIA_RULES = [
     criteria: ['EVI-05'],
     severity: 'warning',
     appliesTo: byKind(['start_event'], [null]),
-    source: 'BPMN 2.0, AFAL EVI-05',
+    source: 'BPMN 2.0, ORG EVI-05',
     check: (_doc, ctx) => {
       const periodic = ctx.plainList('periodic_words')
       return each(ctx.nodes, (n) => n.type === 'start_event' && !kind(n) && contains(n.name, periodic), (n) => ({ element_id: n.id, vars: { name: ctx.name(n) } }))

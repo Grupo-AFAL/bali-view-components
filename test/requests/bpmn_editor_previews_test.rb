@@ -13,7 +13,7 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     JSON.parse(island["data-bpmn-editor-#{name}-value"])
   end
 
-  %w[default playground host_integration configured review catalog pair].each do |preview|
+  %w[default playground host_integration configured review catalog pair split_view compare_flows].each do |preview|
     define_method("test_the_#{preview}_preview_renders_the_island_and_its_loader_metas") do
       get "#{PREVIEW}/#{preview}"
 
@@ -30,7 +30,7 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     palette: %w[descriptive analytic full],
     layout: %w[compact straight],
     page: Bali::BpmnEditor::Preview::PAGES.keys,
-    rule_severity: Bali::BpmnEditor::Preview::RULE_PRESETS.keys,
+    rule_severity: Bali::BpmnEditor::Preview::RULE_PRESETS.keys + %w[structure off],
     server: Admin::ProcessFlows::DemoServer::MODES,
     theme: %w[light dark],
     locale: %w[es en]
@@ -168,5 +168,83 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     get "#{PREVIEW}/playground", params: { sample: "large" }
 
     assert_operator island_value("data").fetch("nodes").count { |n| n["type"] == "task" }, :>, 50
+  end
+
+  # A demo builds a flow and reads it left to right; the component itself keeps :compact.
+  def test_the_playground_lays_out_straight_unless_asked
+    get "#{PREVIEW}/playground"
+    assert_equal "straight", island["data-bpmn-editor-layout-value"]
+
+    get "#{PREVIEW}/playground", params: { layout: "compact" }
+    assert_equal "compact", island["data-bpmn-editor-layout-value"]
+  end
+
+  def test_rules_off_in_the_playground_is_rules_false
+    get "#{PREVIEW}/playground", params: { rule_severity: "off" }
+
+    assert_equal "false", island["data-bpmn-editor-validate-value"]
+  end
+
+  def test_the_read_only_viewer_shows_the_apps_appearance_only_when_asked
+    get "#{PREVIEW}/default"
+    assert(island_value("data")["nodes"].none? { |n| n.key?("appearance") })
+
+    get "#{PREVIEW}/default", params: { appearance: true }
+    looks = island_value("data")["nodes"].filter_map { |n| n["appearance"] }
+    assert_equal 4, looks.size
+    assert_includes looks, { "dimmed" => true }
+    assert_includes island_value("legend").pluck("swatch"), "color"
+  end
+
+  def test_the_split_view_has_a_minimal_map_and_one_editor_per_flow_version
+    get "#{PREVIEW}/split_view"
+
+    assert_response :ok
+    map = css_select(".split-view-component--collapsible[data-split-state='closed'] .split-view-master #split_map_bpmn").first
+    assert_equal "minimal", map["data-bpmn-editor-chrome-value"]
+    assert_equal({ "profile" => "structure" }, JSON.parse(map["data-bpmn-editor-rules-value"]))
+    assert_nil map["data-bpmn-editor-selected-id-value"], "the map starts alone, nothing selected"
+    assert(JSON.parse(map["data-bpmn-editor-data-value"])["nodes"].all? { |n| n["appearance"] })
+    assert_equal %w[split_flow_billing_v1 split_flow_close_v1 split_flow_customer_v1 split_flow_payments_v1 split_flow_payments_v2
+                    split_flow_supplier_v1 split_flow_supplier_v2],
+                 css_select("template [data-controller='bpmn-editor']").pluck("id").sort
+    annotatable = css_select("template [data-bpmn-editor-annotatable-value='true']").pluck("id").sort
+    assert_equal %w[split_flow_billing_v1 split_flow_close_v1 split_flow_customer_v1 split_flow_payments_v2 split_flow_supplier_v2],
+                 annotatable, "only the newest version takes notes"
+  end
+
+  # Every box the map draws as having a flow opens one; only the faded box is empty.
+  def test_the_split_view_has_a_flow_behind_every_box_but_the_faded_one
+    get "#{PREVIEW}/split_view"
+
+    boxes = JSON.parse(css_select("[data-controller='bpmn-split-view']").first["data-bpmn-split-view-boxes-value"])
+    flows = css_select("template[data-flow]").pluck("data-flow").uniq
+    nodes = JSON.parse(css_select("#split_map_bpmn").first["data-bpmn-editor-data-value"])["nodes"]
+    faded = nodes.select { |n| n.dig("appearance", "dimmed") }.pluck("id")
+    assert_equal [ "b5" ], faded
+    boxes.each do |box|
+      if faded.include?(box["id"])
+        assert_nil box["flow"], "#{box['id']} is faded: no flow"
+      else
+        assert_includes flows, box["flow"], "#{box['id']} (#{box['name']}) has no flow to open"
+      end
+    end
+  end
+
+  def test_the_split_view_selects_a_deep_linked_box
+    get "#{PREVIEW}/split_view", params: { selected: "b3" }
+
+    assert_equal "b3", css_select("#split_map_bpmn").first["data-bpmn-editor-selected-id-value"]
+  end
+
+  def test_compare_flows_offers_other_processes_and_versions_matched_automatically
+    get "#{PREVIEW}/compare_flows"
+
+    assert_response :ok
+    list = island_value("review")["compare_with"]
+    assert_equal [ "Alta de cliente", "Alta de empleado", "v1 (ids estables)", "v1 (ids recreados)" ], list.pluck("label")
+    assert_equal %w[auto], list.pluck("match").uniq
+    stable, recreated = list.last(2).map { |c| c["document"]["nodes"].pluck("id") }
+    assert_empty stable & recreated, "the recreated version shares no id"
   end
 end

@@ -45,7 +45,10 @@ test('a lane needs room for the label under its events', () => {
 
 test('a name gets the width the browser needs for it: 6.9 px a glyph measured, so no name is cut off', async () => {
   const { textBlock } = await import('../../../app/components/bali/bpmn_editor/model/labels.js')
-  assert.ok(textBlock('Tiempo (captura)').w >= 16 * 6.9)
-  assert.equal(textBlock('Tiempo (captura)').lines, 1)
-  assert.equal(textBlock('Compensación (lanzamiento)').lines, 2, 'breaks at the space, as the browser does')
+  // Names wrap at 100 px (labels.js MAX_WIDTH) into up to three lines, each
+  // as wide as its words measure.
+  assert.ok(textBlock('Tiempo (captura)').w >= 9 * 6.9, 'its longest line, «(captura)», whole')
+  assert.equal(textBlock('Tiempo (captura)').lines, 2, 'breaks at the space, as the browser does')
+  assert.equal(textBlock('Señal').lines, 1)
+  assert.equal(textBlock('¿Documentación completa del proveedor nuevo?').lines, 3)
 })

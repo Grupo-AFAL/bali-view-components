@@ -3,6 +3,7 @@ import { BaseEdge } from '@xyflow/react'
 import { pathWithJumps } from '../model/routing.js'
 import { edgeType } from '../model/catalog.js'
 import { useCanvas } from './CanvasContext.js'
+import { DIFF_MARKS, diffMark } from './diffMarks.js'
 
 // A connection drawn along the route the router computed from the document —
 // not along React Flow's handle-to-handle path — so it goes around elements
@@ -17,7 +18,8 @@ function RoutedEdge ({ id, data, selected }) {
   const canvas = useCanvas()
   const route = canvas.routes.get(id)
   if (!route) return null
-  const { edge, issue, diff } = data
+  const { edge, issue, diff, diffReasons } = data
+  const mark = diff ? DIFF_MARKS[diffMark(diff, diffReasons)] : null
   const type = edgeType(edge)
   const marker = MARKERS[type]
   const { x: ox, y: oy } = canvas.origin
@@ -39,6 +41,13 @@ function RoutedEdge ({ id, data, selected }) {
         style={{ strokeDasharray: marker.dash }}
         interactionWidth={16}
       />
+      {mark && (
+        // On the middle of its longest segment; the label sits near the source.
+        <g className={`bpmn-edge-diff-mark is-${mark.tone}`} transform={`translate(${route.label.x + ox} ${route.label.y + oy})`} data-testid='bpmn-diff-mark' role='img' aria-label={canvas.t(mark.label)}>
+          <circle r={8} />
+          <text x={0} y={0} textAnchor='middle' dominantBaseline='central'>{mark.symbol}</text>
+        </g>
+      )}
       {renaming && canvas.renderEdgeRename(edge, { x: lx, y: ly })}
       {!renaming && label && (
         <g

@@ -239,6 +239,22 @@ function ArtifactShape ({ node, w, h, paint }) {
   return <path d={`M14,1 L1,1 L1,${h - 1} L14,${h - 1}`} fill='none' style={{ stroke }} strokeWidth={1.5} />
 }
 
+// The app's colour on an element (`node.appearance.color`, model/appearance.js):
+// its outline, and a tint over an activity's body. Drawn over NodeShape, on
+// the canvas and in the outputs alike; the task marker and the [+] stay
+// visible through the tint.
+export function AppearanceMark ({ node, width: w, height: h, color }) {
+  if (!color) return null
+  const line = { fill: 'none', stroke: color, strokeWidth: 2.6 }
+  const category = categoryOf(node)
+  if (category === CATEGORY.activity) {
+    return <rect data-appearance={color} x={1} y={1} width={w - 2} height={h - 2} rx={Math.round(h * 0.1 * 10) / 10} fill={color} fillOpacity={0.16} stroke={color} strokeWidth={2.6} />
+  }
+  if (category === CATEGORY.event) return <circle data-appearance={color} cx={w / 2} cy={h / 2} r={Math.min(w, h) / 2 - 1.5} {...line} />
+  if (category === CATEGORY.gateway) return <path data-appearance={color} d={`M${w / 2},1.5 L${w - 1.5},${h / 2} L${w / 2},${h - 1.5} L1.5,${h / 2} Z`} {...line} strokeLinejoin='round' />
+  return <rect data-appearance={color} x={1} y={1} width={w - 2} height={h - 2} rx={4} {...line} />
+}
+
 // The colour an element is outlined in — the minimap paints with it.
 export const strokeOf = (node, external = false) => paintFor(node, LIVE_PAINT, external).stroke
 

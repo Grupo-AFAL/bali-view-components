@@ -18,7 +18,7 @@ function ItemIcon ({ itemKey }) {
 // what the host resolved server-side (Bali::BpmnEditor::Palette): items may
 // be disabled, and an item with a host note is outlined and explains itself
 // in its tooltip and in the legend at the foot.
-export default function Palette ({ t, palette, tool, onPick, onAddLane, collapsed, onToggle, disabled }) {
+export default function Palette ({ t, palette, tool, onPick, onAddLane, collapsed, onToggle, disabled, overlay = false }) {
   const [query, setQuery] = useState('')
   const [closed, setClosed] = useState(() => new Set())
   const items = (palette && palette.items) || []
@@ -42,11 +42,14 @@ export default function Palette ({ t, palette, tool, onPick, onAddLane, collapse
   }
 
   return (
-    <aside className='bpmn-chrome flex w-56 shrink-0 flex-col border-r border-base-300 bg-base-100' aria-label={t('palette_title')}>
+    <aside
+      className={`bpmn-chrome flex w-56 shrink-0 flex-col border-r border-base-300 bg-base-100 ${overlay ? 'absolute inset-y-0 left-0 z-20 max-w-[calc(100%-2rem)] shadow-xl' : ''}`}
+      aria-label={t('palette_title')} data-testid='bpmn-palette'
+    >
       <div className='flex items-center justify-between px-3 pb-1 pt-2'>
         <h3 className='text-sm font-semibold'>{t('palette_title')}</h3>
-        <button type='button' className='btn btn-ghost btn-xs btn-square' onClick={onToggle} aria-label={t('palette_hide')} title={t('palette_hide')}>
-          <Icon name='chevronLeft' size={14} />
+        <button type='button' className={`btn btn-ghost btn-square ${overlay ? 'btn-sm' : 'btn-xs'}`} onClick={onToggle} aria-label={t('palette_hide')} title={t('palette_hide')}>
+          <Icon name={overlay ? 'x' : 'chevronLeft'} size={overlay ? 16 : 14} />
         </button>
       </div>
       <label className='input input-sm mx-3 mb-2 flex w-auto items-center gap-2'>

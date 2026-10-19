@@ -2,6 +2,7 @@
 // with the collections always present. Keys the island does not know are
 // kept, so a save never drops what the host (or an imported file) put there.
 import { autoLayout, needsLayout } from './layout.js'
+import { withoutAppearance } from './appearance.js'
 
 const COLLECTIONS = ['lanes', 'nodes', 'edges', 'annotations', 'stencil', 'issues']
 
@@ -37,8 +38,9 @@ export const outgoing = (doc, id) => doc.edges.filter((e) => String(e.source) ==
 export const incoming = (doc, id) => doc.edges.filter((e) => String(e.target) === String(id))
 
 // What the save request carries: the document minus what only the server
-// writes (`issues` and `stencil` come back fresh with every 200).
+// writes (`issues`, `stencil` and each node's `appearance` come back fresh
+// with every 200).
 export function forSave (doc) {
   const { issues, stencil, ...rest } = doc
-  return rest
+  return { ...rest, nodes: (rest.nodes || []).map(withoutAppearance) }
 }

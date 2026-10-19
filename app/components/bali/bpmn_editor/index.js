@@ -4,6 +4,15 @@
 // island's entry and the main bundle stays React-free.
 import { ReactIslandController } from '../../../frontend/bali/react-island'
 
+// The `rules` the island takes: false (Component `rules: false`, its own
+// value), a profile's name (`rules: :structure` arrives as { profile }), or
+// the configuration as is.
+export function rulesProp (validate, rules) {
+  if (validate === false) return false
+  if (rules && rules.profile) return String(rules.profile)
+  return rules
+}
+
 export class BpmnEditorController extends ReactIslandController {
   static values = {
     // The document — contract in Bali::BpmnEditor::Data.
@@ -24,6 +33,9 @@ export class BpmnEditorController extends ReactIslandController {
     palette: { type: Object, default: {} },
     legend: { type: Array, default: [] },
     rules: { type: Object, default: {} },
+    // false: Component `rules: false` — a Stimulus Object value reads only objects, so
+    // the `false` arrives on its own and componentProps hands BpmnEditor `rules: false`.
+    validate: { type: Boolean, default: true },
     // { nodes: { type or '*' => [field] }, lanes: [field] } — the properties panel's own fields.
     fields: { type: Object, default: {} },
     urls: { type: Object, default: {} },
@@ -31,7 +43,15 @@ export class BpmnEditorController extends ReactIslandController {
     watermark: { type: String, default: '' },
     // { tags: [{ key, label, color }], compare_with: { document, label } } — review notes and comparison.
     review: { type: Object, default: {} },
-    i18n: { type: Object, default: {} }
+    i18n: { type: Object, default: {} },
+    // The node selected on load, read-only too (Component `selected_id:`).
+    selectedId: { type: String, default: '' },
+    // 'full' | 'minimal' (Component `chrome:`).
+    chrome: { type: String, default: 'full' },
+    // The floor of "Fit to view" (Component `min_zoom:`, canvas/fit.js).
+    minZoom: { type: Number, default: 0.4 },
+    // Review notes on a read-only diagram, saved to urls.annotations.
+    annotatable: { type: Boolean, default: false }
   }
 
   mountElement () {
@@ -39,7 +59,8 @@ export class BpmnEditorController extends ReactIslandController {
   }
 
   componentProps () {
-    return { ...super.componentProps(), hostElement: this.element }
+    const { validate, ...props } = super.componentProps()
+    return { ...props, rules: rulesProp(validate, props.rules), hostElement: this.element }
   }
 
   async loadComponent () {

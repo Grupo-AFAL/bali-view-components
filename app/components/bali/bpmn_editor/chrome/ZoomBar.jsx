@@ -25,12 +25,12 @@ export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect,
       </div>
       {onSelectAll && (
         <button type='button' className='btn btn-xs border-base-300 bg-base-100 shadow-sm' onClick={onSelectAll} title='Ctrl+A'>
-          <Icon name='selectAll' size={14} />{t('select_all')}
+          <Icon name='selectAll' size={14} /><span className='bpmn-tool-label'>{t('select_all')}</span>
         </button>
       )}
       {onBoxSelect && (
         <button type='button' className={`btn btn-xs border-base-300 bg-base-100 shadow-sm ${boxSelect ? 'btn-active text-primary' : ''}`} onClick={onBoxSelect} title={t('select_mode_hint')} aria-pressed={String(Boolean(boxSelect))}>
-          <Icon name='selectAll' size={14} />{t('select_mode')}
+          <Icon name='selectAll' size={14} /><span className='bpmn-tool-label'>{t('select_mode')}</span>
         </button>
       )}
       {selectedCount > 0 && <span className='text-xs text-base-content/70'>{t('selected_count', { count: selectedCount })}</span>}

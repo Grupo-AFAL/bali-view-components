@@ -64,6 +64,11 @@ export class SplitViewController extends Controller {
     document.addEventListener('turbo:load', this.capturePristineDetail)
     document.addEventListener('turbo:load', this.syncIfRestoreCancelled)
     this.capturePristineDetail()
+    // `collapsible: true`: a closed detail is no row's any more. The event is
+    // the container's (collapse.js), the master's parent.
+    this.clearSelection = this.clearSelection.bind(this)
+    this.container = this.element.parentElement
+    this.container?.addEventListener('split-view:close', this.clearSelection)
     // A restore that DID replace the body lands here, on the new instance.
     if (restoringHistory) this.syncToLocation({ survived: false })
     // Whatever is marked right now is the selection, however it got marked.
@@ -176,6 +181,7 @@ export class SplitViewController extends Controller {
     document.removeEventListener('turbo:before-cache', this.rewindFrameBeforeCache)
     document.removeEventListener('turbo:load', this.capturePristineDetail)
     document.removeEventListener('turbo:load', this.syncIfRestoreCancelled)
+    this.container?.removeEventListener('split-view:close', this.clearSelection)
   }
 
   // Back and forward, and only those. Measured: a row click promotes the frame
@@ -321,6 +327,11 @@ export class SplitViewController extends Controller {
     const clicked = event.currentTarget
     this.selectedHref = clicked.href
     this.rowTargets.forEach(row => this.applySelection(row, row === clicked))
+  }
+
+  clearSelection () {
+    this.selectedHref = null
+    this.rowTargets.forEach(row => this.applySelection(row, false))
   }
 
   applySelection (row, selected) {

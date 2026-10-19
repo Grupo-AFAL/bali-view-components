@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { evaluate, CATALOG, DEFAULT_ENABLED, isRuleOn, blockPolicy, registerBpmnRule, unregisterBpmnRule, mergeIssues, issuesByElement, ruleList } from '../../../app/components/bali/bpmn_editor/model/rules/engine.js'
+import { evaluate, CATALOG, DEFAULT_ENABLED, isRuleOn, blockPolicy, registerBpmnRule, unregisterBpmnRule, mergeIssues, issuesByElement, ruleList, STRUCTURE_PROFILE } from '../../../app/components/bali/bpmn_editor/model/rules/engine.js'
 import { AFAL_RULES } from '../../../app/components/bali/bpmn_editor/model/rules/afal.js'
 // AFAL's guidelines, registered as a host does (afal-package.test.js checks
 // that without this import they never run).
@@ -214,4 +214,62 @@ test('a configured rule id no rule has is warned about once', (context) => {
   assert.equal(said.length, 2, said.join(' | '))
   assert.ok(said.some((line) => line.includes('"R99"')))
   assert.ok(said.some((line) => line.includes('"COM-99"')))
+})
+
+// Component `rules: false`: a diagram that only has to be drawn (an
+// architecture map, a viewer) — nothing is checked and nothing blocks.
+test('rules: false runs no rule, registered ones included, and blocks nothing', () => {
+  registerBpmnRule({ id: 'APP9', severity: 'error', check: (d) => d.nodes.map((n) => ({ element_id: n.id, message: 'Always.' })) })
+  try {
+    const broken = { orientation: 'horizontal', lanes: [], nodes: [node('t', 'task', null, 100, 100, { name: 'Task' })], edges: [] }
+    assert.ok(evaluate(broken, {}, t).length > 0, 'the same flow has issues with the default rules')
+    assert.deepEqual(evaluate(broken, false, t), [])
+    assert.ok(ruleList(false).every((rule) => !rule.on))
+    assert.deepEqual(Object.values(blockPolicy(false)).filter(Boolean), [], 'every block is off')
+  } finally {
+    unregisterBpmnRule('APP9')
+  }
+})
+
+// Component `rules: :structure`: a map of processes is no process model — only
+// what holds for any diagram with lanes is checked, and only its blocks apply.
+test('rules: structure keeps the structural rules and their blocks, nothing of modelling', () => {
+  registerBpmnRule({ id: 'APP8', severity: 'error', check: (d) => d.nodes.map((n) => ({ element_id: n.id, message: 'Always.' })) })
+  try {
+    const map = {
+      orientation: 'horizontal',
+      lanes: [{ id: 'l1', name: 'Lane', order: 1, size: 180 }],
+      nodes: [
+        node('a', 'sub_process', 'l1', 100, 90, { name: 'Billing' }),
+        node('b', 'sub_process', 'l1', 110, 95, { name: 'Billing', reference: { id: '1', label: 'Billing' } }),
+        node('c', 'task', 'gone', 600, 90, { name: 'x' })
+      ],
+      edges: [flow('e1', 'a', 'ghost')]
+    }
+    const rules = [...new Set(evaluate(map, 'structure', t).map((i) => i.rule))].sort()
+    assert.deepEqual(rules, ['R11', 'R18', 'R25', 'R26'])
+    assert.ok(evaluate(map, {}, t).some((i) => ['R09', 'R12', 'R21', 'R16'].includes(i.rule)), 'the full set finds modelling issues here')
+    assert.deepEqual(ruleList('structure').filter((r) => r.on).map((r) => r.id).sort(), [...STRUCTURE_PROFILE].sort())
+    const policy = blockPolicy('structure')
+    assert.equal(policy.insideLane, true, 'elements stay inside a lane')
+    assert.deepEqual(Object.entries(policy).filter(([k, v]) => k !== 'insideLane' && v).map(([k]) => k), [], 'no modelling block')
+  } finally {
+    unregisterBpmnRule('APP8')
+  }
+})
+
+// What a person reads names no organization and no spreadsheet: the
+// sources cite the organization's guide in the UI's words.
+test('no visible text names AFAL or a spreadsheet, in any rule source or UI string', async () => {
+  const { DEFAULT_I18N } = await import('../../../app/components/bali/bpmn_editor/i18n.js')
+  const { sourceText } = await import('../../../app/components/bali/bpmn_editor/model/rules/engine.js')
+  const es = translator({ rules_source_org: 'Guía de modelado de la organización' })
+  const forbidden = /afal|excel/i
+  const rules = ruleList({})
+  assert.ok(rules.some((r) => /\bORG\b/.test(r.source || '')), 'some rule cites the organization’s guide')
+  for (const rule of rules) {
+    for (const tr of [t, es]) assert.doesNotMatch(sourceText(rule.source, tr), forbidden, rule.id)
+  }
+  assert.match(sourceText('ORG COM-02, COM-07', es), /^Guía de modelado de la organización COM-02, COM-07$/)
+  for (const [key, value] of Object.entries(DEFAULT_I18N)) assert.doesNotMatch(String(value), forbidden, key)
 })

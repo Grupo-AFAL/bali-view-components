@@ -2,15 +2,20 @@ import { useEffect } from 'react'
 import * as ops from '../model/operations.js'
 
 // What the host sends back (the bali_bpmn_event stream action, or its own
-// CustomEvent): a reload, a reference or a lane assignee its drawer created.
+// CustomEvent): a reload, a reference or a lane assignee its drawer created,
+// the node to select (`bali-bpmn:select` { node_id }, null to clear).
 // Only events dispatched on this editor's own element: one that bubbles up
 // from another editor on the page, or one sent to document, names no editor
 // and is not ours (two editors mint the same client ids).
-export default function useHostEvents (hostElement, { reload, apply, docRef }) {
+export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect }) {
   useEffect(() => {
     if (!hostElement) return undefined
     const handlers = {
       'bali-bpmn:reload': () => reload(),
+      'bali-bpmn:select': (event) => {
+        const detail = event.detail || {}
+        if (onSelect) onSelect(detail.node_id == null ? null : String(detail.node_id))
+      },
       'bali-bpmn:reference-created': (event) => {
         const { client_node_id: nodeId, reference } = event.detail || {}
         if (!nodeId || !reference || !docRef.current.nodes.some((n) => String(n.id) === String(nodeId))) return
@@ -25,5 +30,5 @@ export default function useHostEvents (hostElement, { reload, apply, docRef }) {
     const listener = (event) => { if (event.target === hostElement) handlers[event.type](event) }
     for (const name of Object.keys(handlers)) hostElement.addEventListener(name, listener)
     return () => { for (const name of Object.keys(handlers)) hostElement.removeEventListener(name, listener) }
-  }, [hostElement, reload, apply, docRef])
+  }, [hostElement, reload, apply, docRef, onSelect])
 }

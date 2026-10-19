@@ -166,7 +166,7 @@ function Participants ({ doc, t, onPick }) {
 // The side panel: properties of what is selected (a node, a connection, a
 // lane, several nodes) or the list of participants. Replaces the modal
 // dialogs of the old editor.
-export default function PropertiesPanel ({ t, doc, selection, api, editable, nodeFields, laneFields, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true }) {
+export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true }) {
   const nodes = selection.nodes.map((id) => doc.nodes.find((n) => String(n.id) === id)).filter(Boolean)
   const edge = selection.edges.length === 1 ? doc.edges.find((e) => String(e.id) === selection.edges[0]) : null
   const lane = selection.lanes.length === 1 ? doc.lanes.find((l) => String(l.id) === selection.lanes[0]) : null
@@ -206,12 +206,13 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, nod
   }
   const target = nodes.length === 1 ? nodes[0] : edge
   const notes = target ? (doc.annotations || []).filter((a) => String(a.target_id) === String(target.id)) : []
-  if (target && view !== 'participants' && (editable || notes.length)) {
+  // `notesEditable`: a read-only diagram whose notes may be written (Component `annotatable:`).
+  if (target && view !== 'participants' && (editable || notesEditable || notes.length)) {
     body = (
       <>
         {body}
         <NotesEditor
-          t={t} notes={notes} tags={annotationTags} editable={editable}
+          t={t} notes={notes} tags={annotationTags} editable={editable || notesEditable}
           onAdd={() => api.addNote(target.id)} onChange={api.updateNote} onDelete={api.deleteNote}
         />
       </>

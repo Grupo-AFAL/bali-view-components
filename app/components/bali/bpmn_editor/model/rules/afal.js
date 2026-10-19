@@ -19,7 +19,7 @@ export const AFAL_RULES = [
     criteria: ['ACT-13', 'COM-22', 'EST-04'],
     severity: 'error',
     appliesTo: SEQUENCE_FLOW,
-    source: 'AFAL ACT-13, COM-22, EST-04',
+    source: 'ORG ACT-13, COM-22, EST-04',
     check: (_doc, ctx) => [...ctx.structure.back].flatMap((e) => {
       const target = ctx.byId.get(String(e.target))
       if (!target || (target.type === 'exclusive_gateway' && !isBinaryDecision(target) && ctx.inc(target).length > 1)) return []
@@ -32,7 +32,7 @@ export const AFAL_RULES = [
     criteria: ['EVF-04'],
     severity: 'error',
     appliesTo: END_KEYS,
-    source: 'AFAL EVF-04',
+    source: 'ORG EVF-04',
     check: (_doc, ctx) => {
       const seen = new Set()
       return ctx.nodes.filter((n) => n.type === 'end_event' && words(n.name)).flatMap((n) => {
@@ -50,7 +50,7 @@ export const AFAL_RULES = [
     criteria: ['SUB-05', 'SUB-06', 'SUB-07'],
     severity: 'error',
     appliesTo: byType('sub_process'),
-    source: 'AFAL SUB-05, SUB-06, SUB-07',
+    source: 'ORG SUB-05, SUB-06, SUB-07',
     check: (_doc, ctx) => ctx.nodes.filter((n) => n.type === 'sub_process').flatMap((n) => {
       const vars = { name: ctx.name(n) }
       const found = []
@@ -70,7 +70,7 @@ export const AFAL_RULES = [
     criteria: ['VIS-02', 'VIS-08'],
     severity: 'warning',
     appliesTo: LANE,
-    source: 'AFAL VIS-02; AFAL VIS-08',
+    source: 'ORG VIS-02; ORG VIS-08',
     check: (doc, ctx) => {
       if (!(doc.nodes || []).length) return []
       const fit = pageFit(doc, ctx.page)
@@ -85,7 +85,7 @@ export const AFAL_RULES = [
     criteria: ['ACT-02'],
     severity: 'warning',
     appliesTo: TASK_KEYS,
-    source: 'AFAL ACT-02',
+    source: 'ORG ACT-02',
     check: (_doc, ctx) => {
       const lists = ctx.verbs()
       const nominal = ctx.plainList('nominal_endings')
@@ -103,7 +103,7 @@ export const AFAL_RULES = [
     criteria: ['ACT-01', 'ACT-07', 'ACT-08'],
     severity: 'warning',
     appliesTo: TASK_KEYS,
-    source: 'AFAL ACT-01, ACT-07, ACT-08',
+    source: 'ORG ACT-01, ACT-07, ACT-08',
     check: (_doc, ctx) => {
       const verbs = ctx.plainList('transition_verbs')
       return each(ctx.nodes, (n) => isActivity(n) && n.type !== 'sub_process' && startsWith(n.name, verbs), (n) => ({ element_id: n.id, vars: { name: ctx.name(n) } }))
@@ -115,7 +115,7 @@ export const AFAL_RULES = [
     criteria: ['ACT-09'],
     severity: 'warning',
     appliesTo: TASK_KEYS,
-    source: 'AFAL ACT-09',
+    source: 'ORG ACT-09',
     check: (_doc, ctx) => {
       const phrases = ctx.plainList('continuous_phrases')
       return each(ctx.nodes, (n) => isActivity(n) && n.type !== 'sub_process' && startsWith(n.name, phrases), (n) => ({ element_id: n.id, vars: { name: ctx.name(n) } }))
@@ -129,7 +129,7 @@ export const AFAL_RULES = [
     criteria: ['ACT-03', 'ACT-04', 'ACT-05'],
     severity: 'warning',
     appliesTo: TASK_KEYS,
-    source: 'AFAL ACT-03, ACT-04, ACT-05',
+    source: 'ORG ACT-03, ACT-04, ACT-05',
     check: (_doc, ctx) => {
       const vague = ctx.plainList('vague_phrases')
       const operative = ctx.plainList('operative_phrases')
@@ -151,7 +151,7 @@ export const AFAL_RULES = [
     criteria: ['ACT-10', 'ACT-11', 'ACT-12'],
     severity: 'warning',
     appliesTo: TASK_KEYS,
-    source: 'AFAL ACT-10, ACT-11, ACT-12',
+    source: 'ORG ACT-10, ACT-11, ACT-12',
     check: (_doc, ctx) => {
       const verbs = ctx.plainList('decision_verbs')
       return each(ctx.nodes, (n) => isActivity(n) && n.type !== 'sub_process' && startsWith(n.name, verbs) && ctx.out(n).length > 0 &&
@@ -165,7 +165,7 @@ export const AFAL_RULES = [
     criteria: ['LAN-08'],
     severity: 'warning',
     appliesTo: LANE,
-    source: 'AFAL LAN-08',
+    source: 'ORG LAN-08',
     check: (_doc, ctx) => {
       const lanes = (ctx.doc.lanes || []).filter((l) => words(l.name))
       return lanes.flatMap((lane, i) => {

@@ -210,7 +210,7 @@ class BaliBpmnEditorComponentOutputsTest < ComponentTestCase
     assert_equal "Draft", island["data-bpmn-editor-watermark-value"]
     review = JSON.parse(island["data-bpmn-editor-review-value"])
     assert_equal "keep", review.dig("tags", 0, "key")
-    assert_equal [ "v1.0", "n1" ], [ review.dig("compare_with", "label"), review.dig("compare_with", "document", "nodes", 0, "id") ]
+    assert_equal [ "v1.0", "n1" ], [ review.dig("compare_with", 0, "label"), review.dig("compare_with", 0, "document", "nodes", 0, "id") ]
   end
 
   def test_a_comparison_document_is_validated_like_data
@@ -219,5 +219,108 @@ class BaliBpmnEditorComponentOutputsTest < ComponentTestCase
     end
     assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, review: { tags: [ { key: "x" } ] }) }
     assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, review: { notes: [] }) }
+  end
+end
+
+# BPMN-50: what an app embedding several diagrams needs — selection it
+# controls, a minimal chrome, notes on a read-only diagram, no rules, and a
+# comparison of two different flows. All optional: without them the island
+# receives exactly what it did before.
+class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
+  def payload = { lanes: [], nodes: [ { id: "n1", type: "sub_process", name: "Billing" } ], edges: [] }
+  def island = page.find(".bali-bpmn-editor")
+
+  def render_with(**options)
+    render_inline(Bali::BpmnEditor::Component.new(data: payload, **options))
+  end
+
+  NEW_VALUES = %w[selected-id chrome min-zoom annotatable validate].freeze
+
+  def test_without_the_new_options_none_of_their_values_is_rendered
+    render_with
+
+    NEW_VALUES.each { |name| assert_nil island["data-bpmn-editor-#{name}-value"], name }
+    refute_includes island[:class], "h-full"
+  end
+
+  def test_the_app_selects_a_node_on_load
+    render_with(selected_id: :n1)
+
+    assert_equal "n1", island["data-bpmn-editor-selected-id-value"]
+  end
+
+  def test_the_minimal_chrome_fills_its_container
+    render_with(chrome: :minimal, min_zoom: 0.15)
+
+    assert_equal "minimal", island["data-bpmn-editor-chrome-value"]
+    assert_equal "0.15", island["data-bpmn-editor-min-zoom-value"]
+    assert_includes island[:class], "h-full"
+    assert_selector(".bali-bpmn-editor-mount.h-full .bali-bpmn-editor-skeleton.h-full")
+  end
+
+  def test_chrome_and_min_zoom_are_validated
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, chrome: :compact) }
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, min_zoom: 0) }
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, min_zoom: "0.2") }
+    error = assert_raises(ArgumentError) do
+      Bali::BpmnEditor::Component.new(data: payload, chrome: :minimal, editable: true, urls: { save: "/d" })
+    end
+    assert_match(/read-only/, error.message)
+  end
+
+  def test_notes_on_a_read_only_diagram_need_their_endpoint
+    render_with(annotatable: true, urls: { annotations: "/flows/1/annotations", diagram: "/flows/1/diagram" })
+
+    assert_equal "true", island["data-bpmn-editor-annotatable-value"]
+    assert_equal "false", island["data-bpmn-editor-editable-value"]
+    assert_equal "/flows/1/annotations", JSON.parse(island["data-bpmn-editor-urls-value"])["annotations"]
+  end
+
+  def test_annotatable_has_no_effect_without_the_endpoint_or_while_editing
+    render_with(annotatable: true)
+    assert_nil island["data-bpmn-editor-annotatable-value"]
+
+    render_with(annotatable: true, editable: true, urls: { save: "/d", annotations: "/a" })
+    assert_nil island["data-bpmn-editor-annotatable-value"]
+  end
+
+  def test_rules_false_reaches_the_island_as_its_own_flag
+    render_with(rules: false)
+
+    assert_equal "false", island["data-bpmn-editor-validate-value"]
+    assert_equal "{}", island["data-bpmn-editor-rules-value"]
+  end
+
+  def test_the_structure_profile_travels_as_a_profile
+    render_with(rules: :structure)
+
+    assert_equal({ "profile" => "structure" }, JSON.parse(island["data-bpmn-editor-rules-value"]))
+    assert_nil island["data-bpmn-editor-validate-value"]
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, rules: :strict) }
+  end
+
+  def test_two_different_flows_compare_by_name
+    render_with(review: { compare_with: { document: payload, label: "Customer onboarding", match: :name } })
+
+    assert_equal "name", JSON.parse(island["data-bpmn-editor-review-value"]).dig("compare_with", 0, "match")
+  end
+
+  def test_the_comparison_matches_automatically_unless_told_otherwise_and_rejects_anything_else
+    render_with(review: { compare_with: { document: payload, label: "v1" } })
+    assert_equal "auto", JSON.parse(island["data-bpmn-editor-review-value"]).dig("compare_with", 0, "match")
+
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, review: { compare_with: { document: payload, match: :position } }) }
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, review: { compare_with: { document: payload, mode: :overlay } }) }
+  end
+
+  def test_several_comparisons_reach_the_island_as_a_list_one_as_a_list_of_one
+    render_with(review: { compare_with: [ { document: payload, label: "v1", match: :id },
+                                          { document: payload, label: "Another process", match: :name } ] })
+    list = JSON.parse(island["data-bpmn-editor-review-value"])["compare_with"]
+    assert_equal [ %w[v1 id], [ "Another process", "name" ] ], list.map { |c| [ c["label"], c["match"] ] }
+
+    assert_raises(Bali::BpmnEditor::Data::InvalidError) do
+      Bali::BpmnEditor::Component.new(data: payload, review: { compare_with: [ { document: payload }, { document: { orientation: "diagonal" } } ] })
+    end
   end
 end

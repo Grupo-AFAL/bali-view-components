@@ -3,6 +3,7 @@ import { NodeResizeControl } from '@xyflow/react'
 import { IssueMarker } from '../shapes.jsx'
 import { MIN_LANE_SIZE } from '../model/geometry.js'
 import { useCanvas } from './CanvasContext.js'
+import { DIFF_MARKS, diffMark } from './diffMarks.js'
 
 // A lane: a header that names the participant (and is the drag handle) and a
 // body that lets pointer events through to the pane (flow.css), so dragging
@@ -12,7 +13,8 @@ import { useCanvas } from './CanvasContext.js'
 // CROSS-axis one the length every lane shares.
 function LaneNode ({ id, data, selected, width, height }) {
   const canvas = useCanvas()
-  const { lane, orientation, header, issue, diff } = data
+  const { lane, orientation, header, issue, diff, diffReasons } = data
+  const mark = diff ? DIFF_MARKS[diffMark(diff, diffReasons)] : null
   const horizontal = orientation === 'horizontal'
   const external = lane.kind === 'external'
   const name = lane.name || canvas.t('lane_unnamed')
@@ -33,7 +35,8 @@ function LaneNode ({ id, data, selected, width, height }) {
           ? canvas.renderRename(lane, true)
           : (
             <span className='bpmn-lane-name'>
-              {name}
+              {mark && <span className={`bpmn-diff-chip is-${mark.tone}`} data-testid='bpmn-diff-mark' title={canvas.t(mark.label)}>{mark.symbol}</span>}
+              <span className='bpmn-lane-title'>{name}</span>
               {external && <span className='bpmn-lane-external'>{canvas.t('lane_external')}</span>}
             </span>
             )}

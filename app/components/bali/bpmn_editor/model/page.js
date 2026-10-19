@@ -31,7 +31,7 @@ export function pageSize (page = LETTER) {
 
 // What the export draws, in px: the content plus margins and the title band.
 export function exportSize (doc, { title = true } = {}) {
-  const bounds = contentBounds(doc, layoutLanes(doc))
+  const bounds = contentBounds(doc, layoutLanes(doc, { print: true }))
   return {
     bounds,
     width: Math.ceil(bounds.w + EXPORT_MARGIN * 2),

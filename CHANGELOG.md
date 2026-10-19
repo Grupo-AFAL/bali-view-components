@@ -23,6 +23,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     [la guía](docs/api/bpmn-editor.md) y sus dependencias opcionales (`react`, `react-dom`,
     `@xyflow/react`, `@rails/request.js`); la implementación de referencia está en `test/dummy`
     (`ProcessFlow` y `Admin::ProcessFlows::*`).
+  - **Para incrustarlo en una página de la app** (todo opcional; sin estas opciones se comporta
+    igual): `appearance` por nodo (color, atenuado y una etiqueta corta que la app decide; nunca
+    viaja en el guardado), `selected_id:` con los eventos `bali-bpmn:select` y
+    `bali-bpmn:selection-change`, `chrome: :minimal` (solo zoom y ajustar, a la altura del
+    contenedor), `min_zoom:`, `annotatable:` con `urls[:annotations]` (notas en un diagrama de solo
+    lectura), `rules: false` y `compare_with: { match: :name }` para comparar dos flujos distintos.
+    La comparación superpuesta ya no encima lo quitado sobre lo agregado y, lado a lado, cada panel
+    se ajusta a su diagrama. Previews nuevas: «Split view» y «Compare two different flows».
+    Además: el `.bpmn` exportado lleva `appearance.color` como BPMN in Color (OMG) y como
+    `bioc:stroke`/`bioc:fill` (bpmn.io, Camunda); `rules: :structure` deja solo las reglas que
+    valen para cualquier diagrama con carriles; con `match: :name`, las compuertas y eventos sin
+    nombre se emparejan por sus vecinos, los nombres repetidos por carril y posición, y el movido
+    de carril se marca aparte, con un resumen que lleva a cada cambio; la comparación marca cada
+    cambio también con un símbolo (+ − ✎ ⇄), no solo con color, y el nombre accesible del nodo
+    dice su badge y si está atenuado; `selection-change` trae `type`, `lane_id` y `lane_name`.
+    Comparación: `compare_with:` acepta una lista con selector, `match: :auto` (por omisión: por id
+    y luego por nombre) empareja versiones con ids recreados, abre lado a lado con zoom
+    sincronizado, resalta la contraparte, ofrece «Solo cambios» y el detalle de cada cambio, y
+    solo ofrece superpuesto entre versiones de un mismo proceso.
+  - **Experiencia de uso:** «Conectar» se ve (aviso con Esc/Cancelar, línea guía, destinos
+    inválidos atenuados); «Bifurcar con» una decisión Sí/No nombra sus salidas y deja recta la
+    existente; el XOR de unión del retrabajo va antes de su destino; el aviso de pendiente ya no
+    tapa el nombre del carril; hacia un carril externo el elemento se queda en su carril; las
+    fuentes de las reglas nombran la guía de la organización; «Autoajustar» compacto aprieta el
+    flujo antes de doblarlo (y lo imprime sin la cola vacía del carril), y los nombres de eventos y
+    compuertas se parten en hasta tres renglones de 100 px. La preview «Split view» abre el flujo
+    deslizándose junto al mapa (`Bali::SplitView` con `collapsible:`) y lo cierra con «Cerrar» o
+    Esc, limpiando la selección del mapa; cada caja con color tiene un flujo detrás. Con
+    `chrome: :minimal` el editor se reencuadra en cada cuadro en que su contenedor cambia de tamaño
+    (antes esperaba a que se asentara y el diagrama se veía cortado durante la animación); un editor
+    montado en un panel aún sin tamaño espera a tenerlo antes de dibujar (React Flow ya no avisa de
+    un contenedor de 0 px), y la leyenda se angosta en vez de tapar el zoom en un teléfono. En una pantalla
+    angosta el editor ya se puede usar: con menos de 768 px de ancho (del editor, no de la ventana) la paleta,
+    «Por colocar» y la leyenda empiezan plegadas, la paleta abierta es una capa sobre el lienzo que
+    se pliega al elegir un elemento, y el panel de propiedades se abre con «Propiedades» en vez de al
+    seleccionar;
+    con un lienzo de menos de 40rem las barras quedan en íconos y se apilan, el minimapa se quita y
+    el aviso de «Conectar» se acomoda; el menú rápido va debajo del elemento cuando no cabe a ningún
+    lado.
+
+- **`Bali::SplitView` toma `collapsible: true`: el detalle entra deslizándose y se cierra.** Sin
+  detalle, el maestro ocupa todo el ancho; cuando el frame recibe contenido (una carga de Turbo
+  Frame o lo que la app ponga en él), el maestro se encoge a `master_width` y el detalle entra por
+  la derecha (300 ms) con el foco en su encabezado; su contenido se acomoda desde el primer cuadro a
+  su ancho final (un diagrama se encuadra una sola vez). «Cerrar» o Esc lo sacan, vacían el frame (y su
+  `src`), quitan el resaltado de la fila y regresan el foco a ella; bajo `lg` el detalle es una hoja
+  a pantalla completa con «← Volver». Sin animación con `prefers-reduced-motion`. El contenedor
+  emite `split-view:open` y `split-view:close`. Preview nueva: `split_view/collapsible`.
+  - **Anfitrión:** nada que hacer; sin la opción el HTML es el mismo. Para usarla, la sección
+    «A detail that slides in» de [la guía](docs/guides/master-detail.md); un drill-down que no es
+    una ubicación propia va con `advance: false`.
+
+- **`Bali::SplitView`: `master_width: :equal` y `height: :screen` o una medida CSS.** `:equal` deja
+  las dos columnas del mismo ancho al píxel (con `"50%"` el detalle quedaba más angosto por el gap;
+  el gap se cambia con `--bali-split-gap`). `height: :screen` llena desde el borde superior del split
+  hasta el inferior de la ventana (`dvh`, recalculado al cambiar lo que hay arriba o el tamaño), con
+  un mínimo de `--bali-split-min-h` (28rem); `height: "640px"` (o `rem`, `vh`…) es un alto fijo. Los
+  dos dan a cada panel el alto completo, como `:full`, desde `lg`. La preview «Split view» del
+  editor BPMN usa `:equal` y `:screen`.
+  - **Anfitrión:** nada que hacer; sin las opciones el HTML es el mismo. El mensaje de error de
+    `master_width:` y de `height:` cambió (nombra las opciones nuevas).
+  - Un detalle colapsable que trae su propio cierre (`data-action="split-view-collapse#close"`, por
+    ejemplo junto a su título) oculta la barra de «Cerrar» del panel, para alinearse con el maestro;
+    el patrón está en la guía. La preview «Split view» del editor lo usa: el mapa y el flujo son la
+    misma caja (mismo borde superior, inferior y ancho).
 
 ## [v3.18.0] - 2026-10-15
 

@@ -39,3 +39,22 @@ test('the fit keeps the diagram clear of the properties panel and of the open le
   assert.equal(fitOptions({ panelOpen: true }).padding.right, '320px')
   assert.equal(fitOptions({ legendOpen: true, panelOpen: true }).padding.right, '320px')
 })
+
+// Component `min_zoom:`: an embedded diagram may go below 40 % to be seen whole.
+test('min_zoom moves the floor of the fit and of the anchoring', () => {
+  assert.equal(fitOptions().minZoom, MIN_FIT_ZOOM)
+  assert.equal(fitOptions({ minZoom: 0.15 }).minZoom, 0.15)
+  // At 25 % with a 15 % floor the diagram fitted: it stays centred.
+  const fitted = flowAt({ x: -300, y: 120, zoom: 0.25 }, { x: 0, y: 0, width: 4000, height: 600 })
+  anchorStart(fitted, fitOptions({ minZoom: 0.15 }))
+  assert.deepEqual(fitted.calls, [])
+  // Clamped at that floor, it opens at its start.
+  const clamped = flowAt({ x: -300, y: 120, zoom: 0.15 }, { x: 0, y: 0, width: 9000, height: 600 })
+  anchorStart(clamped, fitOptions({ minZoom: 0.15 }))
+  assert.deepEqual(clamped.calls, [{ x: 40, y: 120, zoom: 0.15 }])
+})
+
+test('the minimal chrome keeps only the zoom bar clear', () => {
+  assert.deepEqual(fitOptions({ minimal: true }).padding, { top: '16px', right: '16px', bottom: '52px', left: '16px' })
+  assert.equal(fitOptions({ minimal: true, legendOpen: true }).padding.right, '290px')
+})

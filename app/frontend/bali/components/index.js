@@ -70,6 +70,8 @@ import { QrScannerController } from '../../../components/bali/qr_scanner/index'
 import { ToastContainerController } from '../../../components/bali/toast_container/index'
 import { SplitViewController } from '../../../components/bali/split_view/index'
 import { SplitViewListController } from '../../../components/bali/split_view/list/index'
+import { SplitViewCollapseController } from '../../../components/bali/split_view/collapse'
+import { SplitViewScreenController } from '../../../components/bali/split_view/screen'
 
 export {
   AlertController,
@@ -111,6 +113,8 @@ export {
   SideMenuTriggerController,
   SortableListController,
   SplitViewController,
+  SplitViewCollapseController,
+  SplitViewScreenController,
   SplitViewListController,
   StatusController,
   TableGroupsController,
@@ -218,7 +222,9 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
 
   // Master-detail
   'split-view': SplitViewController,
-  'split-view-list': SplitViewListController
+  'split-view-list': SplitViewListController,
+  'split-view-collapse': SplitViewCollapseController,
+  'split-view-screen': SplitViewScreenController
 })
 
 /**

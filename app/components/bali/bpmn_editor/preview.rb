@@ -49,20 +49,23 @@ module Bali
       # @param sample select "The flow to start from" { choices: [invoice, empty, rework, parallel, partners, large] }
       # @param orientation select "Lanes stacked vertically (horizontal) or side by side (vertical)" { choices: [horizontal, vertical] }
       # @param palette select "Palette preset" { choices: [descriptive, analytic, full] }
-      # @param layout select "What «Autoajustar» and the first layout do" { choices: [compact, straight] }
+      # @param layout select "What «Autoajustar» and the first layout do (straight here; the component's default is compact)" { choices: [straight, compact] }
       # @param page select "Sheet for the compact layout and the outputs" { choices: [letter_landscape, letter_portrait, a4_landscape, a4_portrait, legal_landscape, legal_portrait] }
       # @param lock_orientation toggle "Hide the orientation switch"
       # @param external_lanes toggle "Offer the external participant checkbox"
       # @param autosave toggle "Save after every change (off: only «Guardar borrador»)"
       # @param optional_rules toggle "Load the optional rule package"
-      # @param rule_severity select "Rule configuration: default, strict or relaxed" { choices: [default, strict, relaxed] }
+      # @param rule_severity select "Rule configuration: default, strict, relaxed, structure (rules: :structure) or off (rules: false)" { choices: [default, strict, relaxed, structure, "off"] }
       # @param server select "How the dummy server answers (demonstration only)" { choices: [normal, conflict, error, slow, issues, reject_finalize] }
       # @param theme select "Page theme" { choices: [light, dark] }
       # @param locale select { choices: [es, en] }
       # @param name text "Title of the outputs and file name"
       # @param watermark text "Text across the outputs"
       # @param fresh toggle "Start from the sample on every visit"
-      def playground(sample: "invoice", orientation: "horizontal", palette: :analytic, layout: :compact,
+      # `layout` starts straight here: a demo builds a flow step by step and
+      # reads it left to right, while compact folds anything that would print
+      # below 6 pt on the page (VIS-02). The component keeps `:compact`.
+      def playground(sample: "invoice", orientation: "horizontal", palette: :analytic, layout: :straight,
                      page: "letter_landscape", lock_orientation: false, external_lanes: true, autosave: true,
                      optional_rules: false, rule_severity: "default", server: "normal", theme: "light",
                      locale: :es, name: "", watermark: "", fresh: true)
@@ -72,7 +75,7 @@ module Bali
           locals: { flow: flow, locale: locale, theme: theme.to_s, optional_rules: optional_rules, server: server.to_s,
                     options: { palette: palette.to_sym, layout: layout.to_sym, page: PAGES.fetch(page.to_s),
                                lock_orientation: lock_orientation, external_lanes: external_lanes,
-                               autosave: autosave, rules: RULE_PRESETS.fetch(rule_severity.to_s),
+                               autosave: autosave, rules: { "off" => false, "structure" => :structure }.fetch(rule_severity.to_s) { RULE_PRESETS.fetch(rule_severity.to_s) },
                                name: name.presence, watermark: watermark.presence } }
         )
       end
@@ -82,10 +85,25 @@ module Bali
       # first an external participant (grey lane, white activities), a message
       # flow, a decision with labelled answers and an annotation. Try zooming,
       # «Pantalla completa», the outputs, and clicking a sub-process with a link.
-      # docs/api/bpmn-editor.md
+      # With `appearance` on, the app colours three elements, fades one and
+      # badges two (`node.appearance`), and explains its colours in the legend;
+      # the outputs carry them too. docs/api/bpmn-editor.md
+      # @param appearance toggle "The app's colours, fading and badges on some elements"
       # @param locale select { choices: [es, en] }
-      def default(locale: :es)
-        island(locale, data: BpmnSampleFlows.invoice(locale: locale))
+      def default(appearance: false, locale: :es)
+        data = BpmnSampleFlows.invoice(locale: locale)
+        return island(locale, data: data) unless appearance
+
+        en = locale.to_s == "en"
+        looks = { "t1" => { color: "#E9A23B", badge: en ? "In progress" : "En proceso" },
+                  "t3" => { color: "#16a34a", badge: en ? "Done" : "Hecho" },
+                  "t4" => { color: "#2563eb" }, "p1" => { dimmed: true } }
+        data[:nodes] = data[:nodes].map { |n| looks[n[:id]] ? n.merge(appearance: looks[n[:id]]) : n }
+        island(locale, data: data, legend: { add: [
+                 { key: "app_progress", label: en ? "In progress" : "En proceso", swatch: "color", color: "#E9A23B" },
+                 { key: "app_done", label: en ? "Done" : "Hecho", swatch: "color", color: "#16a34a" },
+                 { key: "app_automated", label: en ? "Automated" : "Automatizado", swatch: "color", color: "#2563eb" }
+               ] })
       end
 
       # @label Host integration
@@ -222,6 +240,77 @@ module Bali
         end
       end
 
+      # @label Split view: a map and the flow behind each box
+      # The «50/50» pattern inside a collapsible `Bali::SplitView`: the map
+      # alone at first, and the flow behind a box slides in beside it when the
+      # box is clicked; «Close» or Esc give the map the width back and clear its
+      # selection. The map is a map of processes in vertical lanes whose boxes
+      # the APP colours (`appearance:` — colour, faded, badge) and explains in
+      # the legend (`swatch: "color"`); `chrome: :minimal`, `rules: :structure`
+      # (a map is no process model). The flow is read-only with `chrome:
+      # :minimal` and `annotatable:` (select an element and add a note: it is
+      # saved to `urls[:annotations]`).
+      #
+      # The wiring is the dummy app's own Stimulus controller, as a host would
+      # write it: it listens to `bali-bpmn:selection-change` on the map, takes
+      # `bali-bpmn:open-reference` over so a click only selects, fills the
+      # SplitView's frame (which opens it), and moves the map with
+      # `bali-bpmn:select` from «Previous» / «Next». The version picker swaps
+      # the document too. `selected` is a deep link: the map's `selected_id:`,
+      # whose flow the controller opens on load.
+      # docs/api/bpmn-editor.md#embedding-a-diagram
+      # `master_width: :equal` and `height: :screen` by default: the two panes
+      # the same width, and as tall as the window leaves them.
+      # @param locale select { choices: [es, en] }
+      # @param selected select { choices: [~, b1, b2, b3, b4, b5, b6] }
+      # @param height select { choices: [screen, full, content, 640px] }
+      # @param master_width select { choices: [equal, 50%, 420px] }
+      def split_view(locale: :es, selected: nil, height: "screen", master_width: "equal")
+        records = BpmnProcessMap.flows(locale).to_h do |key, versions|
+          [ key, versions.each_with_index.map do |doc, i|
+            { number: versions.size - i, flow: ProcessFlow.reset!("Split view #{key} v#{versions.size - i} (#{locale})", doc) }
+          end ]
+        end
+        I18n.with_locale(locale) do
+          render_with_template(template: "bali/bpmn_editor/previews/split_view",
+                               locals: { records: records, locale: locale, selected: selected.presence,
+                                         height: split_option(height), master_width: split_option(master_width) })
+        end
+      end
+
+      # @label Compare flows and versions
+      # «Supplier onboarding» against what an app would offer, picked in the
+      # comparison bar (`compare_with:` with a list): another process that
+      # shares most of its steps («Customer onboarding», «Employee
+      # onboarding») and its own previous version, once with stable ids and
+      # once with every id recreated (as a destructive import leaves them).
+      # All use `match: :auto` — by id, then by name — so the recreated version
+      # still pairs. Side by side by default, zoom and panning in sync; the
+      # overlay is offered only for versions of one process. Hover an element
+      # to see its counterpart; «Solo cambios» fades what did not change.
+      # docs/api/bpmn-editor.md#outputs-notes-and-comparison
+      # @param locale select { choices: [es, en] }
+      def compare_flows(locale: :es)
+        en = locale.to_s == "en"
+        options = [
+          { document: BpmnProcessMap.customer(locale), label: en ? "Customer onboarding" : "Alta de cliente" },
+          { document: BpmnProcessMap.employee(locale), label: en ? "Employee onboarding" : "Alta de empleado" },
+          { document: BpmnProcessMap.supplier(locale, version: 1), label: en ? "v1 (stable ids)" : "v1 (ids estables)" },
+          { document: BpmnProcessMap.recreated(BpmnProcessMap.supplier(locale, version: 1)),
+            label: en ? "v1 (recreated ids)" : "v1 (ids recreados)" }
+        ]
+        I18n.with_locale(locale) do
+          render_with_template(
+            template: "bali/bpmn_editor/previews/compare_flows",
+            locals: { locale: locale,
+                      component: Bali::BpmnEditor::Component.new(
+                        data: BpmnProcessMap.supplier(locale), rules: false, id: "compare_flows_bpmn",
+                        name: en ? "Supplier onboarding" : "Alta de proveedor", review: { compare_with: options }
+                      ) }
+          )
+        end
+      end
+
       private
 
       # The rules the gallery has an example for: every rule of the editor and
@@ -239,6 +328,12 @@ module Bali
             locals: { component: Bali::BpmnEditor::Component.new(**options) }
           )
         end
+      end
+
+      # A select's value as SplitView takes it: the keywords as symbols, a
+      # length as written.
+      def split_option(value)
+        %w[equal screen full content].include?(value.to_s) ? value.to_sym : value.to_s
       end
     end
   end

@@ -1,5 +1,5 @@
 <%# The recommended shape. Locals: `selected`, `filter_mode`, `filters`, and
-    optional `advance` and `group_by`.
+    optional `advance`, `group_by`, `collapsible`, `height` and `master_width`.
 
     The filter pills take `param:`/`value:` and build their own URLs from the
     current request, which in Lookbook is the preview's own URL — so they are
@@ -36,7 +36,10 @@
 <% next_url = "/split-view?#{page_two.to_query}" if pagy.next %>
 <%= render Bali::SplitView::Component.new(
   frame_id: "split-view-detail",
-  advance: local_assigns.fetch(:advance, true)
+  advance: local_assigns.fetch(:advance, true),
+  collapsible: local_assigns.fetch(:collapsible, false),
+  height: local_assigns.fetch(:height, :content),
+  master_width: local_assigns.fetch(:master_width, Bali::SplitView::Component::DEFAULT_MASTER_WIDTH)
 ) do |split| %>
   <%# max_height 16rem and not 22rem: page one (5 rows of ~55-70px depending on the font)
       has to OVERFLOW the container under any metric, or the infinite scroll sentinel is

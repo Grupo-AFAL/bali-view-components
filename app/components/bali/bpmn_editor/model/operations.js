@@ -431,7 +431,8 @@ function growEdgeLane (doc, layout, source, center, size) {
 // to `sourceId` in `direction` (up/down/left/right), already connected. When
 // the spot ahead along the flow is taken, the following nodes move along;
 // otherwise there is no room and the edit is blocked.
-export function appendNode (doc, sourceId, attrs, direction, { policy = DEFAULT_POLICY, names = {}, labels = {} } = {}) {
+// `push: false`: a taken spot ahead blocks instead of moving what follows.
+export function appendNode (doc, sourceId, attrs, direction, { policy = DEFAULT_POLICY, names = {}, labels = {}, push = true } = {}) {
   const source = findNode(doc, sourceId)
   if (!source) return blocked('block_no_space')
   const orientation = orientationOf(doc)
@@ -455,9 +456,20 @@ export function appendNode (doc, sourceId, attrs, direction, { policy = DEFAULT_
     if (grown) { doc = grown.doc; center[axis.main] = grown.center; layout = layoutLanes(doc) }
   }
   if (layout.entries.length) {
-    const entry = laneAt(layout, center)
+    let entry = laneAt(layout, center)
     const crossStart = (axis.cross === 'x' ? center.x - width / 2 : center.y - height / 2)
     if (!entry || crossStart < layout.header) return blocked('block_no_space')
+    // Into a lane the flow may not reach (another participant — an external
+    // lane takes message flows only): the element stays in the source's own
+    // lane, which grows to hold it, rather than refusing the direction.
+    const own = source.lane_id != null ? layout.byId.get(String(source.lane_id)) : null
+    if (own && !sameId(entry.id, own.id) &&
+        connectionError({ ...doc, nodes: [...doc.nodes, { ...probe, lane_id: entry.id }] }, source.id, probe.id, { policy })) {
+      const needed = Math.ceil(center[axis.main] + (axis.main === 'y' ? height : width) / 2 + LANE_PADDING - own.offset)
+      if (needed > own.size) doc = resizeLane(doc, own.id, needed).doc
+      layout = layoutLanes(doc)
+      entry = layout.byId.get(String(own.id))
+    }
     // Into another lane: centre it in that lane's band.
     if (!sameId(entry.id, source.lane_id)) center[axis.main] = entry.offset + entry.size / 2
   }
@@ -465,6 +477,7 @@ export function appendNode (doc, sourceId, attrs, direction, { policy = DEFAULT_
   let created = createNode(doc, attrs, center, { policy, names })
   // The spot ahead taken: what follows moves along to make room.
   if (!created.error && forward && overlapping(created.doc, new Set([String(created.id)]))) {
+    if (!push) return blocked('block_no_space')
     const from = (axis.cross === 'x' ? box.x + box.w : box.y + box.h) + 1
     const step = (axis.cross === 'x' ? width : height) + gap
     created = createNode(shiftAlong(doc, from, step, source.id), attrs, center, { policy, names })
@@ -515,11 +528,33 @@ function splitAfter (doc, sourceId, gateway, { policy, names }) {
 // The quick menu from an activity that already has its way out: the new
 // element becomes a branch — of the splitting gateway that way leads to, or of
 // a `gateway` inserted after the activity, the existing way passing through
-// it. A new gateway's branches are left unnamed (R03 reports them pending).
+// it. A new gateway keeps the existing way straight ahead: asked to put the
+// new branch ahead where that way already goes, it puts it beside (below a
+// horizontal flow, right of a vertical one, or the other side if that is
+// taken) instead of pushing the existing way around it. A new Yes/No decision names its ways: the existing
+// one «Yes», the new one «No»; any other new gateway leaves them unnamed (R03
+// reports them pending).
 export function branchNode (doc, sourceId, attrs, direction, { gateway, policy = DEFAULT_POLICY, names = {}, labels = {} } = {}) {
   const split = splitAfter(doc, sourceId, gateway, { policy, names })
   if (split.error) return split
-  const appended = appendNode(split.doc, split.gatewayId, attrs, direction, { policy, names, labels: split.existing ? labels : {} })
+  let current = split.doc
+  const binary = !split.existing && isBinaryDecision(findNode(current, split.gatewayId))
+  if (binary && labels.yes) {
+    const way = outgoing(current, split.gatewayId).find((e) => edgeType(e) === 'sequence_flow')
+    if (way) current = { ...current, edges: current.edges.map((e) => (sameId(e.id, way.id) ? { ...e, label: labels.yes } : e)) }
+  }
+  const options = { policy, names, labels: split.existing || binary ? labels : {} }
+  const vertical = orientationOf(current) === 'vertical'
+  const ahead = vertical ? 'down' : 'right'
+  const beside = vertical ? ['right', 'left'] : ['down', 'up']
+  const tries = !split.existing && direction === ahead
+    ? [{ dir: ahead, push: false }, ...beside.map((dir) => ({ dir })), { dir: ahead }]
+    : [{ dir: direction }]
+  let appended = null
+  for (const { dir, push = true } of tries) {
+    appended = appendNode(current, split.gatewayId, attrs, dir, { ...options, push })
+    if (!appended.error) break
+  }
   if (appended.error) return appended
   return { ...appended, gatewayId: split.gatewayId }
 }
@@ -536,11 +571,27 @@ function mergeBefore (doc, targetId, { policy, names }) {
   if (from && from.type === 'exclusive_gateway' && !isBinaryDecision(from) && outgoing(doc, from.id).filter((e) => edgeType(e) === 'sequence_flow').length === 1) {
     return { doc, gatewayId: String(from.id) }
   }
+  // Right before the target along the flow, in the target's lane: the target
+  // and whatever lies ahead of it move along to make room, so the way in —
+  // from the lane above, from behind — reaches the merge and the merge the
+  // target, without crossing. A merge is left unnamed (bpmnlint
+  // label-required exempts joins; R09 too).
+  const attrs = { type: 'exclusive_gateway', name: '' }
+  const orientation = orientationOf(doc)
+  const axis = axisFor(orientation)
   const box = nodeBox(target)
-  // A merge is left unnamed (bpmnlint label-required exempts joins; R09 too).
-  const inserted = insertOnEdge(doc, ins[0].id, { type: 'exclusive_gateway', name: '' }, { x: box.cx, y: box.cy }, { policy, names })
-  if (inserted.error) return inserted
-  return { doc: inserted.doc, gatewayId: String(inserted.id) }
+  const { width, height } = nodeSize(attrs)
+  const size = axis.cross === 'x' ? width : height
+  const lead = axis.cross === 'x' ? box.x : box.y
+  const room = shiftAlong(doc, lead, size + GAP[orientation], null)
+  const center = axis.cross === 'x' ? { x: lead + size / 2, y: box.cy } : { x: box.cx, y: lead + size / 2 }
+  const created = createNode(room, attrs, center, { policy, names })
+  if (created.error) return created
+  const id = String(created.id)
+  const edges = created.doc.edges.map((e) => (sameId(e.id, ins[0].id) ? { ...e, target: id, ports: { source: (e.ports || {}).source || 'auto', target: 'auto' }, waypoints: [] } : e))
+  const merged = { ...created.doc, edges }
+  const join = { id: newId(merged, 'e_'), source: id, target: String(target.id), ports: { source: 'auto', target: 'auto' } }
+  return { doc: { ...merged, edges: [...edges, join] }, gatewayId: id }
 }
 
 // What a refused connection needs to become valid: a split after a source

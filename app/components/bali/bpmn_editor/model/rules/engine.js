@@ -86,7 +86,23 @@ export const DEFAULT_ENABLED = new Set([
   'COM-19', 'COM-20', 'COM-12', 'COM-02', 'DEC-03', 'EST-05', 'EST-01', 'VIS-10', 'EVI-03', 'EVI-05'
 ])
 
+// Profiles a host names instead of a configuration (Component `rules:
+// :structure`). Mirrors Bali::BpmnEditor::Component::RULE_PROFILES
+// (contract_test.rb).
+export const RULE_PROFILES = ['structure']
+// `rules: 'structure'`: what holds for ANY diagram drawn with lanes — a map of
+// processes, an architecture — not how a process should be modelled. Broken
+// connections (R25), elements outside a lane (R26), overlapping elements
+// (R18), a sub-process without its reference (R11), a connection drawn twice
+// (B09) and elements outside the allowed palette (VIS-10). Off: one-in/one-out,
+// gateways, names, events, lane counts — and the rules an app registers.
+// Mirrors Bali::BpmnEditor::Component::STRUCTURE_PROFILE (contract_test.rb).
+export const STRUCTURE_PROFILE = ['R11', 'R18', 'R25', 'R26', 'B09', 'VIS-10']
+
+// `config === false` (Component `rules: false`): no rule runs, none blocks.
 export function isRuleOn (config, id) {
+  if (config === false) return false
+  if (config === 'structure') return STRUCTURE_PROFILE.includes(id)
   const disabled = (config && config.disabled) || []
   const enabled = (config && config.enabled) || []
   if (disabled.includes(id)) return false
@@ -125,6 +141,12 @@ function warnUnknown (config) {
     console.warn(`bpmn rules: "${id}" is configured but no rule has that id`)
   }
 }
+
+// A rule's `source` cites its references; `ORG` stands for the guidelines
+// of the organization that uses the editor, named in the UI's words
+// (`rules_source_org`) — never an organization's own name.
+export const ORG_SOURCE = 'ORG'
+export const sourceText = (source, t) => String(source || '').replace(/\bORG\b/g, t ? t('rules_source_org') : 'Organization modelling guide')
 
 // Every rule the editor knows, built-in and registered, with its state.
 export function ruleList (config) {

@@ -99,8 +99,6 @@ describe('BPMN editor island', () => {
   })
 
   it('lists the events the editors send in the host console', () => {
-    // Several canvases sizing themselves on one page: the browser's benign notice.
-    cy.on('uncaught:exception', (error) => !error.message.includes('ResizeObserver loop'))
     cy.visit('/bali/bpmn_editor/host_integration')
     cy.get('#host_first_bpmn [data-testid="bpmn-node"]').should('have.length.at.least', 9)
     placeTask('#host_first_bpmn')
@@ -128,11 +126,29 @@ describe('BPMN editor island', () => {
     })
   })
 
+  // Several editors on one page used to end in Chrome's «ResizeObserver loop
+  // completed with undelivered notifications»: React committed the second
+  // editor inside the first one's React Flow node observer, and the observers
+  // it created there went undelivered. React Flow now mounts a frame later
+  // (BpmnEditor.jsx, canvasReady). Counted on the window, whatever Cypress
+  // does with uncaught errors.
+  ;['pair', 'split_view', 'host_integration'].forEach((preview) => {
+    it(`reports no ResizeObserver loop with several editors on one page (${preview})`, () => {
+      cy.visit(`/bali/bpmn_editor/${preview}`, {
+        onBeforeLoad (win) {
+          win.resizeObserverLoops = 0
+          win.addEventListener('error', (event) => { if (String(event.message).includes('ResizeObserver loop')) win.resizeObserverLoops++ })
+        }
+      })
+      cy.get('.react-flow__node-bpmn').should('have.length.greaterThan', 5)
+      cy.wait(800)
+      cy.window().its('resizeObserverLoops').should('eq', 0)
+    })
+  })
+
   // Two editors mint the same client ids: an event the host sends to one
   // must not change the other.
   it('delivers a host event to the editor it names and to no other', () => {
-    // Two canvases sizing themselves on one page: the browser's benign notice.
-    cy.on('uncaught:exception', (error) => !error.message.includes('ResizeObserver loop'))
     cy.visit('/bali/bpmn_editor/pair')
     cy.get('#second_bpmn .react-flow__node-bpmn').should('contain', 'Procedimiento')
     cy.get('#first_bpmn').then(($el) => {
@@ -355,6 +371,10 @@ describe('BPMN editor island', () => {
       cy.get('[data-testid="bpmn-lane"]').eq(1).find('.bpmn-lane-header').click()
       cy.get('[data-testid="bpmn-properties"]').should('be.visible')
       cy.get('[data-testid="bpmn-lane-external"]').should('not.exist')
+      // The legend folds itself over a diagram (it hides behind the open panel
+      // anyway): its entries are what is checked here.
+      cy.get('[data-testid="bpmn-properties"] button[aria-label="Cerrar"]').click()
+      cy.get('.bpmn-legend button').then(($toggle) => { if ($toggle.attr('aria-expanded') === 'false') cy.wrap($toggle).click() })
       cy.get('[data-testid="bpmn-legend"]').should('contain', 'Actividad').and('not.contain', 'participante externo')
     })
   })
@@ -368,5 +388,67 @@ describe('BPMN editor rules gallery', () => {
     cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible').find('[data-rule="R06"]').should('exist')
     cy.visit('/bali/bpmn_editor/rules_gallery?rule=R06&example=passing')
     cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible').find('[data-rule="R06"]').should('not.exist')
+  })
+})
+
+// A phone: the palette and «To place» start folded, the toolbars keep their
+// icons, and a selection does not open the properties panel by itself — so
+// «Connect» and the quick menu are not covered.
+describe('BPMN editor on a narrow screen', () => {
+  const inside = ($el, $canvas) => {
+    const box = $el[0].getBoundingClientRect()
+    const canvas = $canvas[0].getBoundingClientRect()
+    expect(box.left, 'left').to.be.at.least(canvas.left - 1)
+    expect(box.right, 'right').to.be.at.most(canvas.right + 1)
+  }
+
+  beforeEach(() => {
+    cy.viewport(390, 844)
+    cy.visit('/bali/bpmn_editor/playground')
+    nodeNamed('Validar factura').should('be.visible')
+  })
+
+  it('starts with the palette, «To place» and the legend folded and reaches «Connect»', () => {
+    cy.get('[data-testid="bpmn-palette"]').should('not.exist')
+    cy.get('button[aria-label="Mostrar elementos"]').should('be.visible')
+    cy.get('[data-testid="bpmn-stencil"] button[aria-expanded]').should('have.attr', 'aria-expanded', 'false')
+    cy.get('.bpmn-legend button[aria-expanded]').should('have.attr', 'aria-expanded', 'false')
+    cy.get('.react-flow__minimap').should('not.be.visible')
+    // No `force`: a click on a covered button fails.
+    cy.get('[data-testid="bpmn-add-lane"]').should('be.visible')
+    cy.get('[data-testid="bpmn-auto-layout"]').should('be.visible').click()
+    cy.get('[data-testid="bpmn-connect"]').should('be.visible').click()
+    cy.get('[data-testid="bpmn-connect-banner"]').should('be.visible').then(($banner) => {
+      cy.get('.bpmn-canvas').then(($canvas) => inside($banner, $canvas))
+    })
+    cy.get('[data-testid="bpmn-connect-banner"] button').click()
+    cy.get('[data-testid="bpmn-connect-banner"]').should('not.exist')
+  })
+
+  it('opens the palette as a layer over the canvas, and folds it once an element is picked', () => {
+    cy.get('button[aria-label="Mostrar elementos"]').click()
+    cy.get('[data-testid="bpmn-palette"]').should('have.css', 'position', 'absolute')
+    cy.get('.bpmn-canvas').invoke('outerWidth').should('be.greaterThan', 250)
+    cy.get('button[aria-label="Ocultar elementos"]').should('be.visible').click()
+    cy.get('[data-testid="bpmn-palette"]').should('not.exist')
+    cy.get('button[aria-label="Mostrar elementos"]').click()
+    cy.get('[data-testid="bpmn-palette"] [data-palette-key="task"]').click()
+    cy.get('[data-testid="bpmn-palette"]').should('not.exist')
+    cy.get('.bpmn-canvas').should('have.class', 'is-placing')
+  })
+
+  it('keeps the quick menu inside the canvas and opens the panel only when asked', () => {
+    cy.get('.react-flow__node-bpmn').its('length').then((before) => {
+      nodeNamed('Validar factura').click()
+      cy.get('[data-testid="bpmn-properties"]').should('not.exist')
+      cy.get('[data-testid="bpmn-quick-menu"]').should('be.visible').then(($menu) => {
+        cy.get('.bpmn-canvas').then(($canvas) => inside($menu, $canvas))
+      })
+      cy.get('.bpmn-legend').should('not.be.visible')
+      cy.get('[data-testid="bpmn-quick-menu"] [data-quick="task"]').click()
+      cy.get('.react-flow__node-bpmn').should('have.length', before + 1)
+    })
+    cy.get('[data-testid="bpmn-properties-toggle"]').click()
+    cy.get('[data-testid="bpmn-properties"]').should('be.visible')
   })
 })

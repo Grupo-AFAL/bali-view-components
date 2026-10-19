@@ -17,9 +17,9 @@
 // `mode: 'compact'` (AFAL VIS-01/02/03) folds the columns into bands that
 // serpentine down the lanes until the diagram fits the page (page.js);
 // `'straight'` keeps one band, the happy path in one line.
-import { isArtifactLike, isGateway, nodeSize, edgeType } from './catalog.js'
+import { isArtifactLike, isGateway, isActivity, nodeSize, edgeType } from './catalog.js'
 import { layoutLanes, HEADER, orientationOf } from './geometry.js'
-import { arrange, HEADER_GAP, LANE_PAD, STEP } from './arrange.js'
+import { arrange, footprint, HEADER_GAP, LANE_PAD, STEP } from './arrange.js'
 import { pageFit, LETTER } from './page.js'
 
 // The modes; mirrors Bali::BpmnEditor::Component::LAYOUTS (contract_test.rb).
@@ -28,6 +28,14 @@ export const LAYOUTS = ['compact', 'straight']
 const SLOT = { horizontal: 120, vertical: 220 } // row to row, across the flow
 const COLUMN = { horizontal: 150, vertical: 64 } // an activity's extent along the flow
 const ROW = { horizontal: 64, vertical: 150 } // an activity's extent across the flow
+// Compact mode tightens a flow before folding it: each column as wide as what
+// it holds (an event or a gateway with its name, wrapped — labels.js), tasks
+// down to DENSE_ACTIVITY (their name takes more lines), DENSE_GAP between
+// neighbours — bpmn.io's spacing; arrange.js still keeps 40 px between
+// footprints. Measured: the 10-step «Alta de proveedor» goes from 1990 px
+// wide (scale 0.48 on a landscape letter page) to one that prints at 6 pt.
+const DENSE_ACTIVITY = 110
+const DENSE_GAP = 40
 
 function layers (nodes, edges) {
   const ids = nodes.map((n) => String(n.id))
@@ -150,7 +158,7 @@ export function autoLayout (doc, { mode = 'straight', page = LETTER } = {}) {
   // left to right, band 1 comes back right to left under it, and so on —
   // each lane holds one group of rows per band it takes part in, so lanes
   // stay horizontal and whole.
-  function position (perBand) {
+  function position (perBand, dense = false) {
     const bandOf = (id) => Math.floor(layer.get(id) / perBand)
     const columnOf = (id) => {
       const c = layer.get(id) % perBand
@@ -183,14 +191,46 @@ export function autoLayout (doc, { mode = 'straight', page = LETTER } = {}) {
       offset += size
     }
 
-    const nodes = (doc.nodes || []).map((node) => {
+    // A dense column is as wide as its widest footprint; otherwise every
+    // column takes STEP.
+    const sized = (node) => (dense && isActivity(node) && !(Number(node.width) > 0) ? { ...node, width: DENSE_ACTIVITY } : node)
+    const centers = []
+    if (dense) {
+      // How far each column's footprints reach before and after the centre
+      // line (a gateway's name sits to its left, a badge to the right).
+      const before = new Array(perBand).fill(0)
+      const after = new Array(perBand).fill(0)
+      for (const node of doc.nodes || []) {
+        const id = String(node.id)
+        if (!row.has(id)) continue
+        const shaped = sized(node)
+        const fp = footprint(shaped, orientation)
+        const { width, height } = nodeSize(shaped)
+        const half = (vertical ? height : width) / 2
+        const start = vertical ? fp.dy : fp.dx
+        const extent = vertical ? fp.h : fp.w
+        before[columnOf(id)] = Math.max(before[columnOf(id)], half - start)
+        after[columnOf(id)] = Math.max(after[columnOf(id)], start + extent - half)
+      }
+      // Centres on the 10 px grid arrange.js snaps to, rounded up, so no gap
+      // ends under DENSE_GAP and arrange has nothing to push.
+      let along = header + HEADER_GAP
+      for (let c = 0; c < perBand; c++) {
+        const center = Math.ceil((along + (before[c] || COLUMN[orientation] / 2)) / 10) * 10
+        centers.push(center)
+        along = center + (after[c] || COLUMN[orientation] / 2) + DENSE_GAP
+      }
+    }
+
+    const nodes = (doc.nodes || []).map((original) => {
+      const node = sized(original)
       const id = String(node.id)
-      if (!row.has(id)) return node
+      if (!row.has(id)) return original
       const { width, height } = nodeSize(node)
       const lane = laneOf(id)
       const key = `${lane}|${bandOf(id)}`
       const [lo] = rowsOf.get(key) || [0, 0]
-      const center = header + HEADER_GAP + COLUMN[orientation] / 2 + columnOf(id) * STEP[orientation]
+      const center = dense ? centers[columnOf(id)] : header + HEADER_GAP + COLUMN[orientation] / 2 + columnOf(id) * STEP[orientation]
       const across = (laneStart.get(lane) || 0) + LANE_PAD + (bandStart.get(key) || 0) + (row.get(id) - lo) * SLOT[orientation] + ROW[orientation] / 2
       const next = { ...node, lane_id: laneIds.length ? lane : node.lane_id }
       const snap = (v) => Math.round(v / 10) * 10
@@ -223,19 +263,24 @@ export function autoLayout (doc, { mode = 'straight', page = LETTER } = {}) {
     return { ...doc, lanes, nodes, edges, pool }
   }
 
-  // Compact: the fewest bands that fit the page legibly — a diagram that
-  // fits straight stays straight; one that fits nowhere takes the band count
-  // that shows it largest. Horizontal lanes only (AFAL VIS-03 keeps lanes
-  // horizontal); vertical lanes are laid out straight.
+  // Compact: a diagram that fits the page legibly straight stays straight;
+  // one that does not is tightened first (dense columns, narrower tasks) and
+  // stays straight if that fits; only then is it folded, into the fewest
+  // bands that fit — or, fitting nowhere, the band count that shows it
+  // largest. Fit is measured on the arranged result, what will be drawn.
+  // Horizontal lanes only (VIS-03 keeps lanes horizontal); vertical lanes
+  // are laid out straight.
   if (mode === 'compact' && !vertical && columns > 2) {
+    const loose = arrange(position(columns))
+    if (pageFit(loose, page).fits) return loose
     let best = null
     for (let perBand = columns; perBand >= 2; perBand--) {
-      const candidate = position(perBand)
+      const candidate = arrange(position(perBand, true))
       const fit = pageFit(candidate, page)
-      if (fit.fits) return arrange(candidate)
+      if (fit.fits) return candidate
       if (!best || fit.scale > best.scale + 1e-9) best = { candidate, scale: fit.scale }
     }
-    return arrange(best.candidate)
+    return best.candidate
   }
   return arrange(position(columns))
 }

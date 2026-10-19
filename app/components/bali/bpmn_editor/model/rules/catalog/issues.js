@@ -57,7 +57,7 @@ export const ISSUE_RULES = [
     appliesTo: byType('parallel_gateway', 'inclusive_gateway'),
     // Only paths that meet again need a merge: a branch that ends in an end
     // event has finished (COM-21). A merge of the wrong type is COM-19's.
-    source: 'Method and Style: a parallel or inclusive split is merged by a gateway of its type; AFAL COM-21',
+    source: 'Method and Style: a parallel or inclusive split is merged by a gateway of its type; ORG COM-21',
     check: (_doc, ctx) => each(ctx.nodes, (n) => {
       if ((n.type !== 'parallel_gateway' && n.type !== 'inclusive_gateway') || !isSplit(ctx, n)) return false
       const reached = ctx.structure.forwardOut(n).map((e) => ctx.structure.reach(String(e.target)))
@@ -94,7 +94,7 @@ export const ISSUE_RULES = [
     criteria: ['EVM-04', 'EVM-06'],
     severity: 'error',
     appliesTo: byKind(['intermediate_catch_event', 'intermediate_throw_event'], ['message', 'timer']),
-    source: 'AFAL EVM-04; BPMN 2.0, AFAL EVM-06',
+    source: 'ORG EVM-04; BPMN 2.0, ORG EVM-06',
     check: (_doc, ctx) => {
       const generics = ctx.plainList('generic_event_names')
       return each(ctx.nodes,
@@ -259,7 +259,7 @@ export const ISSUE_RULES = [
     severity: 'error',
     appliesTo: LANE,
     // Lanes that take part: an empty lane is no second participant (LAN-09).
-    source: '#1489; AFAL LAN-09',
+    source: '#1489; ORG LAN-09',
     check: (_doc, ctx) => {
       const min = ctx.option('min_lanes', 2)
       const current = (ctx.doc.lanes || []).filter((l) => ctx.nodes.some((n) => isActivity(n) && String(n.lane_id) === String(l.id))).length

@@ -3,6 +3,7 @@
 //   PUT  urls.save      { diagram, version } → 200 document · 409 stale · 422 { errors }
 //   GET  urls.diagram                        → 200 document
 //   POST urls.finalize  { diagram, version } → 200 document · 422 { errors, issues, version }
+//   PUT  urls.annotations { annotations, version } → as urls.save (Component `annotatable:`)
 //
 // Every answer that succeeds is the COMPLETE document: the server is
 // authoritative, the island never patches.
@@ -48,3 +49,7 @@ export const fetchDocument = (url) =>
 
 export const finalizeDocument = (url, diagram, version) =>
   settle(() => post(url, { body: { diagram, version }, responseKind: 'json' }))
+
+// Review notes on a read-only diagram: only `annotations` travel.
+export const saveAnnotations = (url, annotations, version) =>
+  settle(() => put(url, { body: { annotations, version }, responseKind: 'json' }))

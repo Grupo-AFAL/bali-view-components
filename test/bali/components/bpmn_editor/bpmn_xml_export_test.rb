@@ -74,4 +74,40 @@ class BaliBpmnXmlExportTest < ActiveSupport::TestCase
 
     assert_operator xml.xpath("//bpmn:task", NS).size, :>, 50
   end
+
+  COLOR_NS = { "color" => "http://www.omg.org/spec/BPMN/non-normative/color/1.0",
+               "bioc" => "http://bpmn.io/schema/bpmn/biocolor/1.0" }.freeze
+
+  # BPMN in Color (OMG) and bpmn.io's pair, the attributes modelling tools read.
+  def test_the_apps_colour_travels_as_bpmn_in_color_and_bpmn_io_attributes
+    flow = BpmnSampleFlows.invoice
+    flow[:nodes] = flow[:nodes].map do |n|
+      case n[:id]
+      when "t1" then n.merge(appearance: { color: "#E9A23B", badge: "En proceso", dimmed: true })
+      when "t3" then n.merge(appearance: { color: "#fff" })
+      when "t4" then n.merge(appearance: { badge: "Sin color" })
+      else n
+      end
+    end
+    xml = export(flow)
+    raw = xml.to_xml
+
+    shape = xml.at_xpath("//bpmndi:BPMNShape[@bpmnElement='t1']", NS)
+    value = ->(element, name, prefix) { element.attribute_with_ns(name, COLOR_NS[prefix])&.value }
+    assert_equal "#e9a23b", value.(shape, "border-color", "color")
+    assert_equal "#fbf0e0", value.(shape, "background-color", "color"), "the tint the canvas paints"
+    assert_equal "#e9a23b", value.(shape, "stroke", "bioc")
+    assert_equal "#fbf0e0", value.(shape, "fill", "bioc")
+    assert_equal "#ffffff", value.(xml.at_xpath("//bpmndi:BPMNShape[@bpmnElement='t3']", NS), "stroke", "bioc")
+    assert_empty xml.at_xpath("//bpmndi:BPMNShape[@bpmnElement='t4']", NS).attributes.keys & %w[stroke fill border-color background-color]
+    refute_includes raw, "En proceso", "the badge is not interchange"
+    refute_includes raw, "dimmed"
+  end
+
+  def test_without_a_colour_the_export_declares_no_colour_namespace
+    raw = export(BpmnSampleFlows.invoice).to_xml
+
+    COLOR_NS.each_value { |uri| refute_includes raw, uri }
+    refute_match(/bioc:|color:/, raw)
+  end
 end

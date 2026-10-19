@@ -10,6 +10,8 @@
 import { layoutLanes, laneRect, nodeBox, poolOrigin } from './geometry.js'
 import { routeAll } from './routing.js'
 import { edgeType, isFlowNode, isBinaryDecision } from './catalog.js'
+import { appearanceOf } from './appearance.js'
+import { parseHex } from './contrast.js'
 
 const TAGS = {
   task: 'task',
@@ -105,6 +107,32 @@ function element (node) {
   return `${dataObject}<bpmn:${tag} ${attributes.join(' ')}${body ? `>${body}</bpmn:${tag}>` : ' />'}`
 }
 
+// The app's colour (`node.appearance.color`) in the diagram interchange, the
+// way modelling tools read it:
+//   - BPMN in Color (OMG, BPMN MIWG, 2018): `color:border-color` and
+//     `color:background-color` on the BPMNShape — what the specification names;
+//   - bpmn.io's `bioc:stroke` and `bioc:fill` — what bpmn-js and Camunda
+//     Modeler read and write (they write both pairs).
+// The fill is the tint the canvas paints (16 % of the colour over white). The
+// namespaces are declared only when a node has a colour, so a document without
+// one exports exactly as before. `dimmed` and `badge` are not exported: no
+// interchange format has them.
+export const COLOR_NAMESPACES = {
+  color: 'http://www.omg.org/spec/BPMN/non-normative/color/1.0',
+  bioc: 'http://bpmn.io/schema/bpmn/biocolor/1.0'
+}
+const TINT = 0.16
+const hex = (rgb) => `#${rgb.map((c) => Math.round(c).toString(16).padStart(2, '0')).join('')}`
+function colorsOf (node) {
+  const look = appearanceOf(node)
+  const rgb = look && look.color && parseHex(look.color)
+  if (!rgb) return null
+  return { stroke: hex(rgb), fill: hex(rgb.map((c) => 255 + (c - 255) * TINT)) }
+}
+const colorAttributes = (colors) => (colors
+  ? ` bioc:stroke="${colors.stroke}" bioc:fill="${colors.fill}" color:border-color="${colors.stroke}" color:background-color="${colors.fill}"`
+  : '')
+
 export function toBpmnXml (doc, { name = '' } = {}) {
   const layout = layoutLanes(doc)
   const origin = poolOrigin(doc)
@@ -169,7 +197,7 @@ export function toBpmnXml (doc, { name = '' } = {}) {
     ...internalLanes.map((e) => `      <bpmndi:BPMNShape id="${laneXmlId(e.id)}_di" bpmnElement="${laneXmlId(e.id)}" isHorizontal="${horizontal}">${bounds(laneRect(layout, e))}</bpmndi:BPMNShape>`),
     // The Yes/No decision is an exclusive gateway whose X is hidden: BPMN DI
     // says so with isMarkerVisible, the one place the standard keeps it.
-    ...(doc.nodes || []).map((n) => `      <bpmndi:BPMNShape id="${xmlId(n.id)}_di" bpmnElement="${xmlId(n.id)}"${n.type === 'exclusive_gateway' ? ` isMarkerVisible="${!isBinaryDecision(n)}"` : ''}>${bounds(nodeBox(n))}</bpmndi:BPMNShape>`)
+    ...(doc.nodes || []).map((n) => `      <bpmndi:BPMNShape id="${xmlId(n.id)}_di" bpmnElement="${xmlId(n.id)}"${n.type === 'exclusive_gateway' ? ` isMarkerVisible="${!isBinaryDecision(n)}"` : ''}${colorAttributes(colorsOf(n))}>${bounds(nodeBox(n))}</bpmndi:BPMNShape>`)
   ].filter(Boolean)
   const edges = flows.map((e) => {
     const route = routes.get(String(e.id))
@@ -183,6 +211,7 @@ export function toBpmnXml (doc, { name = '' } = {}) {
     '<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"',
     '  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI"',
     '  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bali="https://github.com/Grupo-AFAL/bali-view-components/bpmn"',
+    (doc.nodes || []).some(colorsOf) && `  xmlns:bioc="${COLOR_NAMESPACES.bioc}" xmlns:color="${COLOR_NAMESPACES.color}"`,
     '  id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Bali::BpmnEditor">',
     '  <bpmn:collaboration id="Collaboration_1">',
     ...participants,
@@ -197,5 +226,5 @@ export function toBpmnXml (doc, { name = '' } = {}) {
     '  </bpmndi:BPMNDiagram>',
     '</bpmn:definitions>',
     ''
-  ].join('\n')
+  ].filter((line) => line !== false).join('\n')
 }

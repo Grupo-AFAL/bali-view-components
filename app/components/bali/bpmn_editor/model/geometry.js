@@ -21,6 +21,8 @@ export const MIN_LANE_SIZE = { horizontal: 90, vertical: 160 }
 export const MIN_POOL_LENGTH = { horizontal: 760, vertical: 560 }
 // Room after the furthest node, so there is always somewhere to drop the next one.
 export const POOL_TAIL = { horizontal: 160, vertical: 120 }
+// On paper there is nothing to drop: the lanes end just past the content.
+export const PRINT_TAIL = { horizontal: 40, vertical: 40 }
 // Gap a node keeps from its lane's borders.
 export const LANE_PADDING = 10
 
@@ -57,7 +59,9 @@ export function nodeFootprint (node) {
 }
 
 // Everything the canvas needs about the lanes, computed once per document.
-export function layoutLanes (doc) {
+// `print`: the lanes as the outputs draw them (image, SVG, print, page fit) —
+// ending PRINT_TAIL past the content, with no minimum length.
+export function layoutLanes (doc, { print = false } = {}) {
   const orientation = orientationOf(doc)
   const axis = axisFor(orientation)
   const header = HEADER[orientation]
@@ -76,8 +80,8 @@ export function layoutLanes (doc) {
   }
   const length = Math.max(
     Number(doc.pool && doc.pool.length) || 0,
-    MIN_POOL_LENGTH[orientation],
-    Math.ceil((furthest + POOL_TAIL[orientation]) / 10) * 10
+    print ? 0 : MIN_POOL_LENGTH[orientation],
+    Math.ceil((furthest + (print ? PRINT_TAIL : POOL_TAIL)[orientation]) / 10) * 10
   )
   const byId = new Map(entries.map((entry) => [String(entry.id), entry]))
   return { orientation, axis, header, entries, byId, length, thickness: offset }

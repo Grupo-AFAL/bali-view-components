@@ -16,6 +16,7 @@ import { startIslandLoader } from 'bali/react-island'
 // Local controllers
 import ThemeSwitcherController from './controllers/theme_switcher_controller'
 import BpmnHostConsoleController from './controllers/bpmn_host_console_controller'
+import BpmnSplitViewController from './controllers/bpmn_split_view_controller'
 
 // Initialize Stimulus
 const application = Application.start()
@@ -36,6 +37,7 @@ ActiveStorage.start()
 application.register('theme-switcher', ThemeSwitcherController)
 // The BPMN editor's "Host integration" Lookbook preview (dummy-only).
 application.register('bpmn-host-console', BpmnHostConsoleController)
+application.register('bpmn-split-view', BpmnSplitViewController)
 
 // Lazy-load the React islands the first time they appear in the DOM.
 // The digested bundle paths come from the react_island_meta_tags helper in

@@ -7,8 +7,8 @@ export const STENCIL_MIME = 'application/x-bali-bpmn-stencil'
 
 // Entities the host proposes to place (the document's `stencil`): dragging
 // one onto the canvas creates a sub-process already linked to it.
-export default function Stencil ({ t, items }) {
-  const [open, setOpen] = useState(true)
+export default function Stencil ({ t, items, startOpen = true }) {
+  const [open, setOpen] = useState(startOpen)
   if (!items || !items.length) return null
   return (
     <Panel position='top-right' className='bpmn-chrome bpmn-stencil w-60 rounded-lg border border-base-300 bg-base-100 p-2 text-sm shadow-sm' data-testid='bpmn-stencil'>

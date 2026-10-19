@@ -60,4 +60,32 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
       assert_raises(Data::InvalidError, label) { Data.new(payload) }
     end
   end
+
+  def node_with(appearance)
+    { nodes: [ { id: "n1", type: "sub_process", appearance: appearance } ] }
+  end
+
+  def test_an_appearance_is_accepted_and_kept
+    data = Data.new(node_with(color: "#E9A23B", dimmed: true, badge: "En proceso"))
+
+    assert_equal({ color: "#E9A23B", dimmed: true, badge: "En proceso" }, data.nodes.first[:appearance])
+    assert_nothing_raised { Data.new(node_with(color: "#fff")) }
+    assert_nothing_raised { Data.new(node_with(badge: "x" * Data::BADGE_MAX)) }
+  end
+
+  def test_an_appearance_that_cannot_be_drawn_raises
+    {
+      "must be a Hash" => "#E9A23B",
+      "unknown keys" => { colour: "#E9A23B" },
+      "hex colour" => { color: "orange" },
+      "true or false" => { dimmed: "yes" },
+      "at most 24 characters" => { badge: "x" * (Data::BADGE_MAX + 1) }
+    }.each do |message, appearance|
+      error = assert_raises(Data::InvalidError, message) { Data.new(node_with(appearance)) }
+
+      assert_includes error.message, message
+      assert_includes error.message, "node n1"
+    end
+    assert_raises(Data::InvalidError) { Data.new(node_with(badge: 12)) }
+  end
 end

@@ -127,7 +127,7 @@ export const STRUCTURE_RULES = [
     // A decision (exclusive, Yes/No or inclusive split) is phrased as a
     // question, and is no activity: a question that starts with a verb in
     // the infinitive ("Authorize request?") still names work.
-    source: 'Camunda modeling guidelines: label exclusive gateways as questions; BPMN 2.0, AFAL COM-13; AFAL DEC-01',
+    source: 'Camunda modeling guidelines: label exclusive gateways as questions; BPMN 2.0, ORG COM-13; ORG DEC-01',
     check: (_doc, ctx) => ctx.nodes.filter((n) => isDecision(ctx, n) && words(n.name)).flatMap((n) => {
       const vars = { name: ctx.name(n) }
       if (isInfinitive(wordsOf(n.name)[0], ctx.verbs())) return [{ element_id: n.id, key: 'verb', vars }]

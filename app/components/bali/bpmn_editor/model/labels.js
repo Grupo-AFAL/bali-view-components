@@ -15,7 +15,7 @@ import { nodeBox } from './geometry.js'
 // line its box did not have.
 const CHAR = 7
 const LINE = 14
-const MAX_WIDTH = 140
+const MAX_WIDTH = 100
 const GAP = 4
 
 // Lines as the browser breaks them — at spaces, a word too long for one line
@@ -54,7 +54,9 @@ export function nodeLabelBox (node, orientation = 'horizontal') {
     return { x: box.cx - GAP - block.w, y: box.y - GAP - block.h, w: block.w, h: block.h, lines: block.lines }
   }
   if (orientation === 'vertical' && categoryOf(node) === CATEGORY.event) {
-    return { x: box.x + box.w + GAP + 2, y: box.cy - block.h / 2, w: block.w, h: block.h, lines: block.lines }
+    // Past the pending badge, which overhangs the top-right corner by 9 px: a
+    // name of two or three lines reaches up beside it.
+    return { x: box.x + box.w + 12, y: box.cy - block.h / 2, w: block.w, h: block.h, lines: block.lines }
   }
   return { x: box.cx - block.w / 2, y: box.y + box.h + GAP, w: block.w, h: block.h, lines: block.lines }
 }

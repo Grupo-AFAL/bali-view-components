@@ -20,6 +20,7 @@ module Bali
     #         documentation: "...", x: 120, y: 40, width: 150, height: 64,   # x/y: top-left, pool-relative
     #         reference: { id: "77", label: "...", url: "/..." },             # sub_process
     #         event_definition: { kind: "timer", expression: "PT1H" },        # events
+    #         appearance: { color: "#E9A23B", dimmed: true, badge: "In progress" },  # the app's look
     #         fields: {} }
     #     ],
     #     edges: [ { id: "e1", source: "n1", target: "n2", type: "sequence_flow", label: "Yes",
@@ -28,6 +29,11 @@ module Bali
     #     stencil: [ { reference: { id: "78", label: "...", url: "/..." } } ],
     #     issues: [ { rule: "R11", element_id: "n9", severity: "error", message: "..." } ]
     #   }
+    #
+    # `appearance` is the app's, like `stencil` and `issues`: what a node looks
+    # like (a hex colour, dimmed, a badge of at most BADGE_MAX characters),
+    # with no meaning Bali knows. The island draws it — canvas, outputs,
+    # comparison — and never sends it back in a save.
     #
     # Node types the island cannot draw are carried through untouched, so a
     # document imported from another tool loses nothing on save.
@@ -46,6 +52,10 @@ module Bali
       EDGE_TYPES = %w[sequence_flow message_flow association].freeze
       PORTS = %w[auto top right bottom left].freeze
       SEVERITIES = %w[error warning].freeze
+      # Mirror APPEARANCE_KEYS and BADGE_MAX in model/appearance.js (contract_test.rb).
+      APPEARANCE_KEYS = %i[color dimmed badge].freeze
+      BADGE_MAX = 24
+      HEX_COLOR = /\A#(\h{3}|\h{6})\z/
 
       def initialize(payload)
         raise InvalidError, "BPMN data must be a Hash, got #{payload.class}" unless payload.is_a?(Hash)
@@ -103,8 +113,29 @@ module Bali
           raise InvalidError, "node #{node[:id]} requires a type" if node[:type].blank?
 
           numeric_keys!(node, %i[x y width height], "node #{node[:id]}")
+          validate_appearance!(node)
         end
         unique_ids!(nodes, "node")
+      end
+
+      def validate_appearance!(node)
+        appearance = node[:appearance]
+        return if appearance.nil?
+
+        context = "node #{node[:id]}: appearance"
+        hash!(appearance, context)
+        unknown = appearance.keys - APPEARANCE_KEYS
+        raise InvalidError, "#{context} has unknown keys #{unknown.inspect}; expected #{APPEARANCE_KEYS.inspect}" if unknown.any?
+        if appearance.key?(:color) && !appearance[:color].to_s.match?(HEX_COLOR)
+          raise InvalidError, "#{context}: color must be a hex colour like \"#E9A23B\", got #{appearance[:color].inspect}"
+        end
+        if appearance.key?(:dimmed) && ![ true, false ].include?(appearance[:dimmed])
+          raise InvalidError, "#{context}: dimmed must be true or false, got #{appearance[:dimmed].inspect}"
+        end
+        return unless appearance.key?(:badge)
+        return if appearance[:badge].is_a?(String) && appearance[:badge].length <= BADGE_MAX
+
+        raise InvalidError, "#{context}: badge must be a string of at most #{BADGE_MAX} characters, got #{appearance[:badge].inspect}"
       end
 
       def validate_edges!

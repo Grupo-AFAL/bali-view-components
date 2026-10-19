@@ -82,4 +82,15 @@ class ProcessFlow < ApplicationRecord
     reload
     saved == 1
   end
+
+  # The review notes alone (AnnotationsController), under the same version
+  # check as save_draft: the rest of the document is left as it is.
+  def save_annotations(annotations, expected_version)
+    saved = self.class.where(id: id, version: expected_version.to_i).update_all(
+      document: document.merge("annotations" => annotations),
+      version: expected_version.to_i + 1, updated_at: Time.current
+    )
+    reload
+    saved == 1
+  end
 end

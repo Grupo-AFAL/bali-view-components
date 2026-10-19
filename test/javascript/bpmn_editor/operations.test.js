@@ -3,6 +3,8 @@ import assert from 'node:assert/strict'
 import * as ops from '../../../app/components/bali/bpmn_editor/model/operations.js'
 import { layoutLanes, insideLane, nodeBox } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
 import { doc, lanes, node, flow } from './helpers.js'
+import { invoice } from './fixtures.js'
+import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 
 const twoLanes = () => doc({
   lanes: lanes('A', 'B'),
@@ -313,4 +315,75 @@ test('a way back into an activity that already has its way in enters through a m
   // A second return reuses that XOR.
   const again = ops.connectThroughGateway({ ...next, edges: next.edges.filter((e) => e.source !== 'ok' || e.target !== gatewayId) }, 'ok', 'calc')
   assert.equal(again.gatewayId, gatewayId)
+})
+
+// R2: what recording the demo video showed.
+const boxesCross = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h
+const crossesAnyNode = (doc, route, ends) => doc.nodes.filter((n) => !ends.includes(String(n.id))).some((n) => {
+  const box = nodeBox(n)
+  return route.points.some((p, i) => {
+    if (!i) return false
+    const a = route.points[i - 1]
+    const seg = { x: Math.min(a.x, p.x), y: Math.min(a.y, p.y), w: Math.abs(a.x - p.x) || 1, h: Math.abs(a.y - p.y) || 1 }
+    return boxesCross(seg, { x: box.x + 2, y: box.y + 2, w: box.w - 4, h: box.h - 4 })
+  })
+})
+
+test('«Branch with» a Yes/No decision after «Record payment»: «Yes» goes on straight, «No» beside it, both untangled', () => {
+  const d = invoice()
+  const labels = { yes: 'Sí', no: 'No' }
+  const decision = { type: 'exclusive_gateway', marker_visible: false }
+  const { doc: next, id, gatewayId } = ops.branchNode(d, 't3', { type: 'task' }, 'right', { gateway: decision, labels })
+  const gateway = byId(next, gatewayId)
+  const out = next.edges.filter((e) => e.source === gatewayId)
+  assert.deepEqual(out.map((e) => [e.target, e.label]).sort(), [[id, 'No'], ['t4', 'Sí']].sort())
+  assert.ok(Math.abs(nodeBox(byId(next, 't4')).cy - nodeBox(gateway).cy) < 1, '«Yes» stays on the gateway’s row')
+  assert.ok(nodeBox(byId(next, id)).cy > nodeBox(gateway).cy, '«No» leaves beside it, below')
+  for (const n of next.nodes) {
+    assert.ok(next.nodes.every((m) => m === n || m.type === 'text_annotation' || n.type === 'text_annotation' || !boxesCross(nodeBox(n), nodeBox(m))), `${n.id} overlaps nothing`)
+  }
+  const routes = routeAll(next)
+  for (const e of out) assert.equal(crossesAnyNode(next, routes.get(String(e.id)), [gatewayId, String(e.target)]), false, `${e.label} crosses no element`)
+})
+
+test('an exclusive or inclusive split still leaves its new ways unnamed', () => {
+  for (const type of ['exclusive_gateway', 'inclusive_gateway']) {
+    const { doc: next, gatewayId } = ops.branchNode(invoice(), 't3', { type: 'task' }, 'right', { gateway: type, labels: { yes: 'Yes', no: 'No' } })
+    assert.ok(next.edges.filter((e) => e.source === gatewayId).every((e) => !e.label), type)
+  }
+})
+
+test('the merge of a way back goes right before the target, in its lane, when the way in comes from the lane above', () => {
+  // The video's flow: the request is sent from the lane above, straight over «Review documents».
+  const d = doc({
+    lanes: lanes('Requester', 'Purchasing'),
+    nodes: [node('send', 'task', 'l1', 300, 90, { name: 'Send request' }), node('review', 'task', 'l2', 300, 270, { name: 'Review documents' }),
+      node('fix', 'task', 'l2', 600, 400, { name: 'Ask for a correction' })],
+    edges: [flow('f1', 'send', 'review'), flow('f2', 'review', 'fix')]
+  })
+  d.lanes[1].size = 300
+  const { doc: next, gatewayId } = ops.connectThroughGateway(d, 'fix', 'review')
+  const merge = nodeBox(byId(next, gatewayId))
+  const review = nodeBox(byId(next, 'review'))
+  assert.equal(byId(next, gatewayId).lane_id, 'l2', 'in the target’s lane')
+  assert.ok(Math.abs(merge.cy - review.cy) < 1, 'on the target’s row')
+  assert.ok(merge.x + merge.w < review.x, 'before the target along the flow')
+  const routes = routeAll(next)
+  for (const e of next.edges) assert.equal(crossesAnyNode(next, routes.get(String(e.id)), [String(e.source), String(e.target)]), false, `${e.source} → ${e.target} crosses no element`)
+})
+
+test('down into an external lane, the quick menu keeps the new element in its own lane and grows it', () => {
+  const d = doc({
+    lanes: [...lanes('Purchasing'), { id: 'x', name: 'Supplier', kind: 'external', order: 2, size: 160 }],
+    nodes: [node('g', 'exclusive_gateway', 'l1', 300, 90, { marker_visible: false, name: 'Complete?' })]
+  })
+  const result = ops.appendNode(d, 'g', { type: 'task' }, 'down')
+  assert.equal(result.error, undefined, 'not refused')
+  const created = byId(result.doc, result.id)
+  assert.equal(created.lane_id, 'l1')
+  const layout = layoutLanes(result.doc)
+  const own = layout.byId.get('l1')
+  const box = nodeBox(created)
+  assert.ok(box.y + box.h <= own.offset + own.size, 'inside the grown lane')
+  assert.ok(box.cy > nodeBox(byId(result.doc, 'g')).cy, 'below its source')
 })

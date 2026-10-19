@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { saveDocument, fetchDocument, finalizeDocument } from '../saveClient.js'
+import { saveDocument, saveAnnotations, fetchDocument, finalizeDocument } from '../saveClient.js'
 import { forSave, normalize } from '../model/document.js'
 import { createSaver } from '../model/saver.js'
 
@@ -8,15 +8,21 @@ const AUTOSAVE_DELAY = 1200
 // The save state machine lives in model/saver.js (pure, tested with node
 // --test); this hook binds it to React: status, the autosave debounce, the
 // page-leave guards and the save on unmount.
-export default function useSaver ({ doc, revision, urls, editable, autosave, onAdopt, onReset, onEvent, notify, t }) {
+//
+// `notesOnly` (Component `annotatable:` on a read-only diagram): the same
+// serialized protocol, to `urls.annotations`, carrying only the annotations.
+const annotationsOf = (doc) => doc.annotations || []
+
+export default function useSaver ({ doc, revision, urls, editable, notesOnly = false, autosave, onAdopt, onReset, onEvent, notify, t }) {
+  const saving = editable || notesOnly
   const [status, setStatus] = useState('saved')
   const [finalizing, setFinalizing] = useState(false)
   const timer = useRef(null)
   const latest = useRef({ doc, revision })
   latest.current = { doc, revision }
   const deps = {
-    client: { save: saveDocument, fetch: fetchDocument, finalize: finalizeDocument },
-    urls,
+    client: { save: notesOnly ? saveAnnotations : saveDocument, fetch: fetchDocument, finalize: finalizeDocument },
+    urls: notesOnly ? { save: urls.annotations, diagram: urls.diagram } : urls,
     latest: () => latest.current,
     onAdopt,
     onReset,
@@ -25,7 +31,7 @@ export default function useSaver ({ doc, revision, urls, editable, autosave, onA
     t,
     setStatus,
     prepare: normalize,
-    forSave,
+    forSave: notesOnly ? annotationsOf : forSave,
     defer: (fn) => setTimeout(fn, 0)
   }
   const saver = useRef(null)
@@ -34,18 +40,18 @@ export default function useSaver ({ doc, revision, urls, editable, autosave, onA
   const dirty = saver.current.isDirty(revision)
 
   const save = useCallback(async () => {
-    if (!editable) return false
+    if (!saving) return false
     clearTimeout(timer.current)
     return saver.current.save()
-  }, [editable])
+  }, [saving])
 
   useEffect(() => {
     if (!dirty) return
     setStatus((s) => (s === 'saving' ? s : 'dirty'))
-    if (!autosave || !editable) return
+    if (!(autosave || notesOnly) || !saving) return
     timer.current = setTimeout(() => { save() }, AUTOSAVE_DELAY)
     return () => clearTimeout(timer.current)
-  }, [revision, dirty, autosave, editable, save])
+  }, [revision, dirty, autosave, notesOnly, saving, save])
 
   // Only a change of `dirty` is news; a new onEvent identity is not.
   const onEventRef = useRef(onEvent)
@@ -75,8 +81,8 @@ export default function useSaver ({ doc, revision, urls, editable, autosave, onA
   // drawer closing): send it instead of dropping it.
   useEffect(() => () => {
     clearTimeout(timer.current)
-    saver.current.leave({ autosave, editable })
-  }, [autosave, editable])
+    saver.current.leave({ autosave: autosave || notesOnly, editable: saving })
+  }, [autosave, notesOnly, saving])
 
   const finalize = useCallback(async () => {
     clearTimeout(timer.current)

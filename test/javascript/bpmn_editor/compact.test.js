@@ -3,7 +3,7 @@
 // hard constraints as the straight one.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { FIXTURES } from './fixtures.js'
+import { FIXTURES, supplierOnboarding } from './fixtures.js'
 import { normalize } from '../../../app/components/bali/bpmn_editor/model/document.js'
 import { autoLayout } from '../../../app/components/bali/bpmn_editor/model/layout.js'
 import { arrange } from '../../../app/components/bali/bpmn_editor/model/arrange.js'
@@ -38,17 +38,33 @@ for (const [name, make] of Object.entries(FIXTURES)) {
   })
 }
 
-test('the invoice does not fit a letter page straight; compact folds it until it does', () => {
-  const straight = autoLayout(normalize(FIXTURES.invoice()))
-  const folded = compact(normalize(FIXTURES.invoice()))
-  assert.equal(pageFit(straight).fits, false)
-  assert.equal(pageFit(folded).fits, true)
-  assert.ok(pageFit(folded).width < pageFit(straight).width)
+// Before folding, compact tightens the flow (layout.js: columns as wide as
+// what they hold, tasks of 120 px, names wrapped at 100 px, 40 px between
+// neighbours). A flow of a dozen steps then reads straight on the page.
+const backwards = (doc) => [...routeAll(doc).values()].filter((r) => r.sourceSide === 'left' && r.targetSide === 'right')
+
+test('the invoice does not fit loose, fits tightened: compact keeps it straight', () => {
+  const loose = autoLayout(normalize(FIXTURES.invoice()))
+  const tight = compact(normalize(FIXTURES.invoice()))
+  assert.equal(pageFit(loose).fits, false)
+  assert.equal(pageFit(tight).fits, true)
+  assert.equal(backwards(tight).length, 0, 'not folded: nothing reads backwards')
 })
 
-test('a returning band reads right to left: its steps are straight lines out of the left side', () => {
-  const doc = compact(normalize(FIXTURES.invoice()))
-  const back = [...routeAll(doc).values()].filter((r) => r.sourceSide === 'left' && r.targetSide === 'right')
+// The 10-step flow of the demo video folded into two bands before.
+test('«Alta de proveedor» from the demo fits a landscape letter page straight, at 6 pt or more', () => {
+  const doc = compact(normalize(supplierOnboarding()))
+  const fit = pageFit(doc)
+  assert.ok(fit.scale >= 0.727, `scale ${fit.scale.toFixed(3)}`)
+  assert.equal(backwards(doc).length, 0, 'not folded')
+  const m = measure(doc)
+  assert.equal(m.hard, 0, JSON.stringify(m.details))
+})
+
+test('a flow too long even tightened folds, and a returning band reads right to left in straight lines', () => {
+  const doc = compact(normalize(FIXTURES.large(14)))
+  assert.equal(pageFit(doc).fits, true)
+  const back = backwards(doc)
   assert.ok(back.length > 0, 'some step of the flow reads backwards')
   assert.ok(back.every((r) => r.points.length === 2), 'and is one straight segment')
 })

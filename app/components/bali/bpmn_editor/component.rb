@@ -18,8 +18,15 @@ module Bali
     #
     # Without `editable:` or without `urls[:save]` it is a viewer.
     class Component < ApplicationViewComponent
-      URL_KEYS = %i[save diagram finalize references new_reference lane_assignees new_lane_assignee import].freeze
+      URL_KEYS = %i[save diagram finalize references new_reference lane_assignees new_lane_assignee import annotations].freeze
       RULE_KEYS = %i[disabled enabled severities messages options].freeze
+      # Mirrors RULE_PROFILES in model/rules/engine.js (contract_test.rb).
+      RULE_PROFILES = %i[structure].freeze
+      # What `rules: :structure` keeps on: what holds for any diagram with lanes
+      # (broken connections, elements outside a lane, overlaps, a sub-process without
+      # its reference, a duplicated connection, an element the palette does not allow).
+      # Mirrors STRUCTURE_PROFILE in model/rules/engine.js (contract_test.rb).
+      STRUCTURE_PROFILE = %w[R11 R18 R25 R26 B09 VIS-10].freeze
       # The option keys the rules read (`ctx.option('…')` in model/); contract_test.rb compares them.
       RULE_OPTIONS = %i[min_lanes min_activities max_activities].freeze
       # Mirrors LAYOUTS in model/layout.js (contract_test.rb).
@@ -29,6 +36,14 @@ module Bali
       PAGE_ORIENTATIONS = %w[landscape portrait].freeze
       FIELD_KEYS = %i[nodes lanes].freeze
       REVIEW_KEYS = %i[tags compare_with].freeze
+      COMPARE_KEYS = %i[document label match].freeze
+      # Mirrors COMPARE_MATCHES in model/diff.js (contract_test.rb).
+      COMPARE_MATCHES = %i[auto id name].freeze
+      # Mirrors CHROMES in BpmnEditor.jsx (contract_test.rb).
+      CHROMES = %i[full minimal].freeze
+      # The floor of "Fit to view" (canvas/fit.js MIN_FIT_ZOOM); `min_zoom:` lowers or raises it.
+      DEFAULT_MIN_ZOOM = 0.4
+      MIN_ZOOM_RANGE = (0.05..1.0)
       # Mirrors FIELD_TYPES in chrome/PropertiesPanel.jsx (contract_test.rb).
       FIELD_TYPES = %w[text textarea number select multi_select readonly].freeze
       # Mirrors LEGEND_SWATCHES in chrome/Legend.jsx (contract_test.rb).
@@ -56,8 +71,11 @@ module Bali
       # @param palette [Symbol, Array, Hash] see Bali::BpmnEditor::Palette.resolve.
       # @param legend [Hash, Array, false] { add: [{ key:, label:, swatch: }], remove: [keys] }, a
       #   full list of entries, or false to hide it.
-      # @param rules [Hash] { disabled: [ids], enabled: [ids], severities: { id => :warning },
-      #   messages: { id => "text" }, options: { min_lanes:, min_activities:, max_activities: } }.
+      # @param rules [Hash, Symbol, false] { disabled: [ids], enabled: [ids], severities: { id => :warning },
+      #   messages: { id => "text" }, options: { min_lanes:, min_activities:, max_activities: } };
+      #   :structure keeps only STRUCTURE_PROFILE (and their blocks), for diagrams that are not
+      #   process models; false runs no rule at all: no pending issues, no blocks while drawing,
+      #   and «Finalize» checks nothing (the host's finalize endpoint still may).
       # @param fields [Hash] the properties panel's own fields: { nodes: { node_type (or "*") =>
       #   [{ key:, label:, type:, options:, url: }] }, lanes: [the same field schema] }.
       # @param urls [Hash] island endpoints, keys in URL_KEYS — see docs/api/bpmn-editor.md.
@@ -65,14 +83,25 @@ module Bali
       #   names, and the main participant of the .bpmn export.
       # @param watermark [String] text across the image and print outputs (e.g. "Borrador").
       # @param review [Hash] { tags: [{ key:, label:, color: }] of the review notes,
-      #   compare_with: { document: <a document like data:>, label: "Published v1.0" } }.
+      #   compare_with: one comparison or a list of them, picked in the comparison bar — each
+      #   { document: <a document like data:>, label: "Published v1.0", match: :auto (by id, then
+      #   by name: the default) | :id (two versions of one document) | :name (two different
+      #   documents, paired by normalized name) } }.
+      # @param selected_id [String] the node shown selected on load — read-only too. The app moves
+      #   it later with the `bali-bpmn:select` event.
+      # @param chrome [Symbol] :full (default) or :minimal — only the zoom controls and «Fit»: no
+      #   top bar, toolbars, palette, minimap or help line, the legend folded, and the editor takes
+      #   its container's height and fits again when that changes. For read-only diagrams.
+      # @param min_zoom [Numeric] the floor of «Fit to view», 0.05..1 (default 0.4).
+      # @param annotatable [Boolean] with `editable: false` and `urls[:annotations]`: the diagram
+      #   stays read-only but review notes can be added, edited and deleted.
       # @param i18n [Hash] island strings. Defaults to Bali::BpmnEditor::Translations.island.
       # @param id [String] DOM id; also scopes the events the host sends back. Generated when
       #   omitted, so two editors on one page never share it.
       def initialize(data:, editable: false, autosave: true, lock_orientation: false, external_lanes: true,
                      open_issues: false, layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil,
                      rules: {}, fields: {}, urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil,
-                     **options)
+                     selected_id: nil, chrome: :full, min_zoom: DEFAULT_MIN_ZOOM, annotatable: false, **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @autosave = autosave
@@ -83,19 +112,28 @@ module Bali
         @page = resolve_page(page)
         @palette = Palette.resolve(palette)
         @legend = resolve_legend(legend)
-        @rules = resolve_rules(rules)
+        @rules = resolve_rule_setting(rules)
         @fields = resolve_fields(fields)
         @urls = resolve_urls(urls)
         @name = name
         @watermark = watermark
         @review = resolve_review(review)
+        @selected_id = selected_id.presence&.to_s
+        @chrome = resolve_chrome(chrome)
+        @min_zoom = resolve_min_zoom(min_zoom)
+        @annotatable = annotatable
         @i18n = i18n
         # The locale it was built in: Lookbook builds a component inside
         # `I18n.with_locale` and renders it after that block returns.
         @locale = I18n.locale
         @id = id.presence || "bpmn-editor-#{SecureRandom.hex(4)}"
         @options = options
+        return unless @chrome == :minimal && editable?
+
+        raise ArgumentError, "chrome: :minimal is for read-only diagrams (it has no palette or save status); drop editable: or use chrome: :full"
       end
+
+      def minimal? = @chrome == :minimal
 
       def island_i18n
         @island_i18n ||= @i18n || Translations.island(locale: @locale)
@@ -104,7 +142,8 @@ module Bali
       def wrapper_attributes
         @options.except(:class).merge(
           id: @id,
-          class: class_names("bali-bpmn-editor", @options[:class]),
+          # Minimal chrome takes its container's height (the host sizes the container).
+          class: class_names("bali-bpmn-editor", { "block h-full" => minimal? }, @options[:class]),
           data: island_values
         ).compact
       end
@@ -124,19 +163,42 @@ module Bali
           bpmn_editor_page_value: @page.to_json,
           bpmn_editor_palette_value: @palette.to_json,
           bpmn_editor_legend_value: @legend.to_json,
-          bpmn_editor_rules_value: @rules.to_json,
+          bpmn_editor_rules_value: (@rules.is_a?(Symbol) ? { profile: @rules } : @rules || {}).to_json,
+          # `rules: false` travels as its own flag: a Stimulus Object value only reads objects.
+          bpmn_editor_validate_value: (@rules == false ? "false" : nil),
           bpmn_editor_fields_value: @fields.to_json,
           bpmn_editor_urls_value: @urls.to_json,
           bpmn_editor_name_value: @name,
           bpmn_editor_watermark_value: @watermark,
           bpmn_editor_review_value: @review.to_json,
-          bpmn_editor_i18n_value: island_i18n.to_json
+          bpmn_editor_i18n_value: island_i18n.to_json,
+          bpmn_editor_selected_id_value: @selected_id,
+          bpmn_editor_chrome_value: (@chrome.to_s unless @chrome == :full),
+          bpmn_editor_min_zoom_value: (@min_zoom unless @min_zoom == DEFAULT_MIN_ZOOM),
+          bpmn_editor_annotatable_value: (annotatable? ? "true" : nil)
         }.compact
       end
 
       # Editing without somewhere to save would lose the work on reload.
       def editable?
         !!@editable && @urls[:save].present?
+      end
+
+      # Notes on a read-only diagram, saved to their own endpoint.
+      def annotatable?
+        !!@annotatable && !editable? && @urls[:annotations].present?
+      end
+
+      def resolve_chrome(chrome)
+        return chrome.to_sym if CHROMES.include?(chrome.to_s.to_sym)
+
+        raise ArgumentError, "chrome must be one of #{CHROMES.inspect}, got #{chrome.inspect}"
+      end
+
+      def resolve_min_zoom(min_zoom)
+        return min_zoom.to_f if min_zoom.is_a?(Numeric) && MIN_ZOOM_RANGE.cover?(min_zoom.to_f)
+
+        raise ArgumentError, "min_zoom must be a number in #{MIN_ZOOM_RANGE}, got #{min_zoom.inspect}"
       end
 
       def resolve_layout(layout)
@@ -166,6 +228,14 @@ module Bali
         return urls.compact if unknown.empty?
 
         raise ArgumentError, "unknown urls: keys #{unknown.inspect}; expected #{URL_KEYS.inspect}"
+      end
+
+      def resolve_rule_setting(rules)
+        return false if rules == false
+        return resolve_rules(rules) unless rules.is_a?(Symbol) || rules.is_a?(String)
+        return rules.to_sym if RULE_PROFILES.include?(rules.to_sym)
+
+        raise ArgumentError, "rules must be a Hash, false or one of #{RULE_PROFILES.inspect}, got #{rules.inspect}"
       end
 
       def resolve_rules(rules)
@@ -230,7 +300,7 @@ module Bali
         unknown = review.keys - REVIEW_KEYS
         raise ArgumentError, "unknown review: keys #{unknown.inspect}; expected #{REVIEW_KEYS.inspect}" if unknown.any?
 
-        { tags: review_tags(review[:tags]), compare_with: review_comparison(review[:compare_with]) }.compact
+        { tags: review_tags(review[:tags]), compare_with: review_comparisons(review[:compare_with]) }.compact
       end
 
       def review_tags(tags)
@@ -242,13 +312,26 @@ module Bali
         end
       end
 
-      def review_comparison(compare)
+      # One comparison (a Hash) or several (an Array): the island always gets the list.
+      def review_comparisons(compare)
         return nil if compare.blank?
 
+        (compare.is_a?(Array) ? compare : [ compare ]).map { |one| review_comparison(one) }
+      end
+
+      def review_comparison(compare)
         compare = compare.to_h.symbolize_keys
+        unknown = compare.keys - COMPARE_KEYS
+        raise ArgumentError, "unknown review compare_with: keys #{unknown.inspect}; expected #{COMPARE_KEYS.inspect}" if unknown.any?
+
         document = compare[:document] or raise ArgumentError, "review compare_with needs a document:"
         document = document.is_a?(Data) ? document : Data.new(document)
-        { document: document.to_h, label: compare[:label].to_s }
+        match = (compare[:match] || :auto).to_s.to_sym
+        unless COMPARE_MATCHES.include?(match)
+          raise ArgumentError, "review compare_with match: must be one of #{COMPARE_MATCHES.inspect}, got #{compare[:match].inspect}"
+        end
+
+        { document: document.to_h, label: compare[:label].to_s, match: match.to_s }
       end
 
       def resolve_legend(legend)

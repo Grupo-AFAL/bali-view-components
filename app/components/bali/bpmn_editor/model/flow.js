@@ -43,7 +43,8 @@ export function buildRfNodes (doc, { layout = layoutLanes(doc), editable = false
         orientation: layout.orientation,
         header: layout.header,
         issue: issues.get(String(entry.id)) || null,
-        diff: diff ? diff.lanes[String(entry.id)] || null : null
+        diff: diff ? diff.lanes[String(entry.id)] || null : null,
+        diffReasons: diff && diff.reasons ? diff.reasons[String(entry.id)] || null : null
       }
     }
   })
@@ -67,7 +68,8 @@ export function buildRfNodes (doc, { layout = layoutLanes(doc), editable = false
         node,
         external: node.lane_id != null && external.has(String(node.lane_id)),
         issue: issues.get(id) || null,
-        diff: diff ? diff.nodes[id] || null : null
+        diff: diff ? diff.nodes[id] || null : null,
+        diffReasons: diff && diff.reasons ? diff.reasons[id] || null : null
       }
     }
   })
@@ -92,7 +94,7 @@ export function buildRfEdges (doc, routes, { editable = false, selected = new Se
       deletable: editable,
       selected: selected.has(id),
       zIndex: 1,
-      data: { edge, issue: issues.get(id) || null, diff: diff ? diff.edges[id] || null : null }
+      data: { edge, issue: issues.get(id) || null, diff: diff ? diff.edges[id] || null : null, diffReasons: diff && diff.reasons ? diff.reasons[id] || null : null }
     })
   }
   return edges

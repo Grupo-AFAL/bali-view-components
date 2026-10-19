@@ -1,3 +1,4 @@
+import { sourceText } from '../model/rules/engine.js'
 import Dialog from './Dialog.jsx'
 
 // The chapters of the criteria matrix, in its order; the host's own rules last.
@@ -27,7 +28,7 @@ export default function RulesDialog ({ t, rules, onClose }) {
                     {rule.criteria && rule.criteria.length > 0 && (
                       <span className='block text-xs text-base-content/60'>{t('rules_criteria')}: <span className='font-mono'>{rule.criteria.join(', ')}</span></span>
                     )}
-                    {rule.source && <span className='block text-xs text-base-content/60'>{t('rules_source')}: {rule.source}</span>}
+                    {rule.source && <span className='block text-xs text-base-content/60'>{t('rules_source')}: {sourceText(rule.source, t)}</span>}
                   </td>
                   <td className='text-right'>
                     {rule.on

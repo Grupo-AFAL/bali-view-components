@@ -27,6 +27,17 @@
   .split-view-component {
     grid-template-columns: var(--bali-split-master-width, 420px) 1fr;
   }
+
+  /* `master_width: :equal`: half of what the gap leaves, so `1fr` gets the
+     other half to the pixel. A length and not `1fr 1fr`: `collapsible:`
+     animates this track from 100%, and a percentage only interpolates with a
+     length — `fr` flips halfway. The gap is a custom property because the
+     calc has to know it: a `gap-*` utility would change the gap and not the
+     halves. */
+  .split-view-component--equal {
+    --bali-split-master-width: calc((100% - var(--bali-split-gap, 1rem)) / 2);
+    column-gap: var(--bali-split-gap, 1rem);
+  }
 }
 
 /* Opt-in, applied by the host to whatever part of the master should scroll —
@@ -253,5 +264,107 @@
 
   .split-view-component--full .split-view-detail {
     @apply overflow-y-auto min-h-0;
+  }
+
+  /* `height: :screen`: from the split's top edge to the bottom of the
+     viewport. `--bali-split-top` is the edge's offset in the page, written by
+     split-view-screen (screen.js) and kept right as what is above it changes;
+     `dvh` follows a phone browser's bars. */
+  .split-view-component--full.split-view-component--screen {
+    height: calc(100dvh - var(--bali-split-top, 0px));
+    min-height: var(--bali-split-min-h, 28rem);
+  }
+
+  /* `height: "<length>"`, written by the component as `--bali-split-height`. */
+  .split-view-component--full.split-view-component--fixed {
+    height: var(--bali-split-height);
+  }
+
+  /* A collapsible detail sits in a pane, with its bar above the frame: the
+     frame takes what the bar leaves, and is a column itself, so a detail can
+     hand the rest of the height to one part (`flex-1`) — a diagram, a map. */
+  .split-view-component--full .split-view-detail-pane {
+    @apply min-h-0;
+  }
+
+  .split-view-component--full .split-view-detail-pane > .split-view-detail {
+    @apply flex flex-1 flex-col;
+  }
+}
+
+/* ── Collapsible detail (`collapsible: true`) ────────────────────────────
+   Closed, the master takes the whole width; open, it shrinks to its column
+   while the detail slides in from the right and fades in. The columns
+   animate (two tracks: measured smooth at 60 fps in Chromium with a BPMN
+   canvas in each pane), the detail moves with transform and opacity, which
+   cost no layout. Below `lg` the detail covers the master instead. Reduced
+   motion: the same states, no animation. */
+.split-view-component--collapsible {
+  --bali-split-motion: 300ms;
+  transition: grid-template-columns var(--bali-split-motion) ease-out, column-gap var(--bali-split-motion) ease-out;
+}
+
+.split-view-detail-pane {
+  @apply flex min-w-0 flex-col;
+  transition: transform var(--bali-split-motion) ease-out, opacity var(--bali-split-motion) ease-out,
+              visibility 0s linear 0s;
+}
+
+.split-view-detail-bar {
+  @apply flex items-center justify-end gap-2 pb-2;
+}
+
+.split-view-component--collapsible[data-split-state="closed"] > .split-view-detail-pane {
+  transform: translateX(2rem);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform var(--bali-split-motion) ease-out, opacity var(--bali-split-motion) ease-out,
+              visibility 0s linear var(--bali-split-motion);
+}
+
+@media (width >= 64rem) {
+  .split-view-component--collapsible[data-split-state="closed"] {
+    /* 100%, not 1fr: the master track only animates between two lengths or
+       percentages — 1fr to `master_width` flips halfway instead. */
+    grid-template-columns: 100% 0fr;
+    column-gap: 0;
+  }
+
+  .split-view-component--collapsible[data-split-state="closed"] > .split-view-detail-pane,
+  .split-view-component--collapsible[data-split-moving] > .split-view-detail-pane {
+    overflow: hidden;
+  }
+}
+
+/* Below `lg`: the detail is a full-screen sheet over the master. */
+@media (width < 64rem) {
+  .split-view-component--collapsible > .split-view-detail-pane {
+    position: fixed;
+    inset: 0;
+    /* A side panel over the page, as a Drawer is (bali/z_index.css). */
+    z-index: var(--bali-z-drawer);
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--color-base-100);
+  }
+
+  .split-view-component--collapsible[data-split-state="closed"] > .split-view-detail-pane {
+    transform: translateX(100%);
+  }
+}
+
+/* A detail that carries its own «Close» (anything acting
+   `split-view-collapse#close`) — in its header, beside its title — takes the
+   pane's bar out: two closes would be one too many, and the bar's row is what
+   pushed the detail below a master beside it. */
+.split-view-detail-pane:has(> .split-view-detail [data-action~="split-view-collapse#close"]) > .split-view-detail-bar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .split-view-component--collapsible,
+  .split-view-detail-pane,
+  .split-view-component--collapsible[data-split-state="closed"] > .split-view-detail-pane {
+    transition: none;
   }
 }

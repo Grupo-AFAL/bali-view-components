@@ -54,4 +54,28 @@ export function large (activities = 60, every = 6, { localized: both = false } =
   return { version: 1, lanes, nodes, edges }
 }
 
+// «Alta de proveedor» as built in the demo video: three lanes, ten steps, a
+// Yes/No decision whose «No» returns through a merge, a message flow.
+export function supplierOnboarding () {
+  const node = (id, type, lane, name, extra = {}) => ({ id, type, lane_id: lane, name, ...extra })
+  return {
+    version: 1,
+    orientation: 'horizontal',
+    lanes: [{ id: 'p', name: 'Proveedor', kind: 'external', order: 1 }, { id: 's', name: 'Solicitante', order: 2 }, { id: 'c', name: 'Compras', order: 3 }],
+    nodes: [
+      node('n1', 'start_event', 's', 'Necesidad de un proveedor'), node('n2', 'task', 's', 'Enviar solicitud de alta'),
+      node('x', 'exclusive_gateway', 'c', ''), node('n3', 'task', 'c', 'Revisar documentación'),
+      node('g', 'exclusive_gateway', 'c', '¿Documentación completa?', { marker_visible: false }), node('n4', 'task', 'c', 'Registrar proveedor'),
+      node('n5', 'task', 'c', 'Avisar al solicitante'), node('e', 'end_event', 'c', 'Proveedor registrado'),
+      node('n6', 'task', 'c', 'Solicitar corrección'), node('n7', 'task', 'p', 'Enviar documentos')
+    ],
+    edges: [
+      { id: 'f1', source: 'n1', target: 'n2' }, { id: 'f2', source: 'n2', target: 'x' }, { id: 'f3', source: 'x', target: 'n3' },
+      { id: 'f4', source: 'n3', target: 'g' }, { id: 'f5', source: 'g', target: 'n4', label: 'Sí' }, { id: 'f6', source: 'n4', target: 'n5' },
+      { id: 'f7', source: 'n5', target: 'e' }, { id: 'f8', source: 'g', target: 'n6', label: 'No' }, { id: 'f9', source: 'n6', target: 'x' },
+      { id: 'm', source: 'n7', target: 'n3', type: 'message_flow' }
+    ]
+  }
+}
+
 export const FIXTURES = { invoice, rework, parallel, large, partners }

@@ -39,4 +39,13 @@ class BaliBpmnEditorTranslationsTest < ActiveSupport::TestCase
       assert_equal value.scan(/%\{\w+\}/).sort, es[key].scan(/%\{\w+\}/).sort, "placeholders of #{key}"
     end
   end
+
+  # A person reads no organization's name and no spreadsheet in the editor.
+  def test_no_island_string_names_afal_or_a_spreadsheet
+    %i[es en].each do |locale|
+      Bali::BpmnEditor::Translations.island(locale: locale).each do |key, value|
+        refute_match(/afal|excel/i, value, "#{locale}.#{key}")
+      end
+    end
+  end
 end

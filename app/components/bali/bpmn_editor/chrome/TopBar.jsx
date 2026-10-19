@@ -23,7 +23,7 @@ function IconButton ({ icon, label, shortcut, onClick, disabled }) {
 // draft is saved, the pending issues, history, exports and the save /
 // finalize actions. Page title, "edit mode" and "exit" belong to the host.
 export default function TopBar ({
-  t, editable, statusLabel, saveStatus, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
+  t, editable, notesOnly = false, statusLabel, saveStatus, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
   finalizing, exports, onCompare, comparing
 }) {
   const status = STATUS[saveStatus] || STATUS.saved
@@ -38,6 +38,12 @@ export default function TopBar ({
           </span>
           )
         : <span className='badge badge-sm'>{t('read_only')}</span>}
+      {notesOnly && (
+        // Read-only with notes (Component `annotatable:`): the notes' own save.
+        <span className={`flex items-center gap-1 text-xs ${status.className}`} role='status' aria-live='polite' data-testid='bpmn-save-status'>
+          <Icon name={status.icon} size={13} className={saveStatus === 'saving' ? 'animate-spin' : ''} />{t(saveStatus === 'saved' ? 'notes_saved' : status.key)}
+        </span>
+      )}
       {editable && issues.length > 0 && (
         <button
           type='button'

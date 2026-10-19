@@ -45,4 +45,45 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
 
     assert_equal Bali::BpmnEditor::Component::RULE_OPTIONS.map(&:to_s).sort, read.uniq.sort
   end
+
+  def test_compare_matches
+    assert_equal Bali::BpmnEditor::Component::COMPARE_MATCHES.map(&:to_s), js_list("model/diff.js", "COMPARE_MATCHES")
+  end
+
+  def test_chromes
+    assert_equal Bali::BpmnEditor::Component::CHROMES.map(&:to_s), js_list("BpmnEditor.jsx", "CHROMES")
+  end
+
+  def test_appearance
+    source = ROOT.join("model/appearance.js").read
+
+    assert_equal Bali::BpmnEditor::Data::APPEARANCE_KEYS.map(&:to_s), js_list("model/appearance.js", "APPEARANCE_KEYS")
+    assert_equal Bali::BpmnEditor::Data::BADGE_MAX, source[/export const BADGE_MAX = (\d+)/, 1].to_i
+  end
+
+  def test_the_default_min_zoom_is_the_fits_floor
+    floor = ROOT.join("canvas/fit.js").read[/export const MIN_FIT_ZOOM = ([\d.]+)/, 1] or flunk "MIN_FIT_ZOOM not found in fit.js"
+    controller = ROOT.join("index.js").read[/minZoom: \{ type: Number, default: ([\d.]+) \}/, 1] or flunk "minZoom not found in index.js"
+
+    assert_equal Bali::BpmnEditor::Component::DEFAULT_MIN_ZOOM, floor.to_f
+    assert_equal Bali::BpmnEditor::Component::DEFAULT_MIN_ZOOM, controller.to_f
+  end
+
+  # `rules: false` travels as the `validate` value (a Stimulus Object value
+  # reads only objects) and the controller turns it back into `rules: false`.
+  def test_rules_false_crosses_as_the_validate_value
+    source = ROOT.join("index.js").read
+
+    assert_match(/validate: \{ type: Boolean, default: true \}/, source)
+    assert_match(/if \(validate === false\) return false/, source)
+    assert_match(/if \(config === false\) return false/, ROOT.join("model/rules/engine.js").read)
+  end
+
+  # `rules: :structure` arrives as { profile: "structure" } and the controller
+  # hands the island the profile's name, which the engine reads.
+  def test_rule_profiles
+    assert_equal Bali::BpmnEditor::Component::RULE_PROFILES.map(&:to_s), js_list("model/rules/engine.js", "RULE_PROFILES")
+    assert_equal Bali::BpmnEditor::Component::STRUCTURE_PROFILE, js_list("model/rules/engine.js", "STRUCTURE_PROFILE")
+    assert_match(/if \(rules && rules\.profile\) return String\(rules\.profile\)/, ROOT.join("index.js").read)
+  end
 end

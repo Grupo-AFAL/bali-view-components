@@ -5,7 +5,8 @@
 //
 // Self-contained on purpose: every colour arrives resolved (`paint`), so the
 // file renders the same outside the page, in an <img> or another program.
-import { NodeShape } from '../shapes.jsx'
+import { NodeShape, AppearanceMark } from '../shapes.jsx'
+import { appearanceOf } from '../model/appearance.js'
 import { categoryOf, CATEGORY, edgeType } from '../model/catalog.js'
 import { layoutLanes, laneRect, nodeBox, contentBounds } from '../model/geometry.js'
 import { routeAll, pathWithJumps, findJumps } from '../model/routing.js'
@@ -44,11 +45,24 @@ function Text ({ x, y, text, maxChars = 22, maxLines = 3, size = 11, weight = 50
   )
 }
 
+// The app's badge (`node.appearance.badge`), off the bottom-right corner as
+// on the canvas: on the app's colour with black or white text, whichever reads.
+function Badge ({ text, color, right, bottom, colors }) {
+  const width = Math.round(text.length * 6.2 + 14)
+  const fill = color || colors.header
+  return (
+    <g transform={`translate(${right + 8 - width} ${bottom - 7})`}>
+      <rect width={width} height={16} rx={8} fill={fill} stroke={color ? 'none' : colors.border} />
+      <text x={width / 2} y={8.5} textAnchor='middle' dominantBaseline='middle' fontSize={10} fontWeight={600} fill={textOn(color) || colors.text}>{text}</text>
+    </g>
+  )
+}
+
 // With `page`, a diagram that fits it legibly (model/page.js) is drawn on a
 // sheet of that size, centred inside the print margins, shrunk only as much
 // as it must; one that does not fit keeps its own size.
 export default function ExportDiagram ({ doc, paint, colors, title, subtitle, watermark, notes = [], tags = [], page = null }) {
-  const layout = layoutLanes(doc)
+  const layout = layoutLanes(doc, { print: true })
   const routes = routeAll(doc)
   const edgeLabels = placeEdgeLabels(doc, routes)
   const jumps = findJumps(routes)
@@ -142,10 +156,12 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
         const box = nodeBox(node)
         const category = categoryOf(node)
         const note = notesByElement.get(String(node.id))
+        const look = appearanceOf(node)
         return (
-          <g key={`node-${node.id}`}>
+          <g key={`node-${node.id}`} opacity={look && look.dimmed ? 0.45 : undefined}>
             <g transform={`translate(${box.x} ${box.y})`}>
               <NodeShape node={node} width={box.w} height={box.h} paint={paint} external={external.has(String(node.lane_id))} />
+              {look && <AppearanceMark node={node} width={box.w} height={box.h} color={look.color} />}
             </g>
             {category === CATEGORY.activity && <Text x={box.cx} y={box.cy} text={node.name} maxChars={Math.floor(box.w / 6.8)} maxLines={3} fill={colors.text} />}
             {node.type === 'text_annotation' && <Text x={box.x + 18} y={box.cy} anchor='start' text={node.name} maxChars={Math.floor((box.w - 20) / 6.5)} maxLines={3} weight={400} fill={colors.text} />}
@@ -157,6 +173,7 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
               const x = anchor === 'end' ? lb.x + lb.w : anchor === 'start' ? lb.x : lb.x + lb.w / 2
               return <Text x={x} y={lb.y + lb.h / 2} anchor={anchor} text={node.name} maxChars={Math.max(4, Math.floor(lb.w / 6.4))} maxLines={lb.lines} size={11} fill={colors.text} />
             })()}
+            {look && look.badge && <Badge text={look.badge} color={look.color} right={box.x + box.w} bottom={box.y + box.h} colors={colors} />}
             {note && (
               <g transform={`translate(${box.x - 2} ${box.y - 2})`}>
                 <circle r={10} fill={tagColor(note.tag)} />

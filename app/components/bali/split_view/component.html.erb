@@ -9,7 +9,28 @@
     <%= list? ? list : master %>
   </div>
 
-  <%= tag.turbo_frame(**frame_attributes) do %>
-    <%= detail? ? detail : empty_detail %>
+  <% if collapsible? %>
+    <%# The pane around the frame carries what Turbo must not replace: «Close»
+        (from `lg` up) and «Back» (below it, where the detail covers the master). %>
+    <section class="split-view-detail-pane" data-split-view-collapse-target="pane" aria-label="<%= t("bali_view.split_view.detail") %>">
+      <div class="split-view-detail-bar">
+        <%= render Bali::Button::Component.new(name: "← #{t('bali_view.split_view.back')}", variant: :ghost, size: :sm,
+              class: "lg:hidden", data: { action: "split-view-collapse#close", testid: "split-view-back" }) %>
+        <%= render Bali::Button::Component.new(name: t("bali_view.split_view.close"), variant: :ghost, size: :sm,
+              class: "hidden lg:inline-flex", data: { action: "split-view-collapse#close", testid: "split-view-close" }) %>
+      </div>
+      <%= tag.turbo_frame(**frame_attributes) do %>
+        <% if detail? %>
+          <%= detail %>
+        <% elsif empty_detail? %>
+          <%# Marked, so the collapse controller does not take it for a detail. %>
+          <div data-split-view-empty><%= empty_detail %></div>
+        <% end %>
+      <% end %>
+    </section>
+  <% else %>
+    <%= tag.turbo_frame(**frame_attributes) do %>
+      <%= detail? ? detail : empty_detail %>
+    <% end %>
   <% end %>
 <% end %>

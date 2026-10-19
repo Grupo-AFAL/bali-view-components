@@ -1,6 +1,8 @@
-import { memo } from 'react'
+import { memo, useLayoutEffect, useRef, useState } from 'react'
 import { Handle, NodeToolbar, Position, useStore } from '@xyflow/react'
-import { NodeShape, IssueMarker } from '../shapes.jsx'
+import { NodeShape, IssueMarker, AppearanceMark } from '../shapes.jsx'
+import { appearanceOf } from '../model/appearance.js'
+import { DIFF_MARKS, diffMark } from './diffMarks.js'
 import { categoryOf, nodeSize, CATEGORY } from '../model/catalog.js'
 import { nodeBox } from '../model/geometry.js'
 import { nodeLabelBox, badgeBox } from '../model/labels.js'
@@ -39,14 +41,33 @@ function Label ({ node, name, orientation, category }) {
 // edge of the canvas while it is open (w-72 + its gap).
 const MENU_WIDTH = 250
 const PANEL_WIDTH = 300
+const EDGE_GAP = 8
 
 // The quick menu goes to the right of the node, or to its left when there is
-// no room before the canvas edge (or the properties panel). Only the selected
-// node mounts this, so only it follows the viewport.
+// no room before the canvas edge (or the properties panel). With room on
+// neither side (a phone's canvas) it goes below the node, slid sideways to
+// stay inside the canvas. Only the selected node mounts this, so only it
+// follows the viewport.
 function QuickMenuToolbar ({ x, width, children, panelOpen }) {
+  const left = useStore((s) => x * s.transform[2] + s.transform[0])
   const right = useStore((s) => (x + width) * s.transform[2] + s.transform[0])
   const paneWidth = useStore((s) => s.width)
   const room = paneWidth - (panelOpen ? PANEL_WIDTH : 0) - right
+  // Its drawn width, which grows with «Split with» and «More».
+  const menu = useRef(null)
+  const [span, setSpan] = useState(MENU_WIDTH)
+  useLayoutEffect(() => {
+    const drawn = menu.current && menu.current.offsetWidth
+    if (drawn && drawn !== span) setSpan(drawn)
+  })
+  if (room < MENU_WIDTH && left < MENU_WIDTH) {
+    const shift = Math.max(EDGE_GAP, Math.min(left, paneWidth - span - EDGE_GAP)) - left
+    return (
+      <NodeToolbar isVisible position={Position.Bottom} align='start' offset={14}>
+        <div ref={menu} className='w-max' style={{ transform: `translateX(${Math.round(shift)}px)` }}>{children}</div>
+      </NodeToolbar>
+    )
+  }
   return (
     <NodeToolbar isVisible position={room < MENU_WIDTH ? Position.Left : Position.Right} align='start' offset={14}>
       {children}
@@ -56,7 +77,7 @@ function QuickMenuToolbar ({ x, width, children, panelOpen }) {
 
 function FlowNode ({ id, data, selected, positionAbsoluteX }) {
   const canvas = useCanvas()
-  const { node, external, issue, diff } = data
+  const { node, external, issue, diff, diffReasons } = data
   const note = canvas.notesByElement && canvas.notesByElement.get(id)
   const size = nodeSize(node)
   const box = { w: size.width, h: size.height }
@@ -64,20 +85,45 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
   const renaming = canvas.renamingId === id
   const name = node.name || ''
   const linked = node.type === 'sub_process' && node.reference && node.reference.url
+  const look = appearanceOf(node)
+  // Focusable, and Enter or Space act as a click (BpmnEditor's onNodeActivate).
+  const activate = canvas.onNodeActivate
+  const mark = diff ? DIFF_MARKS[diffMark(diff, diffReasons)] : null
+  // What the eye gets from colour, fading, badge and mark, in words: the
+  // name, the app's badge, «faded» (`appearance_dimmed`, which the app may
+  // reword — the meaning is the app's), and what a comparison found.
+  const spoken = [name || node.type, look && look.badge, look && look.dimmed && canvas.t('appearance_dimmed'), mark && canvas.t(mark.label)].filter(Boolean).join(', ')
   return (
     <div
-      className={`bpmn-node bpmn-node-${category}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}`}
+      className={`bpmn-node bpmn-node-${category}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}${look && look.dimmed ? ' is-dimmed' : ''}${canvas.connectSource === id ? ' is-connect-source' : ''}${canvas.connectInvalid && canvas.connectInvalid.has(id) ? ' is-connect-invalid' : ''}`}
       data-node-type={node.type}
       data-testid='bpmn-node'
+      data-node-id={id}
       title={name || undefined}
+      tabIndex={activate ? 0 : undefined}
+      role={activate ? 'button' : 'group'}
+      aria-label={spoken}
+      aria-pressed={activate ? Boolean(selected) : undefined}
+      onKeyDown={activate
+        ? (event) => {
+            if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) return
+            event.preventDefault()
+            activate(id)
+          }
+        : undefined}
     >
       <svg className='bpmn-node-shape' width={box.w} height={box.h} aria-hidden='true'>
         <NodeShape node={node} width={box.w} height={box.h} external={external} />
+        {look && <AppearanceMark node={node} width={box.w} height={box.h} color={look.color} />}
         {issue && (() => { const b = badgeBox({ ...node, x: 0, y: 0 }); return <IssueMarker x={b.x + b.w / 2} y={b.y + 8} /> })()}
       </svg>
       {renaming
         ? canvas.renderRename(node)
         : name && <Label node={node} name={name} orientation={canvas.orientation} category={category} />}
+      {mark && <span className={`bpmn-diff-mark bpmn-diff-chip is-${mark.tone}`} data-testid='bpmn-diff-mark' data-mark={diffMark(diff, diffReasons)} aria-hidden='true'>{mark.symbol}</span>}
+      {look && look.badge && (
+        <span className='bpmn-node-badge' data-testid='bpmn-node-badge' style={look.color ? { '--bpmn-badge': look.color, '--bpmn-badge-text': textOn(look.color) } : undefined}>{look.badge}</span>
+      )}
       {note && <span className='bpmn-note-number' style={{ '--bpmn-note-color': note.color, '--bpmn-note-text': textOn(note.color) || undefined }} title={note.text}>{note.number}</span>}
       {linked && !canvas.editable && <span className='bpmn-node-link' aria-hidden='true'>↗</span>}
       {canvas.quickMenuId === id && (

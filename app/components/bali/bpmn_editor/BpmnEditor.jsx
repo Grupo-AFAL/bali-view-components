@@ -3,8 +3,9 @@
 // Flow only draws what the document says and reports gestures back, and
 // undo/redo are stacks of documents (model/history.js). The whole document is
 // saved to the host (hooks/useSaver.js). Contracts: docs/api/bpmn-editor.md.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, EdgeLabelRenderer, useReactFlow } from '@xyflow/react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
+import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, EdgeLabelRenderer, useReactFlow, getViewportForBounds } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import './flow.css'
 import { translator } from './i18n.js'
@@ -19,7 +20,8 @@ import { autoLayout } from './model/layout.js'
 import { LETTER } from './model/page.js'
 import { arrange } from './model/arrange.js'
 import { placeEdgeLabels } from './model/edgeLabels.js'
-import { fitOptions, fitDiagram, anchorStart } from './canvas/fit.js'
+import { fitOptions, fitDiagram, anchorStart, MIN_FIT_ZOOM } from './canvas/fit.js'
+import useRefitOnResize from './hooks/useRefitOnResize.js'
 import { blockPolicy, evaluate, mergeIssues, issuesByElement, hasErrors, ruleList } from './model/rules/engine.js'
 import useSaver from './hooks/useSaver.js'
 import useHostEvents from './hooks/useHostEvents.js'
@@ -51,6 +53,10 @@ const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
 const edgeTypes = { routed: RoutedEdge }
 const EMPTY_SELECTION = { nodes: [], edges: [], lanes: [] }
 const NOTICE_MS = 4800
+const MAX_ZOOM = 2.5
+export const NARROW_WIDTH = 768
+// Mirrors Bali::BpmnEditor::Component::CHROMES (contract_test.rb).
+export const CHROMES = ['full', 'minimal']
 
 export default function BpmnEditor (props) {
   return (
@@ -62,15 +68,22 @@ export default function BpmnEditor (props) {
 
 function Editor ({
   data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
-  name, watermark, review
+  name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
+  // `chrome: :minimal` — a diagram embedded in the app's own page: the canvas
+  // and its zoom bar, at the height of its container.
+  const minimal = chrome === 'minimal'
+  // `rules: false` — nothing is checked, nothing blocks (model/rules/engine.js).
+  const validating = rules !== false
+  // Notes on a read-only diagram, saved on their own (Component `annotatable:`).
+  const notesOnly = !editable && Boolean(annotatable) && Boolean(urls && urls.annotations)
   // The compact layout and the print/export sheet (Component `layout:`, `page:`).
   const layoutOptions = useMemo(() => ({ mode: layoutMode === 'straight' ? 'straight' : 'compact', page: { ...LETTER, ...(page || {}) } }), [layoutMode, page])
   const policy = useMemo(() => blockPolicy(rules), [rules])
   const [arranging, setArranging] = useState(false)
-  const [legendOpen, setLegendOpen] = useState(true)
+  const [legendOpen, setLegendOpen] = useState(!minimal)
   const names = useMemo(() => ({
     task: t('new_task'), sub_process: t('new_sub_process'), gateway: t('new_gateway'), start: t('new_start'),
     end: t('new_end'), event: t('new_event'), annotation: t('new_annotation'), data: t('new_data')
@@ -78,6 +91,34 @@ function Editor ({
   const labels = useMemo(() => ({ yes: t('label_yes'), no: t('label_no') }), [t])
   const flow = useReactFlow()
   const wrapperRef = useRef(null)
+  // React Flow mounts in an animation frame, committed at once (flushSync, so
+  // its effects run there too). Its ResizeObservers are then created before
+  // the frame's observers deliver. Mounted in an ordinary commit, their
+  // creation (in React Flow's effects) waited for whatever flushed them next —
+  // with two editors on a page, the other editor's update in the microtask
+  // between two observer callbacks — and the observers born mid-delivery were
+  // left undelivered: Chrome's «ResizeObserver loop completed with undelivered
+  // notifications» (the pair and split view previews).
+  const [canvasReady, setCanvasReady] = useState(false)
+  const [pointer, setPointer] = useState(null) // over the canvas, while a connection looks for its target
+  // A container with no size yet (a collapsed pane about to slide open, a
+  // hidden tab) waits until it has one: React Flow warns on a 0-wide parent
+  // (error 004) and its first fit would be to nothing.
+  useEffect(() => {
+    let observer = null
+    let frame = window.requestAnimationFrame(() => {
+      const element = wrapperRef.current
+      const sized = () => element.clientWidth > 0 && element.clientHeight > 0
+      if (!element || sized() || !window.ResizeObserver) { flushSync(() => setCanvasReady(true)); return }
+      observer = new window.ResizeObserver(() => {
+        if (!sized()) return
+        observer.disconnect()
+        frame = window.requestAnimationFrame(() => flushSync(() => setCanvasReady(true)))
+      })
+      observer.observe(element)
+    })
+    return () => { window.cancelAnimationFrame(frame); if (observer) observer.disconnect() }
+  }, [])
 
   // ── document & history ─────────────────────────────────────────────────
   const [state, setState] = useState(() => history.initialHistory(normalize(data, layoutOptions)))
@@ -125,6 +166,7 @@ function Editor ({
     revision: state.revision,
     urls,
     editable,
+    notesOnly,
     autosave,
     onAdopt: useCallback((serverDoc, { replace }) => {
       setState((s) => (replace ? history.adopt(s, serverDoc) : history.adopt(s, { ...s.present, issues: serverDoc.issues, version: serverDoc.version })))
@@ -136,12 +178,30 @@ function Editor ({
   })
 
   // ── selection & view state ─────────────────────────────────────────────
-  const [selection, setSelection] = useState(EMPTY_SELECTION)
+  const [selection, setSelection] = useState(() => (
+    selectedId && state.present.nodes.some((n) => String(n.id) === String(selectedId)) ? { ...EMPTY_SELECTION, nodes: [String(selectedId)] } : EMPTY_SELECTION
+  ))
   const [tool, setTool] = useState(null) // { kind: 'place', key } | { kind: 'connect', edge, source }
   const [mode, setMode] = useState('edit') // 'edit' | 'navigate'
   const [boxSelect, setBoxSelect] = useState(false)
-  const [panel, setPanel] = useState(null) // null | 'participants'
+  const [panel, setPanel] = useState(null) // null | 'participants' | 'properties' (narrow editors)
   const [paletteCollapsed, setPaletteCollapsed] = useState(false)
+  // An editor narrower than NARROW_WIDTH opens with the palette, the stencil
+  // and the legend folded: open, their ~250 px each covered most of a phone's
+  // canvas, and «Connect» and the quick menu went under them. Opened there,
+  // the palette is a layer over the canvas instead of a column beside it. Measured once, before
+  // the first paint; the person opens either from then on. The canvas's own
+  // chrome narrows by a container query (flow.css).
+  const [narrow, setNarrow] = useState(false)
+  useLayoutEffect(() => {
+    const element = wrapperRef.current
+    // Not the minimal chrome: it has no palette, and no toolbar to open the
+    // panel from.
+    if (minimal || !element || !element.clientWidth || element.clientWidth >= NARROW_WIDTH) return
+    setNarrow(true)
+    setPaletteCollapsed(true)
+    setLegendOpen(false)
+  }, [])
   const [renamingId, setRenamingId] = useState(null)
   const [highlightId, setHighlightId] = useState(null)
   const [fullscreen, setFullscreen] = useState(false)
@@ -185,12 +245,18 @@ function Editor ({
   // markers. Server issues (the document's `issues`) join them.
   const edgeLabels = useMemo(() => placeEdgeLabels(liveDoc, routes), [liveDoc, routes])
   const jumps = useMemo(() => findJumps(routes), [routes])
-  const panelOpen = panel === 'participants' || selection.nodes.length > 0 || selection.edges.length > 0 || selection.lanes.length > 0
-  const fit = useMemo(() => fitOptions({ legendOpen: legendOpen && legend && legend.length > 0, panelOpen }), [legendOpen, legend, panelOpen])
+  // A selection opens the properties panel while editing, or to write notes;
+  // a reader's selection (a click, `selected_id:`, `bali-bpmn:select`) only marks the node.
+  // Narrow, a selection does not open the properties panel by itself: it
+  // would cover the whole canvas and the quick menu beside the element. The
+  // view toolbar's «Properties» opens it.
+  const selectionPanel = (editable || notesOnly) && (!narrow || panel === 'properties')
+  const panelOpen = panel === 'participants' || (selectionPanel && (selection.nodes.length > 0 || selection.edges.length > 0 || selection.lanes.length > 0))
+  const fit = useMemo(() => fitOptions({ legendOpen: legendOpen && legend && legend.length > 0, panelOpen, minZoom, minimal }), [legendOpen, legend, panelOpen, minZoom, minimal])
 
   // The palette the host allows, for VIS-10 (an imported element it does not offer).
   const allowed = useMemo(() => (palette && palette.items && palette.items.length ? new Set(palette.items.filter((i) => i.state === 'enabled').map((i) => i.key)) : null), [palette])
-  const issueList = useMemo(() => (editable ? mergeIssues(evaluate(doc, rules || {}, t, { allowed, page: layoutOptions.page }), doc.issues, doc) : []), [editable, doc, rules, t, allowed, layoutOptions])
+  const issueList = useMemo(() => (editable && validating ? mergeIssues(evaluate(doc, rules || {}, t, { allowed, page: layoutOptions.page }), doc.issues, doc) : []), [editable, validating, doc, rules, t, allowed, layoutOptions])
   const issues = useMemo(() => issuesByElement(issueList), [issueList])
   const baseNodes = useMemo(() => buildRfNodes(doc, { layout, editable: interactive, issues, selected: selectedSet }), [doc, layout, interactive, issues, selectedSet])
   // Lanes share one length: while the end of one is dragged every lane
@@ -223,6 +289,30 @@ function Editor ({
 
   const select = useCallback((next) => setSelection({ ...EMPTY_SELECTION, ...next }), [])
   const clearSelection = useCallback(() => setSelection(EMPTY_SELECTION), [])
+
+  // `bali-bpmn:selection-change` { node_id, reference, type, lane_id, lane_name }: what the PERSON picked
+  // — a click, Enter or Space on a node; a click on the empty canvas or Escape
+  // clears it (node_id null). What the app sets (`selected_id:`,
+  // `bali-bpmn:select`) is not echoed back.
+  const announceSelection = useCallback((nodeId) => {
+    const node = nodeId == null ? null : docRef.current.nodes.find((n) => String(n.id) === String(nodeId))
+    if (!node) { emit('selection-change', { node_id: null, reference: null }); return }
+    const lane = node.lane_id == null ? null : docRef.current.lanes.find((l) => String(l.id) === String(node.lane_id))
+    emit('selection-change', {
+      node_id: String(node.id),
+      reference: node.reference || null,
+      type: node.type,
+      lane_id: lane ? String(lane.id) : null,
+      lane_name: lane ? lane.name || null : null
+    })
+  }, [emit])
+  const hadNodeSelected = useRef(false)
+  hadNodeSelected.current = selection.nodes.length > 0
+  const clearByPerson = useCallback(() => {
+    const announce = hadNodeSelected.current
+    clearSelection()
+    if (announce) announceSelection(null)
+  }, [clearSelection, announceSelection])
 
   const focusElement = useCallback((id) => {
     const d = docRef.current
@@ -347,9 +437,10 @@ function Editor ({
     updateLane: (id, patch, coalesce) => apply((d) => ops.updateLane(d, id, patch), { coalesce, arrange: !coalesce }),
     moveLane: (id, step) => apply((d) => ops.moveLane(d, id, step)),
     align: (dir) => apply((d) => ops.alignNodes(d, selection.nodes, dir, { policy })),
-    addNote: (targetId) => apply((d) => ops.addAnnotation(d, targetId)),
-    updateNote: (id, patch, coalesce) => apply((d) => ops.updateAnnotation(d, id, patch), { coalesce }),
-    deleteNote: (id) => apply((d) => ops.deleteAnnotation(d, id)),
+    // Notes move nothing: no arrangement, so a reader's note never shifts the diagram.
+    addNote: (targetId) => apply((d) => ops.addAnnotation(d, targetId), { arrange: false }),
+    updateNote: (id, patch, coalesce) => apply((d) => ops.updateAnnotation(d, id, patch), { coalesce, arrange: false }),
+    deleteNote: (id) => apply((d) => ops.deleteAnnotation(d, id), { arrange: false }),
     deleteSelection,
     // The panel's link is a real <a href> (open in a new tab works); its click
     // only asks the host first.
@@ -471,17 +562,28 @@ function Editor ({
     apply((d) => ops.reconnect(d, oldEdge.id, { source, target }, { policy }))
   }, [apply, policy])
 
+  // A node picked by the person, by click or by keyboard. Reading: it is
+  // selected, announced, and a linked sub-process opens unless the app took
+  // `bali-bpmn:open-reference` over (preventDefault) — then the click only
+  // selects. Editing: React Flow selects on a click; Enter or Space do it here.
+  const activateNode = useCallback((id, { byKeyboard = false } = {}) => {
+    const node = docRef.current.nodes.find((n) => String(n.id) === String(id))
+    if (!node) return
+    if (!editable || byKeyboard) select({ nodes: [String(node.id)] })
+    announceSelection(node.id)
+    if (!editable) openReference(node, hostElement)
+  }, [editable, select, announceSelection, hostElement])
+
   const onNodeClick = useCallback((event, rfNode) => {
-    if (!editable) {
-      if (rfNode.type === 'bpmn') openReference(rfNode.data.node, hostElement)
-      return
-    }
-    if (tool && tool.kind === 'connect' && rfNode.type === 'bpmn') {
+    if (rfNode.type !== 'bpmn') return
+    if (interactive && tool && tool.kind === 'connect') {
       if (!tool.source) setTool({ ...tool, source: rfNode.id })
       else if (connectNodes(tool.source, rfNode.id, tool.edge)) setTool(null)
       event.stopPropagation()
+      return
     }
-  }, [editable, tool, connectNodes, hostElement])
+    activateNode(rfNode.id)
+  }, [interactive, tool, connectNodes, activateNode])
 
   const onNodeDoubleClick = useCallback((_event, rfNode) => {
     if (rfNode.type !== 'bpmn') return
@@ -506,8 +608,9 @@ function Editor ({
   const onPaneClick = useCallback((event) => {
     setRenamingId(null)
     if (tool && tool.kind === 'place') { createAt(tool.key, toPool(event.clientX, event.clientY)); return }
-    if (tool && tool.kind === 'connect') setTool(null)
-  }, [tool, createAt, toPool])
+    if (tool && tool.kind === 'connect') { setTool(null); return }
+    clearByPerson()
+  }, [tool, createAt, toPool, clearByPerson])
 
   const onDrop = useCallback((event) => {
     if (!interactive) return
@@ -547,7 +650,7 @@ function Editor ({
     if (event.defaultPrevented || /^(input|textarea|select)$/i.test(event.target.tagName) || event.target.isContentEditable) return
     const mod = event.ctrlKey || event.metaKey
     const key = event.key.toLowerCase()
-    if (key === 'escape') { setTool(null); setRenamingId(null); clearSelection(); return }
+    if (key === 'escape') { setTool(null); setRenamingId(null); clearByPerson(); return }
     if (!interactive) return
     if (mod && key === 'z' && !event.shiftKey) {
       event.preventDefault(); undo()
@@ -567,7 +670,7 @@ function Editor ({
       arrowRun.current = { coalesce, ids: selection.nodes, fine: event.shiftKey || Boolean(arrowRun.current && arrowRun.current.fine) }
       apply((d) => ops.moveNodes(d, selection.nodes, delta, { policy }), { coalesce, arrange: false })
     }
-  }, [interactive, undo, redo, selectAll, deleteSelection, clearSelection, selection, apply, policy])
+  }, [interactive, undo, redo, selectAll, deleteSelection, clearByPerson, selection, apply, policy])
 
   // An arrow released: the run of moves settles (collisions, lanes, routes)
   // into the same undo step. Moves made with Shift keep their pixel.
@@ -596,7 +699,16 @@ function Editor ({
 
   // ── host events ────────────────────────────────────────────────────────
   const reload = saver.reload
-  useHostEvents(hostElement, { reload, apply, docRef })
+  // `bali-bpmn:select` { node_id }: the app moves the selection (null clears it)
+  // and the node is brought into view if it is not.
+  const selectFromHost = useCallback((nodeId) => {
+    if (nodeId == null) { clearSelection(); return }
+    const node = docRef.current.nodes.find((n) => String(n.id) === String(nodeId))
+    if (!node) return
+    select({ nodes: [String(node.id)] })
+    revealNode(flow, wrapperRef.current, node, poolOrigin(docRef.current))
+  }, [clearSelection, select, flow])
+  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost })
 
   // ── in-place rename ────────────────────────────────────────────────────
   const renderRename = useCallback((element, isLane) => (
@@ -625,8 +737,31 @@ function Editor ({
   ), [apply])
 
   const tags = useMemo(() => (review && review.tags) || [], [review])
-  const compare = (review && review.compare_with) || null
-  const compareBase = useMemo(() => (compare && compare.document ? normalize(compare.document) : null), [compare])
+  // `compare_with:` — one comparison or a list the person picks from.
+  const comparisons = useMemo(() => {
+    const raw = review && review.compare_with
+    return (Array.isArray(raw) ? raw : raw ? [raw] : []).filter((c) => c && c.document)
+      .map((c) => ({ ...c, match: c.match || 'auto', document: normalize(c.document) }))
+  }, [review])
+  const [comparisonIndex, setComparisonIndex] = useState(0)
+  const compare = comparisons[comparisonIndex] || comparisons[0] || null
+  const compareBase = compare ? compare.document : null
+
+  // Minimal chrome: the editor fills its container and fits again when that
+  // container changes size (a split pane dragged, a drawer opened) — on every
+  // frame of it, with no animation of its own: a fit that waited for the size
+  // to settle, or eased towards it, left the diagram cut off at the moving
+  // edge for the whole of a 300 ms slide and then jumped. Measured off the
+  // canvas itself, not `fitView`: React Flow learns the new size from its own
+  // ResizeObserver, which may report after this one.
+  const refitLive = useCallback(() => {
+    const canvasEl = wrapperRef.current && wrapperRef.current.querySelector('.react-flow')
+    const nodes = flow.getNodes()
+    if (!canvasEl || !canvasEl.clientWidth || !canvasEl.clientHeight || !nodes.length) return
+    flow.setViewport(getViewportForBounds(flow.getNodesBounds(nodes), canvasEl.clientWidth, canvasEl.clientHeight, fit.minZoom, MAX_ZOOM, fit.padding))
+    anchorStart(flow, fit)
+  }, [flow, fit])
+  useRefitOnResize(wrapperRef, refitLive, minimal, 0)
   const notesByElement = useMemo(() => {
     const map = new Map()
     for (const note of doc.annotations || []) {
@@ -671,8 +806,33 @@ function Editor ({
     )
   }, [t, enabledKeys, direction, appendFrom, policy, quickAdd, doc])
 
+  // Connecting (the toolbar's «Connect», the quick menu's arrow, a connector
+  // of the palette): the source stands out, a dashed line follows the pointer
+  // from it, and the elements the connection may not reach are faded — not
+  // the ones a gateway would make valid, which the notice then offers.
+  const connecting = Boolean(tool && tool.kind === 'connect')
+  const connectSource = connecting && tool.source ? String(tool.source) : null
+  const connectInvalid = useMemo(() => {
+    if (!connectSource) return null
+    const type = (tool && tool.edge) || 'sequence_flow'
+    const invalid = new Set()
+    for (const n of doc.nodes) {
+      const id = String(n.id)
+      if (id === connectSource) continue
+      const error = ops.connectionError(doc, connectSource, id, { type, policy })
+      if (!error) continue
+      const through = type === 'sequence_flow' && error === 'block_connection' && ops.gatewaysNeeded(doc, connectSource, id, { policy }) &&
+        !ops.connectThroughGateway(doc, connectSource, id, { policy, names, labels }).error
+      if (!through) invalid.add(id)
+    }
+    return invalid
+  }, [connectSource, tool, doc, policy, names, labels])
+
+  useEffect(() => { if (!connectSource) setPointer(null) }, [connectSource])
+
   const hasSelection = selection.nodes.length || selection.edges.length || selection.lanes.length
-  const showPanel = panel === 'participants' || hasSelection
+  useEffect(() => { if (!hasSelection && panel === 'properties') setPanel(null) }, [hasSelection, panel])
+  const showPanel = !connecting && (panel === 'participants' || (selectionPanel && hasSelection))
 
   const canvas = useMemo(() => ({
     t,
@@ -693,8 +853,11 @@ function Editor ({
     notesByElement,
     edgeLabels,
     jumps,
-    panelOpen: Boolean(showPanel)
-  }), [edgeLabels, jumps, t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel])
+    panelOpen: Boolean(showPanel),
+    onNodeActivate: (id) => activateNode(id, { byKeyboard: true }),
+    connectSource,
+    connectInvalid
+  }), [edgeLabels, jumps, t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel, activateNode, connectSource, connectInvalid])
 
   // ── finalize ───────────────────────────────────────────────────────────
   // The draft always saves; finalizing needs a flow without errors, checked
@@ -728,35 +891,41 @@ function Editor ({
       <HintLayer rootRef={wrapperRef}>
       <div
         ref={wrapperRef}
-        className={`bpmn-editor relative flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm outline-none ${fullscreen ? 'h-screen' : ''}`}
+        className={`bpmn-editor relative flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm outline-none ${fullscreen ? 'h-screen' : minimal ? 'is-minimal h-full min-h-60' : ''}`}
         onPointerDownCapture={() => claimKeyboard(wrapperRef.current)}
         tabIndex={-1}
       >
-        <TopBar
-          t={t}
-          editable={editable}
-          statusLabel={doc.status_label}
-          saveStatus={saver.status}
-          autosave={autosave}
-          issues={issueList}
-          onIssues={() => setDialog('pending')}
-          onRules={() => setDialog('rules')}
-          history={{ undo, redo, canUndo: state.past.length > 0, canRedo: state.future.length > 0 }}
-          onSave={saver.save}
-          canFinalize={Boolean(urls.finalize)}
-          onFinalize={finalize}
-          finalizing={saver.finalizing}
-          exports={exports}
-          onCompare={compareBase ? () => setCompareMode((m) => (m ? null : 'overlay')) : null}
-          comparing={Boolean(compareMode)}
-        />
+        {!minimal && (
+          <TopBar
+            t={t}
+            editable={editable}
+            notesOnly={notesOnly}
+            statusLabel={doc.status_label}
+            saveStatus={saver.status}
+            autosave={autosave}
+            issues={issueList}
+            onIssues={() => setDialog('pending')}
+            onRules={validating ? () => setDialog('rules') : null}
+            history={{ undo, redo, canUndo: state.past.length > 0, canRedo: state.future.length > 0 }}
+            onSave={saver.save}
+            canFinalize={Boolean(urls.finalize)}
+            onFinalize={finalize}
+            finalizing={saver.finalizing}
+            exports={exports}
+            onCompare={compareBase ? () => setCompareMode((m) => (m ? null : 'side_by_side')) : null}
+            comparing={Boolean(compareMode)}
+          />
+        )}
         {compareMode && (
-          <div className={fullscreen ? 'min-h-0 flex-1' : 'h-[640px]'}>
-            <CompareView t={t} base={compareBase} current={doc} label={compare.label} mode={compareMode} onMode={setCompareMode} onExit={() => setCompareMode(null)} />
+          <div className={fullscreen || minimal ? 'min-h-0 flex-1' : 'h-[640px]'}>
+            <CompareView
+              t={t} base={compareBase} current={doc} label={compare.label} match={compare.match} mode={compareMode} onMode={setCompareMode} onExit={() => setCompareMode(null)}
+              options={comparisons.map((c) => c.label)} picked={comparisonIndex} onPick={setComparisonIndex}
+            />
           </div>
         )}
-        <div className={`flex min-h-0 ${compareMode ? 'hidden' : ''} ${fullscreen ? 'flex-1' : 'h-[640px]'}`}>
-          {editable && (
+        <div className={`relative flex min-h-0 ${compareMode ? 'hidden' : ''} ${fullscreen || minimal ? 'flex-1' : 'h-[640px]'}`}>
+          {editable && !minimal && (
             <Palette
               t={t} palette={palette} tool={tool && tool.kind === 'place' ? tool : null}
               disabled={mode !== 'edit'}
@@ -764,19 +933,32 @@ function Editor ({
                 if (!key) { setTool(null); return }
                 const item = PALETTE_ITEMS[key]
                 setTool(item.tool === 'connect' ? { kind: 'connect', key, edge: item.edge, source: null } : { kind: 'place', key })
+                // Over the canvas, the palette steps aside for the click that places it.
+                if (narrow) setPaletteCollapsed(true)
               }}
+              overlay={narrow}
               onAddLane={addLane}
               collapsed={paletteCollapsed}
               onToggle={() => setPaletteCollapsed((c) => !c)}
             />
           )}
           <div
-            className={`bpmn-canvas relative h-full min-w-0 flex-1 ${interactive ? 'is-editable' : 'is-readonly'} ${tool && tool.kind === 'place' ? 'is-placing' : ''} ${tool && tool.kind === 'connect' ? 'is-connecting' : ''} ${showPanel ? 'has-panel' : ''} ${arranging ? 'is-arranging' : ''}`}
+            className={`bpmn-canvas relative h-full min-w-0 flex-1 ${interactive ? 'is-editable' : 'is-readonly'}${connectSource ? ' has-connect-source' : ''} ${tool && tool.kind === 'place' ? 'is-placing' : ''} ${tool && tool.kind === 'connect' ? 'is-connecting' : ''} ${showPanel ? 'has-panel' : ''} ${quickMenuId ? 'has-quick-menu' : ''} ${arranging ? 'is-arranging' : ''}`}
             onDragOver={(e) => { if (interactive && (e.dataTransfer.types.includes(PALETTE_MIME) || e.dataTransfer.types.includes(STENCIL_MIME))) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' } }}
             onDrop={onDrop}
             onPointerDown={(e) => { if (!/^(input|textarea|select|button)$/i.test(e.target.tagName)) wrapperRef.current?.focus({ preventScroll: true }) }}
+            onPointerMove={connectSource ? (e) => { const r = e.currentTarget.getBoundingClientRect(); setPointer({ x: e.clientX - r.left, y: e.clientY - r.top }) } : undefined}
           >
             <EdgeMarkers />
+            {connecting && (
+              <div className='bpmn-chrome bpmn-connect-banner' role='status' data-testid='bpmn-connect-banner'>
+                <Icon name='arrowRight' size={13} />
+                <span>{t(connectSource ? 'connect_banner_target' : 'connect_banner_source')}</span>
+                <button type='button' className='btn btn-ghost btn-xs' onClick={() => setTool(null)}>{t('connect_cancel')}</button>
+              </div>
+            )}
+            {connectSource && pointer && <ConnectGuide flow={flow} doc={doc} sourceId={connectSource} pointer={pointer} />}
+            {canvasReady && (
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -814,8 +996,8 @@ function Editor ({
               fitView
               fitViewOptions={fit}
               onInit={(instance) => setTimeout(() => anchorStart(instance, fit), 60)}
-              minZoom={0.1}
-              maxZoom={2.5}
+              minZoom={Math.min(0.1, minZoom)}
+              maxZoom={MAX_ZOOM}
               zoomOnDoubleClick={false}
               // A read-only diagram sits inside a page the reader scrolls: the
               // wheel scrolls the page, as anywhere else, instead of zooming the
@@ -824,48 +1006,55 @@ function Editor ({
               preventScrolling={editable}
             >
               <Background gap={20} size={1} />
-              <MiniMap className='bpmn-chrome' nodeColor={minimapColor} pannable zoomable ariaLabel={t('minimap')} />
-              <CanvasToolbar
-                t={t}
-                editable={interactive}
-                orientation={layout.orientation}
-                onAddLane={addLane}
-                onToggleOrientation={lockOrientation ? null : () => {
-                  apply((d) => ops.setOrientation(d, layout.orientation === 'horizontal' ? 'vertical' : 'horizontal'))
-                  setTimeout(() => fitDiagram(flow, fit, 250), 50)
-                }}
-                onAutoLayout={() => {
-                  apply((d) => ({ doc: autoLayout(d, layoutOptions) }), { arrange: false })
-                  notify(t('toast_layout'), 'success')
-                  setTimeout(() => fitDiagram(flow, fit, 250), 50)
-                }}
-                connecting={Boolean(tool && tool.kind === 'connect')}
-                onConnect={() => setTool((current) => (current && current.kind === 'connect' ? null : { kind: 'connect', edge: 'sequence_flow', source: null }))}
-                onImport={urls.import ? () => openDrawerUrl(withParams(urls.import, { editor_id: hostElement && hostElement.id })) : null}
-              />
-              <ViewToolbar
-                t={t}
-                editable={editable}
-                onParticipants={doc.lanes.length ? () => setPanel((p) => (p === 'participants' ? null : 'participants')) : null}
-                participantsOpen={panel === 'participants'}
-                navigating={mode === 'navigate'}
-                onNavigate={() => { setMode((m) => (m === 'navigate' ? 'edit' : 'navigate')); setTool(null) }}
-                fullscreen={fullscreen}
-                onFullscreen={toggleFullscreen}
-              />
+              {!minimal && <MiniMap className='bpmn-chrome' nodeColor={minimapColor} pannable zoomable ariaLabel={t('minimap')} />}
+              {!minimal && (
+                <CanvasToolbar
+                  t={t}
+                  editable={interactive}
+                  orientation={layout.orientation}
+                  onAddLane={addLane}
+                  onToggleOrientation={lockOrientation ? null : () => {
+                    apply((d) => ops.setOrientation(d, layout.orientation === 'horizontal' ? 'vertical' : 'horizontal'))
+                    setTimeout(() => fitDiagram(flow, fit, 250), 50)
+                  }}
+                  onAutoLayout={() => {
+                    apply((d) => ({ doc: autoLayout(d, layoutOptions) }), { arrange: false })
+                    notify(t('toast_layout'), 'success')
+                    setTimeout(() => fitDiagram(flow, fit, 250), 50)
+                  }}
+                  connecting={Boolean(tool && tool.kind === 'connect')}
+                  onConnect={() => setTool((current) => (current && current.kind === 'connect' ? null : { kind: 'connect', edge: 'sequence_flow', source: null }))}
+                  onImport={urls.import ? () => openDrawerUrl(withParams(urls.import, { editor_id: hostElement && hostElement.id })) : null}
+                />
+              )}
+              {!minimal && (
+                <ViewToolbar
+                  t={t}
+                  editable={editable}
+                  onParticipants={doc.lanes.length ? () => setPanel((p) => (p === 'participants' ? null : 'participants')) : null}
+                  participantsOpen={panel === 'participants'}
+                  onProperties={narrow && (editable || notesOnly) && hasSelection ? () => setPanel((p) => (p === 'properties' ? null : 'properties')) : null}
+                  propertiesOpen={panel === 'properties'}
+                  navigating={mode === 'navigate'}
+                  onNavigate={() => { setMode((m) => (m === 'navigate' ? 'edit' : 'navigate')); setTool(null) }}
+                  fullscreen={fullscreen}
+                  onFullscreen={toggleFullscreen}
+                />
+              )}
               <Legend t={t} entries={legendEntries} open={legendOpen} onToggle={setLegendOpen} />
-              {interactive && !showPanel && <Stencil t={t} items={doc.stencil} />}
-              <ZoomBar t={t} fit={fit} onSelectAll={interactive ? selectAll : null} selectedCount={selectedCount} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} />
+              {interactive && !showPanel && !minimal && <Stencil t={t} items={doc.stencil} startOpen={!narrow} />}
+              <ZoomBar t={t} fit={fit} onSelectAll={interactive && !minimal ? selectAll : null} selectedCount={interactive ? selectedCount : 0} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} />
             </ReactFlow>
+            )}
             <Notices notices={notices} t={t} onDismiss={(id) => setNotices((list) => list.filter((n) => n.id !== id))} />
             {showPanel
               ? (
                 <PropertiesPanel
-                  t={t} doc={doc} selection={selection} api={api} editable={interactive}
+                  t={t} doc={doc} selection={selection} api={api} editable={interactive} notesEditable={notesOnly}
                   nodeFields={(fields && fields.nodes) || {}} laneFields={(fields && fields.lanes) || []} urls={urls || {}}
                   externalLanes={externalLanes}
                   view={panel === 'participants' && !hasSelection ? 'participants' : 'properties'}
-                  onClose={() => { setPanel(null); clearSelection() }}
+                  onClose={() => { setPanel(null); clearByPerson() }}
                   onPickLane={(id) => focusElement(id)}
                   annotationTags={tags}
                 />
@@ -873,7 +1062,7 @@ function Editor ({
               : null}
           </div>
         </div>
-        {!compareMode && (
+        {!compareMode && !minimal && (
           // The context help lives under the canvas, where it covers nothing.
           <p className='bpmn-chrome flex items-center gap-2 border-t border-base-300 px-3 py-1.5 text-xs text-base-content/70' data-testid='bpmn-help'>
             <Icon name='info' size={13} />{help}
@@ -940,4 +1129,33 @@ function openReference (node, hostElement) {
   if (!announceOpenReference(node, hostElement)) return
   if (window.Turbo && typeof window.Turbo.visit === 'function') window.Turbo.visit(node.reference.url)
   else window.location.assign(node.reference.url)
+}
+
+// Brings a node into view when it is not, at the zoom the reader chose.
+function revealNode (flow, wrapper, node, origin) {
+  const pane = wrapper && wrapper.querySelector('.react-flow')
+  if (!pane) return
+  const { x, y, zoom } = flow.getViewport()
+  const box = nodeBox(node)
+  const left = (origin.x + box.x) * zoom + x
+  const top = (origin.y + box.y) * zoom + y
+  const { width, height } = pane.getBoundingClientRect()
+  if (left >= 0 && top >= 0 && left + box.w * zoom <= width && top + box.h * zoom <= height) return
+  flow.setCenter(origin.x + box.cx, origin.y + box.cy, { zoom, duration: 300 })
+}
+
+// The dashed line from the connection's source to the pointer, in the
+// canvas' own pixels (the source's centre is projected through the viewport).
+function ConnectGuide ({ flow, doc, sourceId, pointer }) {
+  const node = doc.nodes.find((n) => String(n.id) === sourceId)
+  if (!node) return null
+  const o = poolOrigin(doc)
+  const box = nodeBox(node)
+  const { x, y, zoom } = flow.getViewport()
+  const from = { x: (o.x + box.cx) * zoom + x, y: (o.y + box.cy) * zoom + y }
+  return (
+    <svg className='bpmn-connect-guide' data-testid='bpmn-connect-guide' aria-hidden='true'>
+      <line x1={from.x} y1={from.y} x2={pointer.x} y2={pointer.y} />
+    </svg>
+  )
 }
