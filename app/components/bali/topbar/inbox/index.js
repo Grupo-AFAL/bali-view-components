@@ -114,7 +114,7 @@ export class TopbarInboxController extends Controller {
       role: 'presentation',
       aria: { content: null, expanded: false },
       onShow: this.onShow,
-      onShown: this.onShown,
+      onMount: this.onMount,
       onHide: this.onHide
     })
     return this.tippy
@@ -126,7 +126,9 @@ export class TopbarInboxController extends Controller {
     document.addEventListener('keydown', this.handleKeydown)
   }
 
-  onShown = () => {
+  // `onMount` and not `onShown`: tippy runs `onShown` on the box's transitionend, and this panel
+  // has no transition, so it never ran.
+  onMount = () => {
     this.panel.focus({ preventScroll: true })
   }
 
