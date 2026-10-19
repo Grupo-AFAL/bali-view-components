@@ -19,19 +19,11 @@ export class TopbarInboxController extends Controller {
     this.panel = this.panelTarget
     this.frame = this.frameTarget
     this.ready = true
-    document.addEventListener('turbo:before-cache', this.teardown)
   }
 
+  // destroy() leaves the panel inside the popper it is about to throw away; a Turbo render that
+  // reconnects this controller would come back without one.
   disconnect () {
-    document.removeEventListener('turbo:before-cache', this.teardown)
-    this.teardown()
-    this.ready = false
-  }
-
-  // Before Turbo snapshots the page too: a row clicked in the open popover navigates with the
-  // panel hanging off <body>, and Back would restore that ghost beside an icon whose panel is
-  // gone. destroy() leaves the panel inside the popper it throws away, so it goes back home here.
-  teardown = () => {
     this.stopListening()
     if (this.tippy) {
       this.tippy.destroy()
@@ -41,7 +33,7 @@ export class TopbarInboxController extends Controller {
       this.panel.hidden = true
       this.element.appendChild(this.panel)
     }
-    this.triggerTarget.setAttribute('aria-expanded', 'false')
+    this.ready = false
   }
 
   toggle (event) {

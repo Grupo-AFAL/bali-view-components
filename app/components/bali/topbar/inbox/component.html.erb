@@ -16,7 +16,8 @@
   <%= tag.div(id: PANEL_ID, class: "bali-topbar-inbox-panel", role: "dialog", tabindex: "-1", hidden: true,
               aria: { label: t("bali_view.inbox.title") }, data: { topbar_inbox_target: "panel" }) do %>
     <%= tag.turbo_frame(id: POPOVER_FRAME_ID, target: "_top", data: { topbar_inbox_target: "frame" }) do %>
-      <div class="bali-topbar-inbox-skeleton" aria-busy="true">
+      <%# inert: tabs that switch nothing until the real ones arrive. %>
+      <div class="bali-topbar-inbox-skeleton" aria-busy="true" inert>
         <div class="bali-inbox-popover-header">
           <span class="font-semibold"><%= t("bali_view.inbox.title") %></span>
         </div>

@@ -87,12 +87,65 @@ describe('Topbar inbox', () => {
     })
     cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
     cy.get('[data-tippy-root]').should('not.exist')
+
+    // The same link, clicked plainly, does open it: the controller was there all along.
+    cy.get(trigger).click()
+    cy.wait('@popover')
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'true')
+  })
+
+  // The panel hangs off <body> while open and the row's link leaves the page from inside it.
+  it('Back after following a row leaves a closed popover and a working icon', () => {
+    cy.get(trigger).click()
+    cy.wait('@popover')
+    cy.get(`${panel} .bali-inbox-popover-row`).first().click()
+    cy.location('pathname').should('not.include', '/lookbook')
+
+    cy.go('back')
+
+    cy.location('pathname').should('include', '/bali/topbar/inbox/default')
+    cy.get('[data-tippy-root]').should('not.exist')
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
+    cy.get(trigger).click()
+    cy.get(panel).should('be.visible')
+  })
+
+  // What Bali::Inbox::Badge.refresh broadcasts: a fresh Bali::Topbar::Inbox::Component::SIGNAL_ID
+  // element and no count. Its arrival is what makes the icon fetch its own badge.
+  it('a new notice on the stream makes the icon fetch its badge', () => {
+    cy.intercept('GET', '**/inbox/badge').as('badge')
+    cy.get('#bali-inbox-signal').should('exist')
+
+    cy.window().then((win) => win.Turbo.renderStreamMessage(
+      '<turbo-stream action="replace" target="bali-inbox-signal"><template>' +
+      '<span id="bali-inbox-signal" hidden data-topbar-inbox-target="signal"></span></template></turbo-stream>'
+    ))
+
+    cy.wait('@badge')
+    cy.get('#bali-inbox-badge .sr-only').should('exist')
+  })
+
+  it('marking every notice read from the popover clears the icon\'s dot', () => {
+    cy.task('railsRunner', 'Movie.order(:id).first.notify(recipient: User.demo, kind: :movie_released, ' +
+            'message: "A notice for Cypress")')
+    cy.get(trigger).click()
+    cy.wait('@popover')
+    cy.get(`${panel} .bali-inbox-popover-row`).should('exist')
+    cy.get('.bali-topbar-inbox-dot').should('exist')
+
+    cy.get(`${panel} [role="tab"]`).eq(1).click()
+    cy.get('#bali-inbox-popover-notices button[type="submit"]').click()
+
+    cy.get('.bali-topbar-inbox-dot').should('not.exist')
+    cy.get(`${trigger} .sr-only`).should('not.contain', 'unread')
   })
 
   it('the Avisos tab loads on its first click', () => {
     cy.intercept('GET', '**/inbox/popover?tab=notices*').as('notices')
     cy.get(trigger).click()
     cy.wait('@popover')
+    // The skeleton's tabs are inert; these are the loaded ones.
+    cy.get(`${panel} .bali-inbox-popover-row`).should('exist')
 
     cy.get(`${panel} [role="tab"]`).eq(1).click()
 

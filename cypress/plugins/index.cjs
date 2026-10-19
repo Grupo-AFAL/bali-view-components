@@ -8,8 +8,20 @@
 const DESKTOP_POINTER =
   '--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4'
 
+const { execFileSync } = require('node:child_process')
+const path = require('node:path')
+
 /** @type {Cypress.PluginConfig} */
 module.exports = (on) => {
+  // Data a spec needs and no preview can make, written to the dummy's database through
+  // `bin/rails runner` (Cypress 16 removed `cy.exec`). Returns null: a task must return something.
+  on('task', {
+    railsRunner (code) {
+      execFileSync('bin/rails', ['runner', code], { cwd: path.join(__dirname, '../../test/dummy'), stdio: 'inherit' })
+      return null
+    }
+  })
+
   on('before:browser:launch', (browser, launchOptions) => {
     if (browser.family === 'chromium' && browser.name !== 'electron') launchOptions.args.push(DESKTOP_POINTER)
 
