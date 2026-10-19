@@ -110,6 +110,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     el patrón está en la guía. La preview «Split view» del editor lo usa: el mapa y el flujo son la
     misma caja (mismo borde superior, inferior y ancho).
 
+## [v3.19.2] - 2026-10-19
+
+### Fixed
+
+- **Suplantar a alguien ya no le lee la bandeja** (#1512, hallado en la revisión de costa-norte#239).
+  Abrir un pendiente o un aviso lo marca leído, y bajo suplantación lo marcaba en nombre de la persona
+  suplantada. Un admin que revisaba la bandeja de un chofer le apagaba el «Nuevo» y el punto, y como un
+  aviso leído no va en el correo de resumen, el chofer tampoco recibía ese correo. Ahora, si el
+  controlador contesta `impersonating?` (el helper de bali-auth), la bandeja no marca nada y no ofrece
+  «Marcar todos como leídos». Las apps que usan las acciones del concern no tienen que hacer nada.
+  gobierno-corporativo, cuyo `show` propio marca leído el item que abre, agrega `if owner_reading?`.
+
 ## [v3.19.1] - 2026-10-19
 
 ### Added
