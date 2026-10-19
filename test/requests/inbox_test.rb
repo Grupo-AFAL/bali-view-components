@@ -144,7 +144,8 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
   end
 
   def test_open_notice_never_leaves_the_site
-    [ "https://evil.example/phish", "//evil.example/phish", "javascript:alert(1)" ].each do |url|
+    [ "https://evil.example/phish", "//evil.example/phish", "/\\evil.example/phish", "javascript:alert(1)",
+      "/a path with spaces" ].each do |url|
       get "/inbox/notices/#{released(action_url: url).id}/open"
 
       assert_redirected_to "/inbox?tab=notices", url
@@ -200,6 +201,13 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_select ".bali-inbox-popover-row", 10
     assert_select ".bali-inbox-popover-row.is-fresh", 1
     assert_select ".bali-inbox-popover-row.is-fresh", /#{I18n.t("bali_view.inbox.fresh")}/
+  end
+
+  def test_the_popovers_tabs_use_ids_of_their_own
+    get "/inbox/popover"
+
+    assert_select "[role=tab]#bali-inbox-tab-0[aria-controls=bali-inbox-tabpanel-0]"
+    assert_select "#tab-0, #tabpanel-0", 0
   end
 
   def test_the_popover_writes_the_live_numbers_to_the_icon

@@ -10,7 +10,8 @@
                                        title: t("bali_view.inbox.expand"), aria: { label: t("bali_view.inbox.expand") }) %>
 </div>
 
-<%= render Bali::Tabs::Component.new(style: :border, size: :sm, label: t("bali_view.inbox.title")) do |tabs| %>
+<%= render Bali::Tabs::Component.new(style: :border, size: :sm, label: t("bali_view.inbox.title"),
+                                     id_prefix: Bali::Topbar::Inbox::Component::TABS_ID_PREFIX) do |tabs| %>
   <% tabs.with_tab(title: t("bali_view.inbox.tabs.pending"), count: @badge.pending, active: tab == "pending") do %>
     <%= render "popover_pending" %>
   <% end %>

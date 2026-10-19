@@ -125,6 +125,7 @@ export class TopbarInboxController extends Controller {
     this.triggerTarget.setAttribute('aria-expanded', 'true')
     document.addEventListener('click', this.handleOutsideClick, true)
     document.addEventListener('keydown', this.handleKeydown)
+    document.addEventListener('turbo:before-stream-render', this.keepFocusInside)
   }
 
   // `onMount` and not `onShown`: tippy runs `onShown` on the box's transitionend, and this panel
@@ -141,6 +142,20 @@ export class TopbarInboxController extends Controller {
   stopListening () {
     document.removeEventListener('click', this.handleOutsideClick, true)
     document.removeEventListener('keydown', this.handleKeydown)
+    document.removeEventListener('turbo:before-stream-render', this.keepFocusInside)
+  }
+
+  // Marking every notice read answers with a stream that redraws the frame, the focused button
+  // included, and the focus would fall to <body>, outside the dialog. Turbo's own hook for wrapping
+  // a stream's render.
+  keepFocusInside = (event) => {
+    if (event.target.getAttribute('target') !== this.frame.id) return
+
+    const render = event.detail.render
+    event.detail.render = async (stream) => {
+      await render(stream)
+      this.panel.focus({ preventScroll: true })
+    }
   }
 
   handleOutsideClick = (event) => {

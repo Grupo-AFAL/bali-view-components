@@ -26,6 +26,9 @@ module Bali
         SIGNAL_ID = "bali-inbox-signal"
 
         SKELETON_ROWS = 3
+        SKELETON_TABS_CLASSES = "tabs #{Bali::Tabs::Component::STYLES[:border]} #{Bali::Tabs::Component::SIZES[:sm]}".freeze
+        # The popover's tab set shares the page with the host's; Bali::Tabs' ids would collide.
+        TABS_ID_PREFIX = "bali-inbox"
 
         # @param badge [Bali::Inbox::Badge, nil] the two numbers; nil renders nothing.
         # @param href [String] the full page.

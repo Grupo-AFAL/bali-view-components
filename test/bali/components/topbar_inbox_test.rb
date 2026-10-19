@@ -92,6 +92,16 @@ class BaliTopbarInboxComponentTest < ComponentTestCase
     assert_selector("#bali-inbox-popover", text: "2 sin leer", visible: :all)
   end
 
+  # The skeleton is on every page: real tabs would bring ids (`tab-0`) a host's own tabs use too.
+  def test_the_skeleton_draws_a_tab_strip_with_no_roles_or_ids_and_announces_loading
+    inbox(pending: 6)
+
+    assert_selector("#bali-inbox-popover .tabs[aria-hidden='true']", visible: :all)
+    assert_no_selector("#bali-inbox-popover [role='tab'], #bali-inbox-popover [role='tabpanel']", visible: :all)
+    assert_no_selector("#bali-inbox-popover [inert]", visible: :all)
+    assert_selector("#bali-inbox-popover .sr-only", text: "Cargando tu bandeja…", visible: :all)
+  end
+
   def test_the_badge_lives_in_its_own_frame_with_the_signal_beside_it
     inbox(pending: 6)
 

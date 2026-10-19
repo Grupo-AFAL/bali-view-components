@@ -89,7 +89,7 @@ module Bali
         def open_notice
           notice = Bali::Notice.addressed_to(inbox_owner).find(params[:id])
           notice.mark_read!
-          redirect_to local_path(notice.action_url) || url_for(action: :show, tab: "notices"), status: :see_other
+          redirect_to url_from(notice.action_url) || url_for(action: :show, tab: "notices"), status: :see_other
         end
 
         # From the popover it re-renders the popover on its «Avisos» tab; from the page it goes
@@ -100,7 +100,7 @@ module Bali
           return redirect_to(url_for(action: :show, tab: "notices"), status: :see_other) unless params[:from] == "popover"
 
           load_popover
-          @notices = popover_notices[:notices]
+          @notices = latest_notices
           render :read_all, formats: :turbo_stream
         end
 
@@ -144,18 +144,11 @@ module Bali
           Bali::Inbox::Badge.write(inbox_owner, @badge)
         end
 
-        def popover_notices
-          { notices: Bali::Notice.listed.addressed_to(inbox_owner).recent.limit(POPOVER_LIMIT).to_a,
-            unread_count: unread_notices.count }
-        end
+        def popover_notices = { notices: latest_notices, unread_count: unread_notices.count }
+
+        def latest_notices = Bali::Notice.listed.addressed_to(inbox_owner).recent.limit(POPOVER_LIMIT).to_a
 
         def page_param = [ params[:page].to_i, 1 ].max
-
-        # Only a path on this site: a notice's `action_url` is data. Rails would refuse the rest
-        # (`raise_on_open_redirects`), as a 500; this sends it to the Avisos tab instead.
-        def local_path(url)
-          url if url.is_a?(String) && url.start_with?("/") && !url.start_with?("//")
-        end
       end
     end
   end

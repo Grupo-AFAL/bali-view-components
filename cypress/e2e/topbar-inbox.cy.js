@@ -6,12 +6,13 @@ describe('Topbar inbox', () => {
 
   // Through the browser's own keyboard path (CDP), so Escape reaches the document the way a
   // person's key does.
-  const sendKey = (key, code, keyCode) => {
+  // `text` is what makes a key activate something: an Enter without it never submits a form.
+  const sendKey = (key, code, keyCode, text) => {
     const send = (type) => Cypress.automation('remote:debugger:protocol', {
       command: 'Input.dispatchKeyEvent',
-      params: { type, key, code, windowsVirtualKeyCode: keyCode, nativeVirtualKeyCode: keyCode }
+      params: { type, key, code, text, windowsVirtualKeyCode: keyCode, nativeVirtualKeyCode: keyCode }
     })
-    return cy.then(() => send('rawKeyDown').then(() => send('keyUp')))
+    return cy.then(() => send(text ? 'keyDown' : 'rawKeyDown').then(() => send('keyUp')))
   }
 
   beforeEach(() => {
@@ -134,10 +135,14 @@ describe('Topbar inbox', () => {
     cy.get('.bali-topbar-inbox-dot').should('exist')
 
     cy.get(`${panel} [role="tab"]`).eq(1).click()
-    cy.get('#bali-inbox-popover-notices button[type="submit"]').click()
+    // By keyboard, as a person reaching it with Tab would: that is what leaves the focus on it.
+    cy.get('#bali-inbox-popover-notices button[type="submit"]').focus()
+    sendKey('Enter', 'Enter', 13, '\r')
 
     cy.get('.bali-topbar-inbox-dot').should('not.exist')
     cy.get(`${trigger} .sr-only`).should('not.contain', 'unread')
+    // The button that had the focus was redrawn; the focus stays in the dialog.
+    cy.focused().should('have.attr', 'id', 'bali-inbox-panel')
   })
 
   it('the Avisos tab loads on its first click', () => {
