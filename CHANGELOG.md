@@ -39,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   y el `aria-controls` del segundo apuntaba a los paneles del primero. Sin `id_prefix:` los ids
   quedan igual. Una página con dos juegos de pestañas con panel le pone un prefijo a uno.
 
+### Security
+
+- **`css_parser` 3.3.0 en el entorno de desarrollo de Bali** (avisos de bundler-audit que pedían
+  `>= 3.2.0` y `>= 3.3.0`). Lo trae Lookbook, que sólo corre en la dummy. Nada que hacer en la app.
+
 ## [v3.18.0] - 2026-10-15
 
 ### Removed
