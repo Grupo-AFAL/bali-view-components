@@ -1,4 +1,4 @@
-<%# One notice, in the popover and on the page. It opens through `open_notice`, which reads it. %>
+<%# One notice, in the popover and on the page. It opens through `open_notice`, which reads it for its owner. %>
 <%= link_to url_for(action: :open_notice, id: notice.id),
       class: class_names("bali-inbox-notice flex items-start gap-3 px-4 py-3 hover:bg-base-200", "is-unread": notice.unread?),
       data: { turbo_prefetch: "false", turbo_frame: "_top" } do %>

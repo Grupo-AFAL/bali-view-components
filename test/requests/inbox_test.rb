@@ -10,6 +10,7 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
 
     def inbox_owner = nil
   end
+
   def setup
     @cache = Rails.cache
     Rails.cache = ActiveSupport::Cache::MemoryStore.new
@@ -305,6 +306,62 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
         assert_response :unauthorized, "#{verb.upcase} #{path}"
       end
     end
+  end
+
+  # bali-auth's helper, private on the controller: the owner is who the request acts as, and an
+  # admin is behind it.
+  def impersonating
+    InboxesController.class_eval { private def impersonating? = true }
+    yield
+  ensure
+    InboxesController.remove_method(:impersonating?)
+  end
+
+  def test_while_impersonating_viewing_an_item_leaves_its_notice_unread
+    write = task("Write")
+    folded = assigned(write)
+
+    impersonating { get item_path_for(write) }
+
+    assert_response :success
+    assert folded.reload.unread?
+  end
+
+  def test_while_impersonating_opening_an_item_leaves_its_notice_unread
+    write = task("Write")
+    folded = assigned(write)
+
+    impersonating { get "#{item_path_for(write)}/open" }
+
+    assert_redirected_to "/admin/projects/#{@project.id}"
+    assert folded.reload.unread?
+  end
+
+  def test_while_impersonating_opening_a_notice_leaves_it_unread
+    notice = released(action_url: "/admin/movies")
+
+    impersonating { get "/inbox/notices/#{notice.id}/open" }
+
+    assert_redirected_to "/admin/movies"
+    assert notice.reload.unread?
+  end
+
+  def test_while_impersonating_read_all_is_not_offered_and_reads_nothing
+    notice = released
+    get "/inbox/popover", params: { tab: "notices" }
+    assert_select "form[action*='read_all']", count: 1
+
+    impersonating do
+      get "/inbox/popover", params: { tab: "notices" }
+      assert_response :success
+      assert_select "form[action*='read_all']", count: 0
+      get "/inbox", params: { tab: "notices" }
+      assert_select "form[action*='read_all']", count: 0
+      post "/inbox/read_all"
+    end
+
+    assert_redirected_to "/inbox?tab=notices"
+    assert notice.reload.unread?
   end
 
   # The host's own templates come first, so app/views/inboxes/show.html.erb replaces Bali's.
