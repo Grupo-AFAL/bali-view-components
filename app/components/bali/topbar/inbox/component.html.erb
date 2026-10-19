@@ -1,0 +1,43 @@
+<%= tag.div(**@options, data: root_data) do %>
+  <%= helpers.turbo_stream_from(@stream, :bali_inbox) if @stream %>
+  <%= Bali::Inbox::Badge.signal_tag %>
+
+  <%= link_to @href, class: "bali-topbar-inbox-trigger #{Bali::Topbar::IconAction::Component::BUTTON_CLASSES} relative",
+                     title: t("bali_view.inbox.title"),
+                     aria: { haspopup: "dialog", expanded: "false", controls: PANEL_ID },
+                     data: { topbar_inbox_target: "trigger", action: "click->topbar-inbox#toggle" } do %>
+    <%= render Bali::Icon::Component.new("inbox", class: "size-5") %>
+    <%= tag.turbo_frame(id: BADGE_FRAME_ID, data: { topbar_inbox_target: "badge" }) do %>
+      <%= render Bali::Topbar::Inbox::Badge::Component.new(badge: @badge) %>
+    <% end %>
+  <% end %>
+
+  <%= tag.div(id: PANEL_ID, class: "bali-topbar-inbox-panel", role: "dialog", tabindex: "-1", hidden: true,
+              aria: { label: t("bali_view.inbox.title") }, data: { topbar_inbox_target: "panel" }) do %>
+    <%= tag.turbo_frame(id: POPOVER_FRAME_ID, target: "_top", data: { topbar_inbox_target: "frame" }) do %>
+      <div class="bali-topbar-inbox-skeleton" aria-busy="true">
+        <div class="bali-inbox-popover-header">
+          <span class="font-semibold"><%= t("bali_view.inbox.title") %></span>
+        </div>
+        <div class="bali-inbox-popover-tabs" aria-hidden="true">
+          <span class="bali-inbox-popover-tab is-active">
+            <%= t("bali_view.inbox.tabs.pending") %>
+            <%= render Bali::Tag::Component.new(text: @badge.pending.to_s, size: :xs) %>
+          </span>
+          <span class="bali-inbox-popover-tab">
+            <%= t("bali_view.inbox.tabs.notices") %>
+            <% if @badge.unread? %>
+              <span class="text-xs"><%= t("bali_view.inbox.tabs.unread", count: @badge.unread) %></span>
+            <% end %>
+          </span>
+        </div>
+        <div class="flex flex-col gap-4 p-4">
+          <% SKELETON_ROWS.times do %>
+            <%= render Bali::Skeleton::Component.new(variant: :text, lines: 2) %>
+          <% end %>
+        </div>
+        <span class="sr-only"><%= t("bali_view.inbox.loading") %></span>
+      </div>
+    <% end %>
+  <% end %>
+<% end %>

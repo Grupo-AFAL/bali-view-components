@@ -813,6 +813,23 @@ es:
         editing_off: "Edición terminada"
 
     # Inbox and notices (#1512)
+    inbox:
+      title: "Bandeja"
+      loading: "Cargando tu bandeja…"
+      icon:
+        pending:
+          one: "Bandeja: 1 pendiente"
+          other: "Bandeja: %{count} pendientes"
+        unread: "Bandeja: hay avisos sin leer"
+        pending_and_unread:
+          one: "Bandeja: 1 pendiente, hay avisos sin leer"
+          other: "Bandeja: %{count} pendientes, hay avisos sin leer"
+      tabs:
+        pending: "Te toca"
+        notices: "Avisos"
+        unread:
+          one: "1 sin leer"
+          other: "%{count} sin leer"
     notices:
       digest:
         subject:

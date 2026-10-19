@@ -837,6 +837,23 @@ en:
         editing_off: "Done editing"
 
     # Inbox and notices (#1512)
+    inbox:
+      title: "Inbox"
+      loading: "Loading your inbox…"
+      icon:
+        pending:
+          one: "Inbox: 1 pending"
+          other: "Inbox: %{count} pending"
+        unread: "Inbox: unread notices"
+        pending_and_unread:
+          one: "Inbox: 1 pending, unread notices"
+          other: "Inbox: %{count} pending, unread notices"
+      tabs:
+        pending: "Waiting on you"
+        notices: "Notices"
+        unread:
+          one: "1 unread"
+          other: "%{count} unread"
     notices:
       digest:
         subject:
