@@ -83,8 +83,8 @@ module Bali
     end
 
     # After the commit, so neither may fail whoever wrote the notice, whose work is already saved:
-    # the hourly sweep resends a delivery whose job never went in, and a badge left unexpired is
-    # stale for a minute at most.
+    # the hourly sweep resends a delivery whose job never went in, and the cache is expired before
+    # the broadcast, so only a page already open keeps its old number.
     def announce
       Rails.error.handle(context: { notice_id: id }) { Bali::NoticeDeliveryJob.enqueue(delivery) } if delivery&.mode == "immediate"
       Rails.error.handle(context: { notice_id: id }) { Bali::Inbox::Badge.refresh(recipient) }

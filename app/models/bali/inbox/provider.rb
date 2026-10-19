@@ -31,8 +31,8 @@ module Bali
 
       def icon = "inbox"
 
-      # Higher first — unlike Active Job's —, within each band: the page and the popover group by band.
-      # Centinela's emergencies before its older alerts.
+      # Higher first, unlike Solid Queue's. Within each band only: the page and the popover group by
+      # band.
       def priority = 0
 
       # A COUNT on a relation. A provider that can count more cheaply than it lists overrides it.

@@ -49,6 +49,17 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     def build_item(task, user:) = item(task, title: task.title, module_key: :docs)
   end
 
+  # Built by hand, with the module read off a record column: both arrive as Strings.
+  class ColumnProvider
+    include Bali::Inbox::Provider
+
+    def kind = :column
+
+    def pending_for(_user) = Task.in_progress.order(:id)
+
+    def build_item(task, user:) = Bali::Inbox::Item.new(kind: "column", record: task, title: task.title, module_key: "docs")
+  end
+
   def setup
     @providers = Bali.inbox_providers
     @kinds = Bali.notice_kinds
@@ -125,6 +136,14 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     assert_equal %i[demo docs], query.modules
   end
 
+  def test_an_item_built_with_strings_is_filtered_and_sorted_like_any_other
+    Bali.inbox_providers = { demo: [ TasksProvider.name, ColumnProvider.name ], docs: [] }
+    task("Spread", status: :in_progress)
+
+    assert_equal [ [ :column, "Spread" ] ], query.items(module_key: :docs).map { [ it.kind, it.title ] }
+    assert_equal [ :column ], query.items(kind: :column).map(&:kind)
+  end
+
   def test_items_filter_by_kind_and_by_module
     task("Write")
     document("Policy")
@@ -151,6 +170,19 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     assert_equal Bali::Inbox::Query::FETCH_CAP, inbox.items.size
     assert inbox.capped?
     assert_equal Bali::Inbox::Query::FETCH_CAP + 1, inbox.count
+  end
+
+  def test_a_module_filter_is_not_capped_by_another_modules_provider
+    now = Time.current
+    Task.insert_all(Array.new(Bali::Inbox::Query::FETCH_CAP + 1) do |n|
+      { project_id: @project.id, title: "T#{n}", status: 1, created_at: now, updated_at: now }
+    end)
+    document("Policy")
+
+    inbox = query
+
+    assert_equal [ "Policy" ], inbox.items(module_key: :docs).map(&:title)
+    assert_not inbox.capped?
   end
 
   def test_find_returns_the_item_for_a_pending_record

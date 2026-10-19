@@ -31,11 +31,13 @@ module Bali
       end
 
       def items(module_key: nil, kind: nil)
-        @providers
+        @capped = []
+        found = @providers
           .select { |_module_key, provider| kind.nil? || provider.kind.to_sym == kind.to_sym }
           .flat_map { |entry_module, provider| fetch(entry_module, provider) }
           .select { |item| module_key.nil? || item.module_key == module_key.to_sym }
-          .sort_by { |item| sort_key(item) }
+        @capped &= found.map(&:kind)
+        found.sort_by { |item| sort_key(item) }
       end
 
       # Known once `items` has run.
@@ -80,7 +82,7 @@ module Bali
 
       def fetch(module_key, provider)
         records = provider.pending_for(user).first(FETCH_CAP + 1)
-        (@capped ||= []) << provider.kind if records.size > FETCH_CAP
+        @capped << provider.kind.to_sym if records.size > FETCH_CAP
 
         provider.build_items(records.first(FETCH_CAP), user: user).map { |item| in_module(item, module_key) }
       end

@@ -17,8 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Vale `0` si el provider no la declara, así que nada cambia en las apps que ya la usan.
 - **Un item puede traer su propio `module_key`** (#1512, hallado en gobierno-corporativo). Si no lo
   trae, toma el del provider como hasta ahora. Sirve para un kind cuyos registros son de varios
-  módulos, como los pasos de flujo de GC. El filtro de módulo lee el del item, y ofrece todas las
-  llaves de `Bali.inbox_providers`, también las que no tienen provider propio (`documents: []`).
+  módulos, como los pasos de flujo de GC; puede venir como texto, leído de una columna. El filtro de
+  módulo lee el del item, y ofrece todas las llaves de `Bali.inbox_providers`, también las que no
+  tienen provider propio (`documents: []`).
 
 ### Fixed
 
