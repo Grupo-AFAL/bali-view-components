@@ -14,6 +14,8 @@ class ApplicationController < ActionController::Base
   # `filter_form(Klass, scope)` with the persistence loop closed (#999):
   # storage_id derived, cookie read, context from `Bali.filter_context`.
   include Bali::Filterable
+  # #1512 — `inbox_badge` for the topbar's inbox icon, refreshed by the user's own writes.
+  include Bali::Concerns::Controllers::InboxBadge
 
   around_action :switch_locale
 

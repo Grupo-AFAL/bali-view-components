@@ -30,6 +30,7 @@ require "bali/concerns/date_range_attribute"
 # solely because a line like this one loaded it. (The dummy app is not proof —
 # it resolved this constant in development and raised NameError in test.)
 require "bali/concerns/controllers/dashboard_widgets"
+require "bali/concerns/controllers/inbox_badge"
 
 # Non-UI concerns (SoftDelete, GlobalIdAccessors, etc.) are opt-in.
 # See lib/bali/extras.rb

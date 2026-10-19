@@ -43,7 +43,9 @@ module Bali
 
       def announcing_kinds = kinds.values.select(&:announces).map(&:name)
 
-      def mark_all_read!(recipient) = mark_read!(addressed_to(recipient))
+      def mark_all_read!(recipient)
+        mark_read!(addressed_to(recipient)).tap { Bali::Inbox::Badge.expire(recipient) }
+      end
 
       def mark_read!(notices)
         notices.unread.update_all(read_at: Time.current, updated_at: Time.current)
@@ -53,7 +55,10 @@ module Bali
     def unread? = read_at.nil?
 
     def mark_read!
-      update!(read_at: Time.current) if unread?
+      return unless unread?
+
+      update!(read_at: Time.current)
+      Bali::Inbox::Badge.expire(recipient)
     end
 
     private
@@ -69,6 +74,7 @@ module Bali
 
     def announce
       Bali::NoticeDeliveryJob.enqueue(delivery) if delivery&.mode == "immediate"
+      Bali::Inbox::Badge.refresh(recipient)
     end
   end
 end
