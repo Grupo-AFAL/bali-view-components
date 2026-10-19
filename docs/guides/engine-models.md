@@ -49,6 +49,7 @@ bin/rails bali:install:migrations:acknowledgments
 bin/rails bali:install:migrations:block_editor_comments
 bin/rails bali:install:migrations:dashboard_widgets
 bin/rails bali:install:migrations:archivals
+bin/rails bali:install:migrations:notices
 ```
 
 Each copies exactly one migration, through the same copier the umbrella task uses: it
@@ -408,6 +409,225 @@ centinela-web. Gobierno-corporativo has one too, and replaces it with this one.
 | `successor_document_id` | `successor` polymorphic | `successor_type = 'Document'` when present |
 | `OBSOLESCENCE_REASONS` | `Bali::Archivable::DEFAULT_REASONS` | Same five keys |
 | one row per document, forever | `unarchived_at` / `unarchived_by` | Unused while the model is irreversible |
+
+---
+
+## Inbox and notices (`bali_notices`)
+
+One topbar icon, one popover and one page, each with two tabs: «Te toca», what is waiting on the
+person, read live from your models; and «Avisos», what happened, stored when it happened. A
+notice about something that is also waiting on the person folds into that item instead of
+appearing twice (#1512).
+
+The two halves share no table. The inbox has none: providers you register answer, for one
+person, what is pending, and an item leaves when the thing is resolved. Notices are rows in
+`bali_notices`, with their text written at creation and a delivery log for email in
+`bali_notice_deliveries`.
+
+Install both tables:
+
+```bash
+bin/rails bali:install:migrations:notices
+bin/rails db:migrate
+```
+
+### Notices
+
+Register every kind, and include the concern in the models notices are about:
+
+```ruby
+# config/initializers/bali.rb
+Bali.notice_kinds = {
+  signature_assigned: { email: :immediate, announces: :signature },
+  request_submitted: { email: :digest },
+  newsletter: { email: :immediate, queue: :low },
+  story_assigned: {}
+}
+Bali.notices_mailer = "NotificationMailer"
+Bali.notices_deliver_if = ->(_notice) { !DataImport.running? }
+
+class Signature < ApplicationRecord
+  include Bali::Notifiable
+end
+
+signature.notify(recipient: approver, kind: :signature_assigned, message: "Firma el acta de cierre",
+                 actor: requester, action_url: new_signature_decision_path(signature))
+```
+
+| Kind option | Does |
+|---|---|
+| `email:` | `nil` (in-app only, the default), `:immediate` (one email when created), `:digest` (waits for the hourly digest) |
+| `queue:` | The queue an `:immediate` email goes on |
+| `announces:` | The inbox kind this notice announces — see «Folding» below |
+
+- `notify` does nothing for a blank recipient.
+- With an `idempotency_key:` already used, `notify` returns that notice instead of a second one. It does this inside a savepoint, so the caller's transaction survives the rejected insert.
+- A notice about nothing is `Bali::Notice.create!(recipient:, kind:, message:)`.
+- A notice of an unregistered kind is invalid.
+
+The model is `Bali::Notice`. `Bali::Notification` is the deprecated alert component's module until
+4.0, and a class cannot reopen a module.
+
+### Email
+
+- **Writing the row.** An `email:` kind writes its delivery row in the notice's own transaction, unless `Bali.notices_deliver_if` says no. A crash between the two cannot drop an email silently.
+- **`:immediate`.** These go through `Bali::NoticeDeliveryJob`, which calls `Bali.notices_mailer.constantize.notify(notice).deliver_now`. Your mailer keeps every template it has.
+  - The job retries five times with `polynomially_longer`.
+  - The row ends `delivered`, or `failed` with the exception's class and message.
+  - A delivered row is never sent again.
+- **`:digest`.** These wait for `Bali::NoticeDigestJob`, which you schedule hourly:
+
+  ```yaml
+  # config/recurring.yml (Solid Queue)
+  production:
+    notice_digest:
+      class: Bali::NoticeDigestJob
+      schedule: every hour
+  ```
+
+  Each run works like this:
+  - It claims the pending rows. On Postgres an overlapping run skips the ones already locked.
+  - It marks `skipped` what the person already read in the app.
+  - It sends one email per recipient through `Bali::NoticeDigestMailer`, which inherits `Bali.notices_parent_mailer` (`"ApplicationMailer"` by default), so it carries your layout and sender.
+  - A kind with three or more notices gets its own block; the rest share «Otros avisos».
+  - Rows link to each notice's `action_url`, made absolute, and never to an endpoint that marks it read: mail scanners fetch every link.
+  - A run killed mid-send leaves rows in `sending`. They go back to `pending` after an hour, so a digest can go out twice but never gets lost.
+
+The digest's recipient must answer `email`, and `first_name` or `name` for the greeting. Its copy
+is under `bali_view.notices.digest`. Override `app_name`, and give each digest kind its heading:
+
+```yaml
+es:
+  bali_view:
+    notices:
+      digest:
+        app_name: "AFAL Apps"
+        kinds:
+          request_submitted: "Solicitudes por revisar"
+```
+
+### Te toca: providers
+
+A provider answers what is waiting on one person. This is the contract gobierno-corporativo's
+inbox already used:
+
+```ruby
+class SignaturesProvider
+  include Bali::Inbox::Provider
+
+  def kind = :signature
+  def icon = "signature"          # "inbox" by default
+
+  # A relation or an Array, preloaded for build_item; permission early-outs go here.
+  def pending_for(user)
+    Signature.where(approver: user, decision: "pending").includes(:signoff)
+  end
+
+  def build_item(signature, user:)
+    item signature, title: signature.signoff.title, subtitle: signature.signoff.area_name,
+                    due_at: signature.due_on, requested_by: signature.signoff.requested_by&.name,
+                    href: new_signature_decision_path(signature)
+  end
+end
+
+# config/initializers/bali.rb — by module, by class name, in the order of the filter pills
+Bali.inbox_providers = { governance: %w[SignaturesProvider ApprovalsProvider] }
+```
+
+- `pending_count_for(user)` defaults to `pending_for(user).size`, which is a `COUNT` on a relation. Override it when you can count more cheaply than you list.
+- `build_items(records, user:)` maps `build_item`. Override it for one lookup over the whole batch.
+- `item(record, **fields)` fills in `kind` and `record`.
+- The item's other fields are `title` (required), `subtitle`, `href`, `due_at` (a `Date` is due at the end of its day) and `requested_by`.
+- An item's address is its kind and its record's GlobalID: `/inbox/items/:kind/:gid`.
+- A kind registered twice raises on first use.
+- Providers are named by class, so a development reload never keeps a stale one.
+
+`Bali::Inbox::Query.new(user)` is public:
+
+| Method | Returns |
+|---|---|
+| `count`, `counts_by_kind` | What the badge and the filter pills show |
+| `items(module_key: nil, kind: nil)` | Sorted into «Vencidos» (past due), «Esta semana» (due within 7 days) and «Después» (later or undated). At most `FETCH_CAP` (100) per provider |
+| `capped?` | Whether a provider hit the cap, once `items` ran |
+| `find(kind, gid)` | The item, or `nil` when it is not pending for this user. The gid is only ever matched inside that kind's own `pending_for`, so a forged one reaches nothing |
+| `fresh_keys(items)`, `mark_seen!(item)` | The «Nuevo» marks, and reading them |
+
+Labels are yours, under `bali_view.inbox.kinds.<kind>` (with `one`/`other`, since the pills
+pluralize) and `bali_view.inbox.modules.<module>`. Both fall back to the humanized key.
+
+### Folding
+
+`announces: :signature` says that this notice tells someone a `:signature` item is now waiting on
+them, about the notice's own `notifiable`. Such a notice behaves like this:
+
+- It never appears in «Avisos».
+- It never counts toward the icon's dot.
+- It marks the item whose `record` is its `notifiable` «Nuevo», for the same recipient, while it is unread.
+- Viewing the item reads it, and so does «Marcar todos como leídos».
+- Its email still goes out as its kind says.
+
+Declare it only where the notice and the provider are about the same record for the same
+people. A notice that announces an item its provider never shows that person stays out of sight
+for good. That is right when the person's turn has passed, and wrong when the provider has a bug.
+An `announces:` naming a kind no provider has raises on first use.
+
+### The controller, the routes and the topbar
+
+```ruby
+class ApplicationController < ActionController::Base
+  include Bali::Concerns::Controllers::InboxBadge   # `inbox_badge`, refreshed by the user's writes
+end
+
+class InboxesController < ApplicationController
+  include Bali::Concerns::Controllers::Inbox
+end
+
+# config/routes.rb
+resource :inbox, only: :show do
+  get :popover
+  get :badge
+  get "items/:kind/:gid", action: :item, as: :item
+  get "items/:kind/:gid/open", action: :open_item, as: :open_item
+  get "notices/:id/open", action: :open_notice, as: :open_notice
+  post :read_all
+end
+```
+
+```erb
+<% topbar.with_action do %>
+  <%= render Bali::Topbar::Inbox::Component.new(
+        badge: inbox_badge, href: inbox_path, popover_url: popover_inbox_path,
+        badge_url: badge_inbox_path, stream: current_user) %>
+<% end %>
+```
+
+- **The host's controller.** `InboxesController` is yours, so your authentication, layout and rescue apply. No authorize lambda is needed: providers filter by person and notice queries by recipient.
+- **The owner.** Both concerns read `inbox_owner`, which is `current_user` by default. Without one, `inbox_badge` is `nil`, the icon renders nothing, and the inbox actions answer `401`.
+- **The views.** Bali's sit behind yours. An `app/views/inboxes/show.html.erb` replaces the page.
+  - A partial `inbox/items/_<kind>.html.erb`, which gets `item`, replaces the generic detail for that kind.
+  - The detail for an item that is no longer the person's is the same whether it was resolved, is someone else's or never existed.
+- **Opening is reading.** `item`, `open_item` and `open_notice` mark notices read.
+  - Their links carry `data-turbo-prefetch="false"`, so a hover does not read them.
+  - `open_notice` follows only a relative `action_url`. Anything else lands on the «Avisos» tab.
+- **The badge.** The icon's number is `Query#count`; its dot means unread notices that announce nothing. Both are cached per person for one minute.
+  - A new notice, a mark-read through the engine, and any request of the person's that is not a GET expire the cache.
+  - Someone else's action that changes your items without a notice shows within the minute.
+  - With a warm cache a page runs one cache read and no provider or notice query.
+- **The stream.** `stream:` subscribes the page to `[owner, :bali_inbox]`. Each new notice broadcasts a signal that carries no count, and the icon fetches `badge_url` again. That needs turbo-rails and Action Cable; without `stream:` the icon refreshes on the next page.
+- **Layouts where the icon must stay silent.** In a layout an engine renders too (bali-auth's screens), use `try(:inbox_badge)` and `main_app.` route helpers.
+
+### Porting from afal-apps
+
+| afal-apps | Bali | What to do |
+|---|---|---|
+| `notifications` | `bali_notices` | Copy keeping each `id`; move the sequence past the highest plus a gap, so the old container's inserts during the deploy keep free ids |
+| `recipient_id`, `actor_id` | `recipient`, `actor` polymorphic | `*_type = 'User'` |
+| `notifiable`, `kind`, `message`, `action_url`, `read_at` | the same | As they are |
+| `Notifiable#notify` | `Bali::Notifiable#notify` | Same signature |
+| `Notification::EMAIL_KINDS` | `email: :immediate` | One line per kind in `Bali.notice_kinds` |
+| `TARGET_STATE_KINDS`, `target_resolved?` | `announces:` | Folding replaces the per-kind resolver |
+| `TDFlow::Inbox::PROVIDERS` | `Bali.inbox_providers` | Each provider returns records and builds items |
+| `Current.unread_notifications_count` | `inbox_badge` | Cached, refreshed by writes and new notices |
 
 ---
 

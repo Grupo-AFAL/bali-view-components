@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Bandeja y avisos: un solo ícono, un popover y una página** (#1512). Sustituyen al par que cada
+  app armaba por su cuenta:
+  - «Te toca»: lo que espera a la persona. Se lee en vivo de los modelos de la app, a través de
+    providers que la app registra en `Bali.inbox_providers`.
+  - «Avisos»: lo que pasó, en la tabla nueva `bali_notices`.
+
+  Un aviso sobre algo que también es un pendiente no sale dos veces: queda como la marca «Nuevo»
+  en ese pendiente (`announces:` en `Bali.notice_kinds`).
+
+  El correo lleva bitácora (`bali_notice_deliveries`). Un kind se manda al momento
+  (`email: :immediate`) o se junta en un correo por hora (`email: :digest`, con
+  `Bali::NoticeDigestJob`).
+
+  La app hace cuatro cosas:
+  - instala la tabla con `bin/rails bali:install:migrations:notices`;
+  - incluye `Bali::Concerns::Controllers::InboxBadge` en su `ApplicationController` y
+    `Bali::Concerns::Controllers::Inbox` en un `InboxesController`, con las rutas de la guía;
+  - cambia la campana del topbar por `Bali::Topbar::Inbox`;
+  - programa el job del correo agrupado si usa `:digest`.
+
+  Las apps que no lo adopten no tienen nada que hacer. Guía: `docs/guides/engine-models.md`
+  («Inbox and notices»).
+
 ## [v3.18.0] - 2026-10-15
 
 ### Removed

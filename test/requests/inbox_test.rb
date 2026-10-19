@@ -5,6 +5,11 @@ require "test_helper"
 # #1512 — the dummy's InboxesController is the reference host controller: the whole integration
 # is `include Bali::Concerns::Controllers::Inbox` and the routes. These walk every action.
 class InboxRequestTest < ActionDispatch::IntegrationTest
+  class OwnerlessInboxesController < ::InboxesController
+    private
+
+    def inbox_owner = nil
+  end
   def setup
     @cache = Rails.cache
     Rails.cache = ActiveSupport::Cache::MemoryStore.new
@@ -214,6 +219,22 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     get "/inbox/popover", params: { tab: "notices" }
     assert_select "a[href*='/open']", minimum: 1
     assert_select "a[href*='/open']:not([data-turbo-prefetch=false])", 0
+  end
+
+  def test_without_an_owner_every_action_answers_401
+    with_routing do |routes|
+      routes.draw do
+        resource :inbox, only: :show, controller: "inbox_request_test/ownerless_inboxes" do
+          get :popover
+        end
+      end
+
+      get "/inbox"
+      assert_response :unauthorized
+
+      get "/inbox/popover"
+      assert_response :unauthorized
+    end
   end
 
   # The host's own templates come first, so app/views/inboxes/show.html.erb replaces Bali's.
