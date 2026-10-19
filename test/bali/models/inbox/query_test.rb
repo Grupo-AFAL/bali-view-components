@@ -46,7 +46,7 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
 
     def pending_for(_user) = Task.in_progress.order(:id)
 
-    def build_item(task, user:) = item(task, title: task.title, module_key: :elsewhere)
+    def build_item(task, user:) = item(task, title: task.title, module_key: :docs)
   end
 
   def setup
@@ -97,22 +97,32 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     end
   end
 
-  def test_a_provider_with_a_higher_priority_comes_first_whatever_the_dates
+  # The bands still lead — the page and the popover group by them —; within a band, a provider with
+  # a higher priority comes first: Centinela's fresh emergency before its older alerts.
+  def test_within_a_band_a_provider_with_a_higher_priority_comes_first
     Bali.inbox_providers = { demo: [ TasksProvider.name, UrgentProvider.name ] }
     travel_to Time.zone.local(2026, 10, 18, 12) do
-      task("Overdue", due: Date.new(2026, 10, 10))
+      task("Old overdue", due: Date.new(2026, 10, 1))
+      task("Fresh urgent", due: Date.new(2026, 10, 17), status: :done)
       task("Urgent, undated", status: :done)
 
-      assert_equal [ "Urgent, undated", "Overdue" ], query.items.map(&:title)
+      items = query.items
+
+      assert_equal [ "Fresh urgent", "Old overdue", "Urgent, undated" ], items.map(&:title)
+      assert_equal %i[overdue overdue later], items.map(&:band)
     end
   end
 
   def test_an_item_naming_its_own_module_keeps_it
-    Bali.inbox_providers = { demo: [ TasksProvider.name, SpreadProvider.name ] }
+    Bali.inbox_providers = { demo: [ TasksProvider.name, SpreadProvider.name ], docs: [] }
     spread = task("Spread", status: :in_progress)
+    task("Write")
 
-    assert_equal :elsewhere, query.items(kind: :spread).sole.module_key
-    assert_equal :elsewhere, query.find(:spread, spread.to_gid_param).module_key
+    assert_equal :docs, query.items(kind: :spread).sole.module_key
+    assert_equal :docs, query.find(:spread, spread.to_gid_param).module_key
+    assert_equal [ [ :spread, "Spread" ] ], query.items(module_key: :docs).map { [ it.kind, it.title ] }
+    assert_equal [ [ :task, "Spread" ], [ :task, "Write" ] ], query.items(module_key: :demo).map { [ it.kind, it.title ] }
+    assert_equal %i[demo docs], query.modules
   end
 
   def test_items_filter_by_kind_and_by_module

@@ -5,6 +5,8 @@ require "test_helper"
 # #1512 — a notice is a stored "what happened" for one recipient. Its kind decides whether it
 # goes out by email and whether it announces an inbox item.
 class BaliNoticeTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   def setup
     @kinds = Bali.notice_kinds
     @deliver_if = Bali.notices_deliver_if
@@ -60,6 +62,26 @@ class BaliNoticeTest < ActiveSupport::TestCase
 
     assert_equal [ released ], Bali::Notice.listed.to_a
     assert_equal %w[movie_assigned], Bali::Notice.announcing_kinds
+  end
+
+  # After the commit, so a queue that is down must not fail whoever wrote the notice; the row stays
+  # pending, and the hourly sweep sends it.
+  def test_a_delivery_job_the_queue_refuses_is_reported_and_the_hourly_sweep_sends_it
+    job = Bali::NoticeDeliveryJob.singleton_class
+    job.alias_method :original_enqueue, :enqueue
+    job.define_method(:enqueue) { |*| raise IOError, "the queue is down" }
+    notice = nil
+    begin
+      assert_error_reported(IOError) { notice = @movie.notify(recipient: @ana, kind: :movie_assigned, message: "Alien") }
+    ensure
+      job.alias_method :enqueue, :original_enqueue
+      job.remove_method :original_enqueue
+    end
+
+    assert_equal "pending", notice.delivery.status
+    travel 61.minutes do
+      assert_enqueued_with(job: Bali::NoticeDeliveryJob, args: [ notice.delivery ]) { Bali::NoticeDigestJob.perform_now }
+    end
   end
 
   def test_an_immediate_kind_writes_a_pending_immediate_delivery

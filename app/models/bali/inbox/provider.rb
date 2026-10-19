@@ -31,8 +31,8 @@ module Bali
 
       def icon = "inbox"
 
-      # Higher comes first, before any lower one's item whatever the dates: Centinela's emergencies
-      # before its alerts.
+      # Higher first — unlike Active Job's —, within each band: the page and the popover group by band.
+      # Centinela's emergencies before its older alerts.
       def priority = 0
 
       # A COUNT on a relation. A provider that can count more cheaply than it lists overrides it.

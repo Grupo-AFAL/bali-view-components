@@ -22,7 +22,9 @@ module Bali
         @counts_by_kind ||= @providers.to_h { |_module_key, provider| [ provider.kind.to_sym, provider.pending_count_for(user) ] }
       end
 
-      def modules = @providers.map(&:first).uniq
+      # A provider's items may name a module of their own, so a module with no provider of its own
+      # is still one to filter by.
+      def modules = Bali.inbox_providers.keys.map(&:to_sym)
 
       def icon(kind)
         @providers.find { |_module_key, provider| provider.kind.to_s == kind.to_s }&.last&.icon || "inbox"
@@ -30,8 +32,9 @@ module Bali
 
       def items(module_key: nil, kind: nil)
         @providers
-          .select { |entry_module, provider| matches?(entry_module, provider, module_key, kind) }
+          .select { |_module_key, provider| kind.nil? || provider.kind.to_sym == kind.to_sym }
           .flat_map { |entry_module, provider| fetch(entry_module, provider) }
+          .select { |item| module_key.nil? || item.module_key == module_key.to_sym }
           .sort_by { |item| sort_key(item) }
       end
 
@@ -75,10 +78,6 @@ module Bali
         Bali::Notice.unread.addressed_to(user).where(kind: Bali::Notice.announcing_kinds).merge(about)
       end
 
-      def matches?(entry_module, provider, module_key, kind)
-        (module_key.nil? || entry_module == module_key.to_sym) && (kind.nil? || provider.kind.to_sym == kind.to_sym)
-      end
-
       def fetch(module_key, provider)
         records = provider.pending_for(user).first(FETCH_CAP + 1)
         (@capped ||= []) << provider.kind if records.size > FETCH_CAP
@@ -91,7 +90,7 @@ module Bali
 
       def sort_key(item)
         due = item.due_time
-        [ -priorities.fetch(item.kind, 0), BANDS.index(item.band), due ? 0 : 1, due.to_f, item.title.to_s ]
+        [ BANDS.index(item.band), -priorities.fetch(item.kind), due ? 0 : 1, due.to_f, item.title.to_s ]
       end
 
       def priorities = @priorities ||= @providers.to_h { |_module_key, provider| [ provider.kind.to_sym, provider.priority ] }
