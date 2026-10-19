@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.19.0] - 2026-10-18
+
 ### Added
 
 - **Bandeja y avisos: un solo ícono, un popover y una página** (#1512). Sustituyen al par que cada
