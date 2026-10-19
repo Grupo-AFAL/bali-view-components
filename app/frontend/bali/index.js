@@ -136,6 +136,7 @@ export {
   ToastContainerController,
   ToolbarOverflowController,
   TooltipController,
+  TopbarInboxController,
   TreeViewItemController,
   WidgetGridController,
   WidgetGridEditModeController,

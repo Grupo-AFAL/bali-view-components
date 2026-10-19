@@ -8,9 +8,11 @@ module Bali
         #   because every tab has an `href:`. The link then carries
         #   `aria-current` instead of the tab roles, which would describe a
         #   widget that is not on the page.
-        def initialize(tab, index = 0, navigation: false)
+        def initialize(tab, index = 0, navigation: false, id: "tab-#{index}", controls: "tabpanel-#{index}")
           @index = index
           @navigation = navigation
+          @id = id
+          @controls = controls
           @icon = tab.icon
           @title = tab.title
           @reload = tab.reload
@@ -68,10 +70,10 @@ module Bali
         def tab_attributes
           {
             role: "tab",
-            id: "tab-#{index}",
+            id: @id,
             class: classes,
             'aria-selected': active,
-            'aria-controls': "tabpanel-#{index}",
+            'aria-controls': @controls,
             tabindex: active ? 0 : -1,
             data: {
               'tabs-target': "tab",

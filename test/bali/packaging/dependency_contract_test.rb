@@ -97,6 +97,19 @@ class BaliDependencyContractTest < ActiveSupport::TestCase
                  "of the eager load through Bali::Engine::NOT_EAGER_LOADED."
   end
 
+  # A superclass that is an expression (`< Bali.notices_parent_mailer.constantize`) names a HOST
+  # constant, read the moment the file loads: a host that never adopted the feature, and has no
+  # such class, would not boot.
+  def test_no_eager_loaded_file_inherits_from_a_configured_class
+    offenders = eager_load_surface.select do |path|
+      path.each_line.any? { |line| line.match?(/^\s*class\s+[\w:]+\s*<\s*Bali\.\w+/) }
+    end
+
+    assert_empty offenders.map { |path| path.relative_path_from(ROOT).to_s },
+                 "these inherit from a class the host configures; keep them out of the eager " \
+                 "load through Bali::Engine::NOT_EAGER_LOADED, so they load when first used"
+  end
+
   # Rails globs every `app/*` except `assets`, `javascript` and `views`; this fails if
   # Ruby lands in one of those, or if `config.paths["app"]` is ever narrowed.
   def test_every_app_directory_with_ruby_is_eager_loaded_in_a_host

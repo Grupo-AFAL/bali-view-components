@@ -1,0 +1,16 @@
+<%= @heading %>
+<%= @window %>
+<% @groups.each do |group| %>
+
+<%= group.label %> · <%= group.notices.size %>
+<% group.notices.first(Bali::NoticeDigestMailer::LISTED_PER_GROUP).each do |notice| %>
+- <%= notice.message %> (<%= l(notice.created_at, format: "%H:%M") %>)<% if notice.action_url %> <%= absolute_url(notice.action_url) %><% end %>
+<% end %>
+<% if group.notices.size > Bali::NoticeDigestMailer::LISTED_PER_GROUP %>
+<%= t("bali_view.notices.digest.more", count: group.notices.size - Bali::NoticeDigestMailer::LISTED_PER_GROUP) %>
+<% end %>
+<% end %>
+
+<%= t("bali_view.notices.digest.open") %>: <%= main_app.inbox_url(tab: "notices") %>
+
+<%= t("bali_view.notices.digest.footer") %>

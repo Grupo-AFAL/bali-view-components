@@ -30,6 +30,8 @@ require "bali/concerns/date_range_attribute"
 # solely because a line like this one loaded it. (The dummy app is not proof —
 # it resolved this constant in development and raised NameError in test.)
 require "bali/concerns/controllers/dashboard_widgets"
+require "bali/concerns/controllers/inbox_badge"
+require "bali/concerns/controllers/inbox"
 
 # Non-UI concerns (SoftDelete, GlobalIdAccessors, etc.) are opt-in.
 # See lib/bali/extras.rb
@@ -393,6 +395,42 @@ module Bali
   # on submit.
   # Example: ->(controller, document) { Document.published.where.not(id: document.id) }
   mattr_accessor :archivals_successors, default: ->(_controller, _record) { nil }
+
+  # Inbox and notices (#1512) — `bali_notices` and `bali_notice_deliveries`, installed with
+  # `bin/rails bali:install:migrations:notices`. Guide: docs/guides/engine-models.md.
+  #
+  # Every kind a notice can have: `{ kind => { email:, queue:, announces: } }`. A notice of a kind
+  # missing here is invalid.
+  #   email:     nil (in-app only, the default), :immediate, or :digest (the hourly digest)
+  #   queue:     the queue an :immediate email goes on
+  #   announces: the inbox kind this notice tells someone is waiting on them. It then never
+  #              appears in «Avisos» and only marks that item «Nuevo» while unread
+  # Example: Bali.notice_kinds = {
+  #   signature_assigned: { email: :immediate, announces: :signature },
+  #   request_submitted: { email: :digest },
+  #   story_assigned: {}
+  # }
+  mattr_accessor :notice_kinds, default: {}
+
+  # The host mailer an :immediate notice is sent through: a class name whose `notify(notice)`
+  # returns the mail. Required once any kind has `email:`.
+  # Example: Bali.notices_mailer = "NotificationMailer"
+  mattr_accessor :notices_mailer, default: nil
+
+  # What `Bali::NoticeDigestMailer` inherits from, so the digest carries the host's layout and
+  # sender.
+  mattr_accessor :notices_parent_mailer, default: "ApplicationMailer"
+
+  # Whether a new notice goes out by email at all: callable (notice). Falsy writes no delivery,
+  # for an import that must not email anyone.
+  # Example: ->(_notice) { !DataImport.running? }
+  mattr_accessor :notices_deliver_if, default: ->(_notice) { true }
+
+  # The inbox's providers, by module: `{ module_key => ["ProviderClassName", ...] }`. Names, not
+  # classes, so a development reload never leaves a stale class here. The order is the order of
+  # the filter pills.
+  # Example: Bali.inbox_providers = { td_flow: %w[TDFlow::Inbox::SignaturesProvider] }
+  mattr_accessor :inbox_providers, default: {}
 
   # Concerns the host injects into every controller of this engine (#710).
   #

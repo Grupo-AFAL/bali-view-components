@@ -420,6 +420,33 @@ One icon button for the `with_action` slot — the notification bell packaged. A
 - `active` - marks this as the current section: daisyUI's `btn-active` state, plus `aria-current="page"` when the control is a link
 - `max_count` - cap for an Integer `badge:` (default 99): anything above renders as "99+". Strings pass through untouched, so a host that formats its own count keeps full control
 
+##### Topbar::Inbox
+
+The one icon for what is waiting on the person and their notices (#1512), in place of an inbox
+icon and a bell. A plain click opens a popover over the page and loads it then; a modified click,
+or no JavaScript, follows the link to the full page. The pages and the badge come from
+[Engine models](engine-models.md#inbox-and-notices-bali_notices).
+
+```erb
+<%= render Bali::Topbar::Inbox::Component.new(
+  badge: inbox_badge, href: inbox_path, popover_url: popover_inbox_path,
+  badge_url: badge_inbox_path, stream: current_user
+) %>
+```
+
+**Options:**
+- `badge` (required) - a `Bali::Inbox::Badge`: `pending` draws the count pill (IconAction's, capped at 99+), `unread` adds a primary dot. `nil` renders nothing
+- `href` (required) - the full page
+- `popover_url` (required) - what the popover's frame loads on its first open; later opens reload it
+- `badge_url` - what the icon fetches when a new notice arrives on `stream:`
+- `stream` - the owner; renders `turbo_stream_from owner, :bali_inbox`
+
+The link's accessible name is the badge's own text («Bandeja: 6 pendientes, hay avisos sin
+leer»), so a refresh updates the number, the dot and the name together. The popover is a
+`role="dialog"` positioned by tippy on `<body>`. Escape closes it and gives the focus back to the
+icon; a click outside closes it and leaves the focus where the click put it. The trigger is never
+prefetched: a hover would load the whole page for a click that opens the popover instead.
+
 ##### Topbar::ToolsMenu
 
 The internal-tools dropdown for the `with_action` slot — jobs dashboard, adoption
@@ -1017,6 +1044,10 @@ Stimulus controller.
   <% tabs.with_tab(title: "Activity", src: activity_path(@project), active: true) %>
 <% end %>
 ```
+
+The triggers and panels are `tab-0` / `tabpanel-0`, and so on. Two sets of panel tabs on one
+page need `id_prefix:` on one of them (`id_prefix: "activity"` gives `activity-tab-0`), or the
+second set's `aria-controls` names the first set's panels.
 
 **Tabs that navigate** — every trigger has an `href:`, so the click leaves the page. There is
 no panel to control, so this renders `<nav aria-label>` with plain links and

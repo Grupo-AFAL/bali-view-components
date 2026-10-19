@@ -29,9 +29,11 @@
     <% end %>
   <% end %>
 
+  <%# #1512 — one icon for «Te toca» and «Avisos», in place of the bell. %>
   <% topbar.with_action do %>
-    <%= render Bali::Topbar::IconAction::Component.new(
-      icon: 'bell', aria_label: 'Notifications', badge: true, badge_id: 'admin-notifications-badge'
+    <%= render Bali::Topbar::Inbox::Component.new(
+      badge: inbox_badge, href: inbox_path, popover_url: popover_inbox_path,
+      badge_url: badge_inbox_path, stream: current_user
     ) %>
   <% end %>
 

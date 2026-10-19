@@ -38,7 +38,11 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
     # ViewComponent's page for each preview, `/rails/view_components/*path`, served by the
     # dummy's subclass (`component_previews_controller.rb`). Lookbook copies its own
     # `preview_controller` into ViewComponent's config, so the subclass cannot be Lookbook's alone.
-    "component_previews#previews" => "ViewComponent's page for each preview; previews are viewed in Lookbook"
+    "component_previews#previews" => "ViewComponent's page for each preview; previews are viewed in Lookbook",
+    # Both mark read and answer 303 to where the item or notice lives; test/requests/inbox_test.rb
+    # walks them. `inboxes#item`, the page they fall back to, IS swept.
+    "inboxes#open_item" => "redirects by design; covered by test/requests/inbox_test.rb",
+    "inboxes#open_notice" => "redirects by design; covered by test/requests/inbox_test.rb"
   }.freeze
 
   # Deprecations the dummy fires on purpose, keyed by the leading text of the entry the
@@ -157,7 +161,9 @@ class DummyPagesSmokeTest < ActionDispatch::IntegrationTest
       "admin/process_flows/lane_assignees" => { "process_flow_id" => @process_flow.to_param },
       "admin/process_flows/imports" => { "process_flow_id" => @process_flow.to_param },
       "documents" => { "id" => @document.to_param },
-      "pages" => { "project_slug" => "bali-demo" }
+      "pages" => { "project_slug" => "bali-demo" },
+      # A movie is no task, so this renders the «ya no está» detail: still the whole page.
+      "inboxes" => { "kind" => "task", "gid" => @movie.to_gid_param }
     }
   end
 

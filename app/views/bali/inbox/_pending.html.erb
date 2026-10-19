@@ -1,0 +1,46 @@
+<% counts = inbox_query.counts_by_kind %>
+
+<%= render Bali::SplitView::Component.new(frame_id: "bali-inbox-detail") do |split| %>
+  <% split.with_list(selected: (inbox_item_key(@item) if @item),
+                     next_url: (url_for(action: :show, kind: @kind, module: @module_key, page: @next_page) if @next_page)) do |list| %>
+    <% list.with_filter(label: t("bali_view.inbox.all"), href: url_for(action: :show, module: @module_key),
+                        active: @kind.nil?, count: counts.values.sum) %>
+    <% counts.each do |kind, count| %>
+      <% next if count.zero? %>
+      <% list.with_filter(label: inbox_kind_label(kind, count: 2), param: :kind, value: kind, count: count) %>
+    <% end %>
+
+    <% @items.group_by(&:band).each do |band, items| %>
+      <% list.with_group(key: band, label: inbox_band_label(band), count: items.size) do |group| %>
+        <% items.each do |item| %>
+          <% group.with_item(id: inbox_item_key(item), href: inbox_item_url(item), title: item.title,
+                             subtitle: [ inbox_kind_label(item.kind), inbox_module_label(item.module_key) ].join(" · "),
+                             meta: inbox_due_text(item), meta_color: (:error if item.overdue?),
+                             data: { turbo_prefetch: "false" }) do |row| %>
+            <% if inbox_fresh?(item, @fresh) %>
+              <% row.with_tag(text: t("bali_view.inbox.fresh"), color: :primary) %>
+            <% end %>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <% list.with_empty_state do %>
+      <%= render Bali::EmptyState::Component.new(title: t("bali_view.inbox.empty.title"), icon: "circle-check") %>
+    <% end %>
+  <% end %>
+
+  <% if @item || @gone %>
+    <% split.with_detail { render "detail" } %>
+  <% else %>
+    <% split.with_empty_detail do %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <%= render Bali::EmptyState::Component.new(title: t("bali_view.inbox.detail.empty"), icon: "inbox") %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<% if inbox_query.capped? %>
+  <p class="text-sm text-base-content/70"><%= t("bali_view.inbox.capped", count: Bali::Inbox::Query::FETCH_CAP) %></p>
+<% end %>

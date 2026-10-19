@@ -25,9 +25,14 @@ module Bali
     #
     # test/bali/packaging/dependency_contract_test.rb reads this list to know what a
     # host is really made to load.
+    #
+    # The digest mailer inherits from `Bali.notices_parent_mailer`, a HOST class it reads when the
+    # file loads: eager-loaded, a host that never adopted notices, and has no ApplicationMailer,
+    # would not boot. It loads the first time the digest job sends.
     NOT_EAGER_LOADED = %w[
       app/components/**/preview.rb
       app/components/bali/application_view_component_preview.rb
+      app/mailers/bali/notice_digest_mailer.rb
     ].freeze
 
     initializer "bali.exclude_previews_from_eager_load" do

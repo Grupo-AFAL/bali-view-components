@@ -12,4 +12,10 @@ class User < ApplicationRecord
   def self.demo
     find_or_create_by!(name: DEMO_NAME)
   end
+
+  # Where the dummy's `NoticeMailer` writes to. A user with no name has no address, which is how
+  # the delivery log's failure path is exercised.
+  def email
+    "#{name.parameterize}@example.com" if name.present?
+  end
 end

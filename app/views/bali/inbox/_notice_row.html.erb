@@ -1,0 +1,14 @@
+<%# One notice, in the popover and on the page. It opens through `open_notice`, which reads it. %>
+<%= link_to url_for(action: :open_notice, id: notice.id),
+      class: class_names("bali-inbox-notice flex items-start gap-3 px-4 py-3 hover:bg-base-200", "is-unread": notice.unread?),
+      data: { turbo_prefetch: "false", turbo_frame: "_top" } do %>
+  <span class="<%= class_names("mt-1.5 size-2 shrink-0 rounded-full", notice.unread? ? "bg-primary" : "bg-transparent") %>"
+        aria-hidden="true"></span>
+  <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+    <span class="bali-inbox-notice-message text-sm <%= "font-semibold" if notice.unread? %>"><%= notice.message %></span>
+    <span class="text-xs text-base-content/70">
+      <%= inbox_notice_time(notice) %>
+      <% if notice.unread? %><span class="sr-only">, <%= t("bali_view.inbox.notices.unread") %></span><% end %>
+    </span>
+  </span>
+<% end %>

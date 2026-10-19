@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_15_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_18_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -144,6 +144,40 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_120000) do
     t.datetime "updated_at", null: false
     t.index ["record_type", "record_id", "referenceable_type", "referenceable_id"], name: "index_bali_entity_references_uniqueness", unique: true
     t.index ["referenceable_type", "referenceable_id"], name: "index_bali_entity_references_on_referenceable"
+  end
+
+  create_table "bali_notice_deliveries", force: :cascade do |t|
+    t.bigint "notice_id", null: false
+    t.string "mode", null: false
+    t.string "status", default: "pending", null: false
+    t.integer "attempts", default: 0, null: false
+    t.datetime "delivered_at"
+    t.datetime "failed_at"
+    t.string "failure_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["mode", "status", "created_at"], name: "index_bali_notice_deliveries_on_mode_and_status_and_created_at"
+    t.index ["notice_id"], name: "index_bali_notice_deliveries_on_notice_id", unique: true
+  end
+
+  create_table "bali_notices", force: :cascade do |t|
+    t.string "recipient_type", null: false
+    t.integer "recipient_id", null: false
+    t.string "actor_type"
+    t.integer "actor_id"
+    t.string "notifiable_type"
+    t.integer "notifiable_id"
+    t.string "kind", null: false
+    t.text "message", null: false
+    t.string "action_url"
+    t.datetime "read_at"
+    t.string "idempotency_key"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["idempotency_key"], name: "index_bali_notices_on_idempotency_key", unique: true, where: "idempotency_key IS NOT NULL"
+    t.index ["notifiable_type", "notifiable_id"], name: "index_bali_notices_on_notifiable"
+    t.index ["recipient_type", "recipient_id", "created_at"], name: "index_bali_notices_on_recipient_and_created_at"
+    t.index ["recipient_type", "recipient_id", "kind"], name: "index_bali_notices_unread", where: "read_at IS NULL"
   end
 
   create_table "bali_saved_views", force: :cascade do |t|
