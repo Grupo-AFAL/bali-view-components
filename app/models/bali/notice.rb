@@ -66,7 +66,7 @@ module Bali
     end
 
     def announce
-      Bali::NoticeDeliveryJob.enqueue(delivery) if defined?(Bali::NoticeDeliveryJob) && delivery&.mode == "immediate"
+      Bali::NoticeDeliveryJob.enqueue(delivery) if delivery&.mode == "immediate"
     end
   end
 end

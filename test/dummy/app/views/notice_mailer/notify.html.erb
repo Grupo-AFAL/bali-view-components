@@ -1,0 +1,4 @@
+<p><%= @notice.message %></p>
+<% if @notice.action_url %>
+  <p><%= link_to "Open", URI.join(root_url, @notice.action_url).to_s %></p>
+<% end %>
