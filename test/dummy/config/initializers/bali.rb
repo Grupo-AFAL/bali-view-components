@@ -107,4 +107,15 @@ Bali.config do |config|
   config.archivals_authorize = ->(_controller, _record, _action) { true }
   config.archivals_actor = ->(_controller) { User.demo }
   config.archivals_successors = ->(_controller, movie) { Movie.where.not(id: movie.id).order(:name) }
+
+  # #1512 — the inbox demo. Providers by name, so a reload never keeps a stale class; the task
+  # notice announces the task item, so it shows as «Nuevo» on it instead of in «Avisos».
+  config.inbox_providers = { projects: %w[TaskInboxProvider], documents: %w[DocumentInboxProvider] }
+  config.notice_kinds = {
+    task_assigned: { email: :immediate, announces: :task },
+    movie_review_requested: { email: :digest },
+    movie_released: {},
+    studio_created: {}
+  }
+  config.notices_mailer = "NoticeMailer"
 end

@@ -11,6 +11,9 @@ class Task < ApplicationRecord
 
   validates :title, presence: true
 
+  # #1512 — «Te asignaron …» announces the task's inbox item.
+  include Bali::Notifiable
+
   enum :status, { backlog: 0, todo: 1, in_progress: 2, done: 3 }
   enum :priority, { low: 0, medium: 1, high: 2 }
 
