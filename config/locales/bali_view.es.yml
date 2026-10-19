@@ -845,6 +845,7 @@ es:
         empty: "Elige un pendiente para ver su detalle."
         open: "Abrir y resolver"
         copy: "Copiar liga"
+        copied: "Liga copiada"
         due: "Vence"
         requested_by: "Lo pidió"
         about: "Sobre"

@@ -101,6 +101,27 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_select ".bali-inbox-detail-generic", /Policy/
   end
 
+  # A square trigger is sized for an icon: the text spilled out of it and the icon over «Open».
+  def test_the_copy_link_button_is_sized_for_its_text_and_named_by_it
+    get item_path_for(task("Ship it"))
+
+    trigger = css_select(".bali-inbox-detail .clipboard-trigger").sole
+    assert_not_includes trigger["class"].split, "btn-square"
+    assert_equal I18n.t("bali_view.inbox.detail.copy"), trigger["aria-label"]
+  end
+
+  # The list is a card, so the pane beside it is one too, whatever it holds.
+  def test_the_detail_pane_sits_in_a_card_like_the_list
+    get "/inbox"
+    assert_select "#bali-inbox-detail > .card .empty-state-component"
+
+    get item_path_for(task("Ship it"))
+    assert_select "#bali-inbox-detail > .card .bali-inbox-detail"
+
+    get item_path_for(task("Done", status: :done))
+    assert_select "#bali-inbox-detail > .card .bali-inbox-gone"
+  end
+
   def test_every_kind_of_stale_address_gets_the_same_gone_detail
     done = task("Ship", status: :done)
     deleted = task("Gone").tap(&:destroy!)

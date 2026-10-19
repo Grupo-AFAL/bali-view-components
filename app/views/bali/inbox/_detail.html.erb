@@ -1,10 +1,12 @@
-<% if @gone %>
-  <%= render "gone" %>
-<% elsif lookup_context.exists?("inbox/items/#{@item.kind}", [], true) %>
-  <div class="bali-inbox-detail flex flex-col gap-4 p-4">
-    <%= render "inbox/items/#{@item.kind}", item: @item %>
-    <%= render "detail_actions", item: @item %>
-  </div>
-<% else %>
-  <%= render "item_detail", item: @item %>
+<%= render Bali::Card::Component.new(style: :bordered, body_class: "p-0") do %>
+  <% if @gone %>
+    <%= render "gone" %>
+  <% elsif lookup_context.exists?("inbox/items/#{@item.kind}", [], true) %>
+    <div class="bali-inbox-detail flex flex-col gap-4 p-4">
+      <%= render "inbox/items/#{@item.kind}", item: @item %>
+      <%= render "detail_actions", item: @item %>
+    </div>
+  <% else %>
+    <%= render "item_detail", item: @item %>
+  <% end %>
 <% end %>

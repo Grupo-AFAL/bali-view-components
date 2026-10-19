@@ -49,7 +49,9 @@
     <% split.with_detail { render "detail" } %>
   <% else %>
     <% split.with_empty_detail do %>
-      <%= render Bali::EmptyState::Component.new(title: t("bali_view.inbox.detail.empty"), icon: "inbox") %>
+      <%= render Bali::Card::Component.new(style: :bordered) do %>
+        <%= render Bali::EmptyState::Component.new(title: t("bali_view.inbox.detail.empty"), icon: "inbox") %>
+      <% end %>
     <% end %>
   <% end %>
 <% end %>

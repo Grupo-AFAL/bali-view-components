@@ -869,6 +869,7 @@ en:
         empty: "Pick an item to see its detail."
         open: "Open and resolve"
         copy: "Copy link"
+        copied: "Link copied"
         due: "Due"
         requested_by: "Requested by"
         about: "About"
