@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.20.0] - 2026-10-19
+
+### Changed
+
+- **«Te toca» se llama ahora «Pendientes»** (#1512, pedido de Federico: «Te toca» se oía muy
+  informal). Cambia en el recuadro, en la página y en «Volver a tus pendientes». En inglés, «Waiting
+  on you» pasa a «Pending». Las pruebas y guías de una app que busquen el texto «Te toca» tienen que
+  cambiarlo.
+- **Las dos pestañas tienen la misma forma:** su nombre y su número en una pastilla, «Pendientes
+  13,887» y «Avisos 6». «Avisos» ya no dice «· 6 sin leer», y sin avisos sin leer no lleva número.
+  Se retiran `Bali::Topbar::Inbox::Component.notices_tab_title` y las claves
+  `bali_view.inbox.tabs.unread`; ninguna app las usaba.
+- **Los números de la bandeja llevan coma de miles:** las pestañas, el pie del recuadro y las
+  pastillas de tipo de la página dicen 13,887. Siempre con coma, porque el `es` de rails-i18n, que
+  cargan afal-apps y Centinela, escribiría 13.887.
+- **Un pendiente «Nuevo» lleva en el recuadro el mismo punto azul que un aviso sin leer**, a la
+  izquierda, en lugar de la etiqueta «Nuevo». En la página sigue la etiqueta.
+- **El recuadro mide 560 px** en lugar de 440, y en un teléfono sigue a 16 px de cada orilla.
+
+### Fixed
+
+- **Un título sin espacios ya no desborda el recuadro hacia el lado.** El nombre de un documento,
+  como `CAP-FOR-97_Solicitud_para_Capacitacion_Tecnica…`, no tenía dónde partirse, y el recuadro
+  ganaba un scroll horizontal. Ahora el título se parte dentro del renglón, y lo mismo el texto de
+  un aviso.
+
 ## [v3.19.2] - 2026-10-19
 
 ### Fixed

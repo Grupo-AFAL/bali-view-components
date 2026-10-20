@@ -3,7 +3,7 @@
 module Bali
   module Topbar
     module Inbox
-      # #1512 — the one topbar icon for «Te toca» and «Avisos», in place of an inbox and a bell.
+      # #1512 — the one topbar icon for «Pendientes» and «Avisos», in place of an inbox and a bell.
       # A plain click opens a popover over the page and loads it then; a modified click, or no
       # JavaScript, follows the link to the full page.
       #
@@ -51,10 +51,9 @@ module Bali
           ActionController::Base.helpers.tag.span(id: SIGNAL_ID, hidden: true, data: { topbar_inbox_target: "signal" })
         end
 
-        def self.notices_tab_title(unread)
-          [ I18n.t("bali_view.inbox.tabs.notices"),
-            (I18n.t("bali_view.inbox.tabs.unread", count: unread) if unread.positive?) ].compact.join(" · ")
-        end
+        # A comma whatever the host's locale: rails-i18n's `es`, which afal-apps and Centinela load,
+        # writes 13.887, and the fleet is Mexican.
+        def self.count_text(count) = ActiveSupport::NumberHelper.number_to_delimited(count, delimiter: ",")
 
         private
 

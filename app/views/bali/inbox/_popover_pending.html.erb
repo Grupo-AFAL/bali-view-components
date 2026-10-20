@@ -20,11 +20,15 @@
         <%= link_to inbox_open_item_url(item),
               class: class_names("bali-inbox-popover-row flex items-start gap-3 px-4 py-2.5 hover:bg-base-200", "is-fresh": fresh),
               data: { turbo_prefetch: "false" } do %>
+          <%# The dot «Avisos» draws for an unread notice, where the fresh item's notice is. %>
+          <span class="<%= class_names("bali-inbox-popover-dot mt-3 size-2 shrink-0 rounded-full", fresh ? "bg-primary" : "bg-transparent") %>"
+                aria-hidden="true"></span>
           <span class="flex size-8 shrink-0 items-center justify-center rounded-field bg-base-200" aria-hidden="true">
             <%= render Bali::Icon::Component.new(inbox_item_icon(item), class: "size-4") %>
           </span>
           <span class="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span class="text-sm font-semibold leading-snug"><%= item.title %></span>
+            <span class="text-sm font-semibold leading-snug wrap-break-word"><%= item.title %></span>
+            <% if fresh %><span class="sr-only"><%= t("bali_view.inbox.fresh") %></span><% end %>
             <span class="text-xs text-base-content/70">
               <%= inbox_kind_label(item.kind) %> · <%= inbox_module_label(item.module_key) %>
             </span>
@@ -32,9 +36,6 @@
           <%# The Spanish due text for two months overdue is 191px at text-xs. Uncapped, it left a
               title 77px and four lines at 390px wide; capped, the title gets 138px and two. %>
           <span class="flex max-w-[40%] shrink-0 flex-col items-end gap-1 text-right">
-            <% if fresh %>
-              <%= render Bali::Tag::Component.new(text: t("bali_view.inbox.fresh"), color: :primary, size: :xs) %>
-            <% end %>
             <span class="text-xs <%= item.overdue? ? "text-error" : "text-base-content/70" %>"><%= inbox_due_text(item) %></span>
           </span>
         <% end %>
@@ -42,7 +43,7 @@
     </section>
   <% end %>
   <div class="flex items-center justify-between border-t border-base-300 px-4 py-3 text-sm">
-    <span class="text-base-content/70"><%= t("bali_view.inbox.footer.pending", count: @badge.pending) %></span>
+    <span class="text-base-content/70"><%= t("bali_view.inbox.footer.pending", count: @badge.pending, number: inbox_count(@badge.pending)) %></span>
     <%= render Bali::Link::Component.new(name: t("bali_view.inbox.footer.see_all"), href: url_for(action: :show), variant: :link) %>
   </div>
 <% end %>

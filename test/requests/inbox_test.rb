@@ -38,7 +38,7 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
   # person's own input and tells them nothing.
   def gone_pane = css_select(".bali-inbox-gone").to_s
 
-  def test_show_renders_te_toca_with_its_bands_pills_and_counts
+  def test_show_renders_pendientes_with_its_bands_pills_and_counts
     travel_to Time.zone.local(2026, 10, 18, 12) do
       task("Overdue", due: Date.new(2026, 10, 10))
       task("Friday", due: Date.new(2026, 10, 23))
@@ -102,8 +102,8 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_select ".bali-inbox-detail-generic", /Policy/
   end
 
-  # Beside the tabs, not on a row of its own above the list: it scopes «Te toca» alone.
-  def test_the_module_filter_sits_on_the_tab_row_of_te_toca_only
+  # Beside the tabs, not on a row of its own above the list: it scopes «Pendientes» alone.
+  def test_the_module_filter_sits_on_the_tab_row_of_pendientes_only
     task("Ship it")
 
     get "/inbox"
@@ -217,7 +217,7 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_equal "text/vnd.turbo-stream.html", response.media_type
     assert_match %(target="#{Bali::Topbar::Inbox::Component::POPOVER_FRAME_ID}"), response.body
     assert_match %(target="#{Bali::Topbar::Inbox::Component::BADGE_FRAME_ID}"), response.body
-    assert_no_match(/sin leer|unread/, response.body)
+    assert_select "[role=tab]#bali-inbox-tab-1 .badge", 0
   end
 
   # Turbo asks a form for a stream first; the page's still has to land back on the page.
@@ -237,7 +237,48 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_select "turbo-frame#bali-inbox-popover"
     assert_select ".bali-inbox-popover-row", 10
     assert_select ".bali-inbox-popover-row.is-fresh", 1
-    assert_select ".bali-inbox-popover-row.is-fresh", /#{I18n.t("bali_view.inbox.fresh")}/
+    assert_select ".bali-inbox-popover-row.is-fresh .bali-inbox-popover-dot.bg-primary", 1
+    assert_select ".bali-inbox-popover-row.is-fresh .sr-only", I18n.t("bali_view.inbox.fresh")
+    assert_select ".bali-inbox-popover-row .badge", 0
+  end
+
+  # Both tabs the same shape: the name, and its number in the pill Bali::Tabs draws.
+  def test_the_popovers_tabs_are_pendientes_and_avisos_each_with_its_number
+    task("Write")
+    released
+
+    get "/inbox/popover"
+
+    assert_select "[role=tab]#bali-inbox-tab-0", /\A\s*#{I18n.t("bali_view.inbox.tabs.pending")}\s*1\s*\z/
+    assert_select "[role=tab]#bali-inbox-tab-1", /\A\s*#{I18n.t("bali_view.inbox.tabs.notices")}\s*1\s*\z/
+    assert_select "[role=tab] .badge", 2
+  end
+
+  # rails-i18n's `es`, which some hosts load, would write 13.887.
+  def test_the_pending_number_is_written_with_a_thousands_comma
+    task("Write")
+    count = Bali::Inbox::Query.instance_method(:count)
+    Bali::Inbox::Query.define_method(:count) { 13_887 }
+
+    get "/inbox/popover"
+
+    assert_select "[role=tab]#bali-inbox-tab-0 .badge", "13,887"
+    assert_match I18n.t("bali_view.inbox.footer.pending", count: 13_887, number: "13,887"), response.body
+  ensure
+    Bali::Inbox::Query.define_method(:count, count)
+  end
+
+  def test_the_pages_tab_and_kind_pills_write_the_thousands_comma
+    task("Write")
+    counts = Bali::Inbox::Query.instance_method(:counts_by_kind)
+    Bali::Inbox::Query.define_method(:counts_by_kind) { { task: 13_887 } }
+
+    get "/inbox"
+
+    assert_select ".bali-inbox-tabs [role=tab] .badge, .bali-inbox-tabs a.tab .badge", "13,887"
+    assert_select ".split-view-filter-count", text: "13,887", count: 2
+  ensure
+    Bali::Inbox::Query.define_method(:counts_by_kind, counts)
   end
 
   def test_the_popovers_tabs_use_ids_of_their_own

@@ -13,7 +13,7 @@
 }
 
 .bali-topbar-inbox-panel {
-  inline-size: 440px;
+  inline-size: 560px;
   max-inline-size: calc(100vw - 32px);
   max-block-size: min(40rem, calc(100vh - var(--bali-chrome-height, 4rem) - 1rem));
   overflow-y: auto;
