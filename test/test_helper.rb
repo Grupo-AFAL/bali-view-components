@@ -18,6 +18,11 @@ require "capybara/minitest"
 require_relative "support/component_test_helpers"
 require_relative "support/archivable_declaration"
 
+# An inbox provider includes the url_helpers of the routes live when it loads. Loaded first inside a
+# `with_routing`, it keeps that block's routes and every later inbox test loses
+# `admin_project_path`; CI eager loads, so only a local run sees it (7 of 8 seeds, #1531).
+Bali.inbox_providers.each_value { |names| names.each(&:constantize) }
+
 class ActiveSupport::TestCase
   # TODO: Investigate thread-based parallelization to preserve coverage accuracy.
   # Process-based parallelization loses SimpleCov coverage for files loaded
