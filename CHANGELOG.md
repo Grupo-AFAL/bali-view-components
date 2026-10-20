@@ -139,9 +139,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `import('react-dom/client')` entrega solo `default`; la isla fallaba con «createRoot is not a
   function». Ahora acepta las dos formas.
   - **Anfitrión:** nada que hacer. La guía del editor BPMN recomienda compilar las islas minificadas
-    (React de producción) y, en Propshaft, nombrar los chunks `[name]-[hash].digested`. El dummy
-    compila así (`BALI_DEV_BUILD=1` para depurar sin minificar): `application.js` pasó de 25 MB a
-    0.39 MB.
+    (React de producción). El dummy compila minificado, sin `splitting` porque ninguna app anfitriona
+    lo usa (`BALI_DEV_BUILD=1` para depurar sin minificar): `application.js` pasó de 25 MB a 17 MB y la
+    isla BPMN de 2.1 MB a 700 KB.
 
 ## [v3.19.2] - 2026-10-19
 

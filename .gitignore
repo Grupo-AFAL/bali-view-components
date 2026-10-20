@@ -20,7 +20,6 @@
 
 # Ignore dummy files
 /test/dummy/app/assets/builds/
-/test/dummy/public/esbuild/
 /test/dummy/db/*.sqlite3
 /test/dummy/db/*.sqlite3-*
 /test/dummy/db/*.sqlite3_*

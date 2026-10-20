@@ -52,14 +52,7 @@ Build the island minified, so the bundler defines `process.env.NODE_ENV` as
 `"production"` and React's production build is the one bundled: esbuild does
 both with `minify: true` (or `define: { 'process.env.NODE_ENV': '"production"' }`).
 Measured in the dummy app: the island entry with React's development build,
-unminified, is 2.1 MB; minified with React's production build, 695 KB. With
-`splitting: true` (ESM) the editor's chunks are shared with any other island; on
-Propshaft, name them `chunkNames: '[name]-[hash].digested'` so they are served
-under the name the entry imports. In development Propshaft globs its whole load
-path on every request: hundreds of chunks there (the block editor's code
-highlighting brings some 800) cost tens of milliseconds a request. The dummy app
-writes its chunks to `public/` and points `publicPath` at them instead
-(`test/dummy/esbuild.config.mjs`).
+unminified, is 2.1 MB; minified with React's production build, 695 KB.
 
 The entry also installs the `bali_bpmn_event` Turbo Stream action (see
 [Extension points](#extension-points)) — on `window.Turbo` if it is there, or on the
