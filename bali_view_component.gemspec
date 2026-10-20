@@ -51,7 +51,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency "lucide-rails", ">= 0.3.0", "< 0.8"
   spec.add_dependency "rails", ">= 8.1", "< 9.0"
   # 5.0.2 is the first 5.x patched for both GHSA-vxc9-rm8f-p56j and GHSA-j3f8-w227-4hh8, which a
-  # FilterForm's `q[...]` reaches. Raise the cap only after running this suite against 6.x.
+  # FilterForm's `q[...]` reaches. 6.0 makes `_cont` case-sensitive on PostgreSQL (ransack#1715),
+  # which this suite on SQLite cannot see: raise the cap once FilterForm searches with `i_cont`.
   spec.add_dependency "ransack", ">= 5.0.2", "< 6.0"
   spec.add_dependency "simple_command"
 

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Dependencies
+
+- **Sólo de este repo, ninguna app tiene que hacer nada:** `cypress` 16.1.1 → 16.2.0, `pagy`
+  43.7.0 → 43.7.1 en el `Gemfile.lock` del repo y `sqlite3` 2.9.6 → 2.10.0 en el grupo de
+  pruebas. Reemplaza a los PRs de Dependabot #1514, #1515 y #1517.
+- **ransack sigue en `>= 5.0.2, < 6.0`** (#1516 no entra). En la 6.0, `_cont` distingue mayúsculas
+  en PostgreSQL (ransack#1715), y la búsqueda rápida que arma un `FilterForm` dejaría de encontrar
+  «Seidor» con «seidor» en todas las apps. Es lo que ya decidió identity#487; lo que falta para
+  subir está en #1530.
+
 ## [v3.20.0] - 2026-10-19
 
 ### Changed
