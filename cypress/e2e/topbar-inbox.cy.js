@@ -59,6 +59,28 @@ describe('Topbar inbox', () => {
     cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
   })
 
+  // A document's file name has no spaces to break at. It wraps inside the panel instead of
+  // scrolling it sideways, at the panel's 560px and at a phone's width (16px gutter each side).
+  it('a title with no spaces wraps instead of scrolling the panel sideways', () => {
+    const title = 'CAP-FOR-97_Solicitud_para_Capacitacion_Tecnica_o_Especializada_del_Personal'
+    const clean = `Task.where(title: "${title}").delete_all`
+    cy.task('railsRunner', `${clean}; Project.first.tasks.create!(title: "${title}", due_date: Date.yesterday)`)
+
+    ;[[1440, 900, 560], [390, 844, 358]].forEach(([viewportWidth, viewportHeight, panelWidth]) => {
+      cy.viewport(viewportWidth, viewportHeight)
+      cy.visit('/bali/topbar/inbox/default')
+      cy.get(trigger).click()
+      cy.wait('@popover')
+      cy.get(`${panel} .bali-inbox-popover-row`).contains(title).should('be.visible')
+      cy.get(panel).should(($panel) => {
+        expect($panel[0].getBoundingClientRect().width, 'panel width').to.equal(panelWidth)
+        expect($panel[0].scrollWidth, 'nothing scrolls sideways').to.be.at.most($panel[0].clientWidth)
+      })
+    })
+
+    cy.task('railsRunner', clean)
+  })
+
   it('a second open reloads the frame', () => {
     cy.get(trigger).click()
     cy.wait('@popover')

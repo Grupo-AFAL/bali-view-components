@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# The demo's «Te toca»: every open task. The dummy has one user and tasks have no assignee, so
+# The demo's «Pendientes»: every open task. The dummy has one user and tasks have no assignee, so
 # what is pending is everything not done.
 class TaskInboxProvider
   include Bali::Inbox::Provider

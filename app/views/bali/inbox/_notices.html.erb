@@ -3,9 +3,9 @@
   <div class="flex flex-wrap items-center justify-between gap-2 border-b border-base-300 px-4 py-3">
     <span class="text-sm text-base-content/70">
       <% if @notice_total.positive? %>
-        <%= t("bali_view.inbox.notices.range", from: (@page - 1) * Bali::Concerns::Controllers::Inbox::PER_PAGE + 1,
-                                              to: (@page - 1) * Bali::Concerns::Controllers::Inbox::PER_PAGE + @notices.size,
-                                              total: @notice_total) %>
+        <% offset = (@page - 1) * Bali::Concerns::Controllers::Inbox::PER_PAGE %>
+        <%= t("bali_view.inbox.notices.range", from: inbox_count(offset + 1), to: inbox_count(offset + @notices.size),
+                                              total: inbox_count(@notice_total)) %>
       <% end %>
     </span>
     <% if @unread_count.positive? && owner_reading? %>

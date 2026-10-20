@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.20.0] - 2026-10-19
+
+### Changed
+
+- **«Te toca» se llama ahora «Pendientes»** (#1512, pedido de Federico: «Te toca» se oía muy
+  informal). Cambia en el recuadro, en la página y en «Volver a tus pendientes». En inglés, «Waiting
+  on you» pasa a «Pending». Las pruebas y guías de una app que busquen el texto «Te toca» tienen que
+  cambiarlo.
+- **Las dos pestañas tienen la misma forma:** su nombre y su número en una pastilla, «Pendientes
+  13,887» y «Avisos 6», en el recuadro y en la página. «Avisos» ya no dice «· 6 sin leer»; el
+  lector de pantalla sigue oyendo «6 sin leer», y sin avisos sin leer la pestaña no lleva número.
+- **Coma de miles en los números grandes de la bandeja:** las pestañas, el pie del recuadro, las
+  pastillas de tipo de la página y el rango de avisos («1–20 de 1,234»). Siempre con coma, porque
+  el `es` de rails-i18n, que cargan afal-apps y Centinela, escribiría 13.887.
+- **`bali_view.inbox.footer.pending` interpola `%{number}`, el número ya con coma, y no
+  `%{count}`.** Ninguna app llama a esa clave; una que la sobrescriba en su locale tiene que usar
+  `%{number}`.
+- **Un pendiente «Nuevo» lleva en el recuadro el mismo punto azul que un aviso sin leer**, en el
+  margen izquierdo, en lugar de la etiqueta «Nuevo». El lector de pantalla sigue oyendo «Nuevo». En
+  la página sigue la etiqueta.
+- **El recuadro mide 560 px** en lugar de 440. En un teléfono sigue tomando el ancho de la pantalla
+  menos 32 px.
+
+### Removed
+
+- `Bali::Topbar::Inbox::Component.notices_tab_title` y las claves `bali_view.inbox.tabs.unread`, que
+  armaban «Avisos · 6 sin leer». Ninguna de las cuatro apps las usaba.
+
+### Fixed
+
+- **Un título sin espacios ya no desborda el recuadro hacia el lado.** El nombre de un documento,
+  como `CAP-FOR-97_Solicitud_para_Capacitacion_Tecnica…`, no tenía dónde partirse, y el recuadro
+  ganaba un scroll horizontal. Ahora se parte dentro del renglón. Lo mismo el texto de un aviso, y
+  el título del detalle genérico de la página: se salía de su tarjeta en un teléfono, y en la
+  computadora ensanchaba la columna del detalle (medido: 792 px de título, columna de 824 px en vez
+  de 538).
+
 ## [v3.19.2] - 2026-10-19
 
 ### Fixed

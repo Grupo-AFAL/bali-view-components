@@ -27,6 +27,13 @@ module Bali
 
     def inbox_fresh?(item, fresh) = fresh.include?([ item.record.class.polymorphic_name, item.record.id ])
 
+    def inbox_count(count) = Bali::Topbar::Inbox::Component.count_text(count)
+
+    # The «Avisos» pill counts only the unread ones; a screen reader hears that.
+    def inbox_unread_count(count)
+      safe_join([ inbox_count(count), tag.span(" #{t("bali_view.inbox.notices.unread")}", class: "sr-only") ])
+    end
+
     # «venció hace 2 días», «vence hoy», «vence el viernes», «vence el 30 nov.», «sin fecha».
     def inbox_due_text(item, now = Time.current)
       due = item.due_time

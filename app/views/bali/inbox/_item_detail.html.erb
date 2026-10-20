@@ -3,8 +3,8 @@
     <%= render Bali::Tag::Component.new(text: inbox_kind_label(item.kind), color: :info, size: :sm) %>
     <span class="text-base-content/70"><%= inbox_module_label(item.module_key) %></span>
   </div>
-  <h2 class="text-xl font-semibold"><%= item.title %></h2>
-  <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+  <h2 class="text-xl font-semibold wrap-anywhere"><%= item.title %></h2>
+  <dl class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-sm">
     <dt class="text-base-content/70"><%= t("bali_view.inbox.detail.due") %></dt>
     <dd class="<%= "text-error" if item.overdue? %>"><%= inbox_due_text(item) %></dd>
     <% if item.requested_by.present? %>
@@ -13,7 +13,7 @@
     <% end %>
     <% if item.subtitle.present? %>
       <dt class="text-base-content/70"><%= t("bali_view.inbox.detail.about") %></dt>
-      <dd><%= item.subtitle %></dd>
+      <dd class="wrap-anywhere"><%= item.subtitle %></dd>
     <% end %>
   </dl>
   <%= render "detail_actions", item: item %>

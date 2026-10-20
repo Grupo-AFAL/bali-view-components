@@ -88,8 +88,20 @@ class BaliTopbarInboxComponentTest < ComponentTestCase
   def test_the_skeleton_tabs_already_carry_the_badges_numbers
     inbox(pending: 6, unread: 2)
 
-    assert_selector("#bali-inbox-popover", text: /Te toca\s*6/, visible: :all)
-    assert_selector("#bali-inbox-popover", text: "2 sin leer", visible: :all)
+    assert_selector("#bali-inbox-popover .tab", text: /\A\s*Pendientes\s*6\s*\z/, visible: :all)
+    assert_selector("#bali-inbox-popover .tab", text: /\A\s*Avisos\s*2\s*\z/, visible: :all)
+  end
+
+  def test_the_skeletons_notices_tab_has_no_number_with_nothing_unread
+    inbox(pending: 6)
+
+    assert_selector("#bali-inbox-popover .tab", text: /\A\s*Avisos\s*\z/, visible: :all)
+  end
+
+  def test_the_skeleton_writes_the_pending_number_with_a_thousands_comma
+    inbox(pending: 13_887)
+
+    assert_selector("#bali-inbox-popover .tab .badge", text: "13,887", visible: :all)
   end
 
   # The skeleton is on every page: real tabs would bring ids (`tab-0`) a host's own tabs use too.
