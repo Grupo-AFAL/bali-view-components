@@ -15,7 +15,7 @@
   <% tabs.with_tab(title: t("bali_view.inbox.tabs.pending"), count: inbox_count(@badge.pending), active: tab == "pending") do %>
     <%= render "popover_pending" %>
   <% end %>
-  <% notices = { title: t("bali_view.inbox.tabs.notices"), count: (inbox_count(@badge.unread) if @badge.unread?) } %>
+  <% notices = { title: t("bali_view.inbox.tabs.notices"), count: (inbox_unread_count(@badge.unread) if @badge.unread?) } %>
   <% if tab == "notices" %>
     <% tabs.with_tab(**notices, active: true) do %>
       <%= render "popover_notices", notices: @notices, unread_count: @badge.unread %>

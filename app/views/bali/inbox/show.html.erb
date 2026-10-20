@@ -8,7 +8,7 @@
         <% tabs.with_tab(title: t("bali_view.inbox.tabs.pending"), href: url_for(action: :show),
                          active: inbox_tab == "pending", count: inbox_count(inbox_query.count)) %>
         <% tabs.with_tab(title: t("bali_view.inbox.tabs.notices"), href: url_for(action: :show, tab: "notices"),
-                         active: inbox_tab == "notices", count: (inbox_count(inbox_badge.unread) if inbox_badge.unread?)) %>
+                         active: inbox_tab == "notices", count: (inbox_unread_count(inbox_badge.unread) if inbox_badge.unread?)) %>
       <% end %>
       <%= render "module_filter" if inbox_tab == "pending" %>
     </div>

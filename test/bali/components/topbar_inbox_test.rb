@@ -92,6 +92,12 @@ class BaliTopbarInboxComponentTest < ComponentTestCase
     assert_selector("#bali-inbox-popover .tab", text: /\A\s*Avisos\s*2\s*\z/, visible: :all)
   end
 
+  def test_the_skeletons_notices_tab_has_no_number_with_nothing_unread
+    inbox(pending: 6)
+
+    assert_selector("#bali-inbox-popover .tab", text: /\A\s*Avisos\s*\z/, visible: :all)
+  end
+
   def test_the_skeleton_writes_the_pending_number_with_a_thousands_comma
     inbox(pending: 13_887)
 
