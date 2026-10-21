@@ -32,7 +32,9 @@ module BpmnProcessMap
     [ "b3", "m2", "Supplier onboarding", "Alta de proveedor", :current, "supplier" ],
     [ "b4", "m2", "Supplier payments", "Pago a proveedores", :review, "payments" ],
     [ "b5", "m3", "Bank reconciliation", "Conciliación bancaria", :dimmed, nil ],
-    [ "b6", "m3", "Financial close", "Cierre contable", :current, "close" ]
+    [ "b6", "m3", "Financial close", "Cierre contable", :current, "close" ],
+    [ "b7", "m3", "Manage insurance and claims for company fixed assets",
+      "Gestión de seguros y siniestros de activos fijos", :review, "close" ]
   ].freeze
 
   # Each box links somewhere real; the split view takes the click over
@@ -45,7 +47,7 @@ module BpmnProcessMap
       { id: id, type: "sub_process", lane_id: lane, name: name,
         reference: { id: id, label: name, url: reference_url.call(id) }, appearance: appearance(look, locale, flow) }
     end
-    edges = [ %w[e1 b1 b2], %w[e2 b3 b4], %w[e3 b4 b5], %w[e4 b2 b6], %w[e5 b5 b6] ]
+    edges = [ %w[e1 b1 b2], %w[e2 b3 b4], %w[e3 b4 b5], %w[e4 b2 b6], %w[e5 b5 b6], %w[e6 b6 b7] ]
             .map { |id, source, target| { id: id, source: source, target: target } }
     { version: 1, orientation: "vertical", pool: { x: 0, y: 0 }, lanes: lanes, nodes: nodes, edges: edges }
   end

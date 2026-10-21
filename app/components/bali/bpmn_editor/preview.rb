@@ -111,6 +111,13 @@ module Bali
                   "t3" => { color: "#16a34a", badge: en ? "Done" : "Hecho" },
                   "t4" => { color: "#2563eb" }, "p1" => { dimmed: true } }
         data[:nodes] = data[:nodes].map { |n| looks[n[:id]] ? n.merge(appearance: looks[n[:id]]) : n }
+        # A long-named linked sub-process with a badge: its name keeps clear of
+        # the tab, the [+] and the corners.
+        insurance = en ? "Manage insurance and claims for company fixed assets" : "Gestión de seguros y siniestros de activos fijos"
+        data[:nodes] << { id: "sp", type: "sub_process", lane_id: "l3", name: insurance,
+                          reference: { id: "insurance", label: insurance, url: "/lookbook/preview/bali/bpmn_editor/default" },
+                          appearance: { color: "#16a34a", badge: en ? "Complete" : "Completo" } }
+        data[:edges] = data[:edges].map { |e| e[:id] == "f6" ? e.merge(target: "sp") : e } << { id: "f7", source: "sp", target: "e1" }
         toggle = badge_toggle && badge_toggle_label.present? ? badge_toggle_label : badge_toggle
         island(locale, data: data, badges: badges, badge_toggle: toggle, wheel_zoom: wheel, legend: { add: [
                  { key: "app_progress", label: en ? "In progress" : "En proceso", swatch: "color", color: "#E9A23B" },

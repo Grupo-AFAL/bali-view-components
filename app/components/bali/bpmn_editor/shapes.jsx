@@ -7,6 +7,7 @@
 // because an SVG rasterised through <img> has no access to the page's custom
 // properties.
 import { categoryOf, CATEGORY, isBinaryDecision } from './model/catalog.js'
+import { markerZone, taskMarkerAt, activityRadius } from './model/labels.js'
 
 const soft = (token, amount = 12) => `color-mix(in oklab, var(${token}) ${amount}%, var(--color-base-100))`
 // The related procedure (collapsed sub-process): grey with its [+] unless the
@@ -172,24 +173,24 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 // A rounded rectangle (BPMN 2.0, Activities › Task), its corner radius a
 // tenth of its height, the marker scaled with it: the canvas node (64 px
 // high) and the palette icon (21 px) are the same figure. The markers keep a
-// legible floor at icon size.
-function ActivityShape ({ node, w, h, paint, external }) {
+// legible floor at icon size. Where they go is model/labels.js's, which the
+// name inside keeps clear of; `badge` moves the task marker under the tab.
+function ActivityShape ({ node, w, h, paint, external, badge }) {
   const colors = paintFor(node, paint, external)
   const sub = node.type === 'sub_process'
   const unlinked = sub && !node.reference
-  const scale = clamp(h / 64, 0.7, 1)
-  // Collapsed sub-process marker: a small [+] at the bottom centre (BPMN 2.0,
-  // Activities › Sub-Process).
-  const plus = clamp(h * 0.22, 8, 14)
-  const plusY = h - plus - clamp(h * 0.05, 1.5, 3)
+  const marker = taskMarkerAt(h, badge)
+  const zone = markerZone(h)
+  const plus = zone.size
+  const plusY = h - zone.height
   return (
     <g>
       <rect
-        x={1} y={1} width={w - 2} height={h - 2} rx={Math.round(h * 0.1 * 10) / 10}
+        x={1} y={1} width={w - 2} height={h - 2} rx={activityRadius(h)}
         style={{ fill: colors.fill, stroke: colors.stroke }}
         strokeWidth={sub ? 2.2 : 1.5} strokeDasharray={unlinked ? '5 3' : undefined}
       />
-      <TaskMarker type={node.type} x={6 * scale} y={5 * scale} scale={scale} color={colors.stroke} background={paint.marker} />
+      <TaskMarker type={node.type} x={marker.x} y={marker.y} scale={marker.scale} color={colors.stroke} background={paint.marker} />
       {sub && (
         <g>
           <rect x={w / 2 - plus / 2} y={plusY} width={plus} height={plus} rx={1} style={{ fill: paint.marker, stroke: colors.stroke }} strokeWidth={1.2} />
@@ -258,8 +259,8 @@ export function AppearanceMark ({ node, width: w, height: h, color }) {
 // The colour an element is outlined in — the minimap paints with it.
 export const strokeOf = (node, external = false) => paintFor(node, LIVE_PAINT, external).stroke
 
-export function NodeShape ({ node, width, height, paint = LIVE_PAINT, external = false }) {
-  const props = { node, w: width, h: height, paint, external }
+export function NodeShape ({ node, width, height, paint = LIVE_PAINT, external = false, badge = false }) {
+  const props = { node, w: width, h: height, paint, external, badge }
   switch (categoryOf(node)) {
     case CATEGORY.activity: return <ActivityShape {...props} />
     case CATEGORY.gateway: return <GatewayShape {...props} />

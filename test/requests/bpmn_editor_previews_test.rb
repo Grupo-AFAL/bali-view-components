@@ -191,7 +191,7 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
 
     get "#{PREVIEW}/default", params: { appearance: true }
     looks = island_value("data")["nodes"].filter_map { |n| n["appearance"] }
-    assert_equal 4, looks.size
+    assert_equal 5, looks.size
     assert_includes looks, { "dimmed" => true }
     assert_includes island_value("legend").pluck("swatch"), "color"
   end

@@ -124,6 +124,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     La preview «Split view» del editor BPMN ahora pide cada flujo a `/bpmn_flows/:box` del dummy, con
     un `delay` opcional para ver la carga.
 
+- **`Bali::BpmnEditor`: la etiqueta del nodo pasa al borde superior y el nombre ya no se encima.**
+  La etiqueta de `appearance.badge` es ahora una pestaña sobre el borde superior, pegada a la
+  esquina izquierda y con las esquinas de la caja; se recorta con «…» antes del ↗ y del pendiente, y
+  el número de nota va justo después. El nombre de una actividad deja libre la pestaña, el [+] del
+  subproceso y, en su primera línea, el ↗ y el marcador de tipo de tarea; si no cabe, termina en
+  «…» (el nombre completo sigue en el `title` y el nombre accesible). En una caja de 64 px caben 4
+  líneas, 3 con etiqueta y 2 con [+], que ahora deja 6 px hasta el borde. El nombre de una compuerta con etiqueta sube
+  8 px. SVG, PNG e impresión usan la misma geometría.
+  - **Anfitrión:** nada que hacer. Una prueba que buscaba la etiqueta abajo a la derecha la
+    encuentra arriba a la izquierda.
+
 - **`Bali::BpmnEditor`: la tabla de textos viaja una vez por render, no una vez por editor.** El
   primer editor del render la escribe en un `<script type="application/json"
   data-bali-bpmn-i18n="<clave>">` y cada editor lleva solo la clave

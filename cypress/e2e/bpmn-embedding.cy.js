@@ -249,6 +249,44 @@ describe('BPMN editor embedded in an app page', () => {
     zoomOf(FLOW).should('be.lessThan', 40)
   })
 
+  // A long name in a 64 px linked sub-process with a badge: the name keeps
+  // clear of the [+], the link arrow and the tab (model/labels.js insideLabelBox).
+  it('keeps a long name, the [+], the link arrow and the badge tab apart', () => {
+    cy.visit(SPLIT)
+    box('Gestión de seguros').find('[data-testid="bpmn-node-label"] > span').should('be.visible')
+    box('Gestión de seguros').then(($node) => {
+      const rect = (el) => el.getBoundingClientRect()
+      const node = $node[0]
+      // The name's lines as drawn: its text's line boxes, cut to the clamped
+      // span (the corners are empty floats inside it).
+      const span = node.querySelector('[data-testid="bpmn-node-label"] > span')
+      const range = document.createRange()
+      range.selectNodeContents(span.lastChild)
+      const clip = rect(span)
+      const lines = [...range.getClientRects()]
+        .map((r) => ({ left: r.left, right: r.right, top: Math.max(r.top, clip.top), bottom: Math.min(r.bottom, clip.bottom) }))
+        .filter((r) => r.bottom - r.top > 2)
+        // A cut line comes as two boxes, the text and its ellipsis: one line.
+        .reduce((all, r) => {
+          const same = all.find((o) => Math.abs(o.top - r.top) < 1)
+          if (same) Object.assign(same, { left: Math.min(same.left, r.left), right: Math.max(same.right, r.right) }); else all.push(r)
+          return all
+        }, [])
+      const parts = {
+        plus: rect([...node.querySelectorAll('svg rect')].find((r) => r.getAttribute('rx') === '1')),
+        link: rect(node.querySelector('[data-testid="bpmn-node-link"]')),
+        badge: rect(node.querySelector('[data-testid="bpmn-node-badge"]'))
+      }
+      const overlap = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+      const names = Object.keys(parts)
+      for (const a of names) for (const b of names) if (a < b) expect(overlap(parts[a], parts[b]), `${a} over ${b}`).to.equal(false)
+      for (const line of lines) for (const b of ['plus', 'link', 'badge']) expect(overlap(line, parts[b]), `name over ${b}`).to.equal(false)
+      expect(parts.badge.left, 'tab flush with the left edge').to.be.closeTo(rect(node).left, 1)
+      expect(parts.badge.top, 'tab across the top edge').to.be.lessThan(rect(node).top)
+      expect(lines.length, 'lines shown').to.be.within(1, 2)
+    })
+  })
+
   describe('the app’s appearance on nodes', () => {
     beforeEach(() => cy.visit('/bali/bpmn_editor/default?appearance=true'))
 
@@ -269,7 +307,7 @@ describe('BPMN editor embedded in an app page', () => {
     })
 
     it('carries the colour and the badge into the exported SVG', () => {
-      cy.get('[data-testid="bpmn-node-badge"]').should('have.length', 2)
+      cy.get('[data-testid="bpmn-node-badge"]').should('have.length', 3)
       cy.get('button[aria-label="Descargar SVG"]').click()
       // `should`: an earlier test's diagram.svg may still be there when this reads.
       cy.readFile(`${Cypress.config('downloadsFolder')}/diagram.svg`).should((svg) => {
@@ -293,7 +331,7 @@ describe('BPMN editor embedded in an app page', () => {
 
     it('switches them off and on, says so, and keeps the colour and the fading', () => {
       cy.visit(DEFAULT)
-      badges().should('have.length', 2)
+      badges().should('have.length', 3)
       recordBadges()
       toggle().should('be.visible').and('have.attr', 'role', 'switch').and('be.checked')
       cy.contains('label', 'Mostrar etiquetas').should('exist')
@@ -307,7 +345,7 @@ describe('BPMN editor embedded in an app page', () => {
       })
       cy.contains('.react-flow__node-bpmn', 'Emitir factura').find('.bpmn-node').should('have.class', 'is-dimmed')
       toggle().click()
-      badges().should('have.length', 2)
+      badges().should('have.length', 3)
       cy.window().its('badgeEvents').should('deep.equal', [{ visible: false }, { visible: true }])
     })
 
@@ -327,7 +365,7 @@ describe('BPMN editor embedded in an app page', () => {
 
     it('follows bali-bpmn:badges from the app, without answering it', () => {
       cy.visit(DEFAULT)
-      badges().should('have.length', 2)
+      badges().should('have.length', 3)
       recordBadges()
       cy.get('.bali-bpmn-editor').then(($editor) => {
         $editor[0].dispatchEvent(new CustomEvent('bali-bpmn:badges', { detail: { visible: false } }))
@@ -347,7 +385,7 @@ describe('BPMN editor embedded in an app page', () => {
 
     it('offers no switch with badge_toggle: false, nor where no node has a badge', () => {
       cy.visit(`${DEFAULT}&badge_toggle=false`)
-      badges().should('have.length', 2)
+      badges().should('have.length', 3)
       toggle().should('not.exist')
       cy.visit('/bali/bpmn_editor/default')
       cy.get('.react-flow__node-bpmn').should('have.length.greaterThan', 3)

@@ -11,32 +11,14 @@ import { categoryOf, CATEGORY, edgeType } from '../model/catalog.js'
 import { layoutLanes, laneRect, nodeBox, contentBounds } from '../model/geometry.js'
 import { routeAll, pathWithJumps, findJumps } from '../model/routing.js'
 import { placeEdgeLabels } from '../model/edgeLabels.js'
-import { nodeLabelBox } from '../model/labels.js'
+import { nodeLabelBox, insideLabelBox, badgeTabBox, wrap } from '../model/labels.js'
 import { pageFit, sheetFor, EXPORT_MARGIN as MARGIN, TITLE_HEIGHT } from '../model/page.js'
 import { textOn } from '../model/contrast.js'
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', sans-serif"
 
-// Greedy word wrap by an average glyph width: good enough for labels, and
-// exportable, unlike the canvas' HTML labels.
-export function wrap (text, maxChars, maxLines) {
-  const words = String(text || '').split(/\s+/).filter(Boolean)
-  const lines = []
-  let current = ''
-  for (const word of words) {
-    if (current && (current + ' ' + word).length > maxChars) { lines.push(current); current = word } else current = current ? `${current} ${word}` : word
-  }
-  if (current) lines.push(current)
-  if (lines.length > maxLines) {
-    const kept = lines.slice(0, maxLines)
-    kept[maxLines - 1] = kept[maxLines - 1].replace(/.{0,1}$/, '…')
-    return kept
-  }
-  return lines
-}
-
-function Text ({ x, y, text, maxChars = 22, maxLines = 3, size = 11, weight = 500, fill, anchor = 'middle', lineHeight = 13 }) {
-  const lines = wrap(text, maxChars, maxLines)
+function Text ({ x, y, text, maxChars = 22, maxLines = 3, firstChars = maxChars, size = 11, weight = 500, fill, anchor = 'middle', lineHeight = 13 }) {
+  const lines = wrap(text, maxChars, maxLines, firstChars)
   const y0 = y - ((lines.length - 1) * lineHeight) / 2
   return (
     <text x={x} y={y0} textAnchor={anchor} dominantBaseline='middle' fontSize={size} fontWeight={weight} fill={fill} fontFamily={FONT}>
@@ -45,15 +27,16 @@ function Text ({ x, y, text, maxChars = 22, maxLines = 3, size = 11, weight = 50
   )
 }
 
-// The app's badge (`node.appearance.badge`), off the bottom-right corner as
-// on the canvas: on the app's colour with black or white text, whichever reads.
-function Badge ({ text, color, right, bottom, colors }) {
-  const width = Math.round(text.length * 6.2 + 14)
+// The app's badge (`node.appearance.badge`) as the canvas' tab, at
+// model/labels.js badgeTabBox: on the app's colour with black or white text,
+// whichever reads; the shape's corners, as flow.css .bpmn-node-badge.
+function BadgeTab ({ tab, color, colors }) {
   const fill = color || colors.header
+  const { w, h } = tab
   return (
-    <g transform={`translate(${right + 8 - width} ${bottom - 7})`}>
-      <rect width={width} height={16} rx={8} fill={fill} stroke={color ? 'none' : colors.border} />
-      <text x={width / 2} y={8.5} textAnchor='middle' dominantBaseline='middle' fontSize={10} fontWeight={600} fill={textOn(color) || colors.text}>{text}</text>
+    <g transform={`translate(${tab.x} ${tab.y})`} data-badge-tab=''>
+      <rect width={w} height={h} rx={Math.min(tab.radius, h / 2)} fill={fill} stroke={color ? 'none' : colors.border} />
+      <text x={6} y={h / 2 + 0.5} dominantBaseline='middle' fontSize={10} fontWeight={600} fill={textOn(color) || colors.text}>{tab.text}</text>
     </g>
   )
 }
@@ -157,15 +140,17 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
         const category = categoryOf(node)
         const note = notesByElement.get(String(node.id))
         const look = appearanceOf(node)
+        const tab = badges && look && look.badge ? badgeTabBox(node, look.badge, { note: Boolean(note) }) : null
+        const area = category === CATEGORY.activity ? insideLabelBox(node, { badge: Boolean(tab) }) : null
         return (
           <g key={`node-${node.id}`} opacity={look && look.dimmed ? 0.45 : undefined}>
             <g transform={`translate(${box.x} ${box.y})`}>
-              <NodeShape node={node} width={box.w} height={box.h} paint={paint} external={external.has(String(node.lane_id))} />
+              <NodeShape node={node} width={box.w} height={box.h} paint={paint} external={external.has(String(node.lane_id))} badge={Boolean(tab)} />
               {look && <AppearanceMark node={node} width={box.w} height={box.h} color={look.color} />}
             </g>
-            {category === CATEGORY.activity && <Text x={box.cx} y={box.cy} text={node.name} maxChars={Math.floor(box.w / 6.8)} maxLines={3} fill={colors.text} />}
-            {node.type === 'text_annotation' && <Text x={box.x + 18} y={box.cy} anchor='start' text={node.name} maxChars={Math.floor((box.w - 20) / 6.5)} maxLines={3} weight={400} fill={colors.text} />}
-            {node.type === 'group' && node.name && <text x={box.x + 10} y={box.y + 16} fontSize={11} fontWeight={600} fill={colors.muted}>{node.name}</text>}
+            {area && <Text x={area.x + area.w / 2} y={area.y + area.h / 2} text={node.name} maxChars={Math.floor(area.w / 6.8)} firstChars={Math.floor((area.w - area.corner * 2) / 6.8)} maxLines={area.lines} lineHeight={14} fill={colors.text} />}
+            {node.type === 'text_annotation' && <Text x={box.x + 18} y={box.cy + (tab ? 3 : 0)} anchor='start' text={node.name} maxChars={Math.floor((box.w - 20) / 6.5)} maxLines={3} weight={400} fill={colors.text} />}
+            {node.type === 'group' && node.name && <text x={box.x + 10} y={box.y + (tab ? 22 : 16)} fontSize={11} fontWeight={600} fill={colors.muted}>{node.name}</text>}
             {(() => {
               const lb = nodeLabelBox(node, layout.orientation)
               if (!lb) return null
@@ -173,9 +158,9 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
               const x = anchor === 'end' ? lb.x + lb.w : anchor === 'start' ? lb.x : lb.x + lb.w / 2
               return <Text x={x} y={lb.y + lb.h / 2} anchor={anchor} text={node.name} maxChars={Math.max(4, Math.floor(lb.w / 6.4))} maxLines={lb.lines} size={11} fill={colors.text} />
             })()}
-            {badges && look && look.badge && <Badge text={look.badge} color={look.color} right={box.x + box.w} bottom={box.y + box.h} colors={colors} />}
+            {tab && <BadgeTab tab={tab} color={look.color} colors={colors} />}
             {note && (
-              <g transform={`translate(${box.x - 2} ${box.y - 2})`}>
+              <g transform={tab ? `translate(${tab.x + tab.w + 12} ${box.y})` : `translate(${box.x - 2} ${box.y - 2})`}>
                 <circle r={10} fill={tagColor(note.tag)} />
                 <text textAnchor='middle' dominantBaseline='central' fontSize={11} fontWeight={700} fill={textOn(tagColor(note.tag)) || colors.background}>{note.number}</text>
               </g>

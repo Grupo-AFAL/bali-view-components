@@ -95,25 +95,41 @@
 @keyframes bpmn-pulse { 50% { filter: drop-shadow(0 0 6px var(--bpmn-select)); } }
 .bpmn-label { color: var(--color-base-content); font-size: 11.5px; font-weight: 500; line-height: 1.25; pointer-events: none; overflow-wrap: anywhere; }
 .bpmn-label-inside {
-  position: absolute; inset: 4px 8px; display: flex; align-items: center; justify-content: center; text-align: center;
-  overflow: hidden;
+  position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+  overflow: hidden; line-height: 14px;
 }
+/* Its box, its line count and its first line's corners are model/labels.js
+ * insideLabelBox's (14 px a line). The corners are two floats one line high,
+ * so only the first line steps aside; the rest takes the whole width. */
+.bpmn-label-inside > span { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
+.bpmn-label-corner { width: var(--bpmn-label-corner); height: 14px; }
+.bpmn-label-corner.is-left { float: left; }
+.bpmn-label-corner.is-right { float: right; }
 .bpmn-label-outside {
   position: absolute; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;
   line-height: 14px; font-size: 11.5px;
 }
 .bpmn-label-annotation { position: absolute; inset: 4px 6px 4px 18px; overflow: hidden; font-weight: 400; }
 .bpmn-label-group { position: absolute; top: 6px; left: 10px; font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
+.bpmn-node.has-badge .bpmn-label-annotation { top: 10px; }
+.bpmn-node.has-badge .bpmn-label-group { top: 12px; }
 .bpmn-node-link { position: absolute; top: 3px; right: 6px; font-size: 12px; color: var(--color-secondary); }
 /* The app's look of a node (node.appearance, model/appearance.js); the band and
- * the outline are SVG (shapes.jsx AppearanceMark). The badge hangs off the
- * bottom-right corner: the note number has the top-left one, the pending
- * marker and the link arrow the top-right, and connections leave and arrive
- * at the middle of the sides. */
+ * the outline are SVG (shapes.jsx AppearanceMark). The badge is a tab across
+ * the top edge, half outside, flush with the left one (model/labels.js
+ * badgeTabBox), the note number right after it; the pending marker and the
+ * link arrow keep the top-right corner (the tabs stop 20 px short of it), the
+ * [+] the bottom centre, and connections leave and arrive at the middle of
+ * the sides. Its corners are the shape's. */
 .bpmn-node.is-dimmed { opacity: .45; }
+.bpmn-node-tabs {
+  position: absolute; top: -10px; left: 0; height: 20px; max-width: calc(100% - var(--bpmn-tab-reserve, 0px));
+  display: flex; align-items: center; gap: 2px; pointer-events: none;
+}
+.bpmn-node-tabs .bpmn-note-number { position: static; flex: none; }
 .bpmn-node-badge {
-  position: absolute; bottom: -9px; right: -8px; max-width: calc(100% + 8px);
-  height: 16px; padding: 0 7px; border-radius: 9999px; font-size: 10px; font-weight: 600; line-height: 14px;
+  flex: 0 1 auto; min-width: 0;
+  height: 16px; padding: 0 6px; border-radius: var(--bpmn-tab-radius, 4px); font-size: 10px; font-weight: 600; line-height: 14px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
   background: var(--bpmn-badge, var(--color-base-200)); color: var(--bpmn-badge-text, var(--color-base-content));
   border: 1px solid var(--bpmn-badge, var(--color-base-300));
