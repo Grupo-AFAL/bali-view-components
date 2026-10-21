@@ -414,7 +414,7 @@ centinela-web. Gobierno-corporativo has one too, and replaces it with this one.
 
 ## Inbox and notices (`bali_notices`)
 
-One topbar icon, one popover and one page, each with two tabs: «Te toca», what is waiting on the
+One topbar icon, one popover and one page, each with two tabs: «Pendientes», what is waiting on the
 person, read live from your models; and «Avisos», what happened, stored when it happened. A
 notice about something that is also waiting on the person folds into that item instead of
 appearing twice (#1512).
@@ -507,7 +507,7 @@ es:
           request_submitted: "Solicitudes por revisar"
 ```
 
-### Te toca: providers
+### Pendientes: providers
 
 A provider answers what is waiting on one person. This is the contract gobierno-corporativo's
 inbox already used:

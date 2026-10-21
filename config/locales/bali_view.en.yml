@@ -1504,7 +1504,7 @@ en:
       footer:
         pending:
           one: "1 pending"
-          other: "%{count} pending"
+          other: "%{number} pending"
         see_all: "See the whole inbox →"
       detail:
         empty: "Pick an item to see its detail."
@@ -1517,7 +1517,7 @@ en:
       gone:
         title: "This is no longer waiting on you"
         description: "It may have been resolved, or it is now someone else's turn. There is nothing for you to do."
-        back: "Back to what is waiting on you"
+        back: "Back to your pending items"
       notices:
         ago: "%{time} ago"
         unread: "unread"
@@ -1539,11 +1539,8 @@ en:
           one: "Inbox: 1 pending, unread notices"
           other: "Inbox: %{count} pending, unread notices"
       tabs:
-        pending: "Waiting on you"
+        pending: "Pending"
         notices: "Notices"
-        unread:
-          one: "1 unread"
-          other: "%{count} unread"
     notices:
       digest:
         subject:

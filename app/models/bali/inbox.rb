@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  # #1512 — «Te toca»: what is waiting on one person, read live from the host's models through
+  # #1512 — «Pendientes»: what is waiting on one person, read live from the host's models through
   # the providers in `Bali.inbox_providers`. It has no table. Guide: docs/guides/engine-models.md.
   module Inbox
     # `[[module_key, provider], ...]`, in registration order. Built on every call from class

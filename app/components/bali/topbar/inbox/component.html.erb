@@ -24,9 +24,11 @@
             too, on every page. The badge is the one Bali::Tabs' trigger draws. %>
         <div class="<%= SKELETON_TABS_CLASSES %>" aria-hidden="true">
           <span class="tab tab-active">
-            <%= t("bali_view.inbox.tabs.pending") %><span class="badge badge-sm ml-1"><%= @badge.pending %></span>
+            <%= t("bali_view.inbox.tabs.pending") %><span class="badge badge-sm ml-1"><%= self.class.count_text(@badge.pending) %></span>
           </span>
-          <span class="tab"><%= self.class.notices_tab_title(@badge.unread) %></span>
+          <span class="tab">
+            <%= t("bali_view.inbox.tabs.notices") %><% if @badge.unread? %><span class="badge badge-sm ml-1"><%= self.class.count_text(@badge.unread) %></span><% end %>
+          </span>
         </div>
         <div class="flex flex-col gap-4 p-4">
           <% SKELETON_ROWS.times do %>

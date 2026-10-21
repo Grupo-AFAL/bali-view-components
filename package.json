@@ -1,6 +1,6 @@
 {
   "name": "bali-view-components",
-  "version": "3.19.2",
+  "version": "3.20.0",
   "description": "Bali ViewComponents",
   "type": "module",
   "main": "./app/frontend/bali/index.js",
@@ -45,7 +45,7 @@
     "@babel/core": "^8.0.7",
     "@babel/eslint-parser": "^8.0.7",
     "@babel/preset-env": "8.0.7",
-    "cypress": "16.1.1",
+    "cypress": "16.2.0",
     "standard": "^17.1.2"
   },
   "standard": {

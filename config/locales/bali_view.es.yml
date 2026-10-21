@@ -1480,7 +1480,7 @@ es:
       footer:
         pending:
           one: "1 pendiente"
-          other: "%{count} pendientes"
+          other: "%{number} pendientes"
         see_all: "Ver toda la bandeja →"
       detail:
         empty: "Elige un pendiente para ver su detalle."
@@ -1493,7 +1493,7 @@ es:
       gone:
         title: "Esto ya no está en tus pendientes"
         description: "Puede que ya se haya resuelto o que ahora le toque a otra persona. No tienes que hacer nada."
-        back: "Volver a lo que te toca"
+        back: "Volver a tus pendientes"
       notices:
         ago: "hace %{time}"
         unread: "sin leer"
@@ -1515,11 +1515,8 @@ es:
           one: "Bandeja: 1 pendiente, hay avisos sin leer"
           other: "Bandeja: %{count} pendientes, hay avisos sin leer"
       tabs:
-        pending: "Te toca"
+        pending: "Pendientes"
         notices: "Avisos"
-        unread:
-          one: "1 sin leer"
-          other: "%{count} sin leer"
     notices:
       digest:
         subject:

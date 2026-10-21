@@ -12,16 +12,16 @@
 
 <%= render Bali::Tabs::Component.new(style: :border, size: :sm, label: t("bali_view.inbox.title"),
                                      id_prefix: Bali::Topbar::Inbox::Component::TABS_ID_PREFIX) do |tabs| %>
-  <% tabs.with_tab(title: t("bali_view.inbox.tabs.pending"), count: @badge.pending, active: tab == "pending") do %>
+  <% tabs.with_tab(title: t("bali_view.inbox.tabs.pending"), count: inbox_count(@badge.pending), active: tab == "pending") do %>
     <%= render "popover_pending" %>
   <% end %>
-  <% notices_title = Bali::Topbar::Inbox::Component.notices_tab_title(@badge.unread) %>
+  <% notices = { title: t("bali_view.inbox.tabs.notices"), count: (inbox_unread_count(@badge.unread) if @badge.unread?) } %>
   <% if tab == "notices" %>
-    <% tabs.with_tab(title: notices_title, active: true) do %>
+    <% tabs.with_tab(**notices, active: true) do %>
       <%= render "popover_notices", notices: @notices, unread_count: @badge.unread %>
     <% end %>
   <% else %>
-    <% tabs.with_tab(title: notices_title, src: url_for(action: :popover, tab: "notices")) do %>
+    <% tabs.with_tab(**notices, src: url_for(action: :popover, tab: "notices")) do %>
       <div class="flex flex-col gap-3 p-4">
         <%= render Bali::Skeleton::Component.new(variant: :text, lines: 2) %>
         <%= render Bali::Skeleton::Component.new(variant: :text, lines: 2) %>

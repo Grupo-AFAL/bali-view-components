@@ -4,10 +4,10 @@
   <% split.with_list(selected: (inbox_item_key(@item) if @item),
                      next_url: (url_for(action: :show, kind: @kind, module: @module_key, page: @next_page) if @next_page)) do |list| %>
     <% list.with_filter(label: t("bali_view.inbox.all"), href: url_for(action: :show, module: @module_key),
-                        active: @kind.nil?, count: counts.values.sum) %>
+                        active: @kind.nil?, count: inbox_count(counts.values.sum)) %>
     <% counts.each do |kind, count| %>
       <% next if count.zero? %>
-      <% list.with_filter(label: inbox_kind_label(kind, count: 2), param: :kind, value: kind, count: count) %>
+      <% list.with_filter(label: inbox_kind_label(kind, count: 2), param: :kind, value: kind, count: inbox_count(count)) %>
     <% end %>
 
     <% @items.group_by(&:band).each do |band, items| %>

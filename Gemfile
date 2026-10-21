@@ -35,11 +35,11 @@ end
 group :test do
   gem "capybara", "~> 3"
   gem "simplecov", require: false
-  gem "sqlite3", "~> 2.0"
+  gem "sqlite3", "~> 2.10"
 end
 
 group :development, :test do
-  gem "bali-rubocop", github: "Grupo-AFAL/bali-rubocop", tag: "v0.2.0", require: false
+  gem "bali-rubocop", github: "Grupo-AFAL/bali-rubocop", tag: "v0.3.0", require: false
   gem "brakeman", require: false
   # Deliberately not in the gemspec: Bali::QrCode::Component requires it lazily so
   # an app that never renders a QR code does not carry the dependency. Here so the
