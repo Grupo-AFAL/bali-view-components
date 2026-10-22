@@ -109,9 +109,9 @@ describe('BPMN editor inside a SplitView detail', () => {
   const FLOW = '[data-testid="bpmn-split-flow"]'
   const split = () => cy.get('.split-view-component--collapsible')
 
-  // The editor's document listener mounts after the SplitView's: the Esc that
-  // lets go of the selection must not also close the detail around it.
-  it('takes the first Esc to clear its selection, and leaves the next to the SplitView', () => {
+  // A read-only selection is a pointer, not an edit: the Esc that drops it
+  // still closes the detail (the 50/50 view's map selects «the one open»).
+  it('lets the Esc that drops a read-only selection close the detail too', () => {
     cy.viewport(1440, 1000)
     cy.visit('/bali/bpmn_editor/split_view')
     cy.contains('#split_map_bpmn .react-flow__node-bpmn', 'Alta de proveedor').click()
@@ -124,10 +124,26 @@ describe('BPMN editor inside a SplitView detail', () => {
       $split[0].addEventListener('split-view:close', () => { $split[0].closes++ })
     })
     cy.focused().type('{esc}')
-    cy.get(`${FLOW} .bpmn-node.is-selected`).should('not.exist')
-    split().its('0.closes').should('eq', 0)
-    split().should('have.attr', 'data-split-state', 'open')
-    cy.focused().type('{esc}')
     split().should('have.attr', 'data-split-state', 'closed')
+    split().its('0.closes').should('eq', 1)
+  })
+})
+
+describe('BPMN editor Escape', () => {
+  // The editor's listener mounts after a SplitView's, which skips a prevented
+  // Esc: letting go of an editable selection must say it took the key.
+  it('takes the Esc that drops an editable selection, and not the next one', () => {
+    cy.visit(EDITABLE)
+    cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
+    cy.window().then((win) => {
+      win.escapes = []
+      win.addEventListener('keydown', (event) => { if (event.key === 'Escape') win.escapes.push(event.defaultPrevented) })
+    })
+    cy.get('.react-flow__node-bpmn').first().click()
+    cy.get('.bpmn-node.is-selected').should('have.length', 1)
+    cy.focused().type('{esc}')
+    cy.get('.bpmn-node.is-selected').should('not.exist')
+    cy.focused().type('{esc}')
+    cy.window().its('escapes').should('deep.equal', [true, false])
   })
 })

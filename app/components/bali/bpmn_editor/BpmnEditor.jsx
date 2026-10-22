@@ -684,9 +684,11 @@ function Editor ({
     const mod = event.ctrlKey || event.metaKey
     const key = event.key.toLowerCase()
     if (key === 'escape') {
-      // Taken only when there was something to let go of: the page's own Esc
-      // (a SplitView closing its detail) skips a prevented one, and answers the next.
-      if (tool || renamingId != null || selection.nodes.length || selection.edges.length || selection.lanes.length) event.preventDefault()
+      // Taken only when it lets go of an edit (Connect, a rename, an editable
+      // selection): the page's own Esc (a SplitView closing its detail) skips a
+      // prevented one. A read-only selection is a pointer, often the app's «the
+      // one open», so that Esc reaches the page too.
+      if (tool || renamingId != null || (editable && (selection.nodes.length || selection.edges.length || selection.lanes.length))) event.preventDefault()
       setTool(null); setRenamingId(null); clearByPerson(); return
     }
     if (!interactive) return
@@ -708,7 +710,7 @@ function Editor ({
       arrowRun.current = { coalesce, ids: selection.nodes, fine: event.shiftKey || Boolean(arrowRun.current && arrowRun.current.fine) }
       apply((d) => ops.moveNodes(d, selection.nodes, delta, { policy }), { coalesce, arrange: false })
     }
-  }, [interactive, undo, redo, selectAll, deleteSelection, clearByPerson, selection, apply, policy, tool, renamingId])
+  }, [editable, interactive, undo, redo, selectAll, deleteSelection, clearByPerson, selection, apply, policy, tool, renamingId])
 
   // An arrow released: the run of moves settles (collisions, lanes, routes)
   // into the same undo step. Moves made with Shift keep their pixel.

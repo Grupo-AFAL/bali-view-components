@@ -82,7 +82,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Frame o lo que la app ponga en él), el maestro se encoge a `master_width` y el detalle entra por
   la derecha (300 ms) con el foco en su encabezado; su contenido se acomoda desde el primer cuadro a
   su ancho final (un diagrama se encuadra una sola vez). «Cerrar» o Esc lo sacan (Esc no, si lo toma
-  un campo de texto, una lista abierta o un componente que llamó `preventDefault`), vacían el frame (y su
+  un campo de texto, una lista abierta o un componente que llamó `preventDefault`; el editor BPMN lo
+  hace al cancelar «Conectar», un renombre o una selección editable, no una de solo lectura), vacían el frame (y su
   `src`), quitan el resaltado de la fila y regresan el foco a ella; bajo `lg` el detalle es una hoja
   a pantalla completa con «← Volver». Sin animación con `prefers-reduced-motion`. El contenedor
   emite `split-view:open` y `split-view:close`. Preview nueva: `split_view/collapsible`.

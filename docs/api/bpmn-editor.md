@@ -678,9 +678,11 @@ report, and the app to decide:
 - **Keyboard**: Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z), Ctrl+A, Delete/Backspace, Esc,
   arrows move the selection (10 px a press, Shift for 1 px; a run of presses is one undo
   step, and the local arrangement runs when the key goes up — a Shift nudge keeps its pixel).
-  Shortcuts reach the editor last touched. Esc that cancels Connect or placing, a rename or a
-  selection calls `preventDefault()`, so a page-level Esc (a `Bali::SplitView` detail) waits
-  for the next one; with nothing to let go of, it passes through.
+  Shortcuts reach the editor last touched. Esc that cancels Connect or placing, a rename or
+  the selection of an editable editor calls `preventDefault()`, so a page-level Esc (a
+  `Bali::SplitView` detail) waits for the next one. A read-only selection is a pointer (often
+  the app's «the one open»): Esc clears it and still reaches the page, as does an Esc with
+  nothing to let go of.
 - **Wheel**: zooms an editable canvas. Over a read-only diagram it scrolls the page, as
   anywhere else on it; the zoom bar and a pinch still zoom.
 - **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
