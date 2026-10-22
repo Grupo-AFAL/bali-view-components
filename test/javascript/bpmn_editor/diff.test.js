@@ -278,6 +278,36 @@ test('auto between two different processes pairs by name and is not the same pro
   assert.equal(diff.sameProcess, false)
 })
 
+// Ids as the editor mints them (n_3…n_20, e_…, lane_…): two documents made
+// in it share them without being related.
+const editorMade = (names) => doc({
+  lanes: [{ id: 'lane_1', name: 'Area', kind: 'internal', order: 1, size: 180 }, { id: 'lane_2', name: 'Office', kind: 'internal', order: 2, size: 180 }],
+  nodes: names.map((name, i) => node(`n_${i + 3}`, 'task', i % 2 ? 'lane_2' : 'lane_1', 100 + i * 160, i % 2 ? 270 : 90, { name })),
+  edges: names.slice(1).map((_, i) => flow(`e_${i + 21}`, `n_${i + 3}`, `n_${i + 4}`))
+})
+const STEPS = 18
+const purchases = () => editorMade(Array.from({ length: STEPS }, (_, i) => `Purchase step ${i + 1}`))
+const hiring = () => editorMade(Array.from({ length: STEPS }, (_, i) => (i === 4 ? 'Purchase step 5' : `Hiring step ${i + 1}`)))
+
+test('auto: two unrelated documents whose ids the editor minted do not pair by those ids', () => {
+  const diff = diffDocuments(purchases(), hiring(), { match: 'auto' })
+  const byName = diffDocuments(purchases(), hiring(), { match: 'name' })
+  assert.equal(diff.sameProcess, false, 'no overlay between different processes')
+  assert.equal(diff.idShare, 0)
+  assert.deepEqual(diff.summary, byName.summary)
+  assert.equal(diff.summary.changed, 0, 'no step reads as renamed')
+  assert.equal(diff.identity.get('n_7'), 'n_7', 'the one shared step pairs by its name')
+})
+
+test('auto: a version of an editor-made document with some steps renamed still pairs by id', () => {
+  const next = purchases()
+  next.nodes = next.nodes.map((n, i) => (i < STEPS / 2 ? { ...n, name: `${n.name} (revised)` } : n))
+  const diff = diffDocuments(purchases(), next, { match: 'auto' })
+  assert.equal(diff.sameProcess, true)
+  assert.equal(diff.idShare, 1)
+  assert.deepEqual(diff.summary, { added: 0, removed: 0, changed: STEPS / 2, moved: 0 })
+})
+
 test('the overlay is offered for versions of one process only', () => {
   assert.equal(sameProcess('id', 0), true)
   assert.equal(sameProcess('name', 1), false)

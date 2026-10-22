@@ -47,7 +47,7 @@ import QuickMenu from './chrome/QuickMenu.jsx'
 import { HintLayer } from './chrome/Hint.jsx'
 import Stencil, { STENCIL_MIME } from './chrome/Stencil.jsx'
 import { openDrawerUrl } from '../../../frontend/bali/utils/drawer.js'
-import { withParams } from './model/urls.js'
+import { withParams, safeUrl } from './model/urls.js'
 import CompareView from './chrome/CompareView.jsx'
 import { diffDocuments } from './model/diff.js'
 import { DEFAULT_COMPARE_MODE, openMode, requestedComparison, shownMode } from './model/compare.js'
@@ -128,10 +128,21 @@ function Editor ({
   }, [])
 
   // ── document & history ─────────────────────────────────────────────────
-  const [state, setState] = useState(() => history.initialHistory(normalize(data, layoutOptions)))
+  const [state, setRendered] = useState(() => history.initialHistory(normalize(data, layoutOptions)))
   const doc = state.present
   const docRef = useRef(doc)
   docRef.current = doc
+  // Every change to the history goes through here, so stateRef (and docRef)
+  // hold the latest committed state before React renders it: an edit made
+  // while a save answers, or a 409's reset, is what the saver decides on.
+  const stateRef = useRef(state)
+  const setState = useCallback((update) => {
+    const next = typeof update === 'function' ? update(stateRef.current) : update
+    if (next === stateRef.current) return
+    stateRef.current = next
+    docRef.current = next.present
+    setRendered(next)
+  }, [])
 
   const [notices, setNotices] = useState([])
   const notify = useCallback((text, tone = 'info', action = null) => {
@@ -185,6 +196,8 @@ function Editor ({
   const saver = useSaver({
     doc,
     revision: state.revision,
+    current: useCallback(() => ({ doc: stateRef.current.present, revision: stateRef.current.revision }), []),
+    layoutOptions,
     urls,
     editable,
     notesOnly,
@@ -276,7 +289,7 @@ function Editor ({
 
   // The palette the host allows, for VIS-10 (an imported element it does not offer).
   const allowed = useMemo(() => (palette && palette.items && palette.items.length ? new Set(palette.items.filter((i) => i.state === 'enabled').map((i) => i.key)) : null), [palette])
-  const issueList = useMemo(() => (editable && validating ? mergeIssues(evaluate(doc, rules || {}, t, { allowed, page: layoutOptions.page }), doc.issues, doc) : []), [editable, validating, doc, rules, t, allowed, layoutOptions])
+  const issueList = useMemo(() => (editable && validating ? mergeIssues(evaluate(doc, rules || {}, t, { allowed, page: layoutOptions.page }), doc.issues, doc, rules || {}) : []), [editable, validating, doc, rules, t, allowed, layoutOptions])
   const issues = useMemo(() => issuesByElement(issueList), [issueList])
   const baseNodes = useMemo(() => buildRfNodes(doc, { layout, editable: interactive, issues, selected: selectedSet }), [doc, layout, interactive, issues, selectedSet])
   // Lanes share one length: while the end of one is dragged every lane
@@ -608,7 +621,7 @@ function Editor ({
   const onNodeDoubleClick = useCallback((_event, rfNode) => {
     if (rfNode.type !== 'bpmn') return
     const node = rfNode.data.node
-    if (node.type === 'sub_process' && node.reference && node.reference.url) { openReference(node, hostElement); return }
+    if (node.type === 'sub_process' && node.reference && safeUrl(node.reference.url)) { openReference(node, hostElement); return }
     if (interactive && !namedByReference(node)) setRenamingId(rfNode.id)
   }, [interactive, hostElement])
 
@@ -670,7 +683,12 @@ function Editor ({
     if (event.defaultPrevented || /^(input|textarea|select)$/i.test(event.target.tagName) || event.target.isContentEditable) return
     const mod = event.ctrlKey || event.metaKey
     const key = event.key.toLowerCase()
-    if (key === 'escape') { setTool(null); setRenamingId(null); clearByPerson(); return }
+    if (key === 'escape') {
+      // Taken only when there was something to let go of: the page's own Esc
+      // (a SplitView closing its detail) skips a prevented one, and answers the next.
+      if (tool || renamingId != null || selection.nodes.length || selection.edges.length || selection.lanes.length) event.preventDefault()
+      setTool(null); setRenamingId(null); clearByPerson(); return
+    }
     if (!interactive) return
     if (mod && key === 'z' && !event.shiftKey) {
       event.preventDefault(); undo()
@@ -690,7 +708,7 @@ function Editor ({
       arrowRun.current = { coalesce, ids: selection.nodes, fine: event.shiftKey || Boolean(arrowRun.current && arrowRun.current.fine) }
       apply((d) => ops.moveNodes(d, selection.nodes, delta, { policy }), { coalesce, arrange: false })
     }
-  }, [interactive, undo, redo, selectAll, deleteSelection, clearByPerson, selection, apply, policy])
+  }, [interactive, undo, redo, selectAll, deleteSelection, clearByPerson, selection, apply, policy, tool, renamingId])
 
   // An arrow released: the run of moves settles (collisions, lanes, routes)
   // into the same undo step. Moves made with Shift keep their pixel.
@@ -770,7 +788,7 @@ function Editor ({
   // Normalized when the comparison opens, not on load: normalize lays out a
   // document without coordinates, for a view most readers never open.
   const comparing = Boolean(comparison.mode)
-  const compareBase = useMemo(() => (compare && comparing ? normalize(compare.document) : null), [compare, comparing])
+  const compareBase = useMemo(() => (compare && comparing ? normalize(compare.document, layoutOptions) : null), [compare, comparing, layoutOptions])
   const compareDiff = useMemo(() => (compareBase ? diffDocuments(compareBase, doc, { match: compare.match }) : null), [compareBase, doc, compare])
   const compareShown = compareDiff ? shownMode(comparison.mode, compareDiff.sameProcess) : null
   // Opened comparing, the canvas mounted hidden, at no size, and its first fit
@@ -795,9 +813,9 @@ function Editor ({
     reportedComparison.current = key
     emit('compare-change', { open: Boolean(compareShown), index: comparison.index, mode: compareShown })
   }, [compareShown, comparison.index, emit])
-  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost, onBadges: setBadgesVisible, onCompare: compareFromHost, takeQueued: takeHostEvents })
-  // Declared after useHostEvents, so its listeners are attached when the app hears it.
-  useEffect(() => { emit('ready', {}) }, [])
+  // `ready` once its listeners are attached and what the app sent before is applied.
+  const announceReady = useCallback(() => emit('ready', {}), [emit])
+  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost, onBadges: setBadgesVisible, onCompare: compareFromHost, takeQueued: takeHostEvents, onReady: announceReady })
 
   // ── the wheel (Component `wheel_zoom:`) ────────────────────────────────
   // 'zoom': it zooms. 'modifier': it scrolls the page, and Ctrl + wheel (a
@@ -851,7 +869,7 @@ function Editor ({
   }, [legend, tags, doc.annotations])
 
   // ── outputs ────────────────────────────────────────────────────────────
-  const exports = useExports({ doc, name, watermark, tags, page: layoutOptions.page, wrapperRef, badges: badgesVisible })
+  const exports = useExports({ doc, name, watermark, tags, page: layoutOptions.page, wrapperRef, badges: badgesVisible, onError: () => notify(t('export_failed'), 'error') })
 
   // The quick menu shows next to the one selected flow node that can be
   // followed (not an end event, not an artifact) while nothing else is going on.
@@ -1205,15 +1223,16 @@ function RenameInput ({ value, className, onDone }) {
 // Announces it; false when the host took it over (preventDefault).
 function announceOpenReference (node, hostElement) {
   const reference = node && node.reference
-  if (!reference || !reference.url) return false
+  if (!reference || !safeUrl(reference.url)) return false
   const event = new CustomEvent('bali-bpmn:open-reference', { bubbles: true, cancelable: true, detail: { node_id: node.id, reference } })
   return (hostElement || document).dispatchEvent(event)
 }
 
 function openReference (node, hostElement) {
   if (!announceOpenReference(node, hostElement)) return
-  if (window.Turbo && typeof window.Turbo.visit === 'function') window.Turbo.visit(node.reference.url)
-  else window.location.assign(node.reference.url)
+  const url = safeUrl(node.reference.url)
+  if (window.Turbo && typeof window.Turbo.visit === 'function') window.Turbo.visit(url)
+  else window.location.assign(url)
 }
 
 // Brings a node into view when it is not, at the zoom the reader chose.

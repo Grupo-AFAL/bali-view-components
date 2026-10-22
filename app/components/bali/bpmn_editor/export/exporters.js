@@ -47,7 +47,9 @@ export function renderSvg (props) {
   const container = document.createElement('div')
   const root = createRoot(container)
   flushSync(() => root.render(createElement(ExportDiagram, props)))
-  const markup = container.innerHTML
+  // Not innerHTML: the HTML serialiser writes U+00A0 as `&nbsp;`, an entity
+  // XML does not define, and the file (and the PNG drawn from it) breaks.
+  const markup = new window.XMLSerializer().serializeToString(container.firstElementChild)
   root.unmount()
   return `<?xml version="1.0" encoding="UTF-8"?>\n${markup}`
 }
@@ -83,7 +85,11 @@ export function downloadPng (fileName, svg) {
       const context = canvas.getContext('2d')
       context.scale(scale, scale)
       context.drawImage(image, 0, 0)
-      canvas.toBlob((blob) => { download(fileName, blob); resolve() }, 'image/png')
+      canvas.toBlob((blob) => {
+        if (!blob) { reject(new Error('The canvas could not be encoded as PNG')); return }
+        download(fileName, blob)
+        resolve()
+      }, 'image/png')
     }
     image.onerror = reject
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`

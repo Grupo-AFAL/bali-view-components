@@ -115,6 +115,14 @@ test('deleting a lane closes the gap and deleting a node removes its connections
   assert.deepEqual(removed.edges.map((e) => e.id), ['f1'])
 })
 
+test('deleting removes the notes of everything that goes, connections and lanes included', () => {
+  const d = ops.addLane(twoLanes(), { name: 'C' }).doc
+  const laneC = d.lanes[2].id
+  const notes = ['t2', 'f2', 'f3', laneC, 't1', 'f1', 'l1', 'pool'].map((target, i) => ({ id: `a${i}`, target_id: target, number: i + 1, text: target }))
+  const removed = ops.deleteElements({ ...d, annotations: notes }, { nodeIds: ['t2'], laneIds: [laneC] }).doc
+  assert.deepEqual(removed.annotations.map((a) => a.target_id), ['t1', 'f1', 'l1', 'pool'])
+})
+
 test('reorderLanes carries every node with its lane', () => {
   const d = ops.reorderLanes(twoLanes(), ['l2', 'l1']).doc
   const layout = layoutLanes(d)

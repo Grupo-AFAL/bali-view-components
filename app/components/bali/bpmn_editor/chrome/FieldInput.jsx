@@ -43,8 +43,8 @@ export default function FieldInput ({ field, value, onChange, disabled, t }) {
       return withFailure(
         <div className='flex flex-wrap gap-1'>
           {options.map((o) => (
-            <label key={o.value} className={`badge cursor-pointer gap-1 ${chosen.has(o.value) ? 'badge-primary' : 'badge-ghost'}`}>
-              <input type='checkbox' className='hidden' checked={chosen.has(o.value)} disabled={disabled}
+            <label key={o.value} className={`bpmn-chip badge relative cursor-pointer gap-1 ${chosen.has(o.value) ? 'badge-primary' : 'badge-ghost'}`}>
+              <input type='checkbox' className='sr-only' checked={chosen.has(o.value)} disabled={disabled}
                 onChange={(e) => { const next = new Set(chosen); e.target.checked ? next.add(o.value) : next.delete(o.value); onChange([...next]) }} />
               {o.label}
             </label>

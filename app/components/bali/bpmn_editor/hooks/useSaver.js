@@ -11,26 +11,30 @@ const AUTOSAVE_DELAY = 1200
 //
 // `notesOnly` (Component `annotatable:` on a read-only diagram): the same
 // serialized protocol, to `urls.annotations`, carrying only the annotations.
+//
+// `current` () → { doc, revision }: the editor's latest committed state, which
+// runs ahead of the render (`doc` and `revision` are the rendered ones). The
+// saver decides on it; the render's could still lack an edit made while a
+// save was answered, or a 409's reset.
 const annotationsOf = (doc) => doc.annotations || []
 
-export default function useSaver ({ doc, revision, urls, editable, notesOnly = false, autosave, onAdopt, onReset, onEvent, notify, t }) {
+export default function useSaver ({ doc, revision, current, layoutOptions, urls, editable, notesOnly = false, autosave, onAdopt, onReset, onEvent, notify, t }) {
   const saving = editable || notesOnly
   const [status, setStatus] = useState('saved')
   const [finalizing, setFinalizing] = useState(false)
   const timer = useRef(null)
-  const latest = useRef({ doc, revision })
-  latest.current = { doc, revision }
   const deps = {
     client: { save: notesOnly ? saveAnnotations : saveDocument, fetch: fetchDocument, finalize: finalizeDocument },
     urls: notesOnly ? { save: urls.annotations, diagram: urls.diagram } : urls,
-    latest: () => latest.current,
+    latest: current,
     onAdopt,
     onReset,
     onEvent,
     notify,
     t,
     setStatus,
-    prepare: normalize,
+    // A server document without coordinates is laid out as on load.
+    prepare: (body) => normalize(body, layoutOptions),
     forSave: notesOnly ? annotationsOf : forSave,
     defer: (fn) => setTimeout(fn, 0)
   }

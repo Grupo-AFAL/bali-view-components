@@ -61,6 +61,45 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
     end
   end
 
+  # An issue's element_id and an annotation's target_id do not say which
+  # kind of element they name.
+  def test_ids_are_unique_across_lanes_nodes_and_edges
+    error = assert_raises(Data::InvalidError) do
+      Data.new(lanes: [ { id: 5 } ], nodes: [ { id: "5", type: "task", lane_id: 5 } ], edges: [ { id: "e1", source: "5", target: "5" } ])
+    end
+    assert_includes error.message, %(["5"])
+    assert_raises(Data::InvalidError) { Data.new(nodes: [ { id: "n1", type: "task" } ], edges: [ { id: "n1", source: "n1", target: "n1" } ]) }
+    assert_nothing_raised { Data.new(lanes: [ { id: "lane_1" } ], nodes: [ { id: "n_1", type: "task" } ], edges: [ { id: "e_1", source: "n_1", target: "n_1" } ]) }
+  end
+
+  def with_url(url)
+    {
+      lanes: [ { id: "l1", assignee: { id: "p1", label: "Clerk", url: url } } ],
+      nodes: [ { id: "n1", type: "sub_process", reference: { id: "77", label: "Payments", url: url } } ],
+      stencil: [ { reference: { id: "78", label: "Hiring", url: url } } ]
+    }
+  end
+
+  def test_a_url_is_a_path_or_http
+    [ "/processes/7", "processes/7?tab=flow", "#n1", "//catalog.example/7", "https://catalog.example/7", "HTTP://x", "" ].each do |url|
+      assert_equal url, Data.new(with_url(url)).nodes.first.dig(:reference, :url)
+    end
+    assert_nil Data.new(with_url(nil)).nodes.first.dig(:reference, :url)
+  end
+
+  # Followed on a click, a javascript: URL saved in the document would run
+  # in the page of whoever opens it.
+  def test_any_other_scheme_raises_wherever_the_url_is
+    [ "javascript:alert(1)", " JavaScript:alert(1)", "java\tscript:alert(1)", "java\nscript:alert(1)", "\x01javascript:alert(1)",
+      "data:text/html,<script>alert(1)</script>", "vbscript:x", 42 ].each do |url|
+      %i[lanes nodes stencil].each do |key|
+        payload = with_url(nil).merge(key => with_url(url)[key])
+        error = assert_raises(Data::InvalidError, "#{key} #{url.inspect}") { Data.new(payload) }
+        assert_includes error.message, "url must be a path or http/https"
+      end
+    end
+  end
+
   def node_with(appearance)
     { nodes: [ { id: "n1", type: "sub_process", appearance: appearance } ] }
   end

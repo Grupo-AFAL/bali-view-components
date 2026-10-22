@@ -57,8 +57,8 @@ const DEFINITIONS = {
 export const escapeXml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]))
 
 // XML ids must start with a letter or underscore, and are one namespace for
-// the whole file — while the contract only keeps ids unique per kind, so
-// lanes and connections carry a prefix of their own.
+// the whole file. Lanes and connections carry a prefix of their own, which
+// keeps the ids of files already exported.
 const xmlId = (id) => (/^[A-Za-z_]/.test(String(id)) ? String(id) : `_${id}`).replace(/[^\w.-]/g, '_')
 const laneXmlId = (id) => `Lane_${xmlId(id)}`
 const flowXmlId = (id) => `Flow_${xmlId(id)}`

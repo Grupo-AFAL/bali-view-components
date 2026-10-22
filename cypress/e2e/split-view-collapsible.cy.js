@@ -139,6 +139,47 @@ describe('SplitView collapsible', () => {
       cy.focused().type('{esc}')
       split().should('have.attr', 'data-split-state', 'open')
     })
+
+    // A field lets go of its text, a listbox (an open SlimSelect) closes.
+    // Counted on `split-view:close`: a pane closed by that Esc can open again
+    // before an assertion on its state reads it.
+    const countCloses = () => split().then(($split) => {
+      $split[0].closes = 0
+      $split[0].addEventListener('split-view:close', () => { $split[0].closes++ })
+    })
+    const closes = () => split().its('0.closes')
+
+    ;[
+      ['a text field', '<input type="text">'],
+      ['a note being written', '<textarea></textarea>'],
+      ['an editable region', '<div contenteditable="true"></div>'],
+      ['an open listbox', '<div role="listbox" tabindex="-1"></div>']
+    ].forEach(([what, html]) => {
+      it(`leaves Esc to ${what} in the detail`, () => {
+        open()
+        countCloses()
+        frame().then(($frame) => {
+          $frame[0].insertAdjacentHTML('beforeend', html)
+          $frame[0].lastElementChild.focus()
+        })
+        cy.focused().type('{esc}')
+        closes().should('eq', 0)
+        split().should('have.attr', 'data-split-state', 'open')
+      })
+    })
+
+    // A widget mounted after the controller (the BPMN editor, cancelling
+    // Connect) listens on document too, and takes the key with preventDefault.
+    it('leaves Esc to a widget that took it on document', () => {
+      open()
+      countCloses()
+      cy.document().then((doc) => {
+        doc.addEventListener('keydown', (event) => { if (event.key === 'Escape') event.preventDefault() })
+      })
+      cy.focused().type('{esc}')
+      closes().should('eq', 0)
+      split().should('have.attr', 'data-split-state', 'open')
+    })
   })
 
   it('is a full-screen sheet with «Back» below lg', () => {

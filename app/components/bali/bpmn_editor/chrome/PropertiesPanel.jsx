@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { paletteKeyFor, isActivity, isEvent, isGateway } from '../model/catalog.js'
 import { namedByReference } from '../model/document.js'
 import Icon from './icons.jsx'
@@ -9,28 +10,45 @@ import NotesEditor from './NotesEditor.jsx'
 export const FIELD_TYPES = ['text', 'textarea', 'number', 'select', 'multi_select', 'readonly']
 const PORTS = ['auto', 'top', 'right', 'bottom', 'left']
 
+const CAPTION = 'text-xs font-semibold text-base-content/70'
+
 function Field ({ label, children }) {
   return (
     <label className='flex flex-col gap-1'>
-      <span className='text-xs font-semibold text-base-content/70'>{label}</span>
+      <span className={CAPTION}>{label}</span>
       {children}
     </label>
   )
 }
 
+// Several controls under one caption. Not a <label>: a click on its caption
+// would go to the first of them (aligning, or resetting a port and its route).
+function FieldGroup ({ label, children }) {
+  const id = `bpmn-group-${useId().replace(/:/g, '')}`
+  return (
+    <div role='group' aria-labelledby={id} className='flex flex-col gap-1'>
+      <span id={id} className={CAPTION}>{label}</span>
+      {children}
+    </div>
+  )
+}
+
 function CustomFields ({ fields, values, onChange, editable, t }) {
   if (!fields || !fields.length) return null
-  return fields.map((field) => (
-    <Field key={field.key} label={field.label}>
-      <FieldInput field={field} value={(values || {})[field.key]} disabled={!editable} t={t}
-        onChange={(value) => onChange({ ...(values || {}), [field.key]: value })} />
-    </Field>
-  ))
+  return fields.map((field) => {
+    const Wrapper = field.type === 'multi_select' ? FieldGroup : Field
+    return (
+      <Wrapper key={field.key} label={field.label}>
+        <FieldInput field={field} value={(values || {})[field.key]} disabled={!editable} t={t}
+          onChange={(value) => onChange({ ...(values || {}), [field.key]: value })} />
+      </Wrapper>
+    )
+  })
 }
 
 function PortPicker ({ label, value, onChange, editable, t }) {
   return (
-    <Field label={label}>
+    <FieldGroup label={label}>
       <div className='join'>
         {PORTS.map((port) => (
           <button key={port} type='button' disabled={!editable}
@@ -40,7 +58,7 @@ function PortPicker ({ label, value, onChange, editable, t }) {
           </button>
         ))}
       </div>
-    </Field>
+    </FieldGroup>
   )
 }
 
@@ -180,7 +198,7 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, not
     title = t('props_multi', { count: nodes.length })
     body = (
       <>
-        <Field label={t('props_align')}>
+        <FieldGroup label={t('props_align')}>
           <div className='flex gap-1'>
             <button type='button' className='btn btn-outline btn-xs gap-1' disabled={!editable} onClick={() => api.align('vertical')}>
               <Icon name='alignV' size={12} />{t('align_vertical')}
@@ -189,7 +207,7 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, not
               <Icon name='alignH' size={12} />{t('align_horizontal')}
             </button>
           </div>
-        </Field>
+        </FieldGroup>
         <p className='text-xs text-base-content/60'>{t('props_align_note')}</p>
       </>
     )

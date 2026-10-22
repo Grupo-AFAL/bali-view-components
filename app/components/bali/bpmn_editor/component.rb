@@ -56,8 +56,6 @@ module Bali
       LEGEND_SWATCHES = %w[task sub_process gateway start_event end_event external_lane external_task issue color].freeze
       DEFAULT_LEGEND = %w[task sub_process external_lane external_task issue].freeze
       EXTERNAL_LEGEND = %w[external_lane external_task].freeze
-      # Mirrors I18N_TABLES_HEADER in i18n.js (contract_test.rb).
-      I18N_TABLES_HEADER = "X-Bali-Bpmn-I18n"
 
       attr_reader :data
 
@@ -244,12 +242,11 @@ module Bali
       end
 
       # One view context per render: ViewComponent hands every component of
-      # the render the same one through `helpers`. A Turbo fetch names the
-      # tables the page already holds in I18N_TABLES_HEADER (i18n.js).
+      # the render the same one through `helpers`. Never left out on what the
+      # requesting page says it holds: an HTTP cache, or a back navigation
+      # into a fresh tab, hands the response to a page that holds nothing.
       def write_i18n_table?
-        headers = helpers.request&.headers
-        return false if headers && headers[I18N_TABLES_HEADER].to_s.split(",").include?(i18n_key)
-        return true if headers && headers["Turbo-Frame"].present?
+        return true if helpers.request&.headers&.[]("Turbo-Frame").present?
 
         written = helpers.instance_variable_get(:@bali_bpmn_i18n_written) ||
                   helpers.instance_variable_set(:@bali_bpmn_i18n_written, Set.new)

@@ -24,11 +24,14 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_includes ROOT.join("i18n.js").read, %([#{attribute}="${key}"])
     assert_match(/data-bpmn-editor-i18n-key-value="\h{16}"/, html)
     assert_match(/^\s+i18nKey: \{ type: String/, ROOT.join("index.js").read)
-    assert_includes ROOT.join("i18n.js").read, %(I18N_TABLES_HEADER = '#{Bali::BpmnEditor::Component::I18N_TABLES_HEADER}')
   end
 
   def test_edge_types
     assert_equal Bali::BpmnEditor::Data::EDGE_TYPES, js_list("model/catalog.js", "EDGE_TYPES")
+  end
+
+  def test_navigable_schemes
+    assert_equal Bali::BpmnEditor::Data::NAVIGABLE_SCHEMES, js_list("model/urls.js", "NAVIGABLE_SCHEMES")
   end
 
   def test_field_types
@@ -75,7 +78,7 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
   def test_compare_events
     guide = Bali::Engine.root.join("docs/api/bpmn-editor.md").read
 
-    assert_match(/'bali-bpmn:compare': \(event\) => \{ if \(onCompare\) onCompare\(event\.detail\) \}/, ROOT.join("hooks/useHostEvents.js").read)
+    assert_match(/'bali-bpmn:compare': \(event\) => \{ if \(onCompare\) onCompare\(event\.detail\) \}/, ROOT.join("model/hostEvents.js").read)
     assert_match(/requestedComparison \(current, detail, count\)[\s\S]*detail\.index[\s\S]*detail\.mode/, ROOT.join("model/compare.js").read)
     assert_includes guide, "`bali-bpmn:compare` (`{ index, mode }`"
     assert_match(/emit\('compare-change', \{ open: [^,]+, index: [^,]+, mode: [^}]+\}\)/, ROOT.join("BpmnEditor.jsx").read)
@@ -85,7 +88,7 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
   # What the controller keeps before the island listens is what the island handles.
   def test_the_queued_host_events_are_listened_for
     queued = js_list("hostEventQueue.js", "QUEUED_HOST_EVENTS")
-    hook = ROOT.join("hooks/useHostEvents.js").read
+    hook = ROOT.join("model/hostEvents.js").read
 
     assert_equal %w[bali-bpmn:select bali-bpmn:badges bali-bpmn:compare], queued
     queued.each { |name| assert_includes hook, "'#{name}': " }

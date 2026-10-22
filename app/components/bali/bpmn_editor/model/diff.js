@@ -158,10 +158,30 @@ function pairByName (before, after, { beforeLane, afterLane, beforeEdges, afterE
   return pairs
 }
 
+// 'auto' takes a shared id for the same element only when the named elements
+// it pairs mostly keep their names (at least ID_NAME_AGREEMENT of them): ids
+// an editor mints (n_3, e_7, lane_2…) repeat across unrelated documents, and
+// pairing those by id would read as one process with every step renamed. A
+// version with a few renamed steps keeps pairing by id.
+export const ID_NAME_AGREEMENT = 0.5
+function idsAgree (before, after) {
+  const byId = new Map(before.map((n) => [String(n.id), n]))
+  let named = 0
+  let agree = 0
+  for (const a of after) {
+    const b = byId.get(String(a.id))
+    if (!b || !normalizeName(a.name) || !normalizeName(b.name)) continue
+    named++
+    if (normalizeName(a.name) === normalizeName(b.name)) agree++
+  }
+  return named === 0 || agree >= named * ID_NAME_AGREEMENT
+}
+
 export function diffDocuments (baseDoc, currentDoc, { match = 'id' } = {}) {
-  const mode = COMPARE_MATCHES.includes(match) ? match : 'id'
+  const requested = COMPARE_MATCHES.includes(match) ? match : 'id'
   const before = { lanes: baseDoc.lanes || [], nodes: baseDoc.nodes || [], edges: baseDoc.edges || [] }
   const after = { lanes: currentDoc.lanes || [], nodes: currentDoc.nodes || [], edges: currentDoc.edges || [] }
+  const mode = requested === 'auto' && !idsAgree(before.nodes, after.nodes) ? 'name' : requested
   const byId = (list) => (element) => String(element.id)
 
   // Lanes: by id ('id'), by name ('name'), or by id and then by name ('auto').
@@ -221,9 +241,9 @@ export function diffDocuments (baseDoc, currentDoc, { match = 'id' } = {}) {
   // documents are versions of one process (see sameProcess).
   const idShare = nodePairs.size ? pairedById / nodePairs.size : (mode === 'name' ? 0 : 1)
   return {
-    match: mode,
+    match: requested,
     idShare,
-    sameProcess: sameProcess(mode, idShare),
+    sameProcess: sameProcess(requested, idShare),
     // One map per kind, as before `match:`: current ids for added and changed,
     // base ids for removed. When elements pair by name an id may be in both
     // documents for different elements — read `current` and `base` instead.

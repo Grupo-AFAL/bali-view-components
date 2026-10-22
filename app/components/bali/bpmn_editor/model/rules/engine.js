@@ -227,14 +227,17 @@ function interpolate (template, vars) {
 }
 
 // Issues computed by the server (the document's `issues`) next to the
-// client's. Server rules the client also knows are not repeated, and an issue
-// about an element deleted since the last save is gone with it.
-export function mergeIssues (client, server, doc = null) {
-  const seen = new Set(client.map((i) => `${i.rule}:${i.element_id}`))
+// client's. A rule the client runs (`config`, as for `evaluate`) is the
+// client's to report: the server's issues for it describe the document as it
+// was at the last save, and one the user fixed since would keep blocking.
+// Only rules the client does not run (the app's, or one it turned off) come
+// from the server, and an issue about an element deleted since is gone with it.
+export function mergeIssues (client, server, doc = null, config = {}) {
   const exists = doc
     ? new Set([...(doc.nodes || []), ...(doc.edges || []), ...(doc.lanes || [])].map((e) => String(e.id)))
     : null
-  const fromServer = (server || []).filter((i) => !seen.has(`${i.rule}:${i.element_id ?? null}`))
+  const known = new Set([...CATALOG, ...registeredRules()].map((rule) => rule.id).filter((id) => isRuleOn(config, id)))
+  const fromServer = (server || []).filter((i) => !known.has(String(i.rule)))
     .filter((i) => !exists || i.element_id == null || exists.has(String(i.element_id))).map((i) => ({
       rule: String(i.rule), element_id: i.element_id == null ? null : String(i.element_id), severity: i.severity === 'warning' ? 'warning' : 'error', message: i.message || String(i.rule), source: 'server'
     }))

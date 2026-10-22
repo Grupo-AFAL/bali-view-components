@@ -332,13 +332,18 @@ module Bali
       # @param compare_open select { choices: [~, true, side_by_side, overlay] }
       # @param compare_index select { choices: [0, 1, 2, 3] }
       # @param chrome select { choices: [full, minimal] }
-      def compare_flows(locale: :es, compare_open: nil, compare_index: 0, chrome: "full")
+      # `geometry: false` sends every document as an app that stores no
+      # geometry does: lanes with only id, name, kind and order, and the start
+      # and end events in no lane. The editor lays them all out on load.
+      # @param geometry toggle "Lane sizes and the events' lanes in the documents"
+      def compare_flows(locale: :es, compare_open: nil, compare_index: 0, chrome: "full", geometry: true)
         en = locale.to_s == "en"
+        shape = geometry.to_s != "false" ? ->(doc) { doc } : ->(doc) { without_geometry(doc) }
         options = [
-          { document: BpmnProcessMap.customer(locale), label: en ? "Customer onboarding" : "Alta de cliente" },
-          { document: BpmnProcessMap.employee(locale), label: en ? "Employee onboarding" : "Alta de empleado" },
-          { document: BpmnProcessMap.supplier(locale, version: 1), label: en ? "v1 (stable ids)" : "v1 (ids estables)" },
-          { document: BpmnProcessMap.recreated(BpmnProcessMap.supplier(locale, version: 1)),
+          { document: shape.call(BpmnProcessMap.customer(locale)), label: en ? "Customer onboarding" : "Alta de cliente" },
+          { document: shape.call(BpmnProcessMap.employee(locale)), label: en ? "Employee onboarding" : "Alta de empleado" },
+          { document: shape.call(BpmnProcessMap.supplier(locale, version: 1)), label: en ? "v1 (stable ids)" : "v1 (ids estables)" },
+          { document: shape.call(BpmnProcessMap.recreated(BpmnProcessMap.supplier(locale, version: 1))),
             label: en ? "v1 (recreated ids)" : "v1 (ids recreados)" }
         ]
         I18n.with_locale(locale) do
@@ -347,7 +352,7 @@ module Bali
             locals: { locale: locale, options: options, minimal: chrome.to_s == "minimal",
                       open: compare_open_option(compare_open), index: compare_index.to_i,
                       component: Bali::BpmnEditor::Component.new(
-                        data: BpmnProcessMap.supplier(locale), rules: false, id: "compare_flows_bpmn",
+                        data: shape.call(BpmnProcessMap.supplier(locale)), rules: false, id: "compare_flows_bpmn",
                         name: en ? "Supplier onboarding" : "Alta de proveedor", review: { compare_with: options },
                         wheel_zoom: true, chrome: chrome, compare_open: compare_open_option(compare_open),
                         compare_index: compare_index.to_i
@@ -357,6 +362,14 @@ module Bali
       end
 
       private
+
+      def without_geometry(doc)
+        nodes = doc[:nodes].map do |node|
+          node = node.except(:x, :y, :width, :height)
+          %w[start_event end_event].include?(node[:type]) ? node.except(:lane_id) : node
+        end
+        doc.except(:pool).merge(lanes: doc[:lanes].map { |lane| lane.slice(:id, :name, :kind, :order) }, nodes: nodes)
+      end
 
       # The rules the gallery has an example for: every rule of the editor and
       # of the optional rule package (test/fixtures/bpmn_editor/rule_examples.json).

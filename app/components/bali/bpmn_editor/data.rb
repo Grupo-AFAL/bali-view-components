@@ -30,6 +30,14 @@ module Bali
     #     issues: [ { rule: "R11", element_id: "n9", severity: "error", message: "..." } ]
     #   }
     #
+    # Ids are unique across lanes, nodes and edges together: an issue's
+    # `element_id` and an annotation's `target_id` name an element without
+    # saying which kind it is. The island mints `lane_`, `n_` and `e_` ids.
+    #
+    # A `url` (a reference's, a stencil item's, a lane assignee's) is followed
+    # on a click, so it is a path or http(s); `javascript:` and any other
+    # scheme raise.
+    #
     # `appearance` is the app's, like `stencil` and `issues`: what a node looks
     # like (a hex colour, dimmed, a badge of at most BADGE_MAX characters),
     # with no meaning Bali knows. The island draws it — canvas, outputs,
@@ -56,6 +64,8 @@ module Bali
       APPEARANCE_KEYS = %i[color dimmed badge].freeze
       BADGE_MAX = 24
       HEX_COLOR = /\A#(\h{3}|\h{6})\z/
+      # Mirrors NAVIGABLE_SCHEMES in model/urls.js (contract_test.rb).
+      NAVIGABLE_SCHEMES = %w[http https].freeze
 
       def initialize(payload)
         raise InvalidError, "BPMN data must be a Hash, got #{payload.class}" unless payload.is_a?(Hash)
@@ -88,10 +98,12 @@ module Bali
         validate_nodes!
         validate_edges!
         validate_issues!
+        unique_ids!(lanes + nodes + edges, "element (lanes, nodes and edges share their ids)")
         Array(@payload[:annotations]).each { |annotation| require_id!(annotation, "annotation") }
         Array(@payload[:stencil]).each do |item|
           hash!(item, "stencil item")
           hash!(item[:reference], "stencil item reference")
+          navigable_url!(item[:reference], "stencil item #{item[:reference][:id]}: reference")
         end
       end
 
@@ -103,6 +115,7 @@ module Bali
             raise InvalidError, "lane #{lane[:id]}: kind must be one of #{LANE_KINDS.inspect}, got #{kind.inspect}"
           end
           numeric_keys!(lane, %i[order size], "lane #{lane[:id]}")
+          navigable_url!(lane[:assignee], "lane #{lane[:id]}: assignee")
         end
         unique_ids!(lanes, "lane")
       end
@@ -113,6 +126,7 @@ module Bali
           raise InvalidError, "node #{node[:id]} requires a type" if node[:type].blank?
 
           numeric_keys!(node, %i[x y width height], "node #{node[:id]}")
+          navigable_url!(node[:reference], "node #{node[:id]}: reference")
           validate_appearance!(node)
         end
         unique_ids!(nodes, "node")
@@ -168,6 +182,19 @@ module Bali
 
           raise InvalidError, "issue #{issue[:rule]}: severity must be one of #{SEVERITIES.inspect}, got #{severity.inspect}"
         end
+      end
+
+      # What the browser would take as the scheme, as model/urls.js's safeUrl
+      # lets the URL parser decide: it drops tabs and newlines anywhere and
+      # leading control characters and spaces ("java\tscript:").
+      def navigable_url!(holder, context)
+        return unless holder.is_a?(Hash) && holder[:url].present?
+
+        url = holder[:url]
+        scheme = url.to_s.delete("\t\n\r").sub(/\A[\x00-\x20]+/, "")[/\A([a-z][a-z\d+\-.]*):/i, 1] if url.is_a?(String)
+        return if url.is_a?(String) && (scheme.nil? || NAVIGABLE_SCHEMES.include?(scheme.downcase))
+
+        raise InvalidError, "#{context}: url must be a path or #{NAVIGABLE_SCHEMES.join('/')}, got #{url.inspect}"
       end
 
       def hash!(value, context)

@@ -99,9 +99,9 @@ describe('BPMN editor embedded in an app page', () => {
       cy.get('[data-testid="bpmn-split-version"]').select('1')
       cy.wait('@flow').its('request.url').should('include', 'version=1')
       cy.get(`${FLOW} .bali-bpmn-editor`).should('have.id', 'split_flow_payments_v1')
-      // The strings table the page already holds is not sent again.
-      cy.get('@flow').its('request.headers').should('have.property', 'x-bali-bpmn-i18n')
-      cy.get(`${FLOW} script[data-bali-bpmn-i18n]`).should('not.exist')
+      // The frame's response carries its own strings table: it may be served
+      // from a cache to a page that holds none.
+      cy.get(`${FLOW} script[data-bali-bpmn-i18n]`).should('exist')
       cy.get(`${FLOW} button[aria-label="Centrar flujo"]`).should('exist')
     })
 

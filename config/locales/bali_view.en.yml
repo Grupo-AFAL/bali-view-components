@@ -469,6 +469,7 @@ en:
         download_image: "Download image"
         download_svg: "Download SVG"
         print: "Print"
+        export_failed: "The diagram could not be exported. Try again."
         add_lane: "Lane"
         orientation_horizontal: "Horizontal"
         orientation_vertical: "Vertical"

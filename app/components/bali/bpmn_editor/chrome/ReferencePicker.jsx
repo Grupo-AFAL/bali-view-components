@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { remoteSearch, groupBy } from './remoteSearch.js'
 import Icon from './icons.jsx'
+import { safeUrl } from '../model/urls.js'
 
 // Linking a sub-process to an entity of the host (`urls.references`), or a
 // lane to its responsible (`urls.lane_assignees`). "Create new" opens the
@@ -31,7 +32,7 @@ export default function ReferencePicker ({ node, lane, api, t, editable, urls })
   }, [searchUrl, query, group, editable])
 
   const pick = (item) => {
-    const value = { id: String(item.id), label: item.label, url: item.url || null, group: item.group || null }
+    const value = { id: String(item.id), label: item.label, url: safeUrl(item.url), group: item.group || null }
     if (forLane) api.updateLane(lane.id, { assignee: value, name: lane.name || item.label })
     else api.updateNode(node.id, { reference: value, name: item.label })
   }
@@ -43,8 +44,8 @@ export default function ReferencePicker ({ node, lane, api, t, editable, urls })
         ? (
           <div className='flex items-start gap-2 rounded border border-base-300 p-2'>
             <span className='grow text-sm'>{current.label}{current.group && <span className='block text-xs text-base-content/60'>{current.group}</span>}</span>
-            {!forLane && current.url && (
-              <a href={current.url} className='btn btn-ghost btn-xs' data-testid='bpmn-open-reference' onClick={(event) => { if (!api.announceOpenReference(node)) event.preventDefault() }}>
+            {!forLane && safeUrl(current.url) && (
+              <a href={safeUrl(current.url)} className='btn btn-ghost btn-xs' data-testid='bpmn-open-reference' onClick={(event) => { if (!api.announceOpenReference(node)) event.preventDefault() }}>
                 <Icon name='external' size={12} />{t('props_open_reference')}
               </a>
             )}

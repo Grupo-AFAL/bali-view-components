@@ -206,14 +206,18 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal 2, page.all("script[data-bali-bpmn-i18n]", visible: false).size
   end
 
-  def test_a_table_the_page_already_holds_is_left_out
+  # What a response holds depends on no request header but Turbo-Frame: an
+  # HTTP cache (or a back navigation into a new tab) may hand it to a page
+  # that holds no table yet.
+  def test_a_response_writes_its_table_whatever_tables_the_page_holds
     held = I18n.with_locale(:es) { component.i18n_key }
     vc_test_request.headers["Turbo-Frame"] = "detail"
     vc_test_request.headers["X-Bali-Bpmn-I18n"] = "0000000000000000,#{held}"
     I18n.with_locale(:es) { render_inline(component) }
 
     assert_equal held, island["data-bpmn-editor-i18n-key-value"]
-    assert_no_selector("script[data-bali-bpmn-i18n]", visible: false)
+    assert_selector("script[data-bali-bpmn-i18n='#{held}']", visible: false)
+    assert_equal "Elementos", strings_table(held).fetch("palette_title")
   end
 
   def test_the_table_is_json_a_script_cannot_be_closed_from

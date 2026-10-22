@@ -7,6 +7,7 @@ import { categoryOf, nodeSize, CATEGORY } from '../model/catalog.js'
 import { nodeBox } from '../model/geometry.js'
 import { nodeLabelBox, badgeBox, insideLabelBox, badgeTabBox } from '../model/labels.js'
 import { textOn } from '../model/contrast.js'
+import { safeUrl } from '../model/urls.js'
 import { useCanvas } from './CanvasContext.js'
 
 const SIDES = [['top', Position.Top], ['right', Position.Right], ['bottom', Position.Bottom], ['left', Position.Left]]
@@ -96,7 +97,7 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
   const category = categoryOf(node)
   const renaming = canvas.renamingId === id
   const name = node.name || ''
-  const linked = node.type === 'sub_process' && node.reference && node.reference.url
+  const linked = node.type === 'sub_process' && node.reference && safeUrl(node.reference.url)
   const look = appearanceOf(node)
   // Hidden with «Show badges» off (BpmnEditor `badgesVisible`): in the name too.
   const badge = look && canvas.badgesVisible !== false ? look.badge : null

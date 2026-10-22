@@ -1,6 +1,6 @@
 import { test, mock } from 'node:test'
 import assert from 'node:assert/strict'
-import { islandStrings, announceTables, I18N_TABLES_HEADER } from '../../app/components/bali/bpmn_editor/i18n.js'
+import { islandStrings } from '../../app/components/bali/bpmn_editor/i18n.js'
 
 // The tables Component#i18n_table_tag writes, as far as islandStrings reads
 // them: a node answers querySelector for its own scripts and lists its
@@ -50,22 +50,4 @@ test('without the table: the inline fallback, and one warning per key', () => {
 test('no key: the inline table as it was', () => {
   const fallback = { palette_title: 'Inline' }
   assert.equal(islandStrings('', { fallback }), fallback)
-})
-
-test('a Turbo fetch names the tables the page holds, to its own origin only', () => {
-  globalThis.window = { location: { origin: 'https://app.test' } }
-  try {
-    withDocument(node({ scripts: { held: '{}' } }), () => islandStrings('held'))
-    const fetchTo = (href) => ({ detail: { url: new URL(href), fetchOptions: { headers: {} } } })
-
-    const own = fetchTo('https://app.test/flows/1')
-    announceTables(own)
-    assert.match(own.detail.fetchOptions.headers[I18N_TABLES_HEADER], /(^|,)held(,|$)/)
-
-    const other = fetchTo('https://elsewhere.test/flows/1')
-    announceTables(other)
-    assert.deepEqual(other.detail.fetchOptions.headers, {})
-  } finally {
-    delete globalThis.window
-  }
 })

@@ -8,17 +8,20 @@
 // the newer local state is saved next — the server's copy is already older
 // than what is on screen.
 //
-// A reset (409, reload) bumps the revision by exactly one and is itself the
-// saved state. It also starts a new `generation`: an answer to a request sent
+// A reset (409, reload) is itself the saved state: `onReset` applies it at
+// once, so `latest()` already carries the reset's revision. It also starts a
+// new `generation`: an answer to a request sent
 // before the reset is ignored, or a late 200 would roll the version and the
 // saved revision back to the document the reset just replaced.
 //
 // Requests are serialized: one save or finalize at a time, each carrying the
-// version the previous answer gave. The version is tracked apart from the
+// version the previous answer gave. A save asked for meanwhile is sent after
+// whichever of the two is in flight. The version is tracked apart from the
 // document, so undoing to an older document never sends an older version.
 //
 // `deps`: { client: { save, fetch, finalize } (saveClient.js), urls, latest ()
-// → { doc, revision }, onAdopt (doc, { replace }), onReset (doc), onEvent
+// → { doc, revision } (the latest committed state, ahead of any render: the
+// decisions below are taken on it), onAdopt (doc, { replace }), onReset (doc), onEvent
 // (name, detail), notify (text, tone), t, setStatus (status), prepare (body →
 // doc: normalize), forSave (doc → body), defer (fn: run it after this tick) }.
 export function createSaver (deps, { version = null, revision = 0 } = {}) {
@@ -33,7 +36,14 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
     generation++
     versionNow = fresh.version ?? null
     d.onReset(d.prepare(fresh))
-    savedRevision = d.latest().revision + 1
+    savedRevision = d.latest().revision
+  }
+
+  // The save asked for while a request was in flight, now that it is not.
+  const drain = () => {
+    if (!queued) return
+    queued = false
+    d.defer(() => { save() })
   }
 
   const reloadAfterConflict = async () => {
@@ -80,10 +90,7 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
       return await pending
     } finally {
       pending = null
-      if (queued) {
-        queued = false
-        d.defer(() => { save() })
-      }
+      drain()
     }
   }
 
@@ -102,8 +109,11 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
       if (gen !== generation) return { ok: false }
       versionNow = body.version ?? versionNow
       savedRevision = currentRevision
-      d.onAdopt(d.prepare(body), { replace: d.latest().revision === currentRevision })
-      d.setStatus('finalized')
+      // Edited while the POST ran: what was finalized is not what is on
+      // screen, and that change is still to be saved.
+      const unchanged = d.latest().revision === currentRevision
+      d.onAdopt(d.prepare(body), { replace: unchanged })
+      d.setStatus(unchanged ? 'finalized' : 'dirty')
       d.onEvent('finalized', { document: body })
       return { ok: true }
     } catch (error) {
@@ -118,6 +128,7 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
       return { ok: false }
     } finally {
       pending = null
+      drain()
     }
   }
 

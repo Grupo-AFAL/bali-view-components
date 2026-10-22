@@ -18,6 +18,13 @@ import { Controller } from '@hotwired/stimulus'
 // Events, on the container: `split-view:open` and `split-view:close`.
 const MOTION_MS = 300
 const FOCUSABLE = 'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+// Where Esc already means something: an open dialog or menu closes, a field
+// or a listbox lets go of its own text or list.
+const OWNS_ESCAPE = [
+  'dialog[open]', '[role="dialog"]', '[role="menu"]', '[role="listbox"]', '[role="combobox"]',
+  'textarea', 'select', '[contenteditable]:not([contenteditable="false"])',
+  'input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"])'
+].join(', ')
 
 export class SplitViewCollapseController extends Controller {
   static targets = ['pane', 'frame', 'loading', 'error']
@@ -26,11 +33,13 @@ export class SplitViewCollapseController extends Controller {
     this.opener = null
     this.onKey = (event) => {
       if (event.key !== 'Escape' || event.defaultPrevented || !this.isOpen) return
-      // An open dialog or menu owns its own Escape.
-      if (event.target.closest && event.target.closest('dialog[open], [role="dialog"], [role="menu"]')) return
+      if (event.target.closest && event.target.closest(OWNS_ESCAPE)) return
       this.close()
     }
-    document.addEventListener('keydown', this.onKey)
+    // On window, after every listener on document: a widget mounted after
+    // this controller (the BPMN editor) listens there too, and on document it
+    // would run after this one, too late for its preventDefault to count.
+    window.addEventListener('keydown', this.onKey)
     // What a click opened the detail from: the focusable element around the
     // pointer (a row, a diagram node), which a click does not always focus.
     this.onPointer = (event) => {
@@ -54,7 +63,7 @@ export class SplitViewCollapseController extends Controller {
   }
 
   disconnect () {
-    document.removeEventListener('keydown', this.onKey)
+    window.removeEventListener('keydown', this.onKey)
     this.element.removeEventListener('pointerdown', this.onPointer, true)
     for (const [name, handler] of Object.entries(this.frameEvents)) this.frameTarget.removeEventListener(name, handler)
     this.observer.disconnect()

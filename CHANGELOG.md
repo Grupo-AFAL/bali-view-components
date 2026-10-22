@@ -62,12 +62,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     con un lienzo de menos de 40rem las barras quedan en íconos y se apilan, el minimapa se quita y
     el aviso de «Conectar» se acomoda; el menú rápido va debajo del elemento cuando no cabe a ningún
     lado.
+  - **Contrato del documento:** `Data` rechaza (`InvalidError`, 422 al guardar) un `url` de
+    `reference`, del `stencil` o del `assignee` de un carril que no sea una ruta o `http(s)`, y un
+    mismo id en un carril, un nodo y una conexión (los ids son únicos entre los tres); el editor
+    tampoco enlaza ni sigue un `url` así. Un issue del servidor para una regla que el cliente corre
+    se descarta: el cliente la revalida.
+  - **Guardado y eventos:** un cambio hecho mientras corre «Finalizar» se guarda al terminar (antes
+    se quedaba sin enviar con la barra en «Finalizado»); un cambio que llega mientras se responde un
+    guardado (un `reference-created`) ya no se pierde, y un 409 con un guardado en cola ya no
+    reenvía el documento local sobre el del servidor. Un documento del servidor sin coordenadas
+    (200, 409, recarga, cada `compare_with:`) se acomoda con el `layout:` y `page:` del
+    componente, como el documento propio al cargar (antes la comparación usaba el acomodo recto).
+    `bali-bpmn:ready` se emite después de aplicar los `select`/`badges`/`compare` en cola, así que
+    lo que la app envía al oírlo gana. `lane-assignee-created` conserva el nombre que el carril ya
+    tenía, como al elegir el responsable en la búsqueda.
 
 - **`Bali::SplitView` toma `collapsible: true`: el detalle entra deslizándose y se cierra.** Sin
   detalle, el maestro ocupa todo el ancho; cuando el frame recibe contenido (una carga de Turbo
   Frame o lo que la app ponga en él), el maestro se encoge a `master_width` y el detalle entra por
   la derecha (300 ms) con el foco en su encabezado; su contenido se acomoda desde el primer cuadro a
-  su ancho final (un diagrama se encuadra una sola vez). «Cerrar» o Esc lo sacan, vacían el frame (y su
+  su ancho final (un diagrama se encuadra una sola vez). «Cerrar» o Esc lo sacan (Esc no, si lo toma
+  un campo de texto, una lista abierta o un componente que llamó `preventDefault`), vacían el frame (y su
   `src`), quitan el resaltado de la fila y regresan el foco a ella; bajo `lg` el detalle es una hoja
   a pantalla completa con «← Volver». Sin animación con `prefers-reduced-motion`. El contenedor
   emite `split-view:open` y `split-view:close`. Preview nueva: `split_view/collapsible`.
@@ -154,9 +169,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::BpmnEditor`: la tabla de textos viaja una vez por render, no una vez por editor.** El
   primer editor del render la escribe en un `<script type="application/json"
   data-bali-bpmn-i18n="<clave>">` y cada editor lleva solo la clave
-  (`data-bpmn-editor-i18n-key-value`); la isla la lee una vez y la guarda para toda la página. Cada
-  petición de Turbo dice qué tablas ya tiene la página (cabecera `X-Bali-Bpmn-I18n`) y la respuesta
-  las omite. La preview «Split view» pasó de 611 KB a 69 KB de HTML, y cada detalle pedido pesa 9 KB.
+  (`data-bpmn-editor-i18n-key-value`); la isla la lee una vez y la guarda para toda la página. Una
+  respuesta de Turbo Frame la escribe siempre: no depende de qué tablas ya tenga la página, porque una
+  caché HTTP o un «atrás» en una pestaña nueva puede entregarla a una página sin ninguna. La preview
+  «Split view» pasó de 611 KB a 69 KB de HTML; cada detalle pedido pesa 80 KB (16 KB con gzip).
   - **Anfitrión:** nada que hacer. `i18n:` sigue igual (otra tabla, otra clave). Una prueba que leía
     `data-bpmn-editor-i18n-value` lee ahora el `<script>` que nombra la clave; ese atributo se sigue
     leyendo si un elemento no trae clave. Sin la tabla, la isla usa los textos en inglés y avisa una

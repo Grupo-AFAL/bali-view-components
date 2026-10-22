@@ -64,6 +64,17 @@ class AdminBpmnDiagramTest < ActionDispatch::IntegrationTest
     assert_match(/requires a type/, response.parsed_body["errors"].first)
   end
 
+  def test_put_with_a_javascript_url_is_unprocessable_and_not_saved
+    doc = document_with("Validate invoice")
+    doc[:nodes] << { id: "sp", type: "sub_process", lane_id: "l2", name: "Linked", x: 700, y: 300,
+                     reference: { id: "1", label: "Linked", url: "javascript:alert(document.cookie)" } }
+    put diagram_path, params: { diagram: doc, version: 1 }, as: :json
+
+    assert_response :unprocessable_entity
+    assert_match(/node sp: reference: url must be a path or http/, response.parsed_body["errors"].first)
+    assert_equal 1, @flow.reload.version
+  end
+
   def test_finalize_refuses_while_a_server_rule_raises_an_error
     doc = document_with("Validate invoice")
     doc[:nodes] << { id: "sp", type: "sub_process", lane_id: "l2", name: "Gone",

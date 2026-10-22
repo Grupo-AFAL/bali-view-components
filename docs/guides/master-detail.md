@@ -746,7 +746,11 @@ one item at a time, the detail need not take its column until there is one:
   heading, else its first focusable element.
 - **«Close» or Esc** slide it out, empty the frame (its `src` too, so a Turbo
   restore does not reload it), clear the row's highlight and return focus to
-  the row that opened it. Esc inside an open dialog or menu is left to it.
+  the row that opened it. Esc is left alone inside an open dialog or menu, a
+  text field, a `<select>`, an editable region or a listbox/combobox (an open
+  SlimSelect), and when a widget already took it (`event.preventDefault()`, on
+  the element or on `document`; the BPMN editor does when Esc cancels Connect
+  or clears its selection).
 - **Below `lg`** the detail is a full-screen sheet over the master, with
   «← Back» instead of «Close».
 - **Reduced motion**: the same states, no animation.

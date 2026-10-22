@@ -466,6 +466,7 @@ es:
         download_image: "Descargar imagen"
         download_svg: "Descargar SVG"
         print: "Imprimir"
+        export_failed: "No se pudo exportar el diagrama. Intenta de nuevo."
         add_lane: "Carril"
         orientation_horizontal: "Horizontal"
         orientation_vertical: "Vertical"

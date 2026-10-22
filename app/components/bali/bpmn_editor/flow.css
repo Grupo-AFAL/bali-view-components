@@ -134,6 +134,9 @@
   background: var(--bpmn-badge, var(--color-base-200)); color: var(--bpmn-badge-text, var(--color-base-content));
   border: 1px solid var(--bpmn-badge, var(--color-base-300));
 }
+/* A multi-select chip's checkbox is visually hidden (sr-only, still in the tab
+ * order): its focus is drawn on the chip. */
+.bpmn-chip:has(> input:focus-visible) { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .bpmn-node:focus-visible { outline: 2px solid var(--bpmn-select); outline-offset: 5px; border-radius: 8px; }
 /* Selected while reading (`selected_id:`, a click, `bali-bpmn:select`): the
  * app's choice, not an edit — solid and haloed, with no handles or menu. */

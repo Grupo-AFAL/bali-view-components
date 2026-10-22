@@ -191,6 +191,15 @@ test('a server issue about an element deleted since is dropped', () => {
   assert.deepEqual(merged.map((i) => i.rule), ['APP3', 'APP4'])
 })
 
+test('a server issue for a rule the client runs goes once the client stops reporting it', () => {
+  // The 422 said R01 on t1; the user fixed t1, so the client reports nothing.
+  const server = [{ rule: 'R01', element_id: 't1', severity: 'error' }, { rule: 'APP9', element_id: 't1', severity: 'error' }]
+  assert.deepEqual(mergeIssues([], server, clean(), {}).map((i) => i.rule), ['APP9'])
+  // A rule the client does not run stays the server's.
+  assert.deepEqual(mergeIssues([], server, clean(), { disabled: ['R01'] }).map((i) => i.rule), ['R01', 'APP9'])
+  assert.deepEqual(mergeIssues([], server, clean(), false).map((i) => i.rule), ['R01', 'APP9'])
+})
+
 test('issuesByElement keeps the worst severity per element', () => {
   const map = issuesByElement([{ element_id: 'a', severity: 'warning' }, { element_id: 'a', severity: 'error' }, { element_id: 'b', severity: 'warning' }, { element_id: null, severity: 'error' }])
   assert.deepEqual([...map.entries()], [['a', 'error'], ['b', 'warning']])

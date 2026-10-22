@@ -32,6 +32,7 @@ export const DEFAULT_I18N = {
   download_image: 'Download image',
   download_svg: 'Download SVG',
   print: 'Print',
+  export_failed: 'The diagram could not be exported. Try again.',
   add_lane: 'Lane',
   orientation_horizontal: 'Horizontal',
   orientation_vertical: 'Vertical',
@@ -648,24 +649,9 @@ export const DEFAULT_I18N = {
 // The tables the server wrote once per render (Component#i18n_table_tag:
 // <script type="application/json" data-bali-bpmn-i18n="<key>">), by key.
 // Module scope: a table read once serves every later editor that names it — one
-// in a Turbo Stream, a <template> clone, a frame whose response had no table
-// because the page already had it.
+// in a Turbo Stream, a <template> clone, a frame whose table was replaced.
 const tables = new Map()
 const missing = new Set()
-
-// The keys this page already holds travel with every Turbo fetch (a frame, a
-// stream, a visit), so the response leaves those tables out
-// (Component#write_i18n_table?, which names this header too). Same origin only:
-// a custom header makes a cross-origin fetch send a CORS preflight.
-export const I18N_TABLES_HEADER = 'X-Bali-Bpmn-I18n'
-
-export function announceTables (event) {
-  const { url, fetchOptions } = event.detail || {}
-  if (!tables.size || !fetchOptions?.headers || url?.origin !== window.location.origin) return
-  fetchOptions.headers[I18N_TABLES_HEADER] = [...tables.keys()].join(',')
-}
-
-if (typeof document !== 'undefined') document.addEventListener('turbo:before-fetch-request', announceTables)
 
 const tableSelector = (key) => `script[type="application/json"][data-bali-bpmn-i18n="${key}"]`
 

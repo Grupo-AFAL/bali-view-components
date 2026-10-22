@@ -28,8 +28,9 @@ function harness ({ version = 1, urls = { save: '/s', diagram: '/d', finalize: '
     urls,
     latest: () => state,
     onAdopt: (doc, options) => log.adopted.push({ doc, ...options }),
-    // React applies the reset on its next render, after the saver returns.
-    onReset: (doc) => { log.reset.push(doc); queueMicrotask(() => { state.doc = doc; state.revision++ }) },
+    // The editor's store takes the reset at once, ahead of React's render:
+    // `latest()` already carries it when onReset returns.
+    onReset: (doc) => { log.reset.push(doc); state.doc = doc; state.revision++ },
     onEvent: (name) => log.events.push(name),
     notify: (text, tone) => log.notices.push(tone),
     t: (key) => key,
@@ -90,6 +91,25 @@ test('a save asked for while one is in flight is queued and sent after it, one r
   assert.equal(h.calls.save[1].version, 2)
 })
 
+// The scenario: a 409 while the person kept editing, so a save is queued.
+// That save must not send the local document, with the version the reload
+// brought, over the concurrent change the 409 protected.
+test('a save queued behind a 409 sends nothing: the reloaded document is the saved one', async () => {
+  const h = harness()
+  h.edit()
+  const saving = h.saver.save()
+  h.edit()
+  h.saver.save()
+  h.calls.save[0].reject(conflict())
+  await h.tick()
+  h.calls.fetch[0].resolve({ version: 7, nodes: ['theirs'] })
+  await saving
+  assert.equal(h.deferredRuns.length, 1)
+  await h.deferredRuns[0]()
+  assert.equal(h.calls.save.length, 1, 'no second PUT')
+  assert.equal(h.saver.isDirty(h.state.revision), false)
+})
+
 test('a 409 on save reloads the server document as the new saved state', async () => {
   const h = harness()
   h.edit()
@@ -130,6 +150,24 @@ test('finalize waits for the save in flight, then posts with the version that sa
   h.calls.finalize[0].resolve({ version: 3 })
   assert.deepEqual(await finalizing, { ok: true })
   assert.equal(h.log.statuses.at(-1), 'finalized')
+})
+
+// The scenario: «Finalize», then a rename while the POST runs; its debounce
+// asks for a save, which waits for the finalize and is then sent.
+test('a save asked for while finalize is in flight is sent after it, and the status says it is pending', async () => {
+  const h = harness()
+  const finalizing = h.saver.finalize()
+  h.edit()
+  h.saver.save()
+  assert.equal(h.calls.save.length, 0, 'not while the finalize is in flight')
+  h.calls.finalize[0].resolve({ version: 3 })
+  assert.deepEqual(await finalizing, { ok: true })
+  assert.equal(h.log.adopted.at(-1).replace, false, 'the edit stays on screen')
+  assert.equal(h.log.statuses.at(-1), 'dirty', 'not «finalized» with a change unsaved')
+  assert.equal(h.deferredRuns.length, 1, 'the queued save runs after the finalize')
+  h.deferredRuns[0]()
+  assert.equal(h.calls.save.length, 1)
+  assert.equal(h.calls.save[0].version, 3)
 })
 
 test('a finalize the server refuses still moves the version on and hands back its issues', async () => {

@@ -137,10 +137,12 @@ carries only that key (`data-bpmn-editor-i18n-key-value`), and the island reads
 the table once and keeps it for the rest of the page's life. A host's `i18n:`
 is another table with its own key.
 
-- **Turbo**: every Turbo fetch (a frame, a stream, a visit) tells the server
-  which tables the page holds in the `X-Bali-Bpmn-I18n` header, and the
-  response leaves them out. A Turbo Frame request without it writes the table
-  in each editor, since Turbo keeps only the frame's part of the response.
+- **Turbo**: a Turbo Frame response writes the table in each editor, since
+  Turbo keeps only the frame's part of the response. The response never
+  depends on which tables the requesting page already holds: an HTTP cache, or
+  a back navigation into a fresh tab, may hand it to a page that holds none.
+  A lazily loaded detail carries the table each time (some 58 KB, 14 KB
+  gzipped).
 - **A table that never arrives** (HTML cut out of a response by hand, say):
   the island shows the English defaults and warns once in the console.
 - **Inline**: `data-bpmn-editor-i18n-value`, the whole table as JSON, is still
@@ -194,7 +196,10 @@ is another table with its own key.
 - **A type the island does not know is kept**: drawn as a dashed box and saved
   back untouched.
 - **A document without coordinates is laid out on load** (the same layout as the
-  toolbar's "Tidy up").
+  toolbar's "Tidy up", with the component's `layout:` and `page:`) — and so is one
+  the server answers with, and each `compare_with:` document. Lanes need only `id`,
+  `name`, `kind` and `order`; a node without `lane_id` (a start or end event, say)
+  is laid out in the first lane.
 - **`stencil`** is the app's list of entities to place; **`issues`** are pending
   issues the server computed. Both are written by the server and never saved back.
 - **`appearance`** is how the app wants a node to look, with no meaning the editor
@@ -211,7 +216,13 @@ is another table with its own key.
   reword, since what fading means is the app's).
 
 `Data` raises `InvalidError` on structural problems (no id, duplicate ids, unknown
-orientation, a coordinate that is not a number, an unknown edge type or port). It
+orientation, a coordinate that is not a number, an unknown edge type or port) and on a
+`url` (`reference`, a stencil item's `reference`, a lane's `assignee`) that is not a path
+or `http(s)` — a `javascript:` URL would run on the click that follows it; the editor
+neither links nor follows one either. Ids are unique across lanes, nodes and edges
+together, not only within each list: an issue's `element_id` and a note's `target_id`
+do not say which kind of element they name (the editor mints `lane_`, `n_` and `e_`
+ids). It
 does **not** raise on dangling references — an edge to a missing node, a node in a
 missing lane — because those are modelling problems the editor lists as pending
 issues (R25, R26), and an imported document has to open to be fixed.
@@ -463,6 +474,11 @@ registerBpmnRule({
 })
 ```
 
+The client answers for every rule it runs: a server issue for one of those (`R01`
+in a `422`) is dropped, since the client re-checks the document as it is now. Server
+issues for rules the client does not run — the app's own, or one `rules:` turns off —
+stay until the next answer.
+
 ---
 
 ## Fields
@@ -531,7 +547,7 @@ Dispatched on the component element, bubbling:
 
 | Event | `detail` |
 |---|---|
-| `bali-bpmn:ready` | `{}` — once, when the island has mounted and listens for the events below |
+| `bali-bpmn:ready` | `{}` — once, when the island has mounted, listens for the events below and has applied the ones it kept (see below) |
 | `bali-bpmn:dirty-change` | `{ dirty }` — mark a tab, warn before leaving |
 | `bali-bpmn:saved` | `{ document }` |
 | `bali-bpmn:finalized` | `{ document }` |
@@ -553,7 +569,8 @@ mode is dropped. `compare-change` answers with what is drawn). Like the others, 
 dispatched on the component element. `bali_bpmn_event("compare", target:, index: 1, mode: "overlay")`
 sends it from a Turbo Stream. `select`, `badges` and `compare` sent after the editor's
 controller connected but before the island listens (its bundle still loading, or the moment
-after its first paint) are kept and applied, in order, once it does; one sent before the
+after its first paint) are kept and applied, in order, once it does, and only then is `ready`
+emitted — what the app sends on hearing it comes after them; one sent before the
 controller connected is lost — wait for `bali-bpmn:ready`, or say it on load with
 `selected_id:`, `badges:` or `compare_open:`.
 
@@ -661,7 +678,9 @@ report, and the app to decide:
 - **Keyboard**: Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z), Ctrl+A, Delete/Backspace, Esc,
   arrows move the selection (10 px a press, Shift for 1 px; a run of presses is one undo
   step, and the local arrangement runs when the key goes up — a Shift nudge keeps its pixel).
-  Shortcuts reach the editor last touched.
+  Shortcuts reach the editor last touched. Esc that cancels Connect or placing, a rename or a
+  selection calls `preventDefault()`, so a page-level Esc (a `Bali::SplitView` detail) waits
+  for the next one; with nothing to let go of, it passes through.
 - **Wheel**: zooms an editable canvas. Over a read-only diagram it scrolls the page, as
   anywhere else on it; the zoom bar and a pinch still zoom.
 - **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
@@ -790,7 +809,9 @@ wider than a column empty).
   their elements is `match:`:
   - `:auto` (default) — by id first, then what id left unpaired by name, with the rules of
     `:name` below. A version whose ids the app recreated (a destructive import) still
-    pairs; two different processes pair by name.
+    pairs; two different processes pair by name. Ids are trusted only while at least half
+    of the named elements they pair keep their name (`ID_NAME_AGREEMENT`): two documents
+    made in the editor share `n_3`, `n_4`… without being related, and then pair as `:name`.
   - `:id` — two versions of **one** document, whose ids are stable across saves. A renamed
     task is *changed*.
   - `:name` — two **different** documents that share steps ("Supplier onboarding"

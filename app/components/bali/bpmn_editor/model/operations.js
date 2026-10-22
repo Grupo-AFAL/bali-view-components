@@ -332,8 +332,7 @@ export function deleteElements (doc, { nodeIds = [], edgeIds = [], laneIds = [] 
   let next = {
     ...doc,
     nodes: doc.nodes.filter((n) => !nodes.has(String(n.id))),
-    edges: doc.edges.filter((e) => !edges.has(String(e.id)) && !nodes.has(String(e.source)) && !nodes.has(String(e.target))),
-    annotations: (doc.annotations || []).filter((a) => !nodes.has(String(a.target_id)) && !edges.has(String(a.target_id)))
+    edges: doc.edges.filter((e) => !edges.has(String(e.id)) && !nodes.has(String(e.source)) && !nodes.has(String(e.target)))
   }
   // Removing a lane closes its gap: the lanes after it move back.
   for (const laneId of lanes) {
@@ -349,6 +348,13 @@ export function deleteElements (doc, { nodeIds = [], edgeIds = [], laneIds = [] 
       edges: clearWaypointsOf(next.edges, moved)
     }
   }
+  // A note goes with its element, also with a connection that went with its
+  // node and with a lane; one about something else the document never had
+  // is the host's and stays.
+  const ids = (d) => new Set([...d.lanes, ...d.nodes, ...d.edges].map((e) => String(e.id)))
+  const before = ids(doc)
+  const after = ids(next)
+  next.annotations = (doc.annotations || []).filter((a) => !before.has(String(a.target_id)) || after.has(String(a.target_id)))
   return { doc: next }
 }
 
