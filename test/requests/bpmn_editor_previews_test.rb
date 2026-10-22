@@ -263,4 +263,37 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     stable, recreated = list.last(2).map { |c| c["document"]["nodes"].pluck("id") }
     assert_empty stable & recreated, "the recreated version shares no id"
   end
+
+  # The flow on the right compares from the app's own menu, and opens comparing with `compare_open`.
+  def test_the_split_view_detail_compares_against_its_previous_version_and_the_other_flows
+    get "#{PREVIEW}/split_view", params: { compare_open: "true" }
+    url = css_select("[data-controller='bpmn-split-view']").first["data-bpmn-split-view-url-value"]
+    assert_equal "/bpmn_flows/BOX?compare=true&filled=1&locale=es", url
+
+    get "/bpmn_flows/b3", params: { locale: "es", compare: "true" }
+    editor = css_select("[data-testid='bpmn-split-flow'] [data-controller='bpmn-editor']").first
+    labels = JSON.parse(editor["data-bpmn-editor-review-value"])["compare_with"].pluck("label")
+    assert_equal [ "Versión 1", "Alta de cliente", "Facturación", "Pago a proveedores", "Cierre contable" ], labels
+    assert_equal "true", editor["data-bpmn-editor-compare-open-value"]
+    assert_select "[data-controller='bpmn-compare-menu'] [data-testid='bpmn-compare-menu-option'] option", labels.size + 1
+    assert_select "[data-testid='bpmn-compare-menu-option'] option[selected][value='0']"
+
+    get "/bpmn_flows/b3", params: { locale: "es" }
+    assert_nil css_select("[data-testid='bpmn-split-flow'] [data-controller='bpmn-editor']").first["data-bpmn-editor-compare-open-value"]
+    assert_select "[data-testid='bpmn-compare-menu-option'] option[selected][value='']"
+  end
+
+  def test_compare_flows_opens_comparing_with_the_minimal_chrome_and_the_apps_menu
+    get "#{PREVIEW}/compare_flows", params: { chrome: "minimal", compare_open: "overlay", compare_index: "2" }
+
+    assert_response :ok
+    assert_equal "overlay", island["data-bpmn-editor-compare-open-value"]
+    assert_equal "2", island["data-bpmn-editor-compare-index-value"]
+    assert_equal "minimal", island["data-bpmn-editor-chrome-value"]
+    assert_select "[data-controller='bpmn-compare-menu'] [data-testid='bpmn-compare-menu-view'] option[selected][value='overlay']"
+
+    get "#{PREVIEW}/compare_flows"
+    assert_nil island["data-bpmn-editor-compare-open-value"]
+    assert_select "[data-controller='bpmn-compare-menu']", 0
+  end
 end

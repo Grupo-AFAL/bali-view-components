@@ -111,6 +111,8 @@ authorize every endpoint on the server anyway.
 | `name:` | `nil` | Title of the image and print outputs, the file names, the main participant of the `.bpmn` |
 | `watermark:` | `nil` | Text across the image and print outputs, e.g. `"Borrador"` |
 | `review:` | `{}` | `{ tags: [{ key:, label:, color: }], compare_with: { document:, label:, match: } }`: the tags of the review notes and another document to compare against, paired `match: :id` (default) or `:name` — see [Outputs, notes and comparison](#outputs-notes-and-comparison) |
+| `compare_open:` | `false` | Opens on load comparing against `review: { compare_with: }` — `true` (side by side, the comparison's default view), `:side_by_side` or `:overlay`. The overlay is offered only for versions of one process; asked for two different processes, the comparison opens side by side, and `bali-bpmn:compare-change` reports `mode: "side_by_side"`. Needs `compare_with:` (ArgumentError otherwise). For a `chrome: :minimal` editor, which has no «Compare» button: the app opens it with this or with `bali-bpmn:compare` — see [Embedding a diagram](#embedding-a-diagram) |
+| `compare_index:` | `0` | Which comparison of `compare_with:` is picked on load (with `compare_open:`, or for «Compare»). An index outside the list raises ArgumentError |
 | `selected_id:` | `nil` | The node shown selected on load — read-only too. The app moves it later with `bali-bpmn:select` — see [Embedding a diagram](#embedding-a-diagram) |
 | `chrome:` | `:full` | `:minimal`: only the zoom controls and "Center the flow" — no top bar, toolbars, palette, minimap or help line, the legend folded — and the editor takes its container's height and fits again when that changes. For read-only diagrams: with `editable:` it raises. Anything else raises |
 | `min_zoom:` | `0.4` | The floor of "Center the flow" and of the first view, `0.05..1`. Below it a large diagram scrolls instead of shrinking; a small embedded one may rather be whole (e.g. `0.2`) |
@@ -534,6 +536,7 @@ Dispatched on the component element, bubbling:
 | `bali-bpmn:finalized` | `{ document }` |
 | `bali-bpmn:open-reference` | `{ node_id, reference }` — cancelable |
 | `bali-bpmn:badges-change` | `{ visible }` — the person switched «Show badges» |
+| `bali-bpmn:compare-change` | `{ open, index, mode }` — the comparison opened, switched to another of `compare_with:` (`index`) or to another view (`mode`: `"side_by_side"` or `"overlay"`, the one drawn), or closed (`{ open: false, index, mode: null }`) — by the person («Compare», the comparison bar's picker, its views, its «×») or by `compare_open:` and `bali-bpmn:compare`. Nothing on load unless it opens there |
 | `bali-bpmn:selection-change` | `{ node_id, reference, type, lane_id, lane_name }` — the person picked a node (a click, or Enter / Space on a focused node): its id, its `reference` (or `null`), its element type and its lane (`null`s outside one). `{ node_id: null, reference: null }` when they cleared it (a click on the empty canvas, Escape) |
 
 Listened for: `bali-bpmn:reload`, `bali-bpmn:reference-created`
@@ -541,7 +544,13 @@ Listened for: `bali-bpmn:reload`, `bali-bpmn:reference-created`
 (`{ client_lane_id, assignee }`), `bali-bpmn:select` (`{ node_id }`, `null` to clear —
 the node is selected and brought into view if it is not; it is not echoed back as a
 `selection-change`), `bali-bpmn:badges` (`{ visible }` — shows or hides the badges, with
-no `badges-change` back). Like the others, only when dispatched on the component element.
+no `badges-change` back), `bali-bpmn:compare` (`{ index, mode }` — opens the comparison
+against `compare_with[index]` in `mode` (`"side_by_side"`, `"overlay"` or `true` for the default
+view), switches either of them while it is open, or closes it with `{ mode: null }`; an omitted
+`index` or `mode` keeps the current one. A detail naming an index outside the list or an unknown
+mode is dropped. `compare-change` answers with what is drawn). Like the others, only when
+dispatched on the component element. `bali_bpmn_event("compare", target:, index: 1, mode: "overlay")`
+sends it from a Turbo Stream.
 
 Several flows in tabs: render one editor per `Bali::Tabs` panel, each with its own
 `id:`, and listen for `dirty-change` on each. Leaving with unsaved changes: a full page
@@ -581,6 +590,14 @@ report, and the app to decide:
 - **Minimal chrome**: the container gives the height; the editor fills it and fits again
   on every frame its size changes (no easing of its own, so an animated container never
   leaves it cut off). The page still scrolls over a read-only diagram: the wheel does not zoom it.
+- **Comparing from the app's own menu**: a `chrome: :minimal` editor has no «Compare» button.
+  With `review: { compare_with: [...] }` the app opens the comparison on load
+  (`compare_open: true`, `compare_index:`) or later from its own menu, dispatching
+  `bali-bpmn:compare` `{ index, mode }` on the editor (`{ mode: null }` closes it), and keeps
+  that menu in step with `bali-bpmn:compare-change` — which also says when the person closed
+  it with «×» or picked another option in the comparison bar. The comparison fills the
+  container like the diagram, with its bar (views, the list of changes, «×»), and follows
+  `badges:`, the badge switch and `wheel_zoom:`.
 - **Swapping the document**: the app renders another editor — a Turbo Frame (the preview's
   own Stimulus controller points the frame's `src` at the flow's URL), or a `<template>` per
   document cloned into place.
@@ -756,7 +773,7 @@ wider than a column empty).
   `review: { tags: }`, edited in the properties panel and saved in `annotations`.
 - **Comparison**: with `review: { compare_with: }` — one comparison, or a **list** the
   comparison bar offers to pick from (`[{ document:, label:, match: }, …]`) — "Compare"
-  shows what was added (green), removed (red) and changed (amber). It opens **side by
+  (or the app: `compare_open:`, `bali-bpmn:compare`) shows what was added (green), removed (red) and changed (amber). It opens **side by
   side**, the two panes' zoom and panning kept together («Sync», on by default); pointing
   at an element highlights its counterpart in the other pane (a step moved to another lane
   shows where it was and where it is); «Only changes» fades what did not change. The
@@ -840,8 +857,8 @@ is the maintainers' call, not a default here.
 |---|---|
 | `bali/bpmn_editor/playground` | The whole editor against the dummy's endpoints, every option a parameter: `sample` (invoice, empty, rework, parallel, partners, large), `orientation`, `palette`, `layout`, `page` (Letter, A4, Legal × landscape, portrait), `lock_orientation`, `external_lanes`, `autosave`, `optional_rules`, `rule_severity` (default, strict, relaxed: `rules:` with `enabled:`, `disabled:`, `severities:`, `messages:` and `options:`; structure: `rules: :structure`; off: `rules: false`), `server`, `theme`, `locale`, `name`, `watermark`, `fresh`. Each sample keeps its own record; `fresh` puts it back on every visit |
 | `bali/bpmn_editor/default` | Read-only viewer: no `editable:`, no `urls:`. `appearance` on: the app's colours, fading and badges on four elements, explained in the legend and carried into the outputs |
-| `bali/bpmn_editor/split_view` | The «50/50» pattern in a collapsible `Bali::SplitView`: a map of processes in vertical lanes (`appearance:`, `chrome: :minimal`, `rules: :structure`, a colour legend), alone until a box is clicked, and then, sliding in beside it, the read-only flow behind that box (`chrome: :minimal`, `annotatable:`); «Close» or Esc return to the map. `?selected=b3` is a deep link (`selected_id:`, opened on load). The dummy's own Stimulus controller listens to `selection-change` (and shows the box's lane from it), takes `open-reference` over, swaps the right-hand editor and drives "Previous" / "Next" with `bali-bpmn:select`; a version picker swaps the document too |
-| `bali/bpmn_editor/compare_flows` | "Supplier onboarding" against "Customer onboarding" or "Employee onboarding" (`match: :name`) or its own previous version (`match: :id`), picked from links above the editor |
+| `bali/bpmn_editor/split_view` | The «50/50» pattern in a collapsible `Bali::SplitView`: a map of processes in vertical lanes (`appearance:`, `chrome: :minimal`, `rules: :structure`, a colour legend), alone until a box is clicked, and then, sliding in beside it, the read-only flow behind that box (`chrome: :minimal`, `annotatable:`); «Close» or Esc return to the map. `?selected=b3` is a deep link (`selected_id:`, opened on load). The dummy's own Stimulus controller listens to `selection-change` (and shows the box's lane from it), takes `open-reference` over, swaps the right-hand editor and drives "Previous" / "Next" with `bali-bpmn:select`; a version picker swaps the document too, and the app's own «Compare» menu compares the flow against its previous version or another flow (`bali-bpmn:compare`, kept in step by `compare-change`); `?compare_open=true` opens it comparing |
+| `bali/bpmn_editor/compare_flows` | "Supplier onboarding" against "Customer onboarding" or "Employee onboarding" (`match: :name`) or its own previous version (`match: :id`), picked from links above the editor. `compare_open` / `compare_index` open it comparing on load; `chrome=minimal` draws it without the top bar, with the app's own menu (option and view) above it |
 | `bali/bpmn_editor/host_integration` | The app around the editor: a console of the `bali-bpmn:*` events, buttons answering through the Turbo Stream helpers, the read-only pattern (an alert above a locked editor), and two flows in `Bali::Tabs` marked while unsaved |
 | `bali/bpmn_editor/rules_gallery` | One rule at a time: a flow that breaks it (`example=failing`) or follows it (`passing`), with the issues panel open. `optional_rules` loads the optional rule package. The examples are `test/fixtures/bpmn_editor/rule_examples.json`, shared with the JS tests |
 | `bali/bpmn_editor/configured` | Palette with disabled items and notes; legend with added/removed entries |

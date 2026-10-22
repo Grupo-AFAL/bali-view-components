@@ -2,52 +2,62 @@
     the boxes and its own «Close» — a detail with a close of its own takes the
     SplitView's bar out, so its header lines up with the map's — and the flow
     of the version picked. The buttons and the picker act on the preview's
-    bpmn-split-view controller, which points the frame at the next URL. %>
+    bpmn-split-view controller, which points the frame at the next URL; the
+    «Compare» menu, on bpmn-compare-menu, sends the flow `bali-bpmn:compare`. %>
 <% en = @locale.to_s == "en" %>
 <% pane_height = @filled ? "h-[380px] lg:h-auto lg:min-h-0 lg:flex-1" : "h-[380px] lg:h-[560px]" %>
 <%= tag.turbo_frame(id: "split_flow_detail", data: { box: @box[:id], version: @version&.dig(:number) }) do %>
-  <div class="mb-2 flex flex-wrap items-center gap-2 lg:h-14 lg:flex-nowrap" data-testid="bpmn-split-header">
-    <div class="flex grow flex-col">
-      <h3 class="font-semibold" data-testid="bpmn-split-title"><%= @box[:name] %></h3>
-      <span class="text-xs text-base-content/60" data-testid="bpmn-split-lane"><%= @box[:lane] %></span>
+  <%# Turbo keeps the frame element and swaps only its children: a controller
+      on the frame tag of this response would never reach the page. %>
+  <div class="contents" data-controller="bpmn-compare-menu">
+    <div class="mb-2 flex flex-wrap items-center gap-2 lg:h-14 lg:flex-nowrap" data-testid="bpmn-split-header">
+      <div class="flex grow flex-col">
+        <h3 class="font-semibold" data-testid="bpmn-split-title"><%= @box[:name] %></h3>
+        <span class="text-xs text-base-content/60" data-testid="bpmn-split-lane"><%= @box[:lane] %></span>
+      </div>
+      <label class="flex items-center gap-1 text-sm">
+        <span class="text-base-content/70"><%= en ? "Version" : "Versión" %></span>
+        <select class="select select-sm w-auto" data-action="bpmn-split-view#pickVersion" data-testid="bpmn-split-version"
+                <%= "disabled" if @versions.size < 2 %>>
+          <% @versions.each_with_index do |entry, index| %>
+            <option value="<%= entry[:number] %>" <%= "selected" if entry == @version %>>
+              v<%= entry[:number] %><%= index.zero? ? (en ? " · current" : " · vigente") : "" %>
+            </option>
+          <% end %>
+        </select>
+      </label>
+      <% if @version %>
+        <%= render "bpmn_flows/compare_menu", options: @comparisons, open: @compare_open, index: 0, en: en, views: false %>
+      <% end %>
+      <%= render Bali::Button::Component.new(name: en ? "Previous" : "Anterior", variant: :ghost, size: :sm,
+            data: { action: "bpmn-split-view#previous", testid: "bpmn-split-previous" }) %>
+      <%= render Bali::Button::Component.new(name: en ? "Next" : "Siguiente", variant: :ghost, size: :sm,
+            data: { action: "bpmn-split-view#next", testid: "bpmn-split-next" }) %>
+      <%= render Bali::Button::Component.new(name: en ? "Close" : "Cerrar", variant: :ghost, size: :sm, class: "hidden lg:inline-flex",
+            data: { action: "split-view-collapse#close", testid: "bpmn-split-close" }) %>
+      <%= render Bali::Button::Component.new(name: en ? "← Back" : "← Volver", variant: :ghost, size: :sm, class: "order-first lg:hidden",
+            data: { action: "split-view-collapse#close", testid: "bpmn-split-back" }) %>
     </div>
-    <label class="flex items-center gap-1 text-sm">
-      <span class="text-base-content/70"><%= en ? "Version" : "Versión" %></span>
-      <select class="select select-sm w-auto" data-action="bpmn-split-view#pickVersion" data-testid="bpmn-split-version"
-              <%= "disabled" if @versions.size < 2 %>>
-        <% @versions.each_with_index do |entry, index| %>
-          <option value="<%= entry[:number] %>" <%= "selected" if entry == @version %>>
-            v<%= entry[:number] %><%= index.zero? ? (en ? " · current" : " · vigente") : "" %>
-          </option>
-        <% end %>
-      </select>
-    </label>
-    <%= render Bali::Button::Component.new(name: en ? "Previous" : "Anterior", variant: :ghost, size: :sm,
-          data: { action: "bpmn-split-view#previous", testid: "bpmn-split-previous" }) %>
-    <%= render Bali::Button::Component.new(name: en ? "Next" : "Siguiente", variant: :ghost, size: :sm,
-          data: { action: "bpmn-split-view#next", testid: "bpmn-split-next" }) %>
-    <%= render Bali::Button::Component.new(name: en ? "Close" : "Cerrar", variant: :ghost, size: :sm, class: "hidden lg:inline-flex",
-          data: { action: "split-view-collapse#close", testid: "bpmn-split-close" }) %>
-    <%= render Bali::Button::Component.new(name: en ? "← Back" : "← Volver", variant: :ghost, size: :sm, class: "order-first lg:hidden",
-          data: { action: "split-view-collapse#close", testid: "bpmn-split-back" }) %>
-  </div>
-  <div class="<%= pane_height %>" data-testid="bpmn-split-flow">
-    <% if @version %>
-      <% flow = @version[:flow] %>
-      <% latest = @version == @versions.first %>
-      <%= render Bali::BpmnEditor::Component.new(
-            data: flow.to_diagram(locale: @locale), chrome: :minimal, rules: false, min_zoom: 0.2,
-            annotatable: latest,
-            urls: latest ? { annotations: admin_process_flow_annotations_path(flow, locale: @locale),
-                             diagram: admin_process_flow_diagram_path(flow, locale: @locale) } : {},
-            review: { tags: [ { key: "question", label: en ? "Question" : "Pregunta", color: "#2563eb" },
-                              { key: "keep", label: en ? "Keep" : "Mantener", color: "#16a34a" } ] },
-            id: "split_flow_#{@box[:flow]}_v#{@version[:number]}") %>
-    <% else %>
-      <%= render Bali::EmptyState::Component.new(
-            title: en ? "No flow drawn for this box yet" : "Esta caja aún no tiene flujo dibujado",
-            description: en ? "The app decides what each box opens." : "La app decide qué abre cada caja.",
-            icon: "workflow") %>
-    <% end %>
+    <div class="<%= pane_height %>" data-testid="bpmn-split-flow">
+      <% if @version %>
+        <% flow = @version[:flow] %>
+        <% latest = @version == @versions.first %>
+        <%= render Bali::BpmnEditor::Component.new(
+              data: flow.to_diagram(locale: @locale), chrome: :minimal, rules: false, min_zoom: 0.2,
+              annotatable: latest,
+              urls: latest ? { annotations: admin_process_flow_annotations_path(flow, locale: @locale),
+                               diagram: admin_process_flow_diagram_path(flow, locale: @locale) } : {},
+              review: { tags: [ { key: "question", label: en ? "Question" : "Pregunta", color: "#2563eb" },
+                                { key: "keep", label: en ? "Keep" : "Mantener", color: "#16a34a" } ],
+                        compare_with: @comparisons },
+              compare_open: @compare_open || false,
+              id: "split_flow_#{@box[:flow]}_v#{@version[:number]}") %>
+      <% else %>
+        <%= render Bali::EmptyState::Component.new(
+              title: en ? "No flow drawn for this box yet" : "Esta caja aún no tiene flujo dibujado",
+              description: en ? "The app decides what each box opens." : "La app decide qué abre cada caja.",
+              icon: "workflow") %>
+      <% end %>
+    </div>
   </div>
 <% end %>

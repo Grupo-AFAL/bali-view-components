@@ -96,6 +96,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - La leyenda que la persona abre justo después de que se plegó sola ya no se vuelve a plegar
     por la revisión pendiente de su montaje (fallaba en CI, «hides the external participant…»).
 
+- **`Bali::BpmnEditor`: la app abre la comparación sin la barra superior.** `compare_open:`
+  (`true`, `:side_by_side` u `:overlay`) abre al cargar comparando contra
+  `review[:compare_with][compare_index]` (`compare_index:`, 0 por omisión); el evento
+  `bali-bpmn:compare` `{ index, mode }` la abre, cambia de opción o de vista, o la cierra
+  (`{ mode: null }`), también desde un Turbo Stream (`bali_bpmn_event("compare", …)`), y
+  `bali-bpmn:compare-change` `{ open, index, mode }` avisa cada vez que se abre, cambia o se cierra,
+  también cuando la persona usa «×», el selector o las vistas de la comparación. Antes, con
+  `chrome: :minimal` no había forma de abrirla y `compare_with:` no tenía efecto visible. Superpuesto
+  pedido entre dos procesos distintos abre lado a lado, y el evento dice `mode: "side_by_side"`.
+  - **Anfitrión:** nada que hacer; sin las opciones el HTML es el mismo. `compare_open:` sin
+    `compare_with:`, o un `compare_index:` fuera de la lista, levanta `ArgumentError`. La preview
+    «Split view» abre el flujo comparando (`compare_open`) y con un menú «Comparar» de la app;
+    «Compare two different flows» toma `compare_open`, `compare_index` y `chrome`.
+
 - **`Bali::SplitView`: `master_width: :equal` y `height: :screen` o una medida CSS.** `:equal` deja
   las dos columnas del mismo ancho al píxel (con `"50%"` el detalle quedaba más angosto por el gap;
   el gap se cambia con `--bali-split-gap`). `height: :screen` llena desde el borde superior del split

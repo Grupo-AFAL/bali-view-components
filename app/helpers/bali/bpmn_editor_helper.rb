@@ -12,7 +12,7 @@ module Bali
   #         client_node_id: params[:client_node_id],
   #         reference: { id: procedure.id, label: procedure.name, url: procedure_path(procedure) }) %>
   module BpmnEditorHelper
-    EVENTS = %w[reference-created lane-assignee-created reload].freeze
+    EVENTS = %w[reference-created lane-assignee-created reload compare].freeze
 
     # The generic form the three helpers below write; a host may call it for
     # an event of EVENTS with its own detail.

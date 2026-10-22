@@ -280,7 +280,8 @@ class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
     render_inline(Bali::BpmnEditor::Component.new(data: payload, **options))
   end
 
-  NEW_VALUES = %w[selected-id chrome min-zoom annotatable validate badges badge-toggle badge-toggle-label wheel-zoom].freeze
+  NEW_VALUES = %w[selected-id chrome min-zoom annotatable validate badges badge-toggle badge-toggle-label wheel-zoom
+                  compare-open compare-index].freeze
 
   def test_without_the_new_options_none_of_their_values_is_rendered
     render_with
@@ -422,5 +423,48 @@ class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
     assert_raises(Bali::BpmnEditor::Data::InvalidError) do
       Bali::BpmnEditor::Component.new(data: payload, review: { compare_with: [ { document: payload }, { document: { orientation: "diagonal" } } ] })
     end
+  end
+
+  def two_comparisons
+    { compare_with: [ { document: payload, label: "v1" }, { document: payload, label: "Another process", match: :name } ] }
+  end
+
+  def test_the_comparison_opens_on_load_in_the_view_asked_for
+    render_with(review: two_comparisons, compare_open: true)
+    assert_equal "true", island["data-bpmn-editor-compare-open-value"]
+    assert_nil island["data-bpmn-editor-compare-index-value"]
+
+    render_with(review: two_comparisons, compare_open: :overlay, compare_index: 1)
+    assert_equal "overlay", island["data-bpmn-editor-compare-open-value"]
+    assert_equal "1", island["data-bpmn-editor-compare-index-value"]
+
+    render_with(review: two_comparisons, compare_open: "side_by_side")
+    assert_equal "side_by_side", island["data-bpmn-editor-compare-open-value"]
+
+    render_with(review: two_comparisons)
+    assert_nil island["data-bpmn-editor-compare-open-value"]
+  end
+
+  def test_compare_open_takes_true_false_or_a_view
+    [ nil, :stacked, "true", 1 ].each do |value|
+      error = assert_raises(ArgumentError, value.inspect) { Bali::BpmnEditor::Component.new(data: payload, review: two_comparisons, compare_open: value) }
+      assert_match(/compare_open must be true, false or one of \[:side_by_side, :overlay\]/, error.message)
+    end
+  end
+
+  def test_compare_open_needs_something_to_compare_against
+    error = assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, compare_open: true) }
+    assert_match(/compare_open needs review: \{ compare_with: \}/, error.message)
+  end
+
+  def test_compare_index_is_an_index_of_compare_with
+    render_with(review: two_comparisons, compare_index: 1)
+    assert_equal "1", island["data-bpmn-editor-compare-index-value"]
+
+    [ 2, -1, "1", nil ].each do |value|
+      error = assert_raises(ArgumentError, value.inspect) { Bali::BpmnEditor::Component.new(data: payload, review: two_comparisons, compare_index: value) }
+      assert_match(/compare_index must be an index of review compare_with \(0\.\.1\)/, error.message)
+    end
+    assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, compare_index: 1) }
   end
 end

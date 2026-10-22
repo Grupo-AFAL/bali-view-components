@@ -63,7 +63,10 @@ export class BpmnEditorController extends ReactIslandController {
     // The switch's own label (Component `badge_toggle: "…"`), else the i18n one.
     badgeToggleLabel: { type: String, default: '' },
     // 'auto' | 'true' | 'false' (Component `wheel_zoom:`) — BpmnEditor.jsx WHEEL_ZOOMS.
-    wheelZoom: { type: String, default: 'auto' }
+    wheelZoom: { type: String, default: 'auto' },
+    // 'true' | 'side_by_side' | 'overlay' (Component `compare_open:`) — model/compare.js openMode.
+    compareOpen: { type: String, default: '' },
+    compareIndex: { type: Number, default: 0 }
   }
 
   mountElement () {

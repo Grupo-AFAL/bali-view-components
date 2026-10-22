@@ -1,4 +1,4 @@
-<%# locals: locale, component %>
+<%# locals: locale, component, options, minimal, open, index %>
 <%= react_island_meta_tags("bpmn-editor", js: "bpmn-editor-island.js", css: "bpmn-editor-island.css") %>
 <% en = locale.to_s == "en" %>
 <div class="flex flex-col gap-3 p-4" data-testid="bpmn-compare-flows">
@@ -6,5 +6,13 @@
     <%= en ? "Open «Compare» and pick what to compare against: another process, or a previous version (stable or recreated ids). Elements pair by id, then by name (match: :auto)." :
              "Abre «Comparar» y elige contra qué comparar: otro proceso o una versión anterior (con ids estables o recreados). Los elementos se emparejan por id y luego por nombre (match: :auto)." %>
   </p>
-  <%= render component %>
+  <% if minimal %>
+    <%# Minimal chrome has no «Compare» button: the app's menu opens it. %>
+    <div class="flex flex-col gap-2" data-controller="bpmn-compare-menu">
+      <%= render "bpmn_flows/compare_menu", options: options, open: open, index: index, en: en %>
+      <div class="h-[640px]"><%= render component %></div>
+    </div>
+  <% else %>
+    <%= render component %>
+  <% end %>
 </div>

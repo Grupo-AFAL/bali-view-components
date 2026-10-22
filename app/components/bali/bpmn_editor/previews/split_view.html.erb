@@ -1,4 +1,4 @@
-<%# locals: locale, selected, height, master_width, badges, delay %>
+<%# locals: locale, selected, height, master_width, badges, delay, compare_open %>
 <%# The «50/50» view: what the app writes around two editors, inside a
     collapsible Bali::SplitView. The selection, «Previous» / «Next» and the
     version picker are the dummy's own Stimulus controller
@@ -14,7 +14,8 @@
 <% pane_height = filled ? "h-[380px] lg:h-auto lg:min-h-0 lg:flex-1" : "h-[380px] lg:h-[560px]" %>
 <%# The detail's URL for a box; the controller adds `version` when one is picked. %>
 <% detail_url = Rails.application.routes.url_helpers.bpmn_flow_path(
-     "BOX", locale: locale, filled: (filled ? 1 : nil), delay: (delay if delay.to_i.positive?)) %>
+     "BOX", locale: locale, filled: (filled ? 1 : nil), delay: (delay if delay.to_i.positive?),
+     compare: local_assigns[:compare_open]) %>
 <div class="flex flex-col gap-3 p-4" data-controller="bpmn-split-view"
      data-bpmn-split-view-boxes-value="<%= boxes.to_json %>" data-bpmn-split-view-url-value="<%= detail_url %>"
      data-testid="bpmn-split-view">

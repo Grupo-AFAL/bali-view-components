@@ -39,6 +39,8 @@ module Bali
       COMPARE_KEYS = %i[document label match].freeze
       # Mirrors COMPARE_MATCHES in model/diff.js (contract_test.rb).
       COMPARE_MATCHES = %i[auto id name].freeze
+      # Mirrors COMPARE_MODES in model/compare.js (contract_test.rb).
+      COMPARE_MODES = %i[side_by_side overlay].freeze
       # Mirrors CHROMES in BpmnEditor.jsx (contract_test.rb).
       CHROMES = %i[full minimal].freeze
       # What the mouse wheel does on the canvas. Mirror WHEEL_ZOOMS in BpmnEditor.jsx (contract_test.rb).
@@ -93,6 +95,12 @@ module Bali
       #   { document: <a document like data:>, label: "Published v1.0", match: :auto (by id, then
       #   by name: the default) | :id (two versions of one document) | :name (two different
       #   documents, paired by normalized name) } }.
+      # @param compare_open [Boolean, Symbol] open on load comparing against
+      #   `review[:compare_with][compare_index]`: true (side by side, the default view),
+      #   :side_by_side or :overlay — side by side where the overlay is not offered (two
+      #   different processes). The app opens, switches and closes it later with
+      #   `bali-bpmn:compare` { index, mode }; `bali-bpmn:compare-change` says what is shown.
+      # @param compare_index [Integer] the comparison of `compare_with` picked on load (default 0).
       # @param selected_id [String] the node shown selected on load — read-only too. The app moves
       #   it later with the `bali-bpmn:select` event.
       # @param chrome [Symbol] :full (default) or :minimal — only the zoom controls and «Fit»: no
@@ -121,7 +129,8 @@ module Bali
                      open_issues: false, layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil,
                      rules: {}, fields: {}, urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil,
                      selected_id: nil, chrome: :full, min_zoom: DEFAULT_MIN_ZOOM, annotatable: false,
-                     badges: true, badge_toggle: true, wheel_zoom: :auto, **options)
+                     badges: true, badge_toggle: true, wheel_zoom: :auto, compare_open: false, compare_index: 0,
+                     **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @autosave = autosave
@@ -138,6 +147,8 @@ module Bali
         @name = name
         @watermark = watermark
         @review = resolve_review(review)
+        @compare_open = resolve_compare_open(compare_open)
+        @compare_index = resolve_compare_index(compare_index)
         @selected_id = selected_id.presence&.to_s
         @chrome = resolve_chrome(chrome)
         @min_zoom = resolve_min_zoom(min_zoom)
@@ -222,7 +233,9 @@ module Bali
           bpmn_editor_badges_value: ("false" unless @badges),
           bpmn_editor_badge_toggle_value: ("false" unless @badge_toggle),
           bpmn_editor_badge_toggle_label_value: (@badge_toggle if @badge_toggle.is_a?(String)),
-          bpmn_editor_wheel_zoom_value: (@wheel_zoom unless @wheel_zoom == "auto")
+          bpmn_editor_wheel_zoom_value: (@wheel_zoom unless @wheel_zoom == "auto"),
+          bpmn_editor_compare_open_value: @compare_open,
+          bpmn_editor_compare_index_value: (@compare_index unless @compare_index.zero?)
         }.compact
       end
 
@@ -273,6 +286,24 @@ module Bali
         return value.to_s if WHEEL_ZOOMS.include?(value.to_s) && [ true, false, :auto, "auto" ].include?(value)
 
         raise ArgumentError, "wheel_zoom must be :auto, true or false, got #{value.inspect}"
+      end
+
+      # "true" leaves the view to the island's default (model/compare.js openMode).
+      def resolve_compare_open(value)
+        return nil if value == false
+        unless value == true || COMPARE_MODES.include?(value.to_s.to_sym)
+          raise ArgumentError, "compare_open must be true, false or one of #{COMPARE_MODES.inspect}, got #{value.inspect}"
+        end
+        raise ArgumentError, "compare_open needs review: { compare_with: } to compare against" if @review[:compare_with].blank?
+
+        value.to_s
+      end
+
+      def resolve_compare_index(index)
+        count = Array(@review[:compare_with]).size
+        return index if index.is_a?(Integer) && (index.zero? || index.between?(0, count - 1))
+
+        raise ArgumentError, "compare_index must be an index of review compare_with (0..#{[ count - 1, 0 ].max}), got #{index.inspect}"
       end
 
       def resolve_chrome(chrome)

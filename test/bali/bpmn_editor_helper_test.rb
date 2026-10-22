@@ -29,6 +29,11 @@ class BaliBpmnEditorHelperTest < ActionView::TestCase
     assert_equal "reload", stream(bali_bpmn_reload(target: "x"))["event"]
   end
 
+  def test_the_app_opens_switches_and_closes_the_comparison
+    assert_equal({ "index" => 1, "mode" => "overlay" }, JSON.parse(stream(bali_bpmn_event("compare", target: "x", index: 1, mode: "overlay"))["detail"]))
+    assert_equal({ "mode" => nil }, JSON.parse(stream(bali_bpmn_event("compare", target: "x", mode: nil))["detail"]))
+  end
+
   def test_unknown_events_and_incomplete_references_raise
     assert_raises(ArgumentError) { bali_bpmn_event("node-deleted", target: "x") }
     assert_raises(ArgumentError) { bali_bpmn_reference_created(client_node_id: "n1", reference: { label: "No id" }) }

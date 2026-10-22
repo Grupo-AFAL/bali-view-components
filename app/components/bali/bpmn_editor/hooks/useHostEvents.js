@@ -7,7 +7,7 @@ import * as ops from '../model/operations.js'
 // Only events dispatched on this editor's own element: one that bubbles up
 // from another editor on the page, or one sent to document, names no editor
 // and is not ours (two editors mint the same client ids).
-export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect, onBadges }) {
+export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect, onBadges, onCompare }) {
   useEffect(() => {
     if (!hostElement) return undefined
     const handlers = {
@@ -22,6 +22,9 @@ export default function useHostEvents (hostElement, { reload, apply, docRef, onS
         const detail = event.detail || {}
         if (onBadges && typeof detail.visible === 'boolean') onBadges(detail.visible)
       },
+      // `bali-bpmn:compare` { index, mode }: opens, switches or closes
+      // (`mode: null`) the comparison; `compare-change` says what is shown.
+      'bali-bpmn:compare': (event) => { if (onCompare) onCompare(event.detail) },
       'bali-bpmn:reference-created': (event) => {
         const { client_node_id: nodeId, reference } = event.detail || {}
         if (!nodeId || !reference || !docRef.current.nodes.some((n) => String(n.id) === String(nodeId))) return
@@ -36,5 +39,5 @@ export default function useHostEvents (hostElement, { reload, apply, docRef, onS
     const listener = (event) => { if (event.target === hostElement) handlers[event.type](event) }
     for (const name of Object.keys(handlers)) hostElement.addEventListener(name, listener)
     return () => { for (const name of Object.keys(handlers)) hostElement.removeEventListener(name, listener) }
-  }, [hostElement, reload, apply, docRef, onSelect])
+  }, [hostElement, reload, apply, docRef, onSelect, onBadges, onCompare])
 }

@@ -285,7 +285,10 @@ module Bali
       # map with `bali-bpmn:select` from «Previous» / «Next»; those and the
       # version picker fetch too. `selected` is a deep link: the map's
       # `selected_id:`, whose flow the controller opens on load. `delay` holds
-      # every response back, to watch the loading state.
+      # every response back, to watch the loading state. The flow compares
+      # against its previous version or another flow from the app's own
+      # «Compare» menu (`bali-bpmn:compare`, kept in step by
+      # `bali-bpmn:compare-change`); `compare_open` opens it comparing on load.
       # docs/api/bpmn-editor.md#embedding-a-diagram
       # `master_width: :equal` and `height: :screen` by default: the two panes
       # the same width, and as tall as the window leaves them.
@@ -295,14 +298,16 @@ module Bali
       # @param master_width select { choices: [equal, 50%, 420px] }
       # @param badges toggle "The map's badges shown on load (the flows on the right have none, so they offer no switch)"
       # @param delay select "Milliseconds each detail response is held back" { choices: [0, 300, 800, 2000] }
-      def split_view(locale: :es, selected: nil, height: "screen", master_width: "equal", badges: true, delay: 0)
+      # @param compare_open select "The flow opens comparing against the first option of its «Compare» menu" { choices: [~, true, side_by_side, overlay] }
+      def split_view(locale: :es, selected: nil, height: "screen", master_width: "equal", badges: true, delay: 0,
+                     compare_open: nil)
         # Every load starts from the samples: notes added before are dropped.
         BpmnProcessMap.flow_records(locale, fresh: true)
         I18n.with_locale(locale) do
           render_with_template(template: "bali/bpmn_editor/previews/split_view",
                                locals: { locale: locale, selected: selected.presence,
                                          height: split_option(height), master_width: split_option(master_width),
-                                         badges: badges, delay: delay.to_i })
+                                         badges: badges, delay: delay.to_i, compare_open: compare_open.presence })
         end
       end
 
@@ -319,9 +324,15 @@ module Bali
       # The editor is the page here, so the wheel zooms it before comparing
       # too (`wheel_zoom: true`; with `:auto` a read-only diagram leaves the
       # wheel to the page).
+      # `compare_open` opens it comparing on load against the option
+      # `compare_index`; with `chrome: minimal` there is no «Compare» button,
+      # so the app's menu above the editor opens it (`bali-bpmn:compare`).
       # docs/api/bpmn-editor.md#outputs-notes-and-comparison
       # @param locale select { choices: [es, en] }
-      def compare_flows(locale: :es)
+      # @param compare_open select { choices: [~, true, side_by_side, overlay] }
+      # @param compare_index select { choices: [0, 1, 2, 3] }
+      # @param chrome select { choices: [full, minimal] }
+      def compare_flows(locale: :es, compare_open: nil, compare_index: 0, chrome: "full")
         en = locale.to_s == "en"
         options = [
           { document: BpmnProcessMap.customer(locale), label: en ? "Customer onboarding" : "Alta de cliente" },
@@ -333,11 +344,13 @@ module Bali
         I18n.with_locale(locale) do
           render_with_template(
             template: "bali/bpmn_editor/previews/compare_flows",
-            locals: { locale: locale,
+            locals: { locale: locale, options: options, minimal: chrome.to_s == "minimal",
+                      open: compare_open_option(compare_open), index: compare_index.to_i,
                       component: Bali::BpmnEditor::Component.new(
                         data: BpmnProcessMap.supplier(locale), rules: false, id: "compare_flows_bpmn",
                         name: en ? "Supplier onboarding" : "Alta de proveedor", review: { compare_with: options },
-                        wheel_zoom: true
+                        wheel_zoom: true, chrome: chrome, compare_open: compare_open_option(compare_open),
+                        compare_index: compare_index.to_i
                       ) }
           )
         end
@@ -364,6 +377,13 @@ module Bali
 
       # A select's value as SplitView takes it: the keywords as symbols, a
       # length as written.
+      # Lookbook's select: "true", a view, or blank for closed.
+      def compare_open_option(value)
+        return false if value.blank?
+
+        value.to_s == "true" || value.to_sym
+      end
+
       def split_option(value)
         %w[equal screen full content].include?(value.to_s) ? value.to_sym : value.to_s
       end

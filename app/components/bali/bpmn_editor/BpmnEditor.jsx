@@ -49,6 +49,8 @@ import Stencil, { STENCIL_MIME } from './chrome/Stencil.jsx'
 import { openDrawerUrl } from '../../../frontend/bali/utils/drawer.js'
 import { withParams } from './model/urls.js'
 import CompareView from './chrome/CompareView.jsx'
+import { diffDocuments } from './model/diff.js'
+import { DEFAULT_COMPARE_MODE, openMode, requestedComparison, shownMode } from './model/compare.js'
 
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
 const edgeTypes = { routed: RoutedEdge }
@@ -73,7 +75,7 @@ export default function BpmnEditor (props) {
 function Editor ({
   data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
   name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false,
-  badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto'
+  badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
@@ -227,7 +229,6 @@ function Editor ({
   const [dragPositions, setDragPositions] = useState(null) // id → absolute position while dragging
   const [liveLength, setLiveLength] = useState(null) // shared lane length while one lane's end is dragged
   const [dialog, setDialog] = useState(() => (openIssues && editable ? 'pending' : null)) // null | 'pending' | 'rules'
-  const [compareMode, setCompareMode] = useState(null) // null | 'overlay' | 'side_by_side'
   // The quick menu's default direction follows the reading direction.
   const [direction, setDirection] = useState(() => (state.present.orientation === 'vertical' ? 'down' : 'right'))
   const interactive = editable && mode === 'edit'
@@ -727,7 +728,6 @@ function Editor ({
     select({ nodes: [String(node.id)] })
     revealNode(flow, wrapperRef.current, node, poolOrigin(docRef.current))
   }, [clearSelection, select, flow])
-  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost, onBadges: setBadgesVisible })
 
   // ── in-place rename ────────────────────────────────────────────────────
   const renderRename = useCallback((element, isLane) => (
@@ -762,12 +762,40 @@ function Editor ({
     return (Array.isArray(raw) ? raw : raw ? [raw] : []).filter((c) => c && c.document)
       .map((c) => ({ ...c, match: c.match || 'auto' }))
   }, [review])
-  const [comparisonIndex, setComparisonIndex] = useState(0)
-  const compare = comparisons[comparisonIndex] || comparisons[0] || null
+  // Open on load with `compare_open:` / `compare_index:`; the TopBar's
+  // «Compare», the comparison bar and `bali-bpmn:compare` change it, and
+  // `bali-bpmn:compare-change` says what is shown.
+  const [comparison, setComparison] = useState(() => ({ index: compareIndex, mode: comparisons.length ? openMode(compareOpen) : null }))
+  const compare = comparisons[comparison.index] || comparisons[0] || null
   // Normalized when the comparison opens, not on load: normalize lays out a
   // document without coordinates, for a view most readers never open.
-  const comparing = Boolean(compareMode)
+  const comparing = Boolean(comparison.mode)
   const compareBase = useMemo(() => (compare && comparing ? normalize(compare.document) : null), [compare, comparing])
+  const compareDiff = useMemo(() => (compareBase ? diffDocuments(compareBase, doc, { match: compare.match }) : null), [compareBase, doc, compare])
+  const compareShown = compareDiff ? shownMode(comparison.mode, compareDiff.sameProcess) : null
+  // Opened comparing, the canvas mounted hidden, at no size, and its first fit
+  // was to nothing: it fits the first time it is shown.
+  const canvasFitted = useRef(!comparing)
+  useEffect(() => {
+    if (comparing || canvasFitted.current) return
+    canvasFitted.current = true
+    setTimeout(() => fitDiagram(flow, fit), 50)
+  }, [comparing, flow, fit])
+  // Committed at once, as a click's update is: the panes' React Flow creates
+  // its ResizeObservers in that commit's effects, and an ordinary update from
+  // outside React ran them inside another observer's delivery — Chrome's
+  // «ResizeObserver loop», 2 runs in 8 switching to the overlay.
+  const compareFromHost = useCallback((detail) => {
+    flushSync(() => setComparison((current) => requestedComparison(current, detail, comparisons.length) || current))
+  }, [comparisons.length])
+  const reportedComparison = useRef(null)
+  useEffect(() => {
+    const key = compareShown ? `${comparison.index}:${compareShown}` : null
+    if (key === reportedComparison.current) return
+    reportedComparison.current = key
+    emit('compare-change', { open: Boolean(compareShown), index: comparison.index, mode: compareShown })
+  }, [compareShown, comparison.index, emit])
+  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost, onBadges: setBadgesVisible, onCompare: compareFromHost })
 
   // ── the wheel (Component `wheel_zoom:`) ────────────────────────────────
   // 'zoom': it zooms. 'modifier': it scrolls the page, and Ctrl + wheel (a
@@ -958,22 +986,23 @@ function Editor ({
             onFinalize={finalize}
             finalizing={saver.finalizing}
             exports={exports}
-            onCompare={compare ? () => setCompareMode((m) => (m ? null : 'side_by_side')) : null}
-            comparing={Boolean(compareMode)}
+            onCompare={compare ? () => setComparison((c) => ({ ...c, mode: c.mode ? null : DEFAULT_COMPARE_MODE })) : null}
+            comparing={comparing}
           />
         )}
-        {compareMode && (
+        {compareShown && (
           <div className={fullscreen || minimal ? 'min-h-0 flex-1' : 'h-[640px]'}>
             <CompareView
-              t={t} base={compareBase} current={doc} label={compare.label} match={compare.match} mode={compareMode} onMode={setCompareMode} onExit={() => setCompareMode(null)}
-              options={comparisons.map((c) => c.label)} picked={comparisonIndex} onPick={setComparisonIndex}
+              t={t} base={compareBase} current={doc} diff={compareDiff} label={compare.label} mode={compareShown}
+              onMode={(mode) => setComparison((c) => ({ ...c, mode }))} onExit={() => setComparison((c) => ({ ...c, mode: null }))}
+              options={comparisons.map((c) => c.label)} picked={comparison.index} onPick={(index) => setComparison((c) => ({ ...c, index }))}
               badgesVisible={badgesVisible}
               wheelZoom={wheelZoom !== 'false'}
               badges={badgeToggle !== false && (docHasBadges || hasBadges(compareBase)) ? { visible: badgesVisible, onToggle: toggleBadges, label: badgeToggleLabel } : null}
             />
           </div>
         )}
-        <div className={`relative flex min-h-0 ${compareMode ? 'hidden' : ''} ${fullscreen || minimal ? 'flex-1' : 'h-[640px]'}`}>
+        <div className={`relative flex min-h-0 ${comparing ? 'hidden' : ''} ${fullscreen || minimal ? 'flex-1' : 'h-[640px]'}`}>
           {editable && !minimal && (
             <Palette
               t={t} palette={palette} tool={tool && tool.kind === 'place' ? tool : null}
@@ -1116,7 +1145,7 @@ function Editor ({
               : null}
           </div>
         </div>
-        {!compareMode && !minimal && (
+        {!comparing && !minimal && (
           // The context help lives under the canvas, where it covers nothing.
           <p className='bpmn-chrome flex items-center gap-2 border-t border-base-300 px-3 py-1.5 text-xs text-base-content/70' data-testid='bpmn-help'>
             <Icon name='info' size={13} />{help}

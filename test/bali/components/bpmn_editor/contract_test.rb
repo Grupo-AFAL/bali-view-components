@@ -63,6 +63,25 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_equal Bali::BpmnEditor::Component::COMPARE_MATCHES.map(&:to_s), js_list("model/diff.js", "COMPARE_MATCHES")
   end
 
+  # `compare_open: true` crosses as "true" and the island picks its default view.
+  def test_compare_modes
+    assert_equal Bali::BpmnEditor::Component::COMPARE_MODES.map(&:to_s), js_list("model/compare.js", "COMPARE_MODES")
+    assert_match(/compareOpen: \{ type: String, default: '' \}/, ROOT.join("index.js").read)
+    assert_match(/compareIndex: \{ type: Number, default: 0 \}/, ROOT.join("index.js").read)
+    assert_match(/if \(value === true \|\| value === 'true'\) return DEFAULT_COMPARE_MODE/, ROOT.join("model/compare.js").read)
+  end
+
+  # The comparison's events, with the detail the guide documents for each.
+  def test_compare_events
+    guide = Bali::Engine.root.join("docs/api/bpmn-editor.md").read
+
+    assert_match(/'bali-bpmn:compare': \(event\) => \{ if \(onCompare\) onCompare\(event\.detail\) \}/, ROOT.join("hooks/useHostEvents.js").read)
+    assert_match(/requestedComparison \(current, detail, count\)[\s\S]*detail\.index[\s\S]*detail\.mode/, ROOT.join("model/compare.js").read)
+    assert_includes guide, "`bali-bpmn:compare` (`{ index, mode }`"
+    assert_match(/emit\('compare-change', \{ open: [^,]+, index: [^,]+, mode: [^}]+\}\)/, ROOT.join("BpmnEditor.jsx").read)
+    assert_includes guide, "| `bali-bpmn:compare-change` | `{ open, index, mode }`"
+  end
+
   def test_wheel_zooms
     assert_equal Bali::BpmnEditor::Component::WHEEL_ZOOMS, js_list("BpmnEditor.jsx", "WHEEL_ZOOMS")
     assert_match(/wheelZoom: \{ type: String, default: 'auto' \}/, ROOT.join("index.js").read)

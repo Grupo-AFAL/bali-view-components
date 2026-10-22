@@ -4,7 +4,7 @@ import { layoutLanes, poolOrigin } from '../model/geometry.js'
 import { routeAll, findJumps } from '../model/routing.js'
 import { placeEdgeLabels } from '../model/edgeLabels.js'
 import { buildRfNodes, buildRfEdges, laneNodeId, isLaneNodeId, laneIdOf } from '../model/flow.js'
-import { diffDocuments, overlayView, summaryText } from '../model/diff.js'
+import { overlayView, summaryText } from '../model/diff.js'
 import { paletteKeyFor } from '../model/catalog.js'
 import { DIFF_MARKS, diffMark } from '../canvas/diffMarks.js'
 import useRefitOnResize from '../hooks/useRefitOnResize.js'
@@ -157,11 +157,9 @@ function counterpartOf (id, side, diff) {
 // highlights its counterpart in the other pane; «Only changes» fades what did
 // not change. The summary lists every change with its detail; picking one
 // brings it to the middle and highlights it. Read-only while it is on.
-export default function CompareView ({ t, base, current, label, match = 'auto', mode, onMode, onExit, options = [], picked = 0, onPick = noop, badges = null, badgesVisible = true, wheelZoom = true }) {
-  const diff = useMemo(() => diffDocuments(base, current, { match }), [base, current, match])
+export default function CompareView ({ t, base, current, diff, label, mode: view, onMode, onExit, options = [], picked = 0, onPick = noop, badges = null, badgesVisible = true, wheelZoom = true }) {
   const overlay = useMemo(() => overlayView(base, current, diff), [base, current, diff])
   const entries = useMemo(() => changesOf(base, current, diff, overlay), [base, current, diff, overlay])
-  const view = mode === 'overlay' && diff.sameProcess ? 'overlay' : 'side_by_side'
   const [focus, setFocus] = useState(null)
   const [sync, setSync] = useState(true)
   const [onlyChanges, setOnlyChanges] = useState(false)
@@ -250,7 +248,7 @@ export default function CompareView ({ t, base, current, label, match = 'auto', 
             ))}
           </div>
         )}
-        <button type='button' className='btn btn-ghost btn-xs gap-1' onClick={onExit}><Icon name='x' size={12} />{t('compare_exit')}</button>
+        <button type='button' className='btn btn-ghost btn-xs gap-1' onClick={onExit} data-testid='bpmn-compare-exit'><Icon name='x' size={12} />{t('compare_exit')}</button>
       </div>
       {/* Side by side on a phone: one above the other, each still fitting its pane. */}
       <div className={`flex min-h-0 flex-1 ${view === 'side_by_side' ? 'flex-col sm:flex-row' : ''}`}>
