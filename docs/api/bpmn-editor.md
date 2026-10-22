@@ -531,6 +531,7 @@ Dispatched on the component element, bubbling:
 
 | Event | `detail` |
 |---|---|
+| `bali-bpmn:ready` | `{}` — once, when the island has mounted and listens for the events below |
 | `bali-bpmn:dirty-change` | `{ dirty }` — mark a tab, warn before leaving |
 | `bali-bpmn:saved` | `{ document }` |
 | `bali-bpmn:finalized` | `{ document }` |
@@ -550,7 +551,11 @@ view), switches either of them while it is open, or closes it with `{ mode: null
 `index` or `mode` keeps the current one. A detail naming an index outside the list or an unknown
 mode is dropped. `compare-change` answers with what is drawn). Like the others, only when
 dispatched on the component element. `bali_bpmn_event("compare", target:, index: 1, mode: "overlay")`
-sends it from a Turbo Stream.
+sends it from a Turbo Stream. `select`, `badges` and `compare` sent after the editor's
+controller connected but before the island listens (its bundle still loading, or the moment
+after its first paint) are kept and applied, in order, once it does; one sent before the
+controller connected is lost — wait for `bali-bpmn:ready`, or say it on load with
+`selected_id:`, `badges:` or `compare_open:`.
 
 Several flows in tabs: render one editor per `Bali::Tabs` panel, each with its own
 `id:`, and listen for `dirty-change` on each. Leaving with unsaved changes: a full page

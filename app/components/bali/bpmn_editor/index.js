@@ -4,6 +4,7 @@
 // island's entry and the main bundle stays React-free.
 import { ReactIslandController } from '../../../frontend/bali/react-island'
 import { islandStrings } from './i18n.js'
+import { hostEventQueue } from './hostEventQueue.js'
 
 // The `rules` the island takes: false (Component `rules: false`, its own
 // value), a profile's name (`rules: :structure` arrives as { profile }), or
@@ -69,13 +70,23 @@ export class BpmnEditorController extends ReactIslandController {
     compareIndex: { type: Number, default: 0 }
   }
 
+  connect () {
+    this.hostEvents = hostEventQueue(this.element)
+    return super.connect()
+  }
+
+  disconnect () {
+    this.hostEvents.stop()
+    super.disconnect()
+  }
+
   mountElement () {
     return this.element.querySelector('.bali-bpmn-editor-mount') || this.element
   }
 
   componentProps () {
     const { validate, i18nKey, ...props } = super.componentProps()
-    return { ...props, i18n: this.strings(), rules: rulesProp(validate, props.rules), hostElement: this.element }
+    return { ...props, i18n: this.strings(), rules: rulesProp(validate, props.rules), hostElement: this.element, takeHostEvents: this.hostEvents.take }
   }
 
   strings () {

@@ -7,7 +7,7 @@ import * as ops from '../model/operations.js'
 // Only events dispatched on this editor's own element: one that bubbles up
 // from another editor on the page, or one sent to document, names no editor
 // and is not ours (two editors mint the same client ids).
-export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect, onBadges, onCompare }) {
+export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect, onBadges, onCompare, takeQueued }) {
   useEffect(() => {
     if (!hostElement) return undefined
     const handlers = {
@@ -38,6 +38,10 @@ export default function useHostEvents (hostElement, { reload, apply, docRef, onS
     }
     const listener = (event) => { if (event.target === hostElement) handlers[event.type](event) }
     for (const name of Object.keys(handlers)) hostElement.addEventListener(name, listener)
+    // What the app sent before this listener existed (hostEventQueue.js), in
+    // order. After this effect, not inside it: a handler may flushSync.
+    const queued = takeQueued ? takeQueued() : []
+    if (queued.length) queueMicrotask(() => { for (const event of queued) handlers[event.type](event) })
     return () => { for (const name of Object.keys(handlers)) hostElement.removeEventListener(name, listener) }
-  }, [hostElement, reload, apply, docRef, onSelect, onBadges, onCompare])
+  }, [hostElement, reload, apply, docRef, onSelect, onBadges, onCompare, takeQueued])
 }

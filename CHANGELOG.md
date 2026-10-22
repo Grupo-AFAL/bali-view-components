@@ -102,7 +102,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `bali-bpmn:compare` `{ index, mode }` la abre, cambia de opción o de vista, o la cierra
   (`{ mode: null }`), también desde un Turbo Stream (`bali_bpmn_event("compare", …)`), y
   `bali-bpmn:compare-change` `{ open, index, mode }` avisa cada vez que se abre, cambia o se cierra,
-  también cuando la persona usa «×», el selector o las vistas de la comparación. Antes, con
+  también cuando la persona usa «×», el selector o las vistas de la comparación. `select`, `badges`
+  y `compare` enviados mientras la isla aún carga se guardan y se aplican al montarse (antes se
+  perdían), y `bali-bpmn:ready` avisa cuando la isla ya escucha. Antes, con
   `chrome: :minimal` no había forma de abrirla y `compare_with:` no tenía efecto visible. Superpuesto
   pedido entre dos procesos distintos abre lado a lado, y el evento dice `mode: "side_by_side"`.
   - **Anfitrión:** nada que hacer; sin las opciones el HTML es el mismo. `compare_open:` sin

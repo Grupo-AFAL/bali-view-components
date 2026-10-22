@@ -75,7 +75,7 @@ export default function BpmnEditor (props) {
 function Editor ({
   data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
   name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false,
-  badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0
+  badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0, takeHostEvents
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
@@ -795,7 +795,9 @@ function Editor ({
     reportedComparison.current = key
     emit('compare-change', { open: Boolean(compareShown), index: comparison.index, mode: compareShown })
   }, [compareShown, comparison.index, emit])
-  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost, onBadges: setBadgesVisible, onCompare: compareFromHost })
+  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost, onBadges: setBadgesVisible, onCompare: compareFromHost, takeQueued: takeHostEvents })
+  // Declared after useHostEvents, so its listeners are attached when the app hears it.
+  useEffect(() => { emit('ready', {}) }, [])
 
   // ── the wheel (Component `wheel_zoom:`) ────────────────────────────────
   // 'zoom': it zooms. 'modifier': it scrolls the page, and Ctrl + wheel (a

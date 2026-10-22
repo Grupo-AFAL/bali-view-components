@@ -82,6 +82,17 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_includes guide, "| `bali-bpmn:compare-change` | `{ open, index, mode }`"
   end
 
+  # What the controller keeps before the island listens is what the island handles.
+  def test_the_queued_host_events_are_listened_for
+    queued = js_list("hostEventQueue.js", "QUEUED_HOST_EVENTS")
+    hook = ROOT.join("hooks/useHostEvents.js").read
+
+    assert_equal %w[bali-bpmn:select bali-bpmn:badges bali-bpmn:compare], queued
+    queued.each { |name| assert_includes hook, "'#{name}': " }
+    assert_match(/takeHostEvents: this\.hostEvents\.take/, ROOT.join("index.js").read)
+    assert_includes Bali::Engine.root.join("docs/api/bpmn-editor.md").read, "| `bali-bpmn:ready` | `{}`"
+  end
+
   def test_wheel_zooms
     assert_equal Bali::BpmnEditor::Component::WHEEL_ZOOMS, js_list("BpmnEditor.jsx", "WHEEL_ZOOMS")
     assert_match(/wheelZoom: \{ type: String, default: 'auto' \}/, ROOT.join("index.js").read)
