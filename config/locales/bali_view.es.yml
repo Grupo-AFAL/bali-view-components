@@ -118,6 +118,8 @@ es:
       close: "Cerrar menú lateral"
       trigger:
         toggle: "Abrir menú lateral"
+      switcher:
+        placeholder: "Elige…"
 
     # App layout
     app_layout:

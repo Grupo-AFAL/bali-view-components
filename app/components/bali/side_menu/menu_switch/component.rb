@@ -19,7 +19,8 @@ module Bali
           @href = href
           @active = active
           @authorized = authorized
-          @http_method = method.to_sym
+          # A host forwarding an optional value can pass nil or "GET".
+          @http_method = (method.presence || :get).to_s.downcase.to_sym
           @params = params
           @badge = badge
         end

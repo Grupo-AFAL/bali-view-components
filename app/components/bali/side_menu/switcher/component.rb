@@ -20,18 +20,29 @@ module Bali
         #   depends on
         # @param menus [Array, nil] Ready-made options; the module switcher passes its
         #   `menu_switches` here instead of re-declaring them as slots
-        def initialize(label: nil, accent: false, menus: nil)
+        # @param placeholder [String, nil] Trigger text when no option is active
+        def initialize(label: nil, accent: false, menus: nil, placeholder: nil)
           @label = label
           @accent = accent
           @menus = menus
+          @placeholder = placeholder
         end
 
         def entries
           @entries ||= @menus || options.select(&:authorized?)
         end
 
+        # The module switcher always has a current module, so it falls back to the
+        # first. A context selector does not: with nothing active on the server, the
+        # trigger says so (#placeholder) instead of naming an option as where you are.
         def active_entry
-          entries.find(&:active?) || entries.first
+          return @active_entry if defined?(@active_entry)
+
+          @active_entry = entries.find(&:active?) || (entries.first if @menus)
+        end
+
+        def placeholder
+          @placeholder.presence || I18n.t("bali_view.side_menu.switcher.placeholder")
         end
 
         # A context selector shows its one option as where you are; the module
@@ -46,14 +57,6 @@ module Bali
 
         def wrapper_classes
           class_names("menu-switcher mb-3", "menu-switcher--accent": @accent)
-        end
-
-        def trigger_classes
-          class_names(
-            "menu-switcher-trigger tooltip tooltip-right rounded-box flex w-full items-center gap-2 border " \
-            "cursor-pointer list-none [&::-webkit-details-marker]:hidden",
-            @accent ? "border-primary/50 bg-base-content/6 px-2 py-3 hover:bg-base-content/10" : "border-base-300 hover:bg-base-content/8 p-2"
-          )
         end
 
         def link?(entry)

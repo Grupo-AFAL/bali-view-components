@@ -959,11 +959,20 @@ limit to how many.
   selector that changes state on the server must not be a link: Turbo prefetches links on
   hover, and the hover would change the selection.
 - A switcher renders with a single option (it says where you are); the module switcher still
-  hides itself with one menu. With no authorized option, it renders nothing.
+  hides itself with one menu. With no authorized option, it renders nothing, and no empty stack.
+- With no `active:` option, a context switcher's trigger shows `placeholder:` (default
+  "Choose…"/"Elige…") instead of naming the first option: nothing is selected. The module
+  switcher keeps falling back to the first module.
+- The current option is marked `is-current` (a primary tint, links and forms alike), not
+  daisyUI's `menu-active`, whose neutral fill hides the option's subtitle.
 - `label:` puts a small heading above the trigger; `accent: true` gives the trigger the primary
   border and icon, for the selector the screens depend on.
-- The `<details>` of every level share a `name`, so the browser keeps one panel open at a time;
-  click-outside and Escape close whichever it is.
+- The `side-menu` controller keeps one level open at a time (opening one closes the others),
+  and click-outside and Escape close whichever is open. It does not use an exclusive
+  `<details name>`: that needs Safari 17.2+ and would tie the selectors of two side menus on
+  one page.
+- The trigger's border, padding and hover are defaults in `index.css`, so a host can override
+  them with utilities.
 
 #### SideMenu::Trigger
 

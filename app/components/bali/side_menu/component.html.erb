@@ -72,12 +72,10 @@
 
   <%# The selector stack: the module switcher (when there is more than one menu),
       then each `switcher` slot under it. %>
-  <% if multiple_menus? || switchers? %>
+  <% if selector_stack? %>
     <div class="menu-switchers mt-3">
       <%= render Bali::SideMenu::Switcher::Component.new(menus: authorized_menus) if multiple_menus? %>
-      <% switchers.each do |switcher| %>
-        <%= switcher %>
-      <% end %>
+      <%= safe_join(rendered_switchers) %>
     </div>
   <% end %>
 

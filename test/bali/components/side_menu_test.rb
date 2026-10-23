@@ -176,10 +176,10 @@ class BaliSideMenuComponentTest < ComponentTestCase
       c.with_menu_switch(title: "Inventory", href: "/inv", icon: "warehouse", active: true)
       c.with_menu_switch(title: "Pack Track", href: "/pack", icon: "package")
       c.with_switcher(label: "Integration") do |s|
-        s.with_option(title: "Cold storage", href: "/a", icon: "snowflake")
+        s.with_option(title: "Cold storage", href: "/a", icon: "snowflake", active: true)
       end
       c.with_switcher(label: "Branch") do |s|
-        s.with_option(title: "Tijuana", href: "/b", icon: "map-pin")
+        s.with_option(title: "Tijuana", href: "/b", icon: "map-pin", active: true)
       end
       c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
     end
@@ -187,8 +187,23 @@ class BaliSideMenuComponentTest < ComponentTestCase
     triggers = page.all(".menu-switchers > .menu-switcher summary", visible: :all).map { |s| s["data-tip"] }
     assert_equal [ "Inventory", "Cold storage", "Tijuana" ], triggers
     assert_selector(".menu-switcher-label", text: "Integration")
-    # A shared name: the browser keeps one panel open at a time.
-    assert_equal 3, page.all("details[name='side-menu-switcher']", visible: :all).size
+    # One open at a time is the controller's job: a shared `name` would tie two menus.
+    assert_no_selector("details[name]", visible: :all)
+  end
+
+  # Nothing selected on the server: the trigger must not name the first option as
+  # where you are.
+  def test_a_context_selector_with_no_active_option_shows_its_placeholder
+    render_inline(component) do |c|
+      c.with_switcher(label: "Integration") do |s|
+        s.with_option(title: "Cold storage", href: "/a", icon: "snowflake")
+        s.with_option(title: "Broker", href: "/b", icon: "truck")
+      end
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+
+    assert_selector("summary[data-tip='Choose…'] .menu-switcher-placeholder", text: "Choose…", visible: :all)
+    assert_no_selector(".dropdown-content .is-current", visible: :all)
   end
 
   # A context selector shows where you are even with a single option; the module
@@ -197,7 +212,7 @@ class BaliSideMenuComponentTest < ComponentTestCase
     @options[:fixed] = false
     @options[:reveal_current] = false
     render_inline(component) do |c|
-      c.with_switcher(label: "Integration") { |s| s.with_option(title: "Cold storage", href: "/a", icon: "snowflake") }
+      c.with_switcher(label: "Integration") { |s| s.with_option(title: "Cold storage", href: "/a", icon: "snowflake", active: true) }
       c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
     end
 
@@ -219,18 +234,30 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector(".menu-switcher--accent")
     assert_selector("form[action='/selection'] input[name='_method'][value='patch']", visible: :all)
     assert_selector("form[action='/selection'] input[name='warehouse_id'][value='7']", visible: :all)
-    assert_selector("form[action='/selection'] button.active", text: /View/, visible: :all)
+    assert_selector("form[action='/selection'] button.menu-switcher-option.is-current", text: /View/, visible: :all)
     assert_selector(".dropdown-content a[href='/docs']", visible: :all)
     assert_no_selector(".dropdown-content a[href='/selection']", visible: :all)
   end
 
-  def test_unauthorized_options_are_left_out_and_none_left_renders_no_switcher
+  # Neither an empty stack (a stray gap) nor a controller for nothing.
+  def test_unauthorized_options_are_left_out_and_none_left_renders_no_stack
+    @options[:fixed] = false
+    @options[:reveal_current] = false
     render_inline(component) do |c|
       c.with_switcher { |s| s.with_option(title: "Hidden", href: "/h", icon: "lock", authorized: false) }
       c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
     end
 
-    assert_no_selector(".menu-switcher", visible: :all)
+    assert_no_selector(".menu-switchers", visible: :all)
+    assert_no_selector("[data-controller~='side-menu']")
+  end
+
+  # A host forwarding an optional value: nil and "GET" are both a link.
+  def test_method_is_normalized
+    [ nil, "GET", :get ].each do |verb|
+      assert_equal :get, Bali::SideMenu::MenuSwitch::Component.new(title: "x", href: "/x", icon: "x", method: verb).http_method
+    end
+    assert_equal :patch, Bali::SideMenu::MenuSwitch::Component.new(title: "x", href: "/x", icon: "x", method: "PATCH").http_method
   end
 
   # One menu renders no switcher, so the switcher is not what asks for the controller here.

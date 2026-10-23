@@ -15,13 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   niveles. Cada opción toma los argumentos de `with_menu_switch` más `method:`, `params:` y
   `badge:`; con `method:` distinto de `:get` la opción es un formulario (`button_to`) y no un
   enlace, para que el prefetch de Turbo al pasar el mouse no cambie la selección. `label:` pone
-  un encabezado arriba del selector y `accent: true` le da el borde y el ícono primarios. Los
-  `<details>` de todos los niveles comparten `name`, así que solo uno queda abierto, y clic fuera
-  y Escape cierran el que lo esté. Preview «With Stacked Switchers» y guía en
+  un encabezado arriba del selector y `accent: true` le da el borde y el ícono primarios. Sin
+  opción `active:`, el selector de contexto muestra `placeholder:` («Elige…») en vez de la primera
+  opción. El controlador `side-menu` deja abierto un solo nivel a la vez, y clic fuera y Escape
+  cierran el que lo esté. La opción actual se marca con `is-current`, un tinte primario. Preview «With Stacked Switchers» y guía en
   `docs/guides/components.md`.
   - **Anfitrión:** nada que hacer si no lo usa. El selector de módulos se dibuja ahora con el
     mismo componente (`Bali::SideMenu::Switcher`) dentro de un contenedor `.menu-switchers`: si
-    su CSS apunta al margen de `.menu-switcher`, revíselo. Una app que copió la plantilla de
+    su CSS apunta al margen de `.menu-switcher`, revíselo. El borde, el padding y el hover de su
+    trigger pasaron de utilidades en la plantilla a `index.css`, y su módulo actual se marca con
+    `is-current` en lugar de `active`, una clase que daisyUI 5 ya no pinta. Una app que copió la plantilla de
     `SideMenu` para agregar un selector (costa-norte) puede borrar la copia y usar el slot.
 
 ### Security
