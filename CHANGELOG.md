@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Ruby 4.0.1 → 4.0.9** (`.ruby-version`), for the Onigmo fixes in the ruby-lang.org advisory of 2026-10-23: a double free while parsing a pattern (CVE-2026-89078) and integer overflows while compiling one (CVE-2026-93577, CVE-2026-97229, CVE-2026-110264; the CVEs are GitLab's, Ruby requested none). Only the Ruby that CI and development run changes: the gem runs on its host app's Ruby, and `required_ruby_version` does not move.
+
 ## [v3.21.0] - 2026-10-23
 
 ### Added
