@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.22.0] - 2026-10-23
+
 ### Added
 
 - **`Bali::SideMenu`: selectores apilados, uno por nivel del menú** (#1539). Cada `with_switcher`
