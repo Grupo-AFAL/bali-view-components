@@ -30,6 +30,14 @@ module BpmnSampleFlows
     { version: 1, orientation: "horizontal", pool: { x: 0, y: 0 } }.merge(doc)
   end
 
+  SHARED_LANE_IDS_PATH = Bali::Engine.root.join("test/fixtures/bpmn_editor/compare_shared_lane_ids.json")
+
+  # Two versions of one flow as an app that stores no geometry sends them
+  # (the fixture's `_comment`): { compare_with:, current: }, Spanish only.
+  def shared_lane_ids
+    JSON.parse(File.read(SHARED_LANE_IDS_PATH)).except("_comment").deep_symbolize_keys
+  end
+
   def localize(value, locale)
     case value
     when Hash

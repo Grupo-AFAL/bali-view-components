@@ -1,0 +1,353 @@
+{
+  "_comment": "An app that stores no geometry: no coordinates, lane sizes or pool; start and end events in no lane; a lane name repeated in each document; lane ids shared by both documents with another meaning (lane-4). Compared with match: name. BpmnSampleFlows.shared_lane_ids, cypress/e2e/bpmn-compare-layout.cy.js and test/javascript/bpmn_editor read it.",
+  "compare_with": {
+    "orientation": "horizontal",
+    "lanes": [
+      {
+        "id": "lane-1",
+        "name": "Responsable de almacén",
+        "kind": "internal",
+        "order": 1
+      },
+      {
+        "id": "lane-2",
+        "name": "Gerente de operaciones",
+        "kind": "internal",
+        "order": 2
+      },
+      {
+        "id": "lane-3",
+        "name": "Director de operaciones",
+        "kind": "internal",
+        "order": 3
+      },
+      {
+        "id": "lane-4",
+        "name": "Gerente de operaciones",
+        "kind": "internal",
+        "order": 4
+      }
+    ],
+    "nodes": [
+      {
+        "id": "1",
+        "type": "start_event",
+        "name": "Inicio"
+      },
+      {
+        "id": "2",
+        "type": "task",
+        "name": "Generar reporte semanal",
+        "lane_id": "lane-4"
+      },
+      {
+        "id": "3",
+        "type": "task",
+        "name": "Registrar traspaso",
+        "lane_id": "lane-4"
+      },
+      {
+        "id": "4",
+        "type": "task",
+        "name": "Entregar material",
+        "lane_id": "lane-4"
+      },
+      {
+        "id": "5",
+        "type": "task",
+        "name": "Generar hoja de conteo",
+        "lane_id": "lane-4"
+      },
+      {
+        "id": "6",
+        "type": "task",
+        "name": "Contar material crítico",
+        "lane_id": "lane-1"
+      },
+      {
+        "id": "7",
+        "type": "task",
+        "name": "Capturar conteo",
+        "lane_id": "lane-4"
+      },
+      {
+        "id": "8",
+        "type": "task",
+        "name": "Preparar ajuste",
+        "lane_id": "lane-4"
+      },
+      {
+        "id": "9",
+        "type": "task",
+        "name": "Autorizar ajuste (gerencia)",
+        "lane_id": "lane-2"
+      },
+      {
+        "id": "10",
+        "type": "task",
+        "name": "Autorizar ajuste (dirección)",
+        "lane_id": "lane-3"
+      },
+      {
+        "id": "11",
+        "type": "task",
+        "name": "Aplicar ajuste",
+        "lane_id": "lane-4"
+      },
+      {
+        "id": "12",
+        "type": "task",
+        "name": "Archivar ajuste",
+        "lane_id": "lane-4"
+      },
+      {
+        "id": "13",
+        "type": "end_event",
+        "name": "Fin"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-1",
+        "type": "sequence_flow",
+        "source": "1",
+        "target": "2"
+      },
+      {
+        "id": "edge-2",
+        "type": "sequence_flow",
+        "source": "2",
+        "target": "3"
+      },
+      {
+        "id": "edge-3",
+        "type": "sequence_flow",
+        "source": "3",
+        "target": "4"
+      },
+      {
+        "id": "edge-4",
+        "type": "sequence_flow",
+        "source": "4",
+        "target": "5"
+      },
+      {
+        "id": "edge-5",
+        "type": "sequence_flow",
+        "source": "5",
+        "target": "6"
+      },
+      {
+        "id": "edge-6",
+        "type": "sequence_flow",
+        "source": "6",
+        "target": "7"
+      },
+      {
+        "id": "edge-7",
+        "type": "sequence_flow",
+        "source": "7",
+        "target": "8"
+      },
+      {
+        "id": "edge-8",
+        "type": "sequence_flow",
+        "source": "8",
+        "target": "9"
+      },
+      {
+        "id": "edge-9",
+        "type": "sequence_flow",
+        "source": "9",
+        "target": "10"
+      },
+      {
+        "id": "edge-10",
+        "type": "sequence_flow",
+        "source": "10",
+        "target": "11"
+      },
+      {
+        "id": "edge-11",
+        "type": "sequence_flow",
+        "source": "11",
+        "target": "12"
+      },
+      {
+        "id": "edge-12",
+        "type": "sequence_flow",
+        "source": "12",
+        "target": "13"
+      }
+    ]
+  },
+  "current": {
+    "orientation": "horizontal",
+    "lanes": [
+      {
+        "id": "lane-4",
+        "name": "Responsable de almacén",
+        "kind": "internal",
+        "order": 1
+      },
+      {
+        "id": "lane-5",
+        "name": "Gerente de operaciones",
+        "kind": "internal",
+        "order": 2
+      },
+      {
+        "id": "lane-6",
+        "name": "Director de operaciones",
+        "kind": "internal",
+        "order": 3
+      },
+      {
+        "id": "lane-7",
+        "name": "Gerente de operaciones",
+        "kind": "internal",
+        "order": 4
+      }
+    ],
+    "nodes": [
+      {
+        "id": "65",
+        "type": "start_event",
+        "name": "Inicio"
+      },
+      {
+        "id": "66",
+        "type": "task",
+        "name": "Generar reporte semanal (revisado)",
+        "lane_id": "lane-7"
+      },
+      {
+        "id": "174",
+        "type": "task",
+        "name": "Validar existencias",
+        "lane_id": "lane-7"
+      },
+      {
+        "id": "68",
+        "type": "task",
+        "name": "Entregar material",
+        "lane_id": "lane-7"
+      },
+      {
+        "id": "69",
+        "type": "task",
+        "name": "Generar hoja de conteo",
+        "lane_id": "lane-7"
+      },
+      {
+        "id": "70",
+        "type": "task",
+        "name": "Contar material crítico",
+        "lane_id": "lane-4"
+      },
+      {
+        "id": "71",
+        "type": "task",
+        "name": "Capturar conteo",
+        "lane_id": "lane-7"
+      },
+      {
+        "id": "72",
+        "type": "task",
+        "name": "Preparar ajuste",
+        "lane_id": "lane-7"
+      },
+      {
+        "id": "73",
+        "type": "task",
+        "name": "Autorizar ajuste (gerencia)",
+        "lane_id": "lane-5"
+      },
+      {
+        "id": "74",
+        "type": "task",
+        "name": "Autorizar ajuste (dirección)",
+        "lane_id": "lane-6"
+      },
+      {
+        "id": "75",
+        "type": "task",
+        "name": "Aplicar ajuste",
+        "lane_id": "lane-7"
+      },
+      {
+        "id": "76",
+        "type": "task",
+        "name": "Archivar ajuste",
+        "lane_id": "lane-7"
+      },
+      {
+        "id": "77",
+        "type": "end_event",
+        "name": "Fin"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-60",
+        "type": "sequence_flow",
+        "source": "65",
+        "target": "66"
+      },
+      {
+        "id": "edge-63",
+        "type": "sequence_flow",
+        "source": "68",
+        "target": "69"
+      },
+      {
+        "id": "edge-64",
+        "type": "sequence_flow",
+        "source": "69",
+        "target": "70"
+      },
+      {
+        "id": "edge-65",
+        "type": "sequence_flow",
+        "source": "70",
+        "target": "71"
+      },
+      {
+        "id": "edge-66",
+        "type": "sequence_flow",
+        "source": "71",
+        "target": "72"
+      },
+      {
+        "id": "edge-67",
+        "type": "sequence_flow",
+        "source": "72",
+        "target": "73"
+      },
+      {
+        "id": "edge-68",
+        "type": "sequence_flow",
+        "source": "73",
+        "target": "74"
+      },
+      {
+        "id": "edge-69",
+        "type": "sequence_flow",
+        "source": "74",
+        "target": "75"
+      },
+      {
+        "id": "edge-70",
+        "type": "sequence_flow",
+        "source": "75",
+        "target": "76"
+      },
+      {
+        "id": "edge-71",
+        "type": "sequence_flow",
+        "source": "76",
+        "target": "77"
+      }
+    ]
+  }
+}

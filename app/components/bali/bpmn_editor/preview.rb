@@ -361,6 +361,23 @@ module Bali
         end
       end
 
+      # @label Compare without geometry (shared lane ids)
+      # @hidden
+      # Two versions of one flow as an app that stores no geometry sends them:
+      # no coordinates, lane sizes or pool; a lane name repeated in each; the
+      # same lane ids meaning other lanes in each document. Compared by name,
+      # read-only and minimal, open on load (cypress/e2e/bpmn-compare-layout.cy.js).
+      def compare_shared_lane_ids
+        docs = BpmnSampleFlows.shared_lane_ids
+        I18n.with_locale(:es) do
+          component = Bali::BpmnEditor::Component.new(
+            data: docs[:current], rules: false, chrome: :minimal, min_zoom: 0.2, compare_open: true, id: "shared_lane_ids_bpmn",
+            review: { compare_with: [ { label: "versión 1.0", match: :name, document: docs[:compare_with] } ] }
+          )
+          render_with_template(template: "bali/bpmn_editor/previews/minimal", locals: { component: component })
+        end
+      end
+
       private
 
       def without_geometry(doc)
