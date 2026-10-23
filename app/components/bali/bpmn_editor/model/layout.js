@@ -1,0 +1,327 @@
+// "Tidy up": a complete layered layout that keeps every
+// element in its lane — the reason it is not dagre, which knows no lanes.
+//
+// 1. Columns by longest path from the sources over the sequence flows (loops
+//    ignored): one column per rank, aligned across every lane.
+// 2. Rows inside each lane: the happy path — from each element, the successor
+//    with the longest way still ahead — stays on its row, so it reads as a
+//    straight line (Method and Style). Exception branches leave below, then
+//    above; the branches of a parallel or inclusive split that merge again sit
+//    symmetrically around the split.
+// 3. Uniform spacing per column and per row on a 10 px grid; each lane is as
+//    thick as its rows.
+// 4. Artifacts go next to what they are associated with; then the incremental
+//    arrangement settles anything still touching, and every connection is
+//    routed again.
+//
+// `mode: 'compact'` (AFAL VIS-01/02/03) folds the columns into bands that
+// serpentine down the lanes until the diagram fits the page (page.js);
+// `'straight'` keeps one band, the happy path in one line.
+import { isArtifactLike, isGateway, isActivity, nodeSize, edgeType } from './catalog.js'
+import { layoutLanes, HEADER, orientationOf } from './geometry.js'
+import { arrange, place, footprint, HEADER_GAP, LANE_PAD, STEP } from './arrange.js'
+import { pageFit, LETTER, MIN_SCALE } from './page.js'
+
+// The modes; mirrors Bali::BpmnEditor::Component::LAYOUTS (contract_test.rb).
+export const LAYOUTS = ['compact', 'straight']
+
+const SLOT = { horizontal: 120, vertical: 220 } // row to row, across the flow
+const COLUMN = { horizontal: 150, vertical: 64 } // an activity's extent along the flow
+const ROW = { horizontal: 64, vertical: 150 } // an activity's extent across the flow
+// Compact mode tightens a flow before folding it: each column as wide as what
+// it holds (an event or a gateway with its name, wrapped — labels.js), tasks
+// down to DENSE_ACTIVITY (their name takes more lines), DENSE_GAP between
+// neighbours — bpmn.io's spacing; arrange.js still keeps 40 px between
+// footprints. Measured: the 10-step «Alta de proveedor» goes from 1990 px
+// wide (scale 0.48 on a landscape letter page) to one that prints at 6 pt.
+const DENSE_ACTIVITY = 110
+const DENSE_GAP = 40
+
+function layers (nodes, edges) {
+  const ids = nodes.map((n) => String(n.id))
+  const known = new Set(ids)
+  const out = new Map(ids.map((id) => [id, []]))
+  for (const e of edges) {
+    if (known.has(String(e.source)) && known.has(String(e.target))) out.get(String(e.source)).push(String(e.target))
+  }
+  // DFS to find back edges, from nodes without incoming flow first.
+  const incoming = new Map(ids.map((id) => [id, 0]))
+  for (const [, targets] of out) for (const t of targets) incoming.set(t, incoming.get(t) + 1)
+  const roots = ids.filter((id) => incoming.get(id) === 0)
+  const state = new Map()
+  const back = new Set()
+  const visit = (id) => {
+    const stack = [[id, 0]]
+    state.set(id, 1)
+    while (stack.length) {
+      const top = stack[stack.length - 1]
+      const targets = out.get(top[0])
+      if (top[1] < targets.length) {
+        const next = targets[top[1]++]
+        if (state.get(next) === 1) back.add(`${top[0]}>${next}`)
+        else if (!state.get(next)) { state.set(next, 1); stack.push([next, 0]) }
+      } else {
+        state.set(top[0], 2)
+        stack.pop()
+      }
+    }
+  }
+  for (const id of [...roots, ...ids]) if (!state.get(id)) visit(id)
+
+  // Longest path over the acyclic remainder (Kahn order).
+  const indegree = new Map(ids.map((id) => [id, 0]))
+  for (const [source, targets] of out) for (const t of targets) if (!back.has(`${source}>${t}`)) indegree.set(t, indegree.get(t) + 1)
+  const layer = new Map(ids.map((id) => [id, 0]))
+  const queue = ids.filter((id) => indegree.get(id) === 0)
+  while (queue.length) {
+    const id = queue.shift()
+    for (const t of out.get(id)) {
+      if (back.has(`${id}>${t}`)) continue
+      layer.set(t, Math.max(layer.get(t), layer.get(id) + 1))
+      indegree.set(t, indegree.get(t) - 1)
+      if (indegree.get(t) === 0) queue.push(t)
+    }
+  }
+  const predecessors = new Map(ids.map((id) => [id, []]))
+  for (const [source, targets] of out) for (const t of targets) if (!back.has(`${source}>${t}`)) predecessors.get(t).push(source)
+  return { layer, predecessors, out, back }
+}
+
+export function autoLayout (doc, { mode = 'straight', page = LETTER } = {}) {
+  const orientation = orientationOf(doc)
+  const lanesLayout = layoutLanes(doc)
+  const vertical = orientation === 'vertical'
+  const flowNodes = (doc.nodes || []).filter((n) => !isArtifactLike(n))
+  const flows = (doc.edges || []).filter((e) => edgeType(e) === 'sequence_flow')
+  const { layer, out, back } = layers(flowNodes, flows)
+  const byId = new Map(flowNodes.map((n) => [String(n.id), n]))
+  const laneIds = lanesLayout.entries.map((e) => String(e.id))
+  const laneOf = (id) => {
+    const node = byId.get(id)
+    const lane = node && node.lane_id != null ? String(node.lane_id) : null
+    return lane && laneIds.includes(lane) ? lane : (laneIds[0] || '')
+  }
+  const forward = (id) => (out.get(id) || []).filter((t) => !back.has(`${id}>${t}`))
+
+  // How long the way ahead is from each element: the happy path follows it.
+  const depth = new Map()
+  const depthOf = (id) => {
+    if (depth.has(id)) return depth.get(id)
+    depth.set(id, 0)
+    const d = 1 + Math.max(0, ...forward(id).map(depthOf))
+    depth.set(id, d)
+    return d
+  }
+  const inCount = new Map()
+  for (const [, targets] of out) for (const t of targets) inCount.set(t, (inCount.get(t) || 0) + 1)
+
+  // Rows, walking the columns in order. The first row an element is given is kept.
+  const row = new Map()
+  const taken = new Set() // lane|layer|row
+  const claim = (id, wanted) => {
+    const lane = laneOf(id)
+    let r = wanted
+    for (let k = 1; taken.has(`${lane}|${layer.get(id)}|${r}`); k++) r = wanted + (k % 2 ? Math.ceil(k / 2) : -Math.ceil(k / 2))
+    row.set(id, r)
+    taken.add(`${lane}|${layer.get(id)}|${r}`)
+  }
+  const order = [...flowNodes].map((n) => String(n.id)).sort((a, b) => (layer.get(a) - layer.get(b)) || ((inCount.get(a) || 0) - (inCount.get(b) || 0)))
+  for (const id of order) {
+    if (!row.has(id)) claim(id, 0)
+    const here = row.get(id)
+    const next = forward(id).filter((t) => !row.has(t)).sort((a, b) => depthOf(b) - depthOf(a))
+    if (!next.length) continue
+    const node = byId.get(id)
+    // A split whose branches merge again (parallel, inclusive): symmetric.
+    const symmetric = isGateway(node) && node.type !== 'exclusive_gateway' && next.length > 1
+    if (symmetric) {
+      const offsets = (next.length % 2 ? [0] : []).concat(...Array.from({ length: Math.ceil(next.length / 2) }, (_, i) => [-(i + 1), i + 1])).slice(0, next.length)
+      if (next.length % 2 === 0) offsets.sort((a, b) => a - b)
+      next.forEach((t, i) => claim(t, laneOf(t) === laneOf(id) ? here + offsets[i] : offsets[i]))
+      continue
+    }
+    // Rows are counted per lane: when the longest way ahead leaves the lane,
+    // the continuation that stays in it keeps the row and leaves the gateway
+    // in a straight line; exceptions go below, then above.
+    const exception = (i) => (i === 0 ? 0 : i % 2 ? Math.ceil(i / 2) : -Math.ceil(i / 2))
+    const sameLane = next.filter((t) => laneOf(t) === laneOf(id))
+    const otherLanes = next.filter((t) => laneOf(t) !== laneOf(id))
+    sameLane.forEach((t, i) => claim(t, here + exception(i)))
+    otherLanes.forEach((t, i) => claim(t, exception(i)))
+  }
+
+  const header = laneIds.length ? HEADER[orientation] : 0
+  const columns = 1 + Math.max(0, ...[...row.keys()].map((id) => layer.get(id)))
+
+  // Positions with `perBand` columns to a band. One band is the straight
+  // layout. With more, the flow serpentines (boustrophedon): band 0 reads
+  // left to right, band 1 comes back right to left under it, and so on —
+  // each lane holds one group of rows per band it takes part in, so lanes
+  // stay horizontal and whole.
+  function position (perBand, dense = false) {
+    const bandOf = (id) => Math.floor(layer.get(id) / perBand)
+    const columnOf = (id) => {
+      const c = layer.get(id) % perBand
+      return bandOf(id) % 2 ? perBand - 1 - c : c
+    }
+    // Rows each lane uses in each band.
+    const rowsOf = new Map()
+    for (const [id, r] of row) {
+      const key = `${laneOf(id)}|${bandOf(id)}`
+      const [lo, hi] = rowsOf.get(key) || [r, r]
+      rowsOf.set(key, [Math.min(lo, r), Math.max(hi, r)])
+    }
+    let offset = 0
+    const laneStart = new Map()
+    const bandStart = new Map() // lane|band → offset inside the lane
+    const lanes = (doc.lanes || []).map((lane) => ({ ...lane }))
+    const bands = Math.ceil(columns / perBand)
+    for (const entry of lanesLayout.entries) {
+      let inner = 0
+      for (let band = 0; band < bands; band++) {
+        const span = rowsOf.get(`${entry.id}|${band}`)
+        if (!span) continue
+        bandStart.set(`${entry.id}|${band}`, inner)
+        inner += (span[1] - span[0] + 1) * SLOT[orientation]
+      }
+      const size = Math.ceil(((inner || SLOT[orientation]) + LANE_PAD * 2) / 10) * 10
+      laneStart.set(String(entry.id), offset)
+      const lane = lanes.find((l) => String(l.id) === String(entry.id))
+      if (lane) lane.size = size
+      offset += size
+    }
+
+    // A dense column is as wide as its widest footprint; otherwise every
+    // column takes STEP.
+    const sized = (node) => (dense && isActivity(node) && !(Number(node.width) > 0) ? { ...node, width: DENSE_ACTIVITY } : node)
+    const centers = []
+    if (dense) {
+      // How far each column's footprints reach before and after the centre
+      // line (a gateway's name sits to its left, a badge to the right).
+      const before = new Array(perBand).fill(0)
+      const after = new Array(perBand).fill(0)
+      for (const node of doc.nodes || []) {
+        const id = String(node.id)
+        if (!row.has(id)) continue
+        const shaped = sized(node)
+        const fp = footprint(shaped, orientation)
+        const { width, height } = nodeSize(shaped)
+        const half = (vertical ? height : width) / 2
+        const start = vertical ? fp.dy : fp.dx
+        const extent = vertical ? fp.h : fp.w
+        before[columnOf(id)] = Math.max(before[columnOf(id)], half - start)
+        after[columnOf(id)] = Math.max(after[columnOf(id)], start + extent - half)
+      }
+      // Centres on the 10 px grid arrange.js snaps to, rounded up, so no gap
+      // ends under DENSE_GAP and arrange has nothing to push.
+      let along = header + HEADER_GAP
+      for (let c = 0; c < perBand; c++) {
+        const center = Math.ceil((along + (before[c] || COLUMN[orientation] / 2)) / 10) * 10
+        centers.push(center)
+        along = center + (after[c] || COLUMN[orientation] / 2) + DENSE_GAP
+      }
+    }
+
+    const nodes = (doc.nodes || []).map((original) => {
+      const node = sized(original)
+      const id = String(node.id)
+      if (!row.has(id)) return original
+      const { width, height } = nodeSize(node)
+      const lane = laneOf(id)
+      const key = `${lane}|${bandOf(id)}`
+      const [lo] = rowsOf.get(key) || [0, 0]
+      const center = dense ? centers[columnOf(id)] : header + HEADER_GAP + COLUMN[orientation] / 2 + columnOf(id) * STEP[orientation]
+      const across = (laneStart.get(lane) || 0) + LANE_PAD + (bandStart.get(key) || 0) + (row.get(id) - lo) * SLOT[orientation] + ROW[orientation] / 2
+      const next = { ...node, lane_id: laneIds.length ? lane : node.lane_id }
+      const snap = (v) => Math.round(v / 10) * 10
+      if (vertical) { next.x = snap(across) - width / 2; next.y = snap(center) - height / 2 } else { next.x = snap(center) - width / 2; next.y = snap(across) - height / 2 }
+      return next
+    })
+
+    // Artifacts beside what they are associated with: an annotation above it,
+    // a data element below it; with no association, before the first column.
+    const placed = new Map(nodes.map((n) => [String(n.id), n]))
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i]
+      if (!isArtifactLike(node) || node.type === 'group') continue
+      const link = (doc.edges || []).find((e) => String(e.source) === String(node.id) || String(e.target) === String(node.id))
+      const partner = link && placed.get(String(String(link.source) === String(node.id) ? link.target : link.source))
+      const { width, height } = nodeSize(node)
+      if (partner && !isArtifactLike(partner)) {
+        const p = nodeSize(partner)
+        const above = node.type === 'text_annotation'
+        nodes[i] = vertical
+          ? { ...node, x: partner.x + p.width + 40, y: partner.y + (p.height - height) / 2, lane_id: partner.lane_id }
+          : { ...node, x: partner.x + (p.width - width) / 2, y: above ? partner.y - height - 40 : partner.y + p.height + 50, lane_id: partner.lane_id }
+      } else if (node.x == null || node.y == null) {
+        nodes[i] = { ...node, x: header + 20, y: 20 }
+      }
+    }
+    const edges = (doc.edges || []).map((e) => ({ ...e, ports: { source: 'auto', target: 'auto' }, waypoints: [] }))
+    const pool = { ...(doc.pool || {}) }
+    delete pool.length
+    return { ...doc, lanes, nodes, edges, pool }
+  }
+
+  // Compact: a diagram that fits the page legibly straight stays straight;
+  // one that does not is tightened first (dense columns, narrower tasks) and
+  // stays straight if that fits; only then is it folded, into the fewest
+  // bands that fit — or, fitting nowhere, the band count that shows it
+  // largest. Fit is measured on the arranged result, what will be drawn.
+  // Horizontal lanes only (VIS-03 keeps lanes horizontal); vertical lanes
+  // are laid out straight.
+  if (mode === 'compact' && !vertical && columns > 2) return compactLayout(position, columns, page)
+  return arrange(position(columns))
+}
+
+// The compact choice, as if every candidate were arranged in turn — loose,
+// then perBand from `columns` down to 2, the first that fits or else the
+// first with the largest scale — but arranging (and so routing) only those
+// that can decide it. `place` without routing bounds a candidate's scale
+// from above (arrange.js), which rules most of them out: the 80-activity flow
+// fits nowhere, and arranging all ~90 candidates took 9 s.
+function compactLayout (position, columns, page) {
+  const bound = (doc) => pageFit(place(doc), page).scale
+  const loose = position(columns)
+  if (bound(loose) >= MIN_SCALE) {
+    const arranged = arrange(loose)
+    if (pageFit(arranged, page).fits) return arranged
+  }
+  const candidates = []
+  for (let perBand = columns; perBand >= 2; perBand--) {
+    const doc = position(perBand, true)
+    candidates.push({ doc, bound: bound(doc), arranged: null, scale: null })
+  }
+  const evaluate = (c) => {
+    if (!c.arranged) {
+      c.arranged = arrange(c.doc)
+      c.scale = pageFit(c.arranged, page).scale
+    }
+    return c
+  }
+  for (const c of candidates) {
+    if (c.bound >= MIN_SCALE && evaluate(c).scale >= MIN_SCALE) return c.arranged
+  }
+  // None fits: the sequential pick keeps a candidate when its scale beats
+  // the best so far by more than 1e-9. A pivot every candidate before which
+  // scores 1e-9 under it is kept whatever came first; from there on, one
+  // whose bound cannot beat the best is not arranged.
+  const EPS = 1e-9
+  let pivot = candidates.reduce((top, c, i) => (c.bound > candidates[top].bound ? i : top), 0)
+  evaluate(candidates[pivot])
+  for (;;) {
+    const s = candidates[pivot].scale
+    const rival = candidates.findIndex((c, i) => i < pivot && c.bound >= s - EPS && evaluate(c).scale >= s - EPS)
+    if (rival < 0) break
+    pivot = rival
+  }
+  let best = candidates[pivot]
+  for (const c of candidates.slice(pivot + 1)) {
+    if (c.bound > best.scale + EPS && evaluate(c).scale > best.scale + EPS) best = c
+  }
+  return best.arranged
+}
+
+// Whether the document arrived without a position for some flow node — the
+// island lays such a document out once, on load.
+export const needsLayout = (doc) => (doc.nodes || []).some((n) => !isArtifactLike(n) && (n.x == null || n.y == null))

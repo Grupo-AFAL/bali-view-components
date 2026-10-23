@@ -1,0 +1,63 @@
+<%# locals: first, second, locked, locale %>
+<%# The app around the editor. The console and the tabs' unsaved mark are the
+    dummy's own Stimulus controller (bpmn_host_console_controller.js): an app
+    listens to the same `bali-bpmn:*` events the same way. %>
+<%= react_island_meta_tags("bpmn-editor", js: "bpmn-editor-island.js", css: "bpmn-editor-island.css") %>
+<% en = locale.to_s == "en" %>
+<% urls = ->(flow) { { save: admin_process_flow_diagram_path(flow), diagram: admin_process_flow_diagram_path(flow),
+                       finalize: admin_process_flow_finalization_path(flow) } } %>
+<div class="flex flex-col gap-6 p-4" data-controller="bpmn-host-console" data-testid="bpmn-host-integration">
+  <section class="flex flex-col gap-2">
+    <h3 class="font-semibold"><%= en ? "Two flows in tabs" : "Dos flujos en pestañas" %></h3>
+    <p class="text-sm text-base-content/70">
+      <%= en ? "Edit one: its tab shows a dot until the change is saved (bali-bpmn:dirty-change)." :
+               "Edita uno: su pestaña muestra un punto hasta que el cambio se guarda (bali-bpmn:dirty-change)." %>
+    </p>
+    <%= render Bali::Tabs::Component.new(style: :lift) do |tabs| %>
+      <% tabs.with_tab(title: en ? "Supplier payments" : "Pago a proveedores", active: true) do %>
+        <%= I18n.with_locale(locale) { render Bali::BpmnEditor::Component.new(
+              data: first.to_diagram(locale: locale), editable: true, urls: urls.(first), id: "host_first_bpmn") } %>
+      <% end %>
+      <% tabs.with_tab(title: en ? "Request review" : "Revisión de solicitudes") do %>
+        <%= I18n.with_locale(locale) { render Bali::BpmnEditor::Component.new(
+              data: second.to_diagram(locale: locale), editable: true, urls: urls.(second), id: "host_second_bpmn") } %>
+      <% end %>
+    <% end %>
+  </section>
+
+  <section class="flex flex-col gap-2">
+    <h3 class="font-semibold"><%= en ? "The app answers" : "La app responde" %></h3>
+    <p class="text-sm text-base-content/70">
+      <%= en ? "Each button posts to the dummy, which answers with a Turbo Stream helper for the first editor (#host_first_bpmn)." :
+               "Cada botón llama al dummy, que responde con un helper de Turbo Stream para el primer editor (#host_first_bpmn)." %>
+    </p>
+    <div class="flex flex-wrap gap-2">
+      <%= button_to (en ? "Reload the first editor (bali_bpmn_reload)" : "Recargar el primer editor (bali_bpmn_reload)"),
+                    admin_process_flow_host_event_path(first),
+                    params: { event: "reload", editor_id: "host_first_bpmn" },
+                    form: { data: { turbo_stream: true } }, class: "btn btn-sm", data: { testid: "bpmn-host-reload" } %>
+      <%= button_to (en ? "Link «#{first.document['nodes'].find { |n| n['id'] == 'sp' }['name']}» (bali_bpmn_reference_created)" :
+                          "Vincular «#{first.document['nodes'].find { |n| n['id'] == 'sp' }['name']}» (bali_bpmn_reference_created)"),
+                    admin_process_flow_host_event_path(first),
+                    params: { event: "reference_created", editor_id: "host_first_bpmn", client_node_id: "sp" },
+                    form: { data: { turbo_stream: true } }, class: "btn btn-sm", data: { testid: "bpmn-host-reference" } %>
+    </div>
+  </section>
+
+  <section class="flex flex-col gap-2">
+    <h3 class="font-semibold"><%= en ? "Read-only, with the app's notice" : "Solo lectura, con el aviso de la app" %></h3>
+    <%= render Bali::Alert::Component.new(color: :warning, data: { testid: "bpmn-host-locked" }) do %>
+      <%= en ? "This flow was published: open a new version to change it." : "Este flujo está publicado: abre una nueva versión para cambiarlo." %>
+    <% end %>
+    <%= I18n.with_locale(locale) { render Bali::BpmnEditor::Component.new(data: locked, id: "host_locked_bpmn") } %>
+  </section>
+
+  <section class="flex flex-col gap-2">
+    <div class="flex items-center justify-between">
+      <h3 class="font-semibold"><%= en ? "Events the editors sent" : "Eventos que enviaron los editores" %></h3>
+      <button type="button" class="btn btn-ghost btn-xs" data-action="bpmn-host-console#clear"><%= en ? "Clear" : "Limpiar" %></button>
+    </div>
+    <p class="text-xs text-base-content/60" data-bpmn-host-console-target="empty"><%= en ? "Nothing yet: edit a flow." : "Nada aún: edita un flujo." %></p>
+    <ol class="flex max-h-64 flex-col gap-1 overflow-y-auto rounded border border-base-300 p-2" data-bpmn-host-console-target="log" data-testid="bpmn-host-console"></ol>
+  </section>
+</div>

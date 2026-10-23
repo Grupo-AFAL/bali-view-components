@@ -66,22 +66,33 @@ module Bali
       # is present.
       renders_one :empty_detail
 
+      # `collapsible:` only: what the pane shows while the frame fetches a
+      # detail, in place of the default spinner and «Loading…». It sits inside
+      # the pane's `role="status"` region, so its text is announced.
+      renders_one :loading
+
       DEFAULT_MASTER_WIDTH = "420px"
 
-      HEIGHTS = %i[content full].freeze
+      HEIGHTS = %i[content full screen].freeze
 
       # A single CSS length or percentage. Anything more expressive (`minmax()`,
       # `clamp()`) belongs in the host's own stylesheet overriding
       # `--bali-split-master-width`, not in an inline style attribute built from
-      # a Ruby argument.
+      # a Ruby argument. `master_width: :equal` is the one keyword.
       MASTER_WIDTH_FORMAT = /\A\d+(\.\d+)?(px|rem|em|ch|vw|%)\z/
+
+      # A fixed `height:`: the same shape, with the viewport-height units.
+      HEIGHT_FORMAT = /\A\d+(\.\d+)?(px|rem|em|vh|dvh|svh|lvh|%)\z/
 
       attr_reader :frame_id, :master_width
 
       # frame_id  - id of the detail Turbo Frame. Rows target it with
       #             `data-turbo-frame`, so it has to be unique in the page.
       # master_width - width of the master column from `lg` up. CSS length or
-      #             percentage; drives `--bali-split-master-width`.
+      #             percentage; drives `--bali-split-master-width`. `:equal`
+      #             makes the two columns the same width to the pixel, the gap
+      #             included (change that gap with `--bali-split-gap`, not a
+      #             `gap-*` utility, or the halves stop matching).
       # height    - `:content` (default) lets the split grow with its content and
       #             the page scroll do the work. `:full` makes it fill the nearest
       #             ancestor with a definite height and gives EACH pane its own
@@ -91,6 +102,13 @@ module Bali
       #             `Bali::AppLayout::Component.new(viewport_locked: true)`.
       #             Only from `lg` up; stacked panes cannot both fill one screen,
       #             so below that the page scrolls as usual.
+      #             `:screen` fills from the split's top edge to the bottom of
+      #             the viewport (`dvh`, kept right as the page above it changes),
+      #             never shorter than `--bali-split-min-h` (28rem). A CSS length
+      #             (`"640px"`, `"40rem"`, `"70vh"`) is a fixed height. Both give
+      #             each pane the whole height, as `:full` does, and both apply
+      #             from `lg` up: below it the panes stack as with `:content` (a
+      #             `collapsible:` detail is a full-screen sheet there anyway).
       # advance   - emit `data-turbo-action="advance"` on the frame so a row click
       #             pushes its URL into the history and the selection is
       #             deep-linkable. Turn it off for a split view that is not a
@@ -103,13 +121,24 @@ module Bali
       #             Nothing inside the detail can stand in for it: Turbo reads
       #             `data-autoscroll-block` and `data-autoscroll-behavior` off the
       #             frame already in the page, never off the one in the response.
+      # collapsible - the master takes the whole width while there is no detail;
+      #             a detail arriving (a Turbo Frame load, or anything the app
+      #             puts in the frame) slides in from the right as the master
+      #             shrinks, and «Close» or Esc slide it out and empty it.
+      #             Below `lg` the detail covers the master, with «Back». The
+      #             container emits `split-view:open` and `split-view:close`.
+      #             A frame fetch opens the pane at once with a loading state
+      #             (the `loading` slot replaces it), and a failed one shows an
+      #             error with «Retry»; Close or Esc while it loads cancel the
+      #             fetch. Off by default: without it nothing changes.
       def initialize(frame_id:, master_width: DEFAULT_MASTER_WIDTH, advance: true,
-                     height: :content, frame_options: {}, **options)
+                     height: :content, frame_options: {}, collapsible: false, **options)
         @frame_id = frame_id
         @master_width = validated_master_width(master_width)
         @advance = advance
         @height = validated_height(height)
         @frame_options = validated_frame_options(frame_options)
+        @collapsible = collapsible
         @options = options
       end
 
@@ -118,7 +147,12 @@ module Bali
       attr_reader :options, :frame_options
 
       def advance? = @advance
-      def full_height? = @height == :full
+      def equal_width? = @master_width == :equal
+      def screen_height? = @height == :screen
+      def fixed_height? = @height.is_a?(String)
+      # Every height that is not the content's own: each pane takes all of it.
+      def filled_height? = @height != :content
+      def collapsible? = !!@collapsible
 
       # Raises rather than falling back, like `master_width:` two lines up. A
       # silent fallback on the option that IS this feature turns `height: :fill`
@@ -126,11 +160,14 @@ module Bali
       # symptom (a split that does not fill) is exactly what a reader would go
       # hunting for in the CSS. Free to demand now, breaking to demand later.
       def validated_height(value)
-        height = value&.to_sym
+        return value.strip if value.is_a?(String) && value.strip.match?(HEIGHT_FORMAT)
+
+        height = value.is_a?(Symbol) || value.is_a?(String) ? value.to_sym : nil
         return height if HEIGHTS.include?(height)
 
         raise ArgumentError,
-              "height must be one of #{HEIGHTS.map(&:inspect).join(', ')}, got #{value.inspect}."
+              "height must be one of #{HEIGHTS.map(&:inspect).join(', ')} or a CSS length " \
+              "(e.g. \"640px\", \"40rem\", \"70vh\"), got #{value.inspect}."
       end
 
       def validated_frame_options(value)
@@ -142,25 +179,51 @@ module Bali
       end
 
       def validated_master_width(value)
+        return :equal if value.to_s == "equal"
+
         width = value.to_s.strip
         return width if width.match?(MASTER_WIDTH_FORMAT)
 
         raise ArgumentError,
-              "master_width must be a CSS length or percentage (e.g. \"420px\", \"24rem\", \"30%\"), got #{value.inspect}. " \
+              "master_width must be :equal or a CSS length or percentage (e.g. \"420px\", \"24rem\", \"30%\"), " \
+              "got #{value.inspect}. " \
               "For anything more expressive, override --bali-split-master-width in your own stylesheet."
       end
 
       def container_attributes
         options.merge(
           class: class_names("split-view-component",
-                             ("split-view-component--full" if full_height?),
+                             ("split-view-component--full" if filled_height?),
+                             ("split-view-component--screen" if screen_height?),
+                             ("split-view-component--fixed" if fixed_height?),
+                             ("split-view-component--equal" if equal_width?),
+                             ("split-view-component--collapsible" if collapsible?),
                              options[:class]),
-          # The only inline declaration is the custom property the grid
-          # reads: `lg:grid-cols-[#{master_width}_1fr]` would be an
-          # arbitrary value Tailwind never sees at build time, so it would
-          # be purged out of the bundle.
-          style: [ "--bali-split-master-width: #{master_width}", options[:style] ].compact.join("; ")
+          data: options[:data].to_h.merge(controller_data),
+          # The only inline declarations are the custom properties the CSS
+          # reads: `lg:grid-cols-[#{master_width}_1fr]` would be an arbitrary
+          # value Tailwind never sees at build time, so it would be purged out
+          # of the bundle. `:equal` is a class instead (index.css).
+          style: [ ("--bali-split-master-width: #{master_width}" unless equal_width?),
+                   ("--bali-split-height: #{@height}" if fixed_height?),
+                   options[:style] ].compact.join("; ")
         )
+      end
+
+      # The controllers the options need, beside the caller's own.
+      def controller_data
+        controllers = [ ("split-view-collapse" if collapsible?), ("split-view-screen" if screen_height?) ].compact
+        return {} if controllers.empty?
+
+        { controller: class_names(*controllers, options.dig(:data, :controller)) }.merge(collapsible_data)
+      end
+
+      # The collapse controller, and the state it starts in: open when the
+      # server already rendered a detail (a deep link), closed otherwise.
+      def collapsible_data
+        return {} unless collapsible?
+
+        { split_state: detail? ? "open" : "closed" }
       end
 
       def frame_attributes
@@ -171,7 +234,8 @@ module Bali
           # `turbo_action`, `"turbo_action"` and `"turbo-action"` are one attribute
           # in the HTML, but three keys here, which would render it twice and leave
           # the browser keeping the first — advance's.
-          data: { "turbo-action" => ("advance" if advance?) }
+          data: { "turbo-action" => ("advance" if advance?),
+                  "split-view-collapse-target" => ("frame" if collapsible?) }
                   .merge(frame_options[:data].to_h.transform_keys { |key| key.to_s.dasherize })
         )
       end

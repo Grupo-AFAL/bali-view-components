@@ -1,0 +1,15 @@
+<%# The host's own import form, opened by the editor in the layout's drawer.
+    The hidden field carries the editor the reload is meant for. %>
+<%= form_with url: admin_process_flow_import_path(params[:process_flow_id]), multipart: true,
+              builder: Bali::FormBuilder, data: { turbo: true }, class: "space-y-4 p-4" do |f| %>
+  <h3 class="text-lg font-semibold"><%= params[:locale] == "en" ? "Import BPMN" : "Importar BPMN" %></h3>
+  <%= hidden_field_tag :editor_id, params[:editor_id] %>
+  <%= hidden_field_tag :locale, params[:locale] %>
+  <%= f.file_group :file, label: (params[:locale] == "en" ? "BPMN 2.0 file (.bpmn)" : "Archivo BPMN 2.0 (.bpmn)"), accept: ".bpmn,.xml" %>
+  <%= render Bali::Alert::Component.new(color: :info) do %>
+    <%= params[:locale] == "en" ?
+          "The app turns the file into a document and answers bali_bpmn_reload. This demo does not parse BPMN: it reloads the sample, so the round trip can be tried." :
+          "La app convierte el archivo en un documento y responde bali_bpmn_reload. Esta demostración no lee BPMN: recarga el ejemplo, para probar el viaje completo." %>
+  <% end %>
+  <%= f.submit_group(params[:locale] == "en" ? "Import" : "Importar") %>
+<% end %>

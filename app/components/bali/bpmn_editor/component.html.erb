@@ -1,0 +1,34 @@
+<%# The island's mount element with its loading placeholder inside, the same
+    mechanism as Bali::Gantt: React prepends its own container and retires the
+    placeholder from inside its first commit, so no frame shows an empty box.
+    If the bundle never arrives, the error notice is prepended and the
+    placeholder stays. Without JavaScript there is no diagram, which the
+    <noscript> says instead of a placeholder that loads forever. %>
+<%= tag.div(**wrapper_attributes) do %>
+  <%= i18n_table_tag %>
+  <noscript>
+    <%= render Bali::Alert::Component.new(color: :warning, size: :sm, class: "mb-3 py-2") do %><%= t(".noscript") %><% end %>
+  </noscript>
+  <div class="bali-bpmn-editor-mount<%= " h-full" if minimal? %>">
+    <% if minimal? %>
+      <div class="bali-bpmn-editor-skeleton h-full min-h-60 rounded-xl border border-base-300 bg-base-200/40"
+           role="status" aria-busy="true" aria-label="<%= t('.loading') %>"></div>
+    <% else %>
+    <div class="bali-bpmn-editor-skeleton flex min-h-[560px] flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm"
+         role="status" aria-busy="true" aria-label="<%= t('.loading') %>">
+      <div class="flex items-center justify-between gap-2 border-b border-base-300 px-3 py-2">
+        <div class="w-56"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
+        <div class="w-40"><%= render Bali::Skeleton::Component.new(size: :md) %></div>
+      </div>
+      <div class="flex flex-1">
+        <div class="w-52 shrink-0 space-y-3 border-r border-base-300 p-3">
+          <% 6.times do %>
+            <%= render Bali::Skeleton::Component.new(size: :xs) %>
+          <% end %>
+        </div>
+        <div class="flex-1 bg-base-200/40"></div>
+      </div>
+    </div>
+    <% end %>
+  </div>
+<% end %>

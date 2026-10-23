@@ -54,6 +54,20 @@ Rails.application.routes.draw do
       resources :dependencies, only: %i[create destroy], module: :projects
     end
 
+    # Reference host of Bali::BpmnEditor (#1489): the save, finalize and
+    # search endpoints of docs/api/bpmn-editor.md.
+    resources :process_flows, only: :show do
+      scope module: :process_flows do
+        resource :diagram, only: %i[show update]
+        resource :annotations, only: :update
+        resource :finalization, only: :create
+        resource :import, only: %i[new create]
+        resource :host_event, only: :create
+        resources :references, only: %i[index new create]
+        resources :lane_assignees, only: %i[index new create]
+      end
+    end
+
     resources :analytics, only: :index
     resources :revenue, only: :index
     resource :settings, only: %i[show update]
@@ -83,6 +97,9 @@ Rails.application.routes.draw do
   # `height: :full` needs a bounded parent to fill, so its reference page is the
   # pairing the guide documents: an AppLayout with `viewport_locked: true`.
   get "split-view/full", to: "split_views#full", as: :split_view_full
+  # The detail of Bali::BpmnEditor's «split view» preview, fetched into the
+  # SplitView's frame: the flow behind a box of the map.
+  get "bpmn_flows/:box", to: "bpmn_flows#show", as: :bpmn_flow
   get "embed/feedback_posts", to: "pages#feedback_embed" # Stand-in for Opina's embed page
   get "api/v1/projects/:project_slug/badge", to: "pages#feedback_badge" # ...and for its badge
   post "api/v1/projects/:project_slug/badge/read", to: "pages#feedback_badge_read"

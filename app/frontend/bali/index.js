@@ -124,6 +124,8 @@ export {
   SideMenuFlyoutController,
   SideMenuTriggerController,
   SortableListController,
+  SplitViewCollapseController,
+  SplitViewScreenController,
   SplitViewController,
   SplitViewListController,
   StatusController,

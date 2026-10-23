@@ -11,7 +11,7 @@ class SplitViewPreviewsTest < ActionDispatch::IntegrationTest
 
   SCENARIOS = %w[
     default multi_filters with_selection deep_link_beyond_the_first_page
-    grouped_list without_advance frame_options custom_master full_height/default
+    grouped_list without_advance collapsible frame_options custom_master full_height/default
   ].freeze
 
   def setup

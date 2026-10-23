@@ -1,0 +1,5 @@
+<%# locals: component %>
+<%# The island's bundle is published to the page by these metas; in a host
+    app they live in the layout <head> (docs/api/bpmn-editor.md). %>
+<%= react_island_meta_tags('bpmn-editor', js: 'bpmn-editor-island.js', css: 'bpmn-editor-island.css') %>
+<%= render component %>

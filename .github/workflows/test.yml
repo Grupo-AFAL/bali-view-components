@@ -40,6 +40,8 @@ jobs:
           cache-dependency-path: test/dummy/yarn.lock
       - name: Install Node dependencies
         run: cd test/dummy && yarn install
+      - name: Run JavaScript unit tests
+        run: node --test 'test/javascript/**/*.test.js'
       - name: Set up database schema
         run: bin/rails db:schema:load
         env:

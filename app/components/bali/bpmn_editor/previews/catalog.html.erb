@@ -1,0 +1,46 @@
+<%# locals: component, groups, locale, theme %>
+<%# The island draws every element twice (its palette icon, its canvas shape);
+    the table below says, from the island's own strings and the rules' metadata,
+    what each one is, when to use it and what the editor does with it. %>
+<%= react_island_meta_tags("bpmn-editor", js: "bpmn-editor-island.js", css: "bpmn-editor-island.css") %>
+<% texts = Bali::BpmnEditor::Translations.island(locale: locale) %>
+<% en = locale.to_s == "en" %>
+<%= tag.div(data: { theme: (theme if theme == "dark") }, class: "flex flex-col gap-6 bg-base-100 p-4 text-base-content") do %>
+  <%= render component %>
+  <% groups.each do |group| %>
+    <section class="flex flex-col gap-2" data-catalog-group="<%= group[:group] %>">
+      <h3 class="text-lg font-semibold"><%= group[:label] %></h3>
+      <div class="overflow-x-auto">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th><%= en ? "Element" : "Elemento" %></th>
+              <th><%= en ? "What it is" : "Qué es" %></th>
+              <th><%= en ? "When to use it" : "Cuándo usarlo" %></th>
+              <th><%= en ? "In this editor" : "En este editor" %></th>
+              <th><%= en ? "Rules" : "Reglas" %></th>
+              <th><%= en ? "Presets" : "Presets" %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% group[:items].each do |item| %>
+              <tr data-catalog-key="<%= item[:key] %>">
+                <td class="align-top font-semibold"><%= item[:name] %><br><code class="text-xs font-normal text-base-content/60"><%= item[:key] %></code></td>
+                <td class="align-top" data-text="summary"><%= item[:summary] %></td>
+                <td class="align-top" data-text="when"><%= item[:when] %></td>
+                <td class="align-top" data-text="editor"><%= item[:editor] %></td>
+                <td class="align-top text-xs">
+                  <% item[:rules].each do |rule| %>
+                    <span class="block" data-rule="<%= rule[:id] %>"><code><%= rule[:id] %></code> <%= rule[:title] %><%= rule[:optional] ? (en ? " (optional package)" : " (paquete opcional)") : "" %></span>
+                  <% end %>
+                  <% if item[:rules].empty? %><span class="text-base-content/50">—</span><% end %>
+                </td>
+                <td class="align-top text-xs"><%= item[:presets].join(", ") %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <% end %>
+<% end %>

@@ -1,0 +1,96 @@
+# frozen_string_literal: true
+
+# Reference host of Bali::BpmnEditor (#1489): the document lives whole in a
+# JSON column; `version` is the optimistic lock the save contract's 409 reads.
+# What a real app keeps in its own tables — lanes, activities, assignees —
+# would be mapped in and out of the contract here.
+class ProcessFlow < ApplicationRecord
+  validates :name, presence: true
+
+  SAMPLE_NAME = "Pago a proveedores"
+
+  # The seeded flow, back to the sample (db/seeds.rb).
+  def self.reset_sample!
+    reset!(SAMPLE_NAME, BpmnSampleFlows.invoice)
+  end
+
+  # One record per preview, sample, orientation and locale, so no preview
+  # overwrites another's edits; `fresh` puts it back to the sample.
+  def self.for_sample(sample, locale:, fresh: true, orientation: "horizontal", name: nil)
+    name ||= "Sample #{sample} #{orientation} (#{locale})"
+    document = BpmnSampleFlows.sample(sample, locale: locale).merge(orientation: orientation)
+    return find_by(name: name) || reset!(name, document) unless fresh
+
+    reset!(name, document)
+  end
+
+  def self.reset!(name, document)
+    flow = find_or_initialize_by(name: name)
+    flow.update!(document: document.except(:version, :status_label), version: 1, finalized_at: nil)
+    flow
+  end
+
+  # The complete document the island receives, and every 200 returns.
+  def to_diagram(locale: :es)
+    en = locale.to_s == "en"
+    document.deep_symbolize_keys.merge(
+      version: version,
+      status_label: finalized_at ? "#{en ? 'Finalized' : 'Finalizado'} v#{version}" : "#{en ? 'Draft' : 'Borrador'} v#{version}",
+      issues: server_issues(locale: locale),
+      stencil: stencil(locale: locale)
+    )
+  end
+
+  # The host's "still to place" list: treasury procedures no sub-process links
+  # yet. Dragged onto the canvas they arrive linked.
+  def stencil(locale: :es)
+    linked = Array(document["nodes"]).filter_map { |n| n.dig("reference", "id") }
+    ProcessFlowReferences.references(locale)
+                         .select { |r| r[:area] == "treasury" && linked.exclude?(r[:id]) }
+                         .map { |r| { reference: r.slice(:id, :label) } }
+  end
+
+  # Host rules: what only the server can know. The island lists them with its
+  # own pending issues; finalizing fails while one is an error.
+  def server_issues(locale: :es)
+    en = locale.to_s == "en"
+    nodes = Array(document["nodes"])
+    issues = []
+    unless nodes.any? { |n| n["type"] == "user_task" }
+      issues << { rule: "APP01", element_id: nil, severity: "warning",
+                  message: en ? "The flow has no user task." : "El flujo no tiene ninguna tarea de usuario." }
+    end
+    nodes.select { |n| n["type"] == "sub_process" && n.dig("reference", "id").present? }.each do |node|
+      next if ProcessFlowReferences.find(node.dig("reference", "id"))
+
+      issues << { rule: "APP02", element_id: node["id"], severity: "error",
+                  message: en ? "The sub-process «#{node['name']}» points to a procedure that no longer exists." :
+                                "El subproceso «#{node['name']}» apunta a un procedimiento que ya no existe." }
+    end
+    issues
+  end
+
+  # Saves a new draft when `expected_version` is the current one; false on a
+  # stale version (the caller answers 409). One conditional UPDATE: reading the
+  # version first and writing after would let two saves of the same version
+  # both pass the check.
+  def save_draft(diagram, expected_version)
+    saved = self.class.where(id: id, version: expected_version.to_i).update_all(
+      document: diagram.except(:version, :status_label, :issues, :stencil),
+      version: expected_version.to_i + 1, finalized_at: nil, updated_at: Time.current
+    )
+    reload
+    saved == 1
+  end
+
+  # The review notes alone (AnnotationsController), under the same version
+  # check as save_draft: the rest of the document is left as it is.
+  def save_annotations(annotations, expected_version)
+    saved = self.class.where(id: id, version: expected_version.to_i).update_all(
+      document: document.merge("annotations" => annotations),
+      version: expected_version.to_i + 1, updated_at: Time.current
+    )
+    reload
+    saved == 1
+  end
+end

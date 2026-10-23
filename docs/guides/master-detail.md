@@ -12,7 +12,8 @@ detail pane stays completely yours.
 - Live examples: `/lookbook/preview/bali/split_view/default` (the structured
   listing, with live filter pills), `.../multi_filters`, `.../full_height/default`
   (inside a locked AppLayout), `.../frame_options` (scrolling to the detail when
-  stacked) and `.../custom_master` (the escape hatch)
+  stacked), `.../collapsible` (the detail sliding in) and `.../custom_master`
+  (the escape hatch)
 - Working reference in the dummy app: `test/dummy/app/controllers/split_views_controller.rb`
   and `test/dummy/app/views/split_views/` — the whole Rails side in one action.
 
@@ -140,6 +141,36 @@ view and keeps asking until it does. The scroll container changed size, not
 identity, and the observer is rooted on it either way — but it does mean a small
 `limit:` turns the first paint into a chain of serial fetches, so size it to the
 pane rather than to the capped list it used to be.
+
+### Without a bounded ancestor: `height: :screen` or a length
+
+When the page around the split does not lock the viewport, two more heights
+give each pane the whole height the same way `:full` does:
+
+- **`height: :screen`** fills from the split's top edge to the bottom of the
+  window: `calc(100dvh - <top>)`, where `<top>` is the split's offset in the page,
+  kept right by a small controller (`split-view-screen`) as a resize or a banner
+  above it moves it. `dvh` follows a phone browser's bars. It never goes below
+  `--bali-split-min-h` (28rem by default), so a short window scrolls the page
+  instead of squeezing the panes.
+- **A CSS length** — `height: "640px"`, `"40rem"`, `"70vh"` — is a fixed height.
+  Validated like `master_width:`: one number and one unit.
+
+Both apply from `lg` up. Below it the panes stack and the page scrolls, as with
+`:content`; a `collapsible:` detail is a full-screen sheet there anyway.
+
+### Two columns of the same width: `master_width: :equal`
+
+`master_width: "50%"` gives the master half the width and the detail the half
+minus the gap. `:equal` splits what the gap leaves, so the two columns match to
+the pixel, with or without `collapsible:` (its slide still animates). The gap is
+`--bali-split-gap` (1rem): change it there, not with a `gap-*` utility, or the
+halves stop matching.
+
+```erb
+<%= render Bali::SplitView::Component.new(frame_id: "flow-detail", master_width: :equal,
+                                          height: :screen, collapsible: true) do |split| %>
+```
 
 ---
 
@@ -683,6 +714,110 @@ narrower than 1024px to see the scroll and a wider one to see the pin.
 
 ---
 
+## A detail that slides in: `collapsible: true`
+
+For a master the reader scans at full width — a map, a wide table — and opens
+one item at a time, the detail need not take its column until there is one:
+
+```erb
+<%= render Bali::SplitView::Component.new(frame_id: "flow-detail", collapsible: true, advance: false) do |split| %>
+  <% split.with_master do %>…<% end %>
+  <% split.with_empty_detail do %>…<% end %>
+<% end %>
+```
+
+- **Closed**, the master takes the whole width and the detail pane is `inert`.
+- **What opens it is the frame fetching or getting content**: a row's Turbo
+  Frame load opens it the moment the request starts, or anything the app puts
+  into the frame itself (the frame's children are watched). The rows need
+  nothing new. A server-rendered detail (a deep link) starts open.
+- **Loading**: while the frame fetches, the pane shows a spinner and
+  «Loading…» (`bali_view.split_view.loading`) in a `role="status"` region, with
+  `aria-busy` on the pane; over a detail already shown it sits on top of it,
+  letting the pointer through. Reduced motion stops the spinner. The `loading`
+  slot replaces it (a skeleton of the detail, say). «Close» and Esc work while
+  it loads, and cancel the request (Turbo aborts it when the frame loses its
+  `src`), so a late response cannot open it again.
+- **A failed load** (a network error, or a response without the frame) shows
+  «The detail could not be loaded.» with «Retry», which fetches the same URL
+  again.
+- **Open**, the master shrinks to `master_width` while the detail slides in
+  from the right and fades in (300 ms); focus moves to the detail's first
+  heading, else its first focusable element.
+- **«Close» or Esc** slide it out, empty the frame (its `src` too, so a Turbo
+  restore does not reload it), clear the row's highlight and return focus to
+  the row that opened it. Esc is left alone inside an open dialog or menu, a
+  text field, a `<select>`, an editable region or a listbox/combobox (an open
+  SlimSelect), and when a widget already took it (`event.preventDefault()`, on
+  the element or on `document`; the BPMN editor does when Esc cancels Connect
+  or clears its selection).
+- **Below `lg`** the detail is a full-screen sheet over the master, with
+  «← Back» instead of «Close».
+- **Reduced motion**: the same states, no animation.
+- **Events**, on the container: `split-view:open` and `split-view:close`. An app
+  that keeps its own selection (a diagram's, say) clears it on `close`.
+
+**A close of the detail's own.** The pane puts «Close» (and «← Back» below `lg`)
+in a bar above the frame. A detail with a header of its own can carry the close
+there instead — any element with `data-action="split-view-collapse#close"` —
+and the pane drops its bar. That is how two panes line up: with the bar, the
+detail starts a row lower than the master beside it. Give the two headers the
+same height and the content below them shares its top edge (and, with a filled
+`height:`, its bottom one too):
+
+```erb
+<%# master %>
+<div class="flex flex-col justify-center lg:h-14"><h3>Process map</h3>…</div>
+<%# detail %>
+<div class="flex items-center gap-2 lg:h-14">
+  <h3 class="grow">…</h3>
+  <%= render Bali::Button::Component.new(name: t("bali_view.split_view.close"), variant: :ghost, size: :sm,
+        class: "hidden lg:inline-flex", data: { action: "split-view-collapse#close" }) %>
+  <%= render Bali::Button::Component.new(name: "← #{t('bali_view.split_view.back')}", variant: :ghost, size: :sm,
+        class: "lg:hidden", data: { action: "split-view-collapse#close" }) %>
+</div>
+```
+
+The empty detail is rendered inside a `data-split-view-empty` wrapper, which is
+how the controller tells it apart from a detail; an app that empties the frame
+itself and wants it closed leaves only that wrapper, or nothing.
+
+With `advance: true` the URL still names the record after «Close»; back and
+forward keep working, since a URL that selects no row resets the frame to its
+empty state, which closes the pane. A drill-down that is not a location of its
+own wants `advance: false`.
+
+**A lazy detail.** The detail need not be a link either: anything that sets
+the frame's `src` fetches it, and the pane opens with its loading state until
+the response lands. The BPMN editor's «Split view» preview does that from a
+click on a diagram, whose boxes are no links:
+
+```js
+// on the master's own event (a box picked, a marker clicked…)
+frame.src = `/flows/${id}?version=${version}` // opens the pane, loading
+container.addEventListener('split-view:close', () => map.dispatchEvent(
+  new CustomEvent('bali-bpmn:select', { detail: { node_id: null } })))
+```
+
+The response renders the detail inside a `<turbo-frame id="flow-detail">`, and
+whatever in it acts on the app's controller («Next», a version picker) sets
+`src` again. A loading state of the app's own:
+
+```erb
+<%= render Bali::SplitView::Component.new(frame_id: "flow-detail", collapsible: true, advance: false) do |split| %>
+  <% split.with_master do %>…<% end %>
+  <% split.with_loading do %>
+    <%= render Bali::Skeleton::Component.new(size: :md) %>
+    <span class="sr-only"><%= t("bali_view.split_view.loading") %></span>
+  <% end %>
+<% end %>
+```
+
+Filling the frame directly (`frame.replaceChildren(…)`, a `<template>` clone)
+still opens it, without a loading state: there is nothing to wait for.
+
+---
+
 ## Full-page detail on a phone
 
 The default below `lg` is stacked: master on top, detail underneath. That is one
@@ -789,6 +924,11 @@ until the next click. Three ways out, cheapest first:
 
 Bali does not choose for you, because the right answer depends on whether a
 failing detail is an expected outcome on that screen or a defect.
+
+`collapsible: true` is the exception: its pane takes the third way itself,
+showing «The detail could not be loaded.» and «Retry» instead of keeping a
+detail that disagrees with the row. The first two still apply before it — a
+frame in the response is rendered, and `turbo-visit-control` still reloads.
 
 ---
 

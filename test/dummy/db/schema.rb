@@ -249,6 +249,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_18_120000) do
     t.index ["tenant_id"], name: "index_movies_on_tenant_id"
   end
 
+  create_table "process_flows", force: :cascade do |t|
+    t.string "name", null: false
+    t.json "document", default: {}, null: false
+    t.integer "version", default: 1, null: false
+    t.datetime "finalized_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "projects", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"

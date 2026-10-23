@@ -7,6 +7,198 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.21.0] - 2026-10-23
+
+### Added
+
+- **`Bali::BpmnEditor`: editor de diagramas BPMN 2.0 con carriles** (#1489). Isla de React Flow,
+  como `Bali::Gantt`, con su propio entry (`bali-view-components/bpmn-editor-entry`). Edita el
+  documento que recibe (`Bali::BpmnEditor::Data`) y guarda el documento completo, con su versión,
+  en `urls[:save]`; sin esa URL es un visor. Reglas de modelado configurables con ciclo
+  Borrador/Finalizar, acomodo y ruteo propios, y salidas `.bpmn`, PNG, SVG e impresión. Las
+  reglas que solo son lineamiento de AFAL viven aparte, en `bali-view-components/bpmn-editor/afal-rules`.
+  Cada elemento de la paleta explica qué es y cuándo usarlo en un tooltip (textos `palette_<key>_*`,
+  reemplazables con `i18n:`). En Lookbook, el Playground prueba cada opción (y las respuestas 409, 422 y lentas del servidor),
+  la galería de reglas muestra cada regla con un ejemplo que falla y uno que pasa, e «Integración
+  con la app» muestra los eventos y los helpers de Turbo Stream.
+  - **Anfitrión:** nada que hacer si no lo usa. Para usarlo, los cuatro pasos de instalación de
+    [la guía](docs/api/bpmn-editor.md) y sus dependencias opcionales (`react`, `react-dom`,
+    `@xyflow/react`, `@rails/request.js`); la implementación de referencia está en `test/dummy`
+    (`ProcessFlow` y `Admin::ProcessFlows::*`).
+  - **Para incrustarlo en una página de la app** (todo opcional; sin estas opciones se comporta
+    igual): `appearance` por nodo (color, atenuado y una etiqueta corta que la app decide; nunca
+    viaja en el guardado), `selected_id:` con los eventos `bali-bpmn:select` y
+    `bali-bpmn:selection-change`, `chrome: :minimal` (solo zoom y ajustar, a la altura del
+    contenedor), `min_zoom:`, `annotatable:` con `urls[:annotations]` (notas en un diagrama de solo
+    lectura), `rules: false` y `compare_with: { match: :name }` para comparar dos flujos distintos.
+    La comparación superpuesta ya no encima lo quitado sobre lo agregado y, lado a lado, cada panel
+    se ajusta a su diagrama. Previews nuevas: «Split view» y «Compare two different flows».
+    Además: el `.bpmn` exportado lleva `appearance.color` como BPMN in Color (OMG) y como
+    `bioc:stroke`/`bioc:fill` (bpmn.io, Camunda); `rules: :structure` deja solo las reglas que
+    valen para cualquier diagrama con carriles; con `match: :name`, las compuertas y eventos sin
+    nombre se emparejan por sus vecinos, los nombres repetidos por carril y posición, y el movido
+    de carril se marca aparte, con un resumen que lleva a cada cambio; la comparación marca cada
+    cambio también con un símbolo (+ − ✎ ⇄), no solo con color, y el nombre accesible del nodo
+    dice su badge y si está atenuado; `selection-change` trae `type`, `lane_id` y `lane_name`.
+    Comparación: `compare_with:` acepta una lista con selector, `match: :auto` (por omisión: por id
+    y luego por nombre) empareja versiones con ids recreados, abre lado a lado con zoom
+    sincronizado, resalta la contraparte, ofrece «Solo cambios» y el detalle de cada cambio, y
+    solo ofrece superpuesto entre versiones de un mismo proceso.
+  - **Experiencia de uso:** «Conectar» se ve (aviso con Esc/Cancelar, línea guía, destinos
+    inválidos atenuados); «Bifurcar con» una decisión Sí/No nombra sus salidas y deja recta la
+    existente; el XOR de unión del retrabajo va antes de su destino; el aviso de pendiente ya no
+    tapa el nombre del carril; hacia un carril externo el elemento se queda en su carril; las
+    fuentes de las reglas nombran la guía de la organización; «Autoajustar» compacto aprieta el
+    flujo antes de doblarlo (y lo imprime sin la cola vacía del carril), y los nombres de eventos y
+    compuertas se parten en hasta tres renglones de 100 px. La preview «Split view» abre el flujo
+    deslizándose junto al mapa (`Bali::SplitView` con `collapsible:`) y lo cierra con «Cerrar» o
+    Esc, limpiando la selección del mapa; cada caja con color tiene un flujo detrás. Con
+    `chrome: :minimal` el editor se reencuadra en cada cuadro en que su contenedor cambia de tamaño
+    (antes esperaba a que se asentara y el diagrama se veía cortado durante la animación); un editor
+    montado en un panel aún sin tamaño espera a tenerlo antes de dibujar (React Flow ya no avisa de
+    un contenedor de 0 px), y la leyenda se angosta en vez de tapar el zoom en un teléfono. En una pantalla
+    angosta el editor ya se puede usar: con menos de 768 px de ancho (del editor, no de la ventana) la paleta,
+    «Por colocar» y la leyenda empiezan plegadas, la paleta abierta es una capa sobre el lienzo que
+    se pliega al elegir un elemento, y el panel de propiedades se abre con «Propiedades» en vez de al
+    seleccionar;
+    con un lienzo de menos de 40rem las barras quedan en íconos y se apilan, el minimapa se quita y
+    el aviso de «Conectar» se acomoda; el menú rápido va debajo del elemento cuando no cabe a ningún
+    lado.
+  - **Contrato del documento:** `Data` rechaza (`InvalidError`, 422 al guardar) un `url` de
+    `reference`, del `stencil` o del `assignee` de un carril que no sea una ruta o `http(s)`, y un
+    mismo id en un carril, un nodo y una conexión (los ids son únicos entre los tres); el editor
+    tampoco enlaza ni sigue un `url` así. Un issue del servidor para una regla que el cliente corre
+    se descarta: el cliente la revalida. `bali_bpmn_reference_created` y
+    `bali_bpmn_lane_assignee_created` levantan `ArgumentError` con un `url` así (la misma regla que
+    `Data`; antes el documento se guardaba con él y el siguiente render del anfitrión daba 500), y
+    el editor vincula sin su `url` uno que llegue por otro evento. Los ids que genera el editor
+    (`n_`, `e_`, `lane_`, `a_`) llevan seis caracteres aleatorios en vez del primer número libre,
+    que le daba a un elemento nuevo el id del recién borrado (la comparación por id lo tomaba por
+    renombre). En el `.bpmn` exportado, ids que en XML se escribirían igual (`a b` y `a_b`, `1` y
+    `_1`, un carril externo `main`) llevan `_2`, `_3`…, y las referencias los siguen.
+  - **Guardado y eventos:** un cambio hecho mientras corre «Finalizar» se guarda al terminar (antes
+    se quedaba sin enviar con la barra en «Finalizado»); un cambio que llega mientras se responde un
+    guardado (un `reference-created`) ya no se pierde, y un 409 con un guardado en cola ya no
+    reenvía el documento local sobre el del servidor. Un documento del servidor sin coordenadas
+    (200, 409, recarga, cada `compare_with:`) se acomoda con el `layout:` y `page:` del
+    componente, como el documento propio al cargar (antes la comparación usaba el acomodo recto).
+    `bali-bpmn:ready` se emite después de aplicar los `select`/`badges`/`compare` en cola, así que
+    lo que la app envía al oírlo gana. `lane-assignee-created` conserva el nombre que el carril ya
+    tenía, como al elegir el responsable en la búsqueda. Un 409 al finalizar sin `urls[:diagram]`
+    avisa del error en vez de fallar en silencio; un 422 al finalizar deja la barra en «Guardado»
+    (el borrador sí se guardó) en vez de «Cambios sin guardar». Con `annotatable:`, una visita de
+    Turbo envía la nota pendiente en vez de pedir confirmación.
+
+- **`Bali::SplitView` toma `collapsible: true`: el detalle entra deslizándose y se cierra.** Sin
+  detalle, el maestro ocupa todo el ancho; cuando el frame recibe contenido (una carga de Turbo
+  Frame o lo que la app ponga en él), el maestro se encoge a `master_width` y el detalle entra por
+  la derecha (300 ms) con el foco en su encabezado; su contenido se acomoda desde el primer cuadro a
+  su ancho final (un diagrama se encuadra una sola vez). «Cerrar» o Esc lo sacan (Esc no, si lo toma
+  un campo de texto, una lista abierta o un componente que llamó `preventDefault`; el editor BPMN lo
+  hace al cancelar «Conectar», un renombre o una selección editable, no una de solo lectura), vacían el frame (y su
+  `src`), quitan el resaltado de la fila y regresan el foco a ella; bajo `lg` el detalle es una hoja
+  a pantalla completa con «← Volver». Sin animación con `prefers-reduced-motion`. El contenedor
+  emite `split-view:open` y `split-view:close`. Preview nueva: `split_view/collapsible`.
+  - **Anfitrión:** nada que hacer; sin la opción el HTML es el mismo. Para usarla, la sección
+    «A detail that slides in» de [la guía](docs/guides/master-detail.md); un drill-down que no es
+    una ubicación propia va con `advance: false`.
+
+- **`Bali::BpmnEditor`: `badges:` y el interruptor «Mostrar etiquetas».** `badges: false` oculta
+  al cargar las etiquetas de `appearance.badge` (solo la etiqueta: el color y el atenuado se
+  quedan); el interruptor, en la barra de vista o junto al zoom con `chrome: :minimal`, aparece
+  solo si algún nodo del documento tiene etiqueta, y `badge_toggle: false` lo quita. La app las
+  cambia con `bali-bpmn:badges` `{ visible }` y oye `bali-bpmn:badges-change` cuando la persona
+  usa el interruptor. Las salidas (SVG, PNG, impresión), el nombre accesible del nodo y la
+  comparación siguen lo que se ve.
+  - **Anfitrión:** nada que hacer; por omisión se ven como antes y el interruptor aparece donde
+    hay etiquetas. Para fijar el estado: `badges:` y `badge_toggle: false`.
+  - `badge_toggle:` también acepta un texto: la etiqueta propia del interruptor («Mostrar
+    estatus», hasta 32 caracteres), su nombre accesible y su `title` en angosto.
+  - **`wheel_zoom:`** (`:auto` por omisión, `true`, `false`): qué hace la rueda sobre el lienzo. Con
+    `:auto` hace zoom si el editor es editable, `chrome: :minimal`, pantalla completa o la
+    comparación; un diagrama de solo lectura dentro de la página deja que la rueda la desplace y
+    hace zoom con Ctrl (⌘) + rueda, con un aviso breve. Antes, la rueda nunca hacía zoom en solo
+    lectura; ahora sí lo hace en `chrome: :minimal` (por ejemplo en `Bali::SplitView`).
+  - El carril externo ya no escribe «Participante externo» bajo su nombre (el gris y la leyenda lo
+    dicen); el nombre accesible y el `title` lo conservan («Proveedor, participante externo»).
+  - La leyenda que la persona abre justo después de que se plegó sola ya no se vuelve a plegar
+    por la revisión pendiente de su montaje (fallaba en CI, «hides the external participant…»).
+
+- **`Bali::BpmnEditor`: la app abre la comparación sin la barra superior.** `compare_open:`
+  (`true`, `:side_by_side` u `:overlay`) abre al cargar comparando contra
+  `review[:compare_with][compare_index]` (`compare_index:`, 0 por omisión); el evento
+  `bali-bpmn:compare` `{ index, mode }` la abre, cambia de opción o de vista, o la cierra
+  (`{ mode: null }`), también desde un Turbo Stream (`bali_bpmn_event("compare", …)`), y
+  `bali-bpmn:compare-change` `{ open, index, mode }` avisa cada vez que se abre, cambia o se cierra,
+  también cuando la persona usa «×», el selector o las vistas de la comparación. `select`, `badges`
+  y `compare` enviados mientras la isla aún carga se guardan y se aplican al montarse (antes se
+  perdían), y `bali-bpmn:ready` avisa cuando la isla ya escucha. Antes, con
+  `chrome: :minimal` no había forma de abrirla y `compare_with:` no tenía efecto visible. Superpuesto
+  pedido entre dos procesos distintos abre lado a lado, y el evento dice `mode: "side_by_side"`.
+  - **Anfitrión:** nada que hacer; sin las opciones el HTML es el mismo. `compare_open:` sin
+    `compare_with:`, o un `compare_index:` fuera de la lista, levanta `ArgumentError`. La preview
+    «Split view» abre el flujo comparando (`compare_open`) y con un menú «Comparar» de la app;
+    «Compare two different flows» toma `compare_open`, `compare_index` y `chrome`.
+
+- **`Bali::SplitView`: `master_width: :equal` y `height: :screen` o una medida CSS.** `:equal` deja
+  las dos columnas del mismo ancho al píxel (con `"50%"` el detalle quedaba más angosto por el gap;
+  el gap se cambia con `--bali-split-gap`). `height: :screen` llena desde el borde superior del split
+  hasta el inferior de la ventana (`dvh`, recalculado al cambiar lo que hay arriba o el tamaño), con
+  un mínimo de `--bali-split-min-h` (28rem); `height: "640px"` (o `rem`, `vh`…) es un alto fijo. Los
+  dos dan a cada panel el alto completo, como `:full`, desde `lg`. La preview «Split view» del
+  editor BPMN usa `:equal` y `:screen`.
+  - **Anfitrión:** nada que hacer; sin las opciones el HTML es el mismo. El mensaje de error de
+    `master_width:` y de `height:` cambió (nombra las opciones nuevas).
+  - Un detalle colapsable que trae su propio cierre (`data-action="split-view-collapse#close"`, por
+    ejemplo junto a su título) oculta la barra de «Cerrar» del panel, para alinearse con el maestro;
+    el patrón está en la guía. La preview «Split view» del editor lo usa: el mapa y el flujo son la
+    misma caja (mismo borde superior, inferior y ancho).
+
+- **`Bali::SplitView` con `collapsible: true`: estado de carga y de error del detalle.** El panel
+  se abre en cuanto el frame empieza a pedir el detalle (no al llegar la respuesta) y muestra un
+  spinner con «Cargando…» en una región `role="status"`, con `aria-busy` en el panel; sobre un
+  detalle ya abierto queda encima, sin bloquear el puntero. Con `prefers-reduced-motion` el spinner
+  no gira. El slot `loading` lo reemplaza (un esqueleto propio, por ejemplo). Si la petición falla
+  (error de red, respuesta que no es HTML o sin el frame) muestra «No se pudo cargar el detalle.»
+  con «Reintentar», que vuelve a pedir la misma URL. «Cerrar» y Esc funcionan mientras carga y
+  cancelan la petición.
+  - **Anfitrión:** nada que hacer; sin `collapsible:` el HTML es el mismo. Con él, una respuesta de
+    error sin el frame ya no deja el detalle anterior junto a la fila nueva: muestra el error. El
+    patrón perezoso (`src` del frame al hacer clic) está en [la guía](docs/guides/master-detail.md).
+    La preview «Split view» del editor BPMN ahora pide cada flujo a `/bpmn_flows/:box` del dummy, con
+    un `delay` opcional para ver la carga.
+
+- **`Bali::BpmnEditor`: la etiqueta del nodo pasa al borde superior y el nombre ya no se encima.**
+  La etiqueta de `appearance.badge` es ahora una pestaña sobre el borde superior, pegada a la
+  esquina izquierda y con las esquinas de la caja; se recorta con «…» antes del ↗ y del pendiente, y
+  el número de nota va justo después. El nombre de una actividad deja libre la pestaña, el [+] del
+  subproceso y, en su primera línea, el ↗ y el marcador de tipo de tarea; si no cabe, termina en
+  «…» (el nombre completo sigue en el `title` y el nombre accesible). En una caja de 64 px caben 4
+  líneas, 3 con etiqueta y 2 con [+], que ahora deja 6 px hasta el borde. El nombre de una compuerta con etiqueta sube
+  8 px. SVG, PNG e impresión usan la misma geometría.
+  - **Anfitrión:** nada que hacer. Una prueba que buscaba la etiqueta abajo a la derecha la
+    encuentra arriba a la izquierda.
+
+- **`Bali::BpmnEditor`: la tabla de textos viaja una vez por render, no una vez por editor.** El
+  primer editor del render la escribe en un `<script type="application/json"
+  data-bali-bpmn-i18n="<clave>">` y cada editor lleva solo la clave
+  (`data-bpmn-editor-i18n-key-value`); la isla la lee una vez y la guarda para toda la página. Una
+  respuesta de Turbo Frame la escribe siempre: no depende de qué tablas ya tenga la página, porque una
+  caché HTTP o un «atrás» en una pestaña nueva puede entregarla a una página sin ninguna. La preview
+  «Split view» pasó de 611 KB a 69 KB de HTML; cada detalle pedido pesa 80 KB (16 KB con gzip).
+  - **Anfitrión:** nada que hacer. `i18n:` sigue igual (otra tabla, otra clave). Una prueba que leía
+    `data-bpmn-editor-i18n-value` lee ahora el `<script>` que nombra la clave; ese atributo se sigue
+    leyendo si un elemento no trae clave. Sin la tabla, la isla usa los textos en inglés y avisa una
+    vez en la consola.
+
+- **`ReactIslandController` funciona con code splitting.** Con `splitting: true`,
+  `import('react-dom/client')` entrega solo `default`; la isla fallaba con «createRoot is not a
+  function». Ahora acepta las dos formas.
+  - **Anfitrión:** nada que hacer. La guía del editor BPMN recomienda compilar las islas minificadas
+    (React de producción). El dummy compila minificado, sin `splitting` porque ninguna app anfitriona
+    lo usa (`BALI_DEV_BUILD=1` para depurar sin minificar): `application.js` pasó de 25 MB a 17 MB y la
+    isla BPMN de 2.1 MB a 700 KB.
+
 ### Dependencies
 
 - **Sólo de este repo, ninguna app tiene que hacer nada:** `cypress` 16.1.1 → 16.2.0, `pagy`

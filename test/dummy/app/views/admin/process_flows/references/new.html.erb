@@ -1,0 +1,14 @@
+<%# The host's own form, opened by the editor in the layout's drawer. The
+    hidden fields carry the node and the editor the answer is meant for. %>
+<% en = params[:locale] == "en" %>
+<% groups = %w[purchasing treasury accounting].map { |key| ProcessFlowReferences.group_label(key, params[:locale] || :es) } %>
+<%= form_with url: admin_process_flow_references_path(params[:process_flow_id]), scope: :reference,
+              builder: Bali::FormBuilder, data: { turbo: true }, class: "space-y-4 p-4" do |f| %>
+  <h3 class="text-lg font-semibold"><%= en ? "New procedure" : "Nuevo procedimiento" %></h3>
+  <%= hidden_field_tag :client_node_id, params[:client_node_id] %>
+  <%= hidden_field_tag :editor_id, params[:editor_id] %>
+  <%= f.text_group :label, label: (en ? "Name" : "Nombre"), required: true,
+                           placeholder: (en ? "E.g. Supplier onboarding" : "Ej. Alta de proveedor") %>
+  <%= f.select_group :group, groups, label: (en ? "Area" : "Área") %>
+  <%= f.submit_group(en ? "Create and link" : "Crear y vincular") %>
+<% end %>

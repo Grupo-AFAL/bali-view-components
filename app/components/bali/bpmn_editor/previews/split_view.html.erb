@@ -1,0 +1,54 @@
+<%# locals: locale, selected, height, master_width, badges, delay, compare_open %>
+<%# The «50/50» view: what the app writes around two editors, inside a
+    collapsible Bali::SplitView. The selection, «Previous» / «Next» and the
+    version picker are the dummy's own Stimulus controller
+    (bpmn_split_view_controller.js), which points the SplitView's frame at the
+    dummy's /bpmn_flows/:box — the component only draws and reports. %>
+<%= react_island_meta_tags("bpmn-editor", js: "bpmn-editor-island.js", css: "bpmn-editor-island.css") %>
+<% en = locale.to_s == "en" %>
+<% boxes = BpmnProcessMap.boxes(locale) %>
+<% height = local_assigns.fetch(:height, :screen) %>
+<% filled = height != :content %>
+<%# Filled (`:screen`, `:full`, a length), the map and the flow take the
+    pane's height; with `:content` they keep a height of their own. %>
+<% pane_height = filled ? "h-[380px] lg:h-auto lg:min-h-0 lg:flex-1" : "h-[380px] lg:h-[560px]" %>
+<%# The detail's URL for a box; the controller adds `version` when one is picked. %>
+<% detail_url = Rails.application.routes.url_helpers.bpmn_flow_path(
+     "BOX", locale: locale, filled: (filled ? 1 : nil), delay: (delay if delay.to_i.positive?),
+     compare: local_assigns[:compare_open]) %>
+<div class="flex flex-col gap-3 p-4" data-controller="bpmn-split-view"
+     data-bpmn-split-view-boxes-value="<%= boxes.to_json %>" data-bpmn-split-view-url-value="<%= detail_url %>"
+     data-testid="bpmn-split-view">
+  <%# Bali::SplitView with `collapsible:`: the map alone until a box is picked;
+      the pane opens with the frame's fetch, showing its loading state, and the
+      flow lands in it. «Cerrar» or Esc bring the map back. %>
+  <% I18n.with_locale(locale) do %>
+  <%= render Bali::SplitView::Component.new(frame_id: "split_flow_detail", collapsible: true,
+                                            master_width: local_assigns.fetch(:master_width, :equal), height: height,
+                                            advance: false, data: { bpmn_split_view_target: "split" }) do |split| %>
+    <% split.with_master do %>
+      <section class="flex min-w-0 flex-col gap-2 <%= "lg:min-h-0 lg:flex-1" if filled %>">
+        <%# The same height as the detail's header, so the two diagrams share
+            their top edge (and, filled, their bottom one). %>
+        <div class="flex flex-col justify-center lg:h-14" data-testid="bpmn-split-map-header">
+          <h3 class="font-semibold"><%= en ? "Process map" : "Mapa de procesos" %></h3>
+          <span class="text-xs text-base-content/60">
+            <%= en ? "#{boxes.size} processes in #{boxes.pluck(:lane).uniq.size} areas" : "#{boxes.size} procesos en #{boxes.pluck(:lane).uniq.size} áreas" %>
+          </span>
+        </div>
+        <div class="<%= pane_height %>" data-bpmn-split-view-target="map" data-testid="bpmn-split-map">
+          <%= render Bali::BpmnEditor::Component.new(
+                data: BpmnProcessMap.map(locale: locale, reference_url: ->(id) { "/lookbook/preview/bali/bpmn_editor/default?box=#{id}" }),
+                chrome: :minimal, rules: :structure, min_zoom: 0.2,
+                legend: BpmnProcessMap.legend(locale), selected_id: local_assigns[:selected],
+                badges: local_assigns.fetch(:badges, true), id: "split_map_bpmn") %>
+        </div>
+      </section>
+    <% end %>
+  <% end %>
+  <% end %>
+  <p class="text-xs text-base-content/60">
+    <%= en ? "Click a box: the map only selects it (the app took bali-bpmn:open-reference over) and its flow is fetched into the pane beside it. «Close» or Esc bring the map back; on the right, select an element to add a note." :
+             "Haz clic en una caja: el mapa solo la selecciona (la app tomó bali-bpmn:open-reference) y su flujo se carga en el panel de la derecha. «Cerrar» o Esc vuelven al mapa; a la derecha, selecciona un elemento para agregar una nota." %>
+  </p>
+</div>

@@ -83,6 +83,12 @@ const swapOnMountFor = (react) => {
   return swappers.get(react)
 }
 
+// React and react-dom are CommonJS. Bundled with code splitting (esbuild
+// `splitting: true`), `import('react-dom/client')` resolves to a namespace
+// holding only `default` (module.exports); without it, the named exports are
+// copied onto the namespace too. Either shape works here.
+const commonJs = (namespace, name) => (namespace && name in namespace ? namespace : namespace?.default)
+
 export class ReactIslandController extends Controller {
   // Global error hook for every island: `(error, context) => {}` where context
   // carries { identifier, element, phase: 'load' | 'render' }. Assign it ONCE
@@ -168,8 +174,12 @@ export class ReactIslandController extends Controller {
     this._addTurboCacheMeta()
 
     try {
-      const { react, reactDom, Component } = await this.loadComponent()
+      const loaded = await this.loadComponent()
       if (this._disconnected) return
+
+      const react = commonJs(loaded.react, 'createElement')
+      const reactDom = commonJs(loaded.reactDom, 'createRoot')
+      const { Component } = loaded
 
       this._react = react
       this._mountPoint = document.createElement('div')

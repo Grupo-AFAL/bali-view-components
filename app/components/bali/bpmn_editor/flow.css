@@ -1,0 +1,331 @@
+/* CSS of the BPMN editor ISLAND (#1489), bundled through the bpmn-editor
+ * entry right after @xyflow/react's stylesheet and emitted as the island's
+ * own stylesheet. Not part of the Tailwind build.
+ *
+ * Unlayered on purpose: its adversary is @xyflow/react/dist/style.css, which
+ * is unlayered too, and the rules below win on order and specificity. Two of
+ * them need !important because React Flow writes the property inline on the
+ * node wrapper (`pointer-events: all` on every selectable node). */
+
+.bali-bpmn-editor {
+  --bpmn-line: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+  --bpmn-border: var(--color-base-300);
+  --bpmn-select: var(--color-primary);
+}
+
+.bpmn-canvas { position: relative; min-height: 420px; background: var(--color-base-100); container: bpmn-canvas / inline-size; }
+
+/* Embedded (chrome: :minimal): the host's container decides the height; the
+ * comparison's panes share the editor's. */
+.bpmn-editor.is-minimal .bpmn-canvas,
+.bpmn-compare .bpmn-canvas { min-height: 0; }
+.bpmn-canvas .react-flow__pane { cursor: grab; }
+.bpmn-canvas .react-flow__pane.dragging { cursor: grabbing; }
+.bpmn-canvas.is-placing .react-flow__pane { cursor: crosshair; }
+
+/* The local arrangement moved things: glide them there instead of jumping. Only for a
+ * moment after the edit — a transition while dragging would make the node lag
+ * the pointer. */
+.bpmn-canvas.is-arranging .react-flow__node { transition: transform .22s ease-out, width .22s ease-out, height .22s ease-out; }
+
+/* Lanes: only the header and the resize controls take the pointer. */
+.bpmn-canvas .react-flow__node-lane { pointer-events: none !important; }
+.bpmn-canvas .react-flow__node-lane .bpmn-lane-header,
+.bpmn-canvas .react-flow__node-lane .react-flow__resize-control { pointer-events: all; }
+.bpmn-canvas .react-flow__node-lane.selected,
+.bpmn-canvas .react-flow__node-lane:focus,
+.bpmn-canvas .react-flow__node-bpmn:focus { outline: none; box-shadow: none; }
+
+.bpmn-lane {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--bpmn-border);
+  background: var(--color-base-100);
+}
+.bpmn-lane-vertical { flex-direction: column; }
+.bpmn-lane.is-external { background: color-mix(in oklab, var(--color-base-content) 7%, var(--color-base-100)); }
+.bpmn-lane-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--color-base-200);
+  color: var(--color-base-content);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  cursor: move;
+  user-select: none;
+}
+.bpmn-lane-horizontal .bpmn-lane-header { border-right: 1px solid var(--bpmn-border); }
+.bpmn-lane-vertical .bpmn-lane-header { border-bottom: 1px solid var(--bpmn-border); padding: 0 28px; }
+.bpmn-lane.is-external .bpmn-lane-header { background: color-mix(in oklab, var(--color-base-content) 13%, var(--color-base-100)); }
+.bpmn-lane.is-selected .bpmn-lane-header,
+.bpmn-lane.is-highlighted .bpmn-lane-header { box-shadow: inset 0 0 0 2px var(--bpmn-select); }
+.bpmn-lane-name { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; line-height: 1.2; overflow: hidden; }
+.bpmn-lane-horizontal .bpmn-lane-name { writing-mode: vertical-rl; transform: rotate(180deg); max-height: 100%; }
+/* The pending marker is laid out beside the name, never over it: across the
+ * upright name of a horizontal lane (the header is wide enough for both),
+ * after the name of a vertical lane — so the name keeps its whole length. */
+.bpmn-lane-issue { flex: none; }
+.bpmn-lane-header { gap: 2px; }
+.bpmn-lane-header > .bpmn-lane-name { min-width: 0; min-height: 0; }
+/* A name longer than its header ends in an ellipsis (the whole name is the header's title). */
+.bpmn-lane-title { max-width: 100%; max-height: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* React Flow centres a line control on the edge (translate -50%), which puts
+ * half of it inside the NEXT lane — painted later at the same z-index, so the
+ * neighbour covers it and the handle stops answering (fixed the same way in
+ * gobierno-corporativo, commit 301b3a7e). Anchored inside the lane instead. */
+.bpmn-lane-resize.react-flow__resize-control.line { border-color: transparent; transform: none; }
+.bpmn-lane-resize.react-flow__resize-control.line.bottom { top: auto; bottom: 0; height: 8px; border-bottom-width: 3px; cursor: ns-resize; }
+.bpmn-lane-resize.react-flow__resize-control.line.right { left: auto; right: 0; width: 8px; border-right-width: 3px; cursor: ew-resize; }
+.bpmn-lane-resize.react-flow__resize-control.line:hover { border-color: color-mix(in oklab, var(--bpmn-select) 45%, transparent); }
+
+/* Flow nodes. */
+.bpmn-node { position: relative; width: 100%; height: 100%; }
+.bpmn-node-shape { display: block; overflow: visible; }
+.bpmn-node.is-selected::after {
+  content: ''; position: absolute; inset: -5px; border: 1.5px dashed var(--bpmn-select); border-radius: 10px; pointer-events: none;
+}
+.bpmn-node.is-highlighted .bpmn-node-shape { filter: drop-shadow(0 0 0.5px var(--bpmn-select)) drop-shadow(0 0 3px color-mix(in oklab, var(--bpmn-select) 55%, transparent)); }
+.bpmn-node.is-highlighted .bpmn-node-shape { animation: bpmn-pulse 1.2s ease-in-out 2; }
+@keyframes bpmn-pulse { 50% { filter: drop-shadow(0 0 6px var(--bpmn-select)); } }
+.bpmn-label { color: var(--color-base-content); font-size: 11.5px; font-weight: 500; line-height: 1.25; pointer-events: none; overflow-wrap: anywhere; }
+.bpmn-label-inside {
+  position: absolute; display: flex; align-items: center; justify-content: center; text-align: center;
+  overflow: hidden; line-height: 14px;
+}
+/* Its box, its line count and its first line's corners are model/labels.js
+ * insideLabelBox's (14 px a line). The corners are two floats one line high,
+ * so only the first line steps aside; the rest takes the whole width. */
+.bpmn-label-inside > span { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; max-width: 100%; }
+.bpmn-label-corner { width: var(--bpmn-label-corner); height: 14px; }
+.bpmn-label-corner.is-left { float: left; }
+.bpmn-label-corner.is-right { float: right; }
+.bpmn-label-outside {
+  position: absolute; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;
+  line-height: 14px; font-size: 11.5px;
+}
+.bpmn-label-annotation { position: absolute; inset: 4px 6px 4px 18px; overflow: hidden; font-weight: 400; }
+.bpmn-label-group { position: absolute; top: 6px; left: 10px; font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
+.bpmn-node.has-badge .bpmn-label-annotation { top: 10px; }
+.bpmn-node.has-badge .bpmn-label-group { top: 12px; }
+.bpmn-node-link { position: absolute; top: 3px; right: 6px; font-size: 12px; color: var(--color-secondary); }
+/* The app's look of a node (node.appearance, model/appearance.js); the band and
+ * the outline are SVG (shapes.jsx AppearanceMark). The badge is a tab across
+ * the top edge, half outside, flush with the left one (model/labels.js
+ * badgeTabBox), the note number right after it; the pending marker and the
+ * link arrow keep the top-right corner (the tabs stop 20 px short of it), the
+ * [+] the bottom centre, and connections leave and arrive at the middle of
+ * the sides. Its corners are the shape's. */
+.bpmn-node.is-dimmed { opacity: .45; }
+.bpmn-node-tabs {
+  position: absolute; top: -10px; left: 0; height: 20px; max-width: calc(100% - var(--bpmn-tab-reserve, 0px));
+  display: flex; align-items: center; gap: 2px; pointer-events: none;
+}
+.bpmn-node-tabs .bpmn-note-number { position: static; flex: none; }
+.bpmn-node-badge {
+  flex: 0 1 auto; min-width: 0;
+  height: 16px; padding: 0 6px; border-radius: var(--bpmn-tab-radius, 4px); font-size: 10px; font-weight: 600; line-height: 14px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+  background: var(--bpmn-badge, var(--color-base-200)); color: var(--bpmn-badge-text, var(--color-base-content));
+  border: 1px solid var(--bpmn-badge, var(--color-base-300));
+}
+/* A multi-select chip's checkbox is visually hidden (sr-only, still in the tab
+ * order): its focus is drawn on the chip. */
+.bpmn-chip:has(> input:focus-visible) { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.bpmn-node:focus-visible { outline: 2px solid var(--bpmn-select); outline-offset: 5px; border-radius: 8px; }
+/* Selected while reading (`selected_id:`, a click, `bali-bpmn:select`): the
+ * app's choice, not an edit — solid and haloed, with no handles or menu. */
+.bpmn-canvas.is-readonly .bpmn-node.is-selected::after {
+  inset: -6px; border: 2.5px solid var(--bpmn-select); border-radius: 12px;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--bpmn-select) 22%, transparent);
+}
+.bpmn-canvas.is-readonly .react-flow__node-bpmn { cursor: default; }
+.bpmn-canvas.is-readonly .react-flow__node-bpmn:has(.bpmn-node-link) { cursor: pointer; }
+
+.bpmn-handle.react-flow__handle {
+  width: 9px; height: 9px; border: 1.5px solid var(--bpmn-select); background: var(--color-base-100);
+  opacity: 0; transition: opacity .12s;
+}
+.bpmn-canvas.is-editable .react-flow__node-bpmn:hover .bpmn-handle,
+.bpmn-canvas.is-editable .react-flow__node-bpmn.selected .bpmn-handle,
+.bpmn-canvas.is-connecting .bpmn-handle { opacity: 1; }
+.bpmn-canvas:not(.is-editable) .bpmn-handle { pointer-events: none; }
+
+/* Connections. */
+.bpmn-edge.react-flow__edge-path { stroke: var(--bpmn-line); stroke-width: 1.5; stroke-linejoin: round; fill: none; }
+.bpmn-edge.react-flow__edge-path.is-selected { stroke: var(--bpmn-select); stroke-width: 2.2; }
+.bpmn-edge.react-flow__edge-path.has-issue { stroke: var(--color-warning); }
+.bpmn-marker .bpmn-marker-fill { fill: var(--bpmn-line); }
+.bpmn-marker .bpmn-marker-open { fill: var(--color-base-100); stroke: var(--bpmn-line); stroke-width: 1.2; }
+.bpmn-marker.is-selected .bpmn-marker-fill { fill: var(--bpmn-select); }
+.bpmn-marker.is-selected .bpmn-marker-open { stroke: var(--bpmn-select); }
+.bpmn-markers { position: absolute; width: 0; height: 0; }
+.bpmn-edge-label rect { fill: var(--color-base-100); stroke: var(--bpmn-border); }
+.bpmn-edge-label text { fill: var(--color-base-content); font-size: 11px; font-weight: 600; }
+.react-flow__edge.selected .bpmn-edge-label text { fill: var(--bpmn-select); }
+.bpmn-canvas .react-flow__edge-textwrapper, .bpmn-edge-label { pointer-events: all; cursor: text; }
+
+/* In-place rename. */
+.bpmn-rename {
+  position: absolute; z-index: 10; min-width: 140px; padding: 2px 6px; border: 1px solid var(--bpmn-select);
+  border-radius: 4px; background: var(--color-base-100); color: var(--color-base-content); font-size: 12px;
+}
+.bpmn-lane-horizontal .bpmn-rename { writing-mode: horizontal-tb; transform: none; left: 4px; min-width: 160px; }
+
+.bpmn-canvas .react-flow__minimap {
+  border: 1px solid var(--bpmn-border); border-radius: 8px; background: var(--color-base-100);
+  /* React Flow paints the map and its viewport mask in fixed light greys
+   * (#fff, rgba(240,240,240,.6)): from the theme instead, or a dark page shows
+   * a light grey box. */
+  --xy-minimap-background-color-default: var(--color-base-100);
+  --xy-minimap-mask-background-color-default: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  --xy-minimap-mask-stroke-color-default: var(--color-base-300);
+}
+.bpmn-canvas .react-flow__background { --xy-background-pattern-color: color-mix(in oklab, var(--color-base-content) 18%, transparent); }
+
+/* Palette: an item the host marked with a note. */
+.bpmn-palette-item.has-note { outline: 1.5px dashed var(--color-warning); outline-offset: -2px; background: color-mix(in oklab, var(--color-warning) 12%, transparent); }
+.bpmn-palette-swatch-note { display: inline-block; width: 14px; height: 14px; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -2px; }
+
+.bpmn-canvas .react-flow__panel.bpmn-legend { bottom: 165px; }
+/* No minimap in the minimal chrome: the legend takes its place. */
+.bpmn-editor.is-minimal .bpmn-canvas .react-flow__panel.bpmn-legend { bottom: 0; }
+/* On the same line as the zoom controls (~160px with their margin): a narrow
+   canvas (a phone, 358px) narrows the legend instead of covering them. */
+.bpmn-editor.is-minimal .bpmn-canvas .react-flow__panel.bpmn-legend { max-width: calc(100% - 11rem); }
+/* With the properties panel open the minimap moves aside and the legend
+ * steps out: React Flow paints panels (z-index 5) over the node toolbar that
+ * holds the quick menu (inside the renderer, z-index 4). */
+/* With the properties panel open the minimap would sit over the canvas next to it: it steps aside. */
+.bpmn-canvas.has-panel .react-flow__minimap { display: none; }
+.bpmn-canvas.has-panel .react-flow__panel.bpmn-legend { display: none; }
+.bpmn-canvas .react-flow__panel.bpmn-stencil { top: 52px; }
+.bpmn-note-number {
+  display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 9999px;
+  background: var(--bpmn-note-color, var(--color-primary)); color: var(--bpmn-note-text, var(--color-primary-content)); font-size: 11px; font-weight: 700;
+}
+.bpmn-node .bpmn-note-number { position: absolute; top: -10px; left: -10px; pointer-events: none; }
+/* Compare mode. */
+.bpmn-node.bpmn-diff-added .bpmn-node-shape { filter: drop-shadow(0 0 0.5px var(--color-success)) drop-shadow(0 0 5px var(--color-success)); }
+.bpmn-node.bpmn-diff-changed .bpmn-node-shape { filter: drop-shadow(0 0 0.5px var(--color-warning)) drop-shadow(0 0 5px var(--color-warning)); }
+.bpmn-node.bpmn-diff-removed { opacity: .55; }
+.bpmn-node.bpmn-diff-removed .bpmn-node-shape { filter: drop-shadow(0 0 0.5px var(--color-error)) drop-shadow(0 0 4px var(--color-error)); }
+.bpmn-edge.react-flow__edge-path.bpmn-diff-added { stroke: var(--color-success); stroke-width: 2.4; }
+.bpmn-edge.react-flow__edge-path.bpmn-diff-removed { stroke: var(--color-error); stroke-dasharray: 5 3; }
+.bpmn-edge.react-flow__edge-path.bpmn-diff-changed { stroke: var(--color-warning); stroke-width: 2.4; }
+.bpmn-lane.bpmn-diff-added .bpmn-lane-header { box-shadow: inset 0 0 0 2px var(--color-success); }
+.bpmn-lane.bpmn-diff-changed .bpmn-lane-header { box-shadow: inset 0 0 0 2px var(--color-warning); }
+.bpmn-lane.bpmn-diff-removed .bpmn-lane-header { box-shadow: inset 0 0 0 2px var(--color-error); }
+.bpmn-legend-lane {
+  display: inline-block; width: 24px; height: 14px; border: 1px solid var(--bpmn-border);
+  background: color-mix(in oklab, var(--color-base-content) 10%, var(--color-base-100));
+}
+
+@media print {
+  .bpmn-chrome { display: none !important; }
+}
+.bpmn-note-chip { padding: 0 6px; background: color-mix(in oklab, var(--color-warning) 12%, transparent); white-space: nowrap; border-radius: 3px; outline: 1.5px dashed var(--color-warning); outline-offset: -1px; font-size: 10px; font-weight: 600; }
+
+/* The palette's tooltip (chrome/Hint.jsx): portaled into the editor's root,
+ * positioned against the viewport, in the page's theme. */
+.bpmn-hint {
+  position: fixed; z-index: 60; width: 280px; pointer-events: none;
+  padding: 8px 10px; border: 1px solid var(--color-base-300); border-radius: 8px;
+  background: var(--color-base-100); color: var(--color-base-content);
+  font-size: 12px; line-height: 1.4; box-shadow: 0 4px 16px color-mix(in oklab, var(--color-base-content) 18%, transparent);
+}
+
+/* React Flow's attribution stays (its MIT licence lets it go, but the authors
+ * ask commercial users who hide it to subscribe to React Flow Pro); it takes
+ * the theme instead of its fixed white and #999, which a dark page shows as a
+ * light patch. */
+.bpmn-canvas .react-flow__attribution { --xy-attribution-background-color-default: color-mix(in oklab, var(--color-base-100) 70%, transparent); }
+.bpmn-canvas .react-flow__attribution a { color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
+
+/* chrome: :minimal — the editor fills the container the host sized; the
+ * island's own mount point sits between the two. */
+.bali-bpmn-editor-mount.h-full > div:not(.bali-bpmn-editor-skeleton) { height: 100%; }
+
+/* Comparison marks (canvas/diffMarks.js): colour is never the only cue. */
+.bpmn-diff-chip {
+  display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex: none;
+  border-radius: 9999px; font-size: 12px; font-weight: 800; line-height: 1;
+}
+.bpmn-diff-chip.is-success { background: var(--color-success); color: var(--color-success-content); }
+.bpmn-diff-chip.is-error { background: var(--color-error); color: var(--color-error-content); }
+.bpmn-diff-chip.is-warning { background: var(--color-warning); color: var(--color-warning-content); }
+.bpmn-node .bpmn-diff-mark { position: absolute; top: -10px; left: -10px; pointer-events: none; }
+.bpmn-lane-name .bpmn-diff-chip { writing-mode: horizontal-tb; }
+/* The horizontal lane's name is turned half a circle; its mark is turned back. */
+.bpmn-lane-horizontal .bpmn-lane-name .bpmn-diff-chip { transform: rotate(180deg); }
+.bpmn-edge-diff-mark { pointer-events: none; }
+.bpmn-edge-diff-mark text { font-size: 11px; font-weight: 800; }
+.bpmn-edge-diff-mark.is-success circle { fill: var(--color-success); }
+.bpmn-edge-diff-mark.is-success text { fill: var(--color-success-content); }
+.bpmn-edge-diff-mark.is-error circle { fill: var(--color-error); }
+.bpmn-edge-diff-mark.is-error text { fill: var(--color-error-content); }
+.bpmn-edge-diff-mark.is-warning circle { fill: var(--color-warning); }
+.bpmn-edge-diff-mark.is-warning text { fill: var(--color-warning-content); }
+.bpmn-compare-changes > summary { list-style: none; }
+.bpmn-compare-changes > summary::-webkit-details-marker { display: none; }
+.bpmn-compare-changes > summary::after { content: ' ▾'; }
+
+/* Connecting: a banner says what to do, the source stands out, a dashed line
+ * follows the pointer, what the connection may not reach is faded and what
+ * it may is outlined under the pointer. */
+.bpmn-connect-banner {
+  position: absolute; top: 58px; left: 50%; transform: translateX(-50%); z-index: 6;
+  display: flex; align-items: center; gap: 8px; padding: 4px 6px 4px 12px; border-radius: 9999px;
+  background: var(--color-primary); color: var(--color-primary-content); font-size: 12px; font-weight: 600;
+  box-shadow: 0 2px 8px color-mix(in oklab, var(--color-base-content) 20%, transparent); white-space: nowrap;
+}
+.bpmn-connect-banner .btn { color: inherit; }
+/* «Use Ctrl + scroll to zoom»: over the canvas the wheel went past, gone
+   1.5 s after the last turn; it takes no pointer, so the page scrolls on. */
+.bpmn-wheel-hint {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 6; pointer-events: none;
+  padding: 8px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600;
+  background: color-mix(in oklab, var(--color-base-content) 78%, transparent); color: var(--color-base-100);
+}
+.bpmn-connect-guide { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; overflow: visible; }
+.bpmn-connect-guide line { stroke: var(--bpmn-select); stroke-width: 2; stroke-dasharray: 6 4; }
+.bpmn-canvas.is-connecting .react-flow__pane,
+.bpmn-canvas.is-connecting .react-flow__node-bpmn { cursor: crosshair; }
+.bpmn-node.is-connect-source .bpmn-node-shape { filter: drop-shadow(0 0 0.5px var(--bpmn-select)) drop-shadow(0 0 5px var(--bpmn-select)); }
+.bpmn-node.is-connect-invalid { opacity: .3; }
+.bpmn-canvas.has-connect-source .react-flow__node-bpmn:hover .bpmn-node:not(.is-connect-invalid):not(.is-connect-source)::after {
+  content: ''; position: absolute; inset: -5px; border: 2px solid var(--bpmn-select); border-radius: 10px; pointer-events: none;
+}
+
+/* «Only changes»: what did not change fades, in both panes. */
+.bpmn-compare.is-only-changes .bpmn-node:not([class*='bpmn-diff-']) { opacity: .25; }
+.bpmn-compare.is-only-changes .bpmn-edge:not([class*='bpmn-diff-']) { opacity: .25; }
+
+/* A narrow canvas (a phone: ~310px beside the folded palette): the toolbars
+ * keep their icons — the name stays for screen readers and in the title —
+ * and stack instead of running over each other; the minimap steps out and
+ * the legend sits above the zoom bar. Labelled, the two toolbars alone took
+ * ~38rem. Last in the file: it overrides the positions above. */
+@container bpmn-canvas (width < 40rem) {
+  .bpmn-tool-label {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+  }
+  .bpmn-canvas .react-flow__panel.bpmn-canvas-toolbar { max-width: calc(100% - 1.5rem); }
+  .bpmn-canvas .react-flow__panel.bpmn-view-toolbar { top: 48px; }
+  .bpmn-canvas .react-flow__panel.bpmn-stencil { top: 96px; max-width: calc(100% - 1.5rem); }
+  .bpmn-canvas .react-flow__minimap { display: none; }
+  .bpmn-editor:not(.is-minimal) .bpmn-canvas .react-flow__panel.bpmn-legend { bottom: 48px; max-width: calc(100% - 1.5rem); }
+  /* React Flow paints panels over the node toolbar: the legend would cover
+     the quick menu, which on a phone opens below the element. */
+  .bpmn-canvas.has-quick-menu .react-flow__panel.bpmn-legend { display: none; }
+  /* Minimal, the zoom bar carries «Show badges» too: the legend no longer
+     fits beside it, and goes above it. */
+  .bpmn-editor.is-minimal .bpmn-canvas:has(.bpmn-badge-switch) .react-flow__panel.bpmn-legend { bottom: 44px; max-width: calc(100% - 1.5rem); }
+  .bpmn-canvas .bpmn-connect-banner { top: 96px; width: max-content; max-width: calc(100% - 1rem); white-space: normal; border-radius: 12px; }
+}

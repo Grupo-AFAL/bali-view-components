@@ -77,6 +77,26 @@ module Bali
         render_structured(advance: false)
       end
 
+      # `collapsible: true`: the list takes the whole width until a row is
+      # clicked; then the detail slides in beside it (300 ms) and the list
+      # shrinks to its column. «Close» or Esc give the list the width back,
+      # empty the frame and clear the row's highlight; focus returns to the row.
+      # Below `lg` the detail is a full-screen sheet with «← Back».
+      #
+      # What opens it is the frame getting content — a row's Turbo Frame load
+      # here, or anything an app puts in the frame — so the rows need nothing
+      # new. `advance: false`: this drill-down is not a location of its own.
+      #
+      # `height:` and `master_width:` try the other options with it: `:screen`
+      # fills to the bottom of the window, `:equal` makes the two columns the
+      # same width.
+      # @param height select { choices: [content, full, screen, 640px] }
+      # @param master_width select { choices: [420px, equal, 50%] }
+      def collapsible(height: "content", master_width: "420px")
+        render_structured(advance: false, collapsible: true,
+                          height: split_option(height), master_width: split_option(master_width))
+      end
+
       # `frame_options:` writes attributes on the detail `<turbo-frame>` itself.
       # Here they make a row click scroll the detail into view while the panes
       # are stacked, below `lg`, where the detail sits under the whole list:
@@ -109,7 +129,8 @@ module Bali
 
       private
 
-      def render_structured(selected: nil, filter_mode: :single, filters: nil, advance: true, group_by: nil)
+      def render_structured(selected: nil, filter_mode: :single, filters: nil, advance: true, group_by: nil,
+                            collapsible: false, height: :content, master_width: Bali::SplitView::Component::DEFAULT_MASTER_WIDTH)
         render_with_template(
           template: Bali::SplitView::Preview::STRUCTURED,
           locals: {
@@ -117,9 +138,17 @@ module Bali
             filter_mode: filter_mode,
             filters: filters || status_filters,
             advance: advance,
-            group_by: group_by
+            group_by: group_by,
+            collapsible: collapsible,
+            height: height,
+            master_width: master_width
           }
         )
+      end
+
+      # A select's value as the component takes it: keywords as symbols.
+      def split_option(value)
+        %w[equal screen full content].include?(value.to_s) ? value.to_sym : value.to_s
       end
 
       def status_filters

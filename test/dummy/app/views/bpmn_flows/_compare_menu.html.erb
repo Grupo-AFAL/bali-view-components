@@ -1,0 +1,21 @@
+<%# locals: options, open, index, en, views (default true) %>
+<%# The app's own «Compare» menu (the dummy's bpmn_compare_menu_controller.js):
+    what an editor without its top bar needs to open the comparison. Inside
+    an element with data-controller="bpmn-compare-menu" that holds the editor.
+    Without `views`, the comparison's own bar switches the view. %>
+<div class="flex flex-wrap items-center gap-2 text-sm" data-testid="bpmn-compare-menu">
+  <select class="select select-sm w-auto max-w-44" data-bpmn-compare-menu-target="option" data-action="bpmn-compare-menu#pick"
+          data-testid="bpmn-compare-menu-option" aria-label="<%= en ? "Compare with" : "Comparar contra" %>">
+    <option value="" <%= "selected" unless open %>><%= en ? "Compare…" : "Comparar…" %></option>
+    <% options.each_with_index do |option, i| %>
+      <option value="<%= i %>" <%= "selected" if open && i == index %>><%= option[:label] %></option>
+    <% end %>
+  </select>
+  <% if local_assigns.fetch(:views, true) %>
+    <select class="select select-sm w-auto" data-bpmn-compare-menu-target="view" data-action="bpmn-compare-menu#view"
+            data-testid="bpmn-compare-menu-view" aria-label="<%= en ? "View" : "Vista" %>" <%= "disabled" unless open %>>
+      <option value="side_by_side" <%= "selected" if open.to_s != "overlay" %>><%= en ? "Side by side" : "Lado a lado" %></option>
+      <option value="overlay" <%= "selected" if open.to_s == "overlay" %>><%= en ? "Overlay" : "Superpuesto" %></option>
+    </select>
+  <% end %>
+</div>

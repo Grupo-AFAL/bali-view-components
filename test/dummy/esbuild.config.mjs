@@ -48,11 +48,20 @@ const config = {
   entryPoints: [
     'app/javascript/application.js',
     'app/javascript/island-demo.js',
-    'app/javascript/gantt-island.js'
+    'app/javascript/gantt-island.js',
+    'app/javascript/bpmn-editor-island.js',
+    // The same island plus the optional rule package: the rules gallery only.
+    'app/javascript/bpmn-editor-island-with-rules.js'
   ],
   bundle: true,
   sourcemap: true,
   format: 'esm',
+  // Minifying also defines NODE_ENV "production" (React's production build).
+  // application.js measured 25.4 MB unminified, 17 MB minified. No `splitting`: no host app
+  // splits, and a split build turns `import()` of a CommonJS module into a bare
+  // `default` (flatpickr's locales, tippy), so Lookbook would test a shape no
+  // host ships. BALI_DEV_BUILD=1 builds unminified to debug.
+  minify: process.env.BALI_DEV_BUILD !== '1',
   outdir: path.join(__dirname, 'app/assets/builds'),
   target: ['es2022', 'chrome100', 'firefox100', 'safari15'],
   jsx: 'automatic',
@@ -66,6 +75,7 @@ const config = {
     'bali/block-editor': path.join(baliGemPath, 'app/frontend/bali/block-editor.js'),
     'bali/gantt': path.join(baliGemPath, 'app/frontend/bali/gantt.js'),
     'bali/gantt-entry': path.join(baliGemPath, 'app/frontend/bali/gantt-entry.js'),
+    'bali/bpmn-editor-entry': path.join(baliGemPath, 'app/frontend/bali/bpmn-editor-entry.js'),
     'bali/react-island': path.join(baliGemPath, 'app/frontend/bali/react-island.js'),
     'bali/rich-text-editor': path.join(baliGemPath, 'app/frontend/bali/rich-text-editor.js'),
     // Force a single React instance — @blocknote/xl-ai bundles react 19 as a
