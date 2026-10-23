@@ -44,7 +44,7 @@
     "slim-select": "^4.5.0",
     "sortablejs": "^1.15.6",
     "tippy.js": "^6.3.7",
-    "zod": "^4.6.5"
+    "zod": "^4.6.6"
   },
   "dependenciesMeta": {
     "esbuild": {
