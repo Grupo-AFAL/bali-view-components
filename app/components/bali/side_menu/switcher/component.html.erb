@@ -1,0 +1,36 @@
+<%= tag.div(class: wrapper_classes) do %>
+  <% if label.present? %>
+    <p class="menu-label menu-switcher-label pb-2"><%= label %></p>
+  <% end %>
+  <%# Use <details><summary> instead of focus-based dropdown — the focus
+      pattern is fragile on iOS Safari (focus loss on slide-in animation,
+      blur on scroll). <details> uses native browser toggling and works
+      reliably on all touch devices. %>
+  <details class="dropdown dropdown-bottom w-full" name="side-menu-switcher">
+    <summary class="<%= trigger_classes %>"
+             data-tip="<%= active_entry.title %>">
+      <%= active_entry %>
+      <%= render Bali::Icon::Component.new('chevrons-up-down', class: 'menu-switcher-chevron ml-auto size-4 text-base-content/55') %>
+    </summary>
+    <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
+      <% entries.each do |entry| %>
+        <li>
+          <% if link?(entry) %>
+            <a href="<%= entry.href %>" class="<%= 'active' if entry == active_entry %>">
+              <%= entry %>
+              <%= tag.span(entry.badge, class: 'menu-switcher-badge ml-auto text-xs opacity-70') if entry.badge.present? %>
+            </a>
+          <% else %>
+            <%# The form sits between the <li> and the button, so daisyUI's `menu li > *`
+                layout misses it: the button carries the same flex row itself. %>
+            <%= button_to entry.href, method: entry.http_method, params: entry.params, form_class: 'contents',
+                          class: class_names('flex w-full items-center gap-2 text-left', active: entry == active_entry) do %>
+              <%= entry %>
+              <%= tag.span(entry.badge, class: 'menu-switcher-badge ml-auto text-xs opacity-70') if entry.badge.present? %>
+            <% end %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </details>
+<% end %>

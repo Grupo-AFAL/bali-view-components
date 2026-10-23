@@ -8,7 +8,9 @@ const OVERLAY_QUERY = '(max-width: 1023.98px)'
 // The module switcher is a native `<details>` — see the note in component.html.erb for
 // why, which is iOS Safari and not preference. It comes with its own toggling and with
 // nothing else: `<details>` closes when its `<summary>` is pressed again and on no other
-// event, so the panel stayed open over the rest of the page.
+// event, so the panel stayed open over the rest of the page. There can be several, one
+// per level of the selector stack; they share a `name`, so the browser keeps at most one
+// open, and the handlers below act on whichever that is.
 const SWITCHER = '.menu-switcher > details'
 
 // The scrolling half of the sidebar, and the one link inside it that points at the page
@@ -89,10 +91,10 @@ export class SideMenuController extends Controller {
     this.overlayQuery.removeEventListener('change', this.onOverlayChange)
   }
 
-  // ── Module switcher ────────────────────────────────────────────────────
+  // ── Selector stack (module switcher and the ones under it) ─────────────
 
   get switcher () {
-    return this.element.querySelector(SWITCHER)
+    return [...this.element.querySelectorAll(SWITCHER)].find((details) => details.open)
   }
 
   // `pointerdown` and not `click`: a press that starts inside the open panel and drifts

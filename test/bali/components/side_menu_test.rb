@@ -168,6 +168,71 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("[data-controller~='side-menu']")
   end
 
+  # #1539: a menu subdivided in levels stacks one selector per level under the module
+  # switcher, in the order declared.
+  def test_switchers_stack_under_the_module_switcher_in_order
+    @options[:fixed] = false
+    render_inline(component) do |c|
+      c.with_menu_switch(title: "Inventory", href: "/inv", icon: "warehouse", active: true)
+      c.with_menu_switch(title: "Pack Track", href: "/pack", icon: "package")
+      c.with_switcher(label: "Integration") do |s|
+        s.with_option(title: "Cold storage", href: "/a", icon: "snowflake")
+      end
+      c.with_switcher(label: "Branch") do |s|
+        s.with_option(title: "Tijuana", href: "/b", icon: "map-pin")
+      end
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+
+    triggers = page.all(".menu-switchers > .menu-switcher summary", visible: :all).map { |s| s["data-tip"] }
+    assert_equal [ "Inventory", "Cold storage", "Tijuana" ], triggers
+    assert_selector(".menu-switcher-label", text: "Integration")
+    # A shared name: the browser keeps one panel open at a time.
+    assert_equal 3, page.all("details[name='side-menu-switcher']", visible: :all).size
+  end
+
+  # A context selector shows where you are even with a single option; the module
+  # switcher still hides itself with one menu.
+  def test_a_switcher_with_one_option_still_renders_and_earns_the_controller
+    @options[:fixed] = false
+    @options[:reveal_current] = false
+    render_inline(component) do |c|
+      c.with_switcher(label: "Integration") { |s| s.with_option(title: "Cold storage", href: "/a", icon: "snowflake") }
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+
+    assert_selector(".menu-switcher summary[data-tip='Cold storage']", visible: :all)
+    assert_selector("[data-controller~='side-menu']")
+  end
+
+  # Changing server state from a link would let Turbo's hover prefetch change it.
+  def test_an_option_with_a_method_is_a_form_and_a_plain_one_a_link
+    render_inline(component) do |c|
+      c.with_switcher(accent: true) do |s|
+        s.with_option(title: "Cold storage", href: "/selection", icon: "snowflake", method: :patch,
+                      params: { warehouse_id: 7 }, badge: "View", active: true)
+        s.with_option(title: "Docs", href: "/docs", icon: "book")
+      end
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+
+    assert_selector(".menu-switcher--accent")
+    assert_selector("form[action='/selection'] input[name='_method'][value='patch']", visible: :all)
+    assert_selector("form[action='/selection'] input[name='warehouse_id'][value='7']", visible: :all)
+    assert_selector("form[action='/selection'] button.active", text: /View/, visible: :all)
+    assert_selector(".dropdown-content a[href='/docs']", visible: :all)
+    assert_no_selector(".dropdown-content a[href='/selection']", visible: :all)
+  end
+
+  def test_unauthorized_options_are_left_out_and_none_left_renders_no_switcher
+    render_inline(component) do |c|
+      c.with_switcher { |s| s.with_option(title: "Hidden", href: "/h", icon: "lock", authorized: false) }
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+
+    assert_no_selector(".menu-switcher", visible: :all)
+  end
+
   # One menu renders no switcher, so the switcher is not what asks for the controller here.
   # `reveal_current: false` isolates that: the reveal asks for it too since #1099, and
   # without turning it off this would pass for the wrong reason.

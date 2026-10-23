@@ -937,6 +937,34 @@ yours to manage.
 Turning it on is also what makes an inline, non-collapsible sidebar carry the Stimulus
 controller at all — before, that combination got none.
 
+**Stacked switchers: a menu subdivided in levels (#1539).** The module switcher is the first
+level. Each `with_switcher` adds one more under it, in the order declared, for the context the
+module's pages follow (the integration, the branch, the project being viewed). There is no
+limit to how many.
+
+```erb
+<% menu.with_switcher(label: 'Integración', accent: true) do |switcher| %>
+  <% @warehouses.each do |warehouse| %>
+    <% switcher.with_option(title: warehouse.name, subtitle: warehouse.kind, icon: 'warehouse',
+                            href: selection_path, method: :patch,
+                            params: { warehouse_id: warehouse.id, return_to: request.path },
+                            badge: 'Ver', active: warehouse == current_warehouse) %>
+  <% end %>
+<% end %>
+```
+
+- An option takes the module switch's arguments (`title`, `subtitle`, `icon`, `href`,
+  `active`, `authorized`) plus `method:`, `params:` and `badge:`.
+- `method:` other than `:get` makes the option a form (`button_to`) instead of a link. A
+  selector that changes state on the server must not be a link: Turbo prefetches links on
+  hover, and the hover would change the selection.
+- A switcher renders with a single option (it says where you are); the module switcher still
+  hides itself with one menu. With no authorized option, it renders nothing.
+- `label:` puts a small heading above the trigger; `accent: true` gives the trigger the primary
+  border and icon, for the selector the screens depend on.
+- The `<details>` of every level share a `name`, so the browser keeps one panel open at a time;
+  click-outside and Escape close whichever it is.
+
 #### SideMenu::Trigger
 
 The single button that opens a `SideMenu` — rendered for you by `Topbar`, by `AppLayout`'s

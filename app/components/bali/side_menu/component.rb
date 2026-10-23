@@ -10,6 +10,11 @@ module Bali
 
       renders_many :menu_switches, Bali::SideMenu::MenuSwitch::Component
 
+      # More selectors stacked under the module switcher, in the order they are
+      # declared: a menu subdivided in levels (module, then the context being
+      # viewed). Each is a Switcher with its own options; see Switcher::Component.
+      renders_many :switchers, Bali::SideMenu::Switcher::Component
+
       # Brand slot — renders rich content (logo + text, just an icon, custom HTML)
       # in the chrome row above the menu switcher. Falls back to the `brand:`
       # parameter when the slot is not set, so existing string usage keeps working.
@@ -119,7 +124,7 @@ module Bali
         data = (@options[:data] || {}).dup
         data[:controller] = class_names(
           data[:controller],
-          { "side-menu" => @collapsible || @fixed || @reveal_current || multiple_menus? }
+          { "side-menu" => @collapsible || @fixed || @reveal_current || multiple_menus? || switchers? }
         )
         data[:side_menu_collapsible_value] = @collapsible
         data[:side_menu_fixed_value] = @fixed

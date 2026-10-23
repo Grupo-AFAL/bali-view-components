@@ -4,16 +4,24 @@ module Bali
   module SideMenu
     module MenuSwitch
       class Component < ApplicationViewComponent
-        # href and title are public for use in parent component template
-        attr_reader :href, :title
+        # Public for the Switcher template that lists the options.
+        attr_reader :href, :title, :http_method, :params, :badge
 
-        def initialize(title:, href:, icon:, subtitle: nil, active: false, authorized: true)
+        # @param method [Symbol] `:get` (default) renders a link; any other verb renders
+        #   a form (`button_to`), for an option that changes server state
+        # @param params [Hash] Hidden fields of that form
+        # @param badge [String, nil] Short text at the end of the option in the panel
+        def initialize(title:, href:, icon:, subtitle: nil, active: false, authorized: true,
+                       method: :get, params: {}, badge: nil)
           @title = title
           @subtitle = subtitle
           @icon = icon
           @href = href
           @active = active
           @authorized = authorized
+          @http_method = method.to_sym
+          @params = params
+          @badge = badge
         end
 
         def active?

@@ -63,6 +63,14 @@ module Bali
         render_with_template(template: "bali/side_menu/previews/with_menu_switcher")
       end
 
+      # @label With Stacked Switchers
+      # A menu subdivided in levels: the module switcher, then `with_switcher` for each
+      # level under it (here, the integration the module's pages follow). An option with
+      # `method:` other than `:get` is a form, so Turbo's hover prefetch cannot change it.
+      def with_stacked_switchers
+        render_with_template(template: "bali/side_menu/previews/with_stacked_switchers")
+      end
+
       # @label Active When (Nested Routes)
       # Use `active_when:` to keep an item highlighted on nested full-page routes that
       # `match:` alone misses — e.g. `/departments/1/merges/new`. It accepts a String

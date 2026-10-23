@@ -146,6 +146,14 @@
   @apply px-2.5;
 }
 
+/* A selector the screens depend on (Switcher `accent: true`): its icon in the
+   primary colour. The trigger's border and padding are utilities the component
+   emits (Switcher#trigger_classes): a rule here would lose to them, since the
+   package's CSS lives in @layer components. */
+.menu-switcher--accent .menu-switcher-trigger .side-menu-component--menu-switch-component svg {
+  @apply text-primary;
+}
+
 .side-menu-bottom-section {
   @apply px-2.5;
 }

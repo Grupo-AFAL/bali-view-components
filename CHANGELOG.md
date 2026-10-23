@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::SideMenu`: selectores apilados, uno por nivel del menú** (#1539). Cada `with_switcher`
+  agrega un selector debajo del de módulos, en el orden en que se declara, para el contexto que
+  siguen las pantallas del módulo (la integración, la sucursal, el proyecto). No hay límite de
+  niveles. Cada opción toma los argumentos de `with_menu_switch` más `method:`, `params:` y
+  `badge:`; con `method:` distinto de `:get` la opción es un formulario (`button_to`) y no un
+  enlace, para que el prefetch de Turbo al pasar el mouse no cambie la selección. `label:` pone
+  un encabezado arriba del selector y `accent: true` le da el borde y el ícono primarios. Los
+  `<details>` de todos los niveles comparten `name`, así que solo uno queda abierto, y clic fuera
+  y Escape cierran el que lo esté. Preview «With Stacked Switchers» y guía en
+  `docs/guides/components.md`.
+  - **Anfitrión:** nada que hacer si no lo usa. El selector de módulos se dibuja ahora con el
+    mismo componente (`Bali::SideMenu::Switcher`) dentro de un contenedor `.menu-switchers`: si
+    su CSS apunta al margen de `.menu-switcher`, revíselo. Una app que copió la plantilla de
+    `SideMenu` para agregar un selector (costa-norte) puede borrar la copia y usar el slot.
+
 ### Security
 
 - **Ruby 4.0.1 → 4.0.9** (`.ruby-version`), for the Onigmo fixes in the ruby-lang.org advisory of 2026-10-23: a double free while parsing a pattern (CVE-2026-89078) and integer overflows while compiling one (CVE-2026-93577, CVE-2026-97229, CVE-2026-110264; the CVEs are GitLab's, Ruby requested none). Only the Ruby that CI and development run changes: the gem runs on its host app's Ruby, and `required_ruby_version` does not move.

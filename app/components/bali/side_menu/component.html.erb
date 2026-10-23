@@ -70,29 +70,14 @@
     </div>
   <% end %>
 
-  <%# Menu switcher dropdown (when multiple menus) %>
-  <% if multiple_menus? %>
-    <div class="menu-switcher mb-3 mt-3">
-      <%# Use <details><summary> instead of focus-based dropdown — the focus
-          pattern is fragile on iOS Safari (focus loss on slide-in animation,
-          blur on scroll). <details> uses native browser toggling and works
-          reliably on all touch devices. %>
-      <details class="dropdown dropdown-bottom w-full">
-        <summary class="menu-switcher-trigger tooltip tooltip-right border-base-300 hover:bg-base-content/8 rounded-box flex w-full items-center gap-2 border p-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden"
-                 data-tip="<%= active_menu.title %>">
-          <%= active_menu %>
-          <%= render Bali::Icon::Component.new('chevrons-up-down', class: 'menu-switcher-chevron ml-auto size-4 text-base-content/55') %>
-        </summary>
-        <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
-          <% authorized_menus.each do |menu| %>
-            <li>
-              <a href="<%= menu.href %>" class="<%= 'active' if menu == active_menu %>">
-                <%= menu %>
-              </a>
-            </li>
-          <% end %>
-        </ul>
-      </details>
+  <%# The selector stack: the module switcher (when there is more than one menu),
+      then each `switcher` slot under it. %>
+  <% if multiple_menus? || switchers? %>
+    <div class="menu-switchers mt-3">
+      <%= render Bali::SideMenu::Switcher::Component.new(menus: authorized_menus) if multiple_menus? %>
+      <% switchers.each do |switcher| %>
+        <%= switcher %>
+      <% end %>
     </div>
   <% end %>
 
