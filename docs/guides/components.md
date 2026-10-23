@@ -937,6 +937,43 @@ yours to manage.
 Turning it on is also what makes an inline, non-collapsible sidebar carry the Stimulus
 controller at all — before, that combination got none.
 
+**Stacked switchers: a menu subdivided in levels (#1539).** The module switcher is the first
+level. Each `with_switcher` adds one more under it, in the order declared, for the context the
+module's pages follow (the integration, the branch, the project being viewed). There is no
+limit to how many.
+
+```erb
+<% menu.with_switcher(label: 'Integración', accent: true) do |switcher| %>
+  <% @warehouses.each do |warehouse| %>
+    <% switcher.with_option(title: warehouse.name, subtitle: warehouse.kind, icon: 'warehouse',
+                            href: selection_path, method: :patch,
+                            params: { warehouse_id: warehouse.id, return_to: request.path },
+                            badge: 'Ver', active: warehouse == current_warehouse) %>
+  <% end %>
+<% end %>
+```
+
+- An option takes the module switch's arguments (`title`, `subtitle`, `icon`, `href`,
+  `active`, `authorized`) plus `method:`, `params:` and `badge:`.
+- `method:` other than `:get` makes the option a form (`button_to`) instead of a link. A
+  selector that changes state on the server must not be a link: Turbo prefetches links on
+  hover, and the hover would change the selection.
+- A switcher renders with a single option (it says where you are); the module switcher still
+  hides itself with one menu. With no authorized option, it renders nothing, and no empty stack.
+- With no `active:` option, a context switcher's trigger shows `placeholder:` (default
+  "Choose…"/"Elige…") instead of naming the first option: nothing is selected. The module
+  switcher keeps falling back to the first module.
+- The current option is marked `is-current` (a primary tint, links and forms alike), not
+  daisyUI's `menu-active`, whose neutral fill hides the option's subtitle.
+- `label:` puts a small heading above the trigger; `accent: true` gives the trigger the primary
+  border and icon, for the selector the screens depend on.
+- The `side-menu` controller keeps one level open at a time (opening one closes the others),
+  and click-outside and Escape close whichever is open. It does not use an exclusive
+  `<details name>`: that needs Safari 17.2+ and would tie the selectors of two side menus on
+  one page.
+- The trigger's border, padding and hover are defaults in `index.css`, so a host can override
+  them with utilities.
+
 #### SideMenu::Trigger
 
 The single button that opens a `SideMenu` — rendered for you by `Topbar`, by `AppLayout`'s

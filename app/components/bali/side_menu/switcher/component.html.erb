@@ -1,0 +1,43 @@
+<%= tag.div(class: wrapper_classes) do %>
+  <% if label.present? %>
+    <p class="menu-label menu-switcher-label pb-2"><%= label %></p>
+  <% end %>
+  <%# Use <details><summary> instead of focus-based dropdown — the focus
+      pattern is fragile on iOS Safari (focus loss on slide-in animation,
+      blur on scroll). <details> uses native browser toggling and works
+      reliably on all touch devices. The side-menu controller keeps one level
+      open at a time and closes it on outside click and Escape. %>
+  <details class="dropdown dropdown-bottom w-full">
+    <%# Its border, padding and hover are defaults in index.css, not utilities
+        here, so a host can override them. %>
+    <summary class="menu-switcher-trigger tooltip tooltip-right rounded-box flex w-full items-center gap-2 border cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+             data-tip="<%= active_entry&.title || placeholder %>">
+      <% if active_entry %>
+        <%= active_entry %>
+      <% else %>
+        <span class="menu-switcher-placeholder flex-1 truncate text-base-content/70"><%= placeholder %></span>
+      <% end %>
+      <%= render Bali::Icon::Component.new('chevrons-up-down', class: 'menu-switcher-chevron ml-auto size-4 text-base-content/55') %>
+    </summary>
+    <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
+      <% entries.each do |entry| %>
+        <li>
+          <% if link?(entry) %>
+            <a href="<%= entry.href %>" class="<%= 'is-current' if entry == active_entry %>">
+              <%= entry %>
+              <%= tag.span(entry.badge, class: 'menu-switcher-badge ml-auto text-xs opacity-70') if entry.badge.present? %>
+            </a>
+          <% else %>
+            <%# The form sits between the <li> and the button, so daisyUI's menu-item
+                rules miss it: index.css gives the button the same look. %>
+            <%= button_to entry.href, method: entry.http_method, params: entry.params, form_class: 'contents',
+                          class: class_names('menu-switcher-option', 'is-current': entry == active_entry) do %>
+              <%= entry %>
+              <%= tag.span(entry.badge, class: 'menu-switcher-badge ml-auto text-xs opacity-70') if entry.badge.present? %>
+            <% end %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </details>
+<% end %>

@@ -1,0 +1,39 @@
+<div class="h-[640px] bg-base-200 p-4 flex gap-4">
+  <div class="w-xs">
+    <%= render Bali::SideMenu::Component.new(current_path: '/inventory/receipts', fixed: false) do |c|
+      c.with_menu_switch(title: 'Inventory', subtitle: 'Warehouses', href: '/inventory/receipts',
+                         icon: 'warehouse', active: true)
+      c.with_menu_switch(title: 'Pack Track', subtitle: 'Parcels', href: '/shipments', icon: 'package')
+
+      # A second level: the context the module's pages follow. Picking one changes
+      # state on the server, so its options are forms (`method: :patch`), not links.
+      c.with_switcher(label: 'Integration', accent: true) do |switcher|
+        switcher.with_option(title: 'Cold storage', subtitle: 'Third party · API every 5 min',
+                             href: '/inventory/selection', method: :patch,
+                             params: { warehouse_id: 1, return_to: '/inventory/receipts' },
+                             icon: 'snowflake', badge: 'View', active: true)
+        switcher.with_option(title: 'Customs broker', subtitle: 'Third party · Garita',
+                             href: '/inventory/selection', method: :patch,
+                             params: { warehouse_id: 2, return_to: '/inventory/receipts' },
+                             icon: 'truck', badge: 'View')
+        switcher.with_option(title: 'All integrations', subtitle: 'Shared screens',
+                             href: '/inventory/selection', method: :patch,
+                             params: { warehouse_id: '', return_to: '/inventory/receipts' },
+                             icon: 'layers', badge: 'View')
+      end
+
+      c.with_list(title: 'Basic operation') do |list|
+        list.with_item(name: 'Receipts', href: '/inventory/receipts', icon: 'arrow-down-to-line')
+        list.with_item(name: 'Shipments', href: '/inventory/orders', icon: 'arrow-up-from-line')
+        list.with_item(name: 'Stock', href: '/inventory/stock', icon: 'boxes')
+      end
+    end %>
+  </div>
+  <div class="flex-1 p-4">
+    <h2 class="text-xl font-bold mb-4">Stacked switchers</h2>
+    <p class="text-base-content/60">
+      The module switcher first, then each <code>with_switcher</code> under it, in order.
+      Only one opens at a time.
+    </p>
+  </div>
+</div>

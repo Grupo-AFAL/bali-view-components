@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::SideMenu`: selectores apilados, uno por nivel del menú** (#1539). Cada `with_switcher`
+  agrega un selector debajo del de módulos, en el orden en que se declara, para el contexto que
+  siguen las pantallas del módulo (la integración, la sucursal, el proyecto). No hay límite de
+  niveles. Cada opción toma los argumentos de `with_menu_switch` más `method:`, `params:` y
+  `badge:`; con `method:` distinto de `:get` la opción es un formulario (`button_to`) y no un
+  enlace, para que el prefetch de Turbo al pasar el mouse no cambie la selección. `label:` pone
+  un encabezado arriba del selector y `accent: true` le da el borde y el ícono primarios. Sin
+  opción `active:`, el selector de contexto muestra `placeholder:` («Elige…») en vez de la primera
+  opción. El controlador `side-menu` deja abierto un solo nivel a la vez, y clic fuera y Escape
+  cierran el que lo esté. La opción actual se marca con `is-current`, un tinte primario. Preview «With Stacked Switchers» y guía en
+  `docs/guides/components.md`.
+  - **Anfitrión:** nada que hacer si no lo usa. El selector de módulos se dibuja ahora con el
+    mismo componente (`Bali::SideMenu::Switcher`) dentro de un contenedor `.menu-switchers`: si
+    su CSS apunta al margen de `.menu-switcher`, revíselo. El borde, el padding y el hover de su
+    trigger pasaron de utilidades en la plantilla a `index.css`, y su módulo actual se marca con
+    `is-current` en lugar de `active`, una clase que daisyUI 5 ya no pinta. Una app que copió la plantilla de
+    `SideMenu` para agregar un selector (costa-norte) puede borrar la copia y usar el slot.
+
 ### Security
 
 - **`crass` 1.0.7 → 1.0.8** (GHSA-pq4g-8rxf-4g29, publicada el 2026-10-23): un `url(` mal formado se tokenizaba distinto que en el navegador, lo que permitía saltarse el sanitizador de CSS. Llega por `loofah`/`rails-html-sanitizer`. Sólo cambia `Gemfile.lock`: el gem no la fija, así que cada anfitrión la sube en su propio lock.

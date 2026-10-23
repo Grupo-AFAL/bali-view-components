@@ -5,10 +5,13 @@ const COLLAPSED_CLASS = 'is-collapsed'
 const COLLAPSE_STORAGE_KEY = 'bali_sideMenuCollapsed'
 const OVERLAY_QUERY = '(max-width: 1023.98px)'
 
-// The module switcher is a native `<details>` — see the note in component.html.erb for
-// why, which is iOS Safari and not preference. It comes with its own toggling and with
-// nothing else: `<details>` closes when its `<summary>` is pressed again and on no other
-// event, so the panel stayed open over the rest of the page.
+// Each selector of the stack is a native `<details>` — see the note in
+// switcher/component.html.erb for why, which is iOS Safari and not preference. It comes
+// with its own toggling and with nothing else: `<details>` closes when its `<summary>` is
+// pressed again and on no other event, so the panel stayed open over the rest of the
+// page. There is one per level, and keeping one open at a time is this controller's job:
+// an exclusive `<details name>` would need Safari 17.2+ and would tie together the
+// selectors of two side menus on one page.
 const SWITCHER = '.menu-switcher > details'
 
 // The scrolling half of the sidebar, and the one link inside it that points at the page
@@ -63,6 +66,7 @@ export class SideMenuController extends Controller {
     this.onGlobalClose = event => this.forThisMenu(event) && this.close()
     this.onDocumentKeydown = event => this.handleKeydown(event)
     this.onDocumentPointerdown = event => this.closeSwitcherOnOutsideClick(event)
+    this.onSwitcherToggle = event => this.closeOtherSwitchers(event)
     // Crossing the breakpoint turns a drawer into permanent chrome and back,
     // which flips whether the panel should be reachable at all.
     this.onOverlayChange = () => this.syncInert()
@@ -72,6 +76,8 @@ export class SideMenuController extends Controller {
     window.addEventListener('bali:side-menu:close', this.onGlobalClose)
     document.addEventListener('keydown', this.onDocumentKeydown)
     document.addEventListener('pointerdown', this.onDocumentPointerdown)
+    // `toggle` does not bubble: captured here for every level of the stack.
+    this.element.addEventListener('toggle', this.onSwitcherToggle, true)
     this.overlayQuery.addEventListener('change', this.onOverlayChange)
 
     this.syncInert()
@@ -86,13 +92,24 @@ export class SideMenuController extends Controller {
     window.removeEventListener('bali:side-menu:close', this.onGlobalClose)
     document.removeEventListener('keydown', this.onDocumentKeydown)
     document.removeEventListener('pointerdown', this.onDocumentPointerdown)
+    this.element.removeEventListener('toggle', this.onSwitcherToggle, true)
     this.overlayQuery.removeEventListener('change', this.onOverlayChange)
   }
 
-  // ── Module switcher ────────────────────────────────────────────────────
+  // ── Selector stack (module switcher and the ones under it) ─────────────
 
-  get switcher () {
-    return this.element.querySelector(SWITCHER)
+  get openSwitchers () {
+    return [...this.element.querySelectorAll(SWITCHER)].filter((details) => details.open)
+  }
+
+  // Opening one level closes the others, so their panels never overlap.
+  closeOtherSwitchers (event) {
+    const opened = event.target
+    if (!opened.matches?.(SWITCHER) || !opened.open) return
+
+    this.openSwitchers.forEach((details) => {
+      if (details !== opened) details.open = false
+    })
   }
 
   // `pointerdown` and not `click`: a press that starts inside the open panel and drifts
@@ -105,24 +122,21 @@ export class SideMenuController extends Controller {
   // closed there is nothing to close. The native toggle then runs as the click's default
   // action, after this listener.
   closeSwitcherOnOutsideClick (event) {
-    const switcher = this.switcher
-
-    if (!switcher?.open) return
-    if (switcher.contains(event.target)) return
-
-    switcher.open = false
+    this.openSwitchers.forEach((details) => {
+      if (!details.contains(event.target)) details.open = false
+    })
   }
 
   // Escape closes the innermost thing that is open — the switcher before the drawer it
   // sits in — which is the precedence every other popup in the package already follows.
   // Focus goes back to the summary rather than being dropped on <body>.
   closeSwitcherOnEscape () {
-    const switcher = this.switcher
+    const open = this.openSwitchers
 
-    if (!switcher?.open) return false
+    if (open.length === 0) return false
 
-    switcher.open = false
-    switcher.querySelector('summary')?.focus()
+    open.forEach((details) => { details.open = false })
+    open[open.length - 1].querySelector('summary')?.focus()
 
     return true
   }

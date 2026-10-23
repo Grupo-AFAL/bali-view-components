@@ -2,55 +2,61 @@
   <div class="w-xs">
     <nav id="side-menu" class="side-menu-component side-menu-component--inline" data-controller="side-menu" data-side-menu-collapsible-value="false" data-side-menu-fixed-value="false" aria-label="Sidebar">
 
-    <div class="menu-switcher mb-3 mt-3">
-      <details class="dropdown dropdown-bottom w-full">
-        <summary class="menu-switcher-trigger tooltip tooltip-right border-base-300 hover:bg-base-content/8 rounded-box flex w-full items-center gap-2 border p-2 cursor-pointer list-none [&::-webkit-details-marker]:hidden"
-                 data-tip="Back of House">
-          <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <div class="menu-switchers mt-3">
+      <div class="menu-switcher mb-3">
+  <details class="dropdown dropdown-bottom w-full">
+    <summary class="menu-switcher-trigger tooltip tooltip-right rounded-box flex w-full items-center gap-2 border cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+             data-tip="Back of House">
+        <div class="side-menu-component--menu-switch-component flex items-center gap-3">
     <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chef-hat --></svg></span>
   <div class="flex-1">
     <p class="font-bold">Back of House</p>
     <p class="text-xs text-base-content/70">Kitchen operations</p>
   </div>
 </div>
-          <span class="icon-component menu-switcher-chevron ml-auto size-4 text-base-content/55" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevrons-up-down --></svg></span>
-        </summary>
-        <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
-            <li>
-              <a href="/boh/dashboard" class="active">
-                <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+      <span class="icon-component menu-switcher-chevron ml-auto size-4 text-base-content/55" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevrons-up-down --></svg></span>
+    </summary>
+    <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
+        <li>
+            <a href="/boh/dashboard" class="is-current">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
     <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chef-hat --></svg></span>
   <div class="flex-1">
     <p class="font-bold">Back of House</p>
     <p class="text-xs text-base-content/70">Kitchen operations</p>
   </div>
 </div>
-              </a>
-            </li>
-            <li>
-              <a href="/logistics/dashboard" class="">
-                <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+              
+            </a>
+        </li>
+        <li>
+            <a href="/logistics/dashboard" class="">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
     <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: truck --></svg></span>
   <div class="flex-1">
     <p class="font-bold">Logistics</p>
     <p class="text-xs text-base-content/70">Supply chain</p>
   </div>
 </div>
-              </a>
-            </li>
-            <li>
-              <a href="/acct/dashboard" class="">
-                <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+              
+            </a>
+        </li>
+        <li>
+            <a href="/acct/dashboard" class="">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
     <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: calculator --></svg></span>
   <div class="flex-1">
     <p class="font-bold">Accounting</p>
     <p class="text-xs text-base-content/70">Finance team</p>
   </div>
 </div>
-              </a>
-            </li>
-        </ul>
-      </details>
+              
+            </a>
+        </li>
+    </ul>
+  </details>
+</div>
+      
     </div>
 
   <div class="sidebar-menu custom-scrollbar grow overflow-auto">

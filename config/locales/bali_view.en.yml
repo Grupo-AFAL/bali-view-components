@@ -123,6 +123,8 @@ en:
       close: "Close sidebar"
       trigger:
         toggle: "Open sidebar"
+      switcher:
+        placeholder: "Choose…"
 
     # App layout
     app_layout:

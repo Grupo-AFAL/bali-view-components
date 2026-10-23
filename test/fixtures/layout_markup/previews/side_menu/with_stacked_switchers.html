@@ -1,0 +1,156 @@
+<div class="h-[640px] bg-base-200 p-4 flex gap-4">
+  <div class="w-xs">
+    <nav id="side-menu" class="side-menu-component side-menu-component--inline" data-controller="side-menu" data-side-menu-collapsible-value="false" data-side-menu-fixed-value="false" aria-label="Sidebar">
+
+    <div class="menu-switchers mt-3">
+      <div class="menu-switcher mb-3">
+  <details class="dropdown dropdown-bottom w-full">
+    <summary class="menu-switcher-trigger tooltip tooltip-right rounded-box flex w-full items-center gap-2 border cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+             data-tip="Inventory">
+        <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: warehouse --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Inventory</p>
+    <p class="text-xs text-base-content/70">Warehouses</p>
+  </div>
+</div>
+      <span class="icon-component menu-switcher-chevron ml-auto size-4 text-base-content/55" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevrons-up-down --></svg></span>
+    </summary>
+    <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
+        <li>
+            <a href="/inventory/receipts" class="is-current">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: warehouse --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Inventory</p>
+    <p class="text-xs text-base-content/70">Warehouses</p>
+  </div>
+</div>
+              
+            </a>
+        </li>
+        <li>
+            <a href="/shipments" class="">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: package --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Pack Track</p>
+    <p class="text-xs text-base-content/70">Parcels</p>
+  </div>
+</div>
+              
+            </a>
+        </li>
+    </ul>
+  </details>
+</div>
+      <div class="menu-switcher mb-3 menu-switcher--accent">
+    <p class="menu-label menu-switcher-label pb-2">Integration</p>
+  <details class="dropdown dropdown-bottom w-full">
+    <summary class="menu-switcher-trigger tooltip tooltip-right rounded-box flex w-full items-center gap-2 border cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+             data-tip="Cold storage">
+        <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: snowflake --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Cold storage</p>
+    <p class="text-xs text-base-content/70">Third party · API every 5 min</p>
+  </div>
+</div>
+      <span class="icon-component menu-switcher-chevron ml-auto size-4 text-base-content/55" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevrons-up-down --></svg></span>
+    </summary>
+    <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
+        <li>
+            <form class="contents" method="post" action="/inventory/selection"><input type="hidden" name="_method" value="patch" /><button class="menu-switcher-option is-current" type="submit">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: snowflake --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Cold storage</p>
+    <p class="text-xs text-base-content/70">Third party · API every 5 min</p>
+  </div>
+</div>
+              <span class="menu-switcher-badge ml-auto text-xs opacity-70">View</span>
+</button><input type="hidden" name="return_to" value="/inventory/receipts" /><input type="hidden" name="warehouse_id" value="1" /></form>        </li>
+        <li>
+            <form class="contents" method="post" action="/inventory/selection"><input type="hidden" name="_method" value="patch" /><button class="menu-switcher-option" type="submit">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: truck --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Customs broker</p>
+    <p class="text-xs text-base-content/70">Third party · Garita</p>
+  </div>
+</div>
+              <span class="menu-switcher-badge ml-auto text-xs opacity-70">View</span>
+</button><input type="hidden" name="return_to" value="/inventory/receipts" /><input type="hidden" name="warehouse_id" value="2" /></form>        </li>
+        <li>
+            <form class="contents" method="post" action="/inventory/selection"><input type="hidden" name="_method" value="patch" /><button class="menu-switcher-option" type="submit">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: layers --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">All integrations</p>
+    <p class="text-xs text-base-content/70">Shared screens</p>
+  </div>
+</div>
+              <span class="menu-switcher-badge ml-auto text-xs opacity-70">View</span>
+</button><input type="hidden" name="return_to" value="/inventory/receipts" /><input type="hidden" name="warehouse_id" value="" /></form>        </li>
+    </ul>
+  </details>
+</div>
+    </div>
+
+  <div class="sidebar-menu custom-scrollbar grow overflow-auto">
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Basic operation</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>  <a href="/inventory/receipts" class="menu-item group active side-menu-expanded" aria-current="page">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: arrow-down-to-line --></svg></span>
+    <span class="grow">Receipts</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/inventory/receipts" class="menu-item active" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: arrow-down-to-line --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Receipts
+  </template>
+</span>
+</li>
+    <li>  <a href="/inventory/orders" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: arrow-up-from-line --></svg></span>
+    <span class="grow">Shipments</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/inventory/orders" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: arrow-up-from-line --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Shipments
+  </template>
+</span>
+</li>
+    <li>  <a href="/inventory/stock" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: boxes --></svg></span>
+    <span class="grow">Stock</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/inventory/stock" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: boxes --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Stock
+  </template>
+</span>
+</li>
+</ul>
+
+  </div>
+
+</nav>
+
+  </div>
+  <div class="flex-1 p-4">
+    <h2 class="text-xl font-bold mb-4">Stacked switchers</h2>
+    <p class="text-base-content/60">
+      The module switcher first, then each <code>with_switcher</code> under it, in order.
+      Only one opens at a time.
+    </p>
+  </div>
+</div>
