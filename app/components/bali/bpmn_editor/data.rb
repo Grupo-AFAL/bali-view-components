@@ -67,6 +67,18 @@ module Bali
       # Mirrors NAVIGABLE_SCHEMES in model/urls.js (contract_test.rb).
       NAVIGABLE_SCHEMES = %w[http https].freeze
 
+      # A path or an http(s) URL. What the browser would take as the scheme, as
+      # model/urls.js's safeUrl lets the URL parser decide: it drops tabs and
+      # newlines anywhere and leading control characters and spaces
+      # ("java\tscript:"). Also checked by Bali::BpmnEditorHelper, whose events
+      # put a URL in the document without passing through here.
+      def self.navigable_url?(url)
+        return false unless url.is_a?(String)
+
+        scheme = url.delete("\t\n\r").sub(/\A[\x00-\x20]+/, "")[/\A([a-z][a-z\d+\-.]*):/i, 1]
+        scheme.nil? || NAVIGABLE_SCHEMES.include?(scheme.downcase)
+      end
+
       def initialize(payload)
         raise InvalidError, "BPMN data must be a Hash, got #{payload.class}" unless payload.is_a?(Hash)
 
@@ -184,17 +196,11 @@ module Bali
         end
       end
 
-      # What the browser would take as the scheme, as model/urls.js's safeUrl
-      # lets the URL parser decide: it drops tabs and newlines anywhere and
-      # leading control characters and spaces ("java\tscript:").
       def navigable_url!(holder, context)
         return unless holder.is_a?(Hash) && holder[:url].present?
+        return if self.class.navigable_url?(holder[:url])
 
-        url = holder[:url]
-        scheme = url.to_s.delete("\t\n\r").sub(/\A[\x00-\x20]+/, "")[/\A([a-z][a-z\d+\-.]*):/i, 1] if url.is_a?(String)
-        return if url.is_a?(String) && (scheme.nil? || NAVIGABLE_SCHEMES.include?(scheme.downcase))
-
-        raise InvalidError, "#{context}: url must be a path or #{NAVIGABLE_SCHEMES.join('/')}, got #{url.inspect}"
+        raise InvalidError, "#{context}: url must be a path or #{NAVIGABLE_SCHEMES.join('/')}, got #{holder[:url].inspect}"
       end
 
       def hash!(value, context)

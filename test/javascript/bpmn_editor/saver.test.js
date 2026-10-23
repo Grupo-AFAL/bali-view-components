@@ -188,6 +188,33 @@ test('a 409 on finalize reloads the server document', async () => {
   assert.equal(h.saver.version, 8)
 })
 
+test('a finalize the server refuses saved the draft: the status says saved, or dirty if edited meanwhile', async () => {
+  const h = harness()
+  h.edit()
+  const finalizing = h.saver.finalize()
+  h.calls.finalize[0].reject(invalid({ version: 4, issues: [{ rule: 'R07' }] }))
+  await finalizing
+  assert.equal(h.log.statuses.at(-1), 'saved')
+  assert.equal(h.saver.isDirty(h.state.revision), false)
+
+  const edited = harness()
+  edited.edit()
+  const again = edited.saver.finalize()
+  edited.edit()
+  edited.calls.finalize[0].reject(invalid({ version: 4, issues: [{ rule: 'R07' }] }))
+  await again
+  assert.equal(edited.log.statuses.at(-1), 'dirty')
+})
+
+test('a 409 on finalize with no diagram url to reload from says it failed, as a save does', async () => {
+  const h = harness({ urls: { save: '/s', finalize: '/f' } })
+  const finalizing = h.saver.finalize()
+  h.calls.finalize[0].reject(conflict())
+  assert.deepEqual(await finalizing, { ok: false })
+  assert.deepEqual(h.log.notices, ['error'])
+  assert.equal(h.log.statuses.at(-1), 'error')
+})
+
 test('leaving with a change waiting is a save with autosave on, and nothing otherwise', () => {
   const h = harness()
   h.edit()

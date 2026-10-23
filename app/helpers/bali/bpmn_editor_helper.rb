@@ -20,7 +20,7 @@ module Bali
     # @param event [String] one of EVENTS
     # @param target [String] DOM id of the editor (its `id:`, which the
     #   editor passes to the drawer as `editor_id`). Required: two editors on
-    #   a page mint the same client ids, so an event must name its editor.
+    #   a page can hold the same ids, so an event must name its editor.
     def bali_bpmn_event(event, target:, **detail)
       event = event.to_s
       raise ArgumentError, "unknown BPMN editor event #{event.inspect}; expected #{EVENTS.inspect}" if EVENTS.exclude?(event)
@@ -52,6 +52,10 @@ module Bali
     def normalize_reference(reference)
       reference = reference.to_h.symbolize_keys
       raise ArgumentError, "a reference needs an id and a label" if reference[:id].blank? || reference[:label].blank?
+      if reference[:url].present? && !Bali::BpmnEditor::Data.navigable_url?(reference[:url])
+        raise ArgumentError, "a reference url must be a path or #{Bali::BpmnEditor::Data::NAVIGABLE_SCHEMES.join('/')}, " \
+                             "got #{reference[:url].inspect}"
+      end
 
       reference.slice(:id, :label, :url, :group, :description).merge(id: reference[:id].to_s).compact
     end

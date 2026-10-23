@@ -39,7 +39,30 @@ class BaliBpmnEditorHelperTest < ActionView::TestCase
     assert_raises(ArgumentError) { bali_bpmn_reference_created(client_node_id: "n1", reference: { label: "No id" }) }
   end
 
-  # Two editors on a page mint the same client ids: an event that names no
+  # The island saves this URL into the document, and the host's next render
+  # (Data#navigable_url!) would raise on it: the helper refuses it up front.
+  def test_a_reference_or_assignee_url_that_is_not_a_path_or_http_raises
+    [ "mailto:a@b.c", "javascript:alert(1)", "java\tscript:alert(1)", 42 ].each do |url|
+      assert_raises(ArgumentError, url.inspect) do
+        bali_bpmn_reference_created(target: "x", client_node_id: "n1", reference: { id: 1, label: "X", url: url })
+      end
+      assert_raises(ArgumentError, url.inspect) do
+        bali_bpmn_lane_assignee_created(target: "x", client_lane_id: "l1", assignee: { id: 1, label: "X", url: url })
+      end
+    end
+  end
+
+  def test_what_the_helper_accepts_is_a_url_data_accepts
+    [ "/p/1", "https://example.com/p/1", "p/1?tab=2" ].each do |url|
+      detail = JSON.parse(stream(bali_bpmn_reference_created(target: "x", client_node_id: "n1",
+                                                             reference: { id: 1, label: "X", url: url }))["detail"])
+      payload = { nodes: [ { id: "n1", type: "sub_process", reference: detail["reference"] } ] }
+
+      assert_nothing_raised { Bali::BpmnEditor::Data.new(payload) }
+    end
+  end
+
+  # Two editors on a page can hold the same ids: an event that names no
   # editor would change whichever editor caught it.
   def test_every_event_names_its_editor
     assert_raises(ArgumentError) { bali_bpmn_reload(target: "") }

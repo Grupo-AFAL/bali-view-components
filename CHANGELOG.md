@@ -66,7 +66,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `reference`, del `stencil` o del `assignee` de un carril que no sea una ruta o `http(s)`, y un
     mismo id en un carril, un nodo y una conexión (los ids son únicos entre los tres); el editor
     tampoco enlaza ni sigue un `url` así. Un issue del servidor para una regla que el cliente corre
-    se descarta: el cliente la revalida.
+    se descarta: el cliente la revalida. `bali_bpmn_reference_created` y
+    `bali_bpmn_lane_assignee_created` levantan `ArgumentError` con un `url` así (la misma regla que
+    `Data`; antes el documento se guardaba con él y el siguiente render del anfitrión daba 500), y
+    el editor vincula sin su `url` uno que llegue por otro evento. Los ids que genera el editor
+    (`n_`, `e_`, `lane_`, `a_`) llevan seis caracteres aleatorios en vez del primer número libre,
+    que le daba a un elemento nuevo el id del recién borrado (la comparación por id lo tomaba por
+    renombre). En el `.bpmn` exportado, ids que en XML se escribirían igual (`a b` y `a_b`, `1` y
+    `_1`, un carril externo `main`) llevan `_2`, `_3`…, y las referencias los siguen.
   - **Guardado y eventos:** un cambio hecho mientras corre «Finalizar» se guarda al terminar (antes
     se quedaba sin enviar con la barra en «Finalizado»); un cambio que llega mientras se responde un
     guardado (un `reference-created`) ya no se pierde, y un 409 con un guardado en cola ya no
@@ -75,7 +82,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     componente, como el documento propio al cargar (antes la comparación usaba el acomodo recto).
     `bali-bpmn:ready` se emite después de aplicar los `select`/`badges`/`compare` en cola, así que
     lo que la app envía al oírlo gana. `lane-assignee-created` conserva el nombre que el carril ya
-    tenía, como al elegir el responsable en la búsqueda.
+    tenía, como al elegir el responsable en la búsqueda. Un 409 al finalizar sin `urls[:diagram]`
+    avisa del error en vez de fallar en silencio; un 422 al finalizar deja la barra en «Guardado»
+    (el borrador sí se guardó) en vez de «Cambios sin guardar». Con `annotatable:`, una visita de
+    Turbo envía la nota pendiente en vez de pedir confirmación.
 
 - **`Bali::SplitView` toma `collapsible: true`: el detalle entra deslizándose y se cierra.** Sin
   detalle, el maestro ocupa todo el ancho; cuando el frame recibe contenido (una carga de Turbo

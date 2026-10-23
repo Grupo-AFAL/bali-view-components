@@ -69,6 +69,45 @@ class BaliBpmnXmlExportTest < ActiveSupport::TestCase
     assert_equal [ "_1", "_2" ], xml.xpath("//bpmn:lane[@id='Lane__1']/bpmn:flowNodeRef", NS).map(&:text)
   end
 
+  # xmlId folds distinct ids into one ("a b"/"a_b", "1"/"_1", non-ASCII), and
+  # a prefixed id can meet another: an external lane "main" and the main
+  # participant, a node "Lane_x" and lane x, a node "t_di" and t's shape.
+  def test_ids_that_fold_into_one_stay_unique_and_every_reference_resolves
+    document = { lanes: [ { id: "x", name: "A" }, { id: "main", name: "Partner", kind: "external" } ],
+                 nodes: [ { id: "a b", type: "start_event", lane_id: "x", x: 80, y: 40 },
+                          { id: "a_b", type: "task", lane_id: "x", name: "B", x: 200, y: 40 },
+                          { id: "1", type: "task", lane_id: "x", name: "C", x: 340, y: 40 },
+                          { id: "_1", type: "task", lane_id: "x", name: "D", x: 480, y: 40 },
+                          { id: "é", type: "task", lane_id: "x", name: "E", x: 620, y: 40 },
+                          { id: "ü", type: "data_object", lane_id: "x", name: "F", x: 620, y: 120 },
+                          { id: "Lane_x", type: "end_event", lane_id: "x", x: 760, y: 40 },
+                          { id: "t", type: "task", lane_id: "main", name: "G", x: 200, y: 300 },
+                          { id: "t_di", type: "task", lane_id: "main", name: "H", x: 340, y: 300 },
+                          { id: "Participant_main", type: "task", lane_id: "main", name: "I", x: 480, y: 300 } ],
+                 edges: [ { id: "f 1", source: "a b", target: "a_b" }, { id: "f_1", source: "a_b", target: "1" },
+                          { id: "f3", source: "1", target: "_1" }, { id: "f4", source: "_1", target: "é" },
+                          { id: "f5", source: "é", target: "Lane_x" }, { id: "f6", type: "message_flow", source: "a_b", target: "t" },
+                          { id: "f7", source: "t", target: "t_di" }, { id: "f8", source: "t_di", target: "Participant_main" },
+                          { id: "f9", type: "association", source: "ü", target: "é" } ] }
+    xml = export(document)
+    first = xml.to_xml
+
+    ids = xml.xpath("//@id").map(&:value)
+    assert_equal ids.uniq, ids, "duplicate ids in the export"
+    references = %w[sourceRef targetRef processRef bpmnElement dataObjectRef].flat_map { |name| xml.xpath("//@#{name}").map(&:value) } +
+                 xml.xpath("//bpmn:flowNodeRef", NS).map(&:text)
+    assert_empty references - ids, "references to no id"
+
+    start = xml.at_xpath("//bpmn:startEvent", NS)["id"]
+    assert_equal [ "B" ], xml.xpath("//bpmn:sequenceFlow[@sourceRef='#{start}']", NS).map { |flow| xml.at_xpath("//*[@id='#{flow['targetRef']}']")["name"] },
+                 "a b's flow still goes from the start to a_b"
+    assert_empty xml.xpath("//bpmn:sequenceFlow", NS).select { |flow| flow["sourceRef"] == flow["targetRef"] }, "no flow folds into a loop"
+    assert_equal "Participant_main", xml.at_xpath("//bpmn:participant[@name='Sample & <flow>']", NS)["id"],
+                 "the main participant keeps its id"
+    assert_equal "Process_main", xml.at_xpath("//bpmn:participant[@name='Sample & <flow>']", NS)["processRef"]
+    assert_equal first, export(document).to_xml, "the same document exports the same ids"
+  end
+
   def test_the_large_flow_exports
     xml = export(BpmnSampleFlows.large)
 

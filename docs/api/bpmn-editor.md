@@ -221,8 +221,9 @@ orientation, a coordinate that is not a number, an unknown edge type or port) an
 or `http(s)` — a `javascript:` URL would run on the click that follows it; the editor
 neither links nor follows one either. Ids are unique across lanes, nodes and edges
 together, not only within each list: an issue's `element_id` and a note's `target_id`
-do not say which kind of element they name (the editor mints `lane_`, `n_` and `e_`
-ids). It
+do not say which kind of element they name (the editor mints `lane_`, `n_`, `e_` and `a_`
+ids followed by six random characters, never the id of an element deleted before, so a
+comparison by id does not take a deletion and a creation for a rename). It
 does **not** raise on dangling references — an edge to a missing node, a node in a
 missing lane — because those are modelling problems the editor lists as pending
 issues (R25, R26), and an imported document has to open to be fixed.
@@ -241,7 +242,8 @@ whole document.**
 | `POST urls[:finalize]` `{ diagram:, version: }` | "Finalize flow", once the client found no errors and any save in flight is answered | `200` the whole document · `422` `{ errors:, issues:, version: }` |
 
 - On a **409** the island fetches `urls[:diagram]`, replaces its document (history
-  cleared) and tells the user someone else changed it.
+  cleared) and tells the user someone else changed it. Without `urls[:diagram]` (or
+  if that GET fails) it says the change failed, as on any other error.
 - On a **422** the messages are shown and the change stays unsaved.
 - A **200** replaces the local document — unless the user kept editing while the
   request was out: then only `version` and `issues` are taken and the newer local
@@ -250,7 +252,8 @@ whole document.**
   travels apart from the document, so undoing never sends an old version.
 - `diagram` omits `issues`, `stencil` and every node's `appearance`; the server writes them.
 - A finalize that fails still saved the draft, so its 422 carries the new `version`;
-  without it the next save would answer 409.
+  without it the next save would answer 409. The status says the draft is saved (or
+  unsaved, if it was edited while the request was out).
 - Requests go one at a time, and an answer to a request sent before a reload is ignored.
 
 `test/dummy/app/controllers/admin/process_flows/diagrams_controller.rb` is the
@@ -538,8 +541,12 @@ The helpers (`Bali::BpmnEditorHelper`) render the `bali_bpmn_event` Turbo Stream
 action: `bali_bpmn_reference_created`, `bali_bpmn_lane_assignee_created`,
 `bali_bpmn_reload`, and `bali_bpmn_event(event, target:, **detail)`, the generic form they
 write. `target:` is required — the editor's DOM id, which it hands the drawer as
-`editor_id` — and the event reaches that editor only: two editors on a page mint the same
-client ids. A target that is not on the page is reported on the console and dropped.
+`editor_id` — and the event reaches that editor only: two editors on a page can hold the
+same ids. A target that is not on the page is reported on the console and dropped. A
+`reference:` or `assignee:` whose `url` is not a path or `http(s)` raises `ArgumentError`
+(the rule of `Data`, which would otherwise raise on the next render of the saved document);
+one that reaches the editor some other way (a hand-made `bali_bpmn_event`, a `CustomEvent`)
+is linked without its `url`, as a pick in the search is.
 
 ### Events
 
@@ -576,8 +583,9 @@ controller connected is lost — wait for `bali-bpmn:ready`, or say it on load w
 
 Several flows in tabs: render one editor per `Bali::Tabs` panel, each with its own
 `id:`, and listen for `dirty-change` on each. Leaving with unsaved changes: a full page
-load gets the browser's warning; on a Turbo visit, with autosave the pending change is
-sent at once, and without it the visitor is asked to confirm.
+load gets the browser's warning; on a Turbo visit, with autosave (and always for the notes
+of `annotatable:`) the pending change is sent at once, and without it the visitor is asked
+to confirm.
 
 ---
 
@@ -790,7 +798,9 @@ wider than a column empty).
   a referenced sub-process becomes a `callActivity` whose `calledElement` is the
   reference's `id` — an `xsd:QName`, so an id that does not start with a letter or `_`
   goes out prefixed (`101` → `_101`), like every other id in the file; an importer maps
-  it back. Unknown types travel in a `bali:element` extension.
+  it back. Ids that would meet in the file (`a b` and `a_b`, `1` and `_1`, an external lane
+  `main` and the main participant) are told apart with `_2`, `_3`… in document order, and
+  every reference follows. Unknown types travel in a `bali:element` extension.
 - **Download image (PNG) / SVG and Print**: the whole diagram, with the `name:` as title,
   `status_label` under it and the `watermark:` across. When it fits `page:` legibly it is laid
   on a sheet of that size, centred inside 10 mm margins and shrunk only as much as it must;

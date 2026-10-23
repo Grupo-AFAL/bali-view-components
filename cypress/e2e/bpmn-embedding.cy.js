@@ -238,6 +238,24 @@ describe('BPMN editor embedded in an app page', () => {
       cy.get(`${FLOW} [data-testid="bpmn-save-status"]`).should('not.exist')
       cy.get('@diagram.all').should('have.length', 0)
     })
+
+    // Notes autosave: a Turbo visit before the debounce sends the note
+    // instead of asking to confirm leaving.
+    it('sends a note still waiting for its debounce on a Turbo visit, without asking to confirm', () => {
+      cy.intercept('PUT', '**/annotations*').as('notes')
+      cy.window().then((win) => cy.stub(win, 'confirm').as('confirm').returns(true))
+      box('Alta de proveedor').click()
+      cy.get(FLOW).within(() => {
+        cy.contains('.react-flow__node-bpmn', 'Revisar documentación').click()
+        cy.contains('button', 'Agregar nota').click()
+        cy.get('textarea[aria-label="Nota"]').last().type('¿Quién firma?')
+      })
+      cy.document().then((doc) => {
+        doc.dispatchEvent(new CustomEvent('turbo:before-visit', { cancelable: true, detail: { url: '/elsewhere' } }))
+      })
+      cy.get('@confirm').should('not.have.been.called')
+      cy.wait('@notes', { timeout: 800 }).its('request.body.annotations').should('have.length', 1)
+    })
   })
 
   it('lets a small embedded diagram fit below 40 % with min_zoom', () => {

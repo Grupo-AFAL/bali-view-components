@@ -21,14 +21,33 @@ export function normalize (data, layoutOptions) {
 // SUB-02): while linked, its name is the reference's label, not typed.
 export const namedByReference = (node) => node.type === 'sub_process' && Boolean(node.reference && node.reference.label)
 
-// Ids minted on the client: `prefix` + the first free number, so the same
-// edits always mint the same ids (the property tests replay sessions by
-// seed). The server may keep or replace them.
+// Ids minted on the client: `prefix` + a random base-36 token, never a count.
+// "First free number" hands a new element the id of the one just deleted,
+// and a comparison by id (`match: :id` / `:auto`) against a published version
+// then takes a deletion and a creation for a rename; a host's late
+// `reference-created` for the deleted node lands on its heir. No document
+// field could remember the deleted ids either: a host that maps the document
+// onto its records drops keys it does not know. The server may keep or
+// replace these ids; undo and redo restore whole documents, ids included.
+const ID_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyz'
+const ID_LENGTH = 6
+const cryptoRandom = () => globalThis.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296
+let idRandom = cryptoRandom
+
+// Tests that replay an editing session by seed mint the same ids every run:
+// `random` () → [0, 1); null restores the default.
+export function mintIdsWith (random) {
+  idRandom = random || cryptoRandom
+}
+
 export function newId (doc, prefix) {
   const taken = new Set([...doc.lanes, ...doc.nodes, ...doc.edges, ...(doc.annotations || [])].map((e) => String(e.id)))
-  let n = taken.size + 1
-  while (taken.has(`${prefix}${n}`)) n++
-  return `${prefix}${n}`
+  let id
+  do {
+    id = prefix
+    for (let i = 0; i < ID_LENGTH; i++) id += ID_ALPHABET[Math.floor(idRandom() * ID_ALPHABET.length)]
+  } while (taken.has(id))
+  return id
 }
 
 export const findNode = (doc, id) => doc.nodes.find((n) => String(n.id) === String(id)) || null

@@ -6,7 +6,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import * as ops from '../../../app/components/bali/bpmn_editor/model/operations.js'
 import { arrange, gapsLeftBy } from '../../../app/components/bali/bpmn_editor/model/arrange.js'
-import { normalize } from '../../../app/components/bali/bpmn_editor/model/document.js'
+import { normalize, mintIdsWith } from '../../../app/components/bali/bpmn_editor/model/document.js'
 import { measure } from './support/layoutQuality.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 import { layoutLanes, nodeBox } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
@@ -134,11 +134,22 @@ function violation (before, doc) {
   return m.hard ? m : null
 }
 
+// Minted ids are random: a session and its replay draw them from one seed,
+// so a printed sequence names the same nodes when run again.
+const ID_SEED = 1
+
+// `{ created: i }` in place of an id: the node operation i created.
+const resolve = (op, created) => op.map((arg) => (arg && arg.created != null ? created[arg.created] : arg))
+
 function run (suite, sequence) {
+  mintIdsWith(rng(ID_SEED))
   let doc = SUITES[suite].seed()
+  const created = []
   for (let i = 0; i < sequence.length; i++) {
     const before = doc
-    doc = apply(doc, sequence[i])
+    const ids = new Set(before.nodes.map((n) => n.id))
+    doc = apply(doc, resolve(sequence[i], created))
+    created[i] = (doc.nodes.find((n) => !ids.has(n.id)) || {}).id
     const failed = violation(before, doc)
     if (failed) return { index: i, failed, doc }
   }
@@ -163,6 +174,7 @@ for (const suite of Object.keys(SUITES)) {
   test(`${SEQUENCES / 2} random editing sessions (${suite}) keep every hard constraint`, () => {
     for (let seed = 1; seed <= SEQUENCES / 2; seed++) {
       const random = rng(seed * SUITES[suite].salt)
+      mintIdsWith(rng(ID_SEED))
       let doc = SUITES[suite].seed()
       const sequence = []
       for (let step = 0; step < STEPS; step++) {
@@ -187,7 +199,7 @@ for (const suite of Object.keys(SUITES)) {
 // 60 px stretch before its target had no free spot beside it and fell back
 // onto the gateway's own badge.
 test('a crowded connection label goes further out instead of onto a badge (compact seed 154)', () => {
-  const sequence = [['move', 'end', { x: 0, y: -590 }], ['drop', { type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }, 1717, 176], ['insert', 'f12-g', { type: 'exclusive_gateway' }], ['drop', { type: 'user_task' }, 1827, 578], ['tidy'], ['insert', 'f6-no', { type: 'exclusive_gateway' }], ['drop', { type: 'user_task' }, 1770, 890], ['move', 't8', { x: 0, y: 595 }], ['delete', 't12'], ['append', 'n_50', { type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }, 'left'], ['tidy'], ['move', 'n_49', { x: 0, y: 530 }], ['append', 'n_45', { type: 'user_task' }, 'right']]
+  const sequence = [['move', 'end', { x: 0, y: -590 }], ['drop', { type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }, 1717, 176], ['insert', 'f12-g', { type: 'exclusive_gateway' }], ['drop', { type: 'user_task' }, 1827, 578], ['tidy'], ['insert', 'f6-no', { type: 'exclusive_gateway' }], ['drop', { type: 'user_task' }, 1770, 890], ['move', 't8', { x: 0, y: 595 }], ['delete', 't12'], ['append', { created: 6 }, { type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }, 'left'], ['tidy'], ['move', { created: 9 }, { x: 0, y: 530 }], ['append', { created: 2 }, { type: 'user_task' }, 'right']]
   const failed = run('compact', sequence)
   assert.equal(failed, null, failed && JSON.stringify(failed.failed.details))
 })

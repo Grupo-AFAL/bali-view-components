@@ -5,7 +5,7 @@ import { hostEventHandlers, replayThenReady } from '../model/hostEvents.js'
 // `ready` once (`onReady`) after applying what it sent before.
 // Only events dispatched on this editor's own element: one that bubbles up
 // from another editor on the page, or one sent to document, names no editor
-// and is not ours (two editors mint the same client ids).
+// and is not ours (two editors can hold the same ids).
 export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect, onBadges, onCompare, takeQueued, onReady }) {
   const announced = useRef(false)
   useEffect(() => {

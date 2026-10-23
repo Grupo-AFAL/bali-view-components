@@ -37,6 +37,20 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     refute_includes page.find(".bali-bpmn-editor-mount").text, "Validate invoice"
   end
 
+  # Without JavaScript nothing would show a notice that needs Stimulus to
+  # appear: the noscript holds a Bali::Alert with no controller of its own.
+  def test_the_noscript_notice_is_a_bali_alert_that_needs_no_javascript
+    render_inline(component)
+
+    notice = Nokogiri::HTML.fragment(page.find("noscript", visible: :all).native.inner_html.then { |html| CGI.unescapeHTML(html) })
+                           .at(".alert-component")
+    assert notice, "the noscript renders a Bali::Alert"
+    assert_includes notice["class"], "alert-warning"
+    assert_equal "status", notice["role"]
+    assert_nil notice["data-controller"]
+    assert_includes notice.text, "needs JavaScript"
+  end
+
   def test_the_noscript_notice_is_translated
     I18n.with_locale(:es) { render_inline(component) }
 

@@ -45,3 +45,25 @@ test('a lane assignee created in the drawer keeps the name the person gave the l
 
   assert.deepEqual(docRef.current.lanes.map((l) => [l.name, l.assignee.label]), [['Accounts payable', 'Finance team'], ['Treasury', 'Treasury']])
 })
+
+test('a reference or an assignee the host creates with a URL that is not a path or http(s) is kept without it', () => {
+  const doc = { lanes: [{ id: 'l1', name: '' }], nodes: [{ id: 'n1', type: 'sub_process', lane_id: 'l1', x: 0, y: 0 }], edges: [], annotations: [] }
+  const { docRef, handlers } = editor(doc)
+
+  handlers['bali-bpmn:reference-created']({ detail: { client_node_id: 'n1', reference: { id: '1', label: 'Onboarding', url: 'mailto:a@b.c' } } })
+  handlers['bali-bpmn:lane-assignee-created']({ detail: { client_lane_id: 'l1', assignee: { id: '2', label: 'Finance', url: 'java\tscript:alert(1)' } } })
+
+  assert.deepEqual(docRef.current.nodes[0].reference, { id: '1', label: 'Onboarding', url: null })
+  assert.deepEqual(docRef.current.lanes[0].assignee, { id: '2', label: 'Finance', url: null })
+})
+
+test('a path or http(s) URL from the host is kept as sent', () => {
+  const doc = { lanes: [{ id: 'l1', name: '' }], nodes: [{ id: 'n1', type: 'sub_process', lane_id: 'l1', x: 0, y: 0 }], edges: [], annotations: [] }
+  const { docRef, handlers } = editor(doc)
+
+  handlers['bali-bpmn:reference-created']({ detail: { client_node_id: 'n1', reference: { id: '1', label: 'Onboarding', url: '/procedures/1' } } })
+  handlers['bali-bpmn:lane-assignee-created']({ detail: { client_lane_id: 'l1', assignee: { id: '2', label: 'Finance', url: 'https://example.com/p/2' } } })
+
+  assert.equal(docRef.current.nodes[0].reference.url, '/procedures/1')
+  assert.equal(docRef.current.lanes[0].assignee.url, 'https://example.com/p/2')
+})

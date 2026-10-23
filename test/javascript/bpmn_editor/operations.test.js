@@ -5,6 +5,7 @@ import { layoutLanes, insideLane, nodeBox } from '../../../app/components/bali/b
 import { doc, lanes, node, flow } from './helpers.js'
 import { invoice } from './fixtures.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
+import { newId, mintIdsWith } from '../../../app/components/bali/bpmn_editor/model/document.js'
 
 const twoLanes = () => doc({
   lanes: lanes('A', 'B'),
@@ -394,4 +395,28 @@ test('down into an external lane, the quick menu keeps the new element in its ow
   const box = nodeBox(created)
   assert.ok(box.y + box.h <= own.offset + own.size, 'inside the grown lane')
   assert.ok(box.cy > nodeBox(byId(result.doc, 'g')).cy, 'below its source')
+})
+
+// A comparison by id against a published version would take a deletion
+// and a creation for a rename if the new element inherited the deleted id.
+test('a node created after deleting the newest one does not inherit its id', () => {
+  const minted = new Set()
+  let d = twoLanes()
+  for (let i = 0; i < 50; i++) {
+    const created = ops.createNode(d, { type: 'task' }, { x: 460, y: 90 })
+    assert.ok(!minted.has(created.id), `${created.id} was minted before`)
+    minted.add(created.id)
+    d = ops.deleteElements(created.doc, { nodeIds: [created.id] }).doc
+  }
+})
+
+test('ids are minted from the random source a replay seeds, and never collide with one taken', () => {
+  const draws = [0, 0, 0, 0, 0, 0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+  mintIdsWith(() => draws.shift() ?? 0.5)
+  try {
+    const taken = doc({ lanes: lanes('A'), nodes: [node('n_000000', 'task', 'l1', 100, 90)] })
+    assert.equal(newId(taken, 'n_'), 'n_iiiiii')
+  } finally {
+    mintIdsWith(null)
+  }
 })

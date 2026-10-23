@@ -63,14 +63,14 @@ export default function useSaver ({ doc, revision, current, layoutOptions, urls,
   useEffect(() => { onEventRef.current('dirty-change', { dirty }) }, [dirty])
 
   // Leaving with unsaved changes. A full page load asks the browser to warn;
-  // a Turbo visit fires no beforeunload, so with autosave the pending change
-  // is sent right away (the request outlives the page), and without it the
-  // visitor confirms.
+  // a Turbo visit fires no beforeunload, so with autosave (notes always
+  // autosave) the pending change is sent right away (the request outlives
+  // the page), and without it the visitor confirms.
   useEffect(() => {
     if (!dirty) return
     const warn = (event) => { event.preventDefault(); event.returnValue = '' }
     const beforeVisit = (event) => {
-      if (autosave) { save(); return }
+      if (autosave || notesOnly) { save(); return }
       if (!window.confirm(t('unsaved_changes'))) event.preventDefault()
     }
     window.addEventListener('beforeunload', warn)
@@ -79,7 +79,7 @@ export default function useSaver ({ doc, revision, current, layoutOptions, urls,
       window.removeEventListener('beforeunload', warn)
       document.removeEventListener('turbo:before-visit', beforeVisit)
     }
-  }, [dirty, autosave, save, t])
+  }, [dirty, autosave, notesOnly, save, t])
 
   // Unmounted with a change still waiting for its debounce (a Turbo visit, a
   // drawer closing): send it instead of dropping it.

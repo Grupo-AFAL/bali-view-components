@@ -6,7 +6,7 @@
 //                 event="reference-created" detail='{"client_node_id":"n9",…}'>
 //
 // It dispatches `bali-bpmn:<event>` on the editor element its target names —
-// only there: two editors on a page mint the same client ids, so an event
+// only there: two editors on a page can hold the same ids, so an event
 // for no editor in particular would change the wrong one. A missing target is
 // said on the console and dropped. Turbo is reached as the window.Turbo
 // global, never imported: the island bundle must not carry a second copy.

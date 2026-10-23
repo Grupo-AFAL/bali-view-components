@@ -121,9 +121,11 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
       if (error.version != null) {
         versionNow = error.version
         savedRevision = currentRevision
+        d.setStatus(d.latest().revision === currentRevision ? 'saved' : 'dirty')
       }
-      if (error.conflict) { await reloadAfterConflict(); return { ok: false } }
+      if (error.conflict && await reloadAfterConflict()) return { ok: false }
       if (error.issues) return { ok: false, issues: error.issues }
+      d.setStatus('error')
       d.notify(error.errors && error.errors.length ? error.errors.join(' ') : d.t('change_failed'), 'error')
       return { ok: false }
     } finally {

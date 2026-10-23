@@ -60,8 +60,22 @@ export const escapeXml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) 
 // the whole file. Lanes and connections carry a prefix of their own, which
 // keeps the ids of files already exported.
 const xmlId = (id) => (/^[A-Za-z_]/.test(String(id)) ? String(id) : `_${id}`).replace(/[^\w.-]/g, '_')
-const laneXmlId = (id) => `Lane_${xmlId(id)}`
-const flowXmlId = (id) => `Flow_${xmlId(id)}`
+
+// xmlId maps distinct ids to one ("a b" and "a_b", "1" and "_1", two
+// non-ASCII ids of one length), a prefixed id can meet an unprefixed one (a
+// lane "main" and the main participant, a node "Lane_x" and a lane "x"), and
+// so can a derived id (a node "a_di" and node a's shape). Each id is claimed in document order; one
+// already taken gets the first free `_2`, `_3`…, so an export without
+// collisions keeps its ids and the same document always exports the same.
+function idRegistry () {
+  const taken = new Set()
+  return (candidate) => {
+    let id = candidate
+    for (let n = 2; taken.has(id); n++) id = `${candidate}_${n}`
+    taken.add(id)
+    return id
+  }
+}
 
 function eventDefinitions (node) {
   const kind = node.event_definition && node.event_definition.kind
@@ -76,10 +90,9 @@ function eventDefinitions (node) {
   return `<bpmn:${tag} />`
 }
 
-function element (node) {
+function element (node, id, objectId) {
   const known = TAGS[node.type]
   const tag = known || 'task'
-  const id = xmlId(node.id)
   const attributes = [`id="${id}"`]
   if (node.type === 'text_annotation') {
     return `<bpmn:textAnnotation id="${id}"><bpmn:text>${escapeXml(node.name)}</bpmn:text></bpmn:textAnnotation>`
@@ -94,7 +107,7 @@ function element (node) {
   }
   if (node.type === 'start_event' && node.event_definition && node.event_definition.kind === 'parallel_multiple') attributes.push('parallelMultiple="true"')
   if (node.type === 'data_object' || node.type === 'data_collection' || node.type === 'data_input' || node.type === 'data_output') {
-    attributes.push(`dataObjectRef="${id}_object"`)
+    attributes.push(`dataObjectRef="${objectId}"`)
   }
   const children = []
   if (node.documentation) children.push(`<bpmn:documentation>${escapeXml(node.documentation)}</bpmn:documentation>`)
@@ -102,7 +115,7 @@ function element (node) {
   children.push(eventDefinitions(node))
   const body = children.join('')
   const dataObject = attributes.some((a) => a.startsWith('dataObjectRef'))
-    ? `<bpmn:dataObject id="${id}_object"${node.type === 'data_collection' ? ' isCollection="true"' : ''} />`
+    ? `<bpmn:dataObject id="${objectId}"${node.type === 'data_collection' ? ' isCollection="true"' : ''} />`
     : ''
   return `${dataObject}<bpmn:${tag} ${attributes.join(' ')}${body ? `>${body}</bpmn:${tag}>` : ' />'}`
 }
@@ -142,23 +155,38 @@ export function toBpmnXml (doc, { name = '' } = {}) {
   const externalIds = new Set(externalLanes.map((e) => String(e.id)))
   const inExternal = (node) => node.lane_id != null && externalIds.has(String(node.lane_id))
   const byId = new Map((doc.nodes || []).map((n) => [String(n.id), n]))
-  const processOf = (node) => (node && inExternal(node) ? `Process_${xmlId(node.lane_id)}` : 'Process_main')
-
   const flows = (doc.edges || []).filter((e) => byId.has(String(e.source)) && byId.has(String(e.target)))
+
+  // Every id of the file, claimed before any is written: the fixed ones
+  // first, then the elements', then the ones derived from those.
+  const claim = idRegistry()
+  for (const fixed of ['Definitions_1', 'Collaboration_1', 'Diagram_1', 'Plane_1', 'LaneSet_main']) claim(fixed)
+  const main = { participant: claim('Participant_main'), process: claim('Process_main') }
+  const pool = new Map(externalLanes.map((e) => [String(e.id), { participant: claim(`Participant_${xmlId(e.id)}`), process: claim(`Process_${xmlId(e.id)}`) }]))
+  const laneIds = new Map(internalLanes.map((e) => [String(e.id), claim(`Lane_${xmlId(e.id)}`)]))
+  const nodeIds = new Map((doc.nodes || []).map((n) => [String(n.id), claim(xmlId(n.id))]))
+  const flowIds = new Map(flows.map((e) => [String(e.id), claim(`Flow_${xmlId(e.id)}`)]))
+  const objectIds = new Map((doc.nodes || []).filter((n) => n.type === 'data_object' || n.type === 'data_collection' || n.type === 'data_input' || n.type === 'data_output')
+    .map((n) => [String(n.id), claim(`${nodeIds.get(String(n.id))}_object`)]))
+  const shapeOf = new Map([...[main, ...pool.values()].map((p) => p.participant), ...laneIds.values(), ...nodeIds.values(), ...flowIds.values()].map((id) => [id, claim(`${id}_di`)]))
+  const nodeId = (id) => nodeIds.get(String(id))
+  const flowId = (e) => flowIds.get(String(e.id))
+  const node = (n) => element(n, nodeId(n.id), objectIds.get(String(n.id)))
+  const processOf = (n) => (n && inExternal(n) ? pool.get(String(n.lane_id)).process : main.process)
   const sequence = flows.filter((e) => edgeType(e) === 'sequence_flow')
   const messages = flows.filter((e) => edgeType(e) === 'message_flow')
   const associations = flows.filter((e) => edgeType(e) === 'association')
-  const flowXml = (e) => `<bpmn:sequenceFlow id="${flowXmlId(e.id)}" sourceRef="${xmlId(e.source)}" targetRef="${xmlId(e.target)}"${e.label ? ` name="${escapeXml(e.label)}"` : ''} />`
-  const associationXml = (e) => `<bpmn:association id="${flowXmlId(e.id)}" sourceRef="${xmlId(e.source)}" targetRef="${xmlId(e.target)}" />`
+  const flowXml = (e) => `<bpmn:sequenceFlow id="${flowId(e)}" sourceRef="${nodeId(e.source)}" targetRef="${nodeId(e.target)}"${e.label ? ` name="${escapeXml(e.label)}"` : ''} />`
+  const associationXml = (e) => `<bpmn:association id="${flowId(e)}" sourceRef="${nodeId(e.source)}" targetRef="${nodeId(e.target)}" />`
 
   // The XSD lists a process's flow elements (nodes, data references, sequence
   // flows) before its artifacts (annotations, groups, associations).
   const process = (processId, nodes, laneSet) => [
     `  <bpmn:process id="${processId}" isExecutable="false">`,
     laneSet,
-    ...nodes.filter((n) => n.type !== 'text_annotation' && n.type !== 'group').map((n) => `    ${element(n)}`),
+    ...nodes.filter((n) => n.type !== 'text_annotation' && n.type !== 'group').map((n) => `    ${node(n)}`),
     ...sequence.filter((e) => processOf(byId.get(String(e.source))) === processId).map((e) => `    ${flowXml(e)}`),
-    ...nodes.filter((n) => n.type === 'text_annotation' || n.type === 'group').map((n) => `    ${element(n)}`),
+    ...nodes.filter((n) => n.type === 'text_annotation' || n.type === 'group').map((n) => `    ${node(n)}`),
     ...associations.filter((e) => processOf(byId.get(String(e.source))) === processId).map((e) => `    ${associationXml(e)}`),
     '  </bpmn:process>'
   ].filter(Boolean).join('\n')
@@ -168,8 +196,8 @@ export function toBpmnXml (doc, { name = '' } = {}) {
     ? [
         '    <bpmn:laneSet id="LaneSet_main">',
         ...internalLanes.map((e) => [
-          `      <bpmn:lane id="${laneXmlId(e.id)}" name="${escapeXml(e.lane.name)}">`,
-          ...mainNodes.filter((n) => String(n.lane_id) === String(e.id) && isFlowNode(n)).map((n) => `        <bpmn:flowNodeRef>${xmlId(n.id)}</bpmn:flowNodeRef>`),
+          `      <bpmn:lane id="${laneIds.get(String(e.id))}" name="${escapeXml(e.lane.name)}">`,
+          ...mainNodes.filter((n) => String(n.lane_id) === String(e.id) && isFlowNode(n)).map((n) => `        <bpmn:flowNodeRef>${nodeId(n.id)}</bpmn:flowNodeRef>`),
           '      </bpmn:lane>'
         ].join('\n')),
         '    </bpmn:laneSet>'
@@ -177,9 +205,9 @@ export function toBpmnXml (doc, { name = '' } = {}) {
     : ''
 
   const participants = [
-    `    <bpmn:participant id="Participant_main" name="${escapeXml(name)}" processRef="Process_main" />`,
-    ...externalLanes.map((e) => `    <bpmn:participant id="Participant_${xmlId(e.id)}" name="${escapeXml(e.lane.name)}" processRef="Process_${xmlId(e.id)}" />`),
-    ...messages.map((e) => `    <bpmn:messageFlow id="${flowXmlId(e.id)}" sourceRef="${xmlId(e.source)}" targetRef="${xmlId(e.target)}"${e.label ? ` name="${escapeXml(e.label)}"` : ''} />`)
+    `    <bpmn:participant id="${main.participant}" name="${escapeXml(name)}" processRef="${main.process}" />`,
+    ...externalLanes.map((e) => `    <bpmn:participant id="${pool.get(String(e.id)).participant}" name="${escapeXml(e.lane.name)}" processRef="${pool.get(String(e.id)).process}" />`),
+    ...messages.map((e) => `    <bpmn:messageFlow id="${flowId(e)}" sourceRef="${nodeId(e.source)}" targetRef="${nodeId(e.target)}"${e.label ? ` name="${escapeXml(e.label)}"` : ''} />`)
   ]
 
   // DI, in absolute canvas coordinates.
@@ -191,19 +219,20 @@ export function toBpmnXml (doc, { name = '' } = {}) {
       return box ? { x: Math.min(box.x, r.x), y: Math.min(box.y, r.y), w: Math.max(box.x + box.w, r.x + r.w) - Math.min(box.x, r.x), h: Math.max(box.y + box.h, r.y + r.h) - Math.min(box.y, r.y) } : r
     }, null)
     : null
+  const shape = (element, attributes, box) => `      <bpmndi:BPMNShape id="${shapeOf.get(element)}" bpmnElement="${element}"${attributes}>${bounds(box)}</bpmndi:BPMNShape>`
   const shapes = [
-    internalBox && `      <bpmndi:BPMNShape id="Participant_main_di" bpmnElement="Participant_main" isHorizontal="${horizontal}">${bounds(internalBox)}</bpmndi:BPMNShape>`,
-    ...externalLanes.map((e) => `      <bpmndi:BPMNShape id="Participant_${xmlId(e.id)}_di" bpmnElement="Participant_${xmlId(e.id)}" isHorizontal="${horizontal}">${bounds(laneRect(layout, e))}</bpmndi:BPMNShape>`),
-    ...internalLanes.map((e) => `      <bpmndi:BPMNShape id="${laneXmlId(e.id)}_di" bpmnElement="${laneXmlId(e.id)}" isHorizontal="${horizontal}">${bounds(laneRect(layout, e))}</bpmndi:BPMNShape>`),
+    internalBox && shape(main.participant, ` isHorizontal="${horizontal}"`, internalBox),
+    ...externalLanes.map((e) => shape(pool.get(String(e.id)).participant, ` isHorizontal="${horizontal}"`, laneRect(layout, e))),
+    ...internalLanes.map((e) => shape(laneIds.get(String(e.id)), ` isHorizontal="${horizontal}"`, laneRect(layout, e))),
     // The Yes/No decision is an exclusive gateway whose X is hidden: BPMN DI
     // says so with isMarkerVisible, the one place the standard keeps it.
-    ...(doc.nodes || []).map((n) => `      <bpmndi:BPMNShape id="${xmlId(n.id)}_di" bpmnElement="${xmlId(n.id)}"${n.type === 'exclusive_gateway' ? ` isMarkerVisible="${!isBinaryDecision(n)}"` : ''}${colorAttributes(colorsOf(n))}>${bounds(nodeBox(n))}</bpmndi:BPMNShape>`)
+    ...(doc.nodes || []).map((n) => shape(nodeId(n.id), `${n.type === 'exclusive_gateway' ? ` isMarkerVisible="${!isBinaryDecision(n)}"` : ''}${colorAttributes(colorsOf(n))}`, nodeBox(n)))
   ].filter(Boolean)
   const edges = flows.map((e) => {
     const route = routes.get(String(e.id))
     if (!route) return ''
     const points = route.points.map((p) => `<di:waypoint x="${Math.round(origin.x + p.x)}" y="${Math.round(origin.y + p.y)}" />`).join('')
-    return `      <bpmndi:BPMNEdge id="${flowXmlId(e.id)}_di" bpmnElement="${flowXmlId(e.id)}">${points}</bpmndi:BPMNEdge>`
+    return `      <bpmndi:BPMNEdge id="${shapeOf.get(flowId(e))}" bpmnElement="${flowId(e)}">${points}</bpmndi:BPMNEdge>`
   }).filter(Boolean)
 
   return [
@@ -216,8 +245,8 @@ export function toBpmnXml (doc, { name = '' } = {}) {
     '  <bpmn:collaboration id="Collaboration_1">',
     ...participants,
     '  </bpmn:collaboration>',
-    process('Process_main', mainNodes, laneSet),
-    ...externalLanes.map((e) => process(`Process_${xmlId(e.id)}`, (doc.nodes || []).filter((n) => String(n.lane_id) === String(e.id)), '')),
+    process(main.process, mainNodes, laneSet),
+    ...externalLanes.map((e) => process(pool.get(String(e.id)).process, (doc.nodes || []).filter((n) => String(n.lane_id) === String(e.id)), '')),
     '  <bpmndi:BPMNDiagram id="Diagram_1">',
     '    <bpmndi:BPMNPlane id="Plane_1" bpmnElement="Collaboration_1">',
     ...shapes,
