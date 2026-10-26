@@ -26,6 +26,21 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_match(/^\s+i18nKey: \{ type: String/, ROOT.join("index.js").read)
   end
 
+  # `full_page:`: the island finds «Exit» and the save status's slot in the
+  # header Ruby renders, by the attributes both sides name.
+  def test_the_page_header_is_found_by_the_attributes_ruby_writes
+    component = Bali::BpmnEditor::Component
+    html = ApplicationController.render(component.new(data: {}, full_page: { title: "Flow", close_url: "/flows" }), layout: false)
+    source = ROOT.join("hooks/usePageExit.js").read
+
+    assert_includes html, %(#{component::PAGE_EXIT_ATTRIBUTE}="")
+    assert_includes html, %(#{component::PAGE_SAVE_STATUS_ATTRIBUTE}="")
+    assert_includes source, %(export const PAGE_EXIT_SELECTOR = '[#{component::PAGE_EXIT_ATTRIBUTE}]')
+    assert_includes source, %(export const PAGE_SAVE_STATUS_SELECTOR = '[#{component::PAGE_SAVE_STATUS_ATTRIBUTE}]')
+    assert_match(/data-bpmn-editor-full-page-value="true"/, html)
+    assert_match(/^\s+fullPage: \{ type: Boolean, default: false \}/, ROOT.join("index.js").read)
+  end
+
   def test_edge_types
     assert_equal Bali::BpmnEditor::Data::EDGE_TYPES, js_list("model/catalog.js", "EDGE_TYPES")
   end
@@ -90,7 +105,7 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     queued = js_list("hostEventQueue.js", "QUEUED_HOST_EVENTS")
     hook = ROOT.join("model/hostEvents.js").read
 
-    assert_equal %w[bali-bpmn:select bali-bpmn:badges bali-bpmn:compare], queued
+    assert_equal %w[bali-bpmn:select bali-bpmn:badges bali-bpmn:compare bali-bpmn:export], queued
     queued.each { |name| assert_includes hook, "'#{name}': " }
     assert_match(/takeHostEvents: this\.hostEvents\.take/, ROOT.join("index.js").read)
     assert_includes Bali::Engine.root.join("docs/api/bpmn-editor.md").read, "| `bali-bpmn:ready` | `{}`"
@@ -114,6 +129,7 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
   def test_appearance
     source = ROOT.join("model/appearance.js").read
 
+    assert_equal Bali::BpmnEditor::Data::APPEARANCE_COLLECTIONS.map(&:to_s), js_list("model/appearance.js", "APPEARANCE_COLLECTIONS")
     assert_equal Bali::BpmnEditor::Data::APPEARANCE_KEYS.map(&:to_s), js_list("model/appearance.js", "APPEARANCE_KEYS")
     assert_equal Bali::BpmnEditor::Data::BADGE_MAX, source[/export const BADGE_MAX = (\d+)/, 1].to_i
   end
@@ -155,5 +171,17 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_equal Bali::BpmnEditor::Component::RULE_PROFILES.map(&:to_s), js_list("model/rules/engine.js", "RULE_PROFILES")
     assert_equal Bali::BpmnEditor::Component::STRUCTURE_PROFILE, js_list("model/rules/engine.js", "STRUCTURE_PROFILE")
     assert_match(/if \(rules && rules\.profile\) return String\(rules\.profile\)/, ROOT.join("index.js").read)
+  end
+
+  # The field limits Component#field_limits! validates are the keys the island reads.
+  def test_field_limits
+    input = ROOT.join("chrome/FieldInput.jsx").read
+
+    assert_equal %w[text textarea], Bali::BpmnEditor::Component::MAXLENGTH_TYPES
+    assert_equal 2, input.scan("maxLength={field.maxlength}").size
+    assert_equal %w[number], Bali::BpmnEditor::Component::RANGE_TYPES
+    assert_includes input, "min={field.min} max={field.max}"
+    assert_includes ROOT.join("chrome/PropertiesPanel.jsx").read, "maxLength={documentationField && documentationField.maxlength}"
+    assert_includes ROOT.join("BpmnEditor.jsx").read, "documentationField={fields && fields.documentation}"
   end
 end

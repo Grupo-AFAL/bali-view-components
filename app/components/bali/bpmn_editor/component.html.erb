@@ -6,11 +6,35 @@
     <noscript> says instead of a placeholder that loads forever. %>
 <%= tag.div(**wrapper_attributes) do %>
   <%= i18n_table_tag %>
+  <% if full_page? %>
+    <%# `full_page:`. The header is the server's, so the host's actions are
+        its own markup; the island draws the save status into its slot and
+        holds «Exit» until the save is in (hooks/usePageExit.js). %>
+    <header class="bali-bpmn-page-header">
+      <%= render Bali::Link::Component.new(href: page_close_url, name: t(".exit", locale: @locale), icon: "arrow-left",
+                                           variant: :ghost, size: :sm, data: { bpmn_page_exit: "" }) %>
+      <h1 class="bali-bpmn-page-title"><%= page_title %></h1>
+      <% if (status = page_status) %>
+        <%= render Bali::Tag::Component.new(text: status[:label], color: status[:color], size: :sm) %>
+      <% end %>
+      <%= tag.span(data: { bpmn_page_save_status: "" }) %>
+      <% if actions? %>
+        <div class="bali-bpmn-page-actions">
+          <% actions.each do |action| %><%= action %><% end %>
+        </div>
+      <% end %>
+    </header>
+    <% if notices? %>
+      <div class="bali-bpmn-page-notices">
+        <% notices.each do |notice| %><%= notice %><% end %>
+      </div>
+    <% end %>
+  <% end %>
   <noscript>
     <%= render Bali::Alert::Component.new(color: :warning, size: :sm, class: "mb-3 py-2") do %><%= t(".noscript") %><% end %>
   </noscript>
-  <div class="bali-bpmn-editor-mount<%= " h-full" if minimal? %>">
-    <% if minimal? %>
+  <div class="bali-bpmn-editor-mount<%= " h-full" if minimal? || full_page? %>">
+    <% if minimal? || full_page? %>
       <div class="bali-bpmn-editor-skeleton h-full min-h-60 rounded-xl border border-base-300 bg-base-200/40"
            role="status" aria-busy="true" aria-label="<%= t('.loading') %>"></div>
     <% else %>

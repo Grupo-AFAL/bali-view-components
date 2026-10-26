@@ -1,6 +1,6 @@
 // HTTP side of the save contract (docs/api/bpmn-editor.md):
 //
-//   PUT  urls.save      { diagram, version } → 200 document · 409 stale · 422 { errors }
+//   PUT  urls.save      { diagram, version } → 200 document · 409 stale · 422 { errors, issues? }
 //   GET  urls.diagram                        → 200 document
 //   POST urls.finalize  { diagram, version } → 200 document · 422 { errors, issues, version }
 //   PUT  urls.annotations { annotations, version } → as urls.save (Component `annotatable:`)

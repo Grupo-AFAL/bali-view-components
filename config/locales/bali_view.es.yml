@@ -444,6 +444,7 @@ es:
     bpmn_editor:
       loading: "Cargando el diagrama"
       noscript: "Este diagrama necesita JavaScript para mostrarse."
+      exit: "Salir"
       # Flat strings table of the BPMN editor island, served by
       # Bali::BpmnEditor::Translations.island. `%{...}` are interpolated
       # client-side; keys must match DEFAULT_I18N in
@@ -485,6 +486,11 @@ es:
         navigate: "Navegar"
         fullscreen: "Pantalla completa"
         exit_fullscreen: "Salir de pantalla completa"
+        expand: "Ampliar"
+        exit_failed_title: "No se pudieron guardar los cambios"
+        exit_failed_body: "Si sales ahora, se pierde lo que cambiaste desde el último guardado."
+        exit_retry: "Reintentar"
+        exit_discard: "Salir sin guardar"
         zoom_in: "Acercar"
         zoom_out: "Alejar"
         center: "Centrar flujo"
@@ -989,6 +995,11 @@ es:
         props_source_port: "Puerto de salida"
         props_target_port: "Puerto de entrada"
         props_reroute: "Recalcular ruta automática"
+        props_size: "Tamaño"
+        props_width: "Ancho"
+        props_height: "Alto"
+        props_size_auto: "Auto"
+        props_size_auto_hint: "Volver al tamaño predeterminado"
         props_lane_title: "Carril"
         props_lane_external: "Participante externo"
         props_lane_external_hint: "El carril se sombrea en gris y sus actividades van en blanco."
@@ -1006,6 +1017,8 @@ es:
         align_vertical: "Vertical"
         align_horizontal: "Horizontal"
         delete_selection: "Eliminar seleccionado"
+        confirm_linked_delete_title: "¿Eliminar subprocesos vinculados?"
+        confirm_linked_delete_body: "La selección incluye subprocesos vinculados en la app: %{names}. Al eliminarlos se quita el vínculo."
         port_auto: "Auto"
         port_top: "Arriba"
         port_right: "Derecha"

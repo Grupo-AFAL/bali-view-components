@@ -27,6 +27,8 @@ export class BpmnEditorController extends ReactIslandController {
     externalLanes: { type: Boolean, default: true },
     // Opens the pending-issues panel on load (Component `open_issues:`).
     openIssues: { type: Boolean, default: false },
+    // Asks before deleting a linked sub-process (Component `confirm_linked_delete:`).
+    confirmLinkedDelete: { type: Boolean, default: false },
     // 'compact' | 'straight' — autoLayout's mode (model/layout.js).
     layout: { type: String, default: 'compact' },
     // { width, height } in inches and orientation — model/page.js.
@@ -57,7 +59,7 @@ export class BpmnEditorController extends ReactIslandController {
     minZoom: { type: Number, default: 0.4 },
     // Review notes on a read-only diagram, saved to urls.annotations.
     annotatable: { type: Boolean, default: false },
-    // The nodes' `appearance.badge` shown on load (Component `badges:`), and
+    // The lanes' and nodes' `appearance.badge` shown on load (Component `badges:`), and
     // the switch that shows and hides them (`badge_toggle:`).
     badges: { type: Boolean, default: true },
     badgeToggle: { type: Boolean, default: true },
@@ -67,17 +69,42 @@ export class BpmnEditorController extends ReactIslandController {
     wheelZoom: { type: String, default: 'auto' },
     // 'true' | 'side_by_side' | 'overlay' (Component `compare_open:`) — model/compare.js openMode.
     compareOpen: { type: String, default: '' },
-    compareIndex: { type: Number, default: 0 }
+    compareIndex: { type: Number, default: 0 },
+    // Component `full_page:`: the element is the page — header, notices and
+    // the editor — down to the bottom of the window.
+    fullPage: { type: Boolean, default: false }
   }
 
   connect () {
     this.hostEvents = hostEventQueue(this.element)
+    if (this.fullPageValue) this.measurePageTop()
     return super.connect()
   }
 
   disconnect () {
     this.hostEvents.stop()
+    if (this.stopMeasuring) this.stopMeasuring()
     super.disconnect()
+  }
+
+  // `full_page:` is as tall as the window below its own top edge (the
+  // component's `h-[calc(100dvh-var(--bali-bpmn-page-top))]`): inside an app
+  // layout, its topbar and padding stand above it. The edge's offset in the
+  // page, so scrolling does not move it while a banner above it, a resize or
+  // a font loading does — as Bali::SplitView `height: :screen` (screen.js).
+  measurePageTop () {
+    const measure = () => {
+      const top = `${Math.round(this.element.getBoundingClientRect().top + window.scrollY)}px`
+      if (this.element.style.getPropertyValue('--bali-bpmn-page-top') !== top) this.element.style.setProperty('--bali-bpmn-page-top', top)
+    }
+    const observer = window.ResizeObserver ? new window.ResizeObserver(measure) : null
+    if (observer) observer.observe(document.body)
+    window.addEventListener('resize', measure)
+    measure()
+    this.stopMeasuring = () => {
+      window.removeEventListener('resize', measure)
+      if (observer) observer.disconnect()
+    }
   }
 
   mountElement () {

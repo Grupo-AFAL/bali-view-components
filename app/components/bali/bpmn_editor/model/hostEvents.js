@@ -10,7 +10,7 @@ import { safeUrl } from './urls.js'
 // saved, or the host's next render raises on it (Data#navigable_url!).
 const navigable = (holder) => ({ ...holder, url: safeUrl(holder.url) })
 
-export function hostEventHandlers ({ reload, apply, docRef, onSelect, onBadges, onCompare }) {
+export function hostEventHandlers ({ reload, apply, docRef, onSelect, onBadges, onCompare, onExport }) {
   return {
     'bali-bpmn:reload': () => reload(),
     'bali-bpmn:select': (event) => {
@@ -26,6 +26,9 @@ export function hostEventHandlers ({ reload, apply, docRef, onSelect, onBadges, 
     // `bali-bpmn:compare` { index, mode }: opens, switches or closes
     // (`mode: null`) the comparison; `compare-change` says what is shown.
     'bali-bpmn:compare': (event) => { if (onCompare) onCompare(event.detail) },
+    // `bali-bpmn:export` { request_id, format, frame, font_family } —
+    // model/exportRequest.js; answered by `exported` or `export-failed`.
+    'bali-bpmn:export': (event) => { if (onExport) onExport(event.detail) },
     'bali-bpmn:reference-created': (event) => {
       const { client_node_id: nodeId, reference } = event.detail || {}
       if (!nodeId || !reference || !docRef.current.nodes.some((n) => String(n.id) === String(nodeId))) return

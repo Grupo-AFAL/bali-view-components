@@ -25,6 +25,7 @@
 @import "../../../components/bali/attachments/index.css" layer(components);
 @import "../../../components/bali/comment_thread/index.css" layer(components);
 @import "../../../components/bali/gantt/index.css" layer(components);
+@import "../../../components/bali/bpmn_editor/index.css" layer(components);
 @import "../../../components/bali/widget/index.css" layer(components);
 @import "../../../components/bali/widget_grid/index.css" layer(components);
 @import "../../../components/bali/carousel/index.css" layer(components);

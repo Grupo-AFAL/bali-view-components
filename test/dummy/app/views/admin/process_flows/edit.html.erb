@@ -1,0 +1,20 @@
+<%# Bali::BpmnEditor `full_page:` inside an app layout: the page is as tall as
+    the window leaves below this layout's topbar. %>
+<% content_for :head do %>
+  <%= react_island_meta_tags('bpmn-editor', js: 'bpmn-editor-island.js', css: 'bpmn-editor-island.css') %>
+<% end %>
+<%= render Bali::BpmnEditor::Component.new(
+      data: @flow.to_diagram,
+      editable: true,
+      palette: :analytic,
+      urls: {
+        save: admin_process_flow_diagram_path(@flow),
+        diagram: admin_process_flow_diagram_path(@flow),
+        finalize: admin_process_flow_finalization_path(@flow)
+      },
+      full_page: { title: @flow.name, close_url: admin_process_flow_path(@flow), status: { label: "Edit mode", color: :info } },
+      id: dom_id(@flow, :bpmn)) do |editor| %>
+  <% editor.with_action do %>
+    <%= render Bali::Button::Component.new(name: "Publish", variant: :primary, size: :sm) %>
+  <% end %>
+<% end %>

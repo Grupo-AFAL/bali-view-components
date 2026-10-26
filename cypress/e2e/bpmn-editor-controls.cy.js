@@ -48,7 +48,7 @@ describe('BPMN editor properties panel', () => {
     cy.get(PANEL).contains('Sistemas').should('be.visible')
     cy.get(PANEL).contains('label', 'ERP').find('input[type="checkbox"]').as('erp')
       .should('not.be.checked').and('not.have.css', 'display', 'none')
-    cy.get(PANEL).find('input[type="number"]').focus()
+    cy.get(PANEL).contains('label', 'Duración').find('input[type="number"]').focus()
     cy.press(Cypress.Keyboard.Keys.TAB)
     cy.focused().should('have.attr', 'type', 'checkbox').parent('label').should('have.text', 'ERP')
     cy.press(Cypress.Keyboard.Keys.SPACE)

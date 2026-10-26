@@ -3,8 +3,10 @@
 // and the effect that starts listening (hooks/useHostEvents.js). Kept by the
 // Stimulus controller from its connect, in order, until the island takes
 // them; after that the island's own listener receives them. Only the ones
-// that set state: a reload or a drawer's answer cannot come before the island.
-export const QUEUED_HOST_EVENTS = ['bali-bpmn:select', 'bali-bpmn:badges', 'bali-bpmn:compare']
+// that set state, and the export, which is answered once the island has drawn
+// what was asked before it: a reload or a drawer's answer cannot come before
+// the island.
+export const QUEUED_HOST_EVENTS = ['bali-bpmn:select', 'bali-bpmn:badges', 'bali-bpmn:compare', 'bali-bpmn:export']
 
 export function hostEventQueue (element) {
   let queue = []

@@ -6,7 +6,7 @@ import { hostEventHandlers, replayThenReady } from '../model/hostEvents.js'
 // Only events dispatched on this editor's own element: one that bubbles up
 // from another editor on the page, or one sent to document, names no editor
 // and is not ours (two editors can hold the same ids).
-export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect, onBadges, onCompare, takeQueued, onReady }) {
+export default function useHostEvents (hostElement, { reload, apply, docRef, onSelect, onBadges, onCompare, onExport, takeQueued, onReady }) {
   const announced = useRef(false)
   useEffect(() => {
     const ready = () => {
@@ -15,10 +15,10 @@ export default function useHostEvents (hostElement, { reload, apply, docRef, onS
       onReady()
     }
     if (!hostElement) { replayThenReady([], null, ready); return undefined }
-    const handlers = hostEventHandlers({ reload, apply, docRef, onSelect, onBadges, onCompare })
+    const handlers = hostEventHandlers({ reload, apply, docRef, onSelect, onBadges, onCompare, onExport })
     const listener = (event) => { if (event.target === hostElement) handlers[event.type](event) }
     for (const name of Object.keys(handlers)) hostElement.addEventListener(name, listener)
     replayThenReady(takeQueued ? takeQueued() : [], (event) => handlers[event.type](event), ready)
     return () => { for (const name of Object.keys(handlers)) hostElement.removeEventListener(name, listener) }
-  }, [hostElement, reload, apply, docRef, onSelect, onBadges, onCompare, takeQueued, onReady])
+  }, [hostElement, reload, apply, docRef, onSelect, onBadges, onCompare, onExport, takeQueued, onReady])
 }

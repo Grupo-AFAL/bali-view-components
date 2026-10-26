@@ -108,13 +108,17 @@ const NOTE = 22
 
 export function badgeTabBox (node, text, { topRight = false, note = false } = {}) {
   const box = nodeBox(node)
-  const max = Math.max(BADGE_TAB.height, box.w - (topRight ? TOP_RIGHT : 0) - (note ? NOTE : 0))
-  const full = String(text)
-  const w = Math.min(max, Math.ceil(full.length * BADGE_TAB.char + BADGE_TAB.pad * 2))
-  const fits = Math.max(1, Math.floor((w - BADGE_TAB.pad * 2) / BADGE_TAB.char))
-  const shown = full.length > fits ? `${full.slice(0, Math.max(1, fits - 1))}…` : full
+  const { w, text: shown } = fitBadge(text, box.w - (topRight ? TOP_RIGHT : 0) - (note ? NOTE : 0))
   const radius = categoryOf(node) === CATEGORY.activity ? activityRadius(box.h) : 4
   return { x: box.x, y: box.y - BADGE_TAB.height / 2, w, h: BADGE_TAB.height, text: shown, radius }
+}
+
+// A badge's width and the text it shows within `max` px, cut with an ellipsis.
+export function fitBadge (text, max) {
+  const full = String(text)
+  const w = Math.min(Math.max(BADGE_TAB.height, max), Math.ceil(full.length * BADGE_TAB.char + BADGE_TAB.pad * 2))
+  const fits = Math.max(1, Math.floor((w - BADGE_TAB.pad * 2) / BADGE_TAB.char))
+  return { w, text: full.length > fits ? `${full.slice(0, Math.max(1, fits - 1))}…` : full }
 }
 
 // The name inside an activity: clear of the badge tab's inner half and of

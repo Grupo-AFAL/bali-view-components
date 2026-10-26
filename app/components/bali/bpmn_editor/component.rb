@@ -34,7 +34,11 @@ module Bali
       # Letter, inches; mirrors LETTER in model/page.js (contract_test.rb).
       DEFAULT_PAGE = { width: 8.5, height: 11, orientation: "landscape" }.freeze
       PAGE_ORIENTATIONS = %w[landscape portrait].freeze
-      FIELD_KEYS = %i[nodes lanes].freeze
+      FIELD_KEYS = %i[nodes lanes documentation].freeze
+      # The field types a `maxlength:` (characters) or a `min:`/`max:` (a range) applies to;
+      # chrome/FieldInput.jsx reads both (contract_test.rb).
+      MAXLENGTH_TYPES = %w[text textarea].freeze
+      RANGE_TYPES = %w[number].freeze
       REVIEW_KEYS = %i[tags compare_with].freeze
       COMPARE_KEYS = %i[document label match].freeze
       # Mirrors COMPARE_MATCHES in model/diff.js (contract_test.rb).
@@ -56,6 +60,17 @@ module Bali
       LEGEND_SWATCHES = %w[task sub_process gateway start_event end_event external_lane external_task issue color].freeze
       DEFAULT_LEGEND = %w[task sub_process external_lane external_task issue].freeze
       EXTERNAL_LEGEND = %w[external_lane external_task].freeze
+      FULL_PAGE_KEYS = %i[title close_url status].freeze
+      PAGE_STATUS_KEYS = %i[label color].freeze
+      # The header's hooks the island reads. Mirror PAGE_EXIT_SELECTOR and
+      # PAGE_SAVE_STATUS_SELECTOR in hooks/usePageExit.js (contract_test.rb).
+      PAGE_EXIT_ATTRIBUTE = "data-bpmn-page-exit"
+      PAGE_SAVE_STATUS_ATTRIBUTE = "data-bpmn-page-save-status"
+
+      # `full_page:` only: what the host has to say above the canvas
+      # (a Bali::Alert, say), and its own controls in the header.
+      renders_many :notices
+      renders_many :actions
 
       attr_reader :data
 
@@ -67,6 +82,8 @@ module Bali
       #   the toolbar offers no switch.
       # @param external_lanes [Boolean] offer marking a lane as an external participant (default);
       #   false hides that checkbox and the external entries of the default legend.
+      # @param confirm_linked_delete [Boolean] ask before deleting a sub-process linked to an
+      #   entity of the app (`reference`); off by default.
       # @param open_issues [Boolean] open the pending-issues panel on load (editable only), for a
       #   page whose purpose is to show what a diagram still has to fix.
       # @param layout [Symbol] how "Tidy up" (and the first layout of a document without
@@ -83,7 +100,10 @@ module Bali
       #   process models; false runs no rule at all: no pending issues, no blocks while drawing,
       #   and «Finalize» checks nothing (the host's finalize endpoint still may).
       # @param fields [Hash] the properties panel's own fields: { nodes: { node_type (or "*") =>
-      #   [{ key:, label:, type:, options:, url: }] }, lanes: [the same field schema] }.
+      #   [{ key:, label:, type:, options:, url:, maxlength:, min:, max: }] }, lanes: [the same
+      #   field schema], documentation: { maxlength: } (the built-in «Description») }.
+      #   `maxlength:` (a positive integer) is for text and textarea fields, `min:`/`max:`
+      #   (numbers, min <= max) for number fields; anything else raises.
       # @param urls [Hash] island endpoints, keys in URL_KEYS — see docs/api/bpmn-editor.md.
       # @param name [String] the diagram's name: title of the image and print outputs, file
       #   names, and the main participant of the .bpmn export.
@@ -107,7 +127,7 @@ module Bali
       # @param min_zoom [Numeric] the floor of «Fit to view», 0.05..1 (default 0.4).
       # @param annotatable [Boolean] with `editable: false` and `urls[:annotations]`: the diagram
       #   stays read-only but review notes can be added, edited and deleted.
-      # @param badges [Boolean] whether the nodes' `appearance.badge` show on load (default true).
+      # @param badges [Boolean] whether the lanes' and nodes' `appearance.badge` show on load (default true).
       #   Only the badge: the colour and the fading stay. The exports and the nodes' accessible
       #   names follow what is shown. The app changes it later with `bali-bpmn:badges` { visible }.
       # @param badge_toggle [Boolean, String] offer «Show badges», the switch that shows and hides
@@ -119,22 +139,29 @@ module Bali
       #   full screen and the comparison; a read-only diagram in a page scrolls the page, and
       #   Ctrl (⌘ on a Mac) + wheel zooms, with a hint that says so. `true`: always zooms. `false`:
       #   never — the zoom buttons and the pinch only, and not the pinch either.
+      # @param full_page [Hash] the editor is the page: { title:, close_url:, status: } — a header
+      #   with «Exit» (a link to `close_url`, a path or http(s) URL, that first waits for the
+      #   pending save), the title, the status (a String, or { label:, color: } with a Bali::Tag
+      #   colour; `data[:status_label]` when omitted), the save status and the `with_action`
+      #   slots; the `with_notice` slots under it; the editor down to the bottom of the window.
+      #   Not with `chrome: :minimal`.
       # @param i18n [Hash] island strings. Defaults to Bali::BpmnEditor::Translations.island.
       #   The table travels once per render, not once per editor (#i18n_table_tag).
       # @param id [String] DOM id; also scopes the events the host sends back. Generated when
       #   omitted, so two editors on one page never share it.
       def initialize(data:, editable: false, autosave: true, lock_orientation: false, external_lanes: true,
-                     open_issues: false, layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil,
+                     open_issues: false, confirm_linked_delete: false, layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil,
                      rules: {}, fields: {}, urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil,
                      selected_id: nil, chrome: :full, min_zoom: DEFAULT_MIN_ZOOM, annotatable: false,
                      badges: true, badge_toggle: true, wheel_zoom: :auto, compare_open: false, compare_index: 0,
-                     **options)
+                     full_page: nil, **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @autosave = autosave
         @lock_orientation = lock_orientation
         @external_lanes = external_lanes
         @open_issues = open_issues
+        @confirm_linked_delete = resolve_boolean(:confirm_linked_delete, confirm_linked_delete)
         @layout = resolve_layout(layout)
         @page = resolve_page(page)
         @palette = Palette.resolve(palette)
@@ -154,18 +181,39 @@ module Bali
         @badges = resolve_boolean(:badges, badges)
         @badge_toggle = resolve_badge_toggle(badge_toggle)
         @wheel_zoom = resolve_wheel_zoom(wheel_zoom)
+        @full_page = resolve_full_page(full_page)
         @i18n = i18n
         # The locale it was built in: Lookbook builds a component inside
         # `I18n.with_locale` and renders it after that block returns.
         @locale = I18n.locale
         @id = id.presence || "bpmn-editor-#{SecureRandom.hex(4)}"
         @options = options
-        return unless @chrome == :minimal && editable?
+        if @chrome == :minimal && editable?
+          raise ArgumentError, "chrome: :minimal is for read-only diagrams (it has no palette or save status); drop editable: or use chrome: :full"
+        end
+        return unless @chrome == :minimal && @full_page
 
-        raise ArgumentError, "chrome: :minimal is for read-only diagrams (it has no palette or save status); drop editable: or use chrome: :full"
+        raise ArgumentError, "full_page: draws the whole editor around its header; it does not combine with chrome: :minimal"
+      end
+
+      def before_render
+        return if full_page? || (notices.empty? && actions.empty?)
+
+        raise ArgumentError, "with_notice and with_action are part of full_page:; pass full_page: { title:, close_url: }"
       end
 
       def minimal? = @chrome == :minimal
+
+      def full_page? = !@full_page.nil?
+
+      def page_title = @full_page[:title]
+
+      def page_close_url = @full_page[:close_url]
+
+      # The host's word on the document, or the document's own `status_label`.
+      def page_status
+        @full_page[:status] || data.to_h[:status_label].presence&.then { |label| { label: label.to_s, color: nil } }
+      end
 
       def island_i18n
         @island_i18n ||= @i18n || Translations.island(locale: @locale)
@@ -194,7 +242,7 @@ module Bali
         @options.except(:class).merge(
           id: @id,
           # Minimal chrome takes its container's height (the host sizes the container).
-          class: class_names("bali-bpmn-editor", { "block h-full" => minimal? }, @options[:class]),
+          class: class_names("bali-bpmn-editor", { "block h-full" => minimal?, "bali-bpmn-page" => full_page? }, @options[:class]),
           data: island_values
         ).compact
       end
@@ -210,6 +258,7 @@ module Bali
           bpmn_editor_lock_orientation_value: (!!@lock_orientation).to_s,
           bpmn_editor_external_lanes_value: (!!@external_lanes).to_s,
           bpmn_editor_open_issues_value: (!!@open_issues).to_s,
+          bpmn_editor_confirm_linked_delete_value: ("true" if @confirm_linked_delete),
           bpmn_editor_layout_value: @layout.to_s,
           bpmn_editor_page_value: @page.to_json,
           bpmn_editor_palette_value: @palette.to_json,
@@ -233,7 +282,8 @@ module Bali
           bpmn_editor_badge_toggle_label_value: (@badge_toggle if @badge_toggle.is_a?(String)),
           bpmn_editor_wheel_zoom_value: (@wheel_zoom unless @wheel_zoom == "auto"),
           bpmn_editor_compare_open_value: @compare_open,
-          bpmn_editor_compare_index_value: (@compare_index unless @compare_index.zero?)
+          bpmn_editor_compare_index_value: (@compare_index unless @compare_index.zero?),
+          bpmn_editor_full_page_value: ("true" if full_page?)
         }.compact
       end
 
@@ -301,6 +351,35 @@ module Bali
         return index if index.is_a?(Integer) && (index.zero? || index.between?(0, count - 1))
 
         raise ArgumentError, "compare_index must be an index of review compare_with (0..#{[ count - 1, 0 ].max}), got #{index.inspect}"
+      end
+
+      def resolve_full_page(page)
+        return nil if page.nil?
+        raise ArgumentError, "full_page must be a Hash { title:, close_url:, status: }, got #{page.inspect}" unless page.is_a?(Hash)
+
+        page = page.symbolize_keys
+        unknown = page.keys - FULL_PAGE_KEYS
+        raise ArgumentError, "unknown full_page: keys #{unknown.inspect}; expected #{FULL_PAGE_KEYS.inspect}" if unknown.any?
+        raise ArgumentError, "full_page needs a title:" if page[:title].blank?
+        unless page[:close_url].present? && Data.navigable_url?(page[:close_url])
+          raise ArgumentError, "full_page close_url: must be a path or #{Data::NAVIGABLE_SCHEMES.join('/')} URL, " \
+                               "got #{page[:close_url].inspect}"
+        end
+
+        { title: page[:title].to_s, close_url: page[:close_url], status: page_status_option(page[:status]) }
+      end
+
+      def page_status_option(status)
+        return nil if status.blank?
+        return { label: status.to_s, color: nil } if status.is_a?(String) || status.is_a?(Symbol)
+        raise ArgumentError, "full_page status: must be a String or { label:, color: }, got #{status.inspect}" unless status.is_a?(Hash)
+
+        status = status.symbolize_keys
+        unknown = status.keys - PAGE_STATUS_KEYS
+        raise ArgumentError, "unknown full_page status: keys #{unknown.inspect}; expected #{PAGE_STATUS_KEYS.inspect}" if unknown.any?
+        raise ArgumentError, "full_page status: needs a label:" if status[:label].blank?
+
+        { label: status[:label].to_s, color: Bali::Color.name!("Bali::BpmnEditor full_page status", status[:color]) }
       end
 
       def resolve_chrome(chrome)
@@ -391,8 +470,20 @@ module Bali
 
         {
           nodes: (fields[:nodes] || {}).to_h.to_h { |type, list| [ type.to_s, field_schema(list, "fields[:nodes][#{type}]") ] },
-          lanes: field_schema(fields[:lanes], "fields[:lanes]")
-        }
+          lanes: field_schema(fields[:lanes], "fields[:lanes]"),
+          documentation: documentation_field(fields[:documentation])
+        }.compact
+      end
+
+      def documentation_field(options)
+        return nil if options.nil?
+
+        options = options.to_h.symbolize_keys
+        unknown = options.keys - %i[maxlength]
+        raise ArgumentError, "fields[:documentation]: unknown keys #{unknown.inspect}; expected [:maxlength]" if unknown.any?
+
+        maxlength!(options[:maxlength], "fields[:documentation]")
+        options
       end
 
       def field_schema(fields, context)
@@ -405,8 +496,34 @@ module Bali
             raise ArgumentError, "#{context}: #{field[:key]} has type #{type.inspect}; expected #{FIELD_TYPES.inspect}"
           end
 
+          field_limits!(field, type, "#{context}: #{field[:key]}")
           field.merge(key: field[:key].to_s, type: type)
         end
+      end
+
+      def field_limits!(field, type, context)
+        if field.key?(:maxlength)
+          raise ArgumentError, "#{context}: maxlength is for #{MAXLENGTH_TYPES.join('/')} fields, not #{type}" unless MAXLENGTH_TYPES.include?(type)
+
+          maxlength!(field[:maxlength], context)
+        end
+        bounds = field.slice(:min, :max)
+        return if bounds.empty?
+
+        raise ArgumentError, "#{context}: min/max are for #{RANGE_TYPES.join('/')} fields, not #{type}" unless RANGE_TYPES.include?(type)
+
+        bounds.each do |key, value|
+          raise ArgumentError, "#{context}: #{key} must be a number, got #{value.inspect}" unless value.is_a?(Numeric)
+        end
+        return unless bounds.size == 2 && bounds[:min] > bounds[:max]
+
+        raise ArgumentError, "#{context}: min (#{bounds[:min]}) is greater than max (#{bounds[:max]})"
+      end
+
+      def maxlength!(value, context)
+        return if value.is_a?(Integer) && value.positive?
+
+        raise ArgumentError, "#{context}: maxlength must be a positive integer, got #{value.inspect}"
       end
 
       def resolve_review(review)

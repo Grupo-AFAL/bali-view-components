@@ -5,7 +5,8 @@ import { fitDiagram } from '../canvas/fit.js'
 
 // Zoom with a visible percentage, "Center the flow", and — when editing —
 // "Select all" with the selection counter (the tablet path to multi-select).
-export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect, onBoxSelect, fit = { padding: 0.12 }, badges = null }) {
+// `expand` — the minimal chrome's own way into full screen: { expanded, onToggle }.
+export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect, onBoxSelect, fit = { padding: 0.12 }, badges = null, expand = null }) {
   const flow = useReactFlow()
   const { zoomIn, zoomOut } = flow
   const { zoom } = useViewport()
@@ -23,6 +24,11 @@ export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect,
         <button type='button' className={button} onClick={() => fitDiagram(flow, fit, 200)} aria-label={t('center')} title={t('center')}>
           <Icon name='crosshair' size={14} />
         </button>
+        {expand && (
+          <button type='button' className={button} onClick={expand.onToggle} aria-label={t(expand.expanded ? 'exit_fullscreen' : 'expand')} title={t(expand.expanded ? 'exit_fullscreen' : 'expand')} data-testid='bpmn-expand'>
+            <Icon name={expand.expanded ? 'minimize' : 'maximize'} size={14} />
+          </button>
+        )}
       </div>
       {onSelectAll && (
         <button type='button' className='btn btn-xs border-base-300 bg-base-100 shadow-sm' onClick={onSelectAll} title='Ctrl+A'>

@@ -4,8 +4,8 @@ import { layoutLanes, poolOrigin } from '../model/geometry.js'
 import { routeAll, findJumps } from '../model/routing.js'
 import { placeEdgeLabels } from '../model/edgeLabels.js'
 import { buildRfNodes, buildRfEdges, laneNodeId, isLaneNodeId, laneIdOf } from '../model/flow.js'
+import { changesOf, detailOf } from '../model/compareChanges.js'
 import { overlayView, summaryText } from '../model/diff.js'
-import { paletteKeyFor } from '../model/catalog.js'
 import { DIFF_MARKS, diffMark } from '../canvas/diffMarks.js'
 import useRefitOnResize from '../hooks/useRefitOnResize.js'
 import { CanvasContext } from '../canvas/CanvasContext.js'
@@ -90,49 +90,6 @@ function Diagram ({ doc, diff, t, caption, focus, peerId, onPoint = noop, onInst
       </div>
     </CanvasContext.Provider>
   )
-}
-
-// The words of a change: what it was and what it is, for the reasons the
-// diff gave (model/diff.js). Type and lane by name, the name itself.
-function detailOf (entry, t) {
-  if (entry.state !== 'changed' || !entry.before) return []
-  const typeName = (node) => t(`palette_${paletteKeyFor(node)}`)
-  const laneName = (doc, id) => {
-    const lane = (doc.lanes || []).find((l) => String(l.id) === String(id))
-    return lane ? lane.name || t('lane_unnamed') : '—'
-  }
-  return (entry.reasons || []).map((reason) => {
-    if (entry.kind === 'node' && reason === 'type') return `${t('compare_detail_type')}: ${typeName(entry.before)} → ${typeName(entry.element)}`
-    if (entry.kind === 'node' && reason === 'lane') return `${t('compare_detail_lane')}: ${laneName(entry.baseDoc, entry.before.lane_id)} → ${laneName(entry.currentDoc, entry.element.lane_id)}`
-    if (reason === 'name') return `${t('compare_detail_name')}: ${entry.before.name || t('compare_unnamed')} → ${entry.element.name || t('compare_unnamed')}`
-    return t(`compare_detail_${reason}`)
-  })
-}
-
-// What changed, element by element: every node and lane that was added,
-// removed or changed, with where to find it in each drawing.
-function changesOf (base, current, diff, overlay) {
-  const entries = []
-  const before = new Map([...diff.identity].map(([baseId, currentId]) => [currentId, (base.nodes || []).find((n) => String(n.id) === baseId)]))
-  const laneBefore = new Map([...diff.lanePairs].map(([baseId, currentId]) => [currentId, (base.lanes || []).find((l) => String(l.id) === baseId)]))
-  const docs = { baseDoc: base, currentDoc: current }
-  for (const lane of current.lanes || []) {
-    const state = diff.current.lanes[String(lane.id)]
-    if (state) entries.push({ key: `cl:${lane.id}`, kind: 'lane', state, reasons: diff.current.reasons[String(lane.id)], element: lane, before: laneBefore.get(String(lane.id)), side: 'current', id: laneNodeId(lane.id), overlayId: laneNodeId(lane.id), ...docs })
-  }
-  for (const node of current.nodes || []) {
-    const state = diff.current.nodes[String(node.id)]
-    if (state) entries.push({ key: `cn:${node.id}`, kind: 'node', state, reasons: diff.current.reasons[String(node.id)], element: node, before: before.get(String(node.id)), side: 'current', id: String(node.id), overlayId: String(node.id), ...docs })
-  }
-  for (const lane of base.lanes || []) {
-    if (diff.base.lanes[String(lane.id)] !== 'removed') continue
-    entries.push({ key: `bl:${lane.id}`, kind: 'lane', state: 'removed', element: lane, side: 'base', id: laneNodeId(lane.id), overlayId: laneNodeId(overlay.drawnAs.lanes.get(String(lane.id)) || lane.id), ...docs })
-  }
-  for (const node of base.nodes || []) {
-    if (diff.base.nodes[String(node.id)] !== 'removed') continue
-    entries.push({ key: `bn:${node.id}`, kind: 'node', state: 'removed', element: node, side: 'base', id: String(node.id), overlayId: overlay.drawnAs.nodes.get(String(node.id)) || String(node.id), ...docs })
-  }
-  return entries
 }
 
 // The counterpart of a React Flow node id of one side, in the other: the

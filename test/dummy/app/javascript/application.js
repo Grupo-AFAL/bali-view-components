@@ -18,6 +18,7 @@ import ThemeSwitcherController from './controllers/theme_switcher_controller'
 import BpmnHostConsoleController from './controllers/bpmn_host_console_controller'
 import BpmnSplitViewController from './controllers/bpmn_split_view_controller'
 import BpmnCompareMenuController from './controllers/bpmn_compare_menu_controller'
+import BpmnExportDemoController from './controllers/bpmn_export_demo_controller'
 
 // Initialize Stimulus
 const application = Application.start()
@@ -40,6 +41,7 @@ application.register('theme-switcher', ThemeSwitcherController)
 application.register('bpmn-host-console', BpmnHostConsoleController)
 application.register('bpmn-split-view', BpmnSplitViewController)
 application.register('bpmn-compare-menu', BpmnCompareMenuController)
+application.register('bpmn-export-demo', BpmnExportDemoController)
 
 // Lazy-load the React islands the first time they appear in the DOM.
 // The digested bundle paths come from the react_island_meta_tags helper in

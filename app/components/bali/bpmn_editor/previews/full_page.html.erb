@@ -1,0 +1,45 @@
+<%# locals: flow, mode, server, notice, actions, autosave, locale %>
+<%= react_island_meta_tags("bpmn-editor", js: "bpmn-editor-island.js", css: "bpmn-editor-island.css") %>
+<% en = locale.to_s == "en" %>
+<% demo = { server: (server unless server == "normal"), locale: locale }.compact %>
+<% statuses = {
+     "edit" => { label: en ? "Edit mode" : "Modo edición", color: :info },
+     "read_only" => { label: en ? "Read only" : "Solo lectura" },
+     "locked" => { label: en ? "Locked: Ana García is editing" : "Bloqueado: Ana García lo está editando", color: :warning },
+     "version" => { label: en ? "Version 1.0" : "Versión 1.0", color: :neutral }
+   } %>
+<% editable = mode == "edit" %>
+<% path = admin_process_flow_diagram_path(flow, **demo) %>
+<% I18n.with_locale(locale) do %>
+  <%= render Bali::BpmnEditor::Component.new(
+        data: flow.to_diagram(locale: locale),
+        editable: editable,
+        autosave: autosave,
+        urls: { save: path, diagram: path, finalize: admin_process_flow_finalization_path(flow, **demo) },
+        name: flow.name,
+        id: dom_id(flow, :bpmn),
+        full_page: { title: en ? "Supplier payments" : "Pago a proveedores",
+                     close_url: "/lookbook/preview/bali/bpmn_editor/default",
+                     status: statuses.fetch(mode) }) do |editor| %>
+    <% if actions %>
+      <% editor.with_action do %>
+        <%= render Bali::Link::Component.new(name: en ? "History" : "Historial", href: "#history", variant: :ghost, size: :sm, icon: "clock") %>
+      <% end %>
+      <% editor.with_action do %>
+        <%= render Bali::Button::Component.new(name: en ? "Publish" : "Publicar", variant: :primary, size: :sm,
+                                               data: { testid: "bpmn-page-host-action" }) %>
+      <% end %>
+    <% end %>
+    <% if notice %>
+      <% editor.with_notice do %>
+        <%= render Bali::Alert::Component.new(color: editable ? :info : :warning, size: :sm, data: { testid: "bpmn-page-host-notice" }) do %>
+          <%= if editable
+                en ? "Changes are saved as a draft; publish them when the flow is ready." : "Los cambios se guardan como borrador; publícalos cuando el flujo esté listo."
+              else
+                en ? "This version is read-only. Open the current draft to change it." : "Esta versión es de solo lectura. Abre el borrador vigente para cambiarla."
+              end %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

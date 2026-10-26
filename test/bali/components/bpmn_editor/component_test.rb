@@ -97,6 +97,17 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal "true", island["data-bpmn-editor-open-issues-value"]
   end
 
+  def test_asking_before_deleting_a_linked_sub_process_is_opt_in
+    render_inline(component)
+    assert_nil island["data-bpmn-editor-confirm-linked-delete-value"]
+
+    render_inline(component(confirm_linked_delete: true))
+    assert_equal "true", island["data-bpmn-editor-confirm-linked-delete-value"]
+
+    error = assert_raises(ArgumentError) { component(confirm_linked_delete: "yes") }
+    assert_includes error.message, "confirm_linked_delete must be true or false"
+  end
+
   def test_external_lanes_can_be_turned_off_and_take_their_legend_entries_along
     render_inline(component)
     assert_equal "true", island["data-bpmn-editor-external-lanes-value"]
@@ -169,6 +180,32 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_raises(ArgumentError) { component(fields: { lanes: [ { key: "x", label: "X", type: "date" } ] }) }
     assert_raises(ArgumentError) { component(fields: { nodes: { task: [ { label: "No key" } ] } }) }
     assert_includes assert_raises(ArgumentError) { component(fields: { edges: [] }) }.message, ":edges"
+  end
+
+  def test_fields_take_a_maxlength_and_a_range
+    render_inline(component(fields: { nodes: { "*" => [ { key: "note", label: "Note", type: "textarea", maxlength: 280 },
+                                                        { key: "minutes", label: "Minutes", type: "number", min: 0, max: 480 } ] },
+                                      documentation: { maxlength: 1000 } }))
+
+    fields = JSON.parse(island["data-bpmn-editor-fields-value"])
+    assert_equal 280, fields.dig("nodes", "*", 0, "maxlength")
+    assert_equal [ 0, 480 ], fields.dig("nodes", "*", 1).values_at("min", "max")
+    assert_equal({ "maxlength" => 1000 }, fields["documentation"])
+  end
+
+  def test_a_maxlength_or_a_range_that_does_not_apply_raises
+    field = ->(**extra) { { lanes: [ { key: "x", label: "X", **extra } ] } }
+    {
+      "maxlength must be a positive integer" => field.call(maxlength: 0),
+      "maxlength is for text/textarea fields, not number" => field.call(type: "number", maxlength: 10),
+      "min/max are for number fields, not text" => field.call(min: 1),
+      "max must be a number" => field.call(type: "number", max: "10"),
+      "min (5) is greater than max (1)" => field.call(type: "number", min: 5, max: 1),
+      "fields[:documentation]: maxlength must be a positive integer" => { documentation: { maxlength: "500" } },
+      "fields[:documentation]: unknown keys [:rows]" => { documentation: { rows: 3 } }
+    }.each do |message, fields|
+      assert_includes assert_raises(ArgumentError, message) { component(fields: fields) }.message, message
+    end
   end
 
   def test_the_legend_takes_additions_and_removals
@@ -299,7 +336,7 @@ class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
   end
 
   NEW_VALUES = %w[selected-id chrome min-zoom annotatable validate badges badge-toggle badge-toggle-label wheel-zoom
-                  compare-open compare-index].freeze
+                  compare-open compare-index full-page].freeze
 
   def test_without_the_new_options_none_of_their_values_is_rendered
     render_with
@@ -484,5 +521,86 @@ class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
       assert_match(/compare_index must be an index of review compare_with \(0\.\.1\)/, error.message)
     end
     assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, compare_index: 1) }
+  end
+
+  def editor(**options) = Bali::BpmnEditor::Component.new(data: payload, **options)
+
+  def full_page(**overrides)
+    { title: "Supplier onboarding", close_url: "/flows" }.merge(overrides)
+  end
+
+  def test_without_full_page_there_is_no_page_header
+    render_with
+
+    refute_selector("header")
+    refute_includes island[:class], "bali-bpmn-page"
+  end
+
+  def test_full_page_draws_the_header_around_the_island
+    render_inline(editor(full_page: full_page(status: { label: "Edit mode", color: :info }))) do |editor|
+      editor.with_action { "<button type='button'>Publish</button>".html_safe }
+      editor.with_notice { "<p>Importing the BPMN file</p>".html_safe }
+    end
+
+    assert_equal "true", island["data-bpmn-editor-full-page-value"]
+    assert_includes island[:class], "bali-bpmn-page"
+    assert_selector(".bali-bpmn-editor > header h1", text: "Supplier onboarding")
+    assert_selector("header a.btn[href='/flows'][data-bpmn-page-exit]", text: "Exit")
+    assert_selector("header .tag-component.badge-info", text: "Edit mode")
+    assert_selector("header [data-bpmn-page-save-status]", visible: :all)
+    assert_selector("header .bali-bpmn-page-actions button", text: "Publish")
+    assert_selector(".bali-bpmn-page-notices p", text: "Importing the BPMN file")
+    # Header and notices stand outside the island's mount, which React replaces.
+    refute_selector(".bali-bpmn-editor-mount header")
+    assert_selector(".bali-bpmn-editor-mount .bali-bpmn-editor-skeleton.h-full")
+  end
+
+  def test_the_page_status_is_a_label_or_falls_back_to_the_documents_own
+    render_inline(Bali::BpmnEditor::Component.new(data: payload.merge(status_label: "Draft v0.3"), full_page: full_page))
+    assert_selector("header .tag-component", text: "Draft v0.3")
+
+    render_inline(Bali::BpmnEditor::Component.new(data: payload.merge(status_label: "Draft v0.3"), full_page: full_page(status: "Locked")))
+    assert_selector("header .tag-component", text: "Locked")
+    refute_text "Draft v0.3"
+
+    render_inline(editor(full_page: full_page))
+    refute_selector("header .tag-component")
+  end
+
+  def test_the_exit_label_is_translated
+    I18n.with_locale(:es) { render_inline(editor(full_page: full_page)) }
+
+    assert_selector("[data-bpmn-page-exit]", text: "Salir")
+  end
+
+  def test_full_page_is_validated
+    {
+      "unknown full_page: keys [:back]" => full_page(back: "/"),
+      "full_page needs a title:" => full_page(title: " "),
+      "full_page close_url: must be a path or http/https URL, got \"javascript:alert(1)\"" => full_page(close_url: "javascript:alert(1)"),
+      "full_page close_url: must be a path or http/https URL, got nil" => full_page(close_url: nil),
+      "unknown full_page status: keys [:tone]" => full_page(status: { label: "Locked", tone: :warning }),
+      "full_page status: needs a label:" => full_page(status: { color: :warning }),
+      "unknown color :amber" => full_page(status: { label: "Locked", color: :amber })
+    }.each do |message, page|
+      error = assert_raises(ArgumentError, message) { editor(full_page: page) }
+      assert_includes error.message, message
+    end
+    assert_raises(ArgumentError) { editor(full_page: "Supplier onboarding") }
+  end
+
+  def test_full_page_does_not_combine_with_the_minimal_chrome
+    error = assert_raises(ArgumentError) { editor(chrome: :minimal, full_page: full_page) }
+
+    assert_match(/full_page: .* does not combine with chrome: :minimal/, error.message)
+  end
+
+  def test_notices_and_actions_need_full_page
+    error = assert_raises(ArgumentError) do
+      render_inline(editor) { |editor| editor.with_notice { "Importing" } }
+    end
+    assert_match(/with_notice and with_action are part of full_page:/, error.message)
+
+    assert_raises(ArgumentError) { render_inline(editor) { |editor| editor.with_action { "Publish" } } }
   end
 end

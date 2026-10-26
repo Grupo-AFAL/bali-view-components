@@ -56,7 +56,7 @@ Rails.application.routes.draw do
 
     # Reference host of Bali::BpmnEditor (#1489): the save, finalize and
     # search endpoints of docs/api/bpmn-editor.md.
-    resources :process_flows, only: :show do
+    resources :process_flows, only: %i[show edit] do
       scope module: :process_flows do
         resource :diagram, only: %i[show update]
         resource :annotations, only: :update

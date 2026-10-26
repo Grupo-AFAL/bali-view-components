@@ -34,6 +34,10 @@ end
 
 group :test do
   gem "capybara", "~> 3"
+  # Not runtime dependencies: test/bali/components/bpmn_editor/prawn_svg_export_test.rb draws the
+  # editor's exported SVG into a PDF as a host would.
+  gem "prawn", "~> 2.5"
+  gem "prawn-svg", "~> 0.40"
   gem "simplecov", require: false
   gem "sqlite3", "~> 2.10"
 end

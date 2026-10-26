@@ -2,7 +2,7 @@
 // with the collections always present. Keys the island does not know are
 // kept, so a save never drops what the host (or an imported file) put there.
 import { autoLayout, needsLayout } from './layout.js'
-import { withoutAppearance } from './appearance.js'
+import { APPEARANCE_COLLECTIONS, withoutAppearance } from './appearance.js'
 
 const COLLECTIONS = ['lanes', 'nodes', 'edges', 'annotations', 'stencil', 'issues']
 
@@ -20,6 +20,9 @@ export function normalize (data, layoutOptions) {
 // A related procedure carries the official name of the one it cites (AFAL
 // SUB-02): while linked, its name is the reference's label, not typed.
 export const namedByReference = (node) => node.type === 'sub_process' && Boolean(node.reference && node.reference.label)
+
+// A sub-process tied to an entity of the app: what `confirm_linked_delete:` asks about.
+export const isLinked = (node) => node.type === 'sub_process' && Boolean(node.reference && node.reference.id != null)
 
 // Ids minted on the client: `prefix` + a random base-36 token, never a count.
 // "First free number" hands a new element the id of the one just deleted,
@@ -57,9 +60,11 @@ export const outgoing = (doc, id) => doc.edges.filter((e) => String(e.source) ==
 export const incoming = (doc, id) => doc.edges.filter((e) => String(e.target) === String(id))
 
 // What the save request carries: the document minus what only the server
-// writes (`issues`, `stencil` and each node's `appearance` come back fresh
-// with every 200).
+// writes (`issues`, `stencil` and each lane's and node's `appearance` come
+// back fresh with every 200).
 export function forSave (doc) {
   const { issues, stencil, ...rest } = doc
-  return { ...rest, nodes: (rest.nodes || []).map(withoutAppearance) }
+  const body = { ...rest }
+  for (const key of APPEARANCE_COLLECTIONS) body[key] = (rest[key] || []).map(withoutAppearance)
+  return body
 }

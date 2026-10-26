@@ -13,7 +13,7 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     JSON.parse(island["data-bpmn-editor-#{name}-value"])
   end
 
-  %w[default playground host_integration configured review catalog pair split_view compare_flows].each do |preview|
+  %w[default playground host_integration configured review catalog pair split_view compare_flows resized_activities].each do |preview|
     define_method("test_the_#{preview}_preview_renders_the_island_and_its_loader_metas") do
       get "#{PREVIEW}/#{preview}"
 
@@ -183,6 +183,18 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     get "#{PREVIEW}/playground", params: { rule_severity: "off" }
 
     assert_equal "false", island["data-bpmn-editor-validate-value"]
+  end
+
+  # Two activities of their own size, the rest «Auto»; editable on its own record.
+  def test_the_resized_activities_preview_sends_two_sizes_read_only_or_editable
+    get "#{PREVIEW}/resized_activities", params: { editable: false }
+    sized = island_value("data")["nodes"].select { |n| n["width"] }
+    assert_equal [ [ 230, 100 ], [ 210, 64 ] ], sized.map { |n| [ n["width"], n["height"] ] }
+    assert_equal "false", island["data-bpmn-editor-editable-value"]
+
+    get "#{PREVIEW}/resized_activities"
+    assert_equal 2, island_value("data")["nodes"].count { |n| n["width"] }
+    assert_equal "true", island["data-bpmn-editor-editable-value"]
   end
 
   def test_the_read_only_viewer_shows_the_apps_appearance_only_when_asked

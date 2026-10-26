@@ -21,7 +21,8 @@
 //
 // `deps`: { client: { save, fetch, finalize } (saveClient.js), urls, latest ()
 // → { doc, revision } (the latest committed state, ahead of any render: the
-// decisions below are taken on it), onAdopt (doc, { replace }), onReset (doc), onEvent
+// decisions below are taken on it), onAdopt (doc, { replace }), onReset (doc),
+// onIssues (issues: a save's 422 that carried them), onEvent
 // (name, detail), notify (text, tone), t, setStatus (status), prepare (body →
 // doc: normalize), forSave (doc → body), defer (fn: run it after this tick) }.
 export function createSaver (deps, { version = null, revision = 0 } = {}) {
@@ -31,6 +32,17 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
   let generation = 0
   let pending = null // promise of the request in flight
   let queued = false
+  // flush() waits on these, not on `pending`: finalize's `pending` settles
+  // with its POST, before the reload a 409 still awaits.
+  let waiters = []
+
+  const finished = () => {
+    pending = null
+    const resolve = waiters
+    waiters = []
+    resolve.forEach((fn) => fn())
+  }
+  const idle = () => (pending ? new Promise((resolve) => waiters.push(resolve)) : Promise.resolve())
 
   const resetTo = (fresh) => {
     generation++
@@ -76,6 +88,7 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
     } catch (error) {
       if (gen !== generation) return false
       if (error.conflict && await reloadAfterConflict()) return false
+      if (error.issues) d.onIssues(error.issues)
       d.setStatus('error')
       d.notify(error.errors && error.errors.length ? error.errors.join(' ') : d.t('change_failed'), 'error')
       return false
@@ -89,7 +102,7 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
     try {
       return await pending
     } finally {
-      pending = null
+      finished()
       drain()
     }
   }
@@ -129,8 +142,22 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
       d.notify(error.errors && error.errors.length ? error.errors.join(' ') : d.t('change_failed'), 'error')
       return { ok: false }
     } finally {
-      pending = null
+      finished()
       drain()
+    }
+  }
+
+  // Leaving the page («Exit» of Component `full_page:`): waits for the request
+  // in flight and saves what is still unsaved, until nothing is. `reset`: a
+  // 409 or a reload replaced the document meanwhile, so what was on screen is
+  // not what got saved — the editor stays, and its notice says why.
+  const flush = async () => {
+    const gen = generation
+    for (;;) {
+      for (let inFlight = pending; inFlight; inFlight = pending) await idle()
+      if (gen !== generation) return { ok: false, reset: true }
+      if (d.latest().revision === savedRevision) return { ok: true }
+      if (!await save()) return { ok: false, reset: gen !== generation }
     }
   }
 
@@ -154,12 +181,14 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
 
   return {
     save,
+    flush,
     leave,
     finalize,
     reload,
     configure (next) { d = next },
     isDirty: (revisionNow) => revisionNow !== savedRevision,
     get version () { return versionNow },
-    get busy () { return Boolean(pending) }
+    get busy () { return Boolean(pending) },
+    get settled () { return !pending && d.latest().revision === savedRevision }
   }
 }

@@ -9,11 +9,12 @@ module Admin
     #
     #   conflict        PUT → 409, as if someone else had saved first
     #   error           PUT → 422 { errors: [...] }
+    #   reject_save     PUT → 422 { errors, issues }: refused, naming the elements
     #   slow            every answer ~2 s late
     #   issues          the document comes back with pending issues of the server
     #   reject_finalize POST finalization → 422 { errors, issues, version }
     module DemoServer
-      MODES = %w[normal conflict error slow issues reject_finalize].freeze
+      MODES = %w[normal conflict error reject_save slow issues reject_finalize].freeze
 
       extend ActiveSupport::Concern
 

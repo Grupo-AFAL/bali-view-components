@@ -13,11 +13,13 @@ module Bali
     #     lanes: [
     #       { id: "l1", name: "Accounts payable", kind: "internal",   # internal | external
     #         order: 1, size: 180,                                    # size: thickness on the stacking axis
-    #         assignee: { id: "position:42", label: "...", group: "..." }, fields: {} }
+    #         assignee: { id: "position:42", label: "...", group: "..." },
+    #         appearance: { color: "#DC2626", badge: "Unassigned" }, fields: {} }
     #     ],
     #     nodes: [
     #       { id: "n1", type: "task", lane_id: "l1", name: "Validate invoice",
     #         documentation: "...", x: 120, y: 40, width: 150, height: 64,   # x/y: top-left, pool-relative
+    #                                                   # width/height: nil or absent = the type's default («Auto»)
     #         reference: { id: "77", label: "...", url: "/..." },             # sub_process
     #         event_definition: { kind: "timer", expression: "PT1H" },        # events
     #         appearance: { color: "#E9A23B", dimmed: true, badge: "In progress" },  # the app's look
@@ -38,8 +40,8 @@ module Bali
     # on a click, so it is a path or http(s); `javascript:` and any other
     # scheme raise.
     #
-    # `appearance` is the app's, like `stencil` and `issues`: what a node looks
-    # like (a hex colour, dimmed, a badge of at most BADGE_MAX characters),
+    # `appearance` is the app's, like `stencil` and `issues`: what a lane or a
+    # node looks like (a hex colour, dimmed, a badge of at most BADGE_MAX characters),
     # with no meaning Bali knows. The island draws it — canvas, outputs,
     # comparison — and never sends it back in a save.
     #
@@ -60,7 +62,9 @@ module Bali
       EDGE_TYPES = %w[sequence_flow message_flow association].freeze
       PORTS = %w[auto top right bottom left].freeze
       SEVERITIES = %w[error warning].freeze
-      # Mirror APPEARANCE_KEYS and BADGE_MAX in model/appearance.js (contract_test.rb).
+      # Mirror APPEARANCE_COLLECTIONS, APPEARANCE_KEYS and BADGE_MAX in
+      # model/appearance.js (contract_test.rb).
+      APPEARANCE_COLLECTIONS = %i[lanes nodes].freeze
       APPEARANCE_KEYS = %i[color dimmed badge].freeze
       BADGE_MAX = 24
       HEX_COLOR = /\A#(\h{3}|\h{6})\z/
@@ -108,6 +112,9 @@ module Bali
 
         validate_lanes!
         validate_nodes!
+        APPEARANCE_COLLECTIONS.each do |key|
+          Array(@payload[key]).each { |element| validate_appearance!(element, key.to_s.singularize) }
+        end
         validate_edges!
         validate_issues!
         unique_ids!(lanes + nodes + edges, "element (lanes, nodes and edges share their ids)")
@@ -138,17 +145,29 @@ module Bali
           raise InvalidError, "node #{node[:id]} requires a type" if node[:type].blank?
 
           numeric_keys!(node, %i[x y width height], "node #{node[:id]}")
+          validate_size!(node)
           navigable_url!(node[:reference], "node #{node[:id]}: reference")
-          validate_appearance!(node)
         end
         unique_ids!(nodes, "node")
       end
 
-      def validate_appearance!(node)
-        appearance = node[:appearance]
+      # Only positive: the limits a person resizes within (MIN_NODE_SIZE and
+      # MAX_NODE_SIZE in model/catalog.js) are the island's, since a document
+      # may draw an activity outside them — the catalog preview draws each one
+      # at its 28 px palette icon size.
+      def validate_size!(node)
+        %i[width height].each do |key|
+          next if node[key].nil? || node[key].to_f.positive?
+
+          raise InvalidError, "node #{node[:id]}: #{key} must be positive, got #{node[key].inspect}"
+        end
+      end
+
+      def validate_appearance!(element, kind)
+        appearance = element[:appearance]
         return if appearance.nil?
 
-        context = "node #{node[:id]}: appearance"
+        context = "#{kind} #{element[:id]}: appearance"
         hash!(appearance, context)
         unknown = appearance.keys - APPEARANCE_KEYS
         raise InvalidError, "#{context} has unknown keys #{unknown.inspect}; expected #{APPEARANCE_KEYS.inspect}" if unknown.any?

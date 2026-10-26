@@ -19,31 +19,33 @@ function IconButton ({ icon, label, shortcut, onClick, disabled }) {
   )
 }
 
+// Whether the draft is saved — or, read-only with notes (Component
+// `annotatable:`), the notes' own save. In the bar, or in the page header of
+// `full_page:`.
+export function SaveStatus ({ t, saveStatus, notesOnly = false }) {
+  const status = STATUS[saveStatus] || STATUS.saved
+  return (
+    <span className={`flex items-center gap-1 text-xs ${status.className}`} role='status' aria-live='polite' data-testid='bpmn-save-status'>
+      <Icon name={status.icon} size={13} className={saveStatus === 'saving' ? 'animate-spin' : ''} />{t(notesOnly && saveStatus === 'saved' ? 'notes_saved' : status.key)}
+    </span>
+  )
+}
+
 // The editor's own bar: what the host says about the document, whether the
 // draft is saved, the pending issues, history, exports and the save /
-// finalize actions. Page title, "edit mode" and "exit" belong to the host.
+// finalize actions. Page title, "edit mode" and "exit" belong to the host —
+// or to the page header of `full_page:`, which then also shows the save
+// status (`pageHeader`).
 export default function TopBar ({
   t, editable, notesOnly = false, statusLabel, saveStatus, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
-  finalizing, exports, onCompare, comparing
+  finalizing, exports, onCompare, comparing, pageHeader = false
 }) {
-  const status = STATUS[saveStatus] || STATUS.saved
   const errors = issues.filter((i) => i.severity === 'error').length
   return (
     <div className='bpmn-chrome flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-base-300 bg-base-100 px-3 py-2'>
-      {statusLabel && <span className='badge badge-ghost badge-sm whitespace-nowrap'>{statusLabel}</span>}
-      {editable
-        ? (
-          <span className={`flex items-center gap-1 text-xs ${status.className}`} role='status' aria-live='polite' data-testid='bpmn-save-status'>
-            <Icon name={status.icon} size={13} className={saveStatus === 'saving' ? 'animate-spin' : ''} />{t(status.key)}
-          </span>
-          )
-        : <span className='badge badge-sm'>{t('read_only')}</span>}
-      {notesOnly && (
-        // Read-only with notes (Component `annotatable:`): the notes' own save.
-        <span className={`flex items-center gap-1 text-xs ${status.className}`} role='status' aria-live='polite' data-testid='bpmn-save-status'>
-          <Icon name={status.icon} size={13} className={saveStatus === 'saving' ? 'animate-spin' : ''} />{t(saveStatus === 'saved' ? 'notes_saved' : status.key)}
-        </span>
-      )}
+      {!pageHeader && statusLabel && <span className='badge badge-ghost badge-sm whitespace-nowrap'>{statusLabel}</span>}
+      {!pageHeader && (editable ? <SaveStatus t={t} saveStatus={saveStatus} /> : <span className='badge badge-sm'>{t('read_only')}</span>)}
+      {!pageHeader && notesOnly && <SaveStatus t={t} saveStatus={saveStatus} notesOnly />}
       {editable && issues.length > 0 && (
         <button
           type='button'

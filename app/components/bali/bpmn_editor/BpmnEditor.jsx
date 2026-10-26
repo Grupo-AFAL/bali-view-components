@@ -4,12 +4,12 @@
 // undo/redo are stacks of documents (model/history.js). The whole document is
 // saved to the host (hooks/useSaver.js). Contracts: docs/api/bpmn-editor.md.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
+import { createPortal, flushSync } from 'react-dom'
 import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, EdgeLabelRenderer, useReactFlow, useKeyPress, getViewportForBounds } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import './flow.css'
 import { translator } from './i18n.js'
-import { normalize, namedByReference } from './model/document.js'
+import { normalize, namedByReference, isLinked } from './model/document.js'
 import { layoutLanes, nodeBox, poolOrigin } from './model/geometry.js'
 import { routeAll, boxesById, distanceToRoute, findJumps } from './model/routing.js'
 import { buildRfNodes, buildRfEdges, isLaneNodeId, laneIdOf, laneNodeId } from './model/flow.js'
@@ -28,13 +28,14 @@ import useSaver from './hooks/useSaver.js'
 import useHostEvents from './hooks/useHostEvents.js'
 import useKeyboard, { claimKeyboard } from './hooks/useKeyboard.js'
 import useExports from './hooks/useExports.js'
+import usePageExit, { PAGE_SAVE_STATUS_SELECTOR } from './hooks/usePageExit.js'
 import { CanvasContext } from './canvas/CanvasContext.js'
 import FlowNode from './canvas/FlowNode.jsx'
 import LaneNode from './canvas/LaneNode.jsx'
 import RoutedEdge, { EdgeMarkers } from './canvas/RoutedEdge.jsx'
 import { minimapColor } from './canvas/minimap.js'
 import ZoomBar from './chrome/ZoomBar.jsx'
-import TopBar from './chrome/TopBar.jsx'
+import TopBar, { SaveStatus } from './chrome/TopBar.jsx'
 import Palette, { PALETTE_MIME } from './chrome/Palette.jsx'
 import PropertiesPanel from './chrome/PropertiesPanel.jsx'
 import { CanvasToolbar, ViewToolbar } from './chrome/CanvasToolbar.jsx'
@@ -42,6 +43,7 @@ import Notices from './chrome/Notices.jsx'
 import Icon from './chrome/icons.jsx'
 import Legend from './chrome/Legend.jsx'
 import PendingPanel from './chrome/PendingPanel.jsx'
+import Dialog from './chrome/Dialog.jsx'
 import RulesDialog from './chrome/RulesDialog.jsx'
 import QuickMenu from './chrome/QuickMenu.jsx'
 import { HintLayer } from './chrome/Hint.jsx'
@@ -51,11 +53,13 @@ import { withParams, safeUrl } from './model/urls.js'
 import CompareView from './chrome/CompareView.jsx'
 import { diffDocuments } from './model/diff.js'
 import { DEFAULT_COMPARE_MODE, openMode, requestedComparison, shownMode } from './model/compare.js'
+import { answerExport } from './model/exportRequest.js'
 
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
 const edgeTypes = { routed: RoutedEdge }
 const EMPTY_SELECTION = { nodes: [], edges: [], lanes: [] }
 const NOTICE_MS = 4800
+const issuesKey = (issues) => issues.map((i) => `${i.rule}|${i.element_id}|${i.message}`).sort().join('\n')
 const MAX_ZOOM = 2.5
 export const NARROW_WIDTH = 768
 // Mirrors Bali::BpmnEditor::Component::CHROMES (contract_test.rb).
@@ -73,9 +77,10 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
+  data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, confirmLinkedDelete = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
   name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false,
-  badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0, takeHostEvents
+  badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0, takeHostEvents,
+  fullPage = false
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
@@ -179,7 +184,7 @@ function Editor ({
     target.dispatchEvent(new CustomEvent(`bali-bpmn:${name}`, { bubbles: true, detail }))
   }, [hostElement])
 
-  // The nodes' `appearance.badge`: shown or not (Component `badges:`), by the
+  // The lanes' and nodes' `appearance.badge`: shown or not (Component `badges:`), by the
   // person with the switch — which says so, `bali-bpmn:badges-change` — or by
   // the app, `bali-bpmn:badges` { visible }. Only the badge: the colour and
   // the fading stay. The canvas, the exports and the nodes' names follow it.
@@ -193,6 +198,7 @@ function Editor ({
   const docHasBadges = useMemo(() => hasBadges(doc), [doc])
   const badgeSwitch = badgeToggle !== false && docHasBadges ? { visible: badgesVisible, onToggle: toggleBadges, label: badgeToggleLabel } : null
 
+  const refusedIssues = useRef(null)
   const saver = useSaver({
     doc,
     revision: state.revision,
@@ -203,9 +209,21 @@ function Editor ({
     notesOnly,
     autosave,
     onAdopt: useCallback((serverDoc, { replace }) => {
+      refusedIssues.current = null
       setState((s) => (replace ? history.adopt(s, serverDoc) : history.adopt(s, { ...s.present, issues: serverDoc.issues, version: serverDoc.version })))
     }, []),
     onReset: useCallback((serverDoc) => setState((s) => history.reset(s, serverDoc)), []),
+    // A save the server refused with `issues`: marked like a finalize's, the
+    // change still unsaved.
+    onIssues: useCallback((serverIssues) => {
+      setState((s) => history.adopt(s, { ...s.present, issues: serverIssues }))
+      // With autosave every edit is refused again with the same issues: the
+      // panel opens when they change, not on each refusal the person already saw.
+      const key = issuesKey(serverIssues)
+      if (key === refusedIssues.current) return
+      refusedIssues.current = key
+      if (serverIssues.length && editable && validating) setDialog('pending')
+    }, [editable, validating]),
     onEvent: emit,
     notify,
     t
@@ -241,6 +259,7 @@ function Editor ({
   const [fullscreen, setFullscreen] = useState(false)
   const [dragPositions, setDragPositions] = useState(null) // id → absolute position while dragging
   const [liveLength, setLiveLength] = useState(null) // shared lane length while one lane's end is dragged
+  const [liveSize, setLiveSize] = useState(null) // { id, width, height } while a node's corner is dragged
   const [dialog, setDialog] = useState(() => (openIssues && editable ? 'pending' : null)) // null | 'pending' | 'rules'
   // The quick menu's default direction follows the reading direction.
   const [direction, setDirection] = useState(() => (state.present.orientation === 'vertical' ? 'down' : 'right'))
@@ -255,22 +274,23 @@ function Editor ({
   // connections that touch them are re-routed live; the document itself only
   // changes on drop.
   const liveDoc = useMemo(() => {
-    if (!dragPositions) return doc
+    if (!dragPositions && !liveSize) return doc
     return {
       ...doc,
       nodes: doc.nodes.map((n) => {
-        const p = dragPositions.get(String(n.id))
+        if (liveSize && String(n.id) === liveSize.id) return { ...n, width: liveSize.width, height: liveSize.height }
+        const p = dragPositions && dragPositions.get(String(n.id))
         return p ? { ...n, x: p.x - origin.x, y: p.y - origin.y } : n
       })
     }
-  }, [doc, dragPositions, origin])
+  }, [doc, dragPositions, liveSize, origin])
   const baseRoutes = useMemo(() => routeAll(doc), [doc])
   const routes = useMemo(() => {
-    if (!dragPositions) return baseRoutes
-    const moving = new Set(dragPositions.keys())
+    if (!dragPositions && !liveSize) return baseRoutes
+    const moving = new Set(dragPositions ? dragPositions.keys() : [liveSize.id])
     const touched = new Set(liveDoc.edges.filter((e) => moving.has(String(e.source)) || moving.has(String(e.target))).map((e) => String(e.id)))
     return routeAll(liveDoc, { previous: baseRoutes, onlyIds: touched, boxes: boxesById(liveDoc) })
-  }, [liveDoc, baseRoutes, dragPositions])
+  }, [liveDoc, baseRoutes, dragPositions, liveSize])
   const routesRef = useRef(routes)
   routesRef.current = routes
 
@@ -295,13 +315,17 @@ function Editor ({
   // Lanes share one length: while the end of one is dragged every lane
   // follows it (gobierno-corporativo's onLaneResizing), not only on release.
   const nodes = useMemo(() => {
-    if (!dragPositions && liveLength == null) return baseNodes
+    if (!dragPositions && liveLength == null && !liveSize) return baseNodes
     const key = layout.axis.crossSize
     return baseNodes.map((n) => {
       if (n.type === 'lane' && liveLength != null) return { ...n, [key]: liveLength, measured: { ...n.measured, [key]: liveLength } }
+      if (liveSize && n.id === liveSize.id) {
+        const { width, height } = liveSize
+        return { ...n, width, height, measured: { width, height }, data: { ...n.data, live: { width, height } } }
+      }
       return dragPositions && dragPositions.has(n.id) ? { ...n, position: dragPositions.get(n.id) } : n
     })
-  }, [baseNodes, dragPositions, liveLength, layout.axis.crossSize])
+  }, [baseNodes, dragPositions, liveLength, liveSize, layout.axis.crossSize])
   const edges = useMemo(() => buildRfEdges(doc, routes, { editable: interactive, selected: selectedSet, issues }), [doc, routes, interactive, selectedSet, issues])
 
   // Selection that points at deleted elements is dropped.
@@ -448,12 +472,19 @@ function Editor ({
     return result
   }, [apply, policy, labels, select, blockConnection])
 
+  const removeElements = useCallback((sel) => {
+    const result = apply((d) => ops.deleteElements(d, { nodeIds: sel.nodes, edgeIds: sel.edges, laneIds: sel.lanes }, { policy }))
+    if (result) clearSelection()
+  }, [apply, policy, clearSelection])
+  // { selection, names } while «Delete linked sub-processes?» waits for an answer.
+  const [pendingDelete, setPendingDelete] = useState(null)
   const deleteSelection = useCallback(() => {
     const sel = selection
     if (!sel.nodes.length && !sel.edges.length && !sel.lanes.length) return
-    const result = apply((d) => ops.deleteElements(d, { nodeIds: sel.nodes, edgeIds: sel.edges, laneIds: sel.lanes }, { policy }))
-    if (result) clearSelection()
-  }, [apply, selection, policy, clearSelection])
+    const linked = confirmLinkedDelete ? docRef.current.nodes.filter((n) => sel.nodes.includes(String(n.id)) && isLinked(n)) : []
+    if (linked.length) setPendingDelete({ selection: sel, names: linked.map((n) => n.name || n.reference.label || n.id).join(', ') })
+    else removeElements(sel)
+  }, [selection, confirmLinkedDelete, removeElements])
 
   const addLane = useCallback(() => {
     const number = docRef.current.lanes.length + 1
@@ -466,6 +497,7 @@ function Editor ({
 
   const api = useMemo(() => ({
     updateNode: (id, patch, coalesce) => apply((d) => ops.updateNode(d, id, patch), { coalesce, arrange: !coalesce }),
+    resizeNode: (id, size) => apply((d) => ops.resizeNode(d, id, size)),
     updateEdge: (id, patch, coalesce) => apply((d) => ops.updateEdge(d, id, patch), { coalesce, arrange: !coalesce }),
     updateLane: (id, patch, coalesce) => apply((d) => ops.updateLane(d, id, patch), { coalesce, arrange: !coalesce }),
     moveLane: (id, step) => apply((d) => ops.moveLane(d, id, step)),
@@ -674,6 +706,15 @@ function Editor ({
     setLiveLength(l.axis.cross === 'x' ? params.width : params.height)
   }, [])
 
+  // ── nodes: resize ──────────────────────────────────────────────────────
+  // Drawn at the dragged size while the corner moves; the document changes
+  // once, on release, so one resize is one undo step.
+  const onNodeResizing = useCallback((id, params) => setLiveSize({ id: String(id), width: params.width, height: params.height }), [])
+  const onNodeResize = useCallback((id, params) => {
+    setLiveSize(null)
+    apply((d) => ops.resizeNode(d, id, { width: params.width, height: params.height }))
+  }, [apply])
+
   // ── keyboard ───────────────────────────────────────────────────────────
   const undo = useCallback(() => setState(history.undo), [])
   const redo = useCallback(() => setState(history.redo), [])
@@ -722,6 +763,13 @@ function Editor ({
   }, [apply])
 
   useKeyboard(wrapperRef, onKeyDown, onKeyUp)
+
+  // ── full page (Component `full_page:`) ─────────────────────────────────
+  // The server draws the page header around the island (title, «Exit», the
+  // status, the host's actions); the editor fills the rest of the window and
+  // draws its save status into that header.
+  const pageExit = usePageExit(hostElement, { enabled: fullPage, saver })
+  const saveStatusSlot = useMemo(() => (fullPage && hostElement ? hostElement.querySelector(PAGE_SAVE_STATUS_SELECTOR) : null), [fullPage, hostElement])
 
   // ── fullscreen ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -817,7 +865,13 @@ function Editor ({
   }, [compareShown, comparison.index, emit])
   // `ready` once its listeners are attached and what the app sent before is applied.
   const announceReady = useCallback(() => emit('ready', {}), [emit])
-  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost, onBadges: setBadgesVisible, onCompare: compareFromHost, takeQueued: takeHostEvents, onReady: announceReady })
+  // Read when the request is answered, not when the listener was bound: a
+  // queued `compare` before it has re-rendered the editor by then.
+  const hostExport = useRef(null)
+  // Committed at once, so an export the app sends right after it draws what it set.
+  const badgesFromHost = useCallback((visible) => flushSync(() => setBadgesVisible(visible)), [])
+  const exportFromHost = useCallback((detail) => answerExport(detail, (request) => hostExport.current(request), emit), [emit])
+  useHostEvents(hostElement, { reload, apply, docRef, onSelect: selectFromHost, onBadges: badgesFromHost, onCompare: compareFromHost, onExport: exportFromHost, takeQueued: takeHostEvents, onReady: announceReady })
 
   // ── the wheel (Component `wheel_zoom:`) ────────────────────────────────
   // 'zoom': it zooms. 'modifier': it scrolls the page, and Ctrl + wheel (a
@@ -827,7 +881,7 @@ function Editor ({
   // host sized the container for it) and full screen zoom; a read-only
   // diagram among the page's content scrolls the page. A page that gives a
   // read-only full-chrome editor a box of its own says so with `true`.
-  const wheelMode = wheelZoom === 'true' ? 'zoom' : wheelZoom === 'false' ? 'off' : (editable || minimal || fullscreen) ? 'zoom' : 'modifier'
+  const wheelMode = wheelZoom === 'true' ? 'zoom' : wheelZoom === 'false' ? 'off' : (editable || minimal || fullPage || fullscreen) ? 'zoom' : 'modifier'
   // ⌘ is not a pinch for React Flow, which only zooms a modified wheel with
   // Ctrl: held, it turns the wheel's zoom on for as long as it is.
   const metaHeld = useKeyPress('Meta')
@@ -871,13 +925,17 @@ function Editor ({
   }, [legend, tags, doc.annotations])
 
   // ── outputs ────────────────────────────────────────────────────────────
-  const exports = useExports({ doc, name, watermark, tags, page: layoutOptions.page, wrapperRef, badges: badgesVisible, onError: () => notify(t('export_failed'), 'error') })
+  const exports = useExports({ doc, name, watermark, tags, page: layoutOptions.page, wrapperRef, badges: badgesVisible, onError: () => notify(t('export_failed'), 'error'), t })
+  // With the comparison open, its two sides and its changes go too.
+  hostExport.current = (request) => exports.forHost(request, compareShown
+    ? { base: compareBase, diff: compareDiff, label: compare.label, index: comparison.index, mode: compareShown }
+    : null)
 
   // The quick menu shows next to the one selected flow node that can be
   // followed (not an end event, not an artifact) while nothing else is going on.
   const enabledKeys = useMemo(() => new Set(((palette && palette.items) || []).filter((i) => i.state === 'enabled').map((i) => i.key)), [palette])
   const single = selection.nodes.length === 1 && !selection.edges.length ? doc.nodes.find((n) => String(n.id) === selection.nodes[0]) : null
-  const quickMenuId = interactive && !tool && !dragPositions && !renamingId && single && single.type !== 'end_event' && !isArtifactLike(single) ? String(single.id) : null
+  const quickMenuId = interactive && !tool && !dragPositions && !liveSize && !renamingId && single && single.type !== 'end_event' && !isArtifactLike(single) ? String(single.id) : null
   const renderQuickMenu = useCallback((node) => {
     const d = doc
     const point = policy.oneInOneOut ? ops.branchPoint(d, node.id) : null
@@ -943,6 +1001,8 @@ function Editor ({
     renderEdgeRename,
     onLaneResize,
     onLaneResizing,
+    onNodeResize,
+    onNodeResizing,
     quickMenuId,
     renderQuickMenu,
     notesByElement,
@@ -953,7 +1013,7 @@ function Editor ({
     connectSource,
     connectInvalid,
     badgesVisible
-  }), [edgeLabels, jumps, t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel, activateNode, connectSource, connectInvalid, badgesVisible])
+  }), [edgeLabels, jumps, t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, onNodeResize, onNodeResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel, activateNode, connectSource, connectInvalid, badgesVisible])
 
   // ── finalize ───────────────────────────────────────────────────────────
   // The draft always saves; finalizing needs a flow without errors, checked
@@ -987,7 +1047,7 @@ function Editor ({
       <HintLayer rootRef={wrapperRef}>
       <div
         ref={wrapperRef}
-        className={`bpmn-editor relative flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm outline-none ${fullscreen ? 'h-screen' : minimal ? 'is-minimal h-full min-h-60' : ''}`}
+        className={`bpmn-editor relative flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm outline-none ${minimal ? 'is-minimal ' : ''}${fullscreen ? 'h-screen' : minimal ? 'h-full min-h-60' : fullPage ? 'h-full' : ''}`}
         onPointerDownCapture={() => claimKeyboard(wrapperRef.current)}
         tabIndex={-1}
       >
@@ -1010,10 +1070,11 @@ function Editor ({
             exports={exports}
             onCompare={compare ? () => setComparison((c) => ({ ...c, mode: c.mode ? null : DEFAULT_COMPARE_MODE })) : null}
             comparing={comparing}
+            pageHeader={fullPage}
           />
         )}
         {compareShown && (
-          <div className={fullscreen || minimal ? 'min-h-0 flex-1' : 'h-[640px]'}>
+          <div className={fullscreen || minimal || fullPage ? 'min-h-0 flex-1' : 'h-[640px]'}>
             <CompareView
               t={t} base={compareBase} current={doc} diff={compareDiff} label={compare.label} mode={compareShown}
               onMode={(mode) => setComparison((c) => ({ ...c, mode }))} onExit={() => setComparison((c) => ({ ...c, mode: null }))}
@@ -1024,7 +1085,7 @@ function Editor ({
             />
           </div>
         )}
-        <div className={`relative flex min-h-0 ${comparing ? 'hidden' : ''} ${fullscreen || minimal ? 'flex-1' : 'h-[640px]'}`}>
+        <div className={`relative flex min-h-0 ${comparing ? 'hidden' : ''} ${fullscreen || minimal || fullPage ? 'flex-1' : 'h-[640px]'}`}>
           {editable && !minimal && (
             <Palette
               t={t} palette={palette} tool={tool && tool.kind === 'place' ? tool : null}
@@ -1148,7 +1209,7 @@ function Editor ({
               )}
               <Legend t={t} entries={legendEntries} open={legendOpen} onToggle={setLegendOpen} />
               {interactive && !showPanel && !minimal && <Stencil t={t} items={doc.stencil} startOpen={!narrow} />}
-              <ZoomBar t={t} fit={fit} onSelectAll={interactive && !minimal ? selectAll : null} selectedCount={interactive ? selectedCount : 0} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} badges={minimal ? badgeSwitch : null} />
+              <ZoomBar t={t} fit={fit} onSelectAll={interactive && !minimal ? selectAll : null} selectedCount={interactive ? selectedCount : 0} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} badges={minimal ? badgeSwitch : null} expand={minimal && document.fullscreenEnabled ? { expanded: fullscreen, onToggle: toggleFullscreen } : null} />
             </ReactFlow>
             )}
             <Notices notices={notices} t={t} onDismiss={(id) => setNotices((list) => list.filter((n) => n.id !== id))} />
@@ -1156,7 +1217,7 @@ function Editor ({
               ? (
                 <PropertiesPanel
                   t={t} doc={doc} selection={selection} api={api} editable={interactive} notesEditable={notesOnly}
-                  nodeFields={(fields && fields.nodes) || {}} laneFields={(fields && fields.lanes) || []} urls={urls || {}}
+                  nodeFields={(fields && fields.nodes) || {}} laneFields={(fields && fields.lanes) || []} documentationField={fields && fields.documentation} urls={urls || {}}
                   externalLanes={externalLanes}
                   view={panel === 'participants' && !hasSelection ? 'participants' : 'properties'}
                   onClose={() => { setPanel(null); clearByPerson() }}
@@ -1177,6 +1238,35 @@ function Editor ({
           <PendingPanel t={t} issues={issueList} onClose={() => setDialog(null)} onPick={(issue) => { setDialog(null); focusElement(issue.element_id) }} />
         )}
         {dialog === 'rules' && <RulesDialog t={t} rules={ruleList(rules || {})} onClose={() => setDialog(null)} />}
+        {pageExit.failed && (
+          <Dialog
+            t={t} title={t('exit_failed_title')} icon='alertCircle' onClose={pageExit.stay} testId='bpmn-exit-failed'
+            footer={
+              <>
+                <button type='button' className='btn btn-ghost btn-sm' onClick={pageExit.discard} disabled={pageExit.exiting} data-testid='bpmn-exit-discard'>{t('exit_discard')}</button>
+                <button type='button' className='btn btn-primary btn-sm' onClick={pageExit.retry} disabled={pageExit.exiting} data-testid='bpmn-exit-retry'>
+                  {pageExit.exiting && <span className='loading loading-spinner loading-xs' aria-hidden='true' />}{t('exit_retry')}
+                </button>
+              </>
+            }
+          >
+            <p className='text-sm'>{t('exit_failed_body')}</p>
+          </Dialog>
+        )}
+        {saveStatusSlot && (editable || notesOnly) && createPortal(<SaveStatus t={t} saveStatus={saver.status} notesOnly={notesOnly} />, saveStatusSlot)}
+        {pendingDelete && (
+          <Dialog
+            t={t} title={t('confirm_linked_delete_title')} icon='trash' testId='bpmn-confirm-delete' onClose={() => setPendingDelete(null)}
+            footer={(
+              <>
+                <button type='button' className='btn btn-ghost btn-sm' onClick={() => setPendingDelete(null)}>{t('cancel')}</button>
+                <button type='button' className='btn btn-error btn-sm' data-testid='bpmn-confirm-delete-accept' onClick={() => { removeElements(pendingDelete.selection); setPendingDelete(null) }}>{t('delete')}</button>
+              </>
+            )}
+          >
+            <p className='text-sm'>{t('confirm_linked_delete_body', { names: pendingDelete.names })}</p>
+          </Dialog>
+        )}
       </div>
       </HintLayer>
     </CanvasContext.Provider>

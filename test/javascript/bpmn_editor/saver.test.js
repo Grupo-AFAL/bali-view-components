@@ -15,7 +15,7 @@ const invalid = (body) => Object.assign(new Error('422'), { conflict: false, err
 // what the saver told it.
 function harness ({ version = 1, urls = { save: '/s', diagram: '/d', finalize: '/f' } } = {}) {
   const state = { doc: { version, nodes: [] }, revision: 0 }
-  const log = { adopted: [], reset: [], events: [], notices: [], statuses: [], sent: [] }
+  const log = { adopted: [], reset: [], events: [], notices: [], statuses: [], sent: [], issues: [] }
   const calls = { save: [], fetch: [], finalize: [] }
   const client = {
     save: (url, body, v) => { const d = deferred(); calls.save.push({ body, version: v, ...d }); return d.promise },
@@ -31,6 +31,7 @@ function harness ({ version = 1, urls = { save: '/s', diagram: '/d', finalize: '
     // The editor's store takes the reset at once, ahead of React's render:
     // `latest()` already carries it when onReset returns.
     onReset: (doc) => { log.reset.push(doc); state.doc = doc; state.revision++ },
+    onIssues: (issues) => log.issues.push(issues),
     onEvent: (name) => log.events.push(name),
     notify: (text, tone) => log.notices.push(tone),
     t: (key) => key,
@@ -108,6 +109,30 @@ test('a save queued behind a 409 sends nothing: the reloaded document is the sav
   await h.deferredRuns[0]()
   assert.equal(h.calls.save.length, 1, 'no second PUT')
   assert.equal(h.saver.isDirty(h.state.revision), false)
+})
+
+test('a save the server refuses with issues hands them over, and still says it failed with its messages', async () => {
+  const h = harness()
+  h.edit()
+  const saving = h.saver.save()
+  const issues = [{ rule: 'APP1', element_id: 'n1', severity: 'error', message: 'No owner' }]
+  h.calls.save[0].reject(invalid({ errors: ['Refused'], issues }))
+  assert.equal(await saving, false)
+  assert.deepEqual(h.log.issues, [issues])
+  assert.deepEqual(h.log.notices, ['error'])
+  assert.equal(h.log.statuses.at(-1), 'error')
+  assert.equal(h.saver.isDirty(h.state.revision), true, 'the change stays unsaved')
+  assert.equal(h.log.adopted.length, 0)
+})
+
+test('a save refused with errors only hands over no issues', async () => {
+  const h = harness()
+  h.edit()
+  const saving = h.saver.save()
+  h.calls.save[0].reject(invalid({ errors: ['Refused'] }))
+  await saving
+  assert.deepEqual(h.log.issues, [])
+  assert.deepEqual(h.log.notices, ['error'])
 })
 
 test('a 409 on save reloads the server document as the new saved state', async () => {
@@ -238,4 +263,64 @@ test('reload replaces the document and says so; a failed one only says so', asyn
   await failing
   assert.deepEqual(h.log.notices, ['info', 'error'])
   assert.equal(h.saver.version, 5)
+})
+
+// «Exit» of Component `full_page:` leaves only once flush() settles.
+test('flush with nothing unsaved and nothing in flight settles at once and sends nothing', async () => {
+  const h = harness()
+  assert.equal(h.saver.settled, true)
+  assert.deepEqual(await h.saver.flush(), { ok: true })
+  assert.equal(h.calls.save.length, 0)
+})
+
+test('flush waits for the save in flight, then saves the edit made meanwhile', async () => {
+  const h = harness()
+  h.edit()
+  h.saver.save()
+  h.edit()
+  assert.equal(h.saver.settled, false)
+  let result = null
+  const flushing = h.saver.flush().then((r) => { result = r })
+  await h.tick()
+  assert.equal(h.calls.save.length, 1, 'not while the first save is in flight')
+  h.calls.save[0].resolve({ version: 2 })
+  await h.tick()
+  assert.equal(h.calls.save.length, 2, 'the edit made meanwhile is sent')
+  assert.equal(result, null, 'still waiting for it')
+  h.calls.save[1].resolve({ version: 3 })
+  await flushing
+  assert.deepEqual(result, { ok: true })
+  assert.equal(h.saver.settled, true)
+})
+
+test('flush waits for the whole finalize, the reload after its 409 included', async () => {
+  const h = harness()
+  h.saver.finalize()
+  let result = null
+  const flushing = h.saver.flush().then((r) => { result = r })
+  h.calls.finalize[0].reject(conflict())
+  await h.tick()
+  assert.equal(result, null, 'the reload is still out')
+  h.calls.fetch[0].resolve({ version: 8 })
+  await flushing
+  assert.deepEqual(result, { ok: false, reset: true })
+})
+
+test('flush says a failed save failed, and says reset when a 409 replaced the document', async () => {
+  const h = harness()
+  h.edit()
+  const failing = h.saver.flush()
+  await h.tick()
+  h.calls.save[0].reject(invalid({ errors: ['refused'] }))
+  assert.deepEqual(await failing, { ok: false, reset: false })
+  assert.equal(h.saver.settled, false, 'the change is still unsaved')
+
+  const stale = harness()
+  stale.edit()
+  const conflicting = stale.saver.flush()
+  await stale.tick()
+  stale.calls.save[0].reject(conflict())
+  await stale.tick()
+  stale.calls.fetch[0].resolve({ version: 9 })
+  assert.deepEqual(await conflicting, { ok: false, reset: true })
 })

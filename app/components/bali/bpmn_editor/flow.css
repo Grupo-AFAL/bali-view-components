@@ -75,6 +75,28 @@
 .bpmn-lane-header > .bpmn-lane-name { min-width: 0; min-height: 0; }
 /* A name longer than its header ends in an ellipsis (the whole name is the header's title). */
 .bpmn-lane-title { max-width: 100%; max-height: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The app's look of a lane (lane.appearance, model/appearance.js): its colour
+ * tints the header and edges its outer side, dimmed fades the header, and the
+ * badge sits beside the name on the outer side — across a horizontal lane's
+ * 44 px header, above a vertical lane's name — sharing that line with a
+ * comparison mark, so the name keeps its whole length. In the DOM the badge
+ * follows the name, so it is read after it. With a badge, a horizontal lane's
+ * pending marker goes after the name along the header instead: the badge
+ * took its place across it. */
+.bpmn-lane.has-color .bpmn-lane-header { background: color-mix(in oklab, var(--bpmn-lane-color) 16%, var(--color-base-200)); }
+.bpmn-lane.has-color .bpmn-lane-header::before { content: ''; position: absolute; background: var(--bpmn-lane-color); pointer-events: none; }
+.bpmn-lane-horizontal.has-color .bpmn-lane-header::before { inset: 0 auto 0 0; width: 4px; }
+.bpmn-lane-vertical.has-color .bpmn-lane-header::before { inset: 0 0 auto 0; height: 4px; }
+.bpmn-lane.is-dimmed .bpmn-lane-header { opacity: .45; }
+.bpmn-lane-horizontal.has-badge .bpmn-lane-header { flex-direction: column; }
+.bpmn-lane-tags { order: -1; display: flex; align-items: center; gap: 4px; max-width: 100%; max-height: 100%; min-width: 0; min-height: 0; }
+.bpmn-lane-badge {
+  flex: 0 1 auto; min-width: 0; min-height: 0;
+  padding: 0 6px; border-radius: 4px; font-size: 10px; font-weight: 600; line-height: 14px; letter-spacing: normal; text-transform: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: var(--bpmn-badge, var(--color-base-100)); color: var(--bpmn-badge-text, var(--color-base-content));
+  border: 1px solid var(--bpmn-badge, var(--color-base-300));
+}
 /* React Flow centres a line control on the edge (translate -50%), which puts
  * half of it inside the NEXT lane — painted later at the same z-index, so the
  * neighbour covers it and the handle stops answering (fixed the same way in
@@ -83,6 +105,12 @@
 .bpmn-lane-resize.react-flow__resize-control.line.bottom { top: auto; bottom: 0; height: 8px; border-bottom-width: 3px; cursor: ns-resize; }
 .bpmn-lane-resize.react-flow__resize-control.line.right { left: auto; right: 0; width: 8px; border-right-width: 3px; cursor: ew-resize; }
 .bpmn-lane-resize.react-flow__resize-control.line:hover { border-color: color-mix(in oklab, var(--bpmn-select) 45%, transparent); }
+/* The selected activity's corner handle: xyflow's is 5 px, too small to grab. */
+.bpmn-node-resize.react-flow__resize-control.handle {
+  width: 10px; height: 10px; border-radius: 2px;
+  background: var(--bpmn-select); border: 2px solid var(--color-base-100);
+  cursor: nwse-resize;
+}
 
 /* Flow nodes. */
 .bpmn-node { position: relative; width: 100%; height: 100%; }

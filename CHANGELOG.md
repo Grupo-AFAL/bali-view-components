@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::BpmnEditor`: modo página completa, `full_page: { title:, close_url:, status: }`.** El
+  editor ocupa el alto de la ventana (`100dvh`), dentro del layout de la app o en una página sola,
+  con un encabezado: «Salir», título, estatus (`Bali::Tag`; si se omite, el `status_label` del
+  documento), estado del guardado y las acciones del host (`with_action`), más avisos sobre el
+  lienzo (`with_notice`). «Salir» espera el guardado pendiente; si falla ofrece «Reintentar» o
+  «Salir sin guardar», y si un 409 reemplaza el documento se queda en la página con el aviso de
+  conflicto. Se llama `full_page:` porque `page:` ya es la hoja del layout y de la impresión.
+  Claves desconocidas, un `close_url` no navegable, un color inválido, `chrome: :minimal`, o
+  `with_notice`/`with_action` sin `full_page:` lanzan `ArgumentError`.
+- **`Bali::BpmnEditor`: cambiar el tamaño de las actividades.** Tareas y subprocesos se
+  redimensionan desde la esquina o con «Tamaño» en el panel; «Auto» guarda `width`/`height` en
+  `null`. Un solo paso de deshacer, y «Autoajustar» respeta el tamaño propio. `Data` rechaza un
+  tamaño que no sea positivo; los límites (80×40 a 800×400) los aplica el editor.
+- **`Bali::BpmnEditor`: `appearance` en carriles** (`color`, `dimmed`, `badge`), con el mismo
+  contrato que en los nodos: la manda el servidor y nunca se envía al guardar. Se dibuja en el
+  encabezado del carril (lienzo, comparación, PNG/SVG/impresión; no en `.bpmn`), y
+  «Mostrar etiquetas» y `badges:` también la cubren.
+- **`Bali::BpmnEditor`: el 422 del guardado puede traer `issues`** con `element_id`, como el de
+  finalizar: el editor marca esos elementos y abre el panel de pendientes (con autosave, solo si los
+  `issues` cambian respecto al rechazo anterior). `errors` sigue igual.
+- **`Bali::BpmnEditor`: exportar a petición del host.** `bali-bpmn:export`
+  `{ request_id, format: "svg" | "png", frame, font_family }` se responde con
+  `bali-bpmn:exported` (o `bali-bpmn:export-failed`) sin descargar nada; se encola si llega antes
+  de que cargue la isla. `frame: false` entrega solo el diagrama a su tamaño natural, con la
+  apariencia y los badges como se ven. Con la comparación abierta, la respuesta trae los dos lados
+  con sus marcas y los cambios como datos (conteos y lista con tipo, nombre, carril y detalle).
+  Sección «Exporting for the app» en `docs/api/bpmn-editor.md`, incluido cómo mapear la fuente en
+  Prawn.
+- **`Bali::BpmnEditor`: «Ampliar» en `chrome: :minimal`**, pantalla completa del navegador junto
+  al zoom, donde el navegador la permite (no dentro de un iframe sin `allowfullscreen`).
+- **`Bali::BpmnEditor`: `confirm_linked_delete:`** (por defecto `false`) pide confirmación antes
+  de eliminar un subproceso vinculado a una entidad de la app.
+- **`Bali::BpmnEditor`: límites en `fields:`.** `maxlength:` en campos `text`/`textarea`,
+  `min:`/`max:` en `number` (validados con `ArgumentError`) y `documentation: { maxlength: }` para
+  la descripción de la actividad.
+
+### Changed
+
+- **`Bali::BpmnEditor`: el SVG exportado es compatible con prawn-svg.** Los colores salen en hex:
+  antes salían en `oklch()`/`oklab()`, que prawn-svg pinta negros. Ya no usa `dominant-baseline`,
+  escribe un `<text>` por línea y las flechas usan `orient="auto"`. En el navegador se ve igual.
+- **Docs del contrato de `Bali::BpmnEditor`:** los ids que crea la isla no cambian nunca; si el
+  usuario editó durante un guardado, `appearance` y `stencil` esperan al siguiente 200; el nombre
+  de un subproceso vinculado sigue a su referencia y no se renombra; `bali_bpmn_reload` funciona
+  como broadcast de Turbo Stream.
+
 ## [v3.22.0] - 2026-10-23
 
 ### Added

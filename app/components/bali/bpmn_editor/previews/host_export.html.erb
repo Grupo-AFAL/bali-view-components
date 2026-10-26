@@ -1,0 +1,31 @@
+<%# locals: locale, flow, compared %>
+<%# The buttons and the result are the dummy's own Stimulus controller
+    (bpmn_export_demo_controller.js): an app sends `bali-bpmn:export` and
+    listens for `bali-bpmn:exported` the same way. %>
+<%= react_island_meta_tags("bpmn-editor", js: "bpmn-editor-island.js", css: "bpmn-editor-island.css") %>
+<% en = locale.to_s == "en" %>
+<div class="flex flex-col gap-6 p-4" data-testid="bpmn-host-export">
+  <section class="flex flex-col gap-2" data-controller="bpmn-export-demo">
+    <h3 class="font-semibold"><%= en ? "A flow (chrome: :minimal)" : "Un flujo (chrome: :minimal)" %></h3>
+    <div class="flex flex-wrap gap-2">
+      <%= render Bali::Button::Component.new(name: en ? "SVG, drawing only (frame: false)" : "SVG, solo el dibujo (frame: false)", size: :sm,
+            data: { action: "bpmn-export-demo#request", bpmn_export_demo_format_param: "svg", bpmn_export_demo_frame_param: false, testid: "bpmn-export-svg" }) %>
+      <%= render Bali::Button::Component.new(name: en ? "PNG, drawing only" : "PNG, solo el dibujo", size: :sm,
+            data: { action: "bpmn-export-demo#request", bpmn_export_demo_format_param: "png", bpmn_export_demo_frame_param: false, testid: "bpmn-export-png" }) %>
+      <%= render Bali::Button::Component.new(name: en ? "SVG with title and watermark (frame: true)" : "SVG con título y marca de agua (frame: true)", size: :sm,
+            data: { action: "bpmn-export-demo#request", bpmn_export_demo_format_param: "svg", bpmn_export_demo_frame_param: true, testid: "bpmn-export-framed" }) %>
+    </div>
+    <div class="h-[420px]"><%= render flow %></div>
+    <div data-bpmn-export-demo-target="result" data-testid="bpmn-export-result"></div>
+  </section>
+
+  <section class="flex flex-col gap-2" data-controller="bpmn-export-demo">
+    <h3 class="font-semibold"><%= en ? "A comparison open in the editor" : "Una comparación abierta en el editor" %></h3>
+    <div class="flex flex-wrap gap-2">
+      <%= render Bali::Button::Component.new(name: en ? "Export the comparison (SVG)" : "Exportar la comparación (SVG)", size: :sm,
+            data: { action: "bpmn-export-demo#request", bpmn_export_demo_format_param: "svg", bpmn_export_demo_frame_param: false, testid: "bpmn-export-comparison" }) %>
+    </div>
+    <div class="h-[520px]"><%= render compared %></div>
+    <div data-bpmn-export-demo-target="result" data-testid="bpmn-export-comparison-result"></div>
+  </section>
+</div>

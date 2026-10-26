@@ -9,7 +9,10 @@
 // Node coordinates are pool-relative and lanes stack, so anything that
 // changes a lane's size or position on the main axis has to carry the nodes of
 // the lanes after it along: `resizeLane` and `reorderLanes` do.
-import { nodeSize, isActivity, isArtifactLike, isFlowNode, isStart, isEnd, edgeType, categoryOf, CATEGORY, isBinaryDecision } from './catalog.js'
+import {
+  nodeSize, isActivity, isArtifactLike, isFlowNode, isStart, isEnd, edgeType, categoryOf, CATEGORY, isBinaryDecision,
+  isResizable, hasOwnSize, MIN_NODE_SIZE, MAX_NODE_SIZE
+} from './catalog.js'
 import {
   layoutLanes, laneAt, nodeBox, boxesOverlap, laneRequiredSize, axisFor, sortedLanes, laneSize, insideLane,
   HEADER, LANE_PADDING, DEFAULT_LANE_SIZE, MIN_LANE_SIZE, orientationOf
@@ -235,6 +238,29 @@ export function moveNodes (doc, ids, delta, { policy = DEFAULT_POLICY } = {}) {
 
 export function updateNode (doc, id, patch) {
   return { doc: { ...doc, nodes: doc.nodes.map((n) => (sameId(n.id, id) ? { ...n, ...patch } : n)) } }
+}
+
+// Gives a resizable node its own `size` ({ width, height }, either may be
+// left out) clamped to MIN/MAX_NODE_SIZE, or `null` for «Auto». The top-left
+// corner stays; the lane grows to hold it. Auto writes null rather than
+// dropping the keys: a host that maps the document onto its own columns
+// keeps any key a save leaves out.
+export function resizeNode (doc, id, size) {
+  const node = findNode(doc, id)
+  if (!node || !isResizable(node)) return { doc }
+  const clamp = (key, value) => Math.round(Math.max(MIN_NODE_SIZE[key], Math.min(MAX_NODE_SIZE[key], Number(value))))
+  const current = nodeSize(node)
+  const patch = size === null
+    ? { width: null, height: null }
+    : {
+        width: Number(size.width) > 0 ? clamp('width', size.width) : current.width,
+        height: Number(size.height) > 0 ? clamp('height', size.height) : current.height
+      }
+  // The size it already has (a click on the handle, an Auto box typed its
+  // default) changes nothing, and an Auto box stays Auto.
+  if (size === null ? !hasOwnSize(node) : patch.width === current.width && patch.height === current.height) return { doc }
+  const nodes = doc.nodes.map((n) => (n === node ? { ...n, ...patch } : n))
+  return { doc: fitLanes({ ...doc, nodes, edges: clearWaypointsOf(doc.edges, new Set([String(node.id)])) }) }
 }
 
 export function updateEdge (doc, id, patch) {

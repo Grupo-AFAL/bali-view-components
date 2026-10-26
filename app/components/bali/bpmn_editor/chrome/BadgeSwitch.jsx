@@ -8,7 +8,7 @@ export function badgeToggleLabel (t, label) {
   return own || t('badges_toggle')
 }
 
-// «Show badges»: shows and hides the nodes' `appearance.badge`. A checkbox
+// «Show badges»: shows and hides the lanes' and nodes' `appearance.badge`. A checkbox
 // with role="switch", named by its own label — which a narrow canvas hides
 // from the eye only (`.bpmn-tool-label`, flow.css), leaving it as the title.
 export default function BadgeSwitch ({ t, label, visible, onToggle, className = '' }) {

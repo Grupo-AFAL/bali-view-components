@@ -101,6 +101,7 @@ authorize every endpoint on the server anyway.
 | `lock_orientation:` | `false` | `true` keeps the document's own orientation (`data[:orientation]`, the one source of it) and the toolbar offers no switch — e.g. a host whose lanes are always horizontal |
 | `external_lanes:` | `true` | Lanes may be marked as external participants (grey lane, white activities, joined by message flows). `false` hides that checkbox in the lane panel and the external entries of the default legend |
 | `open_issues:` | `false` | Open the pending-issues panel on load (editable only): for a page whose purpose is to show what a diagram still has to fix |
+| `confirm_linked_delete:` | `false` | Ask before deleting a sub-process linked to an entity of the app (`reference` with an `id`): «Delete linked sub-processes?» names them, with Cancel and Delete. Anything else is deleted at once, as always. What the app does with the entity afterwards is its own — the dummy offers it again under «To place», since its `stencil` lists what no sub-process links |
 | `layout:` | `:compact` | How "Tidy up" (and the first layout of a document without coordinates) arranges the flow: `:compact` folds it to fit `page:` legibly, `:straight` keeps the happy path in one line — see [Layout](#layout). An unknown value raises |
 | `page:` | `{ width: 8.5, height: 11, orientation: "landscape" }` | The sheet, in inches: the compact layout's target, and what the image, SVG and print outputs are laid on. `orientation:` is `"landscape"` or `"portrait"`; anything else, or a non-positive size, raises |
 | `palette:` | `:descriptive` | A preset, an `Array` of keys (exactly those), or a `Hash` — see [Palette](#palette) |
@@ -114,12 +115,13 @@ authorize every endpoint on the server anyway.
 | `compare_open:` | `false` | Opens on load comparing against `review: { compare_with: }` — `true` (side by side, the comparison's default view), `:side_by_side` or `:overlay`. The overlay is offered only for versions of one process; asked for two different processes, the comparison opens side by side, and `bali-bpmn:compare-change` reports `mode: "side_by_side"`. Needs `compare_with:` (ArgumentError otherwise). For a `chrome: :minimal` editor, which has no «Compare» button: the app opens it with this or with `bali-bpmn:compare` — see [Embedding a diagram](#embedding-a-diagram) |
 | `compare_index:` | `0` | Which comparison of `compare_with:` is picked on load (with `compare_open:`, or for «Compare»). An index outside the list raises ArgumentError |
 | `selected_id:` | `nil` | The node shown selected on load — read-only too. The app moves it later with `bali-bpmn:select` — see [Embedding a diagram](#embedding-a-diagram) |
-| `chrome:` | `:full` | `:minimal`: only the zoom controls and "Center the flow" — no top bar, toolbars, palette, minimap or help line, the legend folded — and the editor takes its container's height and fits again when that changes. For read-only diagrams: with `editable:` it raises. Anything else raises |
+| `chrome:` | `:full` | `:minimal`: only the zoom controls, "Center the flow" and «Expand» (browser full screen, offered where the browser allows it) — no top bar, toolbars, palette, minimap or help line, the legend folded — and the editor takes its container's height and fits again when that changes. For read-only diagrams: with `editable:` or `full_page:` it raises. Anything else raises |
+| `full_page:` | `nil` | `{ title:, close_url:, status: }`: the editor is the page — a header with «Exit», the title, the status, the save status and the `with_action` slots, the `with_notice` slots under it, and the editor down to the bottom of the window. See [Full page](#full-page). An unknown key, a missing `title:`, a `close_url:` that is not a path or http(s) URL, or a status colour Bali::Tag does not take raises |
 | `min_zoom:` | `0.4` | The floor of "Center the flow" and of the first view, `0.05..1`. Below it a large diagram scrolls instead of shrinking; a small embedded one may rather be whole (e.g. `0.2`) |
 | `annotatable:` | `false` | With `editable: false` and `urls[:annotations]`: the diagram stays read-only but review notes can be added, edited and deleted, and are saved on their own — see [The save contract](#the-save-contract). Without that URL, or while editing, it has no effect |
-| `badges:` | `true` | Whether the nodes' `appearance.badge` show on load. Only the badge: the colour and the fading stay. The exports (SVG, PNG, print) and the nodes' accessible names follow what is shown. The app changes it later with `bali-bpmn:badges` |
+| `badges:` | `true` | Whether the lanes' and nodes' `appearance.badge` show on load. Only the badge: the colour and the fading stay. The exports (SVG, PNG, print) and the nodes' accessible names follow what is shown. The app changes it later with `bali-bpmn:badges` |
 | `badge_toggle:` | `true` | Offer «Show badges» (`badges_toggle`, replaceable with `i18n:`), the switch that shows and hides them: in the view toolbar, or beside the zoom with `chrome: :minimal`. Only when a node of the document shown has a badge — re-read when the document changes. A String is the switch's own label (`"Show status"`, at most 32 characters): its text, its accessible name, and its title when a narrow canvas shows only the switch. `false` leaves the state to the app |
-| `wheel_zoom:` | `:auto` | What the mouse wheel does on the canvas. `:auto`: it zooms an editable diagram, a `chrome: :minimal` one (the host sized its container for it), full screen and the comparison; a read-only diagram among the page's content scrolls the page instead, and Ctrl + wheel (⌘ + wheel on a Mac) zooms, with a brief «Use Ctrl + scroll to zoom» over it. `true`: the wheel always zooms — a page that gives a read-only editor a box of its own (two editors side by side, a fixed height) says so. `false`: never; the zoom buttons only, not even the pinch. A trackpad pinch zooms in every other case |
+| `wheel_zoom:` | `:auto` | What the mouse wheel does on the canvas. `:auto`: it zooms an editable diagram, a `chrome: :minimal` one (the host sized its container for it), a `full_page:` one, full screen and the comparison; a read-only diagram among the page's content scrolls the page instead, and Ctrl + wheel (⌘ + wheel on a Mac) zooms, with a brief «Use Ctrl + scroll to zoom» over it. `true`: the wheel always zooms — a page that gives a read-only editor a box of its own (two editors side by side, a fixed height) says so. `false`: never; the zoom buttons only, not even the pinch. A trackpad pinch zooms in every other case |
 | `i18n:` | `Translations.island` | Flat string table; Spanish and English ship with the gem, in the locale the component is built in. It travels once per render, not once per editor — see [The strings table](#the-strings-table) |
 | `id:` | generated | DOM id. The host's stream answers target it; generated (`bpmn-editor-<hex>`) when omitted, so two editors on one page never share one |
 
@@ -160,11 +162,12 @@ is another table with its own key.
     { "id": "l1", "name": "Accounts payable", "kind": "internal",   // internal | external
       "order": 1, "size": 180,
       "assignee": { "id": "position:42", "label": "Accounts payable", "group": "Position" },
+      "appearance": { "color": "#DC2626", "badge": "Unassigned" },              // the app's look
       "fields": {} }
   ],
   "nodes": [
     { "id": "n1", "type": "user_task", "lane_id": "l1", "name": "Validate invoice",
-      "documentation": "…", "x": 120, "y": 40, "width": 150, "height": 64,
+      "documentation": "…", "x": 120, "y": 40, "width": 150, "height": 64,    // size: null = «Auto»
       "reference": { "id": "77", "label": "Supplier onboarding", "url": "/…" },   // sub_process
       "event_definition": { "kind": "timer", "expression": "PT1H" },              // events
       "appearance": { "color": "#E9A23B", "dimmed": true, "badge": "In progress" }, // the app's look
@@ -200,9 +203,16 @@ is another table with its own key.
   the server answers with, and each `compare_with:` document. Lanes need only `id`,
   `name`, `kind` and `order`; a node without `lane_id` (a start or end event, say)
   is laid out in the first lane.
+- **A linked sub-process is named by its reference.** While a `sub_process` has a
+  `reference` with a `label`, its `name` is that label: the editor sets it on load, on
+  every `200` and when a reference is picked or created (`reference-created`), and the name
+  cannot be edited — no rename on the canvas, and the panel's field disabled with the
+  `props_name_from_reference` note. A name the server sends that differs from the label is
+  replaced by it on screen, and the next save carries it. «Unlink» drops the
+  `reference` and keeps the name, which is editable again from then on.
 - **`stencil`** is the app's list of entities to place; **`issues`** are pending
   issues the server computed. Both are written by the server and never saved back.
-- **`appearance`** is how the app wants a node to look, with no meaning the editor
+- **`appearance`** is how the app wants a node or a lane to look, with no meaning the editor
   knows: `color` (a hex colour — the outline, and a tint over an activity),
   `dimmed` (`true`/`false` — the node faded) and `badge` (a string of at most 24
   characters, on the node's bottom-right corner, black or white text on `color`,
@@ -214,6 +224,15 @@ is another table with its own key.
   Without it a node looks exactly as before. Its words are in the node's accessible name:
   the name, the badge and "faded" (`appearance_dimmed` in `i18n:`, which the app may
   reword, since what fading means is the app's).
+- **A lane's `appearance`** takes the same keys and limits — a lane whose assignee no
+  longer exists, say. `color` tints the lane's header and edges its outer side, `dimmed`
+  fades the header, and `badge` sits beside the name on the outer side: across a
+  horizontal lane's header (it turns with the name), above a vertical lane's name. A
+  comparison mark shares the badge's line, so the name keeps its length; in a lane at its
+  minimum size the badge ends in an ellipsis (its whole text is its tooltip). «Show badges»
+  and `badges:` cover lanes' badges too, the switch is offered when a lane has one, and
+  the PNG, SVG, print and comparison draw it as the canvas does; the `.bpmn` export leaves
+  it out. Like a node's it is never saved back: every `200` carries it again.
 
 `Data` raises `InvalidError` on structural problems (no id, duplicate ids, unknown
 orientation, a coordinate that is not a number, an unknown edge type or port) and on a
@@ -228,6 +247,33 @@ does **not** raise on dangling references — an edge to a missing node, a node 
 missing lane — because those are modelling problems the editor lists as pending
 issues (R25, R26), and an imported document has to open to be fixed.
 
+### Node size
+
+A node's `width` and `height` are its own size; absent or `null` is **«Auto»**: the
+default of its type (an activity 150 × 64, a gateway 50 × 50, an event 36 × 36).
+
+- **Who resizes**: the activities (every task type and `sub_process`), in an editable
+  editor only. Events and gateways are symbols of a fixed size and keep the one they
+  have. A read-only diagram draws the stored sizes and offers no handle.
+- **How**: the selected activity's bottom-right corner handle (the top-left corner stays;
+  the box is drawn at the new size while it moves and the connections follow it), or
+  «Size» in the properties panel — width and height, taken on Enter or on leaving the
+  field. «Auto» there sets both back to `null`. Either way it is one undo step, and the
+  local arrangement then moves along what the larger box runs into and grows the lane.
+- **Limits**: the island keeps a size it sets between 80 × 40 and 800 × 400
+  (`MIN_NODE_SIZE` / `MAX_NODE_SIZE` in `model/catalog.js`). `Data` only requires a size to
+  be a positive number and raises otherwise: a document may draw an activity outside those
+  limits (the catalog preview draws them at 28 px), and it opens and saves as it came.
+- **Saved as `null`**: «Auto» sends `"width": null, "height": null` rather than dropping
+  the keys, so an app that maps the document onto its own columns clears them.
+- **Everything follows the box**: the name inside it (wrapped to the new width, with as
+  many lines as the height holds), the badge tab, the task marker and the [+], the routes,
+  the image, SVG and print outputs, and the `.bpmn` bounds.
+- **Tidy up keeps it**: an activity with a size of its own keeps it, and the layout makes
+  room for it. Only Auto activities are narrowed when `layout: :compact` tightens a flow
+  that does not fit the page — which gives them a width of their own (110), «Auto» in the
+  panel puts the default back.
+
 ---
 
 ## The save contract
@@ -237,17 +283,36 @@ whole document.**
 
 | Request | When | Answer |
 |---|---|---|
-| `PUT urls[:save]` `{ diagram:, version: }` | autosave (debounced), or "Save draft" | `200` the whole document with the new `version` and server `issues` · `409` stale version · `422` `{ errors: [...] }` |
+| `PUT urls[:save]` `{ diagram:, version: }` | autosave (debounced), or "Save draft" | `200` the whole document with the new `version` and server `issues` · `409` stale version · `422` `{ errors: [...] }` or `{ errors: [...], issues: [...] }` |
 | `GET urls[:diagram]` | after a 409, and on `bali-bpmn:reload` | `200` the whole document |
 | `POST urls[:finalize]` `{ diagram:, version: }` | "Finalize flow", once the client found no errors and any save in flight is answered | `200` the whole document · `422` `{ errors:, issues:, version: }` |
 
 - On a **409** the island fetches `urls[:diagram]`, replaces its document (history
   cleared) and tells the user someone else changed it. Without `urls[:diagram]` (or
   if that GET fails) it says the change failed, as on any other error.
-- On a **422** the messages are shown and the change stays unsaved.
+- On a **422** the messages are shown and the change stays unsaved. When it also carries
+  `issues` — the same shape as the document's, `[{ rule, element_id, severity, message }]` —
+  they replace the document's `issues` as a finalize's 422 does: the elements they name are
+  marked on the canvas and the pending panel opens — once per set of issues: with autosave a
+  refusal naming the same issues as the last one leaves the panel as the person left it. They join the editor's own issues by the
+  rules of [App rules](#rules) (an issue of a rule the client runs, or on an element that is
+  no longer there, is dropped), and with `rules: false` nothing is shown, as with every
+  server issue. `errors` alone works as before. The next `200` brings the document's
+  `issues` back.
 - A **200** replaces the local document — unless the user kept editing while the
   request was out: then only `version` and `issues` are taken and the newer local
-  state is saved next.
+  state is saved next. Everything else the server writes waits for that next `200`:
+  `stencil`, each lane's and node's `appearance`, and any value the server normalized. A
+  host that changes `appearance` on a save sees it drawn one save later when the user kept
+  editing meanwhile.
+- **Ids are stable.** An id the editor mints (`lane_`, `n_`, `e_`, `a_` + six characters) is
+  the element's for good: no load, layout or «Tidy up», edit, undo or redo, reload or
+  adopted `200` changes it — the editor never maps one id onto another, and a `200` is
+  taken as the server sent it. A host may store it as the element's `uid` and send it back;
+  the `client_node_id` / `client_lane_id` of a drawer name the same id. Only the `.bpmn`
+  export rewrites ids, inside the XML file (`101` → `_101`, see
+  [Outputs](#outputs-notes-and-comparison)); the document is untouched. If the server
+  answers with other ids, those are the ones from then on.
 - Undo and redo work on the client; each step is just one more `PUT`. The version
   travels apart from the document, so undoing never sends an old version.
 - `diagram` omits `issues`, `stencil` and every node's `appearance`; the server writes them.
@@ -493,16 +558,26 @@ in the element's `fields`: per node type (`"*"` for every node) and for lanes.
 ```ruby
 fields: {
   nodes: {
-    "*" => [ { key: "owner_note", label: "Owner's note", type: "textarea" } ],
-    user_task: [ { key: "duration", label: "Duration (minutes)", type: "number", min: 0 },
+    "*" => [ { key: "owner_note", label: "Owner's note", type: "textarea", maxlength: 280 } ],
+    user_task: [ { key: "duration", label: "Duration (minutes)", type: "number", min: 0, max: 480 },
                  { key: "systems", label: "Systems", type: "multi_select", url: "/systems/options" } ]
   },
-  lanes: [ { key: "notes", label: "Notes", type: "textarea" } ]
+  lanes: [ { key: "notes", label: "Notes", type: "textarea" } ],
+  documentation: { maxlength: 1000 }   # the built-in «Description» of activities, events and gateways
 }
 ```
 
 Types: `text`, `textarea`, `number`, `select`, `multi_select` (local `options:` or a
 remote `url:` answering `[{ id, label }]`), `readonly`.
+
+Limits, checked when the component is built (`ArgumentError` otherwise):
+
+- `maxlength:` — a positive integer, on `text` and `textarea` fields and on
+  `documentation:`. The control takes no more characters than that; a stored value already
+  longer is shown whole and not cut. The server still has to check what it saves.
+- `min:` / `max:` — numbers, `min` not above `max`, on `number` fields only. The browser's
+  number control steps within them; it does not stop a typed value outside them, so the
+  server checks that too.
 
 ---
 
@@ -548,6 +623,19 @@ same ids. A target that is not on the page is reported on the console and droppe
 one that reaches the editor some other way (a hand-made `bali_bpmn_event`, a `CustomEvent`)
 is linked without its `url`, as a pick in the search is.
 
+The stream does not have to be a drawer's response: wherever Turbo applies it — a
+broadcast to a page with `turbo_stream_from`, `Turbo.renderStreamMessage`, or a
+`<turbo-stream>` the page receives some other way — it reaches the editor it names:
+
+```ruby
+# the import job, when it is done
+Turbo::StreamsChannel.broadcast_stream_to(flow, content: ApplicationController.helpers.bali_bpmn_reload(target: "flow_#{flow.id}_bpmn"))
+```
+
+A long import can therefore answer at once, show the editor read-only with a notice while
+the job runs, and broadcast `bali_bpmn_reload(target:)` (or replace the editor) when it
+is done; the editor needs no «importing» state of its own.
+
 ### Events
 
 Dispatched on the component element, bubbling:
@@ -561,6 +649,8 @@ Dispatched on the component element, bubbling:
 | `bali-bpmn:open-reference` | `{ node_id, reference }` — cancelable |
 | `bali-bpmn:badges-change` | `{ visible }` — the person switched «Show badges» |
 | `bali-bpmn:compare-change` | `{ open, index, mode }` — the comparison opened, switched to another of `compare_with:` (`index`) or to another view (`mode`: `"side_by_side"` or `"overlay"`, the one drawn), or closed (`{ open: false, index, mode: null }`) — by the person («Compare», the comparison bar's picker, its views, its «×») or by `compare_open:` and `bali-bpmn:compare`. Nothing on load unless it opens there |
+| `bali-bpmn:exported` | `{ request_id, format, frame, svg \| png, width, height, comparison? }` — the answer to `bali-bpmn:export`, see [Exporting for the app](#exporting-for-the-app) |
+| `bali-bpmn:export-failed` | `{ request_id, message }` — a `bali-bpmn:export` that asked for what there is not (a `format` other than `"svg"` / `"png"`, a `frame` that is not a boolean, an empty `font_family`) or whose drawing failed |
 | `bali-bpmn:selection-change` | `{ node_id, reference, type, lane_id, lane_name }` — the person picked a node (a click, or Enter / Space on a focused node): its id, its `reference` (or `null`), its element type and its lane (`null`s outside one). `{ node_id: null, reference: null }` when they cleared it (a click on the empty canvas, Escape) |
 
 Listened for: `bali-bpmn:reload`, `bali-bpmn:reference-created`
@@ -572,9 +662,10 @@ no `badges-change` back), `bali-bpmn:compare` (`{ index, mode }` — opens the c
 against `compare_with[index]` in `mode` (`"side_by_side"`, `"overlay"` or `true` for the default
 view), switches either of them while it is open, or closes it with `{ mode: null }`; an omitted
 `index` or `mode` keeps the current one. A detail naming an index outside the list or an unknown
-mode is dropped. `compare-change` answers with what is drawn). Like the others, only when
+mode is dropped. `compare-change` answers with what is drawn), `bali-bpmn:export`
+(`{ request_id, format, frame, font_family }` — see [Exporting for the app](#exporting-for-the-app)). Like the others, only when
 dispatched on the component element. `bali_bpmn_event("compare", target:, index: 1, mode: "overlay")`
-sends it from a Turbo Stream. `select`, `badges` and `compare` sent after the editor's
+sends it from a Turbo Stream. `select`, `badges`, `compare` and `export` sent after the editor's
 controller connected but before the island listens (its bundle still loading, or the moment
 after its first paint) are kept and applied, in order, once it does, and only then is `ready`
 emitted — what the app sends on hearing it comes after them; one sent before the
@@ -620,6 +711,11 @@ report, and the app to decide:
 - **Minimal chrome**: the container gives the height; the editor fills it and fits again
   on every frame its size changes (no easing of its own, so an animated container never
   leaves it cut off). The page still scrolls over a read-only diagram: the wheel does not zoom it.
+- **«Expand»**: beside the zoom, a minimal-chrome editor offers browser full screen — for a
+  read-only panel too small to read; Esc or the same button bring it back, fitted again. It
+  shows only where the browser allows full screen (`document.fullscreenEnabled`): not in an
+  `<iframe>` without `allowfullscreen` — Lookbook's own frame, so open the preview on its own
+  URL — nor on an iPhone.
 - **Comparing from the app's own menu**: a `chrome: :minimal` editor has no «Compare» button.
   With `review: { compare_with: [...] }` the app opens the comparison on load
   (`compare_open: true`, `compare_index:`) or later from its own menu, dispatching
@@ -644,6 +740,59 @@ report, and the app to decide:
   shrinking column frame by frame.
 
 ---
+
+## Full page
+
+A screen whose whole purpose is the diagram — "edit the flow", "see version 1.0" — gets
+the window rather than a 640 px box among the page's content:
+
+It is `full_page:` and not `page:`, which already names the sheet the layout and the outputs
+are laid on.
+
+```erb
+<%= render Bali::BpmnEditor::Component.new(
+      data: FlowDiagram.new(@flow).to_h,
+      editable: policy(@flow).edit_diagram?,
+      urls: { save: flow_diagram_path(@flow), diagram: flow_diagram_path(@flow) },
+      full_page: { title: @flow.name, close_url: flow_path(@flow),
+                   status: { label: "Edit mode", color: :info } },
+      id: dom_id(@flow, :bpmn)) do |editor| %>
+  <% editor.with_action do %>
+    <%= render Bali::Button::Component.new(name: "Publish", variant: :primary, size: :sm) %>
+  <% end %>
+  <% if @flow.importing? %>
+    <% editor.with_notice do %>
+      <%= render Bali::Alert::Component.new(color: :info, size: :sm) { "Importing the BPMN file…" } %>
+    <% end %>
+  <% end %>
+<% end %>
+```
+
+- **The header is the server's**: «Exit» (a `Bali::Link` to `close_url:`), the title (the
+  page's `h1`), the status (a `Bali::Tag`), the save status and the host's actions, wrapping on a
+  narrow screen. Rendered in ERB rather than by the island so the slots take any markup and
+  component of the host, and «Exit» is a real link before the JavaScript arrives. The island
+  draws its save status into the header («Draft saved», «Saving…», «Could not save» — the notes'
+  own with `annotatable:`) and the top bar no longer shows it, nor `status_label` or «Read only».
+- **`status:`** is the host's word on the document — `"Read only"`, `{ label: "Locked", color:
+  :warning }`, `"Version 1.0"`; any `Bali::Tag` colour. Omitted, the document's `status_label`
+  is shown. The editor interprets no states: a read-only page is `editable: false` plus the
+  status that says so.
+- **«Exit» never loses work and never traps.** With nothing unsaved and no request out it is an
+  ordinary link (Turbo follows it). Otherwise it waits — the debounce skipped, the request in flight
+  answered, what was edited meanwhile sent — and then follows it; the link shows it is busy. If
+  a save fails (422, a network error), a dialog offers «Retry» and «Exit without saving»; closing
+  it stays on the page with the change still unsaved. A 409 met on the way reloads the server's
+  document and stays, with the conflict notice. «Exit» does not trigger the leave-with-unsaved-changes
+  guard of [Events](#events) a second time, and «Exit without saving» sends nothing more. A
+  Ctrl/⌘-click opens `close_url` in a new tab and leaves the editor alone.
+- **Height**: from the header's top edge to the bottom of the window (`100dvh`, at least 36rem),
+  both in a page of its own and inside an app layout, under its topbar — the edge is measured
+  and kept as what stands above it changes, as `Bali::SplitView` `height: :screen` does. Put
+  nothing below it. The editor inside keeps its own bars and fills the rest; the browser full
+  screen button stays.
+- **Not with `chrome: :minimal`** (ArgumentError). `with_notice` and `with_action` without
+  `full_page:` raise too.
 
 ## Editing
 
@@ -693,6 +842,8 @@ report, and the app to decide:
   nothing to let go of.
 - **Wheel**: zooms an editable canvas. Over a read-only diagram it scrolls the page, as
   anywhere else on it; the zoom bar and a pinch still zoom.
+- **Resize an activity**: the corner handle of the selected one, or «Size» in the
+  properties panel; «Auto» returns to the type's size — see [Node size](#node-size).
 - **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
 - **Orientation**: horizontal ↔ vertical lanes, keeping lanes and reading order.
 
@@ -793,7 +944,7 @@ wider than a column empty).
   `http://bpmn.io/schema/bpmn/biocolor/1.0`), which bpmn-js and Camunda Modeler read and
   write — they write both pairs too. The background is the tint the canvas paints. The
   namespaces are declared only when a node has a colour, so a document without one
-  exports as before; `badge` and `dimmed` are not exported — no interchange format has them. External lanes become
+  exports as before; `badge` and `dimmed` are not exported — no interchange format has them — and neither is a lane's `appearance`. External lanes become
   participants of their own (message flows are only valid between participants);
   a referenced sub-process becomes a `callActivity` whose `calledElement` is the
   reference's `id` — an `xsd:QName`, so an id that does not start with a letter or `_`
@@ -854,6 +1005,90 @@ wider than a column empty).
   its band, and a removed element whose old place is taken moves along the flow until
   both read. Side by side, each pane fits its own diagram, again when the editor resizes.
 
+### Exporting for the app
+
+An app that lays the flow in a document of its own (a PDF with its header and footer,
+built on the server) asks the editor for the drawing instead of downloading it — the
+editor is what lays out a document that arrives without coordinates. It works in
+`chrome: :minimal` and `:full`, editable or not:
+
+```js
+const editor = document.getElementById('flow_1_bpmn')
+editor.addEventListener('bali-bpmn:exported', (event) => {
+  const { request_id, svg, width, height } = event.detail
+  if (request_id === 'pdf-42') upload(svg, width, height) // the app's own code
+})
+editor.addEventListener('bali-bpmn:export-failed', (event) => console.error(event.detail.message))
+editor.dispatchEvent(new CustomEvent('bali-bpmn:export', {
+  detail: { request_id: 'pdf-42', format: 'svg', frame: false }
+}))
+```
+
+The request, `bali-bpmn:export` on the component element:
+
+| Key | Default | |
+|---|---|---|
+| `request_id` | `null` | Anything; returned as sent, so the app tells its answers apart |
+| `format` | `"svg"` | `"svg"` (the markup as a string) or `"png"` (a `data:image/png;base64,…` URL drawn at 2×, 1× for a diagram over 8000 px on a side, as «Download image») |
+| `frame` | `true` | `true`: what «Download SVG» draws — the `name:` as title, `status_label` under it, the `watermark:`, on the `page:` sheet when it fits. `false`: **the drawing alone at its own size**, no title, status label, watermark or sheet |
+| `font_family` | — | The CSS `font-family` the SVG declares, e.g. `"Inter, sans-serif"`. Without it, `system-ui, -apple-system, 'Segoe UI', sans-serif` |
+
+The answer, `bali-bpmn:exported` on the same element: `{ request_id, format, frame, svg,
+width, height }` (`png` and `scale` instead of `svg` for a PNG). `width` and `height`
+are the drawing's size in CSS pixels — the SVG's own `width` / `height`, and the PNG's
+size divided by `scale`. The drawing is the document as shown: the nodes' `appearance`
+(colour, fading) and their badges only while they are shown (the person's «Show badges», or
+`bali-bpmn:badges`). A request sent before the island listens is kept and answered once it
+does (after `bali-bpmn:ready`, since the drawing is asynchronous); one sent before the
+editor's controller connected is lost — wait for `ready`.
+
+**With the comparison open** (`compare_open:`, `bali-bpmn:compare`, «Compare»), the answer
+also carries `comparison`:
+
+```js
+comparison: {
+  label: 'Version 1', index: 0, mode: 'side_by_side',
+  before: { svg, width, height },   // the compared document, its removed elements marked
+  after:  { svg, width, height },   // this document, its added and changed elements marked
+  summary: { added: 3, removed: 1, changed: 2, moved: 1, text: '3 added · 1 removed · 2 changed (1 moved to another lane)' },
+  changes: [
+    { state: 'changed', mark: 'moved', label: 'Moved to another lane', kind: 'node', id: 't5',
+      type: 'send_task', name: 'Notify the requester', lane: 'Control desk', reasons: ['lane'],
+      detail: ['lane: Requester → Control desk'] },
+    …
+  ]
+}
+```
+
+Both sides are drawn whatever the view on screen (side by side or overlay), with the
+comparison's marks — the colour and the **+ − ✎ ⇄** chip, drawn as lines — on elements,
+lanes and connections; `frame: true` gives each the title, with «Before · label» and
+«Now» as its subtitle. `changes` is the summary panel's list, in its order and its words
+(the editor's locale): one row per lane and node, `lane` the node's lane in its own
+document (`null` for a lane), `mark` the chip (`moved` is a change of lane), `detail` what
+the list shows under the name. `summary` counts connections too, as the panel does, so
+its counts can exceed `changes.length`. The top-level `svg` is the document without marks.
+
+**prawn-svg.** The SVG is plain SVG 1.1: `<text>` (one per line), concrete colours (`#rrggbb`
+in attributes, `rgb()` in `style`), no `<foreignObject>`, no CSS, no `dominant-baseline`
+(each baseline is placed explicitly), arrowheads with `orient="auto"`. A host draws it
+with `pdf.svg(svg, width: …, enable_web_requests: false)`; `test/bali/components/bpmn_editor/prawn_svg_export_test.rb`
+does that with a sample. Fonts: prawn-svg takes the first family of the list it knows and
+falls back to `sans-serif` → Helvetica, a PDF standard font with no characters outside
+Windows-1252. To embed the host's own font, register it under the family the SVG
+declares — the default's first name, or the one passed in `font_family`:
+
+```ruby
+pdf.font_families.update("Inter" => { normal: "fonts/Inter-Regular.ttf",
+                                      semibold: "fonts/Inter-SemiBold.ttf",
+                                      bold: "fonts/Inter-Bold.ttf" })
+pdf.svg(svg, width: pdf.bounds.width, enable_web_requests: false) # svg from font_family: "Inter, sans-serif"
+```
+
+The drawing uses weights 400, 500, 600, 700 and 800; prawn-svg falls back to the nearest
+style the family has (with Helvetica, 500 and 600 print regular). Text is wrapped by
+character count, not measured, so a font of similar width keeps every label inside its shape.
+
 ---
 
 ## On a narrow screen
@@ -894,22 +1129,26 @@ is the maintainers' call, not a default here.
 | Preview | What it shows |
 |---|---|
 | `bali/bpmn_editor/playground` | The whole editor against the dummy's endpoints, every option a parameter: `sample` (invoice, empty, rework, parallel, partners, large), `orientation`, `palette`, `layout`, `page` (Letter, A4, Legal × landscape, portrait), `lock_orientation`, `external_lanes`, `autosave`, `optional_rules`, `rule_severity` (default, strict, relaxed: `rules:` with `enabled:`, `disabled:`, `severities:`, `messages:` and `options:`; structure: `rules: :structure`; off: `rules: false`), `server`, `theme`, `locale`, `name`, `watermark`, `fresh`. Each sample keeps its own record; `fresh` puts it back on every visit |
-| `bali/bpmn_editor/default` | Read-only viewer: no `editable:`, no `urls:`. `appearance` on: the app's colours, fading and badges on four elements, explained in the legend and carried into the outputs |
+| `bali/bpmn_editor/default` | Read-only viewer: no `editable:`, no `urls:`. `appearance` on: the app's colours, fading and badges on four elements and one lane (`Sin responsable`), explained in the legend and carried into the outputs |
 | `bali/bpmn_editor/split_view` | The «50/50» pattern in a collapsible `Bali::SplitView`: a map of processes in vertical lanes (`appearance:`, `chrome: :minimal`, `rules: :structure`, a colour legend), alone until a box is clicked, and then, sliding in beside it, the read-only flow behind that box (`chrome: :minimal`, `annotatable:`); «Close» or Esc return to the map. `?selected=b3` is a deep link (`selected_id:`, opened on load). The dummy's own Stimulus controller listens to `selection-change` (and shows the box's lane from it), takes `open-reference` over, swaps the right-hand editor and drives "Previous" / "Next" with `bali-bpmn:select`; a version picker swaps the document too, and the app's own «Compare» menu compares the flow against its previous version or another flow (`bali-bpmn:compare`, kept in step by `compare-change`); `?compare_open=true` opens it comparing |
 | `bali/bpmn_editor/compare_flows` | "Supplier onboarding" against "Customer onboarding" or "Employee onboarding" (`match: :name`) or its own previous version (`match: :id`), picked from links above the editor. `compare_open` / `compare_index` open it comparing on load; `chrome=minimal` draws it without the top bar, with the app's own menu (option and view) above it |
+| `bali/bpmn_editor/full_page` | `full_page:`: the header with «Exit», the title, the status, the save status, the app's actions (`actions`) and a notice above the canvas (`notice`). `mode` (edit, read only, locked, version) picks the status; `server`: `slow` makes «Exit» wait ~2 s for the save, `error` makes it offer «Retry» and «Exit without saving»; `autosave` off leaves «Exit» the last change to save |
+| `bali/bpmn_editor/host_export` | The app asking for the drawing (`bali-bpmn:export`): a `chrome: :minimal` flow with buttons for the SVG without frame, the PNG and the framed SVG, and a comparison open in the editor exported with both sides and its changes; each answer is shown under its editor (the images, and the summary as JSON). The buttons are the dummy's own Stimulus controller |
 | `bali/bpmn_editor/host_integration` | The app around the editor: a console of the `bali-bpmn:*` events, buttons answering through the Turbo Stream helpers, the read-only pattern (an alert above a locked editor), and two flows in `Bali::Tabs` marked while unsaved |
 | `bali/bpmn_editor/rules_gallery` | One rule at a time: a flow that breaks it (`example=failing`) or follows it (`passing`), with the issues panel open. `optional_rules` loads the optional rule package. The examples are `test/fixtures/bpmn_editor/rule_examples.json`, shared with the JS tests |
 | `bali/bpmn_editor/configured` | Palette with disabled items and notes; legend with added/removed entries |
 | `bali/bpmn_editor/review` | Review notes, comparison and the watermarked outputs; `editable` lets notes be added |
 | `bali/bpmn_editor/catalog` | Every palette element as its icon draws it and as the canvas does, with its name |
 | `bali/bpmn_editor/pair` | Two editors on one page: an event the app sends to one reaches that one only |
+| `bali/bpmn_editor/resized_activities` | Two activities with a size of their own and the rest «Auto»; `editable` (on its own record) offers the corner handle, «Size» and «Auto» in the properties panel; off, the read-only viewer draws the stored sizes |
 
 The samples are `test/fixtures/bpmn_editor/samples.json`, in English and Spanish, read by
 the dummy (`BpmnSampleFlows`) and by the JS layout tests alike.
 
 **Dummy-only switches.** The playground's `server` parameter adds `?server=` to the
 editor's URLs, and the dummy answers as a host in trouble would: `conflict` (409),
-`error` (422 with messages), `slow` (~2 s), `issues` (the server's own pending issues),
+`error` (422 with messages), `reject_save` (422 with messages and `issues`, one of them on
+an activity), `slow` (~2 s), `issues` (the server's own pending issues),
 `reject_finalize` (Finalize → 422 with issues) — `Admin::ProcessFlows::DemoServer`, for
 demonstration only. The optional rule package loads only where a preview asks for it: the
 dummy builds a second island bundle (`test/dummy/app/javascript/bpmn-editor-island-with-rules.js`,
@@ -918,4 +1157,5 @@ meta tags at it. The import drawer (`Admin::ProcessFlows::ImportsController`) do
 parse BPMN: it reloads the sample and answers `bali_bpmn_reload`.
 
 `/admin/process_flows/:id` in the dummy is the editor in a real layout, with the
-drawers of the extension points working.
+drawers of the extension points working; `/admin/process_flows/:id/edit` is the same flow with
+`full_page:`, under the layout's topbar and beside its side menu.
