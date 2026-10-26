@@ -5,6 +5,7 @@
 import { ReactIslandController } from '../../../frontend/bali/react-island'
 import { islandStrings } from './i18n.js'
 import { hostEventQueue } from './hostEventQueue.js'
+import { observeTopOffset } from '../../../assets/javascripts/bali/utils/top-offset.js'
 
 // The `rules` the island takes: false (Component `rules: false`, its own
 // value), a profile's name (`rules: :structure` arrives as { profile }), or
@@ -77,7 +78,8 @@ export class BpmnEditorController extends ReactIslandController {
 
   connect () {
     this.hostEvents = hostEventQueue(this.element)
-    if (this.fullPageValue) this.measurePageTop()
+    // `full_page:` fills the window below its own top edge (index.css).
+    if (this.fullPageValue) this.stopMeasuring = observeTopOffset(this.element, '--bali-bpmn-page-top')
     return super.connect()
   }
 
@@ -85,26 +87,6 @@ export class BpmnEditorController extends ReactIslandController {
     this.hostEvents.stop()
     if (this.stopMeasuring) this.stopMeasuring()
     super.disconnect()
-  }
-
-  // `full_page:` is as tall as the window below its own top edge (the
-  // component's `h-[calc(100dvh-var(--bali-bpmn-page-top))]`): inside an app
-  // layout, its topbar and padding stand above it. The edge's offset in the
-  // page, so scrolling does not move it while a banner above it, a resize or
-  // a font loading does — as Bali::SplitView `height: :screen` (screen.js).
-  measurePageTop () {
-    const measure = () => {
-      const top = `${Math.round(this.element.getBoundingClientRect().top + window.scrollY)}px`
-      if (this.element.style.getPropertyValue('--bali-bpmn-page-top') !== top) this.element.style.setProperty('--bali-bpmn-page-top', top)
-    }
-    const observer = window.ResizeObserver ? new window.ResizeObserver(measure) : null
-    if (observer) observer.observe(document.body)
-    window.addEventListener('resize', measure)
-    measure()
-    this.stopMeasuring = () => {
-      window.removeEventListener('resize', measure)
-      if (observer) observer.disconnect()
-    }
   }
 
   mountElement () {

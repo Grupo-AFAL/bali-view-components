@@ -8,7 +8,7 @@
      "locked" => { label: en ? "Locked: Ana García is editing" : "Bloqueado: Ana García lo está editando", color: :warning },
      "version" => { label: en ? "Version 1.0" : "Versión 1.0", color: :neutral }
    } %>
-<% editable = mode == "edit" %>
+<% editable = %w[edit document].include?(mode) %>
 <% path = admin_process_flow_diagram_path(flow, **demo) %>
 <% I18n.with_locale(locale) do %>
   <%= render Bali::BpmnEditor::Component.new(
@@ -20,7 +20,7 @@
         id: dom_id(flow, :bpmn),
         full_page: { title: en ? "Supplier payments" : "Pago a proveedores",
                      close_url: "/lookbook/preview/bali/bpmn_editor/default",
-                     status: statuses.fetch(mode) }) do |editor| %>
+                     status: statuses[mode] }) do |editor| %>
     <% if actions %>
       <% editor.with_action do %>
         <%= render Bali::Link::Component.new(name: en ? "History" : "Historial", href: "#history", variant: :ghost, size: :sm, icon: "clock") %>

@@ -154,7 +154,8 @@ export function createSaver (deps, { version = null, revision = 0 } = {}) {
   const flush = async () => {
     const gen = generation
     for (;;) {
-      for (let inFlight = pending; inFlight; inFlight = pending) await idle()
+      // `pending` is cleared by the request's own answer, while this awaits.
+      while (pending) await idle() // eslint-disable-line no-unmodified-loop-condition
       if (gen !== generation) return { ok: false, reset: true }
       if (d.latest().revision === savedRevision) return { ok: true }
       if (!await save()) return { ok: false, reset: gen !== generation }

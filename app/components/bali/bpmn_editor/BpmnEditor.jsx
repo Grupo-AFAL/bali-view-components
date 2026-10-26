@@ -28,7 +28,7 @@ import useSaver from './hooks/useSaver.js'
 import useHostEvents from './hooks/useHostEvents.js'
 import useKeyboard, { claimKeyboard } from './hooks/useKeyboard.js'
 import useExports from './hooks/useExports.js'
-import usePageExit, { PAGE_SAVE_STATUS_SELECTOR } from './hooks/usePageExit.js'
+import usePageExit, { PAGE_SAVE_STATUS_SELECTOR, PAGE_STATUS_SELECTOR } from './hooks/usePageExit.js'
 import { CanvasContext } from './canvas/CanvasContext.js'
 import FlowNode from './canvas/FlowNode.jsx'
 import LaneNode from './canvas/LaneNode.jsx'
@@ -212,7 +212,10 @@ function Editor ({
       refusedIssues.current = null
       setState((s) => (replace ? history.adopt(s, serverDoc) : history.adopt(s, { ...s.present, issues: serverDoc.issues, version: serverDoc.version })))
     }, []),
-    onReset: useCallback((serverDoc) => setState((s) => history.reset(s, serverDoc)), []),
+    onReset: useCallback((serverDoc) => {
+      refusedIssues.current = null
+      setState((s) => history.reset(s, serverDoc))
+    }, []),
     // A save the server refused with `issues`: marked like a finalize's, the
     // change still unsaved.
     onIssues: useCallback((serverIssues) => {
@@ -765,11 +768,18 @@ function Editor ({
   useKeyboard(wrapperRef, onKeyDown, onKeyUp)
 
   // ── full page (Component `full_page:`) ─────────────────────────────────
-  // The server draws the page header around the island (title, «Exit», the
-  // status, the host's actions); the editor fills the rest of the window and
-  // draws its save status into that header.
   const pageExit = usePageExit(hostElement, { enabled: fullPage, saver })
   const saveStatusSlot = useMemo(() => (fullPage && hostElement ? hostElement.querySelector(PAGE_SAVE_STATUS_SELECTOR) : null), [fullPage, hostElement])
+  // The server's badge stands in until the island mounts; a portal would only
+  // add beside it, so the slot gets one empty child of the island's own.
+  const [statusSlot, setStatusSlot] = useState(null)
+  useLayoutEffect(() => {
+    const slot = fullPage && hostElement ? hostElement.querySelector(PAGE_STATUS_SELECTOR) : null
+    if (!slot) return
+    const own = document.createElement('span')
+    slot.replaceChildren(own)
+    setStatusSlot(own)
+  }, [fullPage, hostElement])
 
   // ── fullscreen ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -1070,7 +1080,7 @@ function Editor ({
             exports={exports}
             onCompare={compare ? () => setComparison((c) => ({ ...c, mode: c.mode ? null : DEFAULT_COMPARE_MODE })) : null}
             comparing={comparing}
-            pageHeader={fullPage}
+            pageHeader={fullPage && !fullscreen}
           />
         )}
         {compareShown && (
@@ -1253,7 +1263,9 @@ function Editor ({
             <p className='text-sm'>{t('exit_failed_body')}</p>
           </Dialog>
         )}
-        {saveStatusSlot && (editable || notesOnly) && createPortal(<SaveStatus t={t} saveStatus={saver.status} notesOnly={notesOnly} />, saveStatusSlot)}
+        {/* In the browser's full screen the header is off screen: the top bar shows both instead. */}
+        {saveStatusSlot && !fullscreen && (editable || notesOnly) && createPortal(<SaveStatus t={t} saveStatus={saver.status} notesOnly={notesOnly} />, saveStatusSlot)}
+        {statusSlot && !fullscreen && doc.status_label && createPortal(<span className='badge tag-component badge-sm' data-testid='bpmn-page-status'>{doc.status_label}</span>, statusSlot)}
         {pendingDelete && (
           <Dialog
             t={t} title={t('confirm_linked_delete_title')} icon='trash' testId='bpmn-confirm-delete' onClose={() => setPendingDelete(null)}

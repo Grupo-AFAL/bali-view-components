@@ -23,7 +23,7 @@
 }
 
 .bali-bpmn-page-actions {
-  @apply ml-auto flex flex-wrap items-center gap-2;
+  @apply ms-auto flex flex-wrap items-center gap-2;
 }
 
 .bali-bpmn-page-notices {

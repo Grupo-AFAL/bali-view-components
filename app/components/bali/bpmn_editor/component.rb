@@ -62,13 +62,13 @@ module Bali
       EXTERNAL_LEGEND = %w[external_lane external_task].freeze
       FULL_PAGE_KEYS = %i[title close_url status].freeze
       PAGE_STATUS_KEYS = %i[label color].freeze
-      # The header's hooks the island reads. Mirror PAGE_EXIT_SELECTOR and
-      # PAGE_SAVE_STATUS_SELECTOR in hooks/usePageExit.js (contract_test.rb).
+      # The header's hooks the island reads. Mirror PAGE_EXIT_SELECTOR,
+      # PAGE_SAVE_STATUS_SELECTOR and PAGE_STATUS_SELECTOR in
+      # hooks/usePageExit.js (contract_test.rb).
       PAGE_EXIT_ATTRIBUTE = "data-bpmn-page-exit"
       PAGE_SAVE_STATUS_ATTRIBUTE = "data-bpmn-page-save-status"
+      PAGE_STATUS_ATTRIBUTE = "data-bpmn-page-status"
 
-      # `full_page:` only: what the host has to say above the canvas
-      # (a Bali::Alert, say), and its own controls in the header.
       renders_many :notices
       renders_many :actions
 
@@ -210,10 +210,9 @@ module Bali
 
       def page_close_url = @full_page[:close_url]
 
-      # The host's word on the document, or the document's own `status_label`.
-      def page_status
-        @full_page[:status] || data.to_h[:status_label].presence&.then { |label| { label: label.to_s, color: nil } }
-      end
+      def host_status? = !@full_page[:status].nil?
+
+      def page_status = @full_page[:status]
 
       def island_i18n
         @island_i18n ||= @i18n || Translations.island(locale: @locale)

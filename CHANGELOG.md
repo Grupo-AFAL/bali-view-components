@@ -12,11 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::BpmnEditor`: modo página completa, `full_page: { title:, close_url:, status: }`.** El
   editor ocupa el alto de la ventana (`100dvh`), dentro del layout de la app o en una página sola,
   con un encabezado: «Salir», título, estatus (`Bali::Tag`; si se omite, el `status_label` del
-  documento), estado del guardado y las acciones del host (`with_action`), más avisos sobre el
+  documento, que se mantiene al día al finalizar, con un 409 o al recargar), estado del guardado y las acciones del host (`with_action`), más avisos sobre el
   lienzo (`with_notice`). «Salir» espera el guardado pendiente; si falla ofrece «Reintentar» o
   «Salir sin guardar», y si un 409 reemplaza el documento se queda en la página con el aviso de
-  conflicto. Se llama `full_page:` porque `page:` ya es la hoja del layout y de la impresión.
-  Claves desconocidas, un `close_url` no navegable, un color inválido, `chrome: :minimal`, o
+  conflicto. Claves desconocidas, un `close_url` no navegable, un color inválido, `chrome: :minimal`, o
   `with_notice`/`with_action` sin `full_page:` lanzan `ArgumentError`.
 - **`Bali::BpmnEditor`: cambiar el tamaño de las actividades.** Tareas y subprocesos se
   redimensionan desde la esquina o con «Tamaño» en el panel; «Auto» guarda `width`/`height` en
@@ -47,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **`Bali::BpmnEditor`: el SVG exportado es compatible con prawn-svg.** Los colores salen en hex:
+- **`Bali::BpmnEditor`: el SVG exportado es compatible con prawn-svg.** Los colores salen en hex o `rgb()`:
   antes salían en `oklch()`/`oklab()`, que prawn-svg pinta negros. Ya no usa `dominant-baseline`,
   escribe un `<text>` por línea y las flechas usan `orient="auto"`. En el navegador se ve igual.
 - **Docs del contrato de `Bali::BpmnEditor`:** los ids que crea la isla no cambian nunca; si el

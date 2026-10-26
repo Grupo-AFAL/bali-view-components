@@ -8,14 +8,23 @@
   <%= i18n_table_tag %>
   <% if full_page? %>
     <%# `full_page:`. The header is the server's, so the host's actions are
-        its own markup; the island draws the save status into its slot and
+        its own markup; the island draws the save status (and the document's
+        status, unless the host gave its own) into their slots and
         holds «Exit» until the save is in (hooks/usePageExit.js). %>
     <header class="bali-bpmn-page-header">
       <%= render Bali::Link::Component.new(href: page_close_url, name: t(".exit", locale: @locale), icon: "arrow-left",
                                            variant: :ghost, size: :sm, data: { bpmn_page_exit: "" }) %>
       <h1 class="bali-bpmn-page-title"><%= page_title %></h1>
-      <% if (status = page_status) %>
-        <%= render Bali::Tag::Component.new(text: status[:label], color: status[:color], size: :sm) %>
+      <% if host_status? %>
+        <%= render Bali::Tag::Component.new(text: page_status[:label], color: page_status[:color], size: :sm) %>
+      <% else %>
+        <%# The document's own `status_label`, which a finalize, a 409 or a
+            reload changes: the island takes this slot over once it mounts. %>
+        <%= tag.span(data: { bpmn_page_status: "" }) do %>
+          <% if (label = data.to_h[:status_label].presence) %>
+            <%= render Bali::Tag::Component.new(text: label.to_s, size: :sm) %>
+          <% end %>
+        <% end %>
       <% end %>
       <%= tag.span(data: { bpmn_page_save_status: "" }) %>
       <% if actions? %>

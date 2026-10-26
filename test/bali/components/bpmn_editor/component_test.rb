@@ -555,16 +555,20 @@ class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
     assert_selector(".bali-bpmn-editor-mount .bali-bpmn-editor-skeleton.h-full")
   end
 
+  # Without the host's word the document's own `status_label` stands in the
+  # island's slot, which keeps it current after a finalize, a 409 or a reload.
   def test_the_page_status_is_a_label_or_falls_back_to_the_documents_own
     render_inline(Bali::BpmnEditor::Component.new(data: payload.merge(status_label: "Draft v0.3"), full_page: full_page))
-    assert_selector("header .tag-component", text: "Draft v0.3")
+    assert_selector("header [data-bpmn-page-status] .tag-component", text: "Draft v0.3")
 
     render_inline(Bali::BpmnEditor::Component.new(data: payload.merge(status_label: "Draft v0.3"), full_page: full_page(status: "Locked")))
     assert_selector("header .tag-component", text: "Locked")
+    refute_selector("header [data-bpmn-page-status]", visible: :all)
     refute_text "Draft v0.3"
 
     render_inline(editor(full_page: full_page))
     refute_selector("header .tag-component")
+    assert_selector("header [data-bpmn-page-status]", visible: :all)
   end
 
   def test_the_exit_label_is_translated

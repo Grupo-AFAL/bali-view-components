@@ -186,11 +186,13 @@ module Bali
       # late (`slow`: «Exit» waits ~2 s for the save) or refuse the save
       # (`error`: «Exit» offers «Retry» or «Exit without saving») —
       # demonstration only (Admin::ProcessFlows::DemoServer). `mode` picks the
-      # status the app shows; the ones that are not «Edit mode» are read-only.
+      # status the app shows; the ones that are not «Edit mode» are read-only,
+      # and `document` shows none of the app's: the document's own
+      # `status_label`, which «Finalizar» changes.
       # Inside an app layout, with its side menu and topbar:
       # `/admin/process_flows/:id/edit` in the dummy.
       # docs/api/bpmn-editor.md#full-page
-      # @param mode select { choices: [edit, read_only, locked, version] }
+      # @param mode select { choices: [edit, read_only, locked, version, document] }
       # @param server select "How the dummy server answers (demonstration only)" { choices: [normal, slow, error] }
       # @param notice toggle "A notice from the app above the canvas"
       # @param actions toggle "The app's own actions in the header"

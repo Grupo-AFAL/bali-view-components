@@ -64,6 +64,23 @@ describe('a save the server refuses with issues', () => {
     cy.wait('@other')
     cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible').and('contain', 'Otra observación del servidor')
   })
+
+  it('opens the panel again after a reload, though the issues are the same', () => {
+    cy.intercept('PUT', DIAGRAM).as('save')
+    cy.visit(`${EDITABLE}?server=reject_save`)
+    cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
+    placeTask()
+    cy.wait('@save').its('response.statusCode').should('eq', 422)
+    cy.get('[data-testid="bpmn-pending-panel"]').find('button[aria-label^="Cerrar"]').first().click()
+    cy.get('[data-testid="bpmn-pending-panel"]').should('not.exist')
+
+    cy.intercept('GET', DIAGRAM).as('fetch')
+    cy.get('[data-controller="bpmn-editor"]').then(($host) => { $host[0].dispatchEvent(new CustomEvent('bali-bpmn:reload')) })
+    cy.wait('@fetch')
+    placeTask()
+    cy.wait('@save').its('response.statusCode').should('eq', 422)
+    cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible')
+  })
 })
 
 describe('bali_bpmn_reload as a broadcast', () => {

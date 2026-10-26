@@ -120,7 +120,7 @@ authorize every endpoint on the server anyway.
 | `min_zoom:` | `0.4` | The floor of "Center the flow" and of the first view, `0.05..1`. Below it a large diagram scrolls instead of shrinking; a small embedded one may rather be whole (e.g. `0.2`) |
 | `annotatable:` | `false` | With `editable: false` and `urls[:annotations]`: the diagram stays read-only but review notes can be added, edited and deleted, and are saved on their own — see [The save contract](#the-save-contract). Without that URL, or while editing, it has no effect |
 | `badges:` | `true` | Whether the lanes' and nodes' `appearance.badge` show on load. Only the badge: the colour and the fading stay. The exports (SVG, PNG, print) and the nodes' accessible names follow what is shown. The app changes it later with `bali-bpmn:badges` |
-| `badge_toggle:` | `true` | Offer «Show badges» (`badges_toggle`, replaceable with `i18n:`), the switch that shows and hides them: in the view toolbar, or beside the zoom with `chrome: :minimal`. Only when a node of the document shown has a badge — re-read when the document changes. A String is the switch's own label (`"Show status"`, at most 32 characters): its text, its accessible name, and its title when a narrow canvas shows only the switch. `false` leaves the state to the app |
+| `badge_toggle:` | `true` | Offer «Show badges» (`badges_toggle`, replaceable with `i18n:`), the switch that shows and hides them: in the view toolbar, or beside the zoom with `chrome: :minimal`. Only when a node or lane of the document shown has a badge — re-read when the document changes. A String is the switch's own label (`"Show status"`, at most 32 characters): its text, its accessible name, and its title when a narrow canvas shows only the switch. `false` leaves the state to the app |
 | `wheel_zoom:` | `:auto` | What the mouse wheel does on the canvas. `:auto`: it zooms an editable diagram, a `chrome: :minimal` one (the host sized its container for it), a `full_page:` one, full screen and the comparison; a read-only diagram among the page's content scrolls the page instead, and Ctrl + wheel (⌘ + wheel on a Mac) zooms, with a brief «Use Ctrl + scroll to zoom» over it. `true`: the wheel always zooms — a page that gives a read-only editor a box of its own (two editors side by side, a fixed height) says so. `false`: never; the zoom buttons only, not even the pinch. A trackpad pinch zooms in every other case |
 | `i18n:` | `Translations.island` | Flat string table; Spanish and English ship with the gem, in the locale the component is built in. It travels once per render, not once per editor — see [The strings table](#the-strings-table) |
 | `id:` | generated | DOM id. The host's stream answers target it; generated (`bpmn-editor-<hex>`) when omitted, so two editors on one page never share one |
@@ -315,7 +315,7 @@ whole document.**
   answers with other ids, those are the ones from then on.
 - Undo and redo work on the client; each step is just one more `PUT`. The version
   travels apart from the document, so undoing never sends an old version.
-- `diagram` omits `issues`, `stencil` and every node's `appearance`; the server writes them.
+- `diagram` omits `issues`, `stencil` and every node's and lane's `appearance`; the server writes them.
 - A finalize that fails still saved the draft, so its 422 carries the new `version`;
   without it the next save would answer 409. The status says the draft is saved (or
   unsaved, if it was edited while the request was out).
@@ -762,7 +762,7 @@ are laid on.
   <% end %>
   <% if @flow.importing? %>
     <% editor.with_notice do %>
-      <%= render Bali::Alert::Component.new(color: :info, size: :sm) { "Importing the BPMN file…" } %>
+      <%= render Bali::Alert::Component.new(color: :info, size: :sm) do %>Importing the BPMN file…<% end %>
     <% end %>
   <% end %>
 <% end %>
@@ -776,8 +776,9 @@ are laid on.
   own with `annotatable:`) and the top bar no longer shows it, nor `status_label` or «Read only».
 - **`status:`** is the host's word on the document — `"Read only"`, `{ label: "Locked", color:
   :warning }`, `"Version 1.0"`; any `Bali::Tag` colour. Omitted, the document's `status_label`
-  is shown. The editor interprets no states: a read-only page is `editable: false` plus the
-  status that says so.
+  is shown and kept current: a finalize, a 409 or a reload that changes it changes the header.
+  The editor interprets no states: a read-only page is `editable: false` plus the status that
+  says so.
 - **«Exit» never loses work and never traps.** With nothing unsaved and no request out it is an
   ordinary link (Turbo follows it). Otherwise it waits — the debounce skipped, the request in flight
   answered, what was edited meanwhile sent — and then follows it; the link shows it is busy. If
@@ -790,7 +791,8 @@ are laid on.
   both in a page of its own and inside an app layout, under its topbar — the edge is measured
   and kept as what stands above it changes, as `Bali::SplitView` `height: :screen` does. Put
   nothing below it. The editor inside keeps its own bars and fills the rest; the browser full
-  screen button stays.
+  screen button stays, and in full screen, with the header out of sight, the top bar shows the
+  save status and `status_label` again.
 - **Not with `chrome: :minimal`** (ArgumentError). `with_notice` and `with_action` without
   `full_page:` raise too.
 
@@ -1036,7 +1038,7 @@ The request, `bali-bpmn:export` on the component element:
 The answer, `bali-bpmn:exported` on the same element: `{ request_id, format, frame, svg,
 width, height }` (`png` and `scale` instead of `svg` for a PNG). `width` and `height`
 are the drawing's size in CSS pixels — the SVG's own `width` / `height`, and the PNG's
-size divided by `scale`. The drawing is the document as shown: the nodes' `appearance`
+size divided by `scale`. The drawing is the document as shown: the nodes' and lanes' `appearance`
 (colour, fading) and their badges only while they are shown (the person's «Show badges», or
 `bali-bpmn:badges`). A request sent before the island listens is kept and answered once it
 does (after `bali-bpmn:ready`, since the drawing is asynchronous); one sent before the

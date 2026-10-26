@@ -3,6 +3,8 @@ import { remoteSearch } from './remoteSearch.js'
 
 // One host-defined field (`fields:` of the component). Options are local
 // (`options: [{ value, label }]`) or remote (`url`, queried with ?q=).
+// `maxlength` reaches the text and textarea inputs, `min`/`max` the number
+// one: mirror Component MAXLENGTH_TYPES / RANGE_TYPES (contract_test.rb).
 export default function FieldInput ({ field, value, onChange, disabled, t }) {
   const [remote, setRemote] = useState(null)
   const [failed, setFailed] = useState(false)

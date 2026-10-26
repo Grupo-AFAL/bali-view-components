@@ -10,7 +10,7 @@ import { resolveColors, renderSvg, download, downloadPng, printSvg, fileName, sv
 // rejected promise nothing else would catch.
 // `forHost` answers `bali-bpmn:export` (model/exportRequest.js): the same
 // drawing, returned instead of downloaded.
-export default function useExports ({ doc, name, watermark, tags, page, wrapperRef, badges = true, onError = null, t = null }) {
+export default function useExports ({ doc, name, watermark, tags, page, wrapperRef, badges = true, onError = null, t }) {
   const onErrorRef = useRef(onError)
   onErrorRef.current = onError
   const exportSvg = useCallback(() => {
@@ -48,7 +48,7 @@ export default function useExports ({ doc, name, watermark, tags, page, wrapperR
         label: label || null,
         index,
         mode,
-        before: await drawing({ doc: base, diff: diff.base }, `${t('compare_base')} · ${label || ''}`),
+        before: await drawing({ doc: base, diff: diff.base }, label ? `${t('compare_base')} · ${label}` : t('compare_base')),
         after: await drawing({ doc, diff: diff.current }, t('compare_current')),
         summary: { ...diff.summary, text: summaryText(t, diff.summary) },
         changes: changeRows(base, doc, diff, t)

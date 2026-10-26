@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 // The attributes Bali::BpmnEditor::Component writes on the header of
-// `full_page:` (component.html.erb): «Exit», and the slot the save status is
-// drawn into. Mirror PAGE_EXIT_ATTRIBUTE and PAGE_SAVE_STATUS_ATTRIBUTE
-// (contract_test.rb).
+// `full_page:` (component.html.erb): «Exit», and the slots the save status and
+// the document's status are drawn into. Mirror PAGE_EXIT_ATTRIBUTE,
+// PAGE_SAVE_STATUS_ATTRIBUTE and PAGE_STATUS_ATTRIBUTE (contract_test.rb).
 export const PAGE_EXIT_SELECTOR = '[data-bpmn-page-exit]'
 export const PAGE_SAVE_STATUS_SELECTOR = '[data-bpmn-page-save-status]'
+export const PAGE_STATUS_SELECTOR = '[data-bpmn-page-status]'
 
 const plainClick = (event) => event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
 
@@ -56,6 +57,24 @@ export default function usePageExit (hostElement, { enabled, saver }) {
     hostElement.addEventListener('click', onClick)
     return () => hostElement.removeEventListener('click', onClick)
   }, [enabled, hostElement, exit])
+
+  // A visit that does not happen — a host's `turbo:before-visit` cancels it,
+  // or its request fails — leaves the person here: the leave guards and the
+  // unmount's send are theirs again. On window, after the document's
+  // listeners have had their say.
+  useEffect(() => {
+    if (!enabled) return
+    const stayed = (event) => {
+      if (event.type === 'turbo:before-visit' && !event.defaultPrevented) return
+      saverRef.current.markLeaving(null)
+    }
+    window.addEventListener('turbo:before-visit', stayed)
+    window.addEventListener('turbo:fetch-request-error', stayed)
+    return () => {
+      window.removeEventListener('turbo:before-visit', stayed)
+      window.removeEventListener('turbo:fetch-request-error', stayed)
+    }
+  }, [enabled])
 
   return {
     failed: Boolean(failed),

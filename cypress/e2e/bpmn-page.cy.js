@@ -37,6 +37,50 @@ describe('BPMN editor full page', () => {
     })
   })
 
+  it('keeps the document\'s own status current when the app gives none', () => {
+    visitPage('?mode=document')
+    cy.get('header .tag-component').should('have.text', 'Borrador v1')
+    cy.intercept({ method: 'GET', url: /\/diagram(\?.*)?$/ }, (req) => {
+      req.continue((res) => { res.body = { ...res.body, status_label: 'Finalizado v1' } })
+    }).as('fetch')
+    cy.get('[data-controller="bpmn-editor"]').then(($host) => { $host[0].dispatchEvent(new CustomEvent('bali-bpmn:reload')) })
+    cy.wait('@fetch')
+    cy.get('header .tag-component').should('have.length', 1).and('have.text', 'Finalizado v1')
+  })
+
+  it('shows the save status in the top bar while the editor is in full screen', () => {
+    cy.visit(PAGE, { onBeforeLoad: (win) => fakeFullscreen(win) })
+    cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
+    cy.contains('button', 'Pantalla completa').click()
+    cy.get('.bpmn-chrome [data-testid="bpmn-save-status"]').should('contain', 'Borrador guardado')
+    cy.get('[data-testid="bpmn-save-status"]').should('have.length', 1)
+    cy.contains('button', 'Salir de pantalla completa').click()
+    cy.get('header [data-bpmn-page-save-status] [data-testid="bpmn-save-status"]').should('exist')
+    cy.get('.bpmn-chrome [data-testid="bpmn-save-status"]').should('not.exist')
+  })
+
+  // The app cancels the visit «Exit» starts: the person stays, and leaving
+  // with a later change asks again.
+  it('a visit the app cancels gives the leave guard back', () => {
+    cy.intercept(SAVE).as('save')
+    visitPage('?autosave=false')
+    cy.document().then((doc) => { doc.addEventListener('turbo:before-visit', (event) => event.preventDefault(), { once: true }) })
+    edit('Saved procedure')
+    cy.get('header [data-bpmn-page-exit]').click()
+    cy.wait('@save')
+    cy.location('pathname').should('include', '/full_page')
+    cy.contains('.react-flow__node-bpmn', 'Saved procedure').invoke('attr', 'data-id').then((nodeId) => {
+      cy.get('[data-controller="bpmn-editor"]').then(($host) => {
+        $host[0].dispatchEvent(new CustomEvent('bali-bpmn:reference-created', {
+          bubbles: true, detail: { client_node_id: nodeId, reference: { id: '7', label: 'Later procedure' } }
+        }))
+      })
+    })
+    cy.contains('.react-flow__node-bpmn', 'Later procedure').should('exist')
+    cy.window().then((win) => { win.Turbo.visit(CLOSE) })
+    cy.get('@confirm').should('have.been.calledOnce')
+  })
+
   it('«Exit» waits for the pending save, then leaves', () => {
     let answeredAt = null
     cy.intercept(SAVE, (request) => {
