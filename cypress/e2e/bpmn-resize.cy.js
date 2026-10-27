@@ -17,14 +17,22 @@ const lastSaved = (name, check) => cy.get('@save.all').should((calls) => {
 // xyflow's resizer is a d3-drag: it starts on the handle's mousedown, reads
 // the event's `view`, and follows mousemove/mouseup on that window — which
 // events on the body reach; triggered on cy.window() they never did.
+// One event per frame, as a mouse sends them: back to back, React Flow's node
+// observer delivered the first move's size while React committed the
+// release's, and Chrome reported a «ResizeObserver loop» — 10 runs in 40 here,
+// failing CI; 0 in 30 a frame apart.
+const nextFrame = () => cy.window().then((win) => new Cypress.Promise((resolve) => win.requestAnimationFrame(() => win.requestAnimationFrame(resolve))))
 const dragHandle = (dx, dy) => {
   cy.get('.bpmn-node-resize').then(($handle) => {
     const view = $handle[0].ownerDocument.defaultView
     const box = $handle[0].getBoundingClientRect()
     const at = (x, y) => ({ eventConstructor: 'MouseEvent', view, button: 0, buttons: 1, clientX: box.left + box.width / 2 + x, clientY: box.top + box.height / 2 + y })
     cy.wrap($handle).trigger('mousedown', at(0, 0))
+    nextFrame()
     cy.get('body').trigger('mousemove', at(dx / 2, dy / 2))
+    nextFrame()
     cy.get('body').trigger('mousemove', at(dx, dy))
+    nextFrame()
     cy.get('body').trigger('mouseup', at(dx, dy))
   })
 }
