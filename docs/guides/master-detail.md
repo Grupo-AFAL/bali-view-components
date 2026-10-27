@@ -152,7 +152,10 @@ give each pane the whole height the same way `:full` does:
   kept right by a small controller (`split-view-screen`) as a resize or a banner
   above it moves it. `dvh` follows a phone browser's bars. It never goes below
   `--bali-split-min-h` (28rem by default), so a short window scrolls the page
-  instead of squeezing the panes.
+  instead of squeezing the panes. A page that keeps room below the split — its
+  own bottom padding — says how much with `--bali-split-bottom` (0 by default),
+  set once in the layout's CSS: `calc(100dvh - <top> - var(--bali-split-bottom))`,
+  so the split ends where the padding starts and the page does not scroll.
 - **A CSS length** — `height: "640px"`, `"40rem"`, `"70vh"` — is a fixed height.
   Validated like `master_width:`: one number and one unit.
 

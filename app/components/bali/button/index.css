@@ -21,3 +21,14 @@
     --btn-rest-fg: --theme(--soft-ink-error);
   }
 }
+
+/* `.is-icon-only` (daisyui-overrides.css draws the square): the label leaves the view but not
+ * the accessible name, so the button keeps it without an `aria-label`. */
+.btn.is-icon-only > .btn-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

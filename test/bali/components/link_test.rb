@@ -238,6 +238,14 @@ class BaliLinkComponentTest < ComponentTestCase
     assert_no_selector("a[aria-label]")
   end
 
+  def test_a_button_styled_link_with_an_icon_puts_the_name_in_btn_label
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary, icon: "plus", responsive: false))
+    assert_selector("a > span.btn-label", exact_text: "New")
+
+    render_inline(Bali::Link::Component.new(name: "New", href: "#", icon: "plus"))
+    assert_no_selector("a span.btn-label")
+  end
+
   def test_responsive_without_icon_does_not_add_btn_square
     render_inline(Bali::Link::Component.new(name: "New", href: "#", variant: :primary))
     assert_no_selector("a.max-sm\\:btn-square")

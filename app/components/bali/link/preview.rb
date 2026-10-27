@@ -32,13 +32,16 @@ module Bali
       # ---------------
       # Link with an icon on the left using the `icon:` parameter.
       # When `responsive: true` (default), the label hides on mobile and the button becomes
-      # a square icon-only button using DaisyUI's `max-sm:btn-square`.
+      # a square icon-only button using DaisyUI's `max-sm:btn-square`. `icon_only` adds the
+      # `is-icon-only` class, the same square at any width — what an app toggles at runtime.
       # @param variant [Symbol] select [primary, secondary, accent, info, success, warning, error, ghost, link]
       # @param size [Symbol] select [xs, sm, md, lg, xl]
       # @param responsive toggle
-      def with_icon(variant: :primary, size: :md, responsive: true)
+      # @param icon_only toggle "The is-icon-only class"
+      def with_icon(variant: :primary, size: :md, responsive: true, icon_only: false)
         render Bali::Link::Component.new(
-          name: 'Click me!', href: '#', icon: 'book', variant: variant, size: size, responsive: responsive
+          name: 'Click me!', href: '#', icon: 'book', variant: variant, size: size, responsive: responsive,
+          class: ('is-icon-only' if icon_only.to_s == 'true')
         )
       end
 

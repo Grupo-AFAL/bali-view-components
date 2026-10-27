@@ -269,9 +269,10 @@
   /* `height: :screen`: from the split's top edge to the bottom of the
      viewport. `--bali-split-top` is the edge's offset in the page, written by
      split-view-screen (screen.js) and kept right as what is above it changes;
-     `dvh` follows a phone browser's bars. */
+     `dvh` follows a phone browser's bars. `--bali-split-bottom` is the host's:
+     what it keeps below the split (its page's bottom padding), 0 when unset. */
   .split-view-component--full.split-view-component--screen {
-    height: calc(100dvh - var(--bali-split-top, 0px));
+    height: calc(100dvh - var(--bali-split-top, 0px) - var(--bali-split-bottom, 0px));
     min-height: var(--bali-split-min-h, 28rem);
   }
 

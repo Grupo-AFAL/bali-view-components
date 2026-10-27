@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::Button` / `Bali::Link`: `.is-icon-only`.** Con `icon:` y `name:`, el nombre va en
+  `<span class="btn-label">`; la clase `is-icon-only` en el botón (con `class:` o puesta por el
+  JS del host) lo deja cuadrado y saca el rótulo de la vista en cualquier ancho, sin perder el
+  nombre accesible. Reemplaza esconder el `span.max-sm:hidden` interno.
+- **`Bali::SplitView` `height: :screen`: `--bali-split-bottom`** (0 por omisión) se resta del
+  alto: el espacio que la página deja debajo (su padding inferior). Reemplaza sobrescribir
+  `.split-view-component--screen`.
 - **`Bali::BpmnEditor`: `bordered: false`** quita el marco propio del editor (borde, esquinas
   redondeadas y sombra), también del placeholder mientras carga, para un editor dentro de un
   contenedor que ya dibuja el marco. Vale con `chrome: :full` y `:minimal`; el fondo se queda.

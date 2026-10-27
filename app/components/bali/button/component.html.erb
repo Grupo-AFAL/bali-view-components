@@ -7,8 +7,8 @@
     <%= render Bali::Icon::Component.new(@icon) %>
   <% end %>
 
-  <% if responsive_icon_only? && @name.present? %>
-    <span class="max-sm:hidden"><%= @name %></span>
+  <% if labelled_icon? %>
+    <%= tag.span(@name, class: class_names("btn-label", "max-sm:hidden" => responsive_icon_only?)) %>
   <% elsif @name.present? %>
     <%= @name %>
   <% else %>

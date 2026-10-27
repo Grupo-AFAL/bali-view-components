@@ -251,6 +251,17 @@ describe('SplitView height and width options', () => {
     sameWidths()
   })
 
+  // The host's room below the split (its page's bottom padding), set once on
+  // the page and inherited.
+  it('stops --bali-split-bottom above the bottom of the viewport with :screen', () => {
+    cy.visit('/bali/split_view/collapsible?height=screen')
+    cy.document().then((doc) => doc.documentElement.style.setProperty('--bali-split-bottom', '24px'))
+    cy.window().should((win) => {
+      const bottom = win.document.querySelector('.split-view-component').getBoundingClientRect().bottom
+      expect(bottom, 'bottom').to.be.closeTo(win.innerHeight - 24, 2)
+    })
+  })
+
   it('fills to the bottom of the viewport with :screen, and follows a resize', () => {
     cy.visit('/bali/split_view/collapsible?height=screen')
     cy.window().then((win) => {

@@ -87,6 +87,10 @@ module Bali
       end
 
       def responsive_icon_only? = @responsive && @icon.present?
+
+      # An icon and a name: the name goes in `.btn-label`, which `.is-icon-only`
+      # hides from view (index.css).
+      def labelled_icon? = (@icon.present? || icon?) && @name.present?
     end
   end
 end
