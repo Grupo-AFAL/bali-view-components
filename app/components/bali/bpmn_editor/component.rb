@@ -39,7 +39,10 @@ module Bali
       # chrome/FieldInput.jsx reads both (contract_test.rb).
       MAXLENGTH_TYPES = %w[text textarea].freeze
       RANGE_TYPES = %w[number].freeze
-      REVIEW_KEYS = %i[tags compare_with].freeze
+      REVIEW_KEYS = %i[tags compare_with compare_bar].freeze
+      # The pieces of the comparison bar an app may leave out. Mirror
+      # COMPARE_BAR_KEYS in chrome/CompareView.jsx (contract_test.rb).
+      COMPARE_BAR_KEYS = %i[title match_note exit captions].freeze
       COMPARE_KEYS = %i[document label match].freeze
       # Mirrors COMPARE_MATCHES in model/diff.js (contract_test.rb).
       COMPARE_MATCHES = %i[auto id name].freeze
@@ -112,7 +115,10 @@ module Bali
       #   compare_with: one comparison or a list of them, picked in the comparison bar — each
       #   { document: <a document like data:>, label: "Published v1.0", match: :auto (by id, then
       #   by name: the default) | :id (two versions of one document) | :name (two different
-      #   documents, paired by normalized name) } }.
+      #   documents, paired by normalized name) },
+      #   compare_bar: { title:, match_note:, exit:, captions: } — false leaves that piece out
+      #   (all true by default): the title when there is one comparison (a list keeps its
+      #   picker), the «matched by name» note, «Close comparison» and each side's caption. }.
       # @param compare_open [Boolean, Symbol] open on load comparing against
       #   `review[:compare_with][compare_index]`: true (side by side, the default view),
       #   :side_by_side or :overlay — side by side where the overlay is not offered (two
@@ -145,6 +151,9 @@ module Bali
       #   colour; `data[:status_label]` when omitted), the save status and the `with_action`
       #   slots; the `with_notice` slots under it; the editor down to the bottom of the window.
       #   Not with `chrome: :minimal`.
+      # @param bordered [Boolean] the editor's own frame — border, rounded corners and shadow, on
+      #   the editor and on its loading placeholder (default true). false for an editor inside a
+      #   container that draws the frame itself (a card's body); its background stays.
       # @param i18n [Hash] island strings. Defaults to Bali::BpmnEditor::Translations.island.
       #   The table travels once per render, not once per editor (#i18n_table_tag).
       # @param id [String] DOM id; also scopes the events the host sends back. Generated when
@@ -154,7 +163,7 @@ module Bali
                      rules: {}, fields: {}, urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil,
                      selected_id: nil, chrome: :full, min_zoom: DEFAULT_MIN_ZOOM, annotatable: false,
                      badges: true, badge_toggle: true, wheel_zoom: :auto, compare_open: false, compare_index: 0,
-                     full_page: nil, **options)
+                     full_page: nil, bordered: true, **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @autosave = autosave
@@ -182,6 +191,7 @@ module Bali
         @badge_toggle = resolve_badge_toggle(badge_toggle)
         @wheel_zoom = resolve_wheel_zoom(wheel_zoom)
         @full_page = resolve_full_page(full_page)
+        @bordered = resolve_boolean(:bordered, bordered)
         @i18n = i18n
         # The locale it was built in: Lookbook builds a component inside
         # `I18n.with_locale` and renders it after that block returns.
@@ -205,6 +215,12 @@ module Bali
       def minimal? = @chrome == :minimal
 
       def full_page? = !@full_page.nil?
+
+      def bordered? = @bordered
+
+      # The frame the island's root draws too (BpmnEditor.jsx), so the placeholder
+      # it replaces is the same box.
+      def border_classes = ("rounded-xl border border-base-300" if bordered?)
 
       def page_title = @full_page[:title]
 
@@ -282,7 +298,8 @@ module Bali
           bpmn_editor_wheel_zoom_value: (@wheel_zoom unless @wheel_zoom == "auto"),
           bpmn_editor_compare_open_value: @compare_open,
           bpmn_editor_compare_index_value: (@compare_index unless @compare_index.zero?),
-          bpmn_editor_full_page_value: ("true" if full_page?)
+          bpmn_editor_full_page_value: ("true" if full_page?),
+          bpmn_editor_bordered_value: ("false" unless bordered?)
         }.compact
       end
 
@@ -530,7 +547,19 @@ module Bali
         unknown = review.keys - REVIEW_KEYS
         raise ArgumentError, "unknown review: keys #{unknown.inspect}; expected #{REVIEW_KEYS.inspect}" if unknown.any?
 
-        { tags: review_tags(review[:tags]), compare_with: review_comparisons(review[:compare_with]) }.compact
+        { tags: review_tags(review[:tags]), compare_with: review_comparisons(review[:compare_with]),
+          compare_bar: review_compare_bar(review[:compare_bar]) }.compact
+      end
+
+      def review_compare_bar(bar)
+        return nil if bar.nil?
+        raise ArgumentError, "review compare_bar: must be a Hash { #{COMPARE_BAR_KEYS.join(':, ')}: }, got #{bar.inspect}" unless bar.is_a?(Hash)
+
+        bar = bar.symbolize_keys
+        unknown = bar.keys - COMPARE_BAR_KEYS
+        raise ArgumentError, "unknown review compare_bar: keys #{unknown.inspect}; expected #{COMPARE_BAR_KEYS.inspect}" if unknown.any?
+
+        bar.to_h { |key, shown| [ key, resolve_boolean("review compare_bar: #{key}", shown) ] }
       end
 
       def review_tags(tags)

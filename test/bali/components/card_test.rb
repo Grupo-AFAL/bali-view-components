@@ -255,6 +255,14 @@ class BaliCardComponentTest < ComponentTestCase
     assert_selector(".card.card-dash")
   end
 
+  # A section of a container that draws the frame: none of its own, and the
+  # host's divider still applies.
+  def test_styles_renders_flush_style
+    render_inline(Bali::Card::Component.new(style: :flush, class: "border-b")) { "Content" }
+    card = page.find(".card")
+    assert_equal %w[bg-base-100 border-0 border-b card rounded-none], card[:class].split.sort
+  end
+
   def test_layouts_renders_side_layout
     render_inline(Bali::Card::Component.new(side: true)) do
       "Content"

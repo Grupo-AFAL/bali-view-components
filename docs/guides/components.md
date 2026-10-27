@@ -500,7 +500,7 @@ Content container with optional header, image, and actions.
 ```
 
 **Options:**
-- `style` - `:default`, `:bordered`, `:dash`
+- `style` - `:default`, `:bordered`, `:dash`, `:flush` (no border, radius or shadow — a section of a container that draws the frame itself; a divider such as `class: "border-b border-base-300"` still applies)
 - `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl`
 - `side` - Horizontal layout (image on side)
 - `image_full` - Image overlays entire card

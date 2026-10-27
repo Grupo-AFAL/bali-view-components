@@ -43,6 +43,20 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_match(/^\s+fullPage: \{ type: Boolean, default: false \}/, ROOT.join("index.js").read)
   end
 
+  # `review: { compare_bar: }` (Component#review_compare_bar), read by CompareView.
+  def test_compare_bar_keys
+    assert_equal Bali::BpmnEditor::Component::COMPARE_BAR_KEYS.map(&:to_s), js_list("chrome/CompareView.jsx", "COMPARE_BAR_KEYS")
+  end
+
+  # Ruby writes `bordered` only when false; the island's default is the frame.
+  def test_bordered_defaults_to_the_frame_on_both_sides
+    html = ApplicationController.render(Bali::BpmnEditor::Component.new(data: {}, bordered: false), layout: false)
+
+    assert_includes html, %(data-bpmn-editor-bordered-value="false")
+    assert_match(/^\s+bordered: \{ type: Boolean, default: true \}/, ROOT.join("index.js").read)
+    assert_includes ROOT.join("BpmnEditor.jsx").read, "fullPage = false, bordered = true"
+  end
+
   def test_edge_types
     assert_equal Bali::BpmnEditor::Data::EDGE_TYPES, js_list("model/catalog.js", "EDGE_TYPES")
   end

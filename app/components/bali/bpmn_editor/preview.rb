@@ -449,6 +449,40 @@ module Bali
         end
       end
 
+      # @label Inside a card
+      # A panel that draws the frame itself — one card, its header on top
+      # behind a divider and the flow edge to edge underneath. The editor
+      # draws none (`bordered: false`), nor does the header (a Bali::Card with
+      # `style: :flush` and the app's own `border-b`). `compare` opens it
+      # comparing against another process, and the toggles leave pieces of the
+      # comparison bar out (`review: { compare_bar: }`); «Solo cambios» and
+      # «Sincronizar» always stay.
+      # docs/api/bpmn-editor.md#embedding-a-diagram
+      # @param bordered toggle "The editor's own frame (bordered:)"
+      # @param compare toggle "Open comparing against another process"
+      # @param title toggle "compare_bar title"
+      # @param match_note toggle "compare_bar match_note"
+      # @param exit toggle "compare_bar exit"
+      # @param captions toggle "compare_bar captions"
+      # @param locale select { choices: [es, en] }
+      def in_a_card(bordered: false, compare: false, title: false, match_note: false, exit: false, captions: false, locale: :es)
+        en = locale.to_s == "en"
+        bar = { title: title, match_note: match_note, exit: exit, captions: captions }.transform_values { |v| v.to_s == "true" }
+        I18n.with_locale(locale) do
+          render_with_template(
+            template: "bali/bpmn_editor/previews/in_a_card",
+            locals: { locale: locale,
+                      component: Bali::BpmnEditor::Component.new(
+                        data: BpmnProcessMap.supplier(locale), chrome: :minimal, rules: false, id: "card_flow_bpmn",
+                        bordered: bordered.to_s == "true", compare_open: compare.to_s == "true",
+                        review: { compare_with: { document: BpmnProcessMap.customer(locale),
+                                                  label: en ? "Customer onboarding" : "Alta de cliente" },
+                                  compare_bar: bar }
+                      ) }
+          )
+        end
+      end
+
       # @label Compare without geometry (shared lane ids)
       # @hidden
       # Two versions of one flow as an app that stores no geometry sends them:

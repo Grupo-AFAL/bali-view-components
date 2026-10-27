@@ -80,7 +80,7 @@ function Editor ({
   data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, confirmLinkedDelete = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
   name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false,
   badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0, takeHostEvents,
-  fullPage = false
+  fullPage = false, bordered = true
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
   const editable = Boolean(editableProp)
@@ -1057,7 +1057,7 @@ function Editor ({
       <HintLayer rootRef={wrapperRef}>
       <div
         ref={wrapperRef}
-        className={`bpmn-editor relative flex flex-col overflow-hidden rounded-xl border border-base-300 bg-base-100 shadow-sm outline-none ${minimal ? 'is-minimal ' : ''}${fullscreen ? 'h-screen' : minimal ? 'h-full min-h-60' : fullPage ? 'h-full' : ''}`}
+        className={`bpmn-editor relative flex flex-col overflow-hidden bg-base-100 outline-none ${bordered ? 'rounded-xl border border-base-300 shadow-sm ' : ''}${minimal ? 'is-minimal ' : ''}${fullscreen ? 'h-screen' : minimal ? 'h-full min-h-60' : fullPage ? 'h-full' : ''}`}
         onPointerDownCapture={() => claimKeyboard(wrapperRef.current)}
         tabIndex={-1}
       >
@@ -1091,6 +1091,7 @@ function Editor ({
               options={comparisons.map((c) => c.label)} picked={comparison.index} onPick={(index) => setComparison((c) => ({ ...c, index }))}
               badgesVisible={badgesVisible}
               wheelZoom={wheelZoom !== 'false'}
+              bar={review && review.compare_bar}
               badges={badgeToggle !== false && (docHasBadges || hasBadges(compareBase)) ? { visible: badgesVisible, onToggle: toggleBadges, label: badgeToggleLabel } : null}
             />
           </div>

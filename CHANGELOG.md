@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::BpmnEditor`: `bordered: false`** quita el marco propio del editor (borde, esquinas
+  redondeadas y sombra), también del placeholder mientras carga, para un editor dentro de un
+  contenedor que ya dibuja el marco. Vale con `chrome: :full` y `:minimal`; el fondo se queda.
+  Una app que hoy anula `.bpmn-editor` o `.bali-bpmn-editor-skeleton` con CSS puede borrar esas
+  reglas.
+- **`Bali::Card`: `style: :flush`**, sin borde, radio ni sombra, para una sección de un
+  contenedor que ya dibuja el marco. Una línea divisoria propia (`class: "border-b"`) sigue
+  aplicando.
+- **`Bali::BpmnEditor`: `review: { compare_bar: { title:, match_note:, exit:, captions: } }`**
+  quita piezas de la barra de comparación: el título (con una sola comparación), la nota
+  «Elementos emparejados por nombre», «Cerrar comparación» y la etiqueta de cada lado. «Solo
+  cambios», «Sincronizar» y las vistas se quedan.
 - **`Bali::BpmnEditor`: modo página completa, `full_page: { title:, close_url:, status: }`.** El
   editor ocupa el alto de la ventana (`100dvh`), dentro del layout de la app o en una página sola,
   con un encabezado: «Salir», título, estatus (`Bali::Tag`; si se omite, el `status_label` del

@@ -331,12 +331,14 @@ class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
   def payload = { lanes: [], nodes: [ { id: "n1", type: "sub_process", name: "Billing" } ], edges: [] }
   def island = page.find(".bali-bpmn-editor")
 
+  def component(**options) = Bali::BpmnEditor::Component.new(data: payload, **options)
+
   def render_with(**options)
-    render_inline(Bali::BpmnEditor::Component.new(data: payload, **options))
+    render_inline(component(**options))
   end
 
   NEW_VALUES = %w[selected-id chrome min-zoom annotatable validate badges badge-toggle badge-toggle-label wheel-zoom
-                  compare-open compare-index full-page].freeze
+                  compare-open compare-index full-page bordered].freeze
 
   def test_without_the_new_options_none_of_their_values_is_rendered
     render_with
@@ -467,6 +469,32 @@ class BaliBpmnEditorComponentEmbeddingTest < ComponentTestCase
 
     assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, review: { compare_with: { document: payload, match: :position } }) }
     assert_raises(ArgumentError) { Bali::BpmnEditor::Component.new(data: payload, review: { compare_with: { document: payload, mode: :overlay } }) }
+  end
+
+  def test_the_comparison_bar_leaves_out_what_the_app_turns_off
+    render_with(review: { compare_with: { document: payload, label: "v1" }, compare_bar: { title: false, "exit" => false } })
+    assert_equal({ "title" => false, "exit" => false }, JSON.parse(island["data-bpmn-editor-review-value"])["compare_bar"])
+
+    compare = { document: payload, label: "v1" }
+    assert_raises(ArgumentError) { component(review: { compare_with: compare, compare_bar: { match_toggle: false } }) }
+    assert_raises(ArgumentError) { component(review: { compare_with: compare, compare_bar: { exit: "no" } }) }
+    assert_raises(ArgumentError) { component(review: { compare_with: compare, compare_bar: false }) }
+  end
+
+  # `bordered: false`: the frame is the container's — the placeholder the
+  # island replaces carries none either, in both chromes.
+  def test_bordered_false_draws_no_frame_on_the_placeholder
+    [ { chrome: :full }, { chrome: :minimal } ].each do |chrome|
+      render_inline(component(**chrome))
+      assert_match(/\brounded-xl\b.*\bborder\b/, page.find(".bali-bpmn-editor-skeleton", visible: :all)[:class])
+      assert_nil island["data-bpmn-editor-bordered-value"]
+
+      render_inline(component(bordered: false, **chrome))
+      skeleton = page.find(".bali-bpmn-editor-skeleton", visible: :all)[:class].split
+      assert_empty skeleton.grep(/\A(border|rounded|shadow)/), "#{chrome}: #{skeleton.inspect}"
+      assert_equal "false", island["data-bpmn-editor-bordered-value"]
+    end
+    assert_raises(ArgumentError) { component(bordered: nil) }
   end
 
   def test_several_comparisons_reach_the_island_as_a_list_one_as_a_list_of_one

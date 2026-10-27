@@ -8,7 +8,7 @@ module Bali
       # Default Card
       # ---------------
       # Basic card view with image, title, description and action.
-      # @param style [Symbol] select [default, bordered, dash]
+      # @param style [Symbol] select [default, bordered, dash, flush]
       # @param size [Symbol] select [xs, sm, md, lg, xl]
       # @param shadow toggle
       def default(style: :default, size: :md, shadow: true)
@@ -148,6 +148,15 @@ module Bali
 
           tag.p('This card has a dashed border style.')
         end
+      end
+
+      # Flush Card
+      # ---------------
+      # `style: :flush`: no border, radius or shadow — a section of a container
+      # that draws the frame itself. Here the container is the outer box, and the
+      # header card adds its own divider (`border-b`).
+      def flush
+        render_with_template(template: 'bali/card/previews/flush')
       end
 
       # Side Layout
