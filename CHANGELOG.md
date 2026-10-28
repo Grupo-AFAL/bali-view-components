@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::SplitView` `height: :screen`: `--bali-split-bottom`** (0 por omisión) se resta del
   alto: el espacio que la página deja debajo (su padding inferior). Reemplaza sobrescribir
   `.split-view-component--screen`.
+- **Controller `screen-top`**: guarda en `--bali-screen-top` dónde empieza su elemento en la
+  página, y lo actualiza cuando algo arriba lo mueve, para un contenedor cualquiera que llega
+  hasta el fondo de la ventana (`height: calc(100dvh - var(--bali-screen-top, 0px))`). Es la
+  medida que `SplitView` `height: :screen` toma para sí; reemplaza usar `split-view-screen`
+  fuera de un `SplitView`.
 - **`Bali::BpmnEditor`: `bordered: false`** quita el marco propio del editor (borde, esquinas
   redondeadas y sombra), también del placeholder mientras carga, para un editor dentro de un
   contenedor que ya dibuja el marco. Vale con `chrome: :full` y `:minimal`; el fondo se queda.

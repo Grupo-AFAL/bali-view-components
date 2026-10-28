@@ -1,6 +1,6 @@
 # Stimulus Utility Controllers
 
-Bali ships 25 standalone Stimulus controllers that work independently of any
+Bali ships 26 standalone Stimulus controllers that work independently of any
 ViewComponent. They live in `app/assets/javascripts/bali/controllers/` and are
 registered by `registerAll` under the identifiers below — the `CONTROLLERS` map in
 `app/frontend/bali/controllers/index.js`. How to register them (all at once, or one
@@ -37,6 +37,7 @@ controller by hand.
 | [`print`](#print) | Prints the page on connect, closes the window on refocus | hand markup |
 | [`radio-buttons-group`](#radio-buttons-group) | Shows grouped content per selected toggler button | `f.radio_buttons_group` |
 | [`radio-toggle`](#radio-toggle) | Shows elements matching the selected radio's value | hand markup |
+| [`screen-top`](#screen-top) | Keeps its top edge in `--bali-screen-top`, to fill the window below it | hand markup |
 | [`slim-select`](#slim-select) | SlimSelect widget: search, remote options, addable items | `f.slim_select_group` |
 | [`step-number-input`](#step-number-input) | Number input with +/− buttons respecting min/max/step | `f.step_number_group` |
 | [`submit-button`](#submit-button) | Loading state on the submitter during a Turbo submission | Bali's `form_with` |
@@ -524,6 +525,24 @@ value (comma-separated to match several) — the single-level sibling of
   a `<select>` wired to `change` keeps the choice of its last `change`.
 
 The first two are live in the `bali/radio_toggle/dependent_fields` preview.
+
+## `screen-top`
+
+Keeps its element's top edge (its offset in the page) in the custom property
+`--bali-screen-top` on that element, and updates it when a banner above it, a resize
+or a font loading moves it. Scrolling does not. Your CSS does the rest — for a
+container that runs down to the bottom of the window:
+
+```html
+<div class="comparison" data-controller="screen-top">…</div>
+```
+
+```css
+.comparison { height: calc(100dvh - var(--bali-screen-top, 0px) - 1.5rem); }
+```
+
+It is what `Bali::SplitView` `height: :screen` does for itself; use the split when
+you want its panes, and this for any other container.
 
 ## `slim-select`
 

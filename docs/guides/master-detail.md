@@ -156,6 +156,10 @@ give each pane the whole height the same way `:full` does:
   own bottom padding — says how much with `--bali-split-bottom` (0 by default),
   set once in the layout's CSS: `calc(100dvh - <top> - var(--bali-split-bottom))`,
   so the split ends where the padding starts and the page does not scroll.
+  Another container that should run to the bottom of the window — not a split —
+  gets the same measurement from the `screen-top` utility controller
+  ([Controllers](controllers.md#screen-top)), in `--bali-screen-top`; `split-view-screen`
+  is the split's own and not meant for other markup.
 - **A CSS length** — `height: "640px"`, `"40rem"`, `"70vh"` — is a fixed height.
   Validated like `master_width:`: one number and one unit.
 
