@@ -23,6 +23,9 @@ module Admin
       def update
         return head :conflict if demo_server == "conflict"
         return render json: { errors: [ demo_save_error ] }, status: :unprocessable_entity if demo_server == "error"
+        if demo_server == "reject_save"
+          return render json: { errors: [ demo_save_error ], issues: demo_issues(flow) }, status: :unprocessable_entity
+        end
 
         diagram = Bali::BpmnEditor::Data.new(params.require(:diagram).to_unsafe_h).to_h
         return head :conflict unless flow.save_draft(diagram, params[:version])

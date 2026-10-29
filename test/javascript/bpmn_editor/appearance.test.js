@@ -19,6 +19,14 @@ test('the save request never carries appearance: it is the server’s', () => {
   assert.ok(d.nodes[0].appearance, 'the document on screen keeps it')
 })
 
+test('nor does it carry a lane’s appearance', () => {
+  const d = normalize(doc({ lanes: lanes('A', 'B').map((l, i) => (i === 0 ? { ...l, appearance: { color: '#dc2626', badge: 'Unassigned' } } : l)), nodes: [] }))
+  const body = forSave(d)
+  assert.equal(body.lanes.some((l) => 'appearance' in l), false)
+  assert.deepEqual(body.lanes.map((l) => l.name), ['A', 'B'], 'the rest of the lane travels')
+  assert.ok(d.lanes[0].appearance, 'the document on screen keeps it')
+})
+
 // The outputs drawing it (ExportDiagram.jsx) is checked in the browser:
 // cypress/e2e/bpmn-editor.cy.js, «the exported SVG carries the app's colours».
 
@@ -27,6 +35,8 @@ test('the .bpmn export carries the colour, and only the colour', async () => {
   const plain = normalize(doc({ lanes: lanes('A'), nodes: [node('t', 'task', 'l1', 100, 90), node('u', 'task', 'l1', 300, 90)] }))
   const badged = { ...plain, nodes: plain.nodes.map((n) => (n.id === 'u' ? { ...n, appearance: { badge: 'Done', dimmed: true } } : n)) }
   assert.equal(toBpmnXml(badged), toBpmnXml(plain), 'badge and dimmed are not interchange')
+  const lanesLook = { ...plain, lanes: plain.lanes.map((l) => ({ ...l, appearance: { color: '#dc2626', badge: 'Unassigned', dimmed: true } })) }
+  assert.equal(toBpmnXml(lanesLook), toBpmnXml(plain), 'a lane’s look is not interchange')
   const coloured = { ...plain, nodes: plain.nodes.map((n) => (n.id === 't' ? { ...n, appearance: { color: '#2563EB' } } : n)) }
   const xml = toBpmnXml(coloured)
   assert.match(xml, new RegExp(`xmlns:bioc="${COLOR_NAMESPACES.bioc}" xmlns:color="${COLOR_NAMESPACES.color}"`))
@@ -40,6 +50,8 @@ test('hasBadges: only a badge the node would draw counts', () => {
   assert.equal(hasBadges(withB({ badge: '   ' })), false)
   assert.equal(hasBadges(withB({ color: '#16a34a', dimmed: true })), false)
   assert.equal(hasBadges(withB(undefined)), false)
+  assert.equal(hasBadges({ lanes: [{ id: 'l1', appearance: { badge: 'Unassigned' } }], nodes: [] }), true, 'a lane’s badge counts too')
+  assert.equal(hasBadges({ lanes: [{ id: 'l1', appearance: { dimmed: true } }] }), false)
   assert.equal(hasBadges({ nodes: [] }), false)
   assert.equal(hasBadges(null), false)
 })

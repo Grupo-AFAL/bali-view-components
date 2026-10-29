@@ -17,3 +17,13 @@
 .btn-neutral.btn-outline {
   --btn-rest-fg: var(--color-base-content);
 }
+
+/* `.is-icon-only`, a host's runtime switch on a Button or a button-styled Link: the square
+ * `.btn-square` draws, at any width (`max-sm:btn-square` is the breakpoint's own). Unlayered for
+ * the same reason as the rule above: `.btn`'s `padding-inline` is emitted inside
+ * `@layer utilities`. The label is hidden in index.css. */
+.btn.is-icon-only {
+  width: var(--size);
+  height: var(--size);
+  padding-inline: 0;
+}

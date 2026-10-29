@@ -4,8 +4,8 @@ import { layoutLanes, poolOrigin } from '../model/geometry.js'
 import { routeAll, findJumps } from '../model/routing.js'
 import { placeEdgeLabels } from '../model/edgeLabels.js'
 import { buildRfNodes, buildRfEdges, laneNodeId, isLaneNodeId, laneIdOf } from '../model/flow.js'
+import { changesOf, detailOf } from '../model/compareChanges.js'
 import { overlayView, summaryText } from '../model/diff.js'
-import { paletteKeyFor } from '../model/catalog.js'
 import { DIFF_MARKS, diffMark } from '../canvas/diffMarks.js'
 import useRefitOnResize from '../hooks/useRefitOnResize.js'
 import { CanvasContext } from '../canvas/CanvasContext.js'
@@ -19,6 +19,9 @@ import BadgeSwitch from './BadgeSwitch.jsx'
 const nodeTypes = { bpmn: FlowNode, lane: LaneNode }
 const edgeTypes = { routed: RoutedEdge }
 const noop = () => {}
+// Component `review: { compare_bar: }`: the pieces an app may leave out, each
+// shown unless set to false. Mirror COMPARE_BAR_KEYS (contract_test.rb).
+export const COMPARE_BAR_KEYS = ['title', 'match_note', 'exit', 'captions']
 const FIT = { padding: 0.12 }
 const sameViewport = (a, b) => a && b && Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) < 0.5 && Math.abs(a.zoom - b.zoom) < 0.001
 
@@ -71,7 +74,7 @@ function Diagram ({ doc, diff, t, caption, focus, peerId, onPoint = noop, onInst
     <CanvasContext.Provider value={canvas}>
       <div ref={pane} className='bpmn-canvas is-readonly relative min-h-0 min-w-0 flex-1' data-testid='bpmn-compare-pane' data-side={side}>
         <EdgeMarkers />
-        {caption && <span className='badge badge-ghost absolute left-3 top-3 z-10'>{caption}</span>}
+        {caption && <span className='badge badge-ghost absolute left-3 top-3 z-10' data-testid='bpmn-compare-caption'>{caption}</span>}
         <ReactFlow
           nodes={nodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes} connectionMode={ConnectionMode.Loose}
           nodesDraggable={false} nodesConnectable={false} elementsSelectable={false} fitView fitViewOptions={FIT}
@@ -90,49 +93,6 @@ function Diagram ({ doc, diff, t, caption, focus, peerId, onPoint = noop, onInst
       </div>
     </CanvasContext.Provider>
   )
-}
-
-// The words of a change: what it was and what it is, for the reasons the
-// diff gave (model/diff.js). Type and lane by name, the name itself.
-function detailOf (entry, t) {
-  if (entry.state !== 'changed' || !entry.before) return []
-  const typeName = (node) => t(`palette_${paletteKeyFor(node)}`)
-  const laneName = (doc, id) => {
-    const lane = (doc.lanes || []).find((l) => String(l.id) === String(id))
-    return lane ? lane.name || t('lane_unnamed') : '—'
-  }
-  return (entry.reasons || []).map((reason) => {
-    if (entry.kind === 'node' && reason === 'type') return `${t('compare_detail_type')}: ${typeName(entry.before)} → ${typeName(entry.element)}`
-    if (entry.kind === 'node' && reason === 'lane') return `${t('compare_detail_lane')}: ${laneName(entry.baseDoc, entry.before.lane_id)} → ${laneName(entry.currentDoc, entry.element.lane_id)}`
-    if (reason === 'name') return `${t('compare_detail_name')}: ${entry.before.name || t('compare_unnamed')} → ${entry.element.name || t('compare_unnamed')}`
-    return t(`compare_detail_${reason}`)
-  })
-}
-
-// What changed, element by element: every node and lane that was added,
-// removed or changed, with where to find it in each drawing.
-function changesOf (base, current, diff, overlay) {
-  const entries = []
-  const before = new Map([...diff.identity].map(([baseId, currentId]) => [currentId, (base.nodes || []).find((n) => String(n.id) === baseId)]))
-  const laneBefore = new Map([...diff.lanePairs].map(([baseId, currentId]) => [currentId, (base.lanes || []).find((l) => String(l.id) === baseId)]))
-  const docs = { baseDoc: base, currentDoc: current }
-  for (const lane of current.lanes || []) {
-    const state = diff.current.lanes[String(lane.id)]
-    if (state) entries.push({ key: `cl:${lane.id}`, kind: 'lane', state, reasons: diff.current.reasons[String(lane.id)], element: lane, before: laneBefore.get(String(lane.id)), side: 'current', id: laneNodeId(lane.id), overlayId: laneNodeId(lane.id), ...docs })
-  }
-  for (const node of current.nodes || []) {
-    const state = diff.current.nodes[String(node.id)]
-    if (state) entries.push({ key: `cn:${node.id}`, kind: 'node', state, reasons: diff.current.reasons[String(node.id)], element: node, before: before.get(String(node.id)), side: 'current', id: String(node.id), overlayId: String(node.id), ...docs })
-  }
-  for (const lane of base.lanes || []) {
-    if (diff.base.lanes[String(lane.id)] !== 'removed') continue
-    entries.push({ key: `bl:${lane.id}`, kind: 'lane', state: 'removed', element: lane, side: 'base', id: laneNodeId(lane.id), overlayId: laneNodeId(overlay.drawnAs.lanes.get(String(lane.id)) || lane.id), ...docs })
-  }
-  for (const node of base.nodes || []) {
-    if (diff.base.nodes[String(node.id)] !== 'removed') continue
-    entries.push({ key: `bn:${node.id}`, kind: 'node', state: 'removed', element: node, side: 'base', id: String(node.id), overlayId: overlay.drawnAs.nodes.get(String(node.id)) || String(node.id), ...docs })
-  }
-  return entries
 }
 
 // The counterpart of a React Flow node id of one side, in the other: the
@@ -157,7 +117,8 @@ function counterpartOf (id, side, diff) {
 // highlights its counterpart in the other pane; «Only changes» fades what did
 // not change. The summary lists every change with its detail; picking one
 // brings it to the middle and highlights it. Read-only while it is on.
-export default function CompareView ({ t, base, current, diff, label, mode: view, onMode, onExit, options = [], picked = 0, onPick = noop, badges = null, badgesVisible = true, wheelZoom = true }) {
+export default function CompareView ({ t, base, current, diff, label, mode: view, onMode, onExit, options = [], picked = 0, onPick = noop, badges = null, badgesVisible = true, wheelZoom = true, bar = null }) {
+  const shows = (key) => !bar || bar[key] !== false
   const overlay = useMemo(() => overlayView(base, current, diff), [base, current, diff])
   const entries = useMemo(() => changesOf(base, current, diff, overlay), [base, current, diff, overlay])
   const [focus, setFocus] = useState(null)
@@ -198,7 +159,7 @@ export default function CompareView ({ t, base, current, diff, label, mode: view
               </select>
             </label>
             )
-          : <span className='font-semibold'>{t('compare_with', { label })}</span>}
+          : shows('title') && <span className='font-semibold' data-testid='bpmn-compare-title'>{t('compare_with', { label })}</span>}
         <details className='bpmn-compare-changes relative' data-testid='bpmn-compare-summary'>
           <summary className='cursor-pointer text-base-content/70'>{summaryText(t, diff.summary)}</summary>
           <ul className='absolute left-0 top-full z-20 mt-1 max-h-80 w-80 overflow-y-auto rounded-lg border border-base-300 bg-base-100 p-1 shadow-lg' data-testid='bpmn-compare-changes'>
@@ -221,7 +182,7 @@ export default function CompareView ({ t, base, current, diff, label, mode: view
             })}
           </ul>
         </details>
-        {diff.match !== 'id' && !diff.sameProcess && <span className='text-xs text-base-content/60' data-testid='bpmn-compare-by-name'>{t('compare_by_name')}</span>}
+        {shows('match_note') && diff.match !== 'id' && !diff.sameProcess && <span className='text-xs text-base-content/60' data-testid='bpmn-compare-by-name'>{t('compare_by_name')}</span>}
         <span className='flex flex-wrap items-center gap-2 text-xs' data-testid='bpmn-compare-legend'>
           {['added', 'removed', 'changed', 'moved'].map((key) => (
             <span key={key} className='flex items-center gap-1'>
@@ -248,7 +209,7 @@ export default function CompareView ({ t, base, current, diff, label, mode: view
             ))}
           </div>
         )}
-        <button type='button' className='btn btn-ghost btn-xs gap-1' onClick={onExit} data-testid='bpmn-compare-exit'><Icon name='x' size={12} />{t('compare_exit')}</button>
+        {shows('exit') && <button type='button' className='btn btn-ghost btn-xs gap-1' onClick={onExit} data-testid='bpmn-compare-exit'><Icon name='x' size={12} />{t('compare_exit')}</button>}
       </div>
       {/* Side by side on a phone: one above the other, each still fitting its pane. */}
       <div className={`flex min-h-0 flex-1 ${view === 'side_by_side' ? 'flex-col sm:flex-row' : ''}`}>
@@ -257,14 +218,14 @@ export default function CompareView ({ t, base, current, diff, label, mode: view
             <>
               <ReactFlowProvider key={`base-${picked}`}>
                 <Diagram badgesVisible={badgesVisible} wheelZoom={wheelZoom}
-                  doc={base} diff={diff.base} t={t} side='base' caption={`${t('compare_base')} · ${label}`} focus={focusFor('base')}
+                  doc={base} diff={diff.base} t={t} side='base' caption={shows('captions') ? `${t('compare_base')} · ${label}` : null} focus={focusFor('base')}
                   peerId={peerFor('base')} onPoint={pointOf.base} onInstance={instanceOf.base} onViewport={followOf.base}
                 />
               </ReactFlowProvider>
               <span className='h-px bg-base-300 sm:h-auto sm:w-px' />
               <ReactFlowProvider key='current'>
                 <Diagram badgesVisible={badgesVisible} wheelZoom={wheelZoom}
-                  doc={current} diff={diff.current} t={t} side='current' caption={t('compare_current')} focus={focusFor('current')}
+                  doc={current} diff={diff.current} t={t} side='current' caption={shows('captions') ? t('compare_current') : null} focus={focusFor('current')}
                   peerId={peerFor('current')} onPoint={pointOf.current} onInstance={instanceOf.current} onViewport={followOf.current}
                 />
               </ReactFlowProvider>

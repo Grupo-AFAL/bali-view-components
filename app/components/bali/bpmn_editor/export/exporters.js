@@ -12,16 +12,31 @@ import { LETTER, pageSize, PX_PER_INCH, lightThemeOf } from '../model/page.js'
 // values. Always in the LIGHT theme of the page's pair: an image, an SVG or a
 // printout leaves the screen, and lands on white paper or a light document
 // whatever theme the viewer had on.
+// As #rrggbb, painted on a pixel and read back: the computed style of a
+// daisyUI 5 colour is oklch() or oklab(), which prawn-svg does not read (nor
+// rgba()), so a translucent one is laid over the background first.
 export function resolveColors (scope) {
   const probe = document.createElement('span')
   probe.style.display = 'none'
   const themed = scope && scope.closest ? scope.closest('[data-theme]') : null
   probe.setAttribute('data-theme', lightThemeOf(themed && themed.getAttribute('data-theme')))
   ;(scope || document.body).appendChild(probe)
-  const resolve = (value) => {
+  const pixel = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+  const computed = (value) => {
     probe.style.color = ''
     probe.style.color = value
     return getComputedStyle(probe).color
+  }
+  const background = computed('var(--color-base-100)')
+  const resolve = (value) => {
+    pixel.globalCompositeOperation = 'copy'
+    pixel.fillStyle = background
+    pixel.fillRect(0, 0, 1, 1)
+    pixel.globalCompositeOperation = 'source-over'
+    pixel.fillStyle = computed(value)
+    pixel.fillRect(0, 0, 1, 1)
+    const [r, g, b] = pixel.getImageData(0, 0, 1, 1).data
+    return `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`
   }
   const paint = {}
   for (const [key, value] of Object.entries(LIVE_PAINT)) {
@@ -37,7 +52,14 @@ export function resolveColors (scope) {
     externalLane: resolve('color-mix(in oklab, var(--color-base-content) 7%, var(--color-base-100))'),
     externalHeader: resolve('color-mix(in oklab, var(--color-base-content) 13%, var(--color-base-100))'),
     primary: resolve('var(--color-primary)'),
-    watermark: resolve('var(--color-error)')
+    watermark: resolve('var(--color-error)'),
+    // A comparison's marks (canvas/diffMarks.js tones).
+    success: resolve('var(--color-success)'),
+    successContent: resolve('var(--color-success-content)'),
+    error: resolve('var(--color-error)'),
+    errorContent: resolve('var(--color-error-content)'),
+    warning: resolve('var(--color-warning)'),
+    warningContent: resolve('var(--color-warning-content)')
   }
   probe.remove()
   return { paint, colors }
@@ -65,7 +87,7 @@ export function download (fileName, content, type) {
   setTimeout(() => URL.revokeObjectURL(anchor.href), 2000)
 }
 
-function svgSize (svg) {
+export function svgSize (svg) {
   const width = Number((svg.match(/<svg[^>]*\swidth="(\d+)/) || [])[1]) || 1200
   const height = Number((svg.match(/<svg[^>]*\sheight="(\d+)/) || [])[1]) || 800
   return { width, height }
@@ -73,10 +95,12 @@ function svgSize (svg) {
 
 // PNG at 2× for legibility; canvases above ~16k px per side fail, so very
 // large diagrams drop to 1×.
-export function downloadPng (fileName, svg) {
+export const pngScale = ({ width, height }) => (Math.max(width, height) * 2 > 16000 ? 1 : 2)
+
+export function rasterize (svg) {
   return new Promise((resolve, reject) => {
     const { width, height } = svgSize(svg)
-    const scale = Math.max(width, height) * 2 > 16000 ? 1 : 2
+    const scale = pngScale({ width, height })
     const image = new window.Image()
     image.onload = () => {
       const canvas = document.createElement('canvas')
@@ -86,15 +110,23 @@ export function downloadPng (fileName, svg) {
       context.scale(scale, scale)
       context.drawImage(image, 0, 0)
       canvas.toBlob((blob) => {
-        if (!blob) { reject(new Error('The canvas could not be encoded as PNG')); return }
-        download(fileName, blob)
-        resolve()
+        if (blob) resolve(blob)
+        else reject(new Error('The canvas could not be encoded as PNG'))
       }, 'image/png')
     }
-    image.onerror = reject
+    image.onerror = () => reject(new Error('The SVG could not be drawn on a canvas'))
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
   })
 }
+
+export const downloadPng = (fileName, svg) => rasterize(svg).then((blob) => download(fileName, blob))
+
+export const pngDataUrl = (svg) => rasterize(svg).then((blob) => new Promise((resolve, reject) => {
+  const reader = new window.FileReader()
+  reader.onload = () => resolve(reader.result)
+  reader.onerror = () => reject(reader.error)
+  reader.readAsDataURL(blob)
+}))
 
 // Prints the full diagram on its own page, scaled to the sheet, through a
 // hidden iframe: the page around the editor is not part of the printout.

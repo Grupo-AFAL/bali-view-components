@@ -78,6 +78,20 @@ export const nodeSize = (node) => {
   }
 }
 
+// The nodes a person may resize: the activities, whose name is drawn inside
+// the box. An event or a gateway is a symbol of fixed size (BPMN 2.0, Method
+// and Style). The limits keep the name, the corner markers and the [+]
+// inside the box, and one box from swallowing a lane. They bound the handle
+// and the properties panel, not the document: Bali::BpmnEditor::Data only
+// requires a positive size, since the catalog preview draws activities at
+// their 28 px icon size.
+export const MIN_NODE_SIZE = { width: 80, height: 40 }
+export const MAX_NODE_SIZE = { width: 800, height: 400 }
+export const isResizable = (node) => isActivity(node)
+// «Auto»: no width or height of its own (absent or null), so the box takes
+// its type's default.
+export const hasOwnSize = (node) => Number(node.width) > 0 || Number(node.height) > 0
+
 // Events and gateways print their name under the shape, so the label needs
 // room the box does not include (lanes grow by it, overlap counts it).
 export const labelExtent = (node) => (isEvent(node) || isGateway(node) || categoryOf(node) === CATEGORY.data ? 30 : 0)

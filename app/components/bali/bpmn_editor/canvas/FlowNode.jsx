@@ -1,9 +1,9 @@
 import { memo, useLayoutEffect, useRef, useState } from 'react'
-import { Handle, NodeToolbar, Position, useStore } from '@xyflow/react'
+import { Handle, NodeResizeControl, NodeToolbar, Position, useStore } from '@xyflow/react'
 import { NodeShape, IssueMarker, AppearanceMark } from '../shapes.jsx'
 import { appearanceOf } from '../model/appearance.js'
 import { DIFF_MARKS, diffMark } from './diffMarks.js'
-import { categoryOf, nodeSize, CATEGORY } from '../model/catalog.js'
+import { categoryOf, nodeSize, isResizable, CATEGORY, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
 import { nodeBox } from '../model/geometry.js'
 import { nodeLabelBox, badgeBox, insideLabelBox, badgeTabBox } from '../model/labels.js'
 import { textOn } from '../model/contrast.js'
@@ -90,7 +90,9 @@ function QuickMenuToolbar ({ x, width, children, panelOpen }) {
 
 function FlowNode ({ id, data, selected, positionAbsoluteX }) {
   const canvas = useCanvas()
-  const { node, external, issue, diff, diffReasons } = data
+  const { external, issue, diff, diffReasons } = data
+  // `live`: the size while the corner is dragged (BpmnEditor's liveSize).
+  const node = data.live ? { ...data.node, ...data.live } : data.node
   const note = canvas.notesByElement && canvas.notesByElement.get(id)
   const size = nodeSize(node)
   const box = { w: size.width, h: size.height }
@@ -152,6 +154,22 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
         <QuickMenuToolbar x={positionAbsoluteX} width={box.w} panelOpen={canvas.panelOpen}>
           {canvas.renderQuickMenu(node)}
         </QuickMenuToolbar>
+      )}
+      {canvas.editable && selected && isResizable(node) && (
+        // Keyed on the stored size, as LaneNode's controls are: one keeps the
+        // box it measured when it mounted. Not on the live size, which would
+        // remount it under the pointer.
+        <NodeResizeControl
+          key={`${nodeSize(data.node).width}x${nodeSize(data.node).height}`}
+          position='bottom-right'
+          className='bpmn-node-resize'
+          minWidth={MIN_NODE_SIZE.width}
+          minHeight={MIN_NODE_SIZE.height}
+          maxWidth={MAX_NODE_SIZE.width}
+          maxHeight={MAX_NODE_SIZE.height}
+          onResize={(_event, params) => canvas.onNodeResizing(id, params)}
+          onResizeEnd={(_event, params) => canvas.onNodeResize(id, params)}
+        />
       )}
       {SIDES.map(([side, position]) => (
         <Handle

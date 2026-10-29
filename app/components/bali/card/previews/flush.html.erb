@@ -1,0 +1,8 @@
+<div class="w-[32rem] max-w-full overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-sm">
+  <%= render Bali::Card::Component.new(style: :flush, size: :sm, class: "border-b border-base-300") do |card| %>
+    <% card.with_header(title: "Supplier payments", subtitle: "Process map · version 2", icon: "workflow") %>
+  <% end %>
+  <div class="grid h-40 place-items-center bg-base-200/40 text-sm text-base-content/60">
+    The section under the header
+  </div>
+</div>

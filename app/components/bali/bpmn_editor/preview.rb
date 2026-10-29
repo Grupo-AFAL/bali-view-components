@@ -53,10 +53,11 @@ module Bali
       # @param page select "Sheet for the compact layout and the outputs" { choices: [letter_landscape, letter_portrait, a4_landscape, a4_portrait, legal_landscape, legal_portrait] }
       # @param lock_orientation toggle "Hide the orientation switch"
       # @param external_lanes toggle "Offer the external participant checkbox"
+      # @param confirm_linked_delete toggle "Ask before deleting a sub-process linked to the app (one from «Por colocar»)"
       # @param autosave toggle "Save after every change (off: only «Guardar borrador»)"
       # @param optional_rules toggle "Load the optional rule package"
       # @param rule_severity select "Rule configuration: default, strict, relaxed, structure (rules: :structure) or off (rules: false)" { choices: [default, strict, relaxed, structure, "off"] }
-      # @param server select "How the dummy server answers (demonstration only)" { choices: [normal, conflict, error, slow, issues, reject_finalize] }
+      # @param server select "How the dummy server answers (demonstration only)" { choices: [normal, conflict, error, reject_save, slow, issues, reject_finalize] }
       # @param theme select "Page theme" { choices: [light, dark] }
       # @param locale select { choices: [es, en] }
       # @param name text "Title of the outputs and file name"
@@ -67,7 +68,7 @@ module Bali
       # below 6 pt on the page (VIS-02). The component keeps `:compact`.
       def playground(sample: "invoice", orientation: "horizontal", palette: :analytic, layout: :straight,
                      page: "letter_landscape", lock_orientation: false, external_lanes: true, autosave: true,
-                     optional_rules: false, rule_severity: "default", server: "normal", theme: "light",
+                     confirm_linked_delete: false, optional_rules: false, rule_severity: "default", server: "normal", theme: "light",
                      locale: :es, name: "", watermark: "", fresh: true)
         flow = ProcessFlow.for_sample(sample.to_s, locale: locale, fresh: fresh, orientation: orientation.to_s)
         render_with_template(
@@ -75,6 +76,7 @@ module Bali
           locals: { flow: flow, locale: locale, theme: theme.to_s, optional_rules: optional_rules, server: server.to_s,
                     options: { palette: palette.to_sym, layout: layout.to_sym, page: PAGES.fetch(page.to_s),
                                lock_orientation: lock_orientation, external_lanes: external_lanes,
+                               confirm_linked_delete: confirm_linked_delete,
                                autosave: autosave, rules: { "off" => false, "structure" => :structure }.fetch(rule_severity.to_s) { RULE_PRESETS.fetch(rule_severity.to_s) },
                                name: name.presence, watermark: watermark.presence } }
         )
@@ -86,7 +88,8 @@ module Bali
       # flow, a decision with labelled answers and an annotation. Try zooming,
       # «Pantalla completa», the outputs, and clicking a sub-process with a link.
       # With `appearance` on, the app colours three elements, fades one and
-      # badges two (`node.appearance`), and explains its colours in the legend;
+      # badges two (`node.appearance`), colours and badges the lane whose
+      # assignee is gone (`lane.appearance`), and explains its colours in the legend;
       # the outputs carry them too. With badges, «Show badges» beside the
       # canvas shows and hides them (`badges:` — shown on load or not —,
       # `badge_toggle:` — the switch offered or not). docs/api/bpmn-editor.md
@@ -111,6 +114,8 @@ module Bali
                   "t3" => { color: "#16a34a", badge: en ? "Done" : "Hecho" },
                   "t4" => { color: "#2563eb" }, "p1" => { dimmed: true } }
         data[:nodes] = data[:nodes].map { |n| looks[n[:id]] ? n.merge(appearance: looks[n[:id]]) : n }
+        unassigned = en ? "Unassigned" : "Sin responsable"
+        data[:lanes] = data[:lanes].map { |l| l[:id] == "l3" ? l.merge(appearance: { color: "#dc2626", badge: unassigned }) : l }
         # A long-named linked sub-process with a badge: its name keeps clear of
         # the tab, the [+] and the corners.
         insurance = en ? "Manage insurance and claims for company fixed assets" : "Gestión de seguros y siniestros de activos fijos"
@@ -122,8 +127,31 @@ module Bali
         island(locale, data: data, badges: badges, badge_toggle: toggle, wheel_zoom: wheel, legend: { add: [
                  { key: "app_progress", label: en ? "In progress" : "En proceso", swatch: "color", color: "#E9A23B" },
                  { key: "app_done", label: en ? "Done" : "Hecho", swatch: "color", color: "#16a34a" },
-                 { key: "app_automated", label: en ? "Automated" : "Automatizado", swatch: "color", color: "#2563eb" }
+                 { key: "app_automated", label: en ? "Automated" : "Automatizado", swatch: "color", color: "#2563eb" },
+                 { key: "app_unassigned", label: unassigned, swatch: "color", color: "#dc2626" }
                ] })
+      end
+
+      # @label Resized activities
+      # Two activities with a size of their own (`width`/`height` on the node):
+      # «Validate invoice…» taller and wider, «Schedule transfer» wider; the
+      # rest are «Auto» (no size, the type's default). Editable: select an
+      # activity and drag the handle on its bottom-right corner, or type the
+      # size in the properties panel; «Auto» there gives the default back.
+      # One resize is one undo step, and «Autoajustar» keeps the sizes.
+      # Events and gateways do not resize. docs/api/bpmn-editor.md#node-size
+      # @param editable toggle "Editable (off: the read-only viewer draws the stored sizes)"
+      # @param locale select { choices: [es, en] }
+      def resized_activities(editable: true, locale: :es)
+        data = resized_sample(locale)
+        return island(locale, data: data) unless editable
+
+        flow = ProcessFlow.reset!("Resized activities (#{locale})", data)
+        render_with_template(
+          template: "bali/bpmn_editor/previews/playground",
+          locals: { flow: flow, locale: locale, theme: "light", optional_rules: false, server: "normal",
+                    options: { layout: :straight } }
+        )
       end
 
       # @label Host integration
@@ -147,6 +175,66 @@ module Bali
         locked = BpmnSampleFlows.sample("parallel", locale: locale)
         render_with_template(template: "bali/bpmn_editor/previews/host_integration",
                              locals: { first: first, second: second, locked: locked, locale: locale })
+      end
+
+      # @label Full page
+      # The editor as the page (`full_page:`): the header with «Exit», the
+      # title, the status and the save status, the app's own actions
+      # (`with_action`) and a notice above the canvas (`with_notice`); the
+      # editor down to the bottom of the window. «Exit» goes to the read-only
+      # viewer once the pending save is in. `server` makes the dummy answer
+      # late (`slow`: «Exit» waits ~2 s for the save) or refuse the save
+      # (`error`: «Exit» offers «Retry» or «Exit without saving») —
+      # demonstration only (Admin::ProcessFlows::DemoServer). `mode` picks the
+      # status the app shows; the ones that are not «Edit mode» are read-only,
+      # and `document` shows none of the app's: the document's own
+      # `status_label`, which «Finalizar» changes.
+      # Inside an app layout, with its side menu and topbar:
+      # `/admin/process_flows/:id/edit` in the dummy.
+      # docs/api/bpmn-editor.md#full-page
+      # @param mode select { choices: [edit, read_only, locked, version, document] }
+      # @param server select "How the dummy server answers (demonstration only)" { choices: [normal, slow, error] }
+      # @param notice toggle "A notice from the app above the canvas"
+      # @param actions toggle "The app's own actions in the header"
+      # @param autosave toggle "Save after every change (off: only «Guardar borrador», and «Exit» saves what is left)"
+      # @param locale select { choices: [es, en] }
+      def full_page(mode: "edit", server: "normal", notice: true, actions: true, autosave: true, locale: :es)
+        flow = ProcessFlow.for_sample("invoice", locale: locale, fresh: true, name: "Full page (#{locale})")
+        render_with_template(template: "bali/bpmn_editor/previews/full_page",
+                             locals: { flow: flow, mode: mode.to_s, server: server.to_s, notice: notice,
+                                       actions: actions, autosave: autosave, locale: locale })
+      end
+
+      # @label Export for the app's own document
+      # The app asks for the drawing instead of a download: `bali-bpmn:export`
+      # { request_id, format, frame, font_family } on the editor, answered by
+      # `bali-bpmn:exported` (or `export-failed`) with the same request_id —
+      # what a host sends to its server to lay the flow in its own PDF
+      # template (Prawn + prawn-svg). `frame: false` is the drawing alone at
+      # its own size; with the comparison open the answer also carries both
+      # sides with their marks and the changes as data. The buttons and the
+      # result below are the dummy's own Stimulus controller
+      # (bpmn_export_demo_controller.js), not the component's.
+      # docs/api/bpmn-editor.md#exporting-for-the-app
+      # @param locale select { choices: [es, en] }
+      def host_export(locale: :es)
+        en = locale.to_s == "en"
+        flow = BpmnSampleFlows.invoice(locale: locale)
+        looks = { "t1" => { color: "#E9A23B", badge: en ? "In progress" : "En proceso" }, "p1" => { dimmed: true } }
+        flow[:nodes] = flow[:nodes].map { |n| looks[n[:id]] ? n.merge(appearance: looks[n[:id]]) : n }
+        before = { document: BpmnProcessMap.supplier(locale, version: 1), label: en ? "Version 1" : "Versión 1" }
+        I18n.with_locale(locale) do
+          render_with_template(
+            template: "bali/bpmn_editor/previews/host_export",
+            locals: { locale: locale,
+                      flow: Bali::BpmnEditor::Component.new(data: flow, chrome: :minimal, id: "export_flow_bpmn",
+                                                            name: en ? "Invoice approval" : "Aprobación de facturas",
+                                                            watermark: en ? "Draft" : "Borrador"),
+                      compared: Bali::BpmnEditor::Component.new(data: BpmnProcessMap.supplier(locale), chrome: :minimal,
+                                                                rules: false, id: "export_compare_bpmn",
+                                                                review: { compare_with: before }, compare_open: true) }
+          )
+        end
       end
 
       # @label Palette and legend configured by the app
@@ -361,6 +449,40 @@ module Bali
         end
       end
 
+      # @label Inside a card
+      # A panel that draws the frame itself — one card, its header on top
+      # behind a divider and the flow edge to edge underneath. The editor
+      # draws none (`bordered: false`), nor does the header (a Bali::Card with
+      # `style: :flush` and the app's own `border-b`). `compare` opens it
+      # comparing against another process, and the toggles leave pieces of the
+      # comparison bar out (`review: { compare_bar: }`); «Solo cambios» and
+      # «Sincronizar» always stay.
+      # docs/api/bpmn-editor.md#embedding-a-diagram
+      # @param bordered toggle "The editor's own frame (bordered:)"
+      # @param compare toggle "Open comparing against another process"
+      # @param title toggle "compare_bar title"
+      # @param match_note toggle "compare_bar match_note"
+      # @param exit toggle "compare_bar exit"
+      # @param captions toggle "compare_bar captions"
+      # @param locale select { choices: [es, en] }
+      def in_a_card(bordered: false, compare: false, title: false, match_note: false, exit: false, captions: false, locale: :es)
+        en = locale.to_s == "en"
+        bar = { title: title, match_note: match_note, exit: exit, captions: captions }.transform_values { |v| v.to_s == "true" }
+        I18n.with_locale(locale) do
+          render_with_template(
+            template: "bali/bpmn_editor/previews/in_a_card",
+            locals: { locale: locale,
+                      component: Bali::BpmnEditor::Component.new(
+                        data: BpmnProcessMap.supplier(locale), chrome: :minimal, rules: false, id: "card_flow_bpmn",
+                        bordered: bordered.to_s == "true", compare_open: compare.to_s == "true",
+                        review: { compare_with: { document: BpmnProcessMap.customer(locale),
+                                                  label: en ? "Customer onboarding" : "Alta de cliente" },
+                                  compare_bar: bar }
+                      ) }
+          )
+        end
+      end
+
       # @label Compare without geometry (shared lane ids)
       # @hidden
       # Two versions of one flow as an app that stores no geometry sends them:
@@ -379,6 +501,17 @@ module Bali
       end
 
       private
+
+      def resized_sample(locale)
+        en = locale.to_s == "en"
+        sizes = {
+          "t1" => { width: 230, height: 100,
+                    name: en ? "Validate the invoice against the purchase order and the delivery note" : "Validar la factura contra la orden de compra y la nota de entrega" },
+          "t4" => { width: 210, height: 64 }
+        }
+        data = BpmnSampleFlows.invoice(locale: locale)
+        data.merge(nodes: data[:nodes].map { |node| sizes[node[:id]] ? node.merge(sizes[node[:id]]) : node })
+      end
 
       def without_geometry(doc)
         nodes = doc[:nodes].map do |node|

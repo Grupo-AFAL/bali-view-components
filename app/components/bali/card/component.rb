@@ -6,7 +6,12 @@ module Bali
       STYLES = {
         default: "",
         bordered: "card-border",
-        dash: "card-dash"
+        dash: "card-dash",
+        # A section of a container that draws the frame itself. Utilities, not a
+        # sheet: daisyUI's `.card` radius sits in a sublayer of `utilities` that
+        # only a utility beats, and `border-0` is emitted before `border-b`, so a
+        # host's divider line on the same card still wins.
+        flush: "rounded-none border-0"
       }.freeze
 
       SIZES = {
@@ -72,7 +77,7 @@ module Bali
           SIZES[@size],
           "card-side" => @side,
           "image-full" => @image_full,
-          "shadow-sm" => @shadow,
+          "shadow-sm" => @shadow && @style != :flush,
           "transition-shadow hover:shadow-md" => @href.present?
         )
       end

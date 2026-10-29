@@ -2,6 +2,8 @@ import { Fragment, memo } from 'react'
 import { NodeResizeControl } from '@xyflow/react'
 import { IssueMarker } from '../shapes.jsx'
 import { MIN_LANE_SIZE } from '../model/geometry.js'
+import { appearanceOf } from '../model/appearance.js'
+import { textOn } from '../model/contrast.js'
 import { useCanvas } from './CanvasContext.js'
 import { DIFF_MARKS, diffMark } from './diffMarks.js'
 
@@ -20,9 +22,13 @@ function LaneNode ({ id, data, selected, width, height }) {
   const name = lane.name || canvas.t('lane_unnamed')
   const editable = canvas.editable
   const renaming = canvas.renamingId === id
+  const look = appearanceOf(lane)
+  // Hidden with «Show badges» off, as a node's (FlowNode.jsx).
+  const badge = look && canvas.badgesVisible !== false ? look.badge : null
   return (
     <div
-      className={`bpmn-lane bpmn-lane-${orientation}${external ? ' is-external' : ''}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}`}
+      className={`bpmn-lane bpmn-lane-${orientation}${external ? ' is-external' : ''}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}${look && look.dimmed ? ' is-dimmed' : ''}${look && look.color ? ' has-color' : ''}${badge ? ' has-badge' : ''}`}
+      style={look && look.color ? { '--bpmn-lane-color': look.color } : undefined}
       data-testid='bpmn-lane'
     >
       <div
@@ -35,11 +41,18 @@ function LaneNode ({ id, data, selected, width, height }) {
           ? canvas.renderRename(lane, true)
           : (
             <span className='bpmn-lane-name'>
-              {mark && <span className={`bpmn-diff-chip is-${mark.tone}`} data-testid='bpmn-diff-mark' title={canvas.t(mark.label)}>{mark.symbol}</span>}
               <span className='bpmn-lane-title'>{name}</span>
+              {/* Read after the name, drawn before it (flow.css). */}
+              {(mark || badge) && (
+                <span className='bpmn-lane-tags'>
+                  {mark && <span className={`bpmn-diff-chip is-${mark.tone}`} data-testid='bpmn-diff-mark' title={canvas.t(mark.label)}>{mark.symbol}</span>}
+                  {badge && <span className='bpmn-lane-badge' data-testid='bpmn-lane-badge' title={badge} style={look.color ? { '--bpmn-badge': look.color, '--bpmn-badge-text': textOn(look.color) } : undefined}>{badge}</span>}
+                </span>
+              )}
               {/* Said, not shown: the grey lane and the legend already show it,
                   and its line took room from the lane's name. */}
               {external && <span className='sr-only' data-testid='bpmn-lane-external-name'>{`, ${canvas.t('lane_external').toLowerCase()}`}</span>}
+              {look && look.dimmed && <span className='sr-only'>{`, ${canvas.t('appearance_dimmed')}`}</span>}
             </span>
             )}
         {issue && (

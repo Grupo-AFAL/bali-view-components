@@ -127,4 +127,46 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
     end
     assert_raises(Data::InvalidError) { Data.new(node_with(badge: 12)) }
   end
+
+  def sized(type, **size) = { nodes: [ { id: "n1", type: type, **size } ] }
+
+  # «Auto» is a size left out, null or 0. The limits a person resizes within
+  # are the island's: a document may draw an activity at any positive size.
+  def test_a_positive_size_or_auto_is_kept
+    assert_equal 240, Data.new(sized("task", width: 240, height: 90)).nodes.first[:width]
+    assert_nothing_raised { Data.new(sized("sub_process", width: nil, height: nil)) }
+    assert_nothing_raised { Data.new(sized("task", width: 0, height: "0")) }
+    assert_nothing_raised { Data.new(sized("task", width: 28, height: "28")) }
+    assert_nothing_raised { Data.new(sized("group", width: 1200, height: 600)) }
+  end
+
+  def test_a_negative_size_raises
+    [ { width: -1 }, { height: "-5" } ].each do |size|
+      error = assert_raises(Data::InvalidError, size.inspect) { Data.new(sized("exclusive_gateway", **size)) }
+
+      assert_includes error.message, "must not be negative"
+      assert_includes error.message, "node n1"
+    end
+  end
+
+  def lane_with(appearance)
+    { lanes: [ { id: "l1", name: "Treasury", appearance: appearance } ] }
+  end
+
+  def test_a_lane_takes_the_same_appearance_as_a_node
+    data = Data.new(lane_with(color: "#DC2626", dimmed: true, badge: "Unassigned"))
+
+    assert_equal({ color: "#DC2626", dimmed: true, badge: "Unassigned" }, data.lanes.first[:appearance])
+    {
+      "unknown keys" => { colour: "#DC2626" },
+      "hex colour" => { color: "red" },
+      "true or false" => { dimmed: 1 },
+      "at most 24 characters" => { badge: "x" * (Data::BADGE_MAX + 1) }
+    }.each do |message, appearance|
+      error = assert_raises(Data::InvalidError, message) { Data.new(lane_with(appearance)) }
+
+      assert_includes error.message, message
+      assert_includes error.message, "lane l1"
+    end
+  end
 end

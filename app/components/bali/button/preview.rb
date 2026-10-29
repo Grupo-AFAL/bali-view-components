@@ -24,10 +24,13 @@ module Bali
       # With Icon
       # ---------------
       # When `responsive: true` (default), the label hides on mobile and the button becomes
-      # a square icon-only button using DaisyUI's `max-sm:btn-square`.
+      # a square icon-only button using DaisyUI's `max-sm:btn-square`. `icon_only` adds the
+      # `is-icon-only` class, the same square at any width — what an app toggles at runtime.
       # @param responsive toggle
-      def with_icon(responsive: true)
-        render Bali::Button::Component.new(name: 'Add Item', variant: :primary, icon: 'plus', responsive: responsive)
+      # @param icon_only toggle "The is-icon-only class"
+      def with_icon(responsive: true, icon_only: false)
+        render Bali::Button::Component.new(name: 'Add Item', variant: :primary, icon: 'plus', responsive: responsive,
+                                           class: ('is-icon-only' if icon_only.to_s == 'true'))
       end
 
       # Icon only

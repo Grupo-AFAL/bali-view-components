@@ -34,6 +34,9 @@ end
 
 group :test do
   gem "capybara", "~> 3"
+  # test/bali/components/bpmn_editor/prawn_svg_export_test.rb
+  gem "prawn", "~> 2.5"
+  gem "prawn-svg", "~> 0.40"
   gem "simplecov", require: false
   gem "sqlite3", "~> 2.10"
 end

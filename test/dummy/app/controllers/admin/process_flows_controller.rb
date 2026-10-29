@@ -7,5 +7,10 @@ module Admin
     def show
       @flow = ProcessFlow.find(params[:id])
     end
+
+    # The same editor with `full_page:`, inside this layout's side menu and topbar.
+    def edit
+      @flow = ProcessFlow.find(params[:id])
+    end
   end
 end

@@ -15,15 +15,16 @@
         **options,
         fields: {
           nodes: {
-            "*" => [ { key: "owner_note", label: en ? "Owner's note" : "Nota del responsable", type: "textarea" } ],
+            "*" => [ { key: "owner_note", label: en ? "Owner's note" : "Nota del responsable", type: "textarea", maxlength: 280 } ],
             user_task: [
-              { key: "duration", label: en ? "Duration (minutes)" : "Duración (minutos)", type: "number", min: 0 },
+              { key: "duration", label: en ? "Duration (minutes)" : "Duración (minutos)", type: "number", min: 0, max: 480 },
               { key: "systems", label: en ? "Systems" : "Sistemas", type: "multi_select",
                 options: [ { value: "erp", label: "ERP" }, { value: "portal", label: en ? "Supplier portal" : "Portal de proveedores" },
                            { value: "bank", label: en ? "Online banking" : "Banca en línea" } ] }
             ]
           },
-          lanes: [ { key: "notes", label: en ? "Notes" : "Notas", type: "textarea" } ]
+          lanes: [ { key: "notes", label: en ? "Notes" : "Notas", type: "textarea" } ],
+          documentation: { maxlength: 1000 }
         },
         urls: {
           save: admin_process_flow_diagram_path(flow, **demo),

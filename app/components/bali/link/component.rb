@@ -202,6 +202,10 @@ module Bali
       def modal_enabled? = @modal.present?
       def drawer_enabled? = @drawer.present?
       def responsive_icon_only? = @responsive && button_style? && @icon.present?
+
+      # A button-styled link with an icon and a name: the name goes in
+      # `.btn-label`, which `.is-icon-only` hides from view (button/index.css).
+      def labelled_icon? = button_style? && (@icon.present? || icon?) && name.present?
     end
   end
 end

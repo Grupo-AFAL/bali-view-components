@@ -1,0 +1,36 @@
+/* `full_page:` (component.rb): the header, the host's notices and the editor,
+   from the page's top edge to the bottom of the window. `--bali-bpmn-page-top`
+   is that edge's offset in the page, kept by the island's controller
+   (index.js, observeTopOffset in utils/top-offset.js) as what stands above it
+   changes; `--bali-bpmn-page-bottom` is the room the page keeps below it (its
+   own bottom padding). `dvh` follows a phone browser's bars. 36rem holds the
+   editor's bars and its 420px canvas minimum (flow.css). */
+.bali-bpmn-page {
+  @apply flex flex-col gap-3;
+  height: calc(100dvh - var(--bali-bpmn-page-top, 0px) - var(--bali-bpmn-page-bottom, 0px));
+  min-height: 36rem;
+}
+
+.bali-bpmn-page > .bali-bpmn-editor-mount {
+  @apply min-h-0 flex-1;
+}
+
+.bali-bpmn-page-header {
+  @apply flex flex-wrap items-center gap-x-3 gap-y-2;
+}
+
+.bali-bpmn-page-title {
+  @apply min-w-0 truncate text-lg font-semibold;
+}
+
+.bali-bpmn-page-actions {
+  @apply ms-auto flex flex-wrap items-center gap-2;
+}
+
+.bali-bpmn-page-notices {
+  @apply space-y-2;
+}
+
+[data-bpmn-page-exit][aria-busy="true"] {
+  @apply cursor-progress opacity-70;
+}

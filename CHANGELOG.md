@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.23.0] - 2026-10-28
+
+### Added
+
+- **`Bali::Button` / `Bali::Link`: `.is-icon-only`.** Con `icon:` y `name:`, el nombre va en
+  `<span class="btn-label">`; la clase `is-icon-only` en el botón (con `class:` o puesta por el
+  JS del host) lo deja cuadrado y saca el rótulo de la vista en cualquier ancho, sin perder el
+  nombre accesible. Reemplaza esconder el `span.max-sm:hidden` interno.
+- **`Bali::SplitView` `height: :screen`: `--bali-split-bottom`** (0 por omisión) se resta del
+  alto: el espacio que la página deja debajo (su padding inferior). Reemplaza sobrescribir
+  `.split-view-component--screen`.
+- **Controller `screen-top`**: guarda en `--bali-screen-top` dónde empieza su elemento en la
+  página, y lo actualiza cuando algo arriba lo mueve, para un contenedor cualquiera que llega
+  hasta el fondo de la ventana (`height: calc(100dvh - var(--bali-screen-top, 0px))`). Es la
+  medida que `SplitView` `height: :screen` toma para sí; reemplaza usar `split-view-screen`
+  fuera de un `SplitView`.
+- **`Bali::BpmnEditor`: `bordered: false`** quita el marco propio del editor (borde, esquinas
+  redondeadas y sombra), también del placeholder mientras carga, para un editor dentro de un
+  contenedor que ya dibuja el marco. Vale con `chrome: :full` y `:minimal`; el fondo se queda.
+  Una app que hoy anula `.bpmn-editor` o `.bali-bpmn-editor-skeleton` con CSS puede borrar esas
+  reglas.
+- **`Bali::Card`: `style: :flush`**, sin borde, radio ni sombra, para una sección de un
+  contenedor que ya dibuja el marco. Una línea divisoria propia (`class: "border-b"`) sigue
+  aplicando.
+- **`Bali::BpmnEditor`: `review: { compare_bar: { title:, match_note:, exit:, captions: } }`**
+  quita piezas de la barra de comparación: el título (con una sola comparación), la nota
+  «Elementos emparejados por nombre», «Cerrar comparación» y la etiqueta de cada lado. «Solo
+  cambios», «Sincronizar» y las vistas se quedan.
+- **`Bali::BpmnEditor`: modo página completa, `full_page: { title:, close_url:, status: }`.** El
+  editor ocupa el alto de la ventana (`100dvh`), dentro del layout de la app o en una página sola,
+  con un encabezado: «Salir», título, estatus (`Bali::Tag`; si se omite, el `status_label` del
+  documento, que se mantiene al día al finalizar, con un 409 o al recargar), estado del guardado y las acciones del host (`with_action`), más avisos sobre el
+  lienzo (`with_notice`). «Salir» espera el guardado pendiente; si falla ofrece «Reintentar» o
+  «Salir sin guardar», y si un 409 reemplaza el documento se queda en la página con el aviso de
+  conflicto. Claves desconocidas, un `close_url` no navegable, un color inválido, `chrome: :minimal`, o
+  `with_notice`/`with_action` sin `full_page:` lanzan `ArgumentError`. Dentro de un layout con padding
+  inferior (`AppLayout` con `body_container: :wide`), el host dice cuánto en
+  `--bali-bpmn-page-bottom` para que la página no haga scroll.
+- **`Bali::BpmnEditor`: cambiar el tamaño de las actividades.** Tareas y subprocesos se
+  redimensionan desde la esquina o con «Tamaño» en el panel; «Auto» guarda `width`/`height` en
+  `null`. Un solo paso de deshacer, y «Autoajustar» respeta el tamaño propio. `Data` rechaza un
+  tamaño negativo; `0`, como `null`, es «Auto», así que un documento guardado con 0 en una
+  columna numérica sigue abriendo. Los límites (80×40 a 800×400) los aplica el editor.
+- **`Bali::BpmnEditor`: `appearance` en carriles** (`color`, `dimmed`, `badge`), con el mismo
+  contrato que en los nodos: la manda el servidor y nunca se envía al guardar. Se dibuja en el
+  encabezado del carril (lienzo, comparación, PNG/SVG/impresión; no en `.bpmn`), y
+  «Mostrar etiquetas» y `badges:` también la cubren.
+- **`Bali::BpmnEditor`: el 422 del guardado puede traer `issues`** con `element_id`, como el de
+  finalizar: el editor marca esos elementos y abre el panel de pendientes (con autosave, solo si los
+  `issues` cambian respecto al rechazo anterior). `errors` sigue igual.
+- **`Bali::BpmnEditor`: exportar a petición del host.** `bali-bpmn:export`
+  `{ request_id, format: "svg" | "png", frame, font_family }` se responde con
+  `bali-bpmn:exported` (o `bali-bpmn:export-failed`) sin descargar nada; se encola si llega antes
+  de que cargue la isla. `frame: false` entrega solo el diagrama a su tamaño natural, con la
+  apariencia y los badges como se ven. Con la comparación abierta, la respuesta trae los dos lados
+  con sus marcas y los cambios como datos (conteos y lista con tipo, nombre, carril y detalle).
+  Sección «Exporting for the app» en `docs/api/bpmn-editor.md`, incluido cómo mapear la fuente en
+  Prawn.
+- **`Bali::BpmnEditor`: «Ampliar» en `chrome: :minimal`**, pantalla completa del navegador junto
+  al zoom, donde el navegador la permite (no dentro de un iframe sin `allowfullscreen`).
+- **`Bali::BpmnEditor`: `confirm_linked_delete:`** (por defecto `false`) pide confirmación antes
+  de eliminar un subproceso vinculado a una entidad de la app.
+- **`Bali::BpmnEditor`: límites en `fields:`.** `maxlength:` en campos `text`/`textarea`,
+  `min:`/`max:` en `number` (validados con `ArgumentError`) y `documentation: { maxlength: }` para
+  la descripción de la actividad. Un límite `nil` no limita, y `min:`/`max:` aceptan un string
+  numérico (`"0"`), como ya llegaban al input antes de esta versión.
+
+### Changed
+
+- **`Bali::BpmnEditor`: el SVG exportado es compatible con prawn-svg.** Los colores salen en hex o `rgb()`:
+  antes salían en `oklch()`/`oklab()`, que prawn-svg pinta negros. Ya no usa `dominant-baseline`,
+  escribe un `<text>` por línea y las flechas usan `orient="auto"`. En el navegador se ve igual.
+- **Docs del contrato de `Bali::BpmnEditor`:** los ids que crea la isla no cambian nunca; si el
+  usuario editó durante un guardado, `appearance` y `stencil` esperan al siguiente 200; el nombre
+  de un subproceso vinculado sigue a su referencia y no se renombra; `bali_bpmn_reload` funciona
+  como broadcast de Turbo Stream.
+
 ## [v3.22.0] - 2026-10-23
 
 ### Added

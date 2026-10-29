@@ -5,6 +5,7 @@
 import { ReactIslandController } from '../../../frontend/bali/react-island'
 import { islandStrings } from './i18n.js'
 import { hostEventQueue } from './hostEventQueue.js'
+import { observeTopOffset } from '../../../assets/javascripts/bali/utils/top-offset.js'
 
 // The `rules` the island takes: false (Component `rules: false`, its own
 // value), a profile's name (`rules: :structure` arrives as { profile }), or
@@ -27,6 +28,8 @@ export class BpmnEditorController extends ReactIslandController {
     externalLanes: { type: Boolean, default: true },
     // Opens the pending-issues panel on load (Component `open_issues:`).
     openIssues: { type: Boolean, default: false },
+    // Asks before deleting a linked sub-process (Component `confirm_linked_delete:`).
+    confirmLinkedDelete: { type: Boolean, default: false },
     // 'compact' | 'straight' — autoLayout's mode (model/layout.js).
     layout: { type: String, default: 'compact' },
     // { width, height } in inches and orientation — model/page.js.
@@ -57,7 +60,7 @@ export class BpmnEditorController extends ReactIslandController {
     minZoom: { type: Number, default: 0.4 },
     // Review notes on a read-only diagram, saved to urls.annotations.
     annotatable: { type: Boolean, default: false },
-    // The nodes' `appearance.badge` shown on load (Component `badges:`), and
+    // The lanes' and nodes' `appearance.badge` shown on load (Component `badges:`), and
     // the switch that shows and hides them (`badge_toggle:`).
     badges: { type: Boolean, default: true },
     badgeToggle: { type: Boolean, default: true },
@@ -67,16 +70,24 @@ export class BpmnEditorController extends ReactIslandController {
     wheelZoom: { type: String, default: 'auto' },
     // 'true' | 'side_by_side' | 'overlay' (Component `compare_open:`) — model/compare.js openMode.
     compareOpen: { type: String, default: '' },
-    compareIndex: { type: Number, default: 0 }
+    compareIndex: { type: Number, default: 0 },
+    // Component `full_page:`: the element is the page — header, notices and
+    // the editor — down to the bottom of the window.
+    fullPage: { type: Boolean, default: false },
+    // Component `bordered:` — false when a container around it draws the frame.
+    bordered: { type: Boolean, default: true }
   }
 
   connect () {
     this.hostEvents = hostEventQueue(this.element)
+    // `full_page:` fills the window below its own top edge (index.css).
+    if (this.fullPageValue) this.stopMeasuring = observeTopOffset(this.element, '--bali-bpmn-page-top')
     return super.connect()
   }
 
   disconnect () {
     this.hostEvents.stop()
+    if (this.stopMeasuring) this.stopMeasuring()
     super.disconnect()
   }
 

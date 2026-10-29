@@ -3,6 +3,8 @@ import { remoteSearch } from './remoteSearch.js'
 
 // One host-defined field (`fields:` of the component). Options are local
 // (`options: [{ value, label }]`) or remote (`url`, queried with ?q=).
+// `maxlength` reaches the text and textarea inputs, `min`/`max` the number
+// one: mirror Component MAXLENGTH_TYPES / RANGE_TYPES (contract_test.rb).
 export default function FieldInput ({ field, value, onChange, disabled, t }) {
   const [remote, setRemote] = useState(null)
   const [failed, setFailed] = useState(false)
@@ -28,7 +30,7 @@ export default function FieldInput ({ field, value, onChange, disabled, t }) {
     case 'readonly':
       return <p className='whitespace-pre-line rounded bg-base-200 px-2 py-1 text-sm'>{value == null || value === '' ? '—' : String(value)}</p>
     case 'textarea':
-      return <textarea className='textarea textarea-sm w-full' rows={3} value={value ?? ''} disabled={disabled} placeholder={field.placeholder} onChange={(e) => onChange(e.target.value)} />
+      return <textarea className='textarea textarea-sm w-full' rows={3} value={value ?? ''} disabled={disabled} placeholder={field.placeholder} maxLength={field.maxlength} onChange={(e) => onChange(e.target.value)} />
     case 'number':
       return <input type='number' className='input input-sm w-full' value={value ?? ''} disabled={disabled} min={field.min} max={field.max} step={field.step} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))} />
     case 'select':
@@ -53,6 +55,6 @@ export default function FieldInput ({ field, value, onChange, disabled, t }) {
       )
     }
     default:
-      return <input className='input input-sm w-full' value={value ?? ''} disabled={disabled} placeholder={field.placeholder} onChange={(e) => onChange(e.target.value)} />
+      return <input className='input input-sm w-full' value={value ?? ''} disabled={disabled} placeholder={field.placeholder} maxLength={field.maxlength} onChange={(e) => onChange(e.target.value)} />
   }
 }

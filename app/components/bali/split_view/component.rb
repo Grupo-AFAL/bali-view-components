@@ -104,7 +104,9 @@ module Bali
       #             so below that the page scrolls as usual.
       #             `:screen` fills from the split's top edge to the bottom of
       #             the viewport (`dvh`, kept right as the page above it changes),
-      #             never shorter than `--bali-split-min-h` (28rem). A CSS length
+      #             less the host's `--bali-split-bottom` (0 by default: the room
+      #             its page keeps below), never shorter than `--bali-split-min-h`
+      #             (28rem). A CSS length
       #             (`"640px"`, `"40rem"`, `"70vh"`) is a fixed height. Both give
       #             each pane the whole height, as `:full` does, and both apply
       #             from `lg` up: below it the panes stack as with `:content` (a

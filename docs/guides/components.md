@@ -500,7 +500,7 @@ Content container with optional header, image, and actions.
 ```
 
 **Options:**
-- `style` - `:default`, `:bordered`, `:dash`
+- `style` - `:default`, `:bordered`, `:dash`, `:flush` (no border, radius or shadow — a section of a container that draws the frame itself; a divider such as `class: "border-b border-base-300"` still applies)
 - `size` - `:xs`, `:sm`, `:md`, `:lg`, `:xl`
 - `side` - Horizontal layout (image on side)
 - `image_full` - Image overlays entire card
@@ -3950,6 +3950,18 @@ Primary interactive element for actions.
 - `disabled` - Disable button
 - `loading` - Draw a spinner beside the label and disable the button (`disabled` plus `aria-busy`). A button that is waiting is not one you can press, and it keeps its box: `loading` on the `<button>` itself is a daisyUI 5 spinner, not a modifier
 - `modal` / `drawer` - `{ id:, local: true }` opens an overlay already rendered on the page, by name and with no fetch (`id:` is mandatory). Only the local mode: a button has no href to fetch, so the remote mode stays on `Link`
+- `responsive` - With `icon:`, the label hides below `sm` and the button goes square, with the name as its `aria-label` (default: `true`)
+
+**Icon only at any width: `.is-icon-only`.** With `icon:` and `name:`, the name is drawn in a
+`<span class="btn-label">`. The class `is-icon-only` on the button — rendered with
+`class:`, or toggled at runtime by the app's own JavaScript (a panel compacting its actions
+when it narrows) — draws it square and takes the label out of view, at any breakpoint. The
+label stays in the accessibility tree, so the button keeps its accessible name. The same
+class works on a button-styled `Link`.
+
+```erb
+<%= render Bali::Button::Component.new(name: 'Filter', icon: 'filter', class: 'is-icon-only') %>
+```
 
 #### Link
 

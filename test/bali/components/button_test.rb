@@ -187,6 +187,20 @@ class BaliButtonComponentTest < ComponentTestCase
     assert_no_selector("button[aria-label]")
   end
 
+  # `.is-icon-only` (index.css) hides `.btn-label`: every icon-and-name button
+  # has one, responsive or not, so a host can turn any of them icon-only.
+  def test_an_icon_and_a_name_put_the_name_in_btn_label
+    render_inline(Bali::Button::Component.new(name: "Add", icon: "plus", responsive: false))
+    assert_selector("button > span.btn-label", exact_text: "Add")
+    assert_no_selector("button span.max-sm\\:hidden")
+
+    render_inline(Bali::Button::Component.new(name: "Add", icon: "plus"))
+    assert_selector("button > span.btn-label.max-sm\\:hidden", exact_text: "Add")
+
+    render_inline(Bali::Button::Component.new(name: "Add"))
+    assert_no_selector("button span.btn-label")
+  end
+
   def test_responsive_without_icon_does_not_add_btn_square
     render_inline(Bali::Button::Component.new(name: "Add"))
     assert_no_selector("button.max-sm\\:btn-square")

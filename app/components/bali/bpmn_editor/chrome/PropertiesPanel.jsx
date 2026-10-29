@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { paletteKeyFor, isActivity, isEvent, isGateway } from '../model/catalog.js'
+import { paletteKeyFor, isActivity, isEvent, isGateway, isResizable, hasOwnSize, nodeSize, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
 import { namedByReference } from '../model/document.js'
 import Icon from './icons.jsx'
 import FieldInput from './FieldInput.jsx'
@@ -62,7 +62,46 @@ function PortPicker ({ label, value, onChange, editable, t }) {
   )
 }
 
-function NodeProperties ({ node, doc, api, t, editable, nodeFields, urls }) {
+// Committed on Enter or on leaving the field, not per keystroke: «1» on the
+// way to «180» would clamp to the minimum and move the next elements along.
+function SizeInput ({ label, value, min, max, editable, onCommit }) {
+  const commit = (event) => {
+    const typed = Number(event.target.value)
+    if (!(typed > 0)) { event.target.value = value; return }
+    const next = Math.round(Math.max(min, Math.min(max, typed)))
+    event.target.value = next
+    if (next !== value) onCommit(next)
+  }
+  return (
+    <input key={value} type='number' className='input input-sm w-20' aria-label={label} defaultValue={value}
+      min={min} max={max} disabled={!editable}
+      onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') commit(event) }} />
+  )
+}
+
+function SizeFields ({ node, api, t, editable }) {
+  const size = nodeSize(node)
+  const auto = !hasOwnSize(node)
+  const input = (key) => (
+    <SizeInput label={t(`props_${key}`)} value={size[key]} min={MIN_NODE_SIZE[key]} max={MAX_NODE_SIZE[key]} editable={editable}
+      onCommit={(value) => api.resizeNode(node.id, { ...size, [key]: value })} />
+  )
+  return (
+    <FieldGroup label={t('props_size')}>
+      <div className='flex items-center gap-1' data-testid='bpmn-node-size'>
+        {input('width')}
+        <span className='text-base-content/50' aria-hidden='true'>×</span>
+        {input('height')}
+        <button type='button' className={`btn btn-xs ms-auto ${auto ? 'btn-primary' : 'btn-outline'}`} aria-pressed={auto}
+          disabled={!editable || auto} title={t('props_size_auto_hint')} onClick={() => api.resizeNode(node.id, null)}>
+          {t('props_size_auto')}
+        </button>
+      </div>
+    </FieldGroup>
+  )
+}
+
+function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentationField, urls }) {
   const key = paletteKeyFor(node)
   const lane = doc.lanes.find((l) => String(l.id) === String(node.lane_id))
   const fields = [...(nodeFields['*'] || []), ...(nodeFields[node.type] || [])]
@@ -79,7 +118,7 @@ function NodeProperties ({ node, doc, api, t, editable, nodeFields, urls }) {
       {describe && (
         <Field label={t('props_documentation')}>
           <textarea className='textarea textarea-sm w-full' rows={3} value={node.documentation || ''} disabled={!editable}
-            placeholder={t('props_documentation_placeholder')}
+            placeholder={t('props_documentation_placeholder')} maxLength={documentationField && documentationField.maxlength}
             onChange={(e) => api.updateNode(node.id, { documentation: e.target.value }, `doc:${node.id}`)} />
         </Field>
       )}
@@ -93,6 +132,7 @@ function NodeProperties ({ node, doc, api, t, editable, nodeFields, urls }) {
       {node.type === 'sub_process' && (
         <ReferencePicker node={node} api={api} t={t} editable={editable} urls={urls} />
       )}
+      {isResizable(node) && <SizeFields node={node} api={api} t={t} editable={editable} />}
       <CustomFields fields={fields} values={node.fields} editable={editable} t={t}
         onChange={(values) => api.updateNode(node.id, { fields: values }, `fields:${node.id}`)} />
     </>
@@ -184,7 +224,7 @@ function Participants ({ doc, t, onPick }) {
 // The side panel: properties of what is selected (a node, a connection, a
 // lane, several nodes) or the list of participants. Replaces the modal
 // dialogs of the old editor.
-export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true }) {
+export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, documentationField, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true }) {
   const nodes = selection.nodes.map((id) => doc.nodes.find((n) => String(n.id) === id)).filter(Boolean)
   const edge = selection.edges.length === 1 ? doc.edges.find((e) => String(e.id) === selection.edges[0]) : null
   const lane = selection.lanes.length === 1 ? doc.lanes.find((l) => String(l.id) === selection.lanes[0]) : null
@@ -213,7 +253,7 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, not
     )
   } else if (nodes.length === 1) {
     title = nodes[0].name || t('props_title')
-    body = <NodeProperties node={nodes[0]} doc={doc} api={api} t={t} editable={editable} nodeFields={nodeFields} urls={urls} />
+    body = <NodeProperties node={nodes[0]} doc={doc} api={api} t={t} editable={editable} nodeFields={nodeFields} documentationField={documentationField} urls={urls} />
   } else if (edge) {
     title = t('props_edge')
     body = <EdgeProperties edge={edge} doc={doc} api={api} t={t} editable={editable} />

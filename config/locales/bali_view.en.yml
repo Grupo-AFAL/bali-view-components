@@ -447,6 +447,7 @@ en:
     bpmn_editor:
       loading: "Loading the diagram"
       noscript: "This diagram needs JavaScript to be displayed."
+      exit: "Exit"
       # Flat strings table of the BPMN editor island, served by
       # Bali::BpmnEditor::Translations.island. `%{...}` are interpolated
       # client-side; keys must match DEFAULT_I18N in
@@ -488,6 +489,11 @@ en:
         navigate: "Navigate"
         fullscreen: "Full screen"
         exit_fullscreen: "Exit full screen"
+        expand: "Expand"
+        exit_failed_title: "The changes could not be saved"
+        exit_failed_body: "If you exit now, what you changed since the last save is lost."
+        exit_retry: "Retry"
+        exit_discard: "Exit without saving"
         zoom_in: "Zoom in"
         zoom_out: "Zoom out"
         center: "Center the flow"
@@ -992,6 +998,11 @@ en:
         props_source_port: "Exit port"
         props_target_port: "Entry port"
         props_reroute: "Recalculate route"
+        props_size: "Size"
+        props_width: "Width"
+        props_height: "Height"
+        props_size_auto: "Auto"
+        props_size_auto_hint: "Back to the default size"
         props_lane_title: "Lane"
         props_lane_external: "External participant"
         props_lane_external_hint: "The lane is shaded grey and its activities are drawn in white."
@@ -1009,6 +1020,8 @@ en:
         align_vertical: "Vertical"
         align_horizontal: "Horizontal"
         delete_selection: "Delete selection"
+        confirm_linked_delete_title: "Delete linked sub-processes?"
+        confirm_linked_delete_body: "The selection includes sub-processes linked in the app: %{names}. Deleting them removes the link."
         port_auto: "Auto"
         port_top: "Top"
         port_right: "Right"

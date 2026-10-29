@@ -66,7 +66,11 @@ describe('BPMN editor island', () => {
         doc.body.appendChild(probe)
         const value = getComputedStyle(probe).color
         probe.remove()
-        return value
+        // As the export writes it (export/exporters.js): #rrggbb, read off a painted pixel.
+        const pixel = doc.createElement('canvas').getContext('2d')
+        pixel.fillStyle = value
+        pixel.fillRect(0, 0, 1, 1)
+        return `#${[...pixel.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((c) => c.toString(16).padStart(2, '0')).join('')}`
       }
       cy.wrap({ light: color('light'), dark: color('dark') }).as('base')
     })

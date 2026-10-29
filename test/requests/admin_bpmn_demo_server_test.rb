@@ -28,6 +28,15 @@ class AdminBpmnDemoServerTest < ActionDispatch::IntegrationTest
     assert_match(/could not be saved/, response.parsed_body["errors"].first)
   end
 
+  def test_reject_save_answers_422_with_messages_and_issues_without_saving
+    put diagram(server: "reject_save", locale: "en"), params: body_for, as: :json
+
+    assert_response :unprocessable_entity
+    assert_match(/could not be saved/, response.parsed_body["errors"].first)
+    assert_equal "APP-DEMO-2", response.parsed_body["issues"].find { |issue| issue["element_id"] }["rule"]
+    assert_equal 1, @flow.reload.version
+  end
+
   def test_issues_come_back_with_the_document
     get diagram(server: "issues", locale: "en"), as: :json
 

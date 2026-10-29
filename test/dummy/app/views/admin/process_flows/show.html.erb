@@ -3,7 +3,9 @@
 <% content_for :head do %>
   <%= react_island_meta_tags('bpmn-editor', js: 'bpmn-editor-island.js', css: 'bpmn-editor-island.css') %>
 <% end %>
-<%= render Bali::PageHeader::Component.new(title: @flow.name) %>
+<%= render Bali::PageHeader::Component.new(title: @flow.name) do %>
+  <%= render Bali::Link::Component.new(name: "Full page", href: edit_admin_process_flow_path(@flow), variant: :ghost, size: :sm) %>
+<% end %>
 <%= render Bali::BpmnEditor::Component.new(
       data: @flow.to_diagram,
       editable: true,
