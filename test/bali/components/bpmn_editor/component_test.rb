@@ -193,13 +193,23 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal({ "maxlength" => 1000 }, fields["documentation"])
   end
 
+  # The island passed min/max to the input before they were checked, so a
+  # host's nil or numeric string from its config keeps rendering.
+  def test_a_nil_limit_or_a_numeric_string_range_is_accepted
+    render_inline(component(fields: { nodes: { "*" => [ { key: "note", label: "Note", maxlength: nil },
+                                                        { key: "minutes", label: "Minutes", type: "number", min: "0", max: nil } ] } }))
+
+    fields = JSON.parse(island["data-bpmn-editor-fields-value"])
+    assert_equal "0", fields.dig("nodes", "*", 1, "min")
+  end
+
   def test_a_maxlength_or_a_range_that_does_not_apply_raises
     field = ->(**extra) { { lanes: [ { key: "x", label: "X", **extra } ] } }
     {
       "maxlength must be a positive integer" => field.call(maxlength: 0),
       "maxlength is for text/textarea fields, not number" => field.call(type: "number", maxlength: 10),
       "min/max are for number fields, not text" => field.call(min: 1),
-      "max must be a number" => field.call(type: "number", max: "10"),
+      "max must be a number" => field.call(type: "number", max: "ten"),
       "min (5) is greater than max (1)" => field.call(type: "number", min: 5, max: 1),
       "fields[:documentation]: maxlength must be a positive integer" => { documentation: { maxlength: "500" } },
       "fields[:documentation]: unknown keys [:rows]" => { documentation: { rows: 3 } }

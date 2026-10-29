@@ -517,23 +517,28 @@ module Bali
         end
       end
 
+      # A nil limit is no limit, and min/max take a numeric string: before
+      # these checks the island passed min/max straight to the input, so a host
+      # may write `min: settings[:min]` or `min: "0"` from its config.
       def field_limits!(field, type, context)
-        if field.key?(:maxlength)
+        unless field[:maxlength].nil?
           raise ArgumentError, "#{context}: maxlength is for #{MAXLENGTH_TYPES.join('/')} fields, not #{type}" unless MAXLENGTH_TYPES.include?(type)
 
           maxlength!(field[:maxlength], context)
         end
-        bounds = field.slice(:min, :max)
+        bounds = field.slice(:min, :max).compact
         return if bounds.empty?
 
         raise ArgumentError, "#{context}: min/max are for #{RANGE_TYPES.join('/')} fields, not #{type}" unless RANGE_TYPES.include?(type)
 
-        bounds.each do |key, value|
-          raise ArgumentError, "#{context}: #{key} must be a number, got #{value.inspect}" unless value.is_a?(Numeric)
+        bounds = bounds.to_h do |key, value|
+          [ key, Float(value) ]
+        rescue ArgumentError, TypeError
+          raise ArgumentError, "#{context}: #{key} must be a number, got #{value.inspect}"
         end
         return unless bounds.size == 2 && bounds[:min] > bounds[:max]
 
-        raise ArgumentError, "#{context}: min (#{bounds[:min]}) is greater than max (#{bounds[:max]})"
+        raise ArgumentError, "#{context}: min (#{field[:min]}) is greater than max (#{field[:max]})"
       end
 
       def maxlength!(value, context)

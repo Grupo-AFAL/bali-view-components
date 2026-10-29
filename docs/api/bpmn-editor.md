@@ -250,7 +250,7 @@ issues (R25, R26), and an imported document has to open to be fixed.
 
 ### Node size
 
-A node's `width` and `height` are its own size; absent or `null` is **«Auto»**: the
+A node's `width` and `height` are its own size; absent, `null` or `0` is **«Auto»**: the
 default of its type (an activity 150 × 64, a gateway 50 × 50, an event 36 × 36).
 
 - **Who resizes**: the activities (every task type and `sub_process`), in an editable
@@ -262,9 +262,10 @@ default of its type (an activity 150 × 64, a gateway 50 × 50, an event 36 × 3
   field. «Auto» there sets both back to `null`. Either way it is one undo step, and the
   local arrangement then moves along what the larger box runs into and grows the lane.
 - **Limits**: the island keeps a size it sets between 80 × 40 and 800 × 400
-  (`MIN_NODE_SIZE` / `MAX_NODE_SIZE` in `model/catalog.js`). `Data` only requires a size to
-  be a positive number and raises otherwise: a document may draw an activity outside those
-  limits (the catalog preview draws them at 28 px), and it opens and saves as it came.
+  (`MIN_NODE_SIZE` / `MAX_NODE_SIZE` in `model/catalog.js`). `Data` only rejects a negative
+  size: a document may draw an activity outside those limits (the catalog preview draws them
+  at 28 px), and it opens and saves as it came. A `0` from a numeric column of the app's is
+  «Auto».
 - **Saved as `null`**: «Auto» sends `"width": null, "height": null` rather than dropping
   the keys, so an app that maps the document onto its own columns clears them.
 - **Everything follows the box**: the name inside it (wrapped to the new width, with as
@@ -573,10 +574,13 @@ remote `url:` answering `[{ id, label }]`), `readonly`.
 
 Limits, checked when the component is built (`ArgumentError` otherwise):
 
+A limit given as `nil` is no limit.
+
 - `maxlength:` — a positive integer, on `text` and `textarea` fields and on
   `documentation:`. The control takes no more characters than that; a stored value already
   longer is shown whole and not cut. The server still has to check what it saves.
-- `min:` / `max:` — numbers, `min` not above `max`, on `number` fields only. The browser's
+- `min:` / `max:` — numbers (a numeric string such as `"0"` too), `min` not above `max`, on
+  `number` fields only. The browser's
   number control steps within them; it does not stop a typed value outside them, so the
   server checks that too.
 
@@ -797,7 +801,16 @@ are laid on.
 - **Height**: from the header's top edge to the bottom of the window (`100dvh`, at least 36rem),
   both in a page of its own and inside an app layout, under its topbar — the edge is measured
   and kept as what stands above it changes, as `Bali::SplitView` `height: :screen` does. Put
-  nothing below it. The editor inside keeps its own bars and fills the rest; the browser full
+  nothing below it. A layout that keeps room below the page — `Bali::AppLayout`'s default
+  `body_container: :wide` pads it with `p-4 md:p-6` — says how much in
+  `--bali-bpmn-page-bottom` (0 by default), or its content scrolls by that much:
+
+  ```css
+  .app-layout-body-container { --bali-bpmn-page-bottom: 1rem; }
+  @media (width >= 48rem) { .app-layout-body-container { --bali-bpmn-page-bottom: 1.5rem; } }
+  ```
+
+  `body_container: :full` has no padding and needs nothing. The editor inside keeps its own bars and fills the rest; the browser full
   screen button stays, and in full screen, with the header out of sight, the top bar shows the
   save status and `status_label` again.
 - **Not with `chrome: :minimal`** (ArgumentError). `with_notice` and `with_action` without

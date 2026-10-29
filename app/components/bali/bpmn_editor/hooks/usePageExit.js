@@ -22,10 +22,12 @@ export default function usePageExit (hostElement, { enabled, saver }) {
   const [failed, setFailed] = useState(null) // the «Exit» link whose save failed
   const [exiting, setExiting] = useState(false)
   const busy = useRef(false)
+  const leavingTo = useRef(null)
 
   const go = useCallback((link, mode) => {
     saverRef.current.markLeaving(mode)
     const url = link.href
+    leavingTo.current = url
     if (window.Turbo && typeof window.Turbo.visit === 'function' && !link.closest('[data-turbo="false"]')) window.Turbo.visit(url)
     else window.location.assign(url)
   }, [])
@@ -58,22 +60,20 @@ export default function usePageExit (hostElement, { enabled, saver }) {
     return () => hostElement.removeEventListener('click', onClick)
   }, [enabled, hostElement, exit])
 
-  // A visit that does not happen — a host's `turbo:before-visit` cancels it,
-  // or its request fails — leaves the person here: the leave guards and the
-  // unmount's send are theirs again. On window, after the document's
-  // listeners have had their say.
+  // «Exit»'s visit cancelled by a host's `turbo:before-visit` leaves the person
+  // here: the leave guards and the unmount's send are theirs again. On window,
+  // after the document's listeners have had their say. A failed request is
+  // not a stay: Turbo loads `close_url` in full instead, and the page's other
+  // requests (a lazy frame, a prefetch) fail on the same event.
   useEffect(() => {
     if (!enabled) return
     const stayed = (event) => {
-      if (event.type === 'turbo:before-visit' && !event.defaultPrevented) return
+      if (!event.defaultPrevented || event.detail.url !== leavingTo.current) return
+      leavingTo.current = null
       saverRef.current.markLeaving(null)
     }
     window.addEventListener('turbo:before-visit', stayed)
-    window.addEventListener('turbo:fetch-request-error', stayed)
-    return () => {
-      window.removeEventListener('turbo:before-visit', stayed)
-      window.removeEventListener('turbo:fetch-request-error', stayed)
-    }
+    return () => window.removeEventListener('turbo:before-visit', stayed)
   }, [enabled])
 
   return {

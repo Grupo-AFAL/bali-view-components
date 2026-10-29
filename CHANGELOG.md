@@ -42,11 +42,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   lienzo (`with_notice`). «Salir» espera el guardado pendiente; si falla ofrece «Reintentar» o
   «Salir sin guardar», y si un 409 reemplaza el documento se queda en la página con el aviso de
   conflicto. Claves desconocidas, un `close_url` no navegable, un color inválido, `chrome: :minimal`, o
-  `with_notice`/`with_action` sin `full_page:` lanzan `ArgumentError`.
+  `with_notice`/`with_action` sin `full_page:` lanzan `ArgumentError`. Dentro de un layout con padding
+  inferior (`AppLayout` con `body_container: :wide`), el host dice cuánto en
+  `--bali-bpmn-page-bottom` para que la página no haga scroll.
 - **`Bali::BpmnEditor`: cambiar el tamaño de las actividades.** Tareas y subprocesos se
   redimensionan desde la esquina o con «Tamaño» en el panel; «Auto» guarda `width`/`height` en
   `null`. Un solo paso de deshacer, y «Autoajustar» respeta el tamaño propio. `Data` rechaza un
-  tamaño que no sea positivo; los límites (80×40 a 800×400) los aplica el editor.
+  tamaño negativo; `0`, como `null`, es «Auto», así que un documento guardado con 0 en una
+  columna numérica sigue abriendo. Los límites (80×40 a 800×400) los aplica el editor.
 - **`Bali::BpmnEditor`: `appearance` en carriles** (`color`, `dimmed`, `badge`), con el mismo
   contrato que en los nodos: la manda el servidor y nunca se envía al guardar. Se dibuja en el
   encabezado del carril (lienzo, comparación, PNG/SVG/impresión; no en `.bpmn`), y
@@ -68,7 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de eliminar un subproceso vinculado a una entidad de la app.
 - **`Bali::BpmnEditor`: límites en `fields:`.** `maxlength:` en campos `text`/`textarea`,
   `min:`/`max:` en `number` (validados con `ArgumentError`) y `documentation: { maxlength: }` para
-  la descripción de la actividad.
+  la descripción de la actividad. Un límite `nil` no limita, y `min:`/`max:` aceptan un string
+  numérico (`"0"`), como ya llegaban al input antes de esta versión.
 
 ### Changed
 

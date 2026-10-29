@@ -48,3 +48,11 @@
 @import "bali-view-components/css/themes/afal.css";
 @import "bali-view-components/css/themes/afal-dark.css";
 @import "bali-view-components/css/themes/costa-norte-dark.css";
+
+/* Bali::BpmnEditor `full_page:` stops above the layout's bottom padding
+   (`body_container: :wide`, p-4 md:p-6), as docs/api/bpmn-editor.md § Full page
+   tells a host to. */
+.app-layout-body-container { --bali-bpmn-page-bottom: 1rem; }
+@media (width >= 48rem) {
+  .app-layout-body-container { --bali-bpmn-page-bottom: 1.5rem; }
+}

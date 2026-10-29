@@ -37,6 +37,22 @@ describe('BPMN editor full page', () => {
     })
   })
 
+  it('stops above the app layout\'s bottom padding with --bali-bpmn-page-bottom', () => {
+    // The dummy's admin layout (application.css sets the property); a path
+    // under the baseUrl would land in /lookbook/preview. Tall enough for the
+    // page's 36rem minimum below the topbar.
+    cy.viewport(1280, 900)
+    cy.visit('http://localhost:3001/admin/process_flows/1/edit')
+    cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 3)
+    cy.get('main').should(($main) => {
+      const main = $main[0]
+      const page = main.querySelector('.bali-bpmn-page').getBoundingClientRect()
+      const padding = parseFloat(getComputedStyle(main.querySelector('.app-layout-body-container')).paddingBottom)
+      expect(main.scrollHeight, 'the layout does not scroll').to.equal(main.clientHeight)
+      expect(page.bottom, 'bottom').to.be.closeTo(main.getBoundingClientRect().bottom - padding, 1)
+    })
+  })
+
   it('keeps the document\'s own status current when the app gives none', () => {
     visitPage('?mode=document')
     cy.get('header .tag-component').should('have.text', 'Borrador v1')
@@ -145,6 +161,24 @@ describe('BPMN editor full page', () => {
     cy.wait(500)
     cy.get('@save.all').should('have.length', 1)
     cy.get('@confirm').should('not.have.been.called')
+  })
+
+  it('a request of the page failing meanwhile does not send the dropped change', () => {
+    cy.intercept(SAVE, { statusCode: 422, body: { errors: ['The app refused the draft.'] } }).as('save')
+    visitPage()
+    // A lazy frame or a prefetch failing as the visit starts: not the visit.
+    cy.document().then((doc) => {
+      doc.addEventListener('turbo:before-visit', () => {
+        doc.dispatchEvent(new CustomEvent('turbo:fetch-request-error', { bubbles: true, detail: {} }))
+      }, { once: true })
+    })
+    edit('Dropped procedure')
+    cy.get('[data-bpmn-page-exit]').click()
+    cy.wait('@save')
+    cy.get('[data-testid="bpmn-exit-discard"]').click()
+    cy.location('pathname').should('eq', CLOSE)
+    cy.wait(500)
+    cy.get('@save.all').should('have.length', 1)
   })
 
   it('closing the dialog stays on the page with the change still unsaved', () => {

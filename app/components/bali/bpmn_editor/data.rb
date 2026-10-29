@@ -151,15 +151,17 @@ module Bali
         unique_ids!(nodes, "node")
       end
 
-      # Only positive: the limits a person resizes within (MIN_NODE_SIZE and
-      # MAX_NODE_SIZE in model/catalog.js) are the island's, since a document
-      # may draw an activity outside them — the catalog preview draws each one
-      # at its 28 px palette icon size.
+      # 0 is «Auto», like nil: the island draws anything not above 0 at the
+      # type's size (nodeSize in model/catalog.js), and a host column that
+      # defaults to 0 has stored it. Only a negative size is an error. The
+      # limits a person resizes within (MIN_NODE_SIZE and MAX_NODE_SIZE) are
+      # the island's, since a document may draw an activity outside them — the
+      # catalog preview draws each one at its 28 px palette icon size.
       def validate_size!(node)
         %i[width height].each do |key|
-          next if node[key].nil? || node[key].to_f.positive?
+          next unless node[key].to_f.negative?
 
-          raise InvalidError, "node #{node[:id]}: #{key} must be positive, got #{node[key].inspect}"
+          raise InvalidError, "node #{node[:id]}: #{key} must not be negative, got #{node[key].inspect}"
         end
       end
 

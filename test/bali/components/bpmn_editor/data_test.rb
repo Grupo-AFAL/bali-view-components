@@ -130,20 +130,21 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
 
   def sized(type, **size) = { nodes: [ { id: "n1", type: type, **size } ] }
 
-  # «Auto» is a size left out or null. The limits a person resizes within
+  # «Auto» is a size left out, null or 0. The limits a person resizes within
   # are the island's: a document may draw an activity at any positive size.
   def test_a_positive_size_or_auto_is_kept
     assert_equal 240, Data.new(sized("task", width: 240, height: 90)).nodes.first[:width]
     assert_nothing_raised { Data.new(sized("sub_process", width: nil, height: nil)) }
+    assert_nothing_raised { Data.new(sized("task", width: 0, height: "0")) }
     assert_nothing_raised { Data.new(sized("task", width: 28, height: "28")) }
     assert_nothing_raised { Data.new(sized("group", width: 1200, height: 600)) }
   end
 
-  def test_a_size_that_is_not_positive_raises
-    [ { width: 0 }, { height: -5 } ].each do |size|
+  def test_a_negative_size_raises
+    [ { width: -1 }, { height: "-5" } ].each do |size|
       error = assert_raises(Data::InvalidError, size.inspect) { Data.new(sized("exclusive_gateway", **size)) }
 
-      assert_includes error.message, "must be positive"
+      assert_includes error.message, "must not be negative"
       assert_includes error.message, "node n1"
     end
   end

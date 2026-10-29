@@ -1,12 +1,13 @@
 /* `full_page:` (component.rb): the header, the host's notices and the editor,
    from the page's top edge to the bottom of the window. `--bali-bpmn-page-top`
    is that edge's offset in the page, kept by the island's controller
-   (index.js measurePageTop) as what stands above it changes; `dvh` follows a
-   phone browser's bars. 36rem holds the editor's bars and its 420px canvas
-   minimum (flow.css). */
+   (index.js, observeTopOffset in utils/top-offset.js) as what stands above it
+   changes; `--bali-bpmn-page-bottom` is the room the page keeps below it (its
+   own bottom padding). `dvh` follows a phone browser's bars. 36rem holds the
+   editor's bars and its 420px canvas minimum (flow.css). */
 .bali-bpmn-page {
   @apply flex flex-col gap-3;
-  height: calc(100dvh - var(--bali-bpmn-page-top, 0px));
+  height: calc(100dvh - var(--bali-bpmn-page-top, 0px) - var(--bali-bpmn-page-bottom, 0px));
   min-height: 36rem;
 }
 
