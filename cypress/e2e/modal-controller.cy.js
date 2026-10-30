@@ -534,4 +534,62 @@ describe('ModalController', () => {
       })
     })
   })
+
+  // A morph to a page without the overlays (the sign-in page renders AppLayout with
+  // `modal: false`) leaves <body> in place and disconnects each panel from a scope that no
+  // longer reaches it. Every listener left on a panel would then throw on its next event.
+  context('panels leaving the controller', () => {
+    const appOrigin = new URL(Cypress.config('baseUrl')).origin
+    let errors
+
+    // Stimulus disconnects from a MutationObserver: one frame later, it has run.
+    const afterTheMutations = () =>
+      cy.window().then(win => new Cypress.Promise(resolve => win.requestAnimationFrame(resolve)))
+
+    const poke = panel => {
+      const win = panel.ownerDocument.defaultView
+      panel.dispatchEvent(new win.Event('cancel', { cancelable: true }))
+      panel.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }))
+    }
+
+    const expectNoErrors = () => cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+
+    beforeEach(() => {
+      errors = []
+      cy.on('uncaught:exception', error => {
+        errors.push(error.message)
+        return false
+      })
+      cy.visit(`${appOrigin}/admin/studios`)
+      cy.get('body').should('have.attr', 'data-controller').and('match', /\bmodal\b/)
+      cy.get('#main-modal[data-modal-target="template"]').should('exist')
+    })
+
+    it('lets go of an open panel when <body> drops its controller', () => {
+      cy.window().then(win => {
+        win.document.dispatchEvent(new win.CustomEvent('bali:modal:open', {
+          detail: { content: '<input id="inside">', options: {} }
+        }))
+      })
+      cy.get('#main-modal.modal-open #inside').should('exist')
+
+      cy.document().then(doc => {
+        doc.body.dataset.controller = doc.body.dataset.controller
+          .split(' ').filter(name => !['modal', 'drawer'].includes(name)).join(' ')
+      })
+      afterTheMutations()
+      cy.get('#main-modal').then($panel => poke($panel[0]))
+
+      expectNoErrors()
+    })
+
+    it('lets go of a panel the page removes', () => {
+      cy.get('#main-modal').then($panel => {
+        $panel.remove()
+        afterTheMutations().then(() => poke($panel[0]))
+      })
+
+      expectNoErrors()
+    })
+  })
 })
