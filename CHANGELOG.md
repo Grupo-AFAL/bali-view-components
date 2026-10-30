@@ -9,12 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`Bali::Modal` y `Bali::Drawer` sueltan su panel sin lanzar** (Sentry AFAL-APPS-2T). Cuando el
-  panel dejaba de estar al alcance del controlador —salía de la página, o el elemento perdía
-  `modal`/`drawer` de su `data-controller`, como al llegar la pantalla de inicio de sesión sobre
-  una página de la app—, `templateTargetDisconnected` lo buscaba por nombre y lanzaba `Missing
-  target element "template" for "modal" controller`. Ahora usa el panel que Stimulus le pasa. Sin
-  cambios para el host.
+- **`Bali::Modal` y `Bali::Drawer` ya no lanzan `Missing target element "template"` al soltar su
+  panel** (Sentry AFAL-APPS-2T). Pasaba cuando el panel salía de la página o el elemento perdía
+  `modal`/`drawer` de su `data-controller`, p. ej. en un morph de Turbo hacia la pantalla de inicio
+  de sesión. Con el panel abierto, el siguiente Tab lanzaba también por `"wrapper"`. Sin cambios
+  para el host.
 
 ## [v3.23.0] - 2026-10-28
 

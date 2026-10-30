@@ -241,13 +241,14 @@ export class ModalController extends Controller {
     template.addEventListener('cancel', this._onDialogCancel)
   }
 
-  // The panel it receives, never `this.templateTarget`: by the time Stimulus disconnects a
-  // target, the scope may no longer reach it — the panel left the page, or the element lost
-  // `modal` from its `data-controller` — and the lookup by name throws.
+  // The argument, not `this.templateTarget`: Stimulus disconnects a target once the scope no
+  // longer reaches it (the panel left the page, or `modal` left `data-controller`), and the
+  // getter throws there. `handleTabKey` too: on a panel still open it would read the wrapper.
   templateTargetDisconnected (template) {
     template.removeEventListener('mousedown', this._onOverlayMousedown)
     template.removeEventListener('click', this._onOverlayClick)
     template.removeEventListener('cancel', this._onDialogCancel)
+    template.removeEventListener('keydown', this.handleTabKey)
   }
 
   setOptionsAndOpenModal = event => {
