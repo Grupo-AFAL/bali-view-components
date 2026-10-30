@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **El ícono del Inbox conserva su número cuando la sesión venció** (Sentry AFAL-APPS-2V). Si al
+  llegar un aviso la petición del badge terminaba en la pantalla de inicio de sesión, Turbo pintaba
+  «Content missing» dentro del ícono y lanzaba `TurboFrameMissingError`. Ahora el badge conserva su
+  número y no se lanza el error; lo mismo con una página de error del servidor. Sin cambios para el
+  host.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added
