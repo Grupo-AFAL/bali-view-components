@@ -534,4 +534,43 @@ describe('ModalController', () => {
       })
     })
   })
+
+  // The sign-in page renders AppLayout with `modal: false, drawer: false`. Morphed over an app
+  // page — a refresh redirected there once the session expired — it takes both controllers off
+  // <body>'s `data-controller` while <body> stays, and Stimulus disconnects each panel from a
+  // controller whose scope no longer reaches it.
+  context('panels leaving the controller', () => {
+    const appOrigin = new URL(Cypress.config('baseUrl')).origin
+    let errors
+
+    const afterTheMutations = () =>
+      cy.window().then(win => new Cypress.Promise(resolve => win.requestAnimationFrame(resolve)))
+
+    beforeEach(() => {
+      errors = []
+      cy.on('uncaught:exception', error => {
+        errors.push(error.message)
+        return false
+      })
+      cy.visit(`${appOrigin}/admin/studios`)
+      cy.get('#main-modal[data-modal-target="template"]').should('exist')
+    })
+
+    it('lets go of the panels when <body> drops their controllers', () => {
+      cy.document().then(doc => {
+        doc.body.dataset.controller = doc.body.dataset.controller
+          .split(' ').filter(name => !['modal', 'drawer'].includes(name)).join(' ')
+      })
+      afterTheMutations()
+
+      cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+    })
+
+    it('lets go of a panel the page removes', () => {
+      cy.get('#main-modal').then($panel => $panel.remove())
+      afterTheMutations()
+
+      cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+    })
+  })
 })

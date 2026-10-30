@@ -235,16 +235,19 @@ export class ModalController extends Controller {
     document.removeEventListener('turbo:before-cache', this._closeBeforeCache)
   }
 
-  templateTargetConnected () {
-    this.templateTarget.addEventListener('mousedown', this._onOverlayMousedown)
-    this.templateTarget.addEventListener('click', this._onOverlayClick)
-    this.templateTarget.addEventListener('cancel', this._onDialogCancel)
+  templateTargetConnected (template) {
+    template.addEventListener('mousedown', this._onOverlayMousedown)
+    template.addEventListener('click', this._onOverlayClick)
+    template.addEventListener('cancel', this._onDialogCancel)
   }
 
-  templateTargetDisconnected () {
-    this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
-    this.templateTarget.removeEventListener('click', this._onOverlayClick)
-    this.templateTarget.removeEventListener('cancel', this._onDialogCancel)
+  // The panel it receives, never `this.templateTarget`: by the time Stimulus disconnects a
+  // target, the scope may no longer reach it — the panel left the page, or the element lost
+  // `modal` from its `data-controller` — and the lookup by name throws.
+  templateTargetDisconnected (template) {
+    template.removeEventListener('mousedown', this._onOverlayMousedown)
+    template.removeEventListener('click', this._onOverlayClick)
+    template.removeEventListener('cancel', this._onDialogCancel)
   }
 
   setOptionsAndOpenModal = event => {
