@@ -90,8 +90,8 @@ export class TopbarInboxController extends Controller {
     }
   }
 
-  // The badge frame (component.html.erb) routes `turbo:frame-missing` here: a refresh answered
-  // without the frame (the sign-in page, once the session expired) keeps the count it had. Not
+  // The badge frame (component.html.erb) routes `turbo:frame-missing` here. Any answer without the
+  // frame, the sign-in page once the session expired or a 5xx page, keeps the count it had. Not
   // `event.detail.visit(response)`: the refresh comes from the stream, nobody asked to leave.
   keepBadge (event) {
     event.preventDefault()
