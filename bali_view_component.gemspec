@@ -54,7 +54,7 @@ Gem::Specification.new do |spec|
   # FilterForm's `q[...]` reaches. 6.0 makes `cont`/`start`/`end` case-sensitive on PostgreSQL
   # (ransack#1715), which this suite on SQLite cannot see, and needs `ransackable_associations` on
   # every model searched with `g:`. What raising the cap takes is #1530.
-  spec.add_dependency "ransack", ">= 5.0.2", "< 6.0"
+  spec.add_dependency "ransack", ">= 5.0.2", "< 7.0"
   spec.add_dependency "simple_command"
 
   spec.add_dependency "view_component", [ ">= 4.0.0", "< 5.0" ]
