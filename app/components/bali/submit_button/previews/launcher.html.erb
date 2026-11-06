@@ -1,0 +1,28 @@
+<div class="flex max-w-md flex-col gap-2"
+     data-controller="submit-button"
+     data-submit-button-hold-others-value="true"
+     data-submit-button-spinner-value="false">
+  <p class="sr-only" role="status" data-submit-button-target="status"></p>
+  <% [['fridge', 'Count the fridge', 14], ['pantry', 'Count the pantry', 31], ['all', 'Count everything', 103]].each do |choice, label, items| %>
+    <%= button_to label, request.path, method: :get, params: { choice: },
+          class: 'btn btn-outline w-full justify-between', form: { class: 'w-full' },
+          data: { turbo_submits_with: "Preparing #{items} items…", choice: } %>
+  <% end %>
+  <%# Disabled before anything is pressed: holding the others leaves it as it was. %>
+  <%= button_to 'Count the freezer (closed today)', request.path, method: :get, params: { choice: 'freezer' },
+        class: 'btn btn-outline w-full justify-between', form: { class: 'w-full' }, disabled: true,
+        data: { choice: 'freezer' } %>
+  <% if params[:choice] %>
+    <p class="text-sm" data-chosen><%= params[:choice] %></p>
+  <% end %>
+</div>
+
+<%# A Bali form (its own submit-button) inside a wrapper that keeps the spinner on: the spinner is put on once, and
+    the label comes back after a refused submit. %>
+<div class="mt-6 flex max-w-md flex-col gap-2" data-controller="submit-button"
+     data-submit-button-hold-others-value="true">
+  <%# The controller Bali's own `form_with` (`Bali::FormHelper`) puts on every form it builds. %>
+  <%= form_with url: request.path, method: :get, class: 'w-full', data: { controller: 'submit-button' } do %>
+    <button type="submit" name="choice" value="nested" class="btn btn-outline w-full" data-choice="nested">Count with a form</button>
+  <% end %>
+</div>

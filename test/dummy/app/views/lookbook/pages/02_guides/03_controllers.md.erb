@@ -639,6 +639,39 @@ colors. Attach it to the `<form>`:
 Bali's `form_with` helper (`Bali::FormHelper`) prepends this controller to every
 form it builds, so host apps using it get the loading state for free.
 
+### A launcher of choices: `hold-others`
+
+A screen of choices where each is its own `button_to` (start a count of the fridge,
+of the pantry, of everything) needs one choice at a time: a second tap while the first
+is still working starts a second action. Put the controller on the wrapper with
+`hold-others`: while one choice submits, the other submit buttons inside it are
+disabled. They are released when the submit fails, and before Turbo caches the page,
+so Back never brings them back dead. Buttons that were already disabled stay as they
+were. It is meant for submits that take the user to another page (a redirect or a
+visit): a choice that answers with a Turbo Stream or a frame update keeps the page,
+and the others would stay held.
+
+```html
+<div data-controller="submit-button"
+     data-submit-button-hold-others-value="true"
+     data-submit-button-spinner-value="false">
+  <p class="sr-only" role="status" data-submit-button-target="status"></p>
+  <form action="/counts" method="post">
+    <button data-turbo-submits-with="Preparing 14 items…">Count the fridge</button>
+  </form>
+  <form action="/counts" method="post">
+    <button data-turbo-submits-with="Preparing 103 items…">Count everything</button>
+  </form>
+</div>
+```
+
+- `spinner` (default `true`): `false` keeps the button's content, for a button that
+  shows its own busy text through Turbo's `data-turbo-submits-with`.
+- `status` target: a `role="status"` element that receives the pressed button's
+  `data-turbo-submits-with`, so a screen reader hears what is happening.
+
+Live in the `bali/submit_button/launcher` preview.
+
 ## `submit-on-change`
 
 Submits the form whenever one of its controls changes — the backbone of

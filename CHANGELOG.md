@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`submit-button` con `hold-others`: una opción a la vez en una pantalla de opciones.**
+  Puesto en el contenedor de varios formularios (cada opción su propio `button_to`), mientras
+  una envía las demás quedan deshabilitadas, así que un segundo toque no arranca una segunda
+  acción. Se liberan si el envío falla y antes de que Turbo guarde la página en caché: una
+  copia tomada con ellas retenidas volvía de «Atrás» con los botones muertos. Los que ya
+  estaban deshabilitados no se tocan. Con `spinner: false` el botón conserva su contenido
+  (para el texto propio de `data-turbo-submits-with`), y un target `status` (`role="status"`)
+  recibe ese texto para el lector de pantalla. Preview: **SubmitButton → Launcher (hold
+  others)**; `cypress/e2e/submit-button-hold-others.cy.js`.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added
