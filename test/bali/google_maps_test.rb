@@ -85,6 +85,21 @@ class BaliGoogleMapsTest < ActiveSupport::TestCase
     assert_empty html
   end
 
+  def test_the_locations_map_component_logs_the_missing_key
+    ENV.delete("GOOGLE_MAPS_KEY")
+    output = StringIO.new
+    original = Rails.logger
+    Rails.logger = Logger.new(output)
+
+    begin
+      render_component(Bali::LocationsMap::Component.new)
+    ensure
+      Rails.logger = original
+    end
+
+    assert_includes output.string, "LocationsMap::Component was rendered without a Google Maps key"
+  end
+
   def test_the_coordinates_polygon_field_writes_the_key_without_warning
     Bali.google_maps.api_key = "polygon-key"
 

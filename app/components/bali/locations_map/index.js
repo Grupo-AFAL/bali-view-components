@@ -44,11 +44,8 @@ export class LocationsMapController extends Controller {
       // Removed during the await, nothing would destroy it; moved, the other connect builds it.
       if (this.map || !this.element.isConnected) return
 
-      this.loadLocations()
       this.initializeMap()
-      this.addMarkers()
-
-      if (this.fitToLocationsValue) this.fitMapToLocations()
+      this.placeMarkers()
     } catch (error) {
       console.error(error)
     }
@@ -63,6 +60,10 @@ export class LocationsMapController extends Controller {
     if (!this.map) return
 
     this.removeMarkers()
+    this.placeMarkers()
+  }
+
+  placeMarkers = () => {
     this.loadLocations()
     this.addMarkers()
 

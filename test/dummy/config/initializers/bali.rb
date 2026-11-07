@@ -11,7 +11,9 @@ Bali.config do |config|
 
   # LocationsMap renders nothing without a key, and its previews have to render: Cypress serves a
   # stub in place of Google's script, which takes any key. A real one exported as GOOGLE_MAPS_KEY
-  # still wins, and /showcase paints its map only with that one.
+  # still wins, and /showcase paints its map only with that one. The stub also reaches every
+  # page through `google_maps_meta_tags` and the `coordinates_polygon_group` field, so without
+  # a real key Google answers every map in development with "Oops! Something went wrong."
   config.google_maps.api_key = "stub-key" if Rails.env.development? && ENV["GOOGLE_MAPS_KEY"].blank?
 
   # Block Editor is enabled in the dummy app for demonstration

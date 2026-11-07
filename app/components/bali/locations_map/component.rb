@@ -42,9 +42,17 @@ module Bali
       end
 
       # Without a key Google paints a darkened map under a "This page can't load Google Maps
-      # correctly" dialog, and logs the error.
+      # correctly" dialog, and logs the error. The log line is what is left to tell a missing key
+      # from a page with no map on it.
       def render?
-        Bali.google_maps.api_key.present?
+        return true if Bali.google_maps.api_key.present?
+
+        Rails.logger.warn(
+          "[Bali] LocationsMap::Component was rendered without a Google Maps key, so nothing was " \
+          "output. Set `Bali.google_maps.api_key` or the GOOGLE_MAPS_KEY environment variable: " \
+          "see docs/guides/external-services.md."
+        )
+        false
       end
 
       private
