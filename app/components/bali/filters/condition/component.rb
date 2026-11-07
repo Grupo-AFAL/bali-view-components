@@ -22,8 +22,10 @@ module Bali
         end
 
         # A blank row opens on the first text operator ("contains"), the same rule
-        # condition_controller.js#reset reads off `translations_json`. A text operator a host
-        # wrote by hand comes in the variant the installed ransack gets (#1530).
+        # condition_controller.js#reset reads off `translations_json`. Every blank row Bali seeds
+        # (Filters, FilterGroup, FilterGroupParser) carries a nil operator so this is its only
+        # rule. A text operator a host wrote by hand comes in the variant the installed ransack
+        # gets (#1530).
         def operator
           return Operators.for_type(:text).first[:value] if @condition[:operator].nil?
 

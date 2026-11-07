@@ -12,7 +12,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
       { key: :created_at, label: "Created", type: :date },
       { key: :verified, label: "Verified", type: :boolean }
     ]
-    @empty_condition = { attribute: "", operator: "cont", value: "" }
+    @empty_condition = { attribute: "", operator: nil, value: "" }
   end
 
   def test_rendering_renders_the_condition_container

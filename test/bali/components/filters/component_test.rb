@@ -318,7 +318,7 @@ class BaliFiltersComponentTest < ComponentTestCase
           { attribute: "age", operator: "between", value: { start: "18", end: "30" } }
         ] },
         # A builder row with no attribute and no value: it must NOT travel.
-        { combinator: "or", conditions: [ { attribute: "", operator: "cont", value: "" } ] }
+        { combinator: "or", conditions: [ { attribute: "", operator: nil, value: "" } ] }
       ]
     ))
 

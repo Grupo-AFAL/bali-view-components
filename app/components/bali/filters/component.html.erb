@@ -268,7 +268,7 @@
   <template data-filters-target="groupTemplate">
     <%= render Bali::Filters::FilterGroup::Component.new(
           group: { combinator: Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR,
-                   conditions: [{ attribute: '', operator: 'cont', value: '' }] },
+                   conditions: [{ attribute: '', operator: nil, value: '' }] },
           index: '__GROUP_INDEX__',
           available_attributes: available_attributes,
           removable: true

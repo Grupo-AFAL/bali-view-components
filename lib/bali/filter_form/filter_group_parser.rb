@@ -169,7 +169,7 @@ module Bali
 
       # Default empty condition for new filter groups
       def default_filter_condition
-        { attribute: "", operator: "cont", value: "" }
+        { attribute: "", operator: nil, value: "" }
       end
 
       # Format a filter value for display, resolving select option labels

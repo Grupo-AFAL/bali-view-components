@@ -74,6 +74,13 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
     end
   end
 
+  # Condition::Component#operator paints it with the first text operator, under either ransack.
+  test "a group the panel cannot draw hands a host a blank row with no operator" do
+    undrawable = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: { "0" => { "name_null" => "1" } } }))
+
+    assert_equal [ { attribute: "", operator: nil, value: "" } ], undrawable.filter_groups.sole[:conditions]
+  end
+
   test "under ransack 5 the search is read under its _cont alone, as it always was" do
     as_ransack(false) do
       assert_equal %w[name_or_genre_cont], SearchFilterForm.new(Movie.all).search_param_names
