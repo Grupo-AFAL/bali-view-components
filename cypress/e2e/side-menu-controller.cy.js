@@ -166,6 +166,10 @@ describe('SideMenuComponent', () => {
       })
     })
 
+    it('drops the booting marker once connected, so it never hides an open drawer', () => {
+      cy.get('.side-menu-component').should('not.have.attr', 'data-side-menu-booting')
+    })
+
     it('drops inert once the drawer is open and restores it on close', () => {
       trigger().click()
       cy.get('.side-menu-component').should('not.have.attr', 'inert')

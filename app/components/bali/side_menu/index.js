@@ -4,6 +4,9 @@ const OPEN_CLASS = 'is-active'
 const COLLAPSED_CLASS = 'is-collapsed'
 const COLLAPSE_STORAGE_KEY = 'bali_sideMenuCollapsed'
 const OVERLAY_QUERY = '(max-width: 1023.98px)'
+// Rendered by component.rb on a fixed sidebar so ./index.css can hide the closed drawer
+// until `syncInert` takes over in `connect`.
+const BOOTING_ATTRIBUTE = 'data-side-menu-booting'
 
 // Each selector of the stack is a native `<details>` — see the note in
 // switcher/component.html.erb for why, which is iOS Safari and not preference. It comes
@@ -81,6 +84,7 @@ export class SideMenuController extends Controller {
     this.overlayQuery.addEventListener('change', this.onOverlayChange)
 
     this.syncInert()
+    this.element.removeAttribute(BOOTING_ATTRIBUTE)
     // Last on purpose: it measures, and everything above it moves things. See the note
     // on the method.
     this.revealCurrentItem()
@@ -187,8 +191,9 @@ export class SideMenuController extends Controller {
   // it is why the drawer opened with focus parked on the trigger. `inert` is a
   // DOM attribute: it applies the moment it is removed.
   //
-  // The server renders it on every fixed sidebar, so the pre-connect drawer is
-  // already out of the way; the first `syncInert()` clears it on desktop.
+  // The server cannot render it: it does not know the viewport, and a desktop
+  // sidebar rendered inert took no clicks until this controller connected. Before
+  // that, BOOTING_ATTRIBUTE and ./index.css keep the closed drawer out of the way.
   syncInert () {
     if (!this.fixedValue) return
 

@@ -128,6 +128,9 @@ module Bali
         )
         data[:side_menu_collapsible_value] = @collapsible
         data[:side_menu_fixed_value] = @fixed
+        # Lets index.css hide the closed drawer by viewport until index.js connects and
+        # drops it. Not `inert`: the server cannot tell a drawer from desktop chrome.
+        data[:side_menu_booting] = true if @fixed
         # Emitted only when it is off: the controller already defaults to `true`, and a
         # `data-side-menu-reveal-current-value="true"` on every sidebar is noise that also
         # invites reading it as if it were the switch.
@@ -145,11 +148,6 @@ module Bali
         # carrying `data-theme`, so putting it here — and not on <html> — is the
         # whole of "the sidebar is dark and the page is not".
         opts["data-theme"] = @theme if @theme
-        # A pinned sidebar starts closed and off-screen, so it starts out of the
-        # tab order too. SideMenuController takes ownership on connect and drops
-        # the attribute immediately at desktop widths, where the sidebar is
-        # permanent chrome rather than a drawer.
-        opts[:inert] = true if @fixed
         opts
       end
 
