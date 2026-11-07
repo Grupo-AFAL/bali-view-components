@@ -11,10 +11,12 @@ class NavigationGuideExampleTest < ActiveSupport::TestCase
     Module.new.tap { it.module_eval(code, GUIDE) }.const_get(:Navigation)
   end
 
-  test "the guide's first navigation declares what the previews draw" do
-    preview = Bali::SideMenu::Preview::DemoNavigation
+  def projection(navigation)
+    navigation.nodes.map { [ it.class, it.key, it.title, it.controllers, it.try(:path), it.try(:hint), it.try(:menu?) ] }
+  end
 
-    assert_equal preview.nodes.map(&:key), guide_navigation.nodes.map(&:key)
+  test "the guide's first navigation declares what the previews draw" do
+    assert_equal projection(Bali::SideMenu::Preview::DemoNavigation), projection(guide_navigation)
     assert_equal :members, guide_navigation.locate("settings/members").item.key
   end
 end

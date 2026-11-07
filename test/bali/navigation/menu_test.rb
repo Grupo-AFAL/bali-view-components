@@ -28,7 +28,7 @@ class NavigationMenuTest < ActiveSupport::TestCase
     end
   end
 
-  NAVIGATION = Class.new(Bali::Navigation) do
+  NAVIGATION = Class.new(Bali::Navigation::Base) do
     authorize { |key| can?(key) }
 
     app_module :tdflow_portal, title: "Portal", icon: "lightbulb", controllers: %w[td_flow/portal] do
@@ -95,12 +95,13 @@ class NavigationMenuTest < ActiveSupport::TestCase
     assert_equal "/initiatives?by=td_flow/portal", menu.path(NAVIGATION.find(:tdflow_portfolio))
   end
 
-  test "a module lands on its first item drawn in the side menu, or on its landing" do
-    nav = Class.new(Bali::Navigation) do
+  test "a module lands on its first item drawn in the side menu that opens in place, or on its landing" do
+    nav = Class.new(Bali::Navigation::Base) do
       authorize { |key| can?(key) }
       app_module :reports, title: "Reports" do
         item :hidden, title: "Hidden", path: "/hidden", gate: "no"
         item :palette_only, title: "Palette", path: "/palette", menu: false
+        item :elsewhere, title: "Elsewhere", path: "https://example.com", target: "_blank"
         group :charts, title: "Charts" do
           item :first, title: "First", path: "/charts/first"
         end
@@ -142,7 +143,7 @@ class NavigationMenuTest < ActiveSupport::TestCase
   end
 
   test "items sharing a controller: the one matching more parameters wins" do
-    nav = Class.new(Bali::Navigation) do
+    nav = Class.new(Bali::Navigation::Base) do
       section :my_space, title: "My space" do
         item :inbox, title: "Inbox", path: "/inbox", controllers: %w[inbox]
         item :notices, title: "Notices", path: "/inbox?tab=notices", controllers: %w[inbox]
@@ -161,7 +162,7 @@ class NavigationMenuTest < ActiveSupport::TestCase
   end
 
   test "current_controller_path decides what the request counts as" do
-    nav = Class.new(Bali::Navigation) do
+    nav = Class.new(Bali::Navigation::Base) do
       current_controller_path { controller_path == "versions" ? "processes" : controller_path }
       section :work, title: "Work" do
         item :processes, title: "Processes", path: "/processes", controllers: %w[processes]
@@ -192,7 +193,7 @@ class NavigationMenuTest < ActiveSupport::TestCase
   end
 
   test "an item without a path is left out of the palette" do
-    nav = Class.new(Bali::Navigation) do
+    nav = Class.new(Bali::Navigation::Base) do
       section :people, title: "People" do
         item :guests, title: "Guests", path: "/guests"
         item :pasaporte, title: "Pasaporte", path: -> { nil }
@@ -226,9 +227,10 @@ class NavigationMenuTest < ActiveSupport::TestCase
     assert_equal context.calls.uniq, context.calls
   end
 
-  test "the switcher stops at a module's first visible item" do
+  test "the switcher and its landings stop at a module's first visible item" do
     context = Context.new
-    NAVIGATION.menu(context).app_modules
+    menu = NAVIGATION.menu(context)
+    menu.app_modules.each { menu.landing(it) }
 
     assert_not_includes context.calls, "portal.faq"
   end

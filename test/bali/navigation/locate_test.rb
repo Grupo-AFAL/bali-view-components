@@ -5,7 +5,7 @@ require "test_helper"
 # The paths are afal-apps': its TDFlow portal and back-office share the `td_flow` namespace, and
 # both claim `td_flow/initiatives` — the portal so a requester opening their initiative stays in it.
 class NavigationLocateTest < ActiveSupport::TestCase
-  NAVIGATION = Class.new(Bali::Navigation) do
+  NAVIGATION = Class.new(Bali::Navigation::Base) do
     app_module :tdflow_portal, title: "Portal", controllers: %w[td_flow/portal] do
       item :portal_proposals, path: "/portal/proposals", controllers: %w[td_flow/portal/proposals td_flow/initiatives]
       item :portal_value, path: "/portal/value", controllers: %w[td_flow/portal/value_showcase]

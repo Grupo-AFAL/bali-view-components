@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Bali
-  class Navigation
+  module Navigation
     # A navigation as one request sees it: what the person may open, where the request sits, and
     # each path resolved. `navigation_for(Navigation)` builds it once per view; outside a view,
     # `Navigation.menu(context)` takes any object answering what the gates call.
@@ -11,7 +11,7 @@ module Bali
     class Menu
       attr_reader :navigation, :context
 
-      # @param navigation [Class<Bali::Navigation>]
+      # @param navigation [Class<Bali::Navigation::Base>]
       # @param context [Object] the view, or any object answering what the gates call
       def initialize(navigation, context)
         @navigation = navigation
@@ -32,7 +32,9 @@ module Bali
       def location
         return @location if defined?(@location)
 
-        winner = pick(navigation.claims_for(controller_path).select { it.node.nil? || offered?(it.node) })
+        best = navigation.best_claims(controller_path) { it.node.nil? || offered?(it.node) }
+        best = by_query(best) if best.many?
+        winner = best.min_by(&:index)
         @location = (Location.for(winner.node) if winner&.node)
       end
 
@@ -41,10 +43,11 @@ module Bali
         location&.app_module || app_modules.first
       end
 
-      # @param app_module [AppModule, nil] ignored by a navigation without modules
+      # @param app_module [AppModule, nil] the current one when nil; ignored by a navigation
+      #   without modules, which never asks where the request is
       # @return [Array<Section>] the sections this person may open
-      def sections(app_module = current_app_module)
-        roots = navigation.app_modules? ? app_module&.children || [] : navigation.roots
+      def sections(app_module = nil)
+        roots = navigation.app_modules? ? (app_module || current_app_module)&.children || [] : navigation.roots
         roots.select { offered?(it) }
       end
 
@@ -59,7 +62,10 @@ module Bali
         resolve(item.path)
       end
 
-      # @return [String, nil] the module's `landing:`, or the first item its side menu draws
+      # The module's `landing:`, or the first item its side menu draws that opens in place: the
+      # switcher, like the palette, navigates in the same tab.
+      #
+      # @return [String, nil]
       def landing(app_module)
         return resolve(app_module.landing) if app_module.landing
 
@@ -102,6 +108,8 @@ module Bali
         end
       end
 
+      private
+
       # @return [Boolean]
       def offered?(node)
         visible?(node) && node.ancestors.all? { visible?(it) }
@@ -117,8 +125,6 @@ module Bali
           (resolver ? context.instance_exec(&resolver) : context.controller_path).to_s
         end
       end
-
-      private
 
       def visible?(node)
         return @visible[node] if @visible.key?(node)
@@ -148,14 +154,6 @@ module Bali
         end
       end
 
-      def pick(claims)
-        return if claims.empty?
-
-        best = claims.group_by { navigation.rank(it, controller_path) }.max_by(&:first).last
-        best = by_query(best) if best.many?
-        best.min_by(&:index)
-      end
-
       def by_query(claims)
         scored = claims.filter_map { |claim| (score = query_score(claim.node)) && [ claim, score ] }
         return claims if scored.empty?
@@ -179,13 +177,14 @@ module Bali
       end
 
       def request_query
-        @request_query ||= context.respond_to?(:request) ? context.request.query_parameters.stringify_keys : {}
+        @request_query ||= context.request.query_parameters.stringify_keys
       end
 
       def first_drawn_item(node)
-        items_or_sections = node.is_a?(AppModule) ? sections(node) : items(node)
-        items_or_sections.each do |child|
-          found = child.item? ? child : first_drawn_item(child)
+        node.children.each do |child|
+          next unless drawn?(child)
+
+          found = child.item? ? (child unless child.target) : first_drawn_item(child)
           return found if found
         end
         nil

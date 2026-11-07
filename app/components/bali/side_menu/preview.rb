@@ -5,7 +5,7 @@ module Bali
     class Preview < ApplicationViewComponentPreview
       # The navigation of the "From a navigation" preview. The request counts as the controller
       # picked in the preview's param, so the active item follows it.
-      class DemoNavigation < Bali::Navigation
+      class DemoNavigation < Bali::Navigation::Base
         current_controller_path { params[:controller_path].presence || "projects/tasks" }
 
         app_module :work, title: "Work", icon: "briefcase", controllers: %w[projects] do
@@ -185,7 +185,7 @@ module Bali
 
       # @label From a navigation
       # @param controller_path select { choices: [projects/tasks, settings/members, reports, admin/users] }
-      # `navigation:` draws the sidebar from the app's `Bali::Navigation`: a switch per module the
+      # `navigation:` draws the sidebar from the app's `Bali::Navigation::Base` subclass: a switch per module the
       # person may open, then the current module's sections. The active item comes from the
       # controller the request belongs to, not from the URL — pick another controller and the item
       # follows, `admin/users` moving to the other module. The navigation is

@@ -5,7 +5,7 @@ require "test_helper"
 class NavigationHelperTest < ActionView::TestCase
   include Bali::NavigationHelper
 
-  NAVIGATION = Class.new(Bali::Navigation) do
+  NAVIGATION = Class.new(Bali::Navigation::Base) do
     section :work, title: "Work" do
       item :dashboard, title: "Dashboard", path: :root_path, gate: -> { signed_in? }
     end

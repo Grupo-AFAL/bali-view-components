@@ -1,15 +1,19 @@
 # Navigation
 
-An app declares its navigation once, as a `Bali::Navigation` subclass. `Bali::SideMenu` and
-`Bali::Command` draw themselves from it with one keyword, and `Navigation.locate` says where any
-controller belongs. The design and the measurements behind it are in
+An app declares its navigation once, as a subclass of `Bali::Navigation::Base`. `Bali::SideMenu`
+and `Bali::Command` draw themselves from it with one keyword, and `Navigation.locate` says where
+any controller belongs. The design and the measurements behind it are in
 `docs/superpowers/specs/2026-11-07-declared-navigation-design.md`.
+
+Bali's own types (`Bali::Navigation::Item`, `::Location`, `::Menu`…) live in the
+`Bali::Navigation` module, not in the base class, so inside your class and its lambdas `Location`
+or `Item` is still your model: `gate: -> { policy(Location).index? }` asks about yours.
 
 ## A first navigation
 
 ```ruby
 # app/models/navigation.rb
-class Navigation < Bali::Navigation
+class Navigation < Bali::Navigation::Base
   app_module :work, title: "Work", icon: "briefcase", controllers: %w[projects] do
     item :projects, title: "Projects", icon: "folder-kanban", path: "/projects", controllers: %w[projects]
     item :calendar, title: "Calendar", icon: "calendar-days", path: "/calendar", controllers: %w[calendars],
@@ -81,7 +85,7 @@ authorize { |(subject, query)| policy(subject).public_send(query) }  # Pundit pa
 Visibility comes from gates alone. An item shows when its gate passes; a module, section or group
 when its own gate passes and something drawn inside it shows — so a module whose only visible
 items are `menu: false` is not offered. A module lands on its first item drawn in the side menu
-unless it declares `landing:`.
+that opens in place (no `target:`) unless it declares `landing:`.
 
 ## Paths
 
@@ -134,10 +138,20 @@ and the pages as you type; without, the pages are listed on open. The group name
 ## Outside a view
 
 `navigation_for(Navigation)` is the menu of one request, memoized on the view so the side menu,
-the palette and the page share it and each gate runs once. Its `app_modules`, `current_app_module`,
-`location`, `landing(app_module)` and `find(key)` serve the host's breadcrumbs and landings. A
-model or a job builds one against any object that answers what the gates call:
-`Navigation.menu(context)`.
+the palette and the page share it and each gate runs at most once. The switcher stops at each
+module's first visible item, but the palette lists every page the person may open: with the
+palette on the page, every gate of every visible module runs once per request.
+
+A model or a job builds a menu against any object that answers what the gates call:
+`Navigation.menu(context)`. What it can ask depends on what that object has:
+
+- **gates only**: `app_modules`, `find(key)`, and — in a navigation without modules —
+  `sections` and `items(section)`;
+- **`controller_path`** too (or `current_controller_path`): `location`, `current_app_module`, and
+  `sections` in a navigation with modules; `request` as well, and those items' paths, when items
+  share a controller and differ by query;
+- **`main_app`**, or whatever the path lambdas call: `path(item)`, `landing(app_module)`,
+  `palette_entries`; `badge(item)` needs what the badge calls.
 
 ## The test
 

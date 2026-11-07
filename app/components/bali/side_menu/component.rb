@@ -67,7 +67,7 @@ module Bali
       #   lands out of view and the menu stops answering "where am I". It only ever moves
       #   the menu's own scroll, never the page's, and it does nothing when the item is
       #   already visible. Pass `false` for a sidebar whose scroll position is yours.
-      # @param navigation [Class<Bali::Navigation>, nil] The app's declared navigation. Fills a
+      # @param navigation [Class<Bali::Navigation::Base>, nil] The app's declared navigation. Fills a
       #   switch per module this person may open and the lists of the current module, ahead of
       #   whatever the block adds. nil renders only the block's slots.
       def initialize(current_path:, id: DEFAULT_ID, fixed: true, collapsible: false,

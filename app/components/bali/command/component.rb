@@ -57,7 +57,7 @@ module Bali
       # @param density [Symbol] :default (44px rows) or :compact (32px rows).
       # @param no_results_text [String] Heading when the query has no matches.
       # @param no_results_subtitle [String, nil] Optional secondary line.
-      # @param navigation [Class<Bali::Navigation>, nil] The app's declared navigation. Adds,
+      # @param navigation [Class<Bali::Navigation::Base>, nil] The app's declared navigation. Adds,
       #   ahead of the block's groups, a group of the modules this person may open (when the
       #   navigation has modules) and one of the pages. nil renders only the block's groups.
       def initialize(

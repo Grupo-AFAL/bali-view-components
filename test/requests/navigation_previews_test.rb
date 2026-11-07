@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-# The two previews drawn from a `Bali::Navigation`, over the request path: the navigation is a
+# The two previews drawn from a `Bali::Navigation::Base` subclass, over the request path: the navigation is a
 # class declared inside a preview file, which is what Lookbook reloads.
 class NavigationPreviewsTest < ActionDispatch::IntegrationTest
   SIDE_MENU = "/lookbook/preview/bali/side_menu/from_navigation"

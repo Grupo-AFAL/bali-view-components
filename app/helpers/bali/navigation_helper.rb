@@ -8,7 +8,7 @@ module Bali
     # One menu per navigation and view, so the side menu, the palette and the page evaluate each
     # gate once.
     #
-    # @param navigation [Class<Bali::Navigation>]
+    # @param navigation [Class<Bali::Navigation::Base>]
     # @return [Bali::Navigation::Menu]
     def navigation_for(navigation)
       @bali_navigation_menus ||= {}

@@ -44,9 +44,11 @@ costa-norte `53cd183`, centinela-web `85227c8`, identity `a647ed61`, garita `b40
 ## Decisions
 
 1. **A Ruby class with a small DSL, subclassed by the host** (`class Navigation <
-   Bali::Navigation` in `app/models/`), as hosts subclass `Bali::FilterForm`. The tree carries
-   behaviour and is validated when the class body runs; plain hashes are where GC drifted. It
-   reloads with Zeitwerk; the base class lives in `lib/bali/`.
+   Bali::Navigation::Base` in `app/models/`), as hosts subclass `Bali::FilterForm`. The tree
+   carries behaviour and is validated when the class body runs; plain hashes are where GC drifted.
+   It reloads with Zeitwerk; the base class lives in `lib/bali/`. The node types live in the
+   `Bali::Navigation` module and not in the base class: inherited, they would shadow the host's
+   own `Location` (costa-norte, centinela-web) or `Node` (GC) inside the declaration's lambdas.
 2. **Whatever depends on the person or the request is a lambda run with `instance_exec` in the
    view** — gate, path, landing, badge, keywords — because `main_app`, engine proxies, `policy`,
    `current_user` and `params` exist there and only there. Bali never names a user, a permission
@@ -58,7 +60,8 @@ costa-norte `53cd183`, centinela-web `85227c8`, identity `a647ed61`, garita `b40
    when its own gate passes and something drawn inside it shows. Paths are resolved only when
    drawn, so a menu can be built outside a view (§3). That retires afal-apps' `group` gate union,
    costa-norte's "a module shows when it has a link" and centinela-web's `reachable` block.
-6. **A module lands on its first visible item drawn in the side menu** unless it declares `landing:`.
+6. **A module lands on its first visible item drawn in the side menu that opens in place** (no
+   `target:`) unless it declares `landing:`.
 7. **Each component gains one keyword, `navigation:`**, filling the slots it already has.
 8. **Bali exposes `locate`, `Location` and `title(locale:)`, not a `dashboard_modules` hash** (§6):
    at initializer time the host's class cannot load and its translations have not loaded — GC
@@ -105,7 +108,7 @@ trailing `/` or a `#`; an item without `path:`. Every DSL method carries YARD.
 ### garita, complete
 
 ```ruby
-class Navigation < Bali::Navigation
+class Navigation < Bali::Navigation::Base
   section :monitoring, title: "Monitoreo" do
     item :dashboard, title: "Panel", icon: "layout-dashboard", path: :root_path, controllers: %w[dashboard]
     item :webhook_events, title: "Eventos", icon: "inbox", path: :webhook_events_path,
@@ -144,7 +147,7 @@ page, which `:crud` path matching misses today.
 ### afal-apps, every feature it uses
 
 ```ruby
-class Navigation < Bali::Navigation
+class Navigation < Bali::Navigation::Base
   PORTAL_VALUE_NEW_UNTIL = Date.new(2026, 12, 15)
 
   authorize { |keys| Array(keys).any? { current_user.can?(it) } }
@@ -238,9 +241,10 @@ bali-analytics and the tests read; the side menu applies the same rules to what 
 A view helper (registered on `ActionController::Base`, like `Bali::ThemeHelper`) returning a
 `Bali::Navigation::Menu` memoized on the view. view_component 4.15's `Base#helpers` hands every
 component the original view context, so side menu, palette and the host's breadcrumb share one
-menu and each gate runs at most once per request. The menu is lazy: the switcher asks a module
-for its first visible descendant and stops there, and only the current module's sections, and
-the palette, walk the rest.
+menu and each gate runs at most once per request. The menu is lazy: the switcher and the landings
+stop at a module's first visible item, and a navigation without modules never asks where the
+request is to list its sections. The palette walks every page, so with the palette on the page
+every gate of every visible module runs once.
 
 - `app_modules` — the visible ones, in order. A module whose only visible items are `menu: false`
   is not one: it would open an empty side menu, so neither it nor its items are offered.
@@ -415,8 +419,8 @@ nobody settles them by accident.
 Tests first; each one run once without the code it covers, and its failure read
 (`docs/reference/testing-traps.md`).
 
-1. **The tree** — `lib/bali/navigation.rb` (+ `navigation/node.rb`, `location.rb`), required from
-   `lib/bali.rb`. Tests: nesting and order, the implicit section, default/scoped/literal titles and
+1. **The tree** — `lib/bali/navigation.rb` (+ `navigation/base.rb`, `node.rb`, `location.rb`),
+   required from `lib/bali.rb`. Tests: nesting and order, the implicit section, default/scoped/literal titles and
    `heading: false`, `find`, one per load-time error. Control: drop the duplicate-key check.
 2. **`locate`** — Tests: the `/` boundary (`administrations`), one per rule with §2's paths, an
    item beating its own module on the same entry, a module-only claim, `outside_menu`. Control:

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 module Bali
-  class Navigation
-    # One entry of a declared navigation. Built by the class methods of `Bali::Navigation`; read
-    # by `Bali::Navigation.locate`, `Bali::Navigation::Menu` and the two components.
+  module Navigation
+    # One entry of a declared navigation. Built by the class methods of `Bali::Navigation::Base`;
+    # read by `locate`, `Bali::Navigation::Menu` and the two components.
     class Node
       attr_reader :navigation, :key, :parent, :children, :gate, :controllers, :index
 

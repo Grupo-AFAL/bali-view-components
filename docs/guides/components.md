@@ -918,6 +918,7 @@ bottom-pinned items. Used inside `Bali::AppLayout`'s `with_sidebar` slot.
 - `aria_label` - Accessible name of the `<nav>` landmark (default: translated "Sidebar")
 - `group_behavior` - `:expandable` (default, DaisyUI collapse) or `:dropdown` (hover dropdown for nested items)
 - `reveal_current` - Scroll the menu so the current page's item is in view (default: true)
+- `navigation` - The app's `Bali::Navigation::Base` subclass: a switch per module and the current module's lists, drawn ahead of the block's slots (see [Navigation](navigation.md))
 
 Renders a `<nav aria-label>` whose items are a `ul`/`li` list, with `aria-current="page"` on the
 item pointing at the current page.
@@ -994,8 +995,6 @@ the drawer closes.
 
 **Brand row aligns** with `Bali::Topbar` (both 56px) so they form one continuous chrome divider when paired in `Bali::AppLayout`.
 
-- `navigation` - The app's `Bali::Navigation`: a switch per module and the current module's lists, drawn ahead of the block's slots (see [Navigation](navigation.md))
-
 **Match types** for `with_item`: `:exact`, `:partial`, `:starts_with`, `:crud` (matches `/path` and `/path/123/edit` etc).
 
 #### Command
@@ -1034,7 +1033,7 @@ Picking between the last three is about what should happen to the group *as the 
 - `trigger_label` - Text of the default trigger (default "Search…"/"Buscar…" via i18n). Independent of `placeholder` — the trigger is usually shorter
 - `density` - `:default` (44px rows) or `:compact` (32px rows)
 - `no_results_text` / `no_results_subtitle` - Empty-state copy
-- `navigation` - The app's `Bali::Navigation`: a group of its modules and one of its pages, ahead of the block's groups (see [Navigation](navigation.md))
+- `navigation` - The app's `Bali::Navigation::Base` subclass: a group of its modules and one of its pages, ahead of the block's groups (see [Navigation](navigation.md))
 - `shortcut_label` - Display label for the shortcut hint on the default trigger. `:auto` (default) renders `⌘K` and lets the Stimulus controller rewrite it to `Ctrl K` on a machine that is not a Mac — the server cannot know which keyboard is in front of the user, and a cached page would hand one machine's answer to every other one. A String is rendered literally and never rewritten; `nil` hides the hint. The binding itself accepts both chords on both platforms; only the label picks a side
 
 **Triggers:**

@@ -2,7 +2,7 @@
 
 module Bali
   module Testing
-    # The guard an app's `Bali::Navigation` needs: a screen nobody placed falls to the first
+    # The guard an app's `Bali::Navigation::Base` subclass needs: a screen nobody placed falls to the first
     # module's menu without a word, and a namespace with a typo claims nothing.
     #
     #   require "bali/testing/navigation"
@@ -26,7 +26,7 @@ module Bali
       # included — is placed by the navigation or named by its `outside_menu`, and every entry
       # reaches a routed controller.
       #
-      # @param navigation [Class<Bali::Navigation>]
+      # @param navigation [Class<Bali::Navigation::Base>]
       # @param base [Class] the controllers that count as navigable
       # @param routes [ActionDispatch::Routing::RouteSet]
       def assert_navigation_covers_routes(navigation, base: ::ApplicationController, routes: Rails.application.routes)
@@ -34,8 +34,8 @@ module Bali
 
         unplaced = routed.select { bali_navigable?(it, base) }.reject { navigation.claimed?(it) }
         assert_empty unplaced, "#{unplaced.sort.join(', ')} #{unplaced.one? ? 'has' : 'have'} no place in " \
-                               "#{navigation.name || 'the navigation'}: add it to an item's or a section's " \
-                               "`controllers:`, or to `outside_menu`"
+                               "#{navigation.name || 'the navigation'}: add it to the `controllers:` of an item, " \
+                               "a section or a module, or to `outside_menu`"
 
         unreached = navigation.controller_entries.reject do |entry|
           routed.any? { Bali::Navigation::Claim.covers?(entry, it) }
@@ -46,7 +46,7 @@ module Bali
 
       # Every title read from I18n exists in `locale`. A title is also the name analytics reads.
       #
-      # @param navigation [Class<Bali::Navigation>]
+      # @param navigation [Class<Bali::Navigation::Base>]
       # @param locale [Symbol]
       def assert_navigation_translated(navigation, locale: I18n.default_locale)
         missing = navigation.nodes.select(&:default_title?).map(&:title_key).reject { I18n.exists?(it, locale) }

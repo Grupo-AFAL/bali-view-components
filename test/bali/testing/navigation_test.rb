@@ -16,7 +16,7 @@ class BaliTestingNavigationTest < ActiveSupport::TestCase
   end
 
   def navigation(&declaration)
-    Class.new(Bali::Navigation) { class_eval(&declaration) }
+    Class.new(Bali::Navigation::Base) { class_eval(&declaration) }
   end
 
   def placed
@@ -38,7 +38,7 @@ class BaliTestingNavigationTest < ActiveSupport::TestCase
     error = assert_raises(Minitest::Assertion) { assert_navigation_covers_routes nav, routes: ROUTES }
 
     assert_match "admin/movies has no place", error.message
-    assert_match "or to `outside_menu`", error.message
+    assert_match "an item, a section or a module, or to `outside_menu`", error.message
   end
 
   test "outside_menu is a place" do

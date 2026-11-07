@@ -3,7 +3,7 @@
 require "test_helper"
 
 class BaliSideMenuNavigationTest < ComponentTestCase
-  NAVIGATION = Class.new(Bali::Navigation) do
+  NAVIGATION = Class.new(Bali::Navigation::Base) do
     current_controller_path { "projects/tasks" }
 
     app_module :work, title: "Work", icon: "briefcase", controllers: %w[projects] do
@@ -66,7 +66,7 @@ class BaliSideMenuNavigationTest < ComponentTestCase
   end
 
   test "an item whose path resolves to nil is drawn disabled" do
-    nav = Class.new(Bali::Navigation) do
+    nav = Class.new(Bali::Navigation::Base) do
       section(:people, title: "People") { item :pasaporte, title: "Pasaporte", path: -> { nil } }
     end
     render_inline(Bali::SideMenu::Component.new(current_path: "/", navigation: nav))

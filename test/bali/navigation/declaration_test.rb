@@ -12,7 +12,7 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
   end
 
   def navigation(&declaration)
-    Class.new(Bali::Navigation) do
+    Class.new(Bali::Navigation::Base) do
       i18n_scope "bali_navigation_declaration_test"
       class_eval(&declaration)
     end
@@ -68,7 +68,7 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
   end
 
   test "the default scope is navigation" do
-    nav = Class.new(Bali::Navigation) do
+    nav = Class.new(Bali::Navigation::Base) do
       section(:reports) { item :invoices, path: "/invoices" }
     end
 
@@ -177,6 +177,31 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
         navigation { section(:reports) { item :invoices, path: "/a", controllers: [ entry ] } }
       end
     end
+  end
+
+  # costa-norte and centinela-web have a `Location` model, GC a `Node`: inside a host's
+  # `class Navigation < Bali::Navigation::Base` and its lambdas, those names are the host's.
+  test "a host constant named like a navigation type is the host's inside the declaration" do
+    names = %w[AppModule Claim Group Item Location Menu Node Section]
+    names.each { |name| Object.const_set(name, Class.new) }
+    host = Module.new
+    host.module_eval(<<~RUBY, __FILE__, __LINE__ + 1)
+      class Navigation < Bali::Navigation::Base
+        section :places, title: "Places" do
+          item :place_list, title: "Places", path: "/places",
+                            gate: -> { #{names.map { "seen(#{it})" }.join(' && ')} }
+        end
+      end
+    RUBY
+    viewer = Struct.new(:seen_constants) do
+      def seen(constant) = seen_constants << constant
+    end.new([])
+
+    host::Navigation.menu(viewer).sections
+
+    assert_equal names, viewer.seen_constants.map(&:name)
+  ensure
+    names.each { |name| Object.send(:remove_const, name) if Object.const_defined?(name, false) }
   end
 
   test "an item needs a path" do

@@ -3,7 +3,7 @@
 require "test_helper"
 
 class BaliCommandNavigationTest < ComponentTestCase
-  WITH_MODULES = Class.new(Bali::Navigation) do
+  WITH_MODULES = Class.new(Bali::Navigation::Base) do
     app_module :work, title: "Work", icon: "briefcase" do
       item :projects, title: "Projects", icon: "folder", path: "/projects"
       item :catalog, title: "Catalog", path: "https://apex.example", target: "_blank"
@@ -14,7 +14,7 @@ class BaliCommandNavigationTest < ComponentTestCase
     end
   end
 
-  WITH_SECTIONS = Class.new(Bali::Navigation) do
+  WITH_SECTIONS = Class.new(Bali::Navigation::Base) do
     section :monitoring, title: "Monitoring" do
       item :events, title: "Events", icon: "inbox", path: "/events", hint: "Webhook events"
     end
