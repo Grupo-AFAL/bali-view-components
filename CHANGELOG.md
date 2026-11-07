@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **«Avisos» sin avisos ya no pinta una franja vacía con borde sobre «No tienes avisos»** (#1525). La
+  cabecera del listado (el rango y «Marcar todos como leídos») sale sólo cuando hay avisos. Nada que
+  hacer en la app.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added

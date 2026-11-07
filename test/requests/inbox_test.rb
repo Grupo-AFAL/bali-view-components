@@ -66,6 +66,18 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_equal [ "Newer", "Older" ], css_select(".bali-inbox-notice-message").map { |node| node.text.strip }
   end
 
+  # The range and «Marcar todos como leídos» are about the notices: with none, the header is an empty
+  # bordered strip over the empty state.
+  def test_the_notices_header_is_left_out_without_notices
+    get "/inbox", params: { tab: "notices" }
+    assert_select ".bali-inbox .empty-state-component", 1
+    assert_select ".bali-inbox-notices-header", 0
+
+    released
+    get "/inbox", params: { tab: "notices" }
+    assert_select ".bali-inbox-notices-header", 1
+  end
+
   def test_notices_page_20_at_a_time
     21.times { |n| released(message: "Notice #{n}") }
 
