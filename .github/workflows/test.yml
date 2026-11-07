@@ -140,8 +140,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-      # No bundler-cache: it installs in deployment mode from a versioned lock, and a frozen copy of
-      # Gemfile.lock breaks on any change to the Gemfile, the gemspec or Bali's version.
+      # No bundler-cache: it installs frozen from a versioned lock, and this one is derived
+      # (gemfiles/ransack_6.gemfile says why).
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
       - name: Derive the ransack 6 lock from Gemfile.lock and install

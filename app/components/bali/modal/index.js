@@ -118,13 +118,6 @@ export class ModalController extends Controller {
     }
 
     if (this.hasTemplateTarget) {
-      // Listen on the template (overlay) instead of the backdrop because DaisyUI 5's
-      // modal-backdrop has z-index: -1 which can prevent clicks from reaching it.
-      // We detect clicks outside the wrapper to close the modal.
-      this.templateTarget.addEventListener('mousedown', this._onOverlayMousedown)
-      this.templateTarget.addEventListener('click', this._onOverlayClick)
-      this.templateTarget.addEventListener('cancel', this._onDialogCancel)
-
       // Capture-phase probe for the popup guard (see _recordPopupState).
       this.element.addEventListener('keydown', this._recordPopupState, true)
     }
@@ -220,9 +213,6 @@ export class ModalController extends Controller {
     }
 
     if (this.hasTemplateTarget) {
-      this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
-      this.templateTarget.removeEventListener('click', this._onOverlayClick)
-      this.templateTarget.removeEventListener('cancel', this._onDialogCancel)
       this.element.removeEventListener('keydown', this._recordPopupState, true)
     }
 
@@ -235,6 +225,9 @@ export class ModalController extends Controller {
     document.removeEventListener('turbo:before-cache', this._closeBeforeCache)
   }
 
+  // The panel's listeners live only here: Stimulus connects a target before `connect()` and
+  // disconnects it after `disconnect()`. On the template (overlay), not the backdrop, because
+  // daisyUI 5's modal-backdrop has z-index: -1 and clicks may never reach it.
   templateTargetConnected (template) {
     template.addEventListener('mousedown', this._onOverlayMousedown)
     template.addEventListener('click', this._onOverlayClick)
@@ -890,10 +883,10 @@ export class ModalController extends Controller {
     event.preventDefault()
 
     // `currentTarget` is the element carrying the action; `target` is whatever was under the
-    // pointer, the label <span> or the icon inside the button. The fallback is for a host
-    // that calls `submit` itself once the dispatch is over and `currentTarget` is back to
-    // null: enjoykitchen does, from its payment form's Conekta callback.
-    const button = event.currentTarget ?? event.target
+    // pointer, the label <span> or the icon inside the button. A host that calls `submit`
+    // itself once the dispatch is over gets `currentTarget` back as null (enjoykitchen, from
+    // its payment form's Conekta callback), so the fallback climbs to the button the same way.
+    const button = event.currentTarget ?? event.target.closest('button, input[type="submit"]')
 
     // `reportValidity()` on the FORM, not `checkValidity()` plus a hand-rolled loop.
     //

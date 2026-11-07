@@ -241,8 +241,8 @@ export class ConditionController extends Controller {
    * Reset this condition to default state
    */
   reset () {
-    // "Contains", the first text operator, in the variant the installed ransack wants (#1530):
-    // what Condition::Component#operator paints a blank row with on the server.
+    // The first text operator, the same rule Condition::Component#operator paints a blank row
+    // with on the server.
     const blank = this.getOperatorsForType('text')[0]?.value || ''
 
     if (this.hasAttributeTarget) {

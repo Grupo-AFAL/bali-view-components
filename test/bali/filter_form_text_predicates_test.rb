@@ -9,6 +9,8 @@ require "test_helper"
 #
 # The tests that flip the switch (`as_ransack`) never run `i_start` or `i_end`, which ransack 5 lacks.
 class BaliFilterFormTextPredicatesTest < ComponentTestCase
+  include RansackTestHelpers
+
   class SearchFilterForm < Bali::FilterForm
     search_fields :name, :genre
 
@@ -220,16 +222,6 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
   private
 
   # What `case_insensitive_text?` memoizes from the gem, set for the block.
-  def as_ransack(insensitive)
-    original = Bali::RansackParamName.case_insensitive_text?
-    Bali::RansackParamName.instance_variable_set(:@case_insensitive_text, insensitive)
-    yield
-  ensure
-    Bali::RansackParamName.instance_variable_set(:@case_insensitive_text, original)
-  end
-
-  def text(predicate) = Bali::RansackParamName.text_predicate(predicate)
-
   def form(q)
     SearchFilterForm.new(Movie.all, ActionController::Parameters.new(q: q))
   end
@@ -237,9 +229,5 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
   def open_view(payload)
     SearchFilterForm.new(Movie.all, ActionController::Parameters.new(saved_view: "1"),
                          saved_views_store: Store.new(View.new(1, "Seidor", payload)))
-  end
-
-  def conditions(form)
-    form.filter_groups.flat_map { |group| group[:conditions].map { |condition| condition.values_at(:attribute, :operator, :value) } }
   end
 end

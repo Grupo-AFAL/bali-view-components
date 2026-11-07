@@ -1,5 +1,4 @@
-/* Layered (components): the gaps and the type size are defaults a host utility on the list or
- * a row has to be able to beat without `!`. The bars' colours are daisyUI's `.progress`. */
+/* The bars' colours are daisyUI's `.progress`. */
 
 .bar-list {
   @apply flex flex-col gap-3;

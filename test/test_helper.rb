@@ -17,6 +17,7 @@ require "capybara/minitest"
 
 require_relative "support/component_test_helpers"
 require_relative "support/archivable_declaration"
+require_relative "support/ransack_test_helpers"
 
 # An inbox provider includes the url_helpers of the routes live when it loads. Loaded first inside a
 # `with_routing`, it keeps that block's routes and every later inbox test loses

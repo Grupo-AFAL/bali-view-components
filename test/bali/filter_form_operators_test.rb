@@ -5,6 +5,8 @@ require "test_helper"
 # #1566. `filter_attribute operators:` narrows the advanced panel's operators for one attribute,
 # and `default_operator:` picks the one a new condition opens on.
 class BaliFilterFormOperatorsTest < ComponentTestCase
+  include RansackTestHelpers
+
   class CodesFilterForm < Bali::FilterForm
     filter_attribute :name, type: :text, operators: %i[eq start]
     filter_attribute :genre, type: :text, default_operator: :eq
@@ -96,13 +98,7 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
   private
 
   # A text operator in the variant the installed ransack gets (#1530).
-  def text(predicate) = Bali::RansackParamName.text_predicate(predicate)
-
   def form(groups)
     CodesFilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: groups }))
-  end
-
-  def conditions(form)
-    form.filter_groups.flat_map { |group| group[:conditions].map { |condition| condition.values_at(:attribute, :operator, :value) } }
   end
 end

@@ -202,7 +202,7 @@ module Bali
 
       # Extract quick search value from params based on configured search_fields
       def extract_search_value(q_params)
-        search_param_names.lazy.filter_map { |name| q_params[name] || q_params[name.to_sym] }.first
+        search_param_names.filter_map { |name| q_params[name] || q_params[name.to_sym] }.first
       end
 
       def ransackable_scope?(name)

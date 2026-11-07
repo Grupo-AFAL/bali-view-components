@@ -32,6 +32,11 @@
 .breadcrumbs {
   --bali-breadcrumb-fade-start: 0px;
   --bali-breadcrumb-fade-end: 0px;
+  --bali-breadcrumb-fade-axis: to right;
+
+  &:dir(rtl) {
+    --bali-breadcrumb-fade-axis: to left;
+  }
 
   &[data-overflow-start] {
     --bali-breadcrumb-fade-start: 1.5rem;
@@ -42,12 +47,7 @@
   }
 
   &:is([data-overflow-start], [data-overflow-end]) {
-    mask-image: linear-gradient(to right, transparent, #000 var(--bali-breadcrumb-fade-start),
-      #000 calc(100% - var(--bali-breadcrumb-fade-end)), transparent);
-
-    &:dir(rtl) {
-      mask-image: linear-gradient(to left, transparent, #000 var(--bali-breadcrumb-fade-start),
-        #000 calc(100% - var(--bali-breadcrumb-fade-end)), transparent);
-    }
+    mask-image: linear-gradient(var(--bali-breadcrumb-fade-axis), transparent,
+      #000 var(--bali-breadcrumb-fade-start), #000 calc(100% - var(--bali-breadcrumb-fade-end)), transparent);
   }
 }

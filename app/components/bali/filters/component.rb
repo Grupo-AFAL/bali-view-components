@@ -157,12 +157,6 @@ module Bali
         end.to_json
       end
 
-      # Build the default operators for each attribute type.
-      # Delegates to Operators module for centralized definitions.
-      def operators_for_type(type)
-        Operators.for_type(type)
-      end
-
       # Translations JSON for Stimulus controllers (combinators only for main controller)
       def translations_json
         {

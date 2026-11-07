@@ -38,7 +38,7 @@ module Bali
         @items = items.map { |item| Item.new(**item) }
         @max = @items.map(&:value).max
         @color = Bali::Color.name!(self.class, color)
-        @format = format
+        @format = format || Bali::Figure.method(:delimited)
         @options = prepend_class_name(options, BASE_CLASSES).merge(role: "list", "aria-label": aria_label)
       end
 
@@ -46,9 +46,7 @@ module Bali
 
       private
 
-      def value_text(value)
-        @format ? @format.call(value) : Bali::Figure.delimited(value)
-      end
+      def value_text(value) = @format.call(value)
     end
   end
 end

@@ -21,11 +21,13 @@ module Bali
           @condition[:attribute].to_s
         end
 
-        # In the variant the installed ransack gets (#1530): the "cont" every blank row is seeded
-        # with, and a text operator a host wrote by hand. condition_controller.js#reset puts a row
-        # back on the same one, the first text operator of `translations_json`.
+        # A blank row opens on the first text operator ("contains"), the same rule
+        # condition_controller.js#reset reads off `translations_json`. A text operator a host
+        # wrote by hand comes in the variant the installed ransack gets (#1530).
         def operator
-          RansackParamName.text_predicate(@condition[:operator] || "cont")
+          return Operators.for_type(:text).first[:value] if @condition[:operator].nil?
+
+          RansackParamName.text_predicate(@condition[:operator])
         end
 
         def value
@@ -33,7 +35,9 @@ module Bali
         end
 
         def selected_attribute
-          @available_attributes.find { |a| a[:key].to_s == attribute }
+          return @selected_attribute if defined?(@selected_attribute)
+
+          @selected_attribute = @available_attributes.find { |a| a[:key].to_s == attribute }
         end
 
         def attribute_type
@@ -55,15 +59,14 @@ module Bali
         end
 
         def operators_for_current_type
-          Operators.for_attribute(selected_attribute || { type: attribute_type })
+          @operators_for_current_type ||= Operators.for_attribute(selected_attribute || {})
         end
 
         # Only an attribute that declares its operators: a boolean's lone "is" stays a select
         # as it always was. condition_controller.js#updateOperators fixes the select by the
         # same rule, reading the declaration off `data-default-operator`.
         def fixed_operator?
-          selected_attribute.present? && Operators.default_for(selected_attribute).present? &&
-            operators_for_current_type.one?
+          Operators.default_for(selected_attribute || {}).present? && operators_for_current_type.one?
         end
 
         # Both read the mark Operators.for_type puts on the chosen operator, the same mark

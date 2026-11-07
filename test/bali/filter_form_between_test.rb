@@ -7,6 +7,8 @@ require "test_helper"
 # whatever else the group asked of that attribute, so the panel showed another query than the
 # one applied, and Apply then applied that one.
 class BaliFilterFormBetweenTest < ComponentTestCase
+  include RansackTestHelpers
+
   class RangesFilterForm < Bali::FilterForm
     filter_attribute :rating, type: :number
     filter_attribute :release_date, type: :date
@@ -71,10 +73,6 @@ class BaliFilterFormBetweenTest < ComponentTestCase
 
   def form(group)
     RangesFilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: { "0" => group } }))
-  end
-
-  def conditions(form)
-    form.filter_groups.flat_map { |group| group[:conditions].map { |condition| condition.values_at(:attribute, :operator, :value) } }
   end
 
   # What filters_controller.js#buildUrl sends: the panel form's named fields with a value. The

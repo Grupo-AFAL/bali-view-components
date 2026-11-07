@@ -22,7 +22,6 @@ module Bali
           @options = options
         end
 
-        # Called by `Bali::Breadcrumb::Component` on the last item of the trail.
         def last!
           @last = true
         end

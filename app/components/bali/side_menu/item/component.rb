@@ -55,7 +55,7 @@ module Bali
           @badge = options.delete(:badge)
           @badge_color = options.delete(:badge_color) || :primary
           @link_class = options.delete(:class)
-          @options = options
+          @options = options.compact
         end
 
         def render?

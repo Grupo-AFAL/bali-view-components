@@ -7,6 +7,8 @@ require "test_helper"
 # or a saved view, a 500 on every visit), others filtered while the panel painted an empty row.
 # Only what the panel can write gets through now; the rest is no filter.
 class BaliFilterFormPanelConditionsTest < ActiveSupport::TestCase
+  include RansackTestHelpers
+
   class PanelFilterForm < Bali::FilterForm
     search_fields :name
 
@@ -44,10 +46,6 @@ class BaliFilterFormPanelConditionsTest < ActiveSupport::TestCase
 
   def form(groups, form_class: PanelFilterForm, **q)
     form_class.new(Movie.all, ActionController::Parameters.new(q: { g: groups, **q }))
-  end
-
-  def conditions(form)
-    form.filter_groups.flat_map { |group| group[:conditions].map { |condition| condition.values_at(:attribute, :operator, :value) } }
   end
 
   test "each group keeps the conditions its attributes' operators can write" do

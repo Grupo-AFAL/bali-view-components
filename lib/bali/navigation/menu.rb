@@ -6,8 +6,9 @@ module Bali
     # each path resolved. `navigation_for(Navigation)` builds it once per view; outside a view,
     # `Navigation.menu(context)` takes any object answering what the gates call.
     #
-    # Visibility comes from gates alone and paths are resolved only when drawn, so a menu built
-    # for visibility never touches a route. It is lazy: a module stops at its first visible item.
+    # Visibility comes from gates alone and paths are resolved only when drawn, once per menu: the
+    # side menu and the palette share it, so a route both draw is generated once. A menu built for
+    # visibility never touches a route. It is lazy: a module stops at its first visible item.
     class Menu
       attr_reader :navigation, :context
 
@@ -17,6 +18,8 @@ module Bali
         @navigation = navigation
         @context = context
         @visible = {}.compare_by_identity
+        @paths = {}.compare_by_identity
+        @landings = {}.compare_by_identity
       end
 
       # @return [Array<AppModule>] the modules this person may open, in order
@@ -59,7 +62,7 @@ module Bali
 
       # @return [String, nil]
       def path(item)
-        resolve(item.path)
+        @paths.fetch(item) { @paths[item] = resolve(item.path) }
       end
 
       # The module's `landing:`, or the first item its side menu draws that opens in place: the
@@ -67,10 +70,15 @@ module Bali
       #
       # @return [String, nil]
       def landing(app_module)
-        return resolve(app_module.landing) if app_module.landing
-
-        first = first_drawn_item(app_module)
-        first && path(first)
+        @landings.fetch(app_module) do
+          @landings[app_module] =
+            if app_module.landing
+              resolve(app_module.landing)
+            else
+              first = first_drawn_item(app_module)
+              first && path(first)
+            end
+        end
       end
 
       # @return [Object, nil]

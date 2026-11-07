@@ -119,10 +119,7 @@ class BaliFiltersComponentTest < ComponentTestCase
   end
 
   def test_operators_provides_correct_operators_for_text_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :name, type: :text } ]
-    )
-    operators = component.operators_for_type(:text)
+    operators = Bali::Filters::Operators.for_type(:text)
     assert_includes(operators.pluck(:value), "cont")
     assert_includes(operators.pluck(:value), "eq")
     assert_includes(operators.pluck(:value), "start")
@@ -130,10 +127,7 @@ class BaliFiltersComponentTest < ComponentTestCase
   end
 
   def test_operators_provides_correct_operators_for_number_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :age, type: :number } ]
-    )
-    operators = component.operators_for_type(:number)
+    operators = Bali::Filters::Operators.for_type(:number)
     assert_includes(operators.pluck(:value), "eq")
     assert_includes(operators.pluck(:value), "gt")
     assert_includes(operators.pluck(:value), "lt")
@@ -142,10 +136,7 @@ class BaliFiltersComponentTest < ComponentTestCase
   end
 
   def test_operators_provides_correct_operators_for_date_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :created_at, type: :date } ]
-    )
-    operators = component.operators_for_type(:date)
+    operators = Bali::Filters::Operators.for_type(:date)
     assert_includes(operators.pluck(:value), "eq")
     assert_includes(operators.pluck(:value), "gt")
     assert_includes(operators.pluck(:value), "lt")
@@ -154,19 +145,13 @@ class BaliFiltersComponentTest < ComponentTestCase
   end
 
   def test_operators_provides_correct_operators_for_select_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :status, type: :select } ]
-    )
-    operators = component.operators_for_type(:select)
+    operators = Bali::Filters::Operators.for_type(:select)
     assert_includes(operators.pluck(:value), "eq")
     assert_includes(operators.pluck(:value), "not_eq")
   end
 
   def test_operators_provides_correct_operators_for_boolean_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :verified, type: :boolean } ]
-    )
-    operators = component.operators_for_type(:boolean)
+    operators = Bali::Filters::Operators.for_type(:boolean)
     assert_equal([ "eq" ], operators.pluck(:value))
   end
 

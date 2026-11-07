@@ -24,10 +24,10 @@ module Bali
       COMBINATORS = %w[and or].freeze
       extend ActiveSupport::Concern
 
-      # Ransack operators ordered by specificity (longer operators first to avoid partial matches)
-      # Both variants of the text ones, which `PanelConditions#current_condition_key` reads (#1530).
-      RANSACK_OPERATORS = %w[not_i_cont not_cont not_eq not_in gteq lteq i_cont cont i_start start
-                             i_end end matches eq gt lt in].freeze
+      # Longest first, so an operator that ends another (`cont` in `not_i_cont`) never wins. The
+      # `i_` twins come from RansackParamName, which `PanelConditions#current_condition_key` reads.
+      RANSACK_OPERATORS = (%w[not_cont not_eq not_in gteq lteq cont start end matches eq gt lt in] +
+                           RansackParamName::CASE_INSENSITIVE.values).sort_by { -it.length }.freeze
 
       # Parse the current filter state into a structure for Filters component.
       # Automatically extracts filter groups from Ransack grouping params (q[g][...]).
