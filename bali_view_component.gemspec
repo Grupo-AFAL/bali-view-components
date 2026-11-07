@@ -57,7 +57,10 @@ Gem::Specification.new do |spec|
   spec.add_dependency "ransack", ">= 5.0.2", "< 6.0"
   spec.add_dependency "simple_command"
 
-  spec.add_dependency "view_component", [ ">= 4.0.0", "< 5.0" ]
+  # The floor is what moves every host on its next Bali bump. Below 4.20 Action View read each
+  # `render Bali::X::Component.new` as the partial `news/new` and logged "Couldn't find template
+  # for digesting: news/new" per digest: 98 lines over the dummy's 89 views on 4.15, 0 on 4.23.
+  spec.add_dependency "view_component", [ ">= 4.23.0", "< 5.0" ]
   spec.add_dependency "view_component-contrib"
 
   spec.metadata["rubygems_mfa_required"] = "true"
