@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **La guía de `Bali::DeleteLink` dice cómo cambiar el título, el botón y el color del diálogo de
+  confirmación** (#1521): `data: { bali_confirm_title:, bali_confirm_accept:, bali_confirm_variant: }`.
+  `data:` va al botón, y el diálogo lee el botón antes que el formulario, que trae «Confirmar
+  eliminación», «Eliminar» y `danger`. Ya funcionaba, así que no hay keywords nuevas: identity lo usa
+  así en `revoke_button` y en las confirmaciones de tokens y sesiones del admin, y ahora lo fija una
+  prueba. Un `button_to` escrito a mano sólo para cambiar esos textos puede volver a ser un
+  `DeleteLink` (`git grep -n "bali-view-components#1521"`).
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added

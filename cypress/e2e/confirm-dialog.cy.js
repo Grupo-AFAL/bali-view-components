@@ -104,3 +104,19 @@ describe('Confirm dialog', () => {
     cy.get('#bali-confirm-title').should('have.text', 'Eliminar registro')
   })
 })
+
+// #1521 — DeleteLink's form carries "Confirm deletion" / "Delete" / danger; the caller's `data:`
+// lands on the button, which the dialog reads first.
+describe('DeleteLink confirm labels', () => {
+  it('takes the title, accept label and variant the caller puts in data:', () => {
+    cy.visit('/bali/delete_link/with_custom_confirm?custom_confirm=Remove%20HILLO%20from%20Juan%3F' +
+             '&title=Remove%20assignment&accept=Remove&variant=warning')
+    cy.contains('form.bali-delete-link-form button', 'Delete').click()
+
+    cy.get('dialog.modal[open] #bali-confirm-title').should('have.text', 'Remove assignment')
+    cy.get('#bali-confirm-message').should('have.text', 'Remove HILLO from Juan?')
+    cy.get('#bali-confirm-accept-btn')
+      .should('have.class', 'btn-warning')
+      .and('have.text', 'Remove')
+  })
+})

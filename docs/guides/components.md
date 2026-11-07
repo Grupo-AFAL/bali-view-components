@@ -4591,7 +4591,18 @@ Delete button that submits a DELETE request and automatically triggers the style
 <%= render Bali::DeleteLink::Component.new(model: @movie) %>
 <%= render Bali::DeleteLink::Component.new(href: movie_path(@movie), name: 'Remove', size: :sm, icon: true) %>
 <%= render Bali::DeleteLink::Component.new(href: movie_path(@movie), style: :outline, icon: 'circle-x') %>
+
+<%# Removes a record without deleting what the user sees %>
+<%= render Bali::DeleteLink::Component.new(href: movie_character_path(@movie, @character), name: 'Remove',
+      confirm: 'Remove this character from the movie?',
+      data: { bali_confirm_title: 'Remove character', bali_confirm_accept: 'Remove',
+              bali_confirm_variant: 'warning' }) %>
 ```
+
+**The dialog's title, accept label and colour.** The form carries the translated "Confirm
+deletion" and "Delete", and `danger`. `data:` lands on the button, which the dialog reads before
+the form, so `bali_confirm_title`, `bali_confirm_accept`, `bali_confirm_variant` and
+`bali_confirm_cancel` there replace them.
 
 **Options:**
 - `model` - Record used to build the URL and the confirmation message (default: `nil`)
