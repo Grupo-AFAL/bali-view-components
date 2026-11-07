@@ -8,7 +8,8 @@
                      data: { topbar_inbox_target: "trigger", action: "click->topbar-inbox#toggle",
                              turbo_prefetch: "false" } do %>
     <%= render Bali::Icon::Component.new("inbox", class: "size-5") %>
-    <%= tag.turbo_frame(id: BADGE_FRAME_ID, data: { topbar_inbox_target: "badge" }) do %>
+    <%= tag.turbo_frame(id: BADGE_FRAME_ID, data: { topbar_inbox_target: "badge",
+                                                   action: "turbo:frame-missing->topbar-inbox#keepBadge" }) do %>
       <%= render Bali::Topbar::Inbox::Badge::Component.new(badge: @badge) %>
     <% end %>
   <% end %>

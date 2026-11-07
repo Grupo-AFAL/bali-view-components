@@ -135,17 +135,53 @@ describe('Topbar inbox', () => {
 
   // What Bali::Inbox::Badge.refresh broadcasts: a fresh Bali::Topbar::Inbox::Component::SIGNAL_ID
   // element and no count. Its arrival is what makes the icon fetch its own badge.
+  const announceNotice = () => cy.window().then((win) => win.Turbo.renderStreamMessage(
+    '<turbo-stream action="replace" target="bali-inbox-signal"><template>' +
+    '<span id="bali-inbox-signal" hidden data-topbar-inbox-target="signal"></span></template></turbo-stream>'
+  ))
+
   it('a new notice on the stream makes the icon fetch its badge', () => {
     cy.intercept('GET', '**/inbox/badge').as('badge')
     cy.get('#bali-inbox-signal').should('exist')
 
-    cy.window().then((win) => win.Turbo.renderStreamMessage(
-      '<turbo-stream action="replace" target="bali-inbox-signal"><template>' +
-      '<span id="bali-inbox-signal" hidden data-topbar-inbox-target="signal"></span></template></turbo-stream>'
-    ))
+    announceNotice()
 
     cy.wait('@badge')
     cy.get('#bali-inbox-badge .sr-only').should('exist')
+  })
+
+  // With the session expired, the badge request is redirected to the sign-in page, which has no
+  // badge frame; an error page has none either.
+  ;[200, 500].forEach((statusCode) => {
+    it(`keeps its count when the badge request answers ${statusCode} without the frame`, () => {
+      const errors = []
+      cy.on('uncaught:exception', (error) => {
+        errors.push(error.message)
+        return false
+      })
+      cy.intercept({ method: 'GET', url: '**/inbox/badge', times: 1 }, {
+        statusCode,
+        headers: { 'content-type': 'text/html' },
+        body: '<html><head></head><body><form id="sign-in"></form></body></html>'
+      }).as('badge')
+      cy.get('#bali-inbox-badge .sr-only').invoke('text').as('label')
+
+      announceNotice()
+
+      cy.wait('@badge')
+      cy.get('#bali-inbox-badge[complete]').should('exist')
+      // Turbo's rejection reaches the window in a task of its own: count the errors a frame later.
+      cy.window().then((win) => new Cypress.Promise((resolve) => win.requestAnimationFrame(resolve)))
+      cy.get('#bali-inbox-badge .turbo-frame-error').should('not.exist')
+      cy.get('@label').then((label) => cy.get('#bali-inbox-badge .sr-only').should('have.text', label))
+      cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+
+      cy.intercept('GET', '**/inbox/badge').as('badgeAgain')
+      announceNotice()
+      cy.wait('@badgeAgain').its('response.body').should('include', 'id="bali-inbox-badge"')
+      cy.get('#bali-inbox-badge .sr-only').should('exist')
+      cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+    })
   })
 
   it('marking every notice read from the popover clears the icon\'s dot', () => {

@@ -122,6 +122,13 @@ class BaliTopbarInboxComponentTest < ComponentTestCase
     assert_selector("##{Bali::Topbar::Inbox::Component::SIGNAL_ID}[data-topbar-inbox-target='signal']", visible: :all)
   end
 
+  # `keepBadge` in index.js answers it; topbar-inbox.cy.js drives it with a page that has no frame.
+  def test_the_badge_frame_hands_a_response_without_it_to_the_controller
+    inbox(pending: 6)
+
+    assert_selector("turbo-frame#bali-inbox-badge[data-action='turbo:frame-missing->topbar-inbox#keepBadge']")
+  end
+
   def test_stream_subscribes_to_the_owners_inbox_stream
     user = User.create!(name: "Ana")
     inbox(stream: user)
