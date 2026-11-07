@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::FilterForm`: el panel de filtros pinta las condiciones de un rango como llegaron
+  (#1528).** Un `gteq` y un `lteq` del mismo atributo se juntaban en un «entre» aunque el grupo
+  fuera O o trajera otro operador del atributo, y Aplicar perdía ese otro operador (o, en un
+  número, la condición entera). Ahora sólo se juntan en un grupo Y, sin otro operador del
+  atributo y en un tipo que ofrece «entre» (fechas); lo demás queda como condiciones sueltas.
+  Un atributo que el form no ofrece (un panel con los atributos en la vista) se junta como
+  antes, también un número. Quien lea `filter_groups` (`git grep -n "filter_groups"`) recibe
+  esas condiciones sueltas.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added
