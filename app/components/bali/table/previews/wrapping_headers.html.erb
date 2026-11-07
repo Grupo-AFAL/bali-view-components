@@ -1,6 +1,6 @@
 <div class="max-w-72 rounded-box border border-base-300">
   <%= render Bali::Table::Component.new do |table| %>
-    <% table.with_header(name: '') %>
+    <% table.with_header(name: 'Metric') %>
     <% ['In this node', 'With the ones below'].each do |label| %>
       <% table.with_header(name: label, class: class_names('text-right', 'whitespace-normal': wrap)) %>
     <% end %>

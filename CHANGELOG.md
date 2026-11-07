@@ -12,8 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::Table`: un encabezado con `class: "whitespace-normal"` parte su texto.**
   `Table::Header` ya no antepone `whitespace-nowrap`, que empataba con la utilidad del host y
   ganaba por orden de la hoja. Por omisión el encabezado sigue sin partir (lo hereda del `thead`
-  de daisyUI). Los `whitespace-normal!` de las apps siguen funcionando y pueden perder el `!`
-  (`git grep -n "whitespace-normal!" -- app/views`).
+  de daisyUI). Los `whitespace-normal!` que se pasan a un `with_header` siguen funcionando y
+  pueden perder el `!`: en afal-apps `marketing/pop_requests/index` y
+  `scholarships/requests/index`, y en gobierno-corporativo `governing_bodies/agreements/show`,
+  `governing_bodies/sessions/minutes/_agreements` y `_official_format_tab`.
 
 ## [v3.23.0] - 2026-10-28
 

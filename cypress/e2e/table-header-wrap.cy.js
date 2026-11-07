@@ -13,9 +13,9 @@ describe('Table headers and white-space', () => {
 
   it('wraps a header given whitespace-normal, so the table fits its panel', () => {
     cy.visit('/bali/table/wrapping_headers?wrap=true')
-    cy.get(header).should(($th) => expect(whiteSpace($th)).to.equal('normal'))
     cy.get('.table-component').should(($box) => {
       expect($box[0].scrollWidth).to.be.at.most($box[0].clientWidth)
     })
+    cy.get(header).should(($th) => expect(whiteSpace($th)).to.equal('normal'))
   })
 })
