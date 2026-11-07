@@ -178,7 +178,7 @@ module Bali
       def menu_items
         @menu_items ||= authorized_items.each_with_object([]) do |item, kept|
           kept << item unless divider?(item) && (kept.empty? || divider?(kept.last))
-        end.then { |kept| divider?(kept.last) ? kept[...-1] : kept }
+        end.tap { |kept| kept.pop if divider?(kept.last) }
       end
 
       # What the template renders when no `trigger` slot was given. Nothing here — a plain

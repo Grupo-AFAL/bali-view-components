@@ -348,6 +348,18 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_selector('[role="menuitem"]', count: 2)
   end
 
+  def test_an_unauthorized_divider_is_left_out_like_any_item
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(href: "/edit") { "Edit" }
+      c.with_item(tag: :divider, authorized: false)
+      c.with_item(href: "/retire") { "Retire" }
+    end
+
+    assert_no_selector('[role="separator"]')
+    assert_no_selector("[authorized]")
+  end
+
   def test_a_menu_of_only_dividers_does_not_render
     render_inline(Bali::Dropdown::Component.new) do |c|
       c.with_trigger { "Trigger" }

@@ -11,13 +11,12 @@ module Bali
       # it is one of the three children a `role="menu"` allows, and the controller, which walks
       # `[role^="menuitem"]`, never focuses it.
       class Component < ApplicationViewComponent
-        def initialize(**options)
+        def initialize(authorized: true, **options)
+          @authorized = authorized
           @options = options.reverse_merge(role: "separator")
         end
 
-        def authorized?
-          true
-        end
+        def authorized? = @authorized
 
         def menu_divider?
           true

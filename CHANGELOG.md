@@ -12,9 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::Dropdown`: `with_item(tag: :divider)`**, una línea entre items (`<li role="separator">`
   dentro del menú; el teclado no la enfoca). Sólo se pinta entre dos items que se pintan: al
   principio o al final del menú, o junto a otro divisor, se omite, así que puede ir antes de un
-  item con `authorized:`. No cuenta para que el menú se pinte. Vale también en `ActionsDropdown`
-  y en `with_secondary_action` de las páginas. Reemplaza el `tag: :title` vacío con `border-t`
-  (`git grep -n "danger_divider" -- app`).
+  item con `authorized:`; acepta también `authorized:` como los demás. No cuenta para que el
+  menú se pinte. Vale también en `ActionsDropdown` y en `with_secondary_action` de las páginas.
+  En gobierno-corporativo reemplaza el `tag: :title` vacío con `border-t` de
+  `app/views/mdm/masters/_manage_menu.html.erb`.
 
 ## [v3.23.0] - 2026-10-28
 
