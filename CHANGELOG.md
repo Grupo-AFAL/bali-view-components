@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::BarList`: barras horizontales en HTML** (#1552). Una fila por elemento con su etiqueta
+  completa (si no cabe, parte en líneas), la cifra al final de la línea y debajo una pista
+  proporcional al valor más grande; con `href:` la fila entera es un enlace, con la etiqueta
+  subrayada. La cifra lleva coma de miles y punto decimal en cualquier locale, como los conteos de
+  la bandeja (o `format:`). La altura sigue al número de filas. Pueden pasar a una sola llamada:
+  las fichas de gobierno-corporativo que hoy dibujan un `Bali::Chart` con `indexAxis: "y"` y
+  repiten las filas en `with_data_table` para llevar los enlaces (la guía muestra cómo), y en
+  afal-apps `cafeteria/dashboards/show` y `td_flow/reports/_bar_rows`. Esta última pinta etiqueta,
+  barra y cifra en una sola línea; `BarList` pone la barra debajo, así que migrarla cambia su aspecto.
+
+### Removed
+
+- **`Bali::Topbar::Inbox::Component.count_text`.** La coma de miles de la bandeja pasa a
+  `Bali::Figure.delimited`, que también usa `Bali::BarList`. Ninguna app la llamaba
+  (`git grep count_text origin/main` en las doce).
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added

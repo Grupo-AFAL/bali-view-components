@@ -2548,6 +2548,66 @@ The value is **ternary**. `nil` is missing data, not `false`: announcing "No" fo
 
 The icon is `aria-hidden`, so the `sr-only` label is the only accessible name the component has. Without it the colour is the sole difference between the two states, which also fails WCAG 1.4.1.
 
+#### BarList
+
+Horizontal bars written as HTML, for counts a reader compares and follows: one row per item with
+its label, the figure at the end of the label's line, and a track under them filled in proportion
+to the largest value. A row with `href:` is a link. There are no axes and no canvas; for a chart
+with scales, see [Chart](#chart).
+
+```erb
+<%= render Bali::BarList::Component.new(aria_label: 'People by job profile', items: [
+  { label: "GERENTE DE RESTAURANTE CARL'S", value: 12, href: '/job_profiles/1' },
+  { label: 'COCINERO', value: 9, href: '/job_profiles/2' },
+  { label: 'Sin puesto', value: 1 }
+]) %>
+```
+
+**Options:**
+- `items` - one hash per row (required): `label:` and a Numeric `value:` (anything else raises);
+  `href:` makes the whole row one link, named by its label and figure; `color:` overrides the
+  list's for that row; `id:` lands on the row's `<li>` (`id: dom_id(district)`). Any other key
+  raises.
+- `color` - colour of the bars, a name from [Colors](#colors) (default: `:primary`). `:neutral` and
+  `:ghost` both paint `base-content`. There is no `custom_color:`: each track is a
+  `Bali::Progress`, which takes names only.
+- `format` - a callable that turns a value into the figure's text, e.g.
+  `->(count) { t('cafeteria.lunches', count:) }` (default: `Bali::Figure`, a thousands comma and
+  a decimal point whatever the locale — `13,887.5` also under rails-i18n's `es`, as the inbox's
+  counts)
+- `aria_label` - the list's accessible name (default: nil)
+- `**options` - HTML attributes for the `<ul>`
+
+Rows are an `items:` array; there is no `with_item` slot. Each row needs the largest value of the
+whole list before it can draw its track, which an array has up front.
+
+The list is a `<ul role="list">` that grows with its rows: there is no height to pick. A label
+longer than its line wraps instead of being cut, and the figure stays at the end of the first
+line. A linked label is underlined at rest, faintly, and in full under the pointer or the focus;
+a row without a link has no line. Each track is hidden from assistive tech, so a row reads as its
+label and its figure. With no items, nothing renders.
+
+The bar goes with the figure, which carries the value as text (13.7:1 or more in every theme).
+Only `neutral` and `ghost`, which paint `base-content`, reach 3:1 against their own track in the
+six themes Bali ships; `primary` falls to 2.75:1 on `dark`, and every other colour to 1.5–2.3:1
+on at least one light theme.
+
+**From a horizontal `Bali::Chart`.** gobierno-corporativo's record pages
+(`mdm/masters/_bar_chart.html.erb`) draw these rows as a `type: :bar` chart with
+`indexAxis: "y"`, repeat them in `with_data_table` to carry the links, and pick a height preset
+by the number of rows. The partial becomes one call, and the height preset, `indexAxis:` and
+the table go away:
+
+```erb
+<%= render Bali::BarList::Component.new(id: id, aria_label: caption,
+      items: rows.map { |row| { label: row[:label], value: row[:count], href: row[:href], id: row[:dom_id] } }) %>
+```
+
+`href:` is the record's path, or nil where the row was plain text: the condition
+`master_record_link` reads (`policy(record).open?`) moves to the caller. The rows' `id:` lands on
+each `<li>`, so a test that finds a row by its `dom_id` and reads `/Name\s+1/` keeps passing; one
+that looks for the chart's `canvas` or its table's `tr` looks for the `li` instead.
+
 #### Chart
 
 Renders a Chart.js chart (bar, line, pie, doughnut, polarArea) with theme-aware colors, optionally wrapped in a DaisyUI card.

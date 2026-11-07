@@ -1,0 +1,21 @@
+<%= tag.ul(**@options) do %>
+  <% @items.each do |item| %>
+    <% row = capture do %>
+      <div class="bar-list__row">
+        <div class="bar-list__head">
+          <span class="bar-list__label"><%= item.label %></span>
+          <span class="bar-list__value"><%= value_text(item.value) %></span>
+        </div>
+        <%= render Bali::Progress::Component.new(value: item.value, max: @max, color: item.color || @color,
+                                                 show_percentage: false, aria: { hidden: true }) %>
+      </div>
+    <% end %>
+    <%= tag.li(id: item.id) do %>
+      <% if item.href %>
+        <%= render(Bali::Link::Component.new(href: item.href, plain: true, class: "bar-list__link")) { row } %>
+      <% else %>
+        <%= row %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
