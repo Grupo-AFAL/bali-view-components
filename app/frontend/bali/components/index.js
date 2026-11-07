@@ -26,7 +26,6 @@ import { SideMenuController } from '../../../components/bali/side_menu/index'
 import { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
 import { SideMenuTriggerController } from '../../../components/bali/side_menu/trigger/index'
 import { AvatarController } from '../../../components/bali/avatar/index'
-import { BreadcrumbController } from '../../../components/bali/breadcrumb/index'
 import { TimeagoController } from '../../../components/bali/timeago/index'
 import { RateController } from '../../../components/bali/rate/index'
 import { BulkActionsController } from '../../../components/bali/bulk_actions/index'
@@ -65,6 +64,7 @@ import {
 import { DocumentEditorController } from '../../../components/bali/document_editor/index'
 import { DocumentPageController } from '../../../components/bali/document_page/index'
 import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
+import { BreadcrumbController } from '../../../components/bali/breadcrumb/index'
 import { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
 import { CommandController } from '../../../components/bali/command/index'
 import { StatusController } from '../../../components/bali/status/index'
@@ -163,7 +163,6 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   'side-menu-trigger': SideMenuTriggerController,
   'theme-toggle': ThemeToggleController,
   'topbar-inbox': TopbarInboxController,
-  breadcrumb: BreadcrumbController,
 
   // Data display
   avatar: AvatarController,
@@ -219,6 +218,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
 
   // Navigation
   'tree-view-item': TreeViewItemController,
+  breadcrumb: BreadcrumbController,
 
   // Integration
   'feedback-widget': FeedbackWidgetController,

@@ -28,7 +28,7 @@ module Bali
         end
 
         def current?
-          @active.nil? ? (@last == true && href.blank?) : @active
+          @active.nil? ? @last && href.blank? : @active
         end
 
         def link?

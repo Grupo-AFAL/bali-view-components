@@ -96,7 +96,32 @@ describe('breadcrumb', () => {
     })
   })
 
-  it('does not fade a trail that fits, nor one that comes to fit', () => {
+  it('fades a trail that fits once it grows past its box', () => {
+    cy.viewport(1280, 800)
+    cy.visit('/bali/breadcrumb/three_levels')
+
+    // The controller's first reading lands on a frame after it connects. Grown before that, the
+    // list would be caught by that reading whether or not the observer watches it.
+    const twoFramesLater = (nav) => new Cypress.Promise((resolve) => {
+      const win = nav.ownerDocument.defaultView
+      win.requestAnimationFrame(() => win.requestAnimationFrame(() => resolve(nav)))
+    })
+
+    cy.get('.breadcrumbs').should(($nav) => {
+      expect(getComputedStyle($nav[0]).maskImage, 'a trail that fits has no mask').to.equal('none')
+    }).then(($nav) => twoFramesLater($nav[0])).then(($nav) => {
+      const nav = $nav[0]
+      const list = nav.querySelector('ul')
+      while (nav.scrollWidth <= nav.clientWidth) {
+        list.insertBefore(list.firstElementChild.cloneNode(true), list.lastElementChild)
+      }
+    })
+    cy.get('.breadcrumbs').should(($nav) => {
+      expect(fades($nav[0]), 'cut once it grows').to.deep.equal({ start: 24, end: 0 })
+    })
+  })
+
+  it('drops the fade when the trail comes to fit', () => {
     cy.viewport(320, 640)
     cy.visit('/bali/breadcrumb/three_levels')
     cy.get('.breadcrumbs').should(($nav) => {

@@ -5,6 +5,8 @@ export class BreadcrumbController extends Controller {
   connect () {
     this.resizeObserver = new window.ResizeObserver(() => this.update())
     this.resizeObserver.observe(this.element)
+    // The nav alone looks enough and is not: the list can grow inside a box that keeps its size
+    // (a web font arriving late, a crumb added by a stream).
     this.resizeObserver.observe(this.element.firstElementChild)
   }
 

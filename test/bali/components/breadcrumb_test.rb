@@ -80,13 +80,12 @@ class BaliBreadcrumbComponentTest < ComponentTestCase
     assert_selector('li span[aria-current="page"]', text: "Page")
   end
 
-  # The controller marks the edges where the trail is cut; its index.css fades them.
   def test_wires_the_breadcrumb_controller_to_the_scrolling_nav
     render_inline(Bali::Breadcrumb::Component.new) do |c|
       c.with_item(name: "Home", href: "/home")
     end
     assert_selector('nav.overflow-x-auto[data-controller="breadcrumb"]' \
-                    '[data-action="scroll->breadcrumb#update:passive"]')
+                    '[data-action="scroll->breadcrumb#update"]')
   end
 
   def test_with_icons_renders_breadcrumb_items_with_icons
