@@ -72,9 +72,10 @@ module Bali
           end
         end
 
-        # Only an attribute that declares its operators: a boolean's lone "is" stays a select
-        # as it always was. condition_controller.js#updateOperators fixes the select by the
-        # same rule, reading the declaration off `data-default-operator`.
+        # Only an attribute that declares `operators:` or `default_operator:`: a boolean's lone
+        # "is" stays a select as it always was. condition_controller.js#updateOperators fixes the
+        # select by the same rule, reading the declaration off `data-default-operator`; a row it
+        # builds never carries the arrived operator `operators_for_current_type` may add.
         def fixed_operator?
           Operators.default_for(selected_attribute || {}).present? && operators_for_current_type.one?
         end
