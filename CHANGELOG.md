@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **`Bali::FeedbackWidget`: los textos por omisión ya no nombran a Opina.** En español el panel
-  y el botón con texto dicen «Retroalimentación» y el de ícono «Abrir retroalimentación» (antes
-  «Comentarios», «Opina» y «Abrir comentarios»); en inglés el botón con texto dice «Feedback».
-  Una app que sobrescribía `bali_view.feedback_widget` para esto puede borrar esas llaves, y una
-  prueba que busca «Opina» en el botón tiene que cambiar (`git grep -n "/Opina/" -- test`).
+- **`Bali::FeedbackWidget`: los textos por omisión ya no nombran a Opina.** En español el botón
+  con texto y el título del panel dicen «Retroalimentación» (antes «Opina» y «Comentarios»), y
+  los botones de ícono, el flotante y el `:icon`, se anuncian «Abrir retroalimentación» (antes
+  «Abrir comentarios»). En inglés el botón con texto dice «Feedback» (antes «Opina»). Al subir se
+  rompen las pruebas que buscan «Opina» o «Comentarios»
+  (`git grep -nE "Opina|Abrir comentarios|Comentarios" -- test spec`): gobierno-corporativo,
+  costa-norte y centinela-web (`test/integration/feedback_widget_test.rb`) y garita
+  (`test/integration/console_shell_test.rb`); las que leen
+  `I18n.t("bali_view.feedback_widget.trigger_label")`, como identity, no. afal-apps puede borrar
+  las tres llaves que sobrescribe en `config/locales/es.yml`.
 
 ## [v3.23.0] - 2026-10-28
 

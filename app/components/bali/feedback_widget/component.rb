@@ -29,7 +29,7 @@ module Bali
       # @param user_id [String, nil] User ID for token generation (required when using secret)
       # @param email [String, nil] User email for token generation (required when using secret)
       # @param user_name [String, nil] User display name for token generation (optional)
-      # @param title [String] Drawer header title (default: "Feedback")
+      # @param title [String] Drawer header title (default: `bali_view.feedback_widget.title`)
       # @param token_expires_in [Integer] Token expiry in seconds (default: 3600 = 1 hour)
       # @param badge_interval [Integer] Polling interval in ms for badge count (default: 300000 = 5 min)
       # @param trigger [Symbol] the button that opens the panel. `:floating` (default) pins a
