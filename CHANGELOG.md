@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Sólo el entorno de desarrollo y pruebas de Bali; ninguna app tiene que hacer nada por este
+  cambio.** `bundle-audit` marcaba 45 avisos en el `Gemfile.lock` del repo (73 entradas: los de
+  `nokogiri` y `sqlite3` salen una vez por plataforma), y por eso el job `scan` de CI fallaba en
+  todos los PRs. Cada gema sube a la primera versión corregida, sin tocar
+  los rangos del gemspec: Rails 8.1.4 → 8.1.4.1 (todos sus componentes), `rack` 3.2.6 → 3.2.8,
+  `nokogiri` 1.19.4 → 1.19.5, `loofah` 2.25.2 → 2.25.3, `rails-html-sanitizer` 1.7.1 → 1.7.2,
+  `addressable` 2.9.0 → 2.9.1, `ransack` 5.0.2 → 5.0.3 y `sqlite3` 2.10.1 → 2.10.2. Una app
+  resuelve estas gemas en su propio `Gemfile.lock`: si sigue en las versiones viejas, tiene los
+  mismos avisos y los corrige ahí.
+- **npm, también sólo de este repo:** `systeminformation` 5.31.12 → 5.33.16 y `qs` 6.15.3 →
+  6.16.1 (los trae Cypress); `undici` 6.29.0 → 6.29.1 y `zod` 4.6.5 → 4.6.6 en la dummy (los trae
+  el SDK de IA de BlockNote). Cierra las 10 alertas abiertas de Dependabot y reemplaza a sus PRs
+  #1542, #1544, #1555 y #1561.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added
