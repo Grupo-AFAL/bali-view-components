@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **«Avisos» sin avisos ya no pinta una franja vacía con borde sobre «No tienes avisos»** (#1525). La
   cabecera del listado (el rango y «Marcar todos como leídos») sale sólo cuando hay avisos. Nada que
   hacer en la app.
+- **Con el filtro de módulo, la bandeja ya avisa cuando el tope de 100 por tipo pudo dejar fuera
+  items de ese módulo** (#1534). El tope se aplica antes del filtro: con un tipo cuyos items traen un
+  `module_key` distinto del de su provider, `/inbox?module=x` podía quedar vacío o incompleto sin «Se
+  muestran los primeros 100 de cada tipo». Ahora `capped?` sigue en `true` para ese tipo. Hoy ningún
+  provider de las apps trae `module_key` propio: nada que hacer.
 
 ## [v3.23.0] - 2026-10-28
 

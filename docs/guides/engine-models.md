@@ -549,8 +549,8 @@ Bali.inbox_providers = { governance: %w[SignaturesProvider ApprovalsProvider] }
 | Method | Returns |
 |---|---|
 | `count`, `counts_by_kind` | What the badge and the filter pills show |
-| `items(module_key: nil, kind: nil)` | Sorted into «Vencidos» (past due), «Esta semana» (due within 7 days) and «Después» (later or undated). At most `FETCH_CAP` (100) per provider, the first in `pending_for`'s own order — a provider that can pass 100 orders it by due date, or an overdue item can fall past the cap |
-| `capped?` | Whether a provider hit the cap, once `items` ran |
+| `items(module_key: nil, kind: nil)` | Sorted into «Vencidos» (past due), «Esta semana» (due within 7 days) and «Después» (later or undated). At most `FETCH_CAP` (100) per provider, the first in `pending_for`'s own order and before the module filter — a provider that can pass 100 orders it by due date, or an overdue item can fall past the cap |
+| `capped?` | Once `items` ran, whether it may have left something out: a provider hit the cap and, under `module_key:`, what it cut can be of that module — the provider is that module's, or its first `FETCH_CAP` items name another |
 | `find(kind, gid)` | The item, or `nil` when it is not pending for this user. The gid is only ever matched inside that kind's own `pending_for`, so a forged one reaches nothing |
 | `fresh_keys(items)`, `mark_seen!(item)` | The «Nuevo» marks, and reading them |
 

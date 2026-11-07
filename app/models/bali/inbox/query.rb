@@ -31,16 +31,16 @@ module Bali
       end
 
       def items(module_key: nil, kind: nil)
+        module_key = module_key&.to_sym
         @capped = []
-        found = @providers
+        @providers
           .select { |_module_key, provider| kind.nil? || provider.kind.to_sym == kind.to_sym }
-          .flat_map { |entry_module, provider| fetch(entry_module, provider) }
-          .select { |item| module_key.nil? || item.module_key == module_key.to_sym }
-        @capped &= found.map(&:kind)
-        found.sort_by { |item| sort_key(item) }
+          .flat_map { |entry_module, provider| fetch(entry_module, provider, module_key) }
+          .select { |item| module_key.nil? || item.module_key == module_key }
+          .sort_by { |item| sort_key(item) }
       end
 
-      # Known once `items` has run.
+      # Whether `items` may have left out some of what it was asked for. Known once it has run.
       def capped? = @capped.present?
 
       # The item at `/inbox/items/:kind/:gid`, or nil when it is not pending for this user. The
@@ -80,11 +80,15 @@ module Bali
         Bali::Notice.unread.addressed_to(user).where(kind: Bali::Notice.announcing_kinds).merge(about)
       end
 
-      def fetch(module_key, provider)
+      # What the cap cut was never built, so its module is unknown. Only a provider whose first
+      # FETCH_CAP items all sit in its own module is ruled out of another module's list.
+      def fetch(provider_module, provider, wanted)
         records = provider.pending_for(user).first(FETCH_CAP + 1)
-        @capped << provider.kind.to_sym if records.size > FETCH_CAP
+        items = provider.build_items(records.first(FETCH_CAP), user: user).map { |item| in_module(item, provider_module) }
+        spans = items.any? { it.module_key != provider_module }
+        @capped << provider.kind.to_sym if records.size > FETCH_CAP && (spans || [ nil, provider_module ].include?(wanted))
 
-        provider.build_items(records.first(FETCH_CAP), user: user).map { |item| in_module(item, module_key) }
+        items
       end
 
       # A provider whose kind spans modules names each item's own.
