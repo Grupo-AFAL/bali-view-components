@@ -41,4 +41,13 @@
         method: :get,
         class: "btn",
         form: { data: { turbo_confirm: "¿Guardar los cambios?" } } %>
+
+  <%# Not GET: only off GET does Bali::Link paint data-turbo-method, which Turbo submits
+      through a form of its own. /lookbook/noop answers the POST with an empty stream. %>
+  <%= render Bali::Link::Component.new(
+        name: "Return the role", href: "/lookbook/noop", method: :post,
+        data: { turbo_confirm: "Return the role to its holder?",
+                bali_confirm_title: "Return the role",
+                bali_confirm_variant: "warning",
+                bali_confirm_accept: "Return it" }) %>
 </div>

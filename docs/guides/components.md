@@ -4191,7 +4191,17 @@ delete items). Auto-installed via `registerAll` — no per-app code needed.
         bali_confirm_variant: "warning",
         bali_confirm_accept: "Close it"
       } %>
+
+<%# A link with `method:` carries them itself %>
+<%= render Bali::Link::Component.new(
+      name: "Return the role", href: delegation_path(delegation), method: :delete,
+      data: { turbo_confirm: "Return the role to its holder?",
+              bali_confirm_title: "Return the role", bali_confirm_accept: "Return it" }) %>
 ```
+
+The `data-bali-confirm-*` are read off the button that submits, then off its form, and on a
+link with a method off the link: Turbo submits that link through a form of its own, which
+carries none of them.
 
 A button the trigger leaves unlabelled reads **Aceptar**/**Cancelar** under
 `<html lang="es">` (or any `es-*`) and **OK**/**Cancel** under any other

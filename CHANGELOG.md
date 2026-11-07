@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   prueba. Un `button_to` escrito a mano sólo para cambiar esos textos puede volver a ser un
   `DeleteLink` (`git grep -n "bali-view-components#1521"`).
 
+### Fixed
+
+- **Un enlace con método ya muestra su título y sus botones en el diálogo de confirmación** (#1532).
+  `Bali::Link` con `method:` distinto de GET, o cualquier `<a data-turbo-method>`, abría el diálogo
+  sin título, con «Aceptar» y en el color por omisión: Turbo lo envía con un formulario propio que no
+  copia ningún `data-bali-confirm-*`. Ahora el diálogo los lee del enlace. Nada que cambiar en el
+  host; el `button_to` que esquivaba esto (`git grep -n "bali-view-components#1532"`) puede quedarse,
+  y además funciona sin JavaScript.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added
