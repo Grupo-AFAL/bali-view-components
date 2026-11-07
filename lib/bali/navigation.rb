@@ -2,6 +2,7 @@
 
 require_relative "navigation/node"
 require_relative "navigation/location"
+require_relative "navigation/menu"
 
 module Bali
   # An app's navigation, declared once: app modules (optional) → sections → items, from which
@@ -204,6 +205,12 @@ module Bali
       # @return [Array(Integer, Integer)]
       def rank(claim, controller_path)
         [ segments(claim.entry), support(claim, controller_path.to_s) ]
+      end
+
+      # @param context [Object] the view, or any object answering what the gates call
+      # @return [Menu]
+      def menu(context)
+        Menu.new(self, context)
       end
 
       private
