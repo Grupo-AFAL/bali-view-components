@@ -444,6 +444,20 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert notice.reload.unread?
   end
 
+  # The cache is the person's: what an impersonated session lists — a host may hide rows from it —
+  # would be the number they see on their next page.
+  def test_while_impersonating_the_popover_leaves_the_owners_badge_cache_alone
+    task("Write")
+    key = Bali::Inbox::Badge.key(@ana)
+
+    impersonating { get "/inbox/popover" }
+    assert_response :success
+    refute Rails.cache.exist?(key)
+
+    get "/inbox/popover"
+    assert Rails.cache.exist?(key), "control: the owner's own popover writes it"
+  end
+
   # The host's own templates come first, so app/views/inboxes/show.html.erb replaces Bali's.
   def test_the_engine_views_sit_behind_the_controllers_own
     prefixes = InboxesController.new._prefixes

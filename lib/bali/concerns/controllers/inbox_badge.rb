@@ -15,8 +15,11 @@ module Bali
       # the owner makes that is not a GET or HEAD expires their badge, so resolving something
       # lowers the number on the very next page.
       #
-      # Seam: `inbox_owner`, `current_user` by default. The inbox controller
-      # (`Bali::Concerns::Controllers::Inbox`) reads the same one.
+      # Seams: `inbox_owner`, `current_user` by default, and `owner_reading?`, false while someone
+      # acts as the owner (bali-auth's `impersonating?`). The inbox controller
+      # (`Bali::Concerns::Controllers::Inbox`) reads the same two. While someone acts as the owner
+      # the badge is counted on every request and never cached: a host may list that session less
+      # than the owner, and the owner would see its number on their next page.
       module InboxBadge
         extend ActiveSupport::Concern
 
@@ -31,13 +34,15 @@ module Bali
           return @inbox_badge if defined?(@inbox_badge)
 
           owner = inbox_owner
-          @inbox_badge = owner && Bali::Inbox::Badge.for(owner)
+          @inbox_badge = owner && (owner_reading? ? Bali::Inbox::Badge.for(owner) : Bali::Inbox::Badge.compute(owner))
         end
 
         # `current_user` is usually private, which `try` does not reach.
         def inbox_owner
           current_user if respond_to?(:current_user, true)
         end
+
+        def owner_reading? = !(respond_to?(:impersonating?, true) && impersonating?)
 
         def expire_inbox_badge
           owner = inbox_owner

@@ -24,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `module_key` distinto del de su provider, `/inbox?module=x` podía quedar vacío o incompleto sin «Se
   muestran los primeros 100 de cada tipo». Ahora `capped?` sigue en `true` para ese tipo. Hoy ningún
   provider de las apps trae `module_key` propio: nada que hacer.
+- **Suplantar a alguien ya no le escribe el número del ícono** (#1536). El ícono y el popover de una
+  sesión suplantada guardaban en el caché de la persona lo que veía esa sesión; si la app le oculta
+  filas al suplantar, la persona veía ese número al volver a entrar, hasta por un minuto. Ahora,
+  mientras `owner_reading?` es falso (`impersonating?` de bali-auth), los dos cuentan en cada petición
+  y no tocan el caché. afal-apps puede borrar su `ApplicationController#inbox_badge` y el
+  `after_action` de `InboxesController` que lo rodeaban (`git grep -n "#1536" origin/main`).
+  `owner_reading?` pasa de `Concerns::Controllers::Inbox` a `InboxBadge`, que `Inbox` incluye.
 
 ## [v3.23.0] - 2026-10-28
 
