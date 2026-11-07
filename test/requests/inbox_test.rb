@@ -177,6 +177,27 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     refute notice.reload.unread?
   end
 
+  # A host whose screen opens the item somewhere other than its href, as afal-apps' Inicio does.
+  def test_open_item_to_a_destination_of_this_site_marks_read_and_goes_there
+    write = task("Write")
+    notice = assigned(write)
+
+    get "#{item_path_for(write)}/open", params: { to: "/admin/movies?status=done" }
+
+    assert_redirected_to "/admin/movies?status=done"
+    refute notice.reload.unread?
+  end
+
+  def test_open_item_never_follows_a_destination_off_the_site
+    write = task("Write")
+
+    [ "https://evil.example/phish", "//evil.example/phish", "/\\evil.example/phish", "javascript:alert(1)" ].each do |to|
+      get "#{item_path_for(write)}/open", params: { to: to }
+
+      assert_redirected_to "/admin/projects/#{@project.id}", to
+    end
+  end
+
   def test_open_item_on_a_stale_item_lands_on_gone
     get "#{item_path_for(task('Ship', status: :done))}/open"
 

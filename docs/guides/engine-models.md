@@ -612,6 +612,7 @@ end
   - Their links carry `data-turbo-prefetch="false"`, so a hover does not read them.
   - Not while someone acts as the owner. When the controller answers `impersonating?` (bali-auth's helper) with `true`, `owner_reading?` is false: nothing is marked read and «Marcar todos como leídos» is not offered. An admin looking at someone's inbox leaves their «Nuevo», their dot and their digest email as they were. A host action of its own that marks read asks `owner_reading?` first.
   - `open_notice` follows an `action_url` on this site — a path, or a URL with this host (Rails' `url_from`). Anything else lands on the «Avisos» tab.
+  - `open_item` takes `to`, for a screen of yours that opens the item somewhere other than its `href`: `open_item_inbox_path(kind: item.kind, gid: item.gid, to: decision_path(item.record))`. It marks the item read and goes there when `to` is on this site, by the same rule; otherwise it goes to the `href`. Not from a `drawer:` link: the drawer loads a redirect's destination as the whole page.
 - **The badge.** The icon's number is `Query#count`; its dot means unread notices that announce nothing. Both are cached per person for one minute.
   - A new notice, a mark-read through the engine, and any request of the person's that is not a GET expire the cache.
   - Someone else's action that changes your items without a notice shows within the minute.

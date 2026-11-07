@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`open_item` acepta `to`: el destino donde la app abre el pendiente en lugar de su `href`**
+  (#1535). Marca leído el aviso que lo anunció y redirige ahí si es de la misma app (`url_from`, como
+  `open_notice`); un destino de otra app se ignora y va al `href`. Desde una liga `drawer:` no abre el
+  drawer: el drawer carga el destino de una redirección como página completa.
+
 ### Fixed
 
 - **«Avisos» sin avisos ya no pinta una franja vacía con borde sobre «No tienes avisos»** (#1525). La

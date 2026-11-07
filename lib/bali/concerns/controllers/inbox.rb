@@ -82,14 +82,17 @@ module Bali
           render :badge, layout: false
         end
 
+        # `to` replaces the href. Not from a `drawer:` link: ModalController loads the destination of
+        # a redirect as the whole page.
         def open_item
           item = inbox_query.find(params[:kind], params[:gid])
-          if item.nil? || item.href.blank?
+          destination = item && (url_from(params[:to]) || item.href.presence)
+          unless destination
             return redirect_to(url_for(action: :item, kind: params[:kind], gid: params[:gid]), status: :see_other)
           end
 
           inbox_query.mark_seen!(item) if owner_reading?
-          redirect_to item.href, status: :see_other
+          redirect_to destination, status: :see_other
         end
 
         def open_notice
