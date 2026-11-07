@@ -52,7 +52,15 @@ module Bali
         end
 
         def operators_for_current_type
-          Operators.for_type(attribute_type)
+          Operators.for_attribute(selected_attribute || { type: attribute_type })
+        end
+
+        # Only an attribute that declares its operators: a boolean's lone "is" stays a select
+        # as it always was. condition_controller.js#updateOperators fixes the select by the
+        # same rule, reading the declaration off `data-default-operator`.
+        def fixed_operator?
+          selected_attribute.present? && Operators.default_for(selected_attribute).present? &&
+            operators_for_current_type.one?
         end
 
         # Both read the mark Operators.for_type puts on the chosen operator, the same mark

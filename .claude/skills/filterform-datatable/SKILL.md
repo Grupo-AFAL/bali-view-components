@@ -157,11 +157,20 @@ class MoviesFilterForm < Bali::FilterForm
   filter_attribute :created_at, type: :date
   filter_attribute :indie, type: :boolean
 
+  # The panel offers only these operators (one: a fixed select), or opens new conditions on one
+  filter_attribute :employee_id, type: :text, operators: %i[eq]
+  filter_attribute :folio, type: :text, default_operator: :eq
+
   # Standard Ransack attributes
   attribute :name_cont
   attribute :genre_eq
 end
 ```
+
+**`operators:` is also the panel's gate** (#1566): a saved view, the filter cache or a URL with
+an operator the attribute does not offer is no filter, and the panel does not paint it.
+`predicate:` is the simple row's and never moves the panel's operator select. Full rules in
+`docs/guides/components.md`, "Which operators the panel offers".
 
 **Every field here is a Ransack path, and a wrong one fails silently.** An association is
 reached by its Ransack name (`studio_name` for `belongs_to :studio`), never by a Ruby
@@ -327,7 +336,8 @@ FilterForm is organized into focused concerns for maintainability:
   (`params[:g]`, `params[:m]`) for a host that rewrites conditions after `super`; the nesting
   happens in `ransack_search`.
 - **Only what the panel can write gets through** (#1346): each key of the INSTANCE's
-  `available_attributes` with the operators its type offers (`Filters::Operators.for_type`),
+  `available_attributes` with the operators it offers (its type's, or its `operators:`:
+  `Filters::Operators.predicates_for`),
   lists only on `_in`/`_not_in` with members that fit their column's type, scalar values with
   no control characters. Anything else, from a URL, a saved view or the filter cache, is no
   filter, and the panel does not paint it. A form that offers the panel no attribute (none

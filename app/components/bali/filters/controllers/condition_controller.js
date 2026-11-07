@@ -92,7 +92,7 @@ export class ConditionController extends Controller {
     }
 
     // Update operators for this type (from the data attribute or the translations)
-    this.updateOperators(type, operators)
+    this.updateOperators(type, operators, selectedOption?.dataset?.defaultOperator)
 
     // The operator may have changed with the list
     const isMultiple = this.operatorFlag('multiple')
@@ -371,8 +371,11 @@ export class ConditionController extends Controller {
    * Update the operator dropdown based on attribute type
    * @param {string} type - The attribute type
    * @param {Array} operatorsFromData - The attribute option's data-operators, if it has them
+   * @param {string} defaultOperator - The attribute option's data-default-operator
+   *   (Bali::Filters::Operators.default_for): empty when the attribute declares no operators,
+   *   and then the row keeps the operator it had if the list offers it.
    */
-  updateOperators (type, operatorsFromData = null) {
+  updateOperators (type, operatorsFromData = null, defaultOperator = '') {
     if (!this.hasOperatorTarget) return
 
     // The blank "Select field" option carries no data-operators: it gets its type's from the
@@ -380,21 +383,23 @@ export class ConditionController extends Controller {
     const operators = operatorsFromData?.length > 0
       ? operatorsFromData
       : this.getOperatorsForType(type)
+    const offers = (value) => operators.some((op) => op.value === value)
     const currentValue = this.operatorTarget.value
+    const selected = [defaultOperator, currentValue].find(offers) || operators[0]?.value || 'eq'
 
     this.operatorTarget.innerHTML = operators
       .map(
         (op) =>
-          `<option value="${this.escapeHtml(op.value)}" data-multiple="${op.multiple || false}" data-range="${op.range || false}" ${op.value === currentValue ? 'selected' : ''}>${this.escapeHtml(op.label)}</option>`
+          `<option value="${this.escapeHtml(op.value)}" data-multiple="${op.multiple || false}" data-range="${op.range || false}" ${op.value === selected ? 'selected' : ''}>${this.escapeHtml(op.label)}</option>`
       )
       .join('')
 
-    // Select first operator if current isn't valid
-    if (!operators.find((op) => op.value === currentValue)) {
-      this.operatorTarget.value = operators[0]?.value || 'eq'
-      if (this.hasOperatorHiddenTarget) {
-        this.operatorHiddenTarget.value = this.operatorTarget.value
-      }
+    this.operatorTarget.value = selected
+    // Condition::Component#fixed_operator? renders the same rule: only an attribute that
+    // declares its operators, so a boolean's lone "is" stays a select.
+    this.operatorTarget.disabled = Boolean(defaultOperator) && operators.length === 1
+    if (this.hasOperatorHiddenTarget) {
+      this.operatorHiddenTarget.value = selected
     }
   }
 

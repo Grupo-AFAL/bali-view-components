@@ -149,8 +149,8 @@ module Bali
       # attributes in the view (`with_filters_panel(available_attributes:)`, the dummy's
       # admin/movies), whose types the form cannot see.
       def range_attribute?(attribute)
-        type = available_attributes.find { |offered| offered[:key].to_s == attribute }&.dig(:type)
-        type.nil? || Bali::Filters::Operators.for_type(type).any? { |operator| operator[:range] }
+        offered = available_attributes.find { |candidate| candidate[:key].to_s == attribute }
+        offered.nil? || Bali::Filters::Operators.for_attribute(offered).any? { |operator| operator[:range] }
       end
 
       # Parse a Ransack condition key like "name_cont" or "created_at_gteq"

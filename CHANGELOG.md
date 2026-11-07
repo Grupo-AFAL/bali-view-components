@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::FilterForm`: `filter_attribute operators:` y `default_operator:` (#1566).** El panel
+  de filtros ofrece para ese atributo sólo los operadores listados, en ese orden (con uno solo,
+  el selector queda fijo), y una condición nueva abre en `default_operator:` o en el primero de
+  la lista: `filter_attribute :employee_id, type: :text, operators: %i[eq]`. Lo que el atributo
+  no ofrece tampoco llega a Ransack desde el panel: una vista guardada o una URL con otro
+  operador deja de filtrar y el panel no la pinta. `predicate:` sigue siendo sólo de la fila
+  simple. Los hashes de `with_filters_panel(available_attributes:)` aceptan las mismas llaves.
+  Nada cambia para quien no las declara.
+
 ### Fixed
 
 - **`Bali::FilterForm`: el panel de filtros pinta las condiciones de un rango como llegaron

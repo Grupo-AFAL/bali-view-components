@@ -25,6 +25,46 @@ module Bali
         send(method_name)
       end
 
+      # The operators the panel offers for one attribute: its type's, narrowed to and ordered
+      # by its `operators:` when it declares them (`FilterForm.filter_attribute`, which raises
+      # on one the type does not offer). An attribute hash built in a view or in an
+      # `available_attributes` override skips that check, so an unknown entry is ignored here.
+      #
+      # @param attribute [Hash] `{ type:, operators: }`, as `FilterForm#available_attributes`
+      #   builds it
+      # @return [Array<Hash>]
+      def for_attribute(attribute)
+        offered = for_type(attribute[:type] || :text)
+        allowed = Array(attribute[:operators]).map(&:to_s)
+        return offered if allowed.empty?
+
+        allowed.filter_map { |value| offered.find { |operator| operator[:value] == value } }.presence || offered
+      end
+
+      # The operator a condition opens on when the user picks the attribute: its
+      # `default_operator:`, else the first of its `operators:`. nil when it declares neither,
+      # and the row keeps the operator it had. condition/component.html.erb writes it as the
+      # attribute option's `data-default-operator`, which condition_controller.js#attributeChanged
+      # reads.
+      #
+      # @param attribute [Hash] `{ type:, operators:, default_operator: }`
+      # @return [String, nil]
+      def default_for(attribute)
+        return if attribute[:default_operator].blank? && attribute[:operators].blank?
+
+        offered = for_attribute(attribute).map { |operator| operator[:value] }
+        offered.include?(attribute[:default_operator].to_s) ? attribute[:default_operator].to_s : offered.first
+      end
+
+      # The Ransack predicates the panel writes for the attribute: one per operator, and the
+      # `gteq`/`lteq` pair a range operator ("between") travels as.
+      #
+      # @param attribute [Hash] `{ type:, operators: }`
+      # @return [Array<String>]
+      def predicates_for(attribute)
+        for_attribute(attribute).flat_map { |operator| operator[:range] ? %w[gteq lteq] : operator[:value] }.uniq
+      end
+
       # Returns the localized label for a specific operator and type.
       # @param operator [String] The operator value (e.g., 'eq', 'cont')
       # @param type [Symbol, String] The field type

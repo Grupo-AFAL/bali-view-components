@@ -22,7 +22,8 @@ module Bali
 
       # @param url [String] The URL to submit filters to
       # @param available_attributes [Array<Hash>] Available filterable attributes
-      #   Each hash should have: { key:, label:, type:, options: (for select) }
+      #   Each hash should have: { key:, label:, type:, options: (for select) }, and may carry
+      #   `operators:` and `default_operator:` (see `FilterForm.filter_attribute`)
       #   Types: :text, :number, :date, :datetime, :select, :boolean
       # @param filter_groups [Array<Hash>] Initial filter state (from URL params). Without it,
       #   the `filter_form:`'s `filter_groups`; without either, one empty group.
@@ -141,7 +142,9 @@ module Bali
         active_filter_count.positive?
       end
 
-      # Serialize attributes for Stimulus controller
+      # The panel's attributes as JSON. condition_controller.js does not read it — it reads the
+      # same operators off each attribute's <option> in condition/component.html.erb — but host
+      # tests do, to assert what a panel offers.
       def attributes_json
         @available_attributes.map do |attr|
           {
@@ -149,7 +152,7 @@ module Bali
             label: attr[:label],
             type: attr[:type].to_s,
             options: attr[:options] || [],
-            operators: operators_for_type(attr[:type])
+            operators: Operators.for_attribute(attr)
           }
         end.to_json
       end
@@ -193,8 +196,10 @@ module Bali
             key: attr[:key],
             label: attr[:label] || attr[:key].to_s.humanize,
             type: attr[:type] || :text,
-            options: attr[:options] || []
-          }
+            options: attr[:options] || [],
+            operators: attr[:operators],
+            default_operator: attr[:default_operator]
+          }.compact
         end
       end
 

@@ -588,6 +588,19 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_includes error.message, ":field_name"
   end
 
+  # #1566. The attribute's own operators reach the row the JS reads them from, and the JSON
+  # host tests read.
+  def test_an_attributes_operators_reach_its_option_and_the_attributes_json
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: [ { key: :code, label: "Code", type: :text, operators: %i[eq] } ]
+    ))
+
+    option = page.find('[data-condition-target="attribute"] option[value="code"]', match: :first, visible: :all)
+    assert_equal %w[eq], JSON.parse(option["data-operators"]).pluck("value")
+    json = JSON.parse(page.find('[data-controller="filters"]')["data-filters-attributes-value"]).sole
+    assert_equal %w[eq], json["operators"].pluck("value")
+  end
+
   private
 
   def applied_filter_form

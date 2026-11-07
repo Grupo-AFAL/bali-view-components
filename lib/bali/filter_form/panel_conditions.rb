@@ -74,8 +74,7 @@ module Bali
       end
 
       # Every key the panel can write: each attribute of `available_attributes` with each
-      # operator its type offers. "Between" travels as its `_gteq`/`_lteq` pair, which a date
-      # already offers.
+      # operator it offers (`Operators.predicates_for`: its type's, or its `operators:`).
       #
       # nil when the form offers the panel no attribute (none declared, or all `advanced:
       # false`), and then any key goes and Ransack decides, as before: a bare
@@ -87,8 +86,7 @@ module Bali
         return @panel_condition_keys if defined?(@panel_condition_keys)
 
         @panel_condition_keys = available_attributes.flat_map { |attribute|
-          Bali::Filters::Operators.for_type(attribute[:type] || :text)
-                                  .filter_map { |operator| "#{attribute[:key]}_#{operator[:value]}" unless operator[:range] }
+          Bali::Filters::Operators.predicates_for(attribute).map { |predicate| "#{attribute[:key]}_#{predicate}" }
         }.to_set.presence
       end
 
