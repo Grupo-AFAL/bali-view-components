@@ -95,8 +95,8 @@ export class TopbarInboxController extends Controller {
 
   reopen = () => this.open()
 
-  // A new visit cancels the one the panel was opened during: a row's link, clicked inside the panel,
-  // never goes through `close()`.
+  // A new visit ends the one the panel was opened during, whether it cancels it (a row's link,
+  // clicked inside the panel, never goes through `close()`) or follows its redirect.
   forgetOpenedDuringVisit = () => {
     this.openedDuringVisit = false
   }
