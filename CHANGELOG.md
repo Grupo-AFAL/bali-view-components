@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   última miga si no tiene `href`, o en la que pase `active: true`. Llega solo a las páginas con
   `breadcrumbs:`; una app que omitía la miga sin enlace para evitarlo (costa-norte,
   `module_breadcrumbs`) ya puede dejarla.
+- **`Bali::Breadcrumb`: una ruta que no cabe se desvanece donde se corta.** En un teléfono la
+  ruta muestra su final, y la primera miga a la vista quedaba cortada a media palabra sin señal de
+  que se desliza. Ahora se desvanece el borde de inicio mientras hay migas escondidas de ese lado,
+  y el final cuando la ruta se desliza hacia el principio; una ruta que cabe no lleva máscara.
+  Lo hace el controlador nuevo `breadcrumb`, que `registerAll` ya registra: una app que registra
+  controladores uno por uno agrega `BreadcrumbController`, o la ruta se corta como antes.
 
 ## [v3.23.0] - 2026-10-28
 

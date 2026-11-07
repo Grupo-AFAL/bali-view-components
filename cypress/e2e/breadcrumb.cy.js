@@ -69,6 +69,47 @@ describe('breadcrumb', () => {
     cy.get('.breadcrumbs').should(currentInView)
   })
 
+  // How far index.css fades each edge, read from the computed mask the breadcrumb controller's
+  // attributes select. The controller follows a scroll on its `scroll` event, so readings retry.
+  const fades = (nav) => {
+    const mask = getComputedStyle(nav).maskImage
+    if (mask === 'none') return { start: 0, end: 0 }
+    const [, start, end] = mask.match(/rgb\(0, 0, 0\) ([\d.]+)px, rgb\(0, 0, 0\) (?:calc\(100% - ([\d.]+)px\)|100%)/)
+    return { start: Number(start), end: Number(end || 0) }
+  }
+  const scrollToStart = (nav, fraction) => { nav.scrollLeft = -(nav.scrollWidth - nav.clientWidth) * fraction }
+
+  it('fades only the edges where the trail is cut, without an animation', () => {
+    cy.viewport(320, 640)
+    cy.visit('/bali/breadcrumb/three_levels')
+
+    cy.get('.breadcrumbs').should(($nav) => {
+      expect($nav[0].scrollWidth - $nav[0].clientWidth, 'the trail scrolls').to.be.greaterThan(24)
+      expect(fades($nav[0]), 'at load, the start is cut').to.deep.equal({ start: 24, end: 0 })
+      expect($nav[0].ownerDocument.getAnimations(), 'nothing animates').to.have.length(0)
+    }).then(($nav) => scrollToStart($nav[0], 0.5))
+    cy.get('.breadcrumbs').should(($nav) => {
+      expect(fades($nav[0]), 'halfway, both edges are cut').to.deep.equal({ start: 24, end: 24 })
+    }).then(($nav) => scrollToStart($nav[0], 1))
+    cy.get('.breadcrumbs').should(($nav) => {
+      expect(fades($nav[0]), 'at the start, only the end is cut').to.deep.equal({ start: 0, end: 24 })
+    })
+  })
+
+  it('does not fade a trail that fits, nor one that comes to fit', () => {
+    cy.viewport(320, 640)
+    cy.visit('/bali/breadcrumb/three_levels')
+    cy.get('.breadcrumbs').should(($nav) => {
+      expect(fades($nav[0]), 'cut at 320px').to.deep.equal({ start: 24, end: 0 })
+    })
+
+    cy.viewport(1280, 800)
+    cy.get('.breadcrumbs').should(($nav) => {
+      expect($nav[0].scrollWidth, 'the trail fits').to.equal($nav[0].clientWidth)
+      expect(getComputedStyle($nav[0]).maskImage, 'no mask once it fits').to.equal('none')
+    })
+  })
+
   it('starts a trail that fits at the start of its box', () => {
     cy.viewport(1280, 800)
     cy.visit('/bali/breadcrumb/three_levels')

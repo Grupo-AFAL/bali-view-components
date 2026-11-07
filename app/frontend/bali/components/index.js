@@ -26,6 +26,7 @@ import { SideMenuController } from '../../../components/bali/side_menu/index'
 import { SideMenuFlyoutController } from '../../../components/bali/side_menu/flyout/index'
 import { SideMenuTriggerController } from '../../../components/bali/side_menu/trigger/index'
 import { AvatarController } from '../../../components/bali/avatar/index'
+import { BreadcrumbController } from '../../../components/bali/breadcrumb/index'
 import { TimeagoController } from '../../../components/bali/timeago/index'
 import { RateController } from '../../../components/bali/rate/index'
 import { BulkActionsController } from '../../../components/bali/bulk_actions/index'
@@ -79,6 +80,7 @@ export {
   AppLayoutController,
   AppliedTagsController,
   AvatarController,
+  BreadcrumbController,
   BulkActionsController,
   CarouselController,
   ChatController,
@@ -161,6 +163,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
   'side-menu-trigger': SideMenuTriggerController,
   'theme-toggle': ThemeToggleController,
   'topbar-inbox': TopbarInboxController,
+  breadcrumb: BreadcrumbController,
 
   // Data display
   avatar: AvatarController,

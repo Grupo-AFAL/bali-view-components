@@ -1063,6 +1063,11 @@ Only the last crumb is the current page (`aria-current="page"`), and only when i
 plain text. `active: true` makes a crumb the current page even with an `href`; `active: false`
 never does.
 
+A trail wider than its box shows its end and scrolls sideways; the edge where crumbs are cut
+fades out. The fade comes from the `breadcrumb` controller, which `registerAll` registers — an
+app that registers controllers one by one adds `BreadcrumbController`, or the trail is cut with
+no fade.
+
 #### Tabs
 
 One component, two widgets. Which one you get depends on whether the triggers navigate.

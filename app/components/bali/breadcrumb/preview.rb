@@ -22,7 +22,8 @@ module Bali
       end
 
       # Three linked levels above the current page, the trail of an admin record. Wider than a
-      # 390px screen, where the current page is the part that stays in view.
+      # 390px screen, where the current page is the part that stays in view and the cut edge
+      # fades out.
       def three_levels
         render Bali::Breadcrumb::Component.new do |c|
           c.with_item(name: 'Applications', href: '/applications')
