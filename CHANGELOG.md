@@ -9,19 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Un datepicker que ya tenía el foco al conectarse lo conserva y abre el calendario.** Pasa
+  con un campo de fecha con `autofocus`, también dentro de un `Bali::Modal` abierto desde el
+  servidor: flatpickr convertía el campo en `type=hidden` detrás de su `altInput` y el foco se
+  perdía. Del mismo modo, un tooltip o una hover card cuyo disparador ya tenía el foco o el
+  puntero encima al conectarse muestra su globo, en vez de esperar a que el usuario salga y
+  vuelva a entrar.
 - **Bali funciona en un build con code splitting**, el que pone `bundleOptions()` de
-  bali-runtime. Ahí, un `import()` de un módulo CommonJS regresa solo `default`. Por eso el
-  datepicker en español caía al inglés sin aviso (separador «to» en vez de «a»), y la
-  exportación a PDF del BlockEditor leía `createElement` de `react` como `undefined`. Ahora
-  los dos leen el export en cualquiera de las dos formas, como ya lo hacían las islas de
-  React. Los demás `import()` de Bali son de paquetes ESM. En ese build tippy y flatpickr
-  llegan después de que la página ya responde, y el foco, el puntero o el clic que llegaba
-  antes se perdía: el tooltip y la hover card no abrían sobre su disparador, y el datepicker
-  ni abría el calendario ni conservaba el foco. Ahora se abren al montarse. La exportación a
-  Word del BlockEditor también funciona en un build dividido; ese arreglo vive en
-  `bundleOptions()` de bali-runtime, no en Bali. El dummy compila dividido, así que Lookbook y
-  Cypress prueban lo que van a mandar las apps. Una app solo necesita esta versión antes de
-  adoptar `bundleOptions()`.
+  bali-runtime. Ahí, un `import()` de un módulo CommonJS regresa solo `default`: el datepicker
+  en español caía al inglés sin aviso (separador «to» en vez de «a») y la exportación a PDF del
+  BlockEditor fallaba al leer `createElement` como `undefined`. Además tippy y flatpickr llegan
+  en un chunk después de que la página ya responde: el foco y el puntero que llegan antes los
+  cubre el arreglo anterior, y un `Bali::Dropdown` con `popover: true` ya no pierde el clic que
+  llega antes que tippy. La exportación a Word del BlockEditor se arregla en `bundleOptions()`,
+  no en Bali. Una app que adopte `bundleOptions()` necesita esta versión de Bali o una posterior.
 
 ## [v3.23.0] - 2026-10-28
 

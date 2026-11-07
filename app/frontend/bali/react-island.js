@@ -28,6 +28,7 @@
  * to the island's own entry and the main bundle stays React-free.
  */
 import { Controller } from '@hotwired/stimulus'
+import { commonJs } from '../../assets/javascripts/bali/utils/common-js.js'
 
 const ERROR_FALLBACK_CLASS = 'text-soft-error text-sm p-4'
 
@@ -82,12 +83,6 @@ const swapOnMountFor = (react) => {
 
   return swappers.get(react)
 }
-
-// React and react-dom are CommonJS. Bundled with code splitting (esbuild
-// `splitting: true`), `import('react-dom/client')` resolves to a namespace
-// holding only `default` (module.exports); without it, the named exports are
-// copied onto the namespace too. Either shape works here.
-const commonJs = (namespace, name) => (namespace && name in namespace ? namespace : namespace?.default)
 
 export class ReactIslandController extends Controller {
   // Global error hook for every island: `(error, context) => {}` where context

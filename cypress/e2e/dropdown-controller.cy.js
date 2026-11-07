@@ -1,6 +1,7 @@
 import { THEMES } from '../support/themes'
 import { paintedLuminance } from '../support/painted_contrast'
 import { hover, unhover } from '../support/tap'
+import { holdChunk } from '../support/chunks'
 
 // The point of the merge: the SAME controller drives the menu in both modes. In popover
 // mode the menu is moved into a tippy popper outside the wrapper (on `<body>`, or on the open
@@ -395,6 +396,24 @@ describe('DropdownController', () => {
         expect(dropdown.querySelector(menu), 'menu in the wrapper').to.not.equal(null)
         expect(dropdown.querySelector(trigger)._tippy, 'tippy on the trigger').to.equal(undefined)
       })
+    })
+  })
+
+  // tippy.js arrives in a chunk after the page is interactive, and its click listener used to
+  // be added only once it had: the click that came first was lost.
+  context('popover mode, clicked while tippy is still on its way', () => {
+    it('opens the menu once tippy mounts', () => {
+      const tippy = holdChunk('tippy.esm')
+      cy.visit('/bali/dropdown/basic')
+      tippy.requested()
+
+      cy.get(popoverDropdown).find(trigger).click()
+      cy.get(popoverDropdown).find(trigger)
+        .should($t => expect($t[0]._tippy, 'tippy not mounted yet').to.equal(undefined))
+      tippy.release()
+
+      cy.get(popoverDropdown).find(trigger).should('have.attr', 'aria-expanded', 'true')
+      cy.get('[data-tippy-root]').find(menu).should('be.visible')
     })
   })
 

@@ -235,6 +235,8 @@ describe('TooltipController', () => {
 
       cy.get(balloon).should('be.visible')
         .and('contain', 'Nothing in this slot can take focus')
+      cy.then(unhover)
+      cy.get(balloon).should('not.exist')
     })
   })
 })

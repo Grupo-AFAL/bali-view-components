@@ -273,6 +273,8 @@ describe('HoverCard', () => {
 
       card().should('be.visible')
       card().should('contain.text', 'This is the hovercard content')
+      cy.then(unhover)
+      card().should('not.exist')
     })
   })
 })

@@ -1,7 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 import { optionalPeer } from '../utils/optional-peer.js'
-import { namedExport } from '../utils/common-js.js'
+import { commonJs } from '../utils/common-js.js'
 
 /**
  * Datepicker Controller
@@ -84,8 +84,8 @@ export class DatepickerController extends Controller {
     if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
 
     // Read before flatpickr turns the field into `type=hidden` behind its altInput, which drops
-    // the focus. In a build with code splitting flatpickr is a chunk away, so a click can land
-    // on the field before it mounts; its `focus` and `click` listeners never saw it.
+    // the focus. The focus can come before flatpickr listens: `autofocus`, or, in a build with
+    // code splitting, a click while flatpickr is still a chunk away.
     const focusedBeforeMount = input === document.activeElement
 
     this.flatpickr = flatpickr(input, options)
@@ -177,7 +177,7 @@ export class DatepickerController extends Controller {
     es: () =>
       import('flatpickr/dist/l10n/es.js')
         .catch(optionalPeer('flatpickr'))
-        .then(m => namedExport(m, 'Spanish'))
+        .then(m => commonJs(m, 'Spanish')?.Spanish)
   }
 
   async setLocale (countryCode) {
