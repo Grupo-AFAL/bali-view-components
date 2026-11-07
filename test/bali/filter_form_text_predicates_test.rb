@@ -259,7 +259,6 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
 
   private
 
-  # What `case_insensitive_text?` memoizes from the gem, set for the block.
   def form(q)
     SearchFilterForm.new(Movie.all, ActionController::Parameters.new(q: q))
   end

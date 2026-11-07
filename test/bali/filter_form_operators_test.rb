@@ -117,7 +117,6 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
 
   private
 
-  # A text operator in the variant the installed ransack gets (#1530).
   def form(groups)
     CodesFilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: groups }))
   end
