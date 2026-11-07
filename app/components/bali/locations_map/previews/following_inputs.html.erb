@@ -1,0 +1,23 @@
+<div id="locations-map-following-inputs" class="flex flex-col gap-4">
+  <%= form_with(url: '/lookbook/noop', scope: :point, builder: Bali::FormBuilder, class: 'grid grid-cols-2 gap-4') do |form| %>
+    <%= form.number_group :latitude, value: location[:latitude], step: 'any' %>
+    <%= form.number_group :longitude, value: location[:longitude], step: 'any' %>
+  <% end %>
+
+  <%= render Bali::LocationsMap::Component.new(zoom: 15, fit_to_locations: true, map_class: 'h-96') do |c| %>
+    <% c.with_location(**location) %>
+  <% end %>
+</div>
+
+<script>
+  (() => {
+    const demo = document.getElementById('locations-map-following-inputs')
+    const map = demo.querySelector('[data-controller~="locations-map"]')
+
+    demo.querySelector('form').addEventListener('input', ({ currentTarget: form }) => {
+      const point = { lat: form.elements['point[latitude]'].value, lng: form.elements['point[longitude]'].value }
+
+      map.dataset.locationsMapLocationsValue = JSON.stringify([point])
+    })
+  })()
+</script>

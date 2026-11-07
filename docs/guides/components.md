@@ -3291,7 +3291,7 @@ Slots: `with_item` (each item takes `with_title`, `with_subtitle`, and repeatabl
 
 #### LocationsMap
 
-Interactive Google Map with location markers, optional info views, clustering, and linked location cards. Requires a Google Maps JavaScript API key in `Bali.google_maps.api_key`, which falls back to the `GOOGLE_MAPS_KEY` environment variable, and `google_maps_meta_tags` in the layout's `<head>` for a map ID. The map is in the language of the `<html lang>`.
+Interactive Google Map with location markers, optional info views, clustering, and linked location cards. Requires a Google Maps JavaScript API key in `Bali.google_maps.api_key`, which falls back to the `GOOGLE_MAPS_KEY` environment variable, and renders nothing without one; `google_maps_meta_tags` in the layout's `<head>` gives it a map ID. The map is in the language of the `<html lang>`. The page can move the markers after connect through `data-locations-map-locations-value` ([External Services](external-services.md#moving-the-markers)).
 
 ```erb
 <%= render Bali::LocationsMap::Component.new(zoom: 12, clustered: false) do |c| %>
@@ -3309,6 +3309,7 @@ Interactive Google Map with location markers, optional info views, clustering, a
 - `center_longitude` - Map center longitude (default: -117.0308968)
 - `zoom` - Initial map zoom level (default: 12)
 - `clustered` - Enable marker clustering (default: false)
+- `map_class` - Classes for the map, 450px tall by default (`map_class: "h-56"`)
 
 **Slots:** `with_location` (markers, support `color`, `label`, `icon_url`, and a nested `with_info_view`), `with_card` (cards rendered beside the map that highlight when their marker is clicked).
 

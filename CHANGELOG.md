@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::LocationsMap`: `map_class:`, nada sin llave y marcas que se mueven** (#1537).
+  `map_class:` va al mapa, de 450 px por omisión: `map_class: "h-56"` lo acorta sin `!`. Sin llave
+  de Google Maps (`Bali.google_maps.api_key` vacío y sin `GOOGLE_MAPS_KEY`) el componente no se
+  pinta, en vez de un mapa roto con el error de Google en la consola. La página puede reemplazar
+  las marcas después de conectar escribiendo `data-locations-map-locations-value`
+  (`[{ lat, lng }]`); un punto con una coordenada que no es número se omite.
+  **Anfitrión:** lo que ya acortaba el mapa sigue funcionando. gobierno-corporativo puede cambiar
+  `[&_.location-map]:h-56` por `map_class: "h-56"`, y centinela-web sus `@utility
+  location-map-compact` y `location-map-md` por `map_class: "h-[220px]"` y `"h-[300px]"`
+  (`git grep -n "location-map" -- app`). Una guarda `Bali.google_maps.api_key.present?` que sólo
+  envuelve el mapa sobra.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added

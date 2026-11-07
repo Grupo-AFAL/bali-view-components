@@ -77,18 +77,12 @@ class BaliGoogleMapsTest < ActiveSupport::TestCase
     assert_includes html, 'data-locations-map-api-key-value="map-key"'
   end
 
-  # With no key the component still renders — the map area simply stays blank
-  # and the browser console reports the missing key. A `render?` returning false
-  # here would make a missing key indistinguishable from a working page in any
-  # check that only looks for errors.
-  def test_the_locations_map_component_still_renders_without_a_key
+  def test_the_locations_map_component_renders_nothing_without_a_key
     ENV.delete("GOOGLE_MAPS_KEY")
 
     html = render_component(Bali::LocationsMap::Component.new)
 
-    assert_includes html, 'data-controller="locations-map"'
-    assert_includes html, "location-map"
-    assert_not_includes html, "locations-map-api-key-value"
+    assert_empty html
   end
 
   def test_the_coordinates_polygon_field_writes_the_key_without_warning
