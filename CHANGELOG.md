@@ -9,10 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **`ransack` `>= 5.0.3` en el gemspec** (antes `>= 5.0.2`), por GHSA-58rx-96gf-w92x: en 5.0.2,
+  `sort_link` toma opciones de `url_for` de los params del request (XSS reflejado y open
+  redirect), y las cabeceras ordenables de `Bali::Table` lo llaman
+  (`app/components/bali/table/header/component.rb:51`). **Paso de anfitrión:**
+  `bundle update bali_view_components ransack` al subir Bali. Las seis apps (afal-apps,
+  centinela-web, costa-norte, garita, gobierno-corporativo, identity) y pos-bridge ya tienen 5.0.3
+  en el `Gemfile.lock` de su rama principal (06/11/2026), así que ninguna se mueve; siade, en Bali
+  v3.5.0 con `ransack` 4.4.1, queda fuera de este rango.
 - **Sólo el entorno de desarrollo y pruebas de Bali; ninguna app tiene que hacer nada por este
   cambio.** `bundle-audit` marcaba 45 avisos en el `Gemfile.lock` del repo (73 entradas: los de
   `nokogiri` y `sqlite3` salen una vez por plataforma), y por eso el job `scan` de CI fallaba en
-  todos los PRs. Cada gema sube a la primera versión corregida, sin tocar los rangos del gemspec:
+  todos los PRs. Cada gema sube a la primera versión corregida:
   Rails 8.1.4 → 8.1.4.1 (todos sus componentes), `rack` 3.2.6 → 3.2.8,
   `nokogiri` 1.19.4 → 1.19.5, `loofah` 2.25.2 → 2.25.3, `rails-html-sanitizer` 1.7.1 → 1.7.2,
   `addressable` 2.9.0 → 2.9.1, `ransack` 5.0.2 → 5.0.3 y `sqlite3` 2.10.1 → 2.10.2. Una app
