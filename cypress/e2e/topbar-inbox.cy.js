@@ -235,7 +235,11 @@ describe('Topbar inbox', () => {
       errors.push(error.message)
       return false
     })
-    cy.document().then((doc) => doc.head.insertAdjacentHTML('beforeend', '<meta name="turbo-refresh-method" content="morph">'))
+    let morphed = false
+    cy.document().then((doc) => {
+      doc.head.insertAdjacentHTML('beforeend', '<meta name="turbo-refresh-method" content="morph">')
+      doc.addEventListener('turbo:morph', () => { morphed = true }, { once: true })
+    })
     cy.intercept({ method: 'GET', url: '**/inbox/popover*', times: 1 }, (req) => req.redirect('/stub-sign-in', 302))
     cy.intercept({ method: 'GET', pathname: '/stub-sign-in' }, {
       statusCode: 200,
@@ -249,6 +253,7 @@ describe('Topbar inbox', () => {
     cy.get(trigger).click()
 
     cy.wait('@samePage')
+    cy.wrap(null).should(() => expect(morphed, 'the revisit is a morphing refresh').to.equal(true))
     cy.get('form#sign-in').should('exist')
     cy.get(trigger).should('not.exist')
     cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)

@@ -108,9 +108,10 @@ export class TopbarInboxController extends Controller {
   }
 
   // A morphing refresh (a stream `refresh`, or the revisit below on a page that refreshes by
-  // morphing) drops tippy's popper from <body> and puts the panel back inside this element, moved or
-  // drawn afresh by an older Turbo: tippy would still count itself shown, and the icon would never
-  // open again. A morph that took the icon away too (the sign-in page) leaves it to `disconnect()`.
+  // morphing) drops tippy's popper from <body> and puts the panel back inside this element, moved
+  // or drawn afresh by an older Turbo: tippy would still count itself shown, and the icon would
+  // never open again. A morph that took the icon away too (the sign-in page) leaves it to
+  // `disconnect()`.
   forgetMorphedPopper = () => {
     if (!this.tippy || this.tippy.popper.isConnected || !this.hasPanelTarget) return
 
