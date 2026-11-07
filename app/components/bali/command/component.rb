@@ -57,6 +57,9 @@ module Bali
       # @param density [Symbol] :default (44px rows) or :compact (32px rows).
       # @param no_results_text [String] Heading when the query has no matches.
       # @param no_results_subtitle [String, nil] Optional secondary line.
+      # @param navigation [Class<Bali::Navigation::Base>, nil] The app's declared navigation. Adds,
+      #   ahead of the block's groups, a group of the modules this person may open (when the
+      #   navigation has modules) and one of the pages. nil renders only the block's groups.
       def initialize(
         trigger: true,
         placeholder: nil,
@@ -65,8 +68,10 @@ module Bali
         density: :default,
         no_results_text: nil,
         no_results_subtitle: nil,
+        navigation: nil,
         **options
       )
+        @navigation = navigation
         @render_trigger = trigger
         @placeholder = placeholder || I18n.t("bali_view.command.placeholder")
         @trigger_label = trigger_label.presence || I18n.t("bali_view.command.trigger_label")
@@ -99,6 +104,10 @@ module Bali
         @auto_shortcut
       end
 
+      def before_render
+        draw_navigation if @navigation
+      end
+
       private
 
       attr_reader :placeholder, :trigger_label, :shortcut_label, :density,
@@ -106,6 +115,28 @@ module Bali
 
       def container_classes
         class_names("bali-command", options[:class])
+      end
+
+      # Setters only, never `groups`: view_component runs the host's block on the first slot
+      # getter (`__vc_get_slot`), and a getter here would put the block's groups first. With
+      # modules the pages wait for a query; without, they are the list the palette opens on.
+      def draw_navigation
+        menu = helpers.navigation_for(@navigation)
+        if @navigation.app_modules?
+          with_group(name: t("bali_view.command.navigation.modules"), mode: :navigation) do |group|
+            menu.app_modules.each do |app_module|
+              group.with_item(title: app_module.title, icon: app_module.icon, href: menu.landing(app_module))
+            end
+          end
+        end
+
+        entries = menu.palette_entries
+        return if entries.empty?
+
+        with_group(name: t("bali_view.command.navigation.pages"),
+                   mode: @navigation.app_modules? ? :searchable : :navigation) do |group|
+          entries.each { |entry| group.with_item(**entry) }
+        end
       end
     end
   end

@@ -1,0 +1,175 @@
+<div class="h-[640px] bg-base-200 p-4 flex gap-4">
+  <div class="w-xs">
+    <nav id="side-menu" class="side-menu-component side-menu-component--inline" data-controller="side-menu" data-side-menu-collapsible-value="false" data-side-menu-fixed-value="false" aria-label="Sidebar">
+
+    <div class="menu-switchers mt-3">
+      <div class="menu-switcher mb-3">
+  <details class="dropdown dropdown-bottom w-full">
+    <summary class="menu-switcher-trigger tooltip tooltip-right rounded-box flex w-full items-center gap-2 border cursor-pointer list-none [&::-webkit-details-marker]:hidden"
+             data-tip="Work">
+        <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: briefcase --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Work</p>
+    
+  </div>
+</div>
+      <span class="icon-component menu-switcher-chevron ml-auto size-4 text-base-content/55" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevrons-up-down --></svg></span>
+    </summary>
+    <ul class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] mt-1 w-full p-2">
+        <li>
+            <a href="/projects" class="is-current">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: briefcase --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Work</p>
+    
+  </div>
+</div>
+              
+            </a>
+        </li>
+        <li>
+            <a href="/admin/users" class="">
+              <div class="side-menu-component--menu-switch-component flex items-center gap-3">
+    <span class="icon-component w-6 h-6" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: shield --></svg></span>
+  <div class="flex-1">
+    <p class="font-bold">Administration</p>
+    
+  </div>
+</div>
+              
+            </a>
+        </li>
+    </ul>
+  </details>
+</div>
+      
+    </div>
+
+  <div class="sidebar-menu custom-scrollbar grow overflow-auto">
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Work</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>  <a href="/projects" class="menu-item group active side-menu-expanded" aria-current="page">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: folder-kanban --></svg></span>
+    <span class="grow">Projects</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/projects" class="menu-item active" aria-current="page"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: folder-kanban --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Projects
+  </template>
+</span>
+</li>
+    <li>  <a href="/calendar" class="menu-item group side-menu-expanded" title="The team&#39;s calendar">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: calendar-days --></svg></span>
+    <span class="grow">Calendar</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/calendar" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: calendar-days --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Calendar
+  </template>
+</span>
+</li>
+    <li>  <a href="/inbox" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: inbox --></svg></span>
+    <span class="grow">Inbox</span>
+    <div class="ms-auto inline-flex gap-2"><div class="border rounded-box px-1.5 text-[12px] border-primary/20 bg-primary/10 text-soft-primary">4</div></div>
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/inbox" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: inbox --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Inbox
+  </template>
+</span>
+</li>
+    <li>    <div class="collapse side-menu-expanded">
+      <input type="checkbox" aria-label="Toggle Settings" class="peer"
+              />
+      <div class="collapse-title px-2.5 py-1.5">
+        <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span>
+        <span class="grow">Settings</span>
+        
+        <span class="icon-component size-3.5 arrow-icon" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chevron-right --></svg></span>
+      </div>
+      <div class="collapse-content ms-6.5 !p-0">
+        <div class="mt-0.5 space-y-0.5">
+          
+              <a href="/settings/members" class="menu-item group side-menu-expanded">
+    
+    <span class="grow">Members</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/settings/members" class="menu-item"><span class="size-4 flex items-center justify-center text-xs font-medium">M</span></a>
+</span>  <template data-tooltip-target="content">
+    Members
+  </template>
+</span>
+
+              <a href="/settings/billing" class="menu-item group side-menu-expanded">
+    
+    <span class="grow">Billing</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/settings/billing" class="menu-item"><span class="size-4 flex items-center justify-center text-xs font-medium">B</span></a>
+</span>  <template data-tooltip-target="content">
+    Billing
+  </template>
+</span>
+
+        </div>
+      </div>
+    </div>
+    <div class="side-menu-collapsed-flyout side-menu-collapsed hidden dropdown dropdown-right dropdown-hover" data-controller="side-menu-flyout">
+      <div tabindex="0" role="button" class="menu-item" aria-label="Settings" data-side-menu-flyout-target="trigger" data-action="keydown-&gt;side-menu-flyout#triggerKeydown"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: settings --></svg></span></div>
+      <ul tabindex="0"
+          class="dropdown-content menu rounded-box z-[var(--bali-z-dropdown)] w-56 p-2"
+          data-side-menu-flyout-target="panel"
+          data-action="keydown->side-menu-flyout#panelKeydown">
+        <li class="menu-title px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-base-content/70">
+          Settings
+        </li>
+        
+          <li><a href="/settings/members" class="">Members</a></li>
+          <li><a href="/settings/billing" class="">Billing</a></li>
+      </ul>
+    </div>
+</li>
+</ul>
+
+        <p class="menu-label items-center px-2.5 pt-3 pb-1.5">
+    <span>Reports</span>
+    
+  </p>
+<ul class="side-menu-list space-y-0.5 px-2.5">
+    <li>  <a href="/reports/monthly" class="menu-item group side-menu-expanded">
+    <span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chart-pie --></svg></span>
+    <span class="grow">Monthly</span>
+    
+</a>  <span class="tooltip-component inline-block side-menu-collapsed hidden" data-controller="tooltip" data-tooltip-placement-value="right" data-tooltip-trigger-value="mouseenter focusin" data-tooltip-append-to-value="body">
+  <span class="trigger cursor-pointer" data-tooltip-target="trigger">
+    <a href="/reports/monthly" class="menu-item"><span class="icon-component size-4" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: chart-pie --></svg></span></a>
+</span>  <template data-tooltip-target="content">
+    Monthly
+  </template>
+</span>
+</li>
+</ul>
+
+  </div>
+
+</nav>
+
+  </div>
+  <div class="flex-1 p-4">
+    <p class="text-base-content/70">The request counts as <code>projects/tasks</code>.</p>
+  </div>
+</div>

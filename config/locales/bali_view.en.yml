@@ -142,6 +142,9 @@ en:
       results:
         one: "%{count} result"
         other: "%{count} results"
+      navigation:
+        modules: "Modules"
+        pages: "Pages"
 
     # Conversational chat
     chat:

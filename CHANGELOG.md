@@ -266,6 +266,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Lo hace el controlador nuevo `BreadcrumbController`, que `registerAll` ya registra: una app
   que registra controladores uno por uno lo registra como `breadcrumb` (el identificador que fija
   la plantilla), o la ruta se corta como antes.
+### Added
+
+- **`Bali::Navigation`: la navegación de la app, declarada una vez** (#1522). Una subclase de
+  `Bali::Navigation::Base` en `app/models/navigation.rb` declara módulos (opcionales), secciones,
+  grupos e ítems, cada uno con su `gate:` (una lambda que corre en la vista, o un valor que lee
+  `authorize`), su ruta y los controladores que le pertenecen. `Bali::SideMenu` y `Bali::Command` se pintan desde ella con
+  `navigation: Navigation`, sin cambiar sus slots; `Navigation.locate(controller_path)` dice a
+  qué módulo, sección e ítem pertenece un controlador; `require "bali/testing/navigation"` trae
+  la prueba de que cada pantalla tiene lugar. Nadie la usa todavía: la migración de cada app (y
+  el piloto en garita) va en su propio PR, con la receta de `docs/guides/navigation.md`.
 
 ## [v3.23.0] - 2026-10-28
 

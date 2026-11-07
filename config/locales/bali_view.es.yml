@@ -137,6 +137,9 @@ es:
       results:
         one: "%{count} resultado"
         other: "%{count} resultados"
+      navigation:
+        modules: "Módulos"
+        pages: "Páginas"
 
     # Chat conversacional
     chat:
