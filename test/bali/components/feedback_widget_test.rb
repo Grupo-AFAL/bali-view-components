@@ -200,12 +200,31 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     end
   end
 
-  # The product's name, whatever the panel's title, and the name the button is read out by.
-  def test_the_labeled_trigger_shows_opina_and_is_named_by_it
+  # Its own key, not the panel's title nor `title:`, and the name the button is read out by. The
+  # defaults of both keys are the same word, so the key is told apart by a translation of its own.
+  def test_the_labeled_trigger_shows_its_own_key_and_is_named_by_it
+    I18n.backend.store_translations(:en, bali_view: { feedback_widget: { trigger_label: "Tell us" } })
+
     render_inline(widget(trigger: :labeled, title: "Send us feedback"))
 
-    assert_selector("button:not([aria-label]) > span:not([aria-hidden])", exact_text: "Opina")
+    assert_selector("button:not([aria-label]) > span:not([aria-hidden])", exact_text: "Tell us")
     assert_no_selector("button", text: "Send us feedback")
+  ensure
+    I18n.backend.reload!
+  end
+
+  def test_the_defaults_name_the_channel_not_a_product
+    render_inline(widget(trigger: :labeled))
+    assert_selector("button:not([aria-label]) > span:not([aria-hidden])", exact_text: "Feedback")
+
+    I18n.with_locale(:es) do
+      render_inline(widget(trigger: :labeled))
+      assert_selector("button:not([aria-label]) > span:not([aria-hidden])", exact_text: "Retroalimentación")
+
+      render_inline(widget(trigger: :icon))
+      assert_selector("button[aria-label='Abrir retroalimentación']")
+      assert_selector("#feedback-widget-title", exact_text: "Retroalimentación")
+    end
   end
 
   # The count in the badge is decoration; the description is what is read out, and it
