@@ -1,0 +1,13 @@
+<%= render Bali::Drawer::Component.new(active: true, title: 'Review Request') do %>
+  <%= form_with url: '/fake/submit', builder: Bali::FormBuilder, class: 'space-y-4' do |f| %>
+    <%= f.text_group :comment, label: 'Comment' %>
+
+    <div class="flex justify-end gap-2">
+      <%# Rails' own `submit_tag`: the <input type="submit" name="commit"> that a form built
+          without Bali's FormBuilder renders. %>
+      <%= submit_tag 'Save Draft', class: 'btn btn-ghost', data: { action: 'drawer#submit' } %>
+      <%= f.submit 'Reject', name: 'decision', value: 'reject', variant: :error, style: :outline, drawer: true %>
+      <%= f.submit 'Approve', name: 'decision', value: 'approve', drawer: true %>
+    </div>
+  <% end %>
+<% end %>

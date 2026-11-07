@@ -609,6 +609,10 @@ already rendered:
 `text/vnd.turbo-stream.html` responses — the streams are applied to the page
 and the modal/drawer closes on success (an error stream keeps it open so the
 form can re-render inside). Redirect and HTML responses behave as before.
+The `data-turbo` nearest the button decides — the button's own, else the form's —
+and only `"true"` asks for streams, so `data: { turbo: false }` keeps the plain
+HTML request. The body carries the pressed button's `name`/`value`, as the
+browser's own submit does.
 
 ```erb
 <%# In the drawer content %>

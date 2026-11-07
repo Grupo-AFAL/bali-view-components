@@ -40,21 +40,20 @@ describe('DrawerController', () => {
         expect(getComputedStyle($b[0]).maskImage).to.equal('none')
       })
 
-      // The spinner is a child, and the label is out of sight rather than merely
-      // covered by it — reading textContent would pass either way.
+      // The spinner is a child, and it takes the label's place.
       cy.get(`${SUBMIT} .loading.loading-spinner`).should('be.visible')
-      cy.get(`${SUBMIT} [data-bali-submit-label]`).should('not.be.visible')
+      cy.get(SUBMIT).should($b => expect($b[0].textContent.trim()).to.equal(''))
     })
 
-    it('gives the label back when the form does not validate', () => {
+    it('leaves the button alone when the form does not validate', () => {
       cy.get('#name').invoke('attr', 'required', 'required')
 
       let width
       cy.get(SUBMIT).then($b => { width = $b[0].getBoundingClientRect().width })
       cy.get(SUBMIT).click()
 
-      // `reportValidity()` fails before the fetch, so this is the one path that
-      // comes back to a button that is still on screen.
+      // `reportValidity()` runs before the waiting state goes on: the user fixing the
+      // field is left a button ready for the next try.
       cy.get(SUBMIT).should('not.have.attr', 'disabled')
       cy.get(SUBMIT).should('not.have.attr', 'aria-busy')
       cy.get(SUBMIT).should('contain.text', 'Save')
@@ -113,6 +112,139 @@ describe('DrawerController', () => {
       cy.get(SUBMIT).click()
 
       cy.wait('@submit')
+    })
+  })
+
+  // Read off the request the overlay sends, not the DOM: the body it builds and the
+  // `Accept` it asks with are all the server gets to see.
+  context('what the submit sends', () => {
+    const STREAM = 'text/vnd.turbo-stream.html, text/html, application/xhtml+xml'
+    const HTML = 'text/html, application/xhtml+xml'
+    const APPROVE = 'button[value="approve"]'
+
+    const fields = request => {
+      const body = typeof request.body === 'string' ? request.body : new TextDecoder().decode(request.body)
+      return [...body.matchAll(/name="([^"]+)"\r\n\r\n([^\r]*)/g)].map(([, name, value]) => `${name}=${value}`)
+    }
+
+    beforeEach(() => {
+      cy.intercept('POST', '/fake/submit*', { statusCode: 422, body: '<p>Not saved</p>' }).as('submit')
+      cy.visit('/bali/drawer/submitter_form')
+      cy.get('.drawer-open form').should('exist')
+      cy.get('#comment').type('Looks right')
+    })
+
+    it('sends the name and value of the button pressed', () => {
+      cy.get(APPROVE).click()
+
+      cy.wait('@submit').its('request').then(request => {
+        expect(fields(request)).to.include.members(['comment=Looks right', 'decision=approve'])
+        expect(fields(request)).not.to.include.members(['decision=reject'])
+      })
+    })
+
+    it('sends the other value from the other button', () => {
+      cy.get('button[value="reject"]').click()
+
+      cy.wait('@submit').its('request').then(request => {
+        expect(fields(request)).to.include.members(['decision=reject'])
+        expect(fields(request)).not.to.include.members(['decision=approve'])
+      })
+    })
+
+    it('sends the commit of an <input type="submit">', () => {
+      cy.get('input[type="submit"][name="commit"]').click()
+
+      cy.wait('@submit').its('request').then(request => {
+        expect(fields(request)).to.include.members(['comment=Looks right', 'commit=Save Draft'])
+        expect(fields(request).some(field => field.startsWith('decision='))).to.equal(false)
+      })
+    })
+
+    // FormData throws when handed a button that does not submit, and Stimulus catches the
+    // error into `console.error`: what shows is that no request leaves.
+    it('sends the form without a submitter from a type="button", what Bali::Button renders', () => {
+      cy.get(APPROVE).invoke('attr', 'type', 'button')
+      cy.get(APPROVE).click()
+
+      cy.wait('@submit').its('request').then(request => {
+        expect(fields(request)).to.include.members(['comment=Looks right'])
+        expect(fields(request).some(field => field.startsWith('decision='))).to.equal(false)
+      })
+    })
+
+    it('takes the button carrying the action, not the element under the pointer', () => {
+      // Held past the assertions' 4 s, so the button is still there to be asked about.
+      cy.intercept('POST', '/fake/submit*', { delay: 5000, statusCode: 422, body: '<p>Not saved</p>' }).as('heldSubmit')
+      cy.get(APPROVE).invoke('html', '<span id="approve-label">Approve</span>')
+      cy.get('#approve-label').click()
+
+      cy.get(APPROVE).should('have.attr', 'aria-busy', 'true').and('have.attr', 'disabled')
+      cy.get(`${APPROVE} > .loading.loading-spinner`).should('exist')
+      cy.wait('@heldSubmit').its('request').then(request => {
+        expect(fields(request)).to.include.members(['decision=approve'])
+      })
+    })
+
+    // A host that runs its own step first and calls `submit` from a callback, once the
+    // click is dispatched and `currentTarget` is back to null (enjoykitchen's payment form).
+    it('still sends when a host calls submit after the click is over', () => {
+      let outcome
+
+      cy.get(APPROVE).then($button => {
+        const button = $button[0]
+        const win = button.ownerDocument.defaultView
+        const drawer = win.Stimulus.getControllerForElementAndIdentifier(
+          button.closest('[data-controller~="drawer"]'), 'drawer'
+        )
+
+        // Capture, so it runs ahead of the button's own `drawer#submit` and stands in for it.
+        button.addEventListener('click', event => {
+          event.preventDefault()
+          event.stopImmediatePropagation()
+          win.setTimeout(() => {
+            try {
+              drawer.submit(event)
+              outcome = 'returned'
+            } catch (error) {
+              outcome = error
+            }
+          })
+        }, { capture: true, once: true })
+      })
+      cy.get(APPROVE).click()
+
+      cy.wrap(null).should(() => expect(outcome, 'what submit did').to.equal('returned'))
+      cy.wait('@submit').its('request').then(request => {
+        expect(fields(request)).to.include.members(['decision=approve'])
+      })
+    })
+
+    // Bali's switch is opt-in, so "false" and no attribute at all read the same; the
+    // nearest value wins: the button's over the form's, the form's over a container's.
+    const turboCases = [
+      { button: null, form: null, accept: HTML },
+      { button: null, form: 'true', accept: STREAM },
+      { button: null, form: 'false', accept: HTML },
+      { button: 'true', form: null, accept: STREAM },
+      { button: 'false', form: 'true', accept: HTML },
+      { button: 'true', form: 'false', accept: STREAM },
+      { container: 'true', button: null, form: null, accept: STREAM },
+      { container: 'true', button: null, form: 'false', accept: HTML }
+    ]
+
+    turboCases.forEach(({ container, button, form, accept }) => {
+      const asks = accept === STREAM ? 'Turbo Streams' : 'HTML only'
+      const around = container ? ` inside a container with ${container}` : ''
+
+      it(`asks for ${asks} with data-turbo ${button ?? 'absent'} on the button and ${form ?? 'absent'} on the form${around}`, () => {
+        if (container) cy.get('.drawer-open form').parent().invoke('attr', 'data-turbo', container)
+        if (form) cy.get('.drawer-open form').invoke('attr', 'data-turbo', form)
+        if (button) cy.get(APPROVE).invoke('attr', 'data-turbo', button)
+        cy.get(APPROVE).click()
+
+        cy.wait('@submit').its('request.headers.accept').should('equal', accept)
+      })
     })
   })
 

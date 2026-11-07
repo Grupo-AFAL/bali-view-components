@@ -885,8 +885,11 @@ export class ModalController extends Controller {
 
     event.preventDefault()
 
-    const button = event.target
-    this._startSubmitting(button)
+    // `currentTarget` is the element carrying the action; `target` is whatever was under the
+    // pointer, the label <span> or the icon inside the button. The fallback is for a host
+    // that calls `submit` itself once the dispatch is over and `currentTarget` is back to
+    // null: enjoykitchen does, from its payment form's Conekta callback.
+    const button = event.currentTarget ?? event.target
 
     // `reportValidity()` on the FORM, not `checkValidity()` plus a hand-rolled loop.
     //
@@ -905,13 +908,21 @@ export class ModalController extends Controller {
     // (The orphan page-level instance used to reach this line too; since #984 it
     // returns before preventDefault, so its validation is the browser's own.)
     const form = button.closest('form')
-    if (!form.reportValidity()) {
-      this._stopSubmitting(button)
-      return
-    }
+    if (!form.reportValidity()) return
+
+    // Built before `_startSubmitting` disables the button: a disabled control never reaches
+    // the entry list, the submitter included (measured in Chromium 148 and Firefox 150). A
+    // `type="button"`, which is what `Bali::Button` renders by default, is no submitter,
+    // and FormData throws if handed one.
+    const body = new FormData(form, button.type === 'submit' ? button : null)
+    this._startSubmitting(button)
 
     const formURL = form.getAttribute('action')
-    const enableTurbo = button.dataset.turbo || form.dataset.turbo
+    // Turbo's reading of a submitter with Drive off (`elementIsNavigatable`): the nearest
+    // `data-turbo` decides, and only the string "true" opts in — `dataset` hands back
+    // strings, and `"false"` is truthy. Turbo also asks the form, which would turn off the
+    // button-only opt-in identity and ga-apps write on a form without the attribute.
+    const enableTurbo = button.closest('[data-turbo]')?.dataset.turbo === 'true'
 
     const url = this._buildURL(formURL, this.redirectTo)
     const options = {
@@ -919,7 +930,7 @@ export class ModalController extends Controller {
       mode: 'same-origin',
       redirect: 'follow',
       credentials: 'include',
-      body: new FormData(form)
+      body
     }
 
     if (enableTurbo) {
@@ -1028,32 +1039,10 @@ export class ModalController extends Controller {
     button.setAttribute('disabled', '')
     button.setAttribute('aria-busy', 'true')
 
-    // The label is kept rather than serialised: moving the nodes preserves whatever
-    // the call site put in the button — an icon, a translated span — and gives
-    // `_stopSubmitting` something exact to put back.
-    const label = document.createElement('span')
-    label.hidden = true
-    label.dataset.baliSubmitLabel = ''
-    label.append(...button.childNodes)
-
     const spinner = document.createElement('span')
     spinner.className = 'loading loading-spinner loading-sm'
 
-    button.replaceChildren(label, spinner)
-  }
-
-  // Only the client-side validation path comes back here: a 422 re-renders the
-  // whole panel and a redirect replaces the page, and in both cases this button is
-  // gone. Guarded on the stashed label so calling it twice is harmless.
-  _stopSubmitting (button) {
-    const label = button.querySelector('[data-bali-submit-label]')
-    if (!label) return
-
-    button.replaceChildren(...label.childNodes)
-    button.style.minWidth = ''
-    button.removeAttribute('disabled')
-    button.removeAttribute('aria-busy')
-    delete button.dataset.baliSubmitting
+    button.replaceChildren(spinner)
   }
 
   normalizeClass (classes) {
