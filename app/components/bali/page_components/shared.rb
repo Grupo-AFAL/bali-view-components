@@ -58,6 +58,7 @@ module Bali
       included do
         renders_many :actions
         renders_many :title_tags
+        renders_one :title_mark
         renders_one :nav
         renders_one :body
         renders_one :sidebar
@@ -332,6 +333,7 @@ module Bali
           back: back,
           class: page_header_class
         )) do |header|
+          header.with_title_mark { title_mark.to_s } if title_mark?
           title_tags.each { |title_tag| header.with_title_tag { title_tag.to_s } }
           page_header_actions
         end

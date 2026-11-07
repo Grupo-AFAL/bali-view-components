@@ -1,0 +1,18 @@
+<%= render Bali::PageHeader::Component.new(title: title, subtitle: 'Person · approved on Oct 3, 2026',
+                                          back: { href: '#' }) do |c| %>
+  <% c.with_title_mark do %>
+    <% if mark == :avatar %>
+      <%= render Bali::Avatar::Component.new(name: title, size: :xs) %>
+    <% else %>
+      <%= render Bali::Avatar::Component.new(size: :xs, shape: :rounded) do |avatar| %>
+        <% avatar.with_placeholder do %>
+          <%= render Bali::Icon::Component.new('database', size: :small) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+  <% c.with_title_tag do %>
+    <%= render Bali::Tag::Component.new(text: 'PER-0042', style: :outline, size: :sm) %>
+  <% end %>
+  <%= render Bali::Button::Component.new(name: 'Manage', variant: :primary) %>
+<% end %>

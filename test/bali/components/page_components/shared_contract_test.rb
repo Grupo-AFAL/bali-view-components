@@ -52,6 +52,18 @@ class BaliPageComponentsSharedContractTest < ComponentTestCase
     end
   end
 
+  def test_the_five_pass_the_title_mark_to_the_header
+    each_page do |component|
+      render_inline(component.new(title: "The Matrix")) do |page|
+        page.with_title_mark { "<span class='mark'></span>".html_safe }
+        page.with_body { "Body" }
+      end
+
+      assert_page component, ".page-header-component .page-header-title-mark > span.mark",
+                  "does not render the title mark in the header"
+    end
+  end
+
   # The order is part of the contract: the nav is second-level navigation and goes BETWEEN the
   # header and the body, not underneath everything.
   #

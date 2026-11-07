@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::PageHeader`: slot `with_title_mark`**, un ícono en un cuadro o un `Bali::Avatar`
+  antes del título, fuera del `<h1>` y con `aria-hidden`, centrado en la primera línea del título
+  aunque éste parta en varias. Llega igual por las cinco páginas (`ShowPage`, `IndexPage`,
+  `FormPage`, `DashboardPage`, `DocumentPage`). Una marca de 32 px (`Avatar` `size: :xs`) cabe
+  en esa línea. Reemplaza pasarle a `title:` un `safe_join` con la marca
+  (`git grep -n "header_mark" -- app`).
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added

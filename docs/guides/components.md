@@ -729,6 +729,18 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
 - `with_subtitle(text, tag: :p, **options)` - Renders a `<p>`; pass `tag:` for a heading.
 - `with_title_tag` - Badges beside the title. They render as siblings of the heading so they
   stay out of its accessible name, and the row wraps on narrow viewports.
+- `with_title_mark` - An icon in a box or a `Bali::Avatar` before the title, outside the heading
+  and `aria-hidden` (beside the name it can only repeat it). It is centred on the title's first
+  line however many lines the title wraps to; a 32px mark (`Bali::Avatar` `size: :xs`) fits that
+  line, and a taller one overhangs it by half the difference.
+
+```erb
+<%= render Bali::PageHeader::Component.new(title: person.name) do |header| %>
+  <% header.with_title_mark do %>
+    <%= render Bali::Avatar::Component.new(name: person.name, size: :xs) %>
+  <% end %>
+<% end %>
+```
 
 **Headings.** The title defaults to the page's `h1`. If your layout already renders one,
 pass `heading: :h2` on the constructor, or `tag: :h2` on the `with_title` slot — see the
@@ -5617,6 +5629,7 @@ one adds.
   [Secondary page actions and export](#secondary-page-actions-and-export)
 - `with_export(url:, formats:, params:)` - Export section inside that same `⋯`
 - `with_title_tag` (many) - Badges rendered beside the title
+- `with_title_mark` - An icon or avatar before the title; see `PageHeader`'s slot of the same name
 - `with_nav` - Second-level navigation between the header and the body; see
   [Two-level navigation](#two-level-navigation-nav-slot)
 - `with_body` - The page content, `mt-6` under whatever precedes it
