@@ -67,9 +67,13 @@ module Bali
       #   lands out of view and the menu stops answering "where am I". It only ever moves
       #   the menu's own scroll, never the page's, and it does nothing when the item is
       #   already visible. Pass `false` for a sidebar whose scroll position is yours.
+      # @param navigation [Class<Bali::Navigation>, nil] The app's declared navigation. Fills a
+      #   switch per module this person may open and the lists of the current module, ahead of
+      #   whatever the block adds. nil renders only the block's slots.
       def initialize(current_path:, id: DEFAULT_ID, fixed: true, collapsible: false,
                      group_behavior: :expandable, reveal_current: true,
-                     brand: nil, aria_label: nil, theme: nil, **options)
+                     brand: nil, aria_label: nil, theme: nil, navigation: nil, **options)
+        @navigation = navigation
         @theme = theme.presence&.to_s
         @current_path = current_path
         @id = id
@@ -83,6 +87,10 @@ module Bali
       end
 
       attr_reader :id
+
+      def before_render
+        draw_navigation if @navigation
+      end
 
       def fixed?
         @fixed
@@ -198,6 +206,41 @@ module Bali
       # Translated title for expand button
       def expand_label
         I18n.t("bali_view.side_menu.expand")
+      end
+
+      private
+
+      # Setters only, never `lists` or `menu_switches`: view_component runs the host's block on
+      # the first slot getter (`__vc_get_slot`), and a getter here would put the block's slots
+      # ahead of the navigation's.
+      def draw_navigation
+        menu = helpers.navigation_for(@navigation)
+        menu.app_modules.each do |app_module|
+          with_menu_switch(title: app_module.title, icon: app_module.icon, href: menu.landing(app_module),
+                           active: app_module.equal?(menu.current_app_module))
+        end
+        menu.sections.each do |section|
+          with_list(title: (section.title if section.heading?)) do |list|
+            menu.items(section).each { |entry| draw_navigation_entry(list, entry, menu) }
+          end
+        end
+      end
+
+      def draw_navigation_entry(list, entry, menu)
+        return list.with_item(**navigation_item_options(entry, menu)) if entry.item?
+
+        list.with_item(name: entry.title, icon: entry.icon) do |group|
+          menu.items(entry).each { |item| group.with_item(**navigation_item_options(item, menu)) }
+        end
+      end
+
+      # `title:` only for a hint: any option the item does not consume sends its link off the
+      # written-out path (`Item::Component#leaf_link_attributes`).
+      def navigation_item_options(item, menu)
+        options = { name: item.title, icon: item.icon, href: menu.path(item), match: item.match,
+                    active: menu.active(item), badge: menu.badge(item), target: item.target }
+        options[:title] = item.hint if item.hint
+        options
       end
     end
   end

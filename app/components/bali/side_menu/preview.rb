@@ -3,6 +3,32 @@
 module Bali
   module SideMenu
     class Preview < ApplicationViewComponentPreview
+      # The navigation of the "From a navigation" preview. The request counts as the controller
+      # picked in the preview's param, so the active item follows it.
+      class DemoNavigation < Bali::Navigation
+        current_controller_path { params[:controller_path].presence || "projects/tasks" }
+
+        app_module :work, title: "Work", icon: "briefcase", controllers: %w[projects] do
+          item :projects, title: "Projects", icon: "folder-kanban", path: "/projects", controllers: %w[projects]
+          item :calendar, title: "Calendar", icon: "calendar-days", path: "/calendar", controllers: %w[calendars],
+                          hint: "The team's calendar"
+          item :inbox, title: "Inbox", icon: "inbox", path: "/inbox", controllers: %w[inbox], badge: -> { 4 }
+          group :settings, title: "Settings", icon: "settings" do
+            item :members, title: "Members", path: "/settings/members", controllers: %w[settings/members]
+            item :billing, title: "Billing", path: "/settings/billing", controllers: %w[settings/billing]
+          end
+          section :reports, title: "Reports" do
+            item :monthly, title: "Monthly", icon: "chart-pie", path: "/reports/monthly", controllers: %w[reports]
+            item :exports, title: "Exports", icon: "file-down", path: "/reports/exports", menu: false
+          end
+        end
+
+        app_module :administration, title: "Administration", icon: "shield", controllers: %w[admin] do
+          item :users, title: "Users", icon: "users", path: "/admin/users", controllers: %w[admin/users]
+          item :roles, title: "Roles", icon: "key-round", path: "/admin/roles", controllers: %w[admin/roles]
+        end
+      end
+
       # @label Default
       # Basic sidebar with expandable groups (click to expand)
       # @param collapsible toggle
@@ -155,6 +181,22 @@ module Bali
           template: "bali/side_menu/previews/with_bottom_groups",
           locals: { collapsible: collapsible, current_path: current_path }
         )
+      end
+
+      # @label From a navigation
+      # @param controller_path select { choices: [projects/tasks, settings/members, reports, admin/users] }
+      # `navigation:` draws the sidebar from the app's `Bali::Navigation`: a switch per module the
+      # person may open, then the current module's sections. The active item comes from the
+      # controller the request belongs to, not from the URL — pick another controller and the item
+      # follows, `admin/users` moving to the other module. The navigation is
+      # `Bali::SideMenu::Preview::DemoNavigation`; see docs/guides/navigation.md.
+      #
+      # ```erb
+      # <%= render Bali::SideMenu::Component.new(current_path: request.path, navigation: Navigation) %>
+      # ```
+      def from_navigation(controller_path: "projects/tasks")
+        render_with_template(template: "bali/side_menu/previews/from_navigation",
+                             locals: { controller_path: controller_path })
       end
 
       # @label With Trigger (keyboard)
