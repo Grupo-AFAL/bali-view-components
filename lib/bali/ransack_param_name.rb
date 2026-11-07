@@ -62,6 +62,17 @@ module Bali
         joined(fields, "cont") if case_insensitive_text?
       end
 
+      # Every name the quick search over these fields is read from: `predicate`, and under
+      # ransack 6 `alternate_predicate`. `FilterForm#search_param_names` is this set; a guard
+      # that runs before the form exists reads it here.
+      #
+      # @param fields [Array<Symbol, String>, Symbol, String, nil]
+      # @return [Array<String>] e.g. [:name, :genre] => ["name_or_genre_cont"] under ransack 5,
+      #   ["name_or_genre_i_cont", "name_or_genre_cont"] under 6; empty without fields
+      def predicates(fields)
+        [ predicate(fields), alternate_predicate(fields) ].compact
+      end
+
       # The full input name a form submits.
       #
       # @param fields [Array<Symbol, String>, Symbol, String, nil]

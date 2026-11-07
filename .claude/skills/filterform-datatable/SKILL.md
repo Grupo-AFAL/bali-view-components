@@ -177,7 +177,8 @@ its own operator, which the row's select then offers.
 **Text predicates follow the installed ransack** (#1530): under 5 Bali reads and writes `cont`,
 `start`, `end` (`name_or_genre_cont`), as always; under 6 it writes their `i_` twins and still
 reads the old ones. Never spell the suffix out: `Bali::RansackParamName.predicate(fields)` is the
-box's name, `FilterForm#search_param_names` every key the search is read from, and
+box's name, `Bali::RansackParamName.predicates(fields)` (and `FilterForm#search_param_names`,
+the same list) every key the search is read from, and
 `docs/guides/ransack-6.md` is what an app does before accepting ransack 6.
 
 **Every field here is a Ransack path, and a wrong one fails silently.** An association is
@@ -329,7 +330,7 @@ FilterForm is organized into focused concerns for maintainability:
 | `search_enabled?` | `Boolean` | True if search is configured |
 | `search_value` | `String` | Current search value from params |
 | `search_field_name` | `String` | Ransack field name (e.g., `name_or_genre_cont`) |
-| `search_param_names` | `Array<String>` | Every `q` key the search is read from: `search_field_name`, the box's name and, under ransack 6, the old `_cont`. A guard that drops the search from the raw `q` drops all of them |
+| `search_param_names` | `Array<String>` | Every `q` key the search is read from (`RansackParamName.predicates(search_fields)`): the box's name and, under ransack 6, the old `_cont`; `search_field_name` is one of them. A guard that drops the search from the raw `q` drops all of them |
 | `search_config` | `Hash` | The `search:` hash BOTH filter surfaces take — every `Bali::SearchConfig::KEYS` entry (`fields`, `value`, `placeholder`, `label`, `icon`, `width`) |
 | `available_attributes` | `Array<Hash>` | Filter attributes from DSL |
 | `filter_groups` | `Array<Hash>` | Parsed filter groups from params |

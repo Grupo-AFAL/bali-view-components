@@ -81,6 +81,16 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
     assert_equal [ { attribute: "", operator: nil, value: "" } ], undrawable.filter_groups.sole[:conditions]
   end
 
+  test "the search's names come from its fields alone, for a guard that runs before the form" do
+    { false => %w[name_or_genre_cont], true => %w[name_or_genre_i_cont name_or_genre_cont] }.each do |insensitive, names|
+      as_ransack(insensitive) do
+        assert_equal names, Bali::RansackParamName.predicates(%i[name genre]), insensitive
+        assert_equal names, SearchFilterForm.new(Movie.all).search_param_names, insensitive
+      end
+    end
+    assert_empty Bali::RansackParamName.predicates([])
+  end
+
   test "under ransack 5 the search is read under its _cont alone, as it always was" do
     as_ransack(false) do
       assert_equal %w[name_or_genre_cont], SearchFilterForm.new(Movie.all).search_param_names
@@ -178,7 +188,7 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
         searched = ScopedSearchFilterForm.new(ScopedSearchMovie.all, ActionController::Parameters.new(q: { box => "seid" }))
 
         assert_equal "code_cont", searched.search_field_name, box
-        assert_equal [ "code_cont", box ].uniq, searched.search_param_names, box
+        assert_equal [ box, "code_cont" ].uniq, searched.search_param_names, box
         assert_equal [ @seidor.id ], searched.result.pluck(:id), box
       end
     end
