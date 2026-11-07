@@ -45,6 +45,34 @@ class BaliBreadcrumbComponentTest < ComponentTestCase
     assert_selector('li span[aria-current="page"]', text: "Current Page")
   end
 
+  def test_accessibility_marks_only_the_last_crumb_as_current_when_another_has_no_link
+    render_inline(Bali::Breadcrumb::Component.new) do |c|
+      c.with_item(name: "Settings", icon: "settings")
+      c.with_item(name: "Warehouses", icon: "warehouse")
+    end
+    assert_selector('[aria-current="page"]', count: 1)
+    assert_selector('li:last-child span[aria-current="page"]', text: "Warehouses")
+    assert_selector("li:first-child span.cursor-default:not([aria-current])", text: "Settings")
+  end
+
+  def test_accessibility_never_marks_an_item_with_active_false_as_current
+    render_inline(Bali::Breadcrumb::Component.new) do |c|
+      c.with_item(name: "Home", href: "/home")
+      c.with_item(name: "Archive", active: false)
+    end
+    assert_selector("li span", text: "Archive")
+    assert_no_selector("[aria-current]")
+  end
+
+  def test_accessibility_marks_no_crumb_as_current_when_the_last_one_links
+    render_inline(Bali::Breadcrumb::Component.new) do |c|
+      c.with_item(name: "Movies", href: "/movies")
+      c.with_item(name: "The Matrix", href: "/movies/1")
+    end
+    assert_selector('li a[href="/movies/1"]', text: "The Matrix")
+    assert_no_selector("[aria-current]")
+  end
+
   def test_accessibility_adds_aria_current_page_to_explicitly_active_item
     render_inline(Bali::Breadcrumb::Component.new) do |c|
       c.with_item(name: "Page", href: "/page", active: true)

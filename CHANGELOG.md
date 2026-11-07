@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::Breadcrumb`: sólo la última miga es la página actual.** Una miga intermedia sin
+  `href` (un grupo del menú, un nivel que el usuario no puede abrir) llevaba
+  `aria-current="page"`, y el lector de pantalla anunciaba dos páginas actuales; `active: false`
+  no lo quitaba. Ahora es texto, igual que antes a la vista, y `aria-current` va sólo en la
+  última miga si no tiene `href`, o en la que pase `active: true`. Llega solo a las páginas con
+  `breadcrumbs:`; una app que omitía la miga sin enlace para evitarlo (costa-norte,
+  `module_breadcrumbs`) ya puede dejarla.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added

@@ -12,6 +12,15 @@ module Bali
         end
       end
 
+      # A level with no page of its own has no `href`: it reads as text, and only the last crumb
+      # is the current page.
+      def unlinked_level
+        render Bali::Breadcrumb::Component.new do |c|
+          c.with_item(name: 'Settings', icon: 'settings')
+          c.with_item(name: 'Warehouses', icon: 'warehouse')
+        end
+      end
+
       # Three linked levels above the current page, the trail of an admin record. Wider than a
       # 390px screen, where the current page is the part that stays in view.
       def three_levels

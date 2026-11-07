@@ -2,7 +2,7 @@
   <% if link? %>
     <%= render Bali::Link::Component.new(href: href, name: name, icon: icon, plain: true, class: link_classes) %>
   <% else %>
-    <span class="<%= current_classes %>" aria-current="page">
+    <span class="<%= text_classes %>" <%= tag.attributes(aria: { current: ("page" if current?) }) %>>
       <% if icon.present? %>
         <%= render Bali::Icon::Component.new(icon) %>
       <% end %>
