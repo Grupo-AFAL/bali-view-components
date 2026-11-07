@@ -16,6 +16,16 @@ class BaliInboxBadgeTest < ActiveSupport::TestCase
     def build_item(task, user:) = item(task, title: task.title)
   end
 
+  class DocumentsProvider
+    include Bali::Inbox::Provider
+
+    def kind = :acknowledgment
+
+    def pending_for(_user) = Document.published
+
+    def build_item(document, user:) = item(document, title: document.title)
+  end
+
   def setup
     @cache = Rails.cache
     Rails.cache = ActiveSupport::Cache::MemoryStore.new
@@ -40,6 +50,31 @@ class BaliInboxBadgeTest < ActiveSupport::TestCase
     @task.notify(recipient: @ana, kind: :task_assigned, message: "You were assigned Write")
 
     assert_equal [ 1, 1 ], Bali::Inbox::Badge.for(@ana).deconstruct
+  end
+
+  # A host page that already counted its own module (afal-apps' Inicio, TDFlow's) hands that over:
+  # Bali counts every other module and the unread notices, by the rule `for` uses.
+  def test_write_from_takes_the_hosts_count_for_its_module_and_counts_the_rest
+    Bali.inbox_providers = { demo: [ TasksProvider.name ], docs: [ DocumentsProvider.name ] }
+    Document.create!(title: "Policy", author_name: "Ana", status: :published)
+    release_notice
+
+    written = Bali::Inbox::Badge.write_from(@ana, pending_by_module: { demo: 6 })
+
+    assert_equal [ 7, 1 ], written.deconstruct, "6 from the host, 1 document, 1 unread notice"
+    assert_equal written, Bali::Inbox::Badge.compute(@ana, pending_by_module: { "demo" => 6 })
+    assert_queries_count(0) { assert_equal written, Bali::Inbox::Badge.for(@ana) }
+  end
+
+  # A misspelt key would add the host's number to a count that still asks every provider.
+  def test_write_from_refuses_a_key_with_no_provider_under_it
+    Bali.inbox_providers = { demo: [ TasksProvider.name ], docs: [] }
+
+    [ { tdflow: 6 }, { "docs" => 6 } ].each do |counted|
+      error = assert_raises(ArgumentError) { Bali::Inbox::Badge.write_from(@ana, pending_by_module: counted) }
+      assert_match(/no provider under :#{counted.keys.sole}/, error.message)
+    end
+    assert_not Rails.cache.exist?(Bali::Inbox::Badge.key(@ana))
   end
 
   def test_a_warm_cache_issues_no_query

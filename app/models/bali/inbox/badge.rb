@@ -14,9 +14,14 @@ module Bali
           new(**Rails.cache.fetch(key(owner), expires_in: TTL) { compute(owner).to_h }.symbolize_keys)
         end
 
-        def compute(owner)
-          new(pending: Query.new(owner).count, unread: Bali::Notice.unread.listed.addressed_to(owner).count)
+        # `pending_by_module` is what a host already counted (`{ projects: 6 }`, every provider under
+        # that key of `Bali.inbox_providers`); those providers are not asked, and Bali counts the rest.
+        def compute(owner, pending_by_module: {})
+          new(pending: Query.new(owner).count(pending_by_module:), unread: Bali::Notice.unread.listed.addressed_to(owner).count)
         end
+
+        # `compute`, cached for the person's next pages.
+        def write_from(owner, pending_by_module: {}) = compute(owner, pending_by_module:).tap { write(owner, it) }
 
         def write(owner, badge) = Rails.cache.write(key(owner), badge.to_h, expires_in: TTL)
 

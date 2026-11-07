@@ -195,6 +195,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#1537). Con `with_location(latitude: nil)` Google lanzaba y las marcas después de ese punto no
   se construían; ahora el punto se omite. Igual con una coordenada que no es número en
   `data-locations-map-locations-value`.
+### Added
+
+- **Marcar leído un pendiente que la app abre en otra pantalla que su `href`** (#1535).
+  - `open_item` acepta `to`: marca leído el aviso que lo anunció y redirige ahí si es de la misma app
+    (`url_from`, como `open_notice`); un destino de otra app se ignora y va al `href`. La liga lleva
+    `data: { turbo_prefetch: "false" }`, como las de Bali: Turbo la precarga al pasar el mouse y
+    `open_item` marca leído en ese GET. Desde una liga `drawer:` no abre el drawer: el drawer carga el
+    destino de una redirección como página completa.
+  - Una pantalla de la app que abre el registro ella misma, como un panel en un drawer, llama
+    `mark_inbox_seen(record)` (privado de `InboxBadge`). No marca mientras se suplanta
+    (`owner_reading?`) ni en un prefetch (`X-Sec-Purpose`, `Sec-Purpose`). Detrás está
+    `Query#mark_record_seen!(record)`, sin armar un `Item` ni pasar por `fresh_keys`; `mark_seen!(item)`
+    no cambia. afal-apps puede cambiar `TDFlow::RecordsDecisions#mark_seen` por `mark_inbox_seen`
+    (`git grep -n "issues/1535" origin/main`).
+- **`Bali::Inbox::Badge.write_from(owner, pending_by_module:)`** (#1533): escribe el número del ícono
+  desde lo que la app ya contó (`{ td_flow: 6 }`, todos los providers de esa llave de
+  `Bali.inbox_providers`). Bali cuenta los demás módulos y los avisos sin leer con la regla de
+  `compute`, que acepta el mismo `pending_by_module:`. La guía («The badge») dice qué es API pública de
+  `Badge`: `for`, `compute`, `write_from`, `expire` y `refresh`; `Badge.new` y `write` no. Una llave
+  sin providers debajo lanza `ArgumentError`, porque contaría dos veces. La app lo llama sólo cuando
+  no se está suplantando. afal-apps, que ya lo guarda así, puede cambiar el `Badge.write(…,
+  Badge.new(…))` de `TDFlow::Home#write_badges` por `write_from(user, pending_by_module: { td_flow:
+  pending })` (`git grep -n "issues/1533" origin/main`).
+
+### Fixed
+
+- **«Avisos» sin avisos ya no pinta una franja vacía con borde sobre «No tienes avisos»** (#1525). La
+  cabecera del listado (el rango y «Marcar todos como leídos») sale sólo cuando hay avisos. Nada que
+  hacer en la app.
+- **Con el filtro de módulo, la bandeja ya avisa cuando el tope de 100 por tipo pudo dejar fuera
+  items de ese módulo** (#1534). El tope se aplica antes del filtro: con un tipo cuyos items traen un
+  `module_key` distinto del de su provider, `/inbox?module=x` podía quedar vacío o incompleto sin «Se
+  muestran los primeros 100 de cada tipo». Ahora `capped?` sigue en `true` para ese tipo. Hoy ningún
+  provider de las apps trae `module_key` propio: nada que hacer.
+- **Suplantar a alguien ya no le escribe el número del ícono** (#1536). El ícono y el popover de una
+  sesión suplantada guardaban en el caché de la persona lo que veía esa sesión; si la app le oculta
+  filas al suplantar, la persona veía ese número al volver a entrar, hasta por un minuto. Ahora,
+  mientras `owner_reading?` es falso (`impersonating?` de bali-auth), los dos cuentan en cada petición
+  y no tocan el caché. afal-apps puede borrar su `ApplicationController#inbox_badge` y el
+  `after_action` de `InboxesController` que lo rodeaban (`git grep -n "#1536" origin/main`).
+  `owner_reading?` pasa de `Concerns::Controllers::Inbox` a `InboxBadge`, que `Inbox` incluye.
 
 ## [v3.23.0] - 2026-10-28
 

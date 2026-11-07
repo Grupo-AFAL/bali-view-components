@@ -82,14 +82,17 @@ module Bali
           render :badge, layout: false
         end
 
+        # `to` replaces the href. Not from a `drawer:` link: ModalController loads the destination of
+        # a redirect as the whole page, so a drawer reads with `mark_inbox_seen` itself.
         def open_item
           item = inbox_query.find(params[:kind], params[:gid])
-          if item.nil? || item.href.blank?
+          destination = item && (url_from(params[:to]) || item.href.presence)
+          unless destination
             return redirect_to(url_for(action: :item, kind: params[:kind], gid: params[:gid]), status: :see_other)
           end
 
           inbox_query.mark_seen!(item) if owner_reading?
-          redirect_to item.href, status: :see_other
+          redirect_to destination, status: :see_other
         end
 
         def open_notice
@@ -120,8 +123,6 @@ module Bali
           head :unauthorized unless inbox_owner
         end
 
-        def owner_reading? = !(respond_to?(:impersonating?, true) && impersonating?)
-
         def unread_notices = Bali::Notice.unread.listed.addressed_to(inbox_owner)
 
         def load_pending
@@ -143,13 +144,12 @@ module Bali
           @unread_count = unread_notices.count
         end
 
-        # The popover's numbers are live, so they also become the icon's: the cache, and the badge
-        # frame the popover's stream updates.
+        # The popover's numbers are live, so they also become the icon's: the badge frame the
+        # popover's stream updates and, while the owner is the one reading, the cache.
         def load_popover
           @items = inbox_query.items.first(POPOVER_LIMIT)
           @fresh = inbox_query.fresh_keys(@items)
-          @badge = Bali::Inbox::Badge.new(pending: inbox_query.count, unread: unread_notices.count)
-          Bali::Inbox::Badge.write(inbox_owner, @badge)
+          @badge = owner_reading? ? Bali::Inbox::Badge.write_from(inbox_owner) : Bali::Inbox::Badge.compute(inbox_owner)
         end
 
         def popover_notices = { notices: latest_notices, unread_count: unread_notices.count }
