@@ -200,6 +200,15 @@ describe('DrawerController', () => {
       })
     })
 
+    it('shows its data-turbo-submits-with instead, when the <input type="submit"> has one', () => {
+      cy.intercept('POST', '/fake/submit*', { delay: 5000, statusCode: 422, body: '<p>Not saved</p>' }).as('heldSubmit')
+      cy.get('input[type="submit"][name="commit"]').invoke('attr', 'data-turbo-submits-with', 'Saving…')
+      cy.get('input[type="submit"][name="commit"]').click()
+
+      cy.get('input[type="submit"][name="commit"]').should('have.value', 'Saving…')
+      cy.wait('@heldSubmit')
+    })
+
     it('takes the button carrying the action, not the element under the pointer', () => {
       // Held past the assertions' 4 s, so the button is still there to be asked about.
       cy.intercept('POST', '/fake/submit*', { delay: 5000, statusCode: 422, body: '<p>Not saved</p>' }).as('heldSubmit')

@@ -184,9 +184,10 @@ describe('Topbar inbox', () => {
     })
   })
 
-  // The person opened the panel, so an answer without the popover frame (the sign-in page once the
-  // session expired) becomes the page, instead of Turbo's "Content missing" inside the panel.
-  it('shows the page an opened panel gets instead of its frame', () => {
+  // The person opened the panel and got another page (the sign-in page once the session expired):
+  // the page they are on is asked for again, which an auth gate remembers to return to after signing
+  // in, instead of Turbo's "Content missing" inside the panel or the popover's fragment as the page.
+  it('visits the page again when an opened panel gets another page instead of its frame', () => {
     const errors = []
     cy.on('uncaught:exception', (error) => {
       errors.push(error.message)
@@ -197,12 +198,15 @@ describe('Topbar inbox', () => {
       headers: { 'content-type': 'text/html' },
       body: '<html><head></head><body><form id="sign-in"></form></body></html>'
     }).as('signIn')
+    cy.location('pathname').then((pathname) => cy.intercept({ method: 'GET', pathname }).as('samePage'))
 
     cy.get(trigger).click()
 
     cy.wait('@signIn')
-    cy.get('form#sign-in').should('exist')
-    cy.get(panel).should('not.exist')
+    cy.wait('@samePage')
+    cy.location('pathname').should('include', '/bali/topbar/inbox/default')
+    cy.get('form#sign-in').should('not.exist')
+    cy.contains('Content missing').should('not.exist')
     cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
   })
 

@@ -202,9 +202,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   envuelve) y sólo
   `"true"` pide streams. Cambia el `Accept` de los formularios de firma de td_flow en afal-apps, que ya
   responden HTML; ninguna app tiene que cambiar nada.
-- **`Bali::Topbar::Inbox`: el panel abierto con la sesión vencida lleva a la página que respondió**
-  (la de inicio de sesión), en lugar de escribir «Content missing» dentro del panel y lanzar
-  `TurboFrameMissingError`. El número del ícono, que se refresca solo, conserva el que tenía.
+- **`Bali::Topbar::Inbox`: abrir el panel con la sesión vencida vuelve a pedir la página donde se
+  está**, en lugar de escribir «Content missing» dentro del panel y lanzar `TurboFrameMissingError`.
+  La app lleva al inicio de sesión y, al entrar, regresa a esa página: no al fragmento del panel,
+  que no tiene layout. Sin cambios para el host.
 - **Un `<input type="submit">` de un `Bali::Modal` o un `Bali::Drawer` muestra que está enviando.**
   El spinner iba dentro del botón, y un `<input>` no pinta hijos: sólo se deshabilitaba. Ahora su
   texto pasa a su `data-turbo-submits-with` o a «…» (el formulario ya lleva el valor original).

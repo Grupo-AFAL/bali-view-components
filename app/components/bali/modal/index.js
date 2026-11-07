@@ -13,6 +13,9 @@ const FOCUSABLE = [
   'iframe:not([tabindex="-1"])', '[tabindex]:not([tabindex="-1"])'
 ].join(', ')
 
+// What an <input type="submit"> without `data-turbo-submits-with` reads while it sends.
+const SUBMITTING_VALUE = '…'
+
 // Size classes matching Modal::Component::SIZES
 const SIZE_CLASSES = {
   sm: 'max-w-sm',
@@ -1040,7 +1043,7 @@ export class ModalController extends Controller {
     // shows the wait in its value, as Turbo's `data-turbo-submits-with` does. The body was built
     // from the real value before this.
     if (button instanceof window.HTMLInputElement) {
-      button.value = button.dataset.turboSubmitsWith || '…'
+      button.value = button.dataset.turboSubmitsWith || SUBMITTING_VALUE
       return
     }
 

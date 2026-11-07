@@ -31,6 +31,9 @@ export class TopbarInboxController extends Controller {
     }
     document.addEventListener('turbo:before-render', this.carryOpenPanel)
     document.addEventListener('turbo:visit', this.forgetOpenedDuringVisit)
+    // On the frame and not as a data-action: tippy moves the panel into its popper, outside this
+    // element, where Stimulus no longer routes the frame's events.
+    this.frame.addEventListener('turbo:frame-missing', this.revisitPage)
     this.ready = true
   }
 
@@ -40,6 +43,7 @@ export class TopbarInboxController extends Controller {
     document.removeEventListener('turbo:before-render', this.carryOpenPanel)
     document.removeEventListener('turbo:load', this.reopen)
     document.removeEventListener('turbo:visit', this.forgetOpenedDuringVisit)
+    this.frame.removeEventListener('turbo:frame-missing', this.revisitPage)
     this.stopListening()
     if (this.tippy) {
       this.tippy.destroy()
@@ -133,12 +137,14 @@ export class TopbarInboxController extends Controller {
     event.preventDefault()
   }
 
-  // The popover frame routes `turbo:frame-missing` here. The person opened the panel, so an answer
-  // without the frame, the sign-in page once the session expired, becomes the page: otherwise
-  // Turbo writes "Content missing" into the panel and throws.
-  showAnswer (event) {
+  // The popover frame's `turbo:frame-missing`: the person opened the panel and got another page,
+  // the sign-in page once the session expired. Left alone, Turbo writes "Content missing" into the
+  // panel and throws. The page they are on is visited again, not that answer: the auth gate
+  // remembers the path it turned away to return there after signing in, and the popover's is a
+  // fragment with no layout. `replace`, because a visit to the same page would add a history entry.
+  revisitPage = (event) => {
     event.preventDefault()
-    event.detail.visit(event.detail.response)
+    event.detail.visit(window.location.href, { action: 'replace' })
   }
 
   async ensureTippy () {
