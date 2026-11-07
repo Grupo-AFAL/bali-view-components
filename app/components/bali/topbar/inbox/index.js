@@ -5,6 +5,11 @@ import { optionalPeer } from '../../../../assets/javascripts/bali/utils/optional
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
 
+// The inbox elements of a <body> Turbo is about to render in place of one whose panel was opened
+// while that visit loaded. A set and not a data attribute: a morph render copies attributes onto
+// the live element, whose controller never reconnects to clear it.
+const reopenAfterVisit = new WeakSet()
+
 // Bali::Topbar::Inbox (#1512). The trigger is a link to the full page: a plain click opens the
 // popover instead, and a modified click, or a page without this controller, still navigates.
 // The popover's frame has no `src` until the first open, so a page that never opens it never
@@ -18,12 +23,23 @@ export class TopbarInboxController extends Controller {
   connect () {
     this.panel = this.panelTarget
     this.frame = this.frameTarget
+    // Not in connect(): Turbo clears `aria-busy` only just before `turbo:load`, so an open() here
+    // would count as opened during the visit and follow a row's link to the next page.
+    if (reopenAfterVisit.delete(this.element)) {
+      this.openedDuringVisit = true
+      document.addEventListener('turbo:load', this.reopen, { once: true })
+    }
+    document.addEventListener('turbo:before-render', this.carryOpenPanel)
+    document.addEventListener('turbo:visit', this.forgetOpenedDuringVisit)
     this.ready = true
   }
 
   // destroy() leaves the panel inside the popper it is about to throw away; a Turbo render that
   // reconnects this controller would come back without one.
   disconnect () {
+    document.removeEventListener('turbo:before-render', this.carryOpenPanel)
+    document.removeEventListener('turbo:load', this.reopen)
+    document.removeEventListener('turbo:visit', this.forgetOpenedDuringVisit)
     this.stopListening()
     if (this.tippy) {
       this.tippy.destroy()
@@ -48,7 +64,11 @@ export class TopbarInboxController extends Controller {
   }
 
   async open () {
+    // Turbo's mark of a visit in progress.
+    this.openedDuringVisit = document.documentElement.hasAttribute('aria-busy')
     const tippy = await this.ensureTippy()
+    // A render replaced the page while tippy.js loaded; the link is only for a missing tippy.js.
+    if (!this.element.isConnected) return
     if (!tippy) {
       window.location.assign(this.triggerTarget.href)
       return
@@ -59,10 +79,26 @@ export class TopbarInboxController extends Controller {
   }
 
   close ({ returnFocus = true } = {}) {
+    this.openedDuringVisit = false
     if (!this.isOpen) return
 
     this.tippy.hide()
     if (returnFocus) this.triggerTarget.focus()
+  }
+
+  // The open panel hangs off the <body> the visit replaces. Only a panel opened while the visit
+  // loaded goes on to the next page: following a link from an open panel lands with it closed.
+  carryOpenPanel = ({ detail: { newBody } }) => {
+    const element = this.openedDuringVisit && newBody.querySelector(`[data-controller~="${this.identifier}"]`)
+    if (element) reopenAfterVisit.add(element)
+  }
+
+  reopen = () => this.open()
+
+  // A new visit ends the one the panel was opened during, whether it cancels it (a row's link,
+  // clicked inside the panel, never goes through `close()`) or follows its redirect.
+  forgetOpenedDuringVisit = () => {
+    this.openedDuringVisit = false
   }
 
   get isOpen () {

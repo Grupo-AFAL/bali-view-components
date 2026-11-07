@@ -159,6 +159,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   y las cuatro `title: tag.span(class: "flex items-center gap-2")` de
   `processes/{macroprocess,procedure,process}_requests/new.html.erb` y
   `processes/procedures/related_documents/new.html.erb`.
+- **`Bali::Topbar::Inbox`: el panel abierto durante una visita de Turbo está abierto cuando llega
+  la página** (#1567). Turbo lo cerraba al reemplazar el `<body>`, también con la vista previa de
+  caché. Seguir un enlace desde el panel abierto deja la página nueva con él cerrado, como antes.
+  Sin cambios para el host.
 
 ## [v3.23.0] - 2026-10-28
 
