@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   6.16.1 (los trae Cypress); `undici` 6.29.0 → 6.29.1 y `zod` 4.6.5 → 4.6.6 en la dummy (los trae
   el SDK de IA de BlockNote). Cierra las 10 alertas abiertas de Dependabot y reemplaza a sus PRs
   #1542, #1544, #1555 y #1561.
+- **npm: `minimatch` 10.2.4 → 11.0.5 en el `yarn.lock` del repo** (la resolución pasa de
+  `>=3.1.5` a `>=11.0.1`), por GHSA-g3hv-75wg-m249 (un patrón con `**/../` repetido crece sin
+  límite al compilarse; afecta `>= 7.0.0, < 11.0.1`). Solo lo usan herramientas de desarrollo
+  (ESLint 8 de StandardJS y el `glob` de `rimraf`); el paquete npm que instalan las apps no
+  lo trae. Cierra la alerta #265 de Dependabot.
 
 ### Dependencies
 
