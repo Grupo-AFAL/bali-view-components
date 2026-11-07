@@ -68,6 +68,15 @@ module Bali
         render_with_template
       end
 
+      # Submit Buttons With a Value
+      # ---
+      # A form told apart by the button pressed. `drawer#submit` sends that button's
+      # `name`/`value` as the browser's own submit does: the FormBuilder's `<button>` and
+      # Rails' `<input type="submit" name="commit">` alike. Used by the Cypress suite.
+      def submitter_form
+        render_with_template
+      end
+
       # Unsaved Changes (Confirm on Close)
       # ---
       # Drawers guard against silently discarding an unsaved form. Editing a
