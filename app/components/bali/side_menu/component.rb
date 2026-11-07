@@ -217,7 +217,9 @@ module Bali
       def draw_navigation
         menu = navigation_menu
         menu.app_modules.each do |app_module|
-          with_menu_switch(title: app_module.title, icon: app_module.icon, href: menu.landing(app_module),
+          next unless (landing = menu.landing(app_module))
+
+          with_menu_switch(title: app_module.title, icon: app_module.icon, href: landing,
                            active: app_module.equal?(menu.current_app_module))
         end
         menu.sections.each do |section|

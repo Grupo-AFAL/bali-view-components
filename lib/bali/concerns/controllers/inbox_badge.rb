@@ -22,8 +22,10 @@ module Bali
       # than the owner, and the owner would see its number on their next page.
       #
       # It also gives every host controller `mark_inbox_seen(record)`, the one way to mark an item
-      # read from a screen that is not its `href` (a decision panel in a drawer), because this is
-      # the concern each of them already has.
+      # read from a screen that is not its `href` (a decision panel in a drawer), and
+      # `write_inbox_badge(pending_by_module:)` for a page that already counted a module's items,
+      # because this is the concern each of them already has. Both act only while the owner is the
+      # one reading.
       module InboxBadge
         extend ActiveSupport::Concern
 
@@ -57,6 +59,15 @@ module Bali
           return if %w[X-Sec-Purpose Sec-Purpose].any? { request.headers[it].to_s.include?("prefetch") }
 
           Bali::Inbox::Query.new(owner).mark_record_seen!(record)
+        end
+
+        # Caches the badge with the count this page already has, and this request's `inbox_badge`
+        # with it. Not while someone acts as the owner: it would be the number they see next (#1536).
+        def write_inbox_badge(pending_by_module:)
+          owner = inbox_owner
+          return unless owner && owner_reading?
+
+          @inbox_badge = Bali::Inbox::Badge.write_from(owner, pending_by_module:)
         end
 
         def expire_inbox_badge

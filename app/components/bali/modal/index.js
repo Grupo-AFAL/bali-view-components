@@ -888,6 +888,10 @@ export class ModalController extends Controller {
     // its payment form's Conekta callback), so the fallback climbs to the button the same way.
     const button = event.currentTarget ?? event.target.closest('button, input[type="submit"]')
 
+    // `button.form` first: a submitter from another form makes FormData throw, and a
+    // `form="…"` attribute is how a button outside the form names the one it submits.
+    const form = button.form ?? button.closest('form')
+
     // `reportValidity()` on the FORM, not `checkValidity()` plus a hand-rolled loop.
     //
     // The `event.preventDefault()` above has already cancelled the browser's own
@@ -904,9 +908,6 @@ export class ModalController extends Controller {
     //
     // (The orphan page-level instance used to reach this line too; since #984 it
     // returns before preventDefault, so its validation is the browser's own.)
-    // `button.form` first: a submitter from another form makes FormData throw, and a
-    // `form="…"` attribute is how a button outside the form names the one it submits.
-    const form = button.form ?? button.closest('form')
     if (!form.reportValidity()) return
 
     // Built before `_startSubmitting` disables the button: a disabled control never reaches

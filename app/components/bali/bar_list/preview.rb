@@ -21,7 +21,7 @@ module Bali
       # Labels longer than their line wrap under themselves; the figure keeps its place at the
       # end of the first line.
       def long_labels
-        render Bali::BarList::Component.new(aria_label: "Restaurants by district", items: [
+        render Bali::BarList::Component.new(aria_label: "People by job profile", items: [
           { label: "GERENTE DE RESTAURANTE CARL'S", value: 14, href: "/lookbook" },
           { label: "SUPERVISOR DE ALIMENTOS Y BEBIDAS DEL CENTRO DE DISTRIBUCIÓN NORTE", value: 9, href: "/lookbook" },
           { label: "COORDINADORA REGIONAL DE OPERACIONES BAJA CALIFORNIA", value: 3 }

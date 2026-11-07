@@ -48,7 +48,8 @@ module Bali
           .sort_by { |item| sort_key(item) }
       end
 
-      # Whether `items` may have left out some of what it was asked for. Known once it has run.
+      # Whether a provider reached FETCH_CAP where the cut could hold items of the asked module:
+      # the rule `fetch` states. Known once `items` has run.
       def capped? = @capped.present?
 
       # The item at `/inbox/items/:kind/:gid`, or nil when it is not pending for this user. The

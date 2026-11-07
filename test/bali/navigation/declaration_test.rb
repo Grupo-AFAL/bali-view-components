@@ -115,7 +115,26 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
       navigation { section(:reports) { item :invoices, path: "/a", gate: ->(user) { user.admin? } } }
     end
 
-    assert_match "gates run in the view, use current_user", error.message
+    assert_match "the gate: of :invoices takes arguments: it runs in the view", error.message
+  end
+
+  test "any option run in the view that takes the user is refused" do
+    { path: ->(user) { user.home }, badge: ->(user) { user.count }, keywords: ->(user) { user.tags } }.each do |name, value|
+      error = assert_raises(ArgumentError) do
+        navigation { section(:reports) { item :invoices, path: "/a", **{ name => value } } }
+      end
+
+      assert_match "the #{name}: of :invoices takes arguments", error.message
+    end
+    assert_raises(ArgumentError, match: "the landing: of :finance takes arguments") do
+      navigation { app_module(:finance, landing: ->(user) { user.home }) { item :invoices, path: "/a" } }
+    end
+  end
+
+  test "a match the side menu does not know is refused" do
+    assert_raises(ArgumentError, match: "match: :fuzzy is not one of exact, partial, starts_with, crud") do
+      navigation { section(:reports) { item :invoices, path: "/a", match: :fuzzy } }
+    end
   end
 
   test "a gate that is not a Proc needs authorize first" do
@@ -156,6 +175,37 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
     assert_raises(ArgumentError, match: "section :reports has no items") { navigation { section :reports } }
     assert_raises(ArgumentError, match: "group :settings has no items") do
       navigation { section(:reports) { group :settings } }
+    end
+  end
+
+  test "a container the side menu draws nothing of is refused" do
+    assert_raises(ArgumentError, match: "section :reports draws nothing in the side menu") do
+      navigation { section(:reports) { item :exports, path: "/a", menu: false } }
+    end
+    assert_raises(ArgumentError, match: "group :settings draws nothing in the side menu") do
+      navigation { section(:reports) { group(:settings) { item :archive, path: "/a", menu: false } } }
+    end
+  end
+
+  test "a module with nothing that opens in place declares its landing" do
+    assert_raises(ArgumentError, match: "app_module :marketing opens nothing in place: declare landing:") do
+      navigation { app_module(:marketing) { item :apex, path: "https://apex.example", target: "_blank" } }
+    end
+
+    nav = navigation do
+      app_module(:marketing, landing: "/marketing") { item :apex, path: "https://apex.example", target: "_blank" }
+    end
+    assert_equal "/marketing", nav.find(:marketing).landing
+  end
+
+  test "items written directly in a module go before its sections" do
+    assert_raises(ArgumentError, match: "item :late: what goes directly in app_module :finance is written before") do
+      navigation do
+        app_module(:finance) do
+          section(:reports) { item :invoices, path: "/a" }
+          item :late, path: "/b"
+        end
+      end
     end
   end
 

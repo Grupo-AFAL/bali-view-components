@@ -98,7 +98,8 @@ module Bali
         # @param icon [String, nil] Lucide icon name
         # @param gate [Proc, Object, nil] zero-arity Proc run in the view, or a value for `authorize`
         # @param controllers [Array<String>] namespaces it claims: each one and everything under it
-        # @param badge [Proc, nil] run in the view when the item is drawn; nil draws no badge
+        # @param badge [Proc, String, Integer, nil] a Proc runs in the view when the item is drawn;
+        #   nil draws no badge
         # @param target [String, nil] `"_blank"` and the like; such an item stays out of the palette
         # @param hint [String, nil] the link's `title`, and search text in the palette
         # @param keywords [String, Array<String>, Proc, nil] more search text for the palette
@@ -109,6 +110,10 @@ module Bali
         def item(key, path: nil, icon: nil, gate: nil, controllers: [], badge: nil, target: nil, hint: nil,
                  keywords: nil, menu: true, match: :crud, title: nil)
           raise ArgumentError, "item #{key.inspect} has no path:" if path.nil?
+          unless Bali::SideMenu::Item::Component::MATCH_TYPES.include?(match)
+            raise ArgumentError, "item #{key.inspect}: match: #{match.inspect} is not one of " \
+                                 "#{Bali::SideMenu::Item::Component::MATCH_TYPES.join(', ')}"
+          end
 
           build(Item, key, nil, parent: entry_parent(:item, key), path:, icon:, gate:, controllers:, badge:,
                                 target:, hint:, keywords:, menu:, match:, title:)
@@ -164,6 +169,7 @@ module Bali
         # The claims rules 1 and 2 of `locate` leave tied, among those the block keeps; the
         # caller breaks the tie (`locate` by declaration order, `Menu#location` by query first).
         #
+        # @api private
         # @param controller_path [String]
         # @yieldparam claim [Claim]
         # @return [Array<Claim>]
@@ -194,7 +200,7 @@ module Bali
 
         def build(klass, key, block, parent: building, controllers: [], **options)
           reject_duplicate!(key)
-          validate_gate!(key, options[:gate])
+          validate_procs!(key, options)
           controllers = Array(controllers).map(&:to_s).each { |entry| validate_entry!(key, entry) }
 
           node = klass.new(navigation: self, key: key, parent: parent, index: next_index, controllers:, **options)
@@ -207,8 +213,7 @@ module Bali
               building_stack.pop
             end
           end
-          raise ArgumentError, "#{klass.name.demodulize.underscore} #{key.inspect} has no items" if !node.item? && node.children.empty?
-
+          reject_dead_end!(node) unless node.item?
           node
         end
 
@@ -226,6 +231,10 @@ module Bali
 
           last = building.children.last
           return last if last.is_a?(Section) && last.implicit?
+          if last
+            raise ArgumentError, "#{kind} #{key.inspect}: what goes directly in app_module #{building.key.inspect} " \
+                                 "is written before its sections"
+          end
 
           Section.new(navigation: self, key: nil, parent: building, index: next_index, implicit: true).tap { add(it) }
         end
@@ -280,17 +289,34 @@ module Bali
           raise ArgumentError, "#{key.inspect}: the top level holds app modules or sections, not both"
         end
 
-        def validate_gate!(key, gate)
-          return if gate.nil?
+        # Every Proc option runs in the view through `instance_exec`, where a lambda that takes
+        # the user raises on each render; caught here, when the class loads.
+        def validate_procs!(key, options)
+          options.slice(:gate, :path, :landing, :badge, :keywords).each do |name, value|
+            next unless value.is_a?(Proc) && !value.arity.zero?
 
-          if gate.is_a?(Proc)
-            return if gate.arity.zero?
-
-            raise ArgumentError, "the gate of #{key.inspect} takes arguments: gates run in the view, use current_user"
+            raise ArgumentError, "the #{name}: of #{key.inspect} takes arguments: it runs in the view, use current_user"
           end
-          return if authorizer
+          gate = options[:gate]
+          return if gate.nil? || gate.is_a?(Proc) || authorizer
 
           raise ArgumentError, "the gate of #{key.inspect} is not a Proc: declare `authorize` before it"
+        end
+
+        # A container the side menu draws nothing of is offered nowhere, its `menu: false` items
+        # included (`Menu#visible?`); a module with nothing that opens in place has no landing.
+        def reject_dead_end!(node)
+          name = "#{node.class.name.demodulize.underscore} #{node.key.inspect}"
+          items = items_below(node)
+          raise ArgumentError, "#{name} has no items" if items.empty?
+          raise ArgumentError, "#{name} draws nothing in the side menu: every item is menu: false" if items.none?(&:menu?)
+          return unless node.is_a?(AppModule) && node.landing.nil? && items.none? { it.menu? && !it.target }
+
+          raise ArgumentError, "#{name} opens nothing in place: declare landing:"
+        end
+
+        def items_below(node)
+          node.children.flat_map { it.item? ? [ it ] : items_below(it) }
         end
 
         def validate_entry!(key, entry)

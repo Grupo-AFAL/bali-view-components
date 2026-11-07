@@ -35,6 +35,18 @@ class BaliSideMenuNavigationTest < ComponentTestCase
     assert_selector ".dropdown-content a[href='/admin']", text: "Administration", visible: :all
   end
 
+  test "a module whose landing resolves to nil gets no switch" do
+    navigation = Class.new(Bali::Navigation::Base) do
+      app_module(:work, title: "Work") { item :projects, title: "Projects", path: "/projects" }
+      app_module(:admin, title: "Administration") { item :users, title: "Users", path: "/admin/users" }
+      app_module(:archive, title: "Archive") { item :old, title: "Old", path: -> { } }
+    end
+    render_inline(Bali::SideMenu::Component.new(current_path: "/elsewhere", navigation: navigation))
+
+    assert_selector ".dropdown-content a[href='/projects']", text: "Work", visible: :all
+    assert_no_selector ".dropdown-content a", text: "Archive", visible: :all
+  end
+
   test "the lists of the current module, a section without heading drawn without one" do
     render_menu
 

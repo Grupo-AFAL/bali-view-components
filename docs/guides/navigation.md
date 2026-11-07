@@ -84,10 +84,15 @@ authorize { |(subject, query)| policy(subject).public_send(query) }  # Pundit pa
 
 Visibility comes from gates alone. An item shows when its gate passes; a module, section or group
 when its own gate passes and something drawn inside it shows — so a module whose only visible
-items are `menu: false` is not offered. A module lands on its first item drawn in the side menu
-that opens in place (no `target:`) unless it declares `landing:`. A module whose drawn items all
-open elsewhere has no such item, and its switch would come out as `<a href="">`: that module
-declares `landing:`.
+items are `menu: false` is not offered, nor are those items. A module lands on its first item
+drawn in the side menu that opens in place (no `target:`) and has a path, unless it declares
+`landing:`; one with no such item for this person gets no switch and no row in the palette.
+
+The class refuses to load what could never work: a module, section or group with no item drawn in
+the side menu (every item `menu: false`), a module with nothing that opens in place and no
+`landing:`, items written directly in a module after its sections, a `match:` the side menu does
+not know, and a lambda option (`gate:`, `path:`, `landing:`, `badge:`, `keywords:`) that takes
+arguments — they run in the view, where `current_user` is at hand.
 
 ## Paths
 

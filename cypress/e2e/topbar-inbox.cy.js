@@ -361,9 +361,8 @@ describe('Topbar inbox across a Turbo visit', () => {
     cy.get('[data-tippy-root]').should('not.exist')
   })
 
-  // A host that loads tippy.js as a module of its own (an importmap) can have a render replace the
-  // page while `open()` waits for it. The dummy bundles tippy.js, so the element leaves in the same
-  // task as the click, before the import resolves.
+  // A render can replace the page while `open()` waits for tippy.js, a chunk of its own in a split
+  // build. Here the element leaves in the same task as the click, before the import resolves.
   it('an open whose element leaves the page before tippy.js arrives does not go to the full page', () => {
     cy.visit(`${appOrigin}/admin`)
     cy.intercept({ method: 'GET', pathname: '/inbox' }).as('fullPage')

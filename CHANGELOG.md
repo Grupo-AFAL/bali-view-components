@@ -7,6 +7,133 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Dropdown`: `with_item(tag: :divider)`** (#1549), una línea entre items (`<li role="separator">`
+  dentro del menú; el teclado no la enfoca). Sólo se pinta entre dos items que se pintan: al
+  principio o al final del menú, o junto a otro divisor, se omite, así que puede ir antes de un
+  item con `authorized:`; acepta también `authorized:` como los demás. No cuenta para que el
+  menú se pinte. Vale también en `ActionsDropdown` y en `with_secondary_action` de las páginas.
+  En gobierno-corporativo reemplaza el `tag: :title` vacío con `border-t` de
+  `app/views/mdm/masters/_manage_menu.html.erb`.
+- **La guía de `Bali::DeleteLink` dice cómo cambiar el título, el botón y el color del diálogo de
+  confirmación** (#1521): `data: { bali_confirm_title:, bali_confirm_accept:, bali_confirm_variant: }`.
+  `data:` va al botón, y el diálogo lee el botón antes que el formulario, que trae «Confirmar
+  eliminación», «Eliminar» y `danger`. Ya funcionaba, así que no hay keywords nuevas: identity lo usa
+  así en `revoke_button` y en las confirmaciones de tokens y sesiones del admin, y ahora lo fija una
+  prueba. Un `button_to` escrito a mano sólo para cambiar esos textos puede volver a ser un
+  `DeleteLink` (`git grep -n "bali-view-components#1521"`).
+- **`Bali::PageHeader`: slot `with_title_mark`** (#1550), un ícono en un cuadro o un `Bali::Avatar`
+  antes del título, fuera del `<h1>` y con `aria-hidden` (sólo decorativa: nada enfocable
+  adentro). Llega igual por las cinco páginas (`ShowPage`, `IndexPage`, `FormPage`,
+  `DashboardPage`, `DocumentPage`). Con el título a su tamaño por omisión, una marca de hasta
+  32 px (`Avatar` `size: :xs`) queda centrada en la primera línea aunque el título parta en
+  varias; una más alta se alinea arriba y agranda el encabezado. En gobierno-corporativo pueden
+  pasar a este slot las marcas que hoy van dentro de `title:`: `mdm/masters/_record_page.html.erb`
+  y las cuatro `title: tag.span(class: "flex items-center gap-2")` de
+  `processes/{macroprocess,procedure,process}_requests/new.html.erb` y
+  `processes/procedures/related_documents/new.html.erb`.
+- **`Bali::LocationsMap`: `map_class:` y marcas que se mueven** (#1537). `map_class:` va al mapa,
+  de 450 px por omisión: `map_class: "h-56"` lo acorta sin `!`. La página puede reemplazar las
+  marcas después de conectar escribiendo `data-locations-map-locations-value` (`[{ lat, lng }]`).
+  **Anfitrión:** lo que ya acortaba el mapa sigue funcionando. gobierno-corporativo puede cambiar
+  `[&_.location-map]:h-56` por `map_class: "h-56"`, y centinela-web sus `@utility
+  location-map-compact` y `location-map-md` por `map_class: "h-[220px]"` y `"h-[300px]"`
+  (`git grep -n "location-map" -- app`).
+- **Marcar leído un pendiente que la app abre en otra pantalla que su `href`** (#1535).
+  - `open_item` acepta `to`: marca leído el aviso que lo anunció y redirige ahí si es de la misma app
+    (`url_from`, como `open_notice`); un destino de otra app se ignora y va al `href`. La liga lleva
+    `data: { turbo_prefetch: "false" }`, como las de Bali: Turbo la precarga al pasar el mouse y
+    `open_item` marca leído en ese GET. Desde una liga `drawer:` no abre el drawer: el drawer carga el
+    destino de una redirección como página completa.
+  - Una pantalla de la app que abre el registro ella misma, como un panel en un drawer, llama
+    `mark_inbox_seen(record)` (privado de `InboxBadge`). No marca mientras se suplanta
+    (`owner_reading?`) ni en un prefetch (`X-Sec-Purpose`, `Sec-Purpose`). Detrás está
+    `Query#mark_record_seen!(record)`, sin armar un `Item` ni pasar por `fresh_keys`; `mark_seen!(item)`
+    no cambia. afal-apps puede cambiar `TDFlow::RecordsDecisions#mark_seen` por `mark_inbox_seen`
+    (`git grep -n "issues/1535" origin/main`).
+- **`Bali::Inbox::Badge.write_from(owner, pending_by_module:)`** (#1533): escribe el número del ícono
+  desde lo que la app ya contó (`{ td_flow: 6 }`, todos los providers de esa llave de
+  `Bali.inbox_providers`). Bali cuenta los demás módulos y los avisos sin leer con la regla de
+  `compute`, que acepta el mismo `pending_by_module:`. La guía («The badge») dice qué es API pública de
+  `Badge`: `for`, `compute`, `write_from`, `expire` y `refresh`; `Badge.new` y `write` no. Una llave
+  sin providers debajo lanza `ArgumentError`, porque contaría dos veces. Desde un controlador, el
+  concern `InboxBadge` trae `write_inbox_badge(pending_by_module:)`, que no escribe nada mientras se
+  suplanta y deja ese número en el `inbox_badge` de la misma página; fuera de un controlador,
+  `write_from` escribe siempre y la app pregunta antes por la suplantación. afal-apps, que ya lo guarda así, puede cambiar el `Badge.write(…,
+  Badge.new(…))` de `TDFlow::Home#write_badges` por `write_from(user, pending_by_module: { td_flow:
+  pending })` (`git grep -n "issues/1533" origin/main`).
+- **`Bali::BarList`: barras horizontales en HTML** (#1552). Una fila por elemento con su etiqueta
+  completa (si no cabe, parte en líneas), la cifra al final de la línea y debajo una pista
+  proporcional al valor más grande; con `href:` la fila entera es un enlace, con la etiqueta
+  subrayada. La cifra lleva coma de miles y punto decimal en cualquier locale, como los conteos de
+  la bandeja (o `format:`). La altura sigue al número de filas. Pueden pasar a una sola llamada:
+  las fichas de gobierno-corporativo que hoy dibujan un `Bali::Chart` con `indexAxis: "y"` y
+  repiten las filas en `with_data_table` para llevar los enlaces (la guía muestra cómo), y en
+  afal-apps `cafeteria/dashboards/show` y `td_flow/reports/_bar_rows`. Esta última pinta etiqueta,
+  barra y cifra en una sola línea; `BarList` pone la barra debajo, así que migrarla cambia su aspecto.
+- **`Bali::Breadcrumb`: una ruta que no cabe se desvanece donde se corta** (#1551). En un teléfono la
+  ruta muestra su final, y la primera miga a la vista quedaba cortada a media palabra sin señal de
+  que se desliza. Ahora se desvanece el borde de inicio mientras hay migas escondidas de ese lado,
+  y el final cuando la ruta se desliza hacia el principio; una ruta que cabe no lleva máscara, y
+  una miga a la que llega Tab se detiene fuera del desvanecido.
+  Lo hace el controlador nuevo `BreadcrumbController`, que `registerAll` ya registra: una app
+  que registra controladores uno por uno lo registra como `breadcrumb` (el identificador que fija
+  la plantilla), o la ruta se corta como antes.
+- **`Bali::Navigation`: la navegación de la app, declarada una vez** (#1522). Una subclase de
+  `Bali::Navigation::Base` en `app/models/navigation.rb` declara módulos (opcionales), secciones,
+  grupos e ítems, cada uno con su `gate:` (una lambda que corre en la vista, o un valor que lee
+  `authorize`); los ítems llevan su ruta, y módulos, secciones e ítems los controladores que les
+  pertenecen. La clase no carga si declara algo que nunca funcionaría: un contenedor sin ningún ítem
+  en el menú lateral, un módulo sin nada que abra en la misma pestaña ni `landing:`, un `match:` que
+  el menú no conoce, o una lambda que recibe argumentos. `Bali::SideMenu` y `Bali::Command` se pintan desde ella con
+  `navigation: Navigation`, sin cambiar sus slots; `Navigation.locate(controller_path)` dice a
+  qué módulo, sección e ítem pertenece un controlador; `require "bali/testing/navigation"` trae
+  la prueba de que cada pantalla tiene lugar. Nadie la usa todavía: la migración de cada app (y
+  el piloto en garita) va en su propio PR, con la receta de `docs/guides/navigation.md`.
+- **`Bali::FilterForm`: `filter_attribute operators:` y `default_operator:` (#1566).** El panel
+  de filtros ofrece para ese atributo sólo los operadores listados, en ese orden (con uno solo,
+  el selector queda fijo), y una condición nueva abre en `default_operator:` o en el primero de
+  la lista: `filter_attribute :employee_id, type: :text, operators: %i[eq]`. Lo que el atributo
+  no ofrece tampoco llega a Ransack desde el panel: una vista guardada o una URL con otro
+  operador deja de filtrar y el panel no la pinta. `predicate:` sigue siendo sólo de la fila
+  simple. Los hashes de `with_filters_panel(available_attributes:)` aceptan las mismas llaves.
+  Nada cambia para quien no las declara.
+
+### Changed
+
+- **`Bali::FeedbackWidget`: los textos por omisión ya no nombran a Opina** (#1523). En español el botón
+  con texto y el título del panel dicen «Retroalimentación» (antes «Opina» y «Comentarios»), y
+  los botones de ícono, el flotante y el `:icon`, se anuncian «Abrir retroalimentación» (antes
+  «Abrir comentarios»). En inglés el botón con texto dice «Feedback» (antes «Opina»). Al subir se
+  rompen las pruebas que buscan «Opina» o «Comentarios»
+  (`git grep -nE "Opina|Abrir comentarios|Comentarios" -- test spec`): gobierno-corporativo,
+  costa-norte y centinela-web (`test/integration/feedback_widget_test.rb`) y garita
+  (`test/integration/console_shell_test.rb`); las que leen
+  `I18n.t("bali_view.feedback_widget.trigger_label")`, como identity, no. afal-apps puede borrar
+  las tres llaves que sobrescribe en `config/locales/es.yml`.
+- **`Bali::LocationsMap` no se pinta sin llave de Google Maps** (#1537). Con
+  `Bali.google_maps.api_key` vacío y sin `GOOGLE_MAPS_KEY` no hay mapa roto ni error de Google
+  en la consola: el componente no sale y deja un aviso en el log. **Anfitrión:** una prueba que
+  busque el mapa en test sin llave se pone roja; dale una (`Bali.google_maps.api_key = "…"`), como
+  ya hacen las de gobierno-corporativo y centinela-web. Una guarda
+  `Bali.google_maps.api_key.present?` que sólo envuelve el mapa sobra.
+- **Bali acepta ransack 6: `>= 5.0.3, < 7.0` (#1530).** Con ransack 5 nada cambia: Bali lee y
+  escribe los mismos nombres que antes. Con ransack 6, donde `cont`, `start` y `end` distinguen
+  mayúsculas en PostgreSQL, la búsqueda rápida y los operadores de texto del panel escriben
+  `i_cont`, `not_i_cont`, `i_start` e `i_end`, y Bali sigue leyendo los de antes en URLs,
+  vistas guardadas, caché y enlaces. Decide por la gema instalada (`Bali::RansackParamName`).
+  Un scope de Ransack con el nombre exacto de la caja en `_cont` (`ransackable_scopes`) lo
+  conserva. `FilterForm#search_param_names` dice bajo qué llaves se lee la búsqueda. Qué hace una
+  app antes de aceptar ransack 6 (`ransackable_associations`, lecturas a mano de `q[..._cont]`,
+  guardas sobre el `q` crudo, operadores por nombre, `_cont`/`_start`/`_end` escritos a mano):
+  `docs/guides/ransack-6.md`.
+
+### Removed
+
+- **`Bali::Topbar::Inbox::Component.count_text`.** La coma de miles de la bandeja pasa a
+  `Bali::Figure.delimited`, que también usa `Bali::BarList`. Ninguna app la llamaba.
+
 ### Fixed
 
 - **Un datepicker que ya tenía el foco al conectarse lo conserva y abre el calendario.** Pasa
@@ -31,6 +158,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   con `data-side-menu-booting`: oculta el drawer cerrado solo por debajo de 1024 px, y el
   controlador lo quita al conectarse y después de cada morph, cuando también vuelve a poner el
   `inert` del drawer y el rail colapsado. Nada que hacer en las apps.
+- **`Bali::Modal` y `Bali::Drawer` ya no lanzan `Missing target element "template"` al soltar su
+  panel** (Sentry AFAL-APPS-2T). Pasaba cuando el panel salía de la página o el elemento perdía
+  `modal`/`drawer` de su `data-controller`, p. ej. en un morph de Turbo hacia la pantalla de inicio
+  de sesión. Con el panel abierto, el siguiente Tab lanzaba también por `"wrapper"`. Sin cambios
+  para el host.
+- **El ícono del Inbox conserva su número cuando la sesión venció** (Sentry AFAL-APPS-2V). Si al
+  llegar un aviso la petición del badge terminaba en la pantalla de inicio de sesión, Turbo pintaba
+  «Content missing» dentro del ícono y lanzaba `TurboFrameMissingError`. Ahora el badge conserva su
+  número y no se lanza el error; lo mismo con una página de error del servidor. Sin cambios para el
+  host.
+- **Un enlace con método ya muestra su título y sus botones en el diálogo de confirmación** (#1532).
+  `Bali::Link` con `method:` distinto de GET, o cualquier `<a data-turbo-method>`, abría el diálogo
+  sin título, con «Aceptar» y en el color por omisión: Turbo lo envía con un formulario propio que no
+  copia ningún `data-bali-confirm-*`. Ahora el diálogo los lee del enlace. Nada que cambiar en el
+  host; el `button_to` que esquivaba esto (`git grep -n "bali-view-components#1532"`) puede quedarse,
+  y además funciona sin JavaScript.
+- **Un formulario enviado desde un `Bali::Modal` o un `Bali::Drawer` ya lleva el `name`/`value`
+  del botón pulsado** (#1518), como el envío del navegador: dos botones `name="decision"` con
+  distinto `value` ya se distinguen, sea el `<button>` de `f.submit` o el
+  `<input type="submit" name="commit">` de Rails. `Bali::Button` no manda ninguno: su `name:` es
+  la etiqueta. El spinner va en el botón aunque el clic caiga en su icono o su etiqueta, y un
+  botón con `form="…"` envía el formulario que nombra. Ningún envío lleva hoy un par nuevo: el
+  único botón con `name` que llega a `modal#submit` (pagos de enjoykitchen) ya va deshabilitado.
+  Las apps que lo rodean con un campo oculto o un radio (gobierno-corporativo, afal-apps) siguen
+  funcionando sin cambios.
+- **`data-turbo="false"` dentro de un `Bali::Modal` o un `Bali::Drawer` ya no pide Turbo Streams**
+  (#1527). El envío leía el atributo como booleano de JavaScript, y `"false"` lo es: mandaba
+  `Accept: text/vnd.turbo-stream.html`. Ahora lo lee como Turbo lee el de un botón: decide el
+  `data-turbo` más cercano al botón (el suyo, o el de su formulario o un contenedor que lo
+  envuelve) y sólo
+  `"true"` pide streams. Cambia el `Accept` de los formularios de firma de td_flow en afal-apps, que ya
+  responden HTML; ninguna app tiene que cambiar nada.
+- **`Bali::Topbar::Inbox`: el panel abierto durante una visita de Turbo está abierto cuando llega
+  la página** (#1567). Turbo lo cerraba al reemplazar el `<body>`, también con la vista previa de
+  caché. Seguir un enlace desde el panel abierto deja la página nueva con él cerrado, como antes.
+  Sin cambios para el host.
+- **`Bali::Table`: un encabezado con `class: "whitespace-normal"` parte su texto** (#1545).
+  `Table::Header` ya no antepone `whitespace-nowrap`, que empataba con la utilidad del host y
+  ganaba por orden de la hoja. Por omisión el encabezado sigue sin partir (lo hereda del `thead`
+  de daisyUI). Los `whitespace-normal!` que se pasan a un `with_header` siguen funcionando y
+  pueden perder el `!`: en afal-apps `marketing/pop_requests/index` y
+  `scholarships/requests/index`, y en gobierno-corporativo `governing_bodies/agreements/show`,
+  `governing_bodies/sessions/minutes/_agreements` y `_official_format_tab`.
+- **`Bali::LocationsMap`: un punto sin coordenada ya no deja sin marcas a los que siguen**
+  (#1537). Con `with_location(latitude: nil)` Google lanzaba y las marcas después de ese punto no
+  se construían; ahora el punto se omite. Igual con una coordenada que no es número en
+  `data-locations-map-locations-value`.
+- **«Avisos» sin avisos ya no pinta una franja vacía con borde sobre «No tienes avisos»** (#1525). La
+  cabecera del listado (el rango y «Marcar todos como leídos») sale sólo cuando hay avisos. Nada que
+  hacer en la app.
+- **Con el filtro de módulo, la bandeja ya avisa cuando el tope de 100 por tipo pudo dejar fuera
+  items de ese módulo** (#1534). El tope se aplica antes del filtro: con un tipo cuyos items traen un
+  `module_key` distinto del de su provider, `/inbox?module=x` podía quedar vacío o incompleto sin «Se
+  muestran los primeros 100 de cada tipo». Ahora `capped?` sigue en `true` para ese tipo. Hoy ningún
+  provider de las apps trae `module_key` propio: nada que hacer.
+- **Suplantar a alguien ya no le escribe el número del ícono** (#1536). El ícono y el popover de una
+  sesión suplantada guardaban en el caché de la persona lo que veía esa sesión; si la app le oculta
+  filas al suplantar, la persona veía ese número al volver a entrar, hasta por un minuto. Ahora,
+  mientras `owner_reading?` es falso (`impersonating?` de bali-auth), los dos cuentan en cada petición
+  y no tocan el caché. afal-apps puede borrar su `ApplicationController#inbox_badge` y el
+  `after_action` de `InboxesController` que lo rodeaban (`git grep -n "#1536" origin/main`).
+  `owner_reading?` pasa de `Concerns::Controllers::Inbox` a `InboxBadge`, que `Inbox` incluye.
+- **`Bali::Breadcrumb`: sólo la última miga es la página actual** (#1520). Una miga intermedia sin
+  `href` (un grupo del menú, un nivel que el usuario no puede abrir) llevaba
+  `aria-current="page"`, y el lector de pantalla anunciaba dos páginas actuales; `active: false`
+  no lo quitaba. Ahora es texto, igual que antes a la vista, y `aria-current` va sólo en la
+  última miga si no tiene `href`, o en la que pase `active: true`. Llega a todo `Bali::Breadcrumb`,
+  también el de las páginas con `breadcrumbs:`; una app que omitía la miga sin enlace para evitarlo (costa-norte,
+  `module_breadcrumbs`) ya puede dejarla. `Breadcrumb::Item::Component#active?` deja de existir
+  (`current?` dice si la miga es la actual).
+- **`Bali::FilterForm`: el panel de filtros pinta las condiciones de un rango como llegaron
+  (#1528).** Un `gteq` y un `lteq` del mismo atributo se juntaban en un «entre» aunque el grupo
+  fuera O o trajera otro operador del atributo, y Aplicar perdía ese otro operador (o, en un
+  número, la condición entera). Ahora sólo se juntan en un grupo Y, sin otro operador del
+  atributo y en un tipo que ofrece «entre» (fechas); lo demás queda como condiciones sueltas.
+  Un atributo que el form no ofrece (un panel con los atributos en la vista) se junta como
+  antes, también un número. Quien lea `filter_groups` (`git grep -n "filter_groups"`) recibe
+  esas condiciones sueltas.
 
 ### Security
 
@@ -83,233 +288,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de un `.join` pierde su `z-index` (2 y 1); medido comparando el CSS compilado de la dummy con
   4.3.3 y 4.3.4 (tailwindcss#20668, daisyui#4851, abiertos). **Paso de anfitrión:** no aceptar
   `tailwindcss-ruby` 4.3.4; las seis apps siguen en 4.3.3 (07/11/2026).
-- **`Bali::Modal` y `Bali::Drawer` ya no lanzan `Missing target element "template"` al soltar su
-  panel** (Sentry AFAL-APPS-2T). Pasaba cuando el panel salía de la página o el elemento perdía
-  `modal`/`drawer` de su `data-controller`, p. ej. en un morph de Turbo hacia la pantalla de inicio
-  de sesión. Con el panel abierto, el siguiente Tab lanzaba también por `"wrapper"`. Sin cambios
-  para el host.
-- **El ícono del Inbox conserva su número cuando la sesión venció** (Sentry AFAL-APPS-2V). Si al
-  llegar un aviso la petición del badge terminaba en la pantalla de inicio de sesión, Turbo pintaba
-  «Content missing» dentro del ícono y lanzaba `TurboFrameMissingError`. Ahora el badge conserva su
-  número y no se lanza el error; lo mismo con una página de error del servidor. Sin cambios para el
-  host.
-### Changed
-
-- **`Bali::FeedbackWidget`: los textos por omisión ya no nombran a Opina.** En español el botón
-  con texto y el título del panel dicen «Retroalimentación» (antes «Opina» y «Comentarios»), y
-  los botones de ícono, el flotante y el `:icon`, se anuncian «Abrir retroalimentación» (antes
-  «Abrir comentarios»). En inglés el botón con texto dice «Feedback» (antes «Opina»). Al subir se
-  rompen las pruebas que buscan «Opina» o «Comentarios»
-  (`git grep -nE "Opina|Abrir comentarios|Comentarios" -- test spec`): gobierno-corporativo,
-  costa-norte y centinela-web (`test/integration/feedback_widget_test.rb`) y garita
-  (`test/integration/console_shell_test.rb`); las que leen
-  `I18n.t("bali_view.feedback_widget.trigger_label")`, como identity, no. afal-apps puede borrar
-  las tres llaves que sobrescribe en `config/locales/es.yml`.
-### Added
-
-- **`Bali::Dropdown`: `with_item(tag: :divider)`**, una línea entre items (`<li role="separator">`
-  dentro del menú; el teclado no la enfoca). Sólo se pinta entre dos items que se pintan: al
-  principio o al final del menú, o junto a otro divisor, se omite, así que puede ir antes de un
-  item con `authorized:`; acepta también `authorized:` como los demás. No cuenta para que el
-  menú se pinte. Vale también en `ActionsDropdown` y en `with_secondary_action` de las páginas.
-  En gobierno-corporativo reemplaza el `tag: :title` vacío con `border-t` de
-  `app/views/mdm/masters/_manage_menu.html.erb`.
-### Added
-
-- **La guía de `Bali::DeleteLink` dice cómo cambiar el título, el botón y el color del diálogo de
-  confirmación** (#1521): `data: { bali_confirm_title:, bali_confirm_accept:, bali_confirm_variant: }`.
-  `data:` va al botón, y el diálogo lee el botón antes que el formulario, que trae «Confirmar
-  eliminación», «Eliminar» y `danger`. Ya funcionaba, así que no hay keywords nuevas: identity lo usa
-  así en `revoke_button` y en las confirmaciones de tokens y sesiones del admin, y ahora lo fija una
-  prueba. Un `button_to` escrito a mano sólo para cambiar esos textos puede volver a ser un
-  `DeleteLink` (`git grep -n "bali-view-components#1521"`).
-
-### Fixed
-
-- **Un enlace con método ya muestra su título y sus botones en el diálogo de confirmación** (#1532).
-  `Bali::Link` con `method:` distinto de GET, o cualquier `<a data-turbo-method>`, abría el diálogo
-  sin título, con «Aceptar» y en el color por omisión: Turbo lo envía con un formulario propio que no
-  copia ningún `data-bali-confirm-*`. Ahora el diálogo los lee del enlace. Nada que cambiar en el
-  host; el `button_to` que esquivaba esto (`git grep -n "bali-view-components#1532"`) puede quedarse,
-  y además funciona sin JavaScript.
-- **Un formulario enviado desde un `Bali::Modal` o un `Bali::Drawer` ya lleva el `name`/`value`
-  del botón pulsado** (#1518), como el envío del navegador: dos botones `name="decision"` con
-  distinto `value` ya se distinguen, sea el `<button>` de `f.submit` o el
-  `<input type="submit" name="commit">` de Rails. `Bali::Button` no manda ninguno: su `name:` es
-  la etiqueta. El spinner va en el botón aunque el clic caiga en su icono o su etiqueta, y un
-  botón con `form="…"` envía el formulario que nombra. Ningún envío lleva hoy un par nuevo: el
-  único botón con `name` que llega a `modal#submit` (pagos de enjoykitchen) ya va deshabilitado.
-  Las apps que lo rodean con un campo oculto o un radio (gobierno-corporativo, afal-apps) siguen
-  funcionando sin cambios.
-- **`data-turbo="false"` dentro de un `Bali::Modal` o un `Bali::Drawer` ya no pide Turbo Streams**
-  (#1527). El envío leía el atributo como booleano de JavaScript, y `"false"` lo es: mandaba
-  `Accept: text/vnd.turbo-stream.html`. Ahora lo lee como Turbo lee el de un botón: decide el
-  `data-turbo` más cercano (el suyo, si no el del formulario o el de un contenedor) y sólo
-  `"true"` pide streams. Cambia el `Accept` de los formularios de firma de td_flow en afal-apps, que ya
-  responden HTML; ninguna app tiene que cambiar nada.
-### Added
-
-- **`Bali::PageHeader`: slot `with_title_mark`**, un ícono en un cuadro o un `Bali::Avatar`
-  antes del título, fuera del `<h1>` y con `aria-hidden` (sólo decorativa: nada enfocable
-  adentro). Llega igual por las cinco páginas (`ShowPage`, `IndexPage`, `FormPage`,
-  `DashboardPage`, `DocumentPage`). Con el título a su tamaño por omisión, una marca de hasta
-  32 px (`Avatar` `size: :xs`) queda centrada en la primera línea aunque el título parta en
-  varias; una más alta se alinea arriba y agranda el encabezado. En gobierno-corporativo pueden
-  pasar a este slot las marcas que hoy van dentro de `title:`: `mdm/masters/_record_page.html.erb`
-  y las cuatro `title: tag.span(class: "flex items-center gap-2")` de
-  `processes/{macroprocess,procedure,process}_requests/new.html.erb` y
-  `processes/procedures/related_documents/new.html.erb`.
-- **`Bali::Topbar::Inbox`: el panel abierto durante una visita de Turbo está abierto cuando llega
-  la página** (#1567). Turbo lo cerraba al reemplazar el `<body>`, también con la vista previa de
-  caché. Seguir un enlace desde el panel abierto deja la página nueva con él cerrado, como antes.
-  Sin cambios para el host.
-- **`Bali::Table`: un encabezado con `class: "whitespace-normal"` parte su texto.**
-  `Table::Header` ya no antepone `whitespace-nowrap`, que empataba con la utilidad del host y
-  ganaba por orden de la hoja. Por omisión el encabezado sigue sin partir (lo hereda del `thead`
-  de daisyUI). Los `whitespace-normal!` que se pasan a un `with_header` siguen funcionando y
-  pueden perder el `!`: en afal-apps `marketing/pop_requests/index` y
-  `scholarships/requests/index`, y en gobierno-corporativo `governing_bodies/agreements/show`,
-  `governing_bodies/sessions/minutes/_agreements` y `_official_format_tab`.
-### Added
-
-- **`Bali::LocationsMap`: `map_class:` y marcas que se mueven** (#1537). `map_class:` va al mapa,
-  de 450 px por omisión: `map_class: "h-56"` lo acorta sin `!`. La página puede reemplazar las
-  marcas después de conectar escribiendo `data-locations-map-locations-value` (`[{ lat, lng }]`).
-  **Anfitrión:** lo que ya acortaba el mapa sigue funcionando. gobierno-corporativo puede cambiar
-  `[&_.location-map]:h-56` por `map_class: "h-56"`, y centinela-web sus `@utility
-  location-map-compact` y `location-map-md` por `map_class: "h-[220px]"` y `"h-[300px]"`
-  (`git grep -n "location-map" -- app`).
-
-### Changed
-
-- **`Bali::LocationsMap` no se pinta sin llave de Google Maps** (#1537). Con
-  `Bali.google_maps.api_key` vacío y sin `GOOGLE_MAPS_KEY` no hay mapa roto ni error de Google
-  en la consola: el componente no sale y deja un aviso en el log. **Anfitrión:** una prueba que
-  busque el mapa en test sin llave se pone roja; dale una (`Bali.google_maps.api_key = "…"`), como
-  ya hacen las de gobierno-corporativo y centinela-web. Una guarda
-  `Bali.google_maps.api_key.present?` que sólo envuelve el mapa sobra.
-
-### Fixed
-
-- **`Bali::LocationsMap`: un punto sin coordenada ya no deja sin marcas a los que siguen**
-  (#1537). Con `with_location(latitude: nil)` Google lanzaba y las marcas después de ese punto no
-  se construían; ahora el punto se omite. Igual con una coordenada que no es número en
-  `data-locations-map-locations-value`.
-### Added
-
-- **Marcar leído un pendiente que la app abre en otra pantalla que su `href`** (#1535).
-  - `open_item` acepta `to`: marca leído el aviso que lo anunció y redirige ahí si es de la misma app
-    (`url_from`, como `open_notice`); un destino de otra app se ignora y va al `href`. La liga lleva
-    `data: { turbo_prefetch: "false" }`, como las de Bali: Turbo la precarga al pasar el mouse y
-    `open_item` marca leído en ese GET. Desde una liga `drawer:` no abre el drawer: el drawer carga el
-    destino de una redirección como página completa.
-  - Una pantalla de la app que abre el registro ella misma, como un panel en un drawer, llama
-    `mark_inbox_seen(record)` (privado de `InboxBadge`). No marca mientras se suplanta
-    (`owner_reading?`) ni en un prefetch (`X-Sec-Purpose`, `Sec-Purpose`). Detrás está
-    `Query#mark_record_seen!(record)`, sin armar un `Item` ni pasar por `fresh_keys`; `mark_seen!(item)`
-    no cambia. afal-apps puede cambiar `TDFlow::RecordsDecisions#mark_seen` por `mark_inbox_seen`
-    (`git grep -n "issues/1535" origin/main`).
-- **`Bali::Inbox::Badge.write_from(owner, pending_by_module:)`** (#1533): escribe el número del ícono
-  desde lo que la app ya contó (`{ td_flow: 6 }`, todos los providers de esa llave de
-  `Bali.inbox_providers`). Bali cuenta los demás módulos y los avisos sin leer con la regla de
-  `compute`, que acepta el mismo `pending_by_module:`. La guía («The badge») dice qué es API pública de
-  `Badge`: `for`, `compute`, `write_from`, `expire` y `refresh`; `Badge.new` y `write` no. Una llave
-  sin providers debajo lanza `ArgumentError`, porque contaría dos veces. La app lo llama sólo cuando
-  no se está suplantando. afal-apps, que ya lo guarda así, puede cambiar el `Badge.write(…,
-  Badge.new(…))` de `TDFlow::Home#write_badges` por `write_from(user, pending_by_module: { td_flow:
-  pending })` (`git grep -n "issues/1533" origin/main`).
-
-### Fixed
-
-- **«Avisos» sin avisos ya no pinta una franja vacía con borde sobre «No tienes avisos»** (#1525). La
-  cabecera del listado (el rango y «Marcar todos como leídos») sale sólo cuando hay avisos. Nada que
-  hacer en la app.
-- **Con el filtro de módulo, la bandeja ya avisa cuando el tope de 100 por tipo pudo dejar fuera
-  items de ese módulo** (#1534). El tope se aplica antes del filtro: con un tipo cuyos items traen un
-  `module_key` distinto del de su provider, `/inbox?module=x` podía quedar vacío o incompleto sin «Se
-  muestran los primeros 100 de cada tipo». Ahora `capped?` sigue en `true` para ese tipo. Hoy ningún
-  provider de las apps trae `module_key` propio: nada que hacer.
-- **Suplantar a alguien ya no le escribe el número del ícono** (#1536). El ícono y el popover de una
-  sesión suplantada guardaban en el caché de la persona lo que veía esa sesión; si la app le oculta
-  filas al suplantar, la persona veía ese número al volver a entrar, hasta por un minuto. Ahora,
-  mientras `owner_reading?` es falso (`impersonating?` de bali-auth), los dos cuentan en cada petición
-  y no tocan el caché. afal-apps puede borrar su `ApplicationController#inbox_badge` y el
-  `after_action` de `InboxesController` que lo rodeaban (`git grep -n "#1536" origin/main`).
-  `owner_reading?` pasa de `Concerns::Controllers::Inbox` a `InboxBadge`, que `Inbox` incluye.
-### Added
-
-- **`Bali::BarList`: barras horizontales en HTML** (#1552). Una fila por elemento con su etiqueta
-  completa (si no cabe, parte en líneas), la cifra al final de la línea y debajo una pista
-  proporcional al valor más grande; con `href:` la fila entera es un enlace, con la etiqueta
-  subrayada. La cifra lleva coma de miles y punto decimal en cualquier locale, como los conteos de
-  la bandeja (o `format:`). La altura sigue al número de filas. Pueden pasar a una sola llamada:
-  las fichas de gobierno-corporativo que hoy dibujan un `Bali::Chart` con `indexAxis: "y"` y
-  repiten las filas en `with_data_table` para llevar los enlaces (la guía muestra cómo), y en
-  afal-apps `cafeteria/dashboards/show` y `td_flow/reports/_bar_rows`. Esta última pinta etiqueta,
-  barra y cifra en una sola línea; `BarList` pone la barra debajo, así que migrarla cambia su aspecto.
-
-### Removed
-
-- **`Bali::Topbar::Inbox::Component.count_text`.** La coma de miles de la bandeja pasa a
-  `Bali::Figure.delimited`, que también usa `Bali::BarList`. Ninguna app la llamaba.
-- **`Bali::Breadcrumb`: sólo la última miga es la página actual.** Una miga intermedia sin
-  `href` (un grupo del menú, un nivel que el usuario no puede abrir) llevaba
-  `aria-current="page"`, y el lector de pantalla anunciaba dos páginas actuales; `active: false`
-  no lo quitaba. Ahora es texto, igual que antes a la vista, y `aria-current` va sólo en la
-  última miga si no tiene `href`, o en la que pase `active: true`. Llega a todo `Bali::Breadcrumb`,
-  también el de las páginas con `breadcrumbs:`; una app que omitía la miga sin enlace para evitarlo (costa-norte,
-  `module_breadcrumbs`) ya puede dejarla.
-- **`Bali::Breadcrumb`: una ruta que no cabe se desvanece donde se corta.** En un teléfono la
-  ruta muestra su final, y la primera miga a la vista quedaba cortada a media palabra sin señal de
-  que se desliza. Ahora se desvanece el borde de inicio mientras hay migas escondidas de ese lado,
-  y el final cuando la ruta se desliza hacia el principio; una ruta que cabe no lleva máscara.
-  Lo hace el controlador nuevo `BreadcrumbController`, que `registerAll` ya registra: una app
-  que registra controladores uno por uno lo registra como `breadcrumb` (el identificador que fija
-  la plantilla), o la ruta se corta como antes.
-### Added
-
-- **`Bali::Navigation`: la navegación de la app, declarada una vez** (#1522). Una subclase de
-  `Bali::Navigation::Base` en `app/models/navigation.rb` declara módulos (opcionales), secciones,
-  grupos e ítems, cada uno con su `gate:` (una lambda que corre en la vista, o un valor que lee
-  `authorize`), su ruta y los controladores que le pertenecen. `Bali::SideMenu` y `Bali::Command` se pintan desde ella con
-  `navigation: Navigation`, sin cambiar sus slots; `Navigation.locate(controller_path)` dice a
-  qué módulo, sección e ítem pertenece un controlador; `require "bali/testing/navigation"` trae
-  la prueba de que cada pantalla tiene lugar. Nadie la usa todavía: la migración de cada app (y
-  el piloto en garita) va en su propio PR, con la receta de `docs/guides/navigation.md`.
-### Added
-
-- **`Bali::FilterForm`: `filter_attribute operators:` y `default_operator:` (#1566).** El panel
-  de filtros ofrece para ese atributo sólo los operadores listados, en ese orden (con uno solo,
-  el selector queda fijo), y una condición nueva abre en `default_operator:` o en el primero de
-  la lista: `filter_attribute :employee_id, type: :text, operators: %i[eq]`. Lo que el atributo
-  no ofrece tampoco llega a Ransack desde el panel: una vista guardada o una URL con otro
-  operador deja de filtrar y el panel no la pinta. `predicate:` sigue siendo sólo de la fila
-  simple. Los hashes de `with_filters_panel(available_attributes:)` aceptan las mismas llaves.
-  Nada cambia para quien no las declara.
-
-### Changed
-
-- **Bali acepta ransack 6: `>= 5.0.3, < 7.0` (#1530).** Con ransack 5 nada cambia: Bali lee y
-  escribe los mismos nombres que antes. Con ransack 6, donde `cont`, `start` y `end` distinguen
-  mayúsculas en PostgreSQL, la búsqueda rápida y los operadores de texto del panel escriben
-  `i_cont`, `not_i_cont`, `i_start` e `i_end`, y Bali sigue leyendo los de antes en URLs,
-  vistas guardadas, caché y enlaces. Decide por la gema instalada (`Bali::RansackParamName`).
-  Un scope de Ransack con el nombre exacto de la caja en `_cont` (`ransackable_scopes`) lo
-  conserva. `FilterForm#search_param_names` dice bajo qué llaves se lee la búsqueda. Qué hace una
-  app antes de aceptar ransack 6 (`ransackable_associations`, lecturas a mano de `q[..._cont]`,
-  guardas sobre el `q` crudo, operadores por nombre, `_cont`/`_start`/`_end` escritos a mano):
-  `docs/guides/ransack-6.md`.
-
-### Fixed
-
-- **`Bali::FilterForm`: el panel de filtros pinta las condiciones de un rango como llegaron
-  (#1528).** Un `gteq` y un `lteq` del mismo atributo se juntaban en un «entre» aunque el grupo
-  fuera O o trajera otro operador del atributo, y Aplicar perdía ese otro operador (o, en un
-  número, la condición entera). Ahora sólo se juntan en un grupo Y, sin otro operador del
-  atributo y en un tipo que ofrece «entre» (fechas); lo demás queda como condiciones sueltas.
-  Un atributo que el form no ofrece (un panel con los atributos en la vista) se junta como
-  antes, también un número. Quien lea `filter_groups` (`git grep -n "filter_groups"`) recibe
-  esas condiciones sueltas.
 
 ## [v3.23.0] - 2026-10-28
 

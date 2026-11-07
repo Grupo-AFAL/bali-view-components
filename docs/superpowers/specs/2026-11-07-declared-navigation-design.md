@@ -239,7 +239,7 @@ bali-analytics and the tests read; the side menu applies the same rules to what 
 ## 3. The menu of one request: `navigation_for(Navigation)`
 
 A view helper (registered on `ActionController::Base`, like `Bali::ThemeHelper`) returning a
-`Bali::Navigation::Menu` memoized on the view. view_component 4.15's `Base#helpers` hands every
+`Bali::Navigation::Menu` memoized on the view. view_component 4.23's `Base#helpers` hands every
 component the original view context, so side menu, palette and the host's breadcrumb share one
 menu and each gate runs at most once per request. The menu is lazy: the switcher and the landings
 stop at a module's first visible item, and a navigation without modules never asks where the
@@ -290,10 +290,9 @@ gates call: visibility never resolves a path.
   needs two (`multiple_menus?`) and a navigation without modules adds none, so `menu_switches`
   keeps its meaning and enjoykitchen's hand-written switches keep working;
 - `with_list(title:)` per visible section of the current module;
-- `with_item(name:, icon:, href:, match:, active:, badge:, target:)` per drawn item, plus `title:`
-  only when the item has a hint — any extra option sends `Item#leaf_link_attributes`
-  (`item/component.rb:173`) off its written-out fast path. A group is a `with_item(name:, icon:)`
-  holding its children.
+- `with_item(name:, icon:, href:, match:, active:, badge:, target:, title:)` per drawn item, `title:`
+  being the hint; `Item::Component` compacts its options, so a nil one keeps the written-out fast
+  path of `Item#leaf_link_attributes`. A group is a `with_item(name:, icon:)` holding its children.
 
 The block keeps `with_brand`, `with_switcher` (costa-norte's «Integración»), `with_bottom_item`
 and any further `with_list`, drawn after the navigation's.
@@ -333,7 +332,7 @@ costa-norte's test and bali-analytics' `RouteActions` do), keeps the controllers
 `base` — what can draw the layout — and lists those neither placed by `locate` nor named by
 `outside_menu`. It also fails on an entry that reaches no routed controller: today a typo in a
 namespace claims nothing and nobody notices. `assert_navigation_translated` runs every default-key
-title through `I18n.t!`, because titles become analytics module names. Required explicitly, like
+title through `I18n.exists?`, because titles become analytics module names. Required explicitly, like
 `bali/testing/widget_catalog`: it constantizes every routed controller.
 
 ## 6. What bali-analytics gets
@@ -413,40 +412,3 @@ literals, controller map); its examples run as written in the dummy app.
 
 None for Bali. The two visible changes GC's migration has to settle are listed in §7 so that
 nobody settles them by accident.
-
-## 10. Implementation plan
-
-Tests first; each one run once without the code it covers, and its failure read
-(`docs/reference/testing-traps.md`).
-
-1. **The tree** — `lib/bali/navigation.rb` (+ `navigation/base.rb`, `node.rb`, `location.rb`),
-   required from `lib/bali.rb`. Tests: nesting and order, the implicit section, default/scoped/literal titles and
-   `heading: false`, `find`, one per load-time error. Control: drop the duplicate-key check.
-2. **`locate`** — Tests: the `/` boundary (`administrations`), one per rule with §2's paths, an
-   item beating its own module on the same entry, a module-only claim, `outside_menu`. Control:
-   take rule 2 out and `td_flow/initiatives` lands on the portal.
-3. **`Menu`, `navigation_for`** — `lib/bali/navigation/menu.rb`, `app/helpers/bali/navigation_helper.rb`.
-   `ActionView::TestCase` with a stub `current_user` and `policy`: path forms, nil path drawn
-   disabled, empty containers, a module with only `menu: false` items, `authorize`, landing,
-   fallback module, the query tie-break (one test per case: no query, one match, the most
-   parameters, none matching), `current_controller_path`, badge only when drawn, a menu built
-   outside a view, one evaluation per gate and a switcher that stops at the first visible item.
-   Control: no memoization, and the count fails.
-4. **SideMenu `navigation:`** — switches, lists, groups, an item active on a nested controller its
-   path does not match, `title:` only with a hint, the host's lists after; existing tests
-   untouched. `before_render` only sets slots, never reads `lists` or `menu_switches`: view_component
-   evaluates the host's block on the first slot getter (`slotable.rb:357`), and the comment there
-   says so. Preview with `@label`
-   whose navigation is declared inside the preview (String paths, a fixed `current_controller_path`
-   to show the active item); YARD on the keyword.
-5. **Command `navigation:`** — both layouts, `target:` out, `menu: false` in, search text, host
-   groups after; same `before_render` rule as task 4. Preview; locale keys in `es` and `en`.
-6. **`Bali::Testing::Navigation`** — a route set drawn in the test (`routes:`) with an engine:
-   uncovered controller, unreached entry, `base:`, missing title. Control: skip the engine walk.
-7. **Docs** — `docs/guides/navigation.md`, the component catalog, CHANGELOG `### Added`. The guide's
-   first example is task 4's navigation, run as written; the garita and afal-apps translations
-   are labelled as excerpts of those apps.
-8. **Browser** — both previews in `afal`, `afal-dark` and at 390×844: switcher, active item on a
-   nested path, palette search by section.
-9. **Review** — `dhh-code-reviewer`, read-only on a worktree of the branch, with this spec and
-   `Resolving an issue` steps 1–6 as the criteria.

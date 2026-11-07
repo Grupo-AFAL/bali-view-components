@@ -173,6 +173,21 @@ describe('DrawerController', () => {
       })
     })
 
+    it('sends the form a button outside it names with form="…"', () => {
+      cy.get('.drawer-open form').then($form => {
+        const form = $form[0]
+        form.id = 'decision-form'
+        const button = form.querySelector('button[value="approve"]')
+        button.setAttribute('form', form.id)
+        form.after(button)
+      })
+      cy.get(APPROVE).click()
+
+      cy.wait('@submit').its('request').then(request => {
+        expect(fields(request)).to.include.members(['comment=Looks right', 'decision=approve'])
+      })
+    })
+
     it('takes the button carrying the action, not the element under the pointer', () => {
       // Held past the assertions' 4 s, so the button is still there to be asked about.
       cy.intercept('POST', '/fake/submit*', { delay: 5000, statusCode: 422, body: '<p>Not saved</p>' }).as('heldSubmit')

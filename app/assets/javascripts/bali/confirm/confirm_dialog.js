@@ -49,7 +49,7 @@ let installed = false
 // Turbo submits a link with `data-turbo-method` or `data-turbo-stream` through a <form> it
 // builds, which copies no `data-bali-confirm-*`, and asks for the confirm with no submitter
 // (FormLinkClickObserver in @hotwired/turbo 8). The link clicked last stands in for the
-// submitter, for its own question only and once.
+// submitter, for its own question only.
 let clickedLink = null
 
 function rememberClickedLink (event) {
@@ -115,7 +115,6 @@ export function confirmDialog (message, formElement, submitter) {
   if (!dialog || !dialog.isConnected) buildDialog()
 
   const trigger = submitter || (clickedLink?.dataset.turboConfirm === message ? clickedLink : null)
-  clickedLink = null
   const title = dataValue(trigger, formElement, 'baliConfirmTitle')
   const variant = dataValue(trigger, formElement, 'baliConfirmVariant')
 

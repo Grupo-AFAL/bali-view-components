@@ -46,11 +46,10 @@ module Bali
         location&.app_module || app_modules.first
       end
 
-      # @param app_module [AppModule, nil] the current one when nil; ignored by a navigation
-      #   without modules, which never asks where the request is
-      # @return [Array<Section>] the sections this person may open
-      def sections(app_module = nil)
-        roots = navigation.app_modules? ? (app_module || current_app_module)&.children || [] : navigation.roots
+      # @return [Array<Section>] the sections this person may open: the current module's, or the
+      #   navigation's own without modules
+      def sections
+        roots = navigation.app_modules? ? current_app_module&.children || [] : navigation.roots
         roots.select { offered?(it) }
       end
 
@@ -83,7 +82,7 @@ module Bali
 
       # @return [Object, nil]
       def badge(item)
-        item.badge && context.instance_exec(&item.badge)
+        item.badge.is_a?(Proc) ? context.instance_exec(&item.badge) : item.badge
       end
 
       # True for the item the location names, false for the rest while it is drawn, and nil when
@@ -192,7 +191,7 @@ module Bali
         node.children.each do |child|
           next unless drawn?(child)
 
-          found = child.item? ? (child unless child.target) : first_drawn_item(child)
+          found = child.item? ? (child if !child.target && path(child)) : first_drawn_item(child)
           return found if found
         end
         nil

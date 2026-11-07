@@ -58,6 +58,7 @@ class NavigationMenuTest < ActiveSupport::TestCase
     end
 
     app_module :extras, title: "Extras", controllers: %w[extras] do
+      item :extras_home, title: "Home", path: "/extras/home", gate: "extras.home"
       item :extras_only_in_palette, title: "Only in palette", path: "/extras", menu: false
     end
   end
@@ -75,7 +76,7 @@ class NavigationMenuTest < ActiveSupport::TestCase
     menu = menu()
     portal = NAVIGATION.find(:tdflow_portal)
 
-    assert_equal %i[portal_proposals], menu.items(menu.sections(portal).first).map(&:key)
+    assert_equal %i[portal_proposals], menu.items(portal.children.first).map(&:key)
     assert_nil menu.find(:portal_faq)
   end
 
@@ -114,6 +115,19 @@ class NavigationMenuTest < ActiveSupport::TestCase
 
     assert_equal "/charts/first", menu.landing(nav.find(:reports))
     assert_equal "/welcome", menu.landing(nav.find(:home))
+  end
+
+  test "a literal badge is drawn as written, and a module lands past an item whose path resolves to nil" do
+    nav = Class.new(Bali::Navigation::Base) do
+      app_module :reports, title: "Reports" do
+        item :pending, title: "Pending", path: -> { }, badge: 3
+        item :done, title: "Done", path: "/done", badge: "New"
+      end
+    end
+    menu = nav.menu(Context.new)
+
+    assert_equal [ 3, "New" ], [ menu.badge(nav.find(:pending)), menu.badge(nav.find(:done)) ]
+    assert_equal "/done", menu.landing(nav.find(:reports))
   end
 
   test "the location only counts what this person may open" do

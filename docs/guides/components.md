@@ -744,7 +744,7 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
   and `aria-hidden` (beside the name it can only repeat it), so decorative only: nothing
   focusable inside. At the default title size (`text-2xl`) a mark up to 32px (`Bali::Avatar`
   `size: :xs`) is centred on the title's first line however many lines the title wraps to; a
-  taller one is aligned to the title's top and grows the header instead.
+  taller one sits at the top of the row and grows it.
 
 ```erb
 <%= render Bali::PageHeader::Component.new(title: person.name) do |header| %>
@@ -2631,8 +2631,8 @@ with scales, see [Chart](#chart).
 - `aria_label` - the list's accessible name (default: nil)
 - `**options` - HTML attributes for the `<ul>`
 
-Rows are an `items:` array; there is no `with_item` slot. Each row needs the largest value of the
-whole list before it can draw its track, which an array has up front.
+Rows are an `items:` array, the shape a listing already has (`rows.map { … }`), as with
+`Bali::Chart`'s `data:`; there is no `with_item` slot.
 
 The list is a `<ul role="list">` that grows with its rows: there is no height to pick. A label
 longer than its line wraps instead of being cut, and the figure stays at the end of the first
@@ -4305,17 +4305,12 @@ delete items). Auto-installed via `registerAll` — no per-app code needed.
         bali_confirm_variant: "warning",
         bali_confirm_accept: "Close it"
       } %>
-
-<%# A link with `method:` carries them itself %>
-<%= render Bali::Link::Component.new(
-      name: "Return the role", href: delegation_path(delegation), method: :delete,
-      data: { turbo_confirm: "Return the role to its holder?",
-              bali_confirm_title: "Return the role", bali_confirm_accept: "Return it" }) %>
 ```
 
-The `data-bali-confirm-*` are read off the button that submits, then off its form, and on a
-link with a method off the link: Turbo submits that link through a form of its own, which
-carries none of them.
+The `data-bali-confirm-*` are read off the button that submits, then off its form. An action is
+a button (`button_to`, `Bali::Button`), and it also works without JavaScript; a link that already
+carries `method:` (`Bali::Link` with `method: :delete`) is read too, off the link itself, because
+Turbo submits it through a form of its own that carries none of them.
 
 A button the trigger leaves unlabelled reads **Aceptar**/**Cancelar** under
 `<html lang="es">` (or any `es-*`) and **OK**/**Cancel** under any other
