@@ -231,8 +231,6 @@ module Bali
         type = type.to_sym
         input ||= :slim_select if multiple
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
-        operators = operators&.map { |operator| RansackParamName.text_predicate(operator) }
-        default_operator = default_operator && RansackParamName.text_predicate(default_operator)
         validate_auto_submit(key, resolved_input, auto_submit)
         validate_default(key, default, simple, advanced)
         validate_multiple(key, resolved_input, multiple, simple)
@@ -352,7 +350,8 @@ module Bali
       end
 
       # Same contract as an unknown `input:`: an operator the panel's select cannot offer
-      # fails here, instead of a select that offers another one.
+      # fails when the class loads, instead of a select that offers another one. The check is
+      # `Operators.default_for`'s, which a hash built in a view meets when the panel reads it.
       def validate_operators(key, type, operators, default_operator, advanced)
         return if operators.nil? && default_operator.nil?
 
@@ -361,17 +360,8 @@ module Bali
                                "advanced panel, and this one is advanced: false; the simple row takes predicate:"
         end
 
-        offered = Bali::Filters::Operators.for_type(type).map { |operator| operator[:value] }
-        allowed = operators || offered
-        unknown = allowed - offered
-        if allowed.empty? || unknown.any?
-          raise ArgumentError, "filter_attribute #{key}: type :#{type} offers no operator " \
-                               "#{unknown.join(', ').presence || '(empty list)'} (valid: #{offered.join(', ')})"
-        end
-        return if default_operator.nil? || allowed.include?(default_operator)
-
-        raise ArgumentError, "filter_attribute #{key}: default_operator: :#{default_operator} is not " \
-                             "among its operators (#{allowed.join(', ')})"
+        Bali::Filters::Operators.default_for({ key: key, type: type, operators: operators,
+                                               default_operator: default_operator })
       end
 
       # An advanced `default:` travels as one condition of the panel's first group, with its

@@ -118,6 +118,15 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_button("OR")
   end
 
+  def test_an_attribute_with_an_operator_its_type_does_not_offer_raises_instead_of_offering_them_all
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Filters::Component.new(
+        url: "/users", available_attributes: [ { key: :code, label: "Code", type: :text, operators: %i[gt] } ]
+      ))
+    end
+    assert_match "attribute :code: type :text offers no operator gt", error.message
+  end
+
   def test_persistence_toggle_returns_false_for_persistence_available_when_no_storage_id
     component = Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes

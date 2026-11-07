@@ -16,4 +16,22 @@ class BaliFiltersOperatorsTest < ActiveSupport::TestCase
       assert_equal operators, Bali::Filters::Operators.for_type(type).pluck(:value), type
     end
   end
+
+  # A hash built in a view or in an `available_attributes` override. `FilterForm.filter_attribute`
+  # raises the same when the class loads (filter_form_operators_test.rb).
+  test "an attribute hash with an operator its type does not offer raises" do
+    { %i[gt] => "gt", %i[eq gt] => "gt", [] => "(empty list)" }.each do |operators, unknown|
+      error = assert_raises(ArgumentError, operators.inspect) do
+        Bali::Filters::Operators.for_attribute({ key: :code, type: :text, operators: operators })
+      end
+      assert_match "attribute :code: type :text offers no operator #{unknown} (valid:", error.message
+    end
+  end
+
+  test "a default operator outside the attribute's operators raises" do
+    error = assert_raises(ArgumentError) do
+      Bali::Filters::Operators.default_for({ key: :code, type: :text, operators: %i[eq], default_operator: :gt })
+    end
+    assert_match "attribute :code: default_operator: :gt is not among its operators (eq)", error.message
+  end
 end

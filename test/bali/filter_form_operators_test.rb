@@ -85,8 +85,8 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
     [
       [ { type: :text, operators: %i[gt] }, /type :text offers no operator gt/ ],
       [ { type: :text, operators: [] }, /offers no operator \(empty list\)/ ],
-      [ { type: :text, operators: %i[eq], default_operator: :cont }, /default_operator: :#{text('cont')} is not among its operators \(eq\)/ ],
-      [ { type: :number, default_operator: :cont }, /default_operator: :#{text('cont')} is not among its operators/ ],
+      [ { type: :text, operators: %i[eq], default_operator: :cont }, /default_operator: :cont is not among its operators \(eq\)/ ],
+      [ { type: :number, default_operator: :cont }, /default_operator: :cont is not among its operators/ ],
       [ { type: :select, operators: %i[eq], simple: true, advanced: false }, /apply to the advanced panel/ ],
       [ { type: :date, default_operator: :between, default: "2026-01-01" }, /default: is applied with :between/ ]
     ].each do |options, message|

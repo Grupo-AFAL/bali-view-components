@@ -5080,8 +5080,9 @@ In the advanced panel, "Employee" offers only "is exactly", in a fixed select; "
 opens on "is exactly" and still offers the rest of the text operators. `operators:` picks
 from the type's (`Bali::Filters::Operators.for_type`), in the order the select shows them,
 and a new condition opens on `default_operator:` or, without it, on the first of them. An
-operator the type does not offer raises when the class loads. Under ransack 6 a text one may be
-written `:cont` or `:i_cont` alike (see [Accepting ransack 6](ransack-6.md)).
+operator the type does not offer raises `ArgumentError` when the class loads, and in a hash built
+in a view when the panel reads it. Under ransack 6 a text one may be written `:cont` or `:i_cont`
+alike (see [Accepting ransack 6](ransack-6.md)).
 
 **They are also what reaches Ransack from the panel** (#1346): a saved view, the filter
 cache or a URL carrying `q[g][0][employee_id_cont]` is no filter, and the panel does not
