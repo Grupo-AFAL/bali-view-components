@@ -858,6 +858,10 @@ module Bali
     # `has_filter_params` cannot tell "nothing arrived" from "an empty view arrived" and with
     # `persist_enabled` it falls into the restore branch — the old cache overwrites the applied
     # view.
+    #
+    # Restored groupings go through `normalize_groupings` like the URL's and a saved view's, not
+    # only later in `applied_groupings`: a host that reads `@groupings` after `super` gets the
+    # keys this ransack is written with, from a cache written under the other one (#1530).
     def fetch_stored_filter_state(attributes, groupings, combinator, search_value, force_write: false)
       return [ attributes, groupings, combinator, search_value ] unless Object.const_defined?("Rails")
 
@@ -905,7 +909,7 @@ module Bali
           )
           Rails.cache.write(cache_key, stored)
           restore_simple_filter_state(stored)
-          [ stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil ]
+          [ stored[:attributes] || {}, normalize_groupings(stored[:groupings]), stored[:combinator], nil ]
         else
           [ {}, nil, nil, nil ]
         end
@@ -931,7 +935,7 @@ module Bali
         restore_simple_filter_state(stored)
         [
           stored[:attributes] || {},
-          stored[:groupings],
+          normalize_groupings(stored[:groupings]),
           stored[:combinator],
           stored[:search_value]
         ]

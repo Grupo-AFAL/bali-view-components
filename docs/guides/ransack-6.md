@@ -68,8 +68,9 @@ One switch, `Bali::RansackParamName.case_insensitive_text?`, decided from the in
    - What evaluates the panel's operators by name (`"cont"`, `"not_cont"`, `"start"`, `"end"`)
      accepts the `i_` ones, or a condition from the panel reaches it unknown.
    - What rewrites `q[g]` after `super` — `ransack_params`, `extract_groupings`, `@groupings` —
-     receives the text conditions already under the `i_` key (`name_i_cont`), so a lookup of
-     `name_cont` there no longer finds it.
+     receives the text conditions already under the `i_` key (`name_i_cont`), whether they came
+     from the URL, a saved view or the filter cache, so a lookup of `name_cont` there no longer
+     finds it.
 
    `git grep -n -E "\"(not_)?cont\"|\"start\"|\"end\"|groupings|\[:g\]" app/forms app/models`.
 

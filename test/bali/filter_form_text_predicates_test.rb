@@ -236,6 +236,27 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
     Rails.cache = original_cache
   end
 
+  # identity's AccountsFilterForm reads `@groupings` after `super`, as docs/guides/ransack-6.md
+  # step 4 says.
+  test "under ransack 6 a filter cache written before restores the panel's conditions under i_ keys" do
+    original_cache = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+    as_ransack(false) do
+      SearchFilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: { "0" => { name_cont: "seidor" } } }),
+                           storage_id: "movies")
+    end
+    as_ransack(true) do
+      [ {}, { clear_search: true } ].each do |params|
+        restored = SearchFilterForm.new(Movie.all, ActionController::Parameters.new(params), storage_id: "movies",
+                                                                                             persist_enabled: true)
+
+        assert_equal({ "0" => { "name_i_cont" => "seidor" } }, restored.instance_variable_get(:@groupings), params)
+      end
+    end
+  ensure
+    Rails.cache = original_cache
+  end
+
   private
 
   # What `case_insensitive_text?` memoizes from the gem, set for the block.
