@@ -1,0 +1,11 @@
+<div class="flex justify-center items-start min-h-[320px] p-8">
+  <%= render(Bali::Dropdown::Component.new(width: :lg)) do |c| %>
+    <% c.with_trigger(class: 'btn-primary') { 'Manage' } %>
+    <% c.with_item(name: 'Edit', href: '#', icon: 'pencil') %>
+    <% c.with_item(name: 'Link a source', href: '#', icon: 'link') %>
+    <% c.with_item(name: 'Merge', href: '#', icon: 'git-merge') %>
+    <% c.with_item(tag: :divider) %>
+    <% c.with_item(name: 'Retire from the catalog', href: '#', icon: 'archive',
+                   authorized: retire_authorized, class: 'text-error') %>
+  <% end %>
+</div>

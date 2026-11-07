@@ -50,8 +50,10 @@ module Bali
 
       renders_one :trigger, Trigger::Component
 
-      # @param tag [Symbol] `:link` (default), `:button` (JS action, avoids the `href="#"`)
-      #   or `:title` (section heading: it groups the items that follow it).
+      # @param tag [Symbol] `:link` (default), `:button` (JS action, avoids the `href="#"`),
+      #   `:title` (section heading: it groups the items that follow it) or `:divider` (a rule
+      #   between two items; dropped at either end of the menu and where it would double up,
+      #   so it can sit before an item that `authorized:` may leave out).
       # @param icon [String, Symbol] icon name — one spelling whichever component the item
       #   turns out to be.
       # @param modal [Boolean, Hash] with `href:`, Bali::Link's remote mode (`true` or
@@ -65,6 +67,8 @@ module Bali
         case tag
         when :title
           Title::Component.new(**options)
+        when :divider
+          Divider::Component.new(**options)
         when :button
           ActionItem::Component.new(icon: icon, **options)
         else
@@ -161,14 +165,20 @@ module Bali
         )
       end
 
-      # Headings do not count: a menu of nothing but titles uncovers a button that opens
-      # something with no option to choose.
+      # Headings and dividers do not count: a menu of nothing but titles uncovers a button that
+      # opens something with no option to choose.
       def render?
-        items? ? items.any? { |item| item.authorized? && !section_title?(item) } : content.present?
+        items? ? authorized_items.any? { |item| action?(item) } : content.present?
       end
 
       def authorized_items
         @authorized_items ||= items.select(&:authorized?)
+      end
+
+      def menu_items
+        @menu_items ||= authorized_items.each_with_object([]) do |item, kept|
+          kept << item unless divider?(item) && (kept.empty? || divider?(kept.last))
+        end.then { |kept| divider?(kept.last) ? kept[...-1] : kept }
       end
 
       # What the template renders when no `trigger` slot was given. Nothing here — a plain
@@ -221,6 +231,14 @@ module Bali
 
       def section_title?(item)
         item.respond_to?(:menu_title?) && item.menu_title?
+      end
+
+      def divider?(item)
+        item.respond_to?(:menu_divider?) && item.menu_divider?
+      end
+
+      def action?(item)
+        !section_title?(item) && !divider?(item)
       end
 
       def lookup!(param, value, table)

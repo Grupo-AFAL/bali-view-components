@@ -335,6 +335,54 @@ class BaliDropdownComponentTest < ComponentTestCase
     assert_no_selector(".dropdown")
   end
 
+  # The `<li>` itself and empty: daisyUI draws the rule on `.menu li:empty`.
+  def test_a_divider_is_an_empty_separator_between_two_items
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(href: "/edit") { "Edit" }
+      c.with_item(tag: :divider)
+      c.with_item(href: "/retire") { "Retire" }
+    end
+
+    assert_selector('ul[role="menu"] > li[role="none"] + li[role="separator"]:empty + li[role="none"]')
+    assert_selector('[role="menuitem"]', count: 2)
+  end
+
+  def test_a_menu_of_only_dividers_does_not_render
+    render_inline(Bali::Dropdown::Component.new) do |c|
+      c.with_trigger { "Trigger" }
+      c.with_item(tag: :divider)
+      c.with_item(href: "/retire", authorized: false) { "Retire" }
+    end
+
+    assert_no_selector(".dropdown")
+  end
+
+  # The divider sits before an item `authorized:` may leave out, as a call site writes it.
+  def test_a_divider_with_no_item_on_one_side_is_dropped
+    [
+      [ %i[divider edit], [ "Edit" ] ],
+      [ %i[edit divider], [ "Edit" ] ],
+      [ %i[edit divider retire], [ "Edit" ] ],
+      [ %i[retire divider edit], [ "Edit" ] ],
+      [ %i[edit divider retire divider archive], [ "Edit", nil, "Archive" ] ]
+    ].each do |order, expected|
+      render_inline(Bali::Dropdown::Component.new) do |c|
+        c.with_trigger { "Trigger" }
+        order.each do |item|
+          case item
+          when :divider then c.with_item(tag: :divider)
+          when :retire then c.with_item(href: "/retire", authorized: false) { "Retire" }
+          else c.with_item(href: "/#{item}") { item.to_s.capitalize }
+          end
+        end
+      end
+
+      rendered = page.all('ul[role="menu"] > li').map { |li| li[:role] == "separator" ? nil : li.text.strip }
+      assert_equal expected, rendered, "with #{order.inspect}"
+    end
+  end
+
   # A POST item is a real `button_to`, like the `:delete` item and for the reason #829
   # already paid for: an `<a data-turbo-method>` degrades to GET without JS and is a link
   # that mutates state. Announced markup change in v3.1 (#641).

@@ -1236,6 +1236,7 @@ means the same in all of them:
 | opens an overlay already on the page | `modal: { id:, local: true }` / `drawer:` — no `href:` | a real `<button>` that opens the named overlay as it is; nothing is fetched |
 | runs JavaScript | `tag: :button` + `data: { action: }` | a real `<button>` |
 | heads a section | `tag: :title` | a heading, not a menuitem |
+| sets the next items apart | `tag: :divider` | `<li role="separator">`, not a menuitem; dropped with no item on one side of it |
 
 ```erb
 <% dd.with_item(tag: :title, name: "Export") %>            <%# section heading %>
@@ -1246,7 +1247,14 @@ means the same in all of them:
                 modal: { id: "health-modal", local: true }) %>    <%# no fetch %>
 <% dd.with_item(tag: :button, name: "Duplicate", icon: "copy",
                 data: { action: "thing#duplicate" }) %>    <%# a real <button> %>
+<% dd.with_item(tag: :divider) %>                         <%# a rule %>
+<% dd.with_item(name: "Retire", href: "/x/retirement", icon: "archive",
+                authorized: can_retire) %>
 ```
+
+A divider is drawn only between two items that are drawn: at either end of the menu, or next to
+another divider, it is dropped. So it goes in unconditionally before an item that `authorized:`
+may leave out, and it leaves with that item. It does not count towards rendering the menu.
 
 The local mode requires the `id:` — an open event that names no overlay is a broadcast,
 and a broadcast opens every shared overlay on the page (#854). Render the modal it names
