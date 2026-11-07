@@ -444,8 +444,10 @@ or no JavaScript, follows the link to the full page. The pages and the badge com
 The link's accessible name is the badge's own text («Bandeja: 6 pendientes, hay avisos sin
 leer»), so a refresh updates the number, the dot and the name together. The popover is a
 `role="dialog"` positioned by tippy on `<body>`. Escape closes it and gives the focus back to the
-icon; a click outside closes it and leaves the focus where the click put it. The trigger is never
-prefetched: a hover would load the whole page for a click that opens the popover instead.
+icon; a click outside closes it and leaves the focus where the click put it. Opened while a Turbo
+visit is still loading, it is open on the page the visit brings; following a link from the open
+popover lands with it closed. The trigger is never prefetched: a hover would load the whole
+page for a click that opens the popover instead.
 
 ##### Topbar::ToolsMenu
 
