@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+# The project's Gemfile with ransack 6 (#1530). Bali's own lock stays on 5, which every app in the
+# fleet runs; the `test-ransack-6` job in .github/workflows/test.yml runs with this one the tests
+# that hold under both versions. Its lock is not versioned: the job derives it from Gemfile.lock,
+# because a frozen copy breaks on any change to the Gemfile, the gemspec or Bali's version.
+main = File.expand_path("../Gemfile", __dir__)
+eval_gemfile main, File.read(main).sub(/^gem "ransack"\n/, "")
+
+gem "ransack", "~> 6.0"

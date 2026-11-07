@@ -18,6 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   simple. Los hashes de `with_filters_panel(available_attributes:)` aceptan las mismas llaves.
   Nada cambia para quien no las declara.
 
+### Changed
+
+- **Bali acepta ransack 6: `>= 5.0.2, < 7.0` (#1530).** Con ransack 5 nada cambia: Bali lee y
+  escribe los mismos nombres que antes. Con ransack 6, donde `cont`, `start` y `end` distinguen
+  mayúsculas en PostgreSQL, la búsqueda rápida y los operadores de texto del panel escriben
+  `i_cont`, `not_i_cont`, `i_start` e `i_end`, y Bali sigue leyendo los de antes en URLs,
+  vistas guardadas, caché y enlaces. Decide por la gema instalada (`Bali::RansackParamName`).
+  Un scope de Ransack con el nombre exacto de la caja en `_cont` (`ransackable_scopes`) lo
+  conserva. `FilterForm#search_param_names` dice bajo qué llaves se lee la búsqueda. Qué hace una
+  app antes de aceptar ransack 6 (`ransackable_associations`, lecturas a mano de `q[..._cont]`,
+  guardas sobre el `q` crudo, operadores por nombre, `_cont`/`_start`/`_end` escritos a mano):
+  `docs/guides/ransack-6.md`.
+
 ### Fixed
 
 - **`Bali::FilterForm`: el panel de filtros pinta las condiciones de un rango como llegaron

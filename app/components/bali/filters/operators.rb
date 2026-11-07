@@ -35,7 +35,7 @@ module Bali
       # @return [Array<Hash>]
       def for_attribute(attribute)
         offered = for_type(attribute[:type] || :text)
-        allowed = Array(attribute[:operators]).map(&:to_s)
+        allowed = Array(attribute[:operators]).map { |operator| RansackParamName.text_predicate(operator) }
         return offered if allowed.empty?
 
         allowed.filter_map { |value| offered.find { |operator| operator[:value] == value } }.presence || offered
@@ -53,7 +53,8 @@ module Bali
         return if attribute[:default_operator].blank? && attribute[:operators].blank?
 
         offered = for_attribute(attribute).map { |operator| operator[:value] }
-        offered.include?(attribute[:default_operator].to_s) ? attribute[:default_operator].to_s : offered.first
+        requested = RansackParamName.text_predicate(attribute[:default_operator])
+        offered.include?(requested) ? requested : offered.first
       end
 
       # The Ransack predicates the panel writes for the attribute: one per operator, and the
@@ -70,20 +71,26 @@ module Bali
       # @param type [Symbol, String] The field type
       # @return [String] The localized label or the operator value if not found
       def label_for(operator, type)
-        for_type(type).find { |o| o[:value] == operator }&.dig(:label) || operator
+        current = RansackParamName.text_predicate(operator)
+        for_type(type).find { |o| o[:value] == current }&.dig(:label) || operator
       end
 
       private
 
+      # "contains" and its kin in the variant the installed ransack wants (#1530).
       def text_operators
         [
-          { value: "cont", label: t_op("contains") },
+          { value: text("cont"), label: t_op("contains") },
           { value: "eq", label: t_op("equals") },
-          { value: "start", label: t_op("starts_with") },
-          { value: "end", label: t_op("ends_with") },
-          { value: "not_cont", label: t_op("not_contains") },
+          { value: text("start"), label: t_op("starts_with") },
+          { value: text("end"), label: t_op("ends_with") },
+          { value: text("not_cont"), label: t_op("not_contains") },
           { value: "not_eq", label: t_op("not_equals") }
         ]
+      end
+
+      def text(predicate)
+        RansackParamName.text_predicate(predicate)
       end
 
       def number_operators

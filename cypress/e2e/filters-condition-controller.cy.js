@@ -132,6 +132,25 @@ describe('ConditionController', () => {
     widget('is_active', 'eq', 'option').should(texts('boolean.any', 'boolean.yes', 'boolean.no'))
   })
 
+  // #1530 — a reset row goes back to the first text operator Ruby hands over in the translations
+  // (Bali::Filters::Operators, `i_cont` under ransack 6), as Condition::Component#operator paints
+  // a blank row. The list here puts another variant first and keeps `cont` in it.
+  it('resets a row to the first text operator of its translations', () => {
+    cy.visit('/bali/filters/all_field_types?popover=false')
+    cy.get('[data-controller="condition"]').first().then(($condition) => {
+      const translations = JSON.parse($condition.attr('data-condition-translations-value'))
+      translations.operators.text = [{ value: 'i_cont', label: 'contains' }, ...translations.operators.text]
+      $condition.attr('data-condition-translations-value', JSON.stringify(translations))
+    })
+    cy.get('[data-condition-target="attribute"]').first().select('name')
+    operator().first().select('eq')
+
+    cy.get('[data-action="filters#reset"]').first().click()
+
+    operator().first().should('have.value', 'i_cont')
+    cy.get('[data-condition-target="operatorHidden"]').first().should('have.value', 'i_cont')
+  })
+
   context('on Apply', () => {
     // The form is read at the moment it is submitted, with the navigation cancelled: that
     // is the only place where what actually travels can be observed.

@@ -21,8 +21,11 @@ module Bali
           @condition[:attribute].to_s
         end
 
+        # In the variant the installed ransack gets (#1530): the "cont" every blank row is seeded
+        # with, and a text operator a host wrote by hand. condition_controller.js#reset puts a row
+        # back on the same one, the first text operator of `translations_json`.
         def operator
-          @condition[:operator] || "cont"
+          RansackParamName.text_predicate(@condition[:operator] || "cont")
         end
 
         def value

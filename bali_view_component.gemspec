@@ -52,9 +52,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency "rails", ">= 8.1", "< 9.0"
   # 5.0.2 is the first 5.x patched for both GHSA-vxc9-rm8f-p56j and GHSA-j3f8-w227-4hh8, which a
   # FilterForm's `q[...]` reaches. 6.0 makes `cont`/`start`/`end` case-sensitive on PostgreSQL
-  # (ransack#1715), which this suite on SQLite cannot see, and needs `ransackable_associations` on
-  # every model searched with `g:`. What raising the cap takes is #1530.
-  spec.add_dependency "ransack", ">= 5.0.2", "< 6.0"
+  # (ransack#1715), so Bali writes their `i_` twins under it (Bali::RansackParamName), and needs
+  # `ransackable_associations` on every model searched with `g:`, which an app declares (#1530).
+  spec.add_dependency "ransack", ">= 5.0.2", "< 7.0"
   spec.add_dependency "simple_command"
 
   spec.add_dependency "view_component", [ ">= 4.0.0", "< 5.0" ]

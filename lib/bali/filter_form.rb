@@ -154,6 +154,8 @@ module Bali
       #   filter cache or a URL carrying another one (`q[g][0][code_cont]`) is no filter
       #   and the panel does not paint it. With a single one, the operator select is fixed.
       #   The simple UI keeps `predicate:`. Raises on an operator the type does not offer.
+      #   Under ransack 6 a text one may be written `:cont` or `:i_cont` alike
+      #   ({Bali::RansackParamName.text_predicate}).
       # @param default_operator [Symbol] The operator a condition opens on when the user
       #   picks this attribute in the panel; without it, the first of `operators:`. Neither
       #   declared, the row keeps the operator it had when the type offers it, as always.
@@ -229,8 +231,8 @@ module Bali
         type = type.to_sym
         input ||= :slim_select if multiple
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
-        operators = operators&.map(&:to_s)
-        default_operator = default_operator&.to_s
+        operators = operators&.map { |operator| RansackParamName.text_predicate(operator) }
+        default_operator = default_operator && RansackParamName.text_predicate(default_operator)
         validate_auto_submit(key, resolved_input, auto_submit)
         validate_default(key, default, simple, advanced)
         validate_multiple(key, resolved_input, multiple, simple)
@@ -958,11 +960,12 @@ module Bali
     # `attribute_names` it lands in `attributes` all the same. Nulling only the first left the
     # predicate inside the restored attributes: the box was empty and the listing stayed
     # narrowed by a term no longer visible anywhere — and since the cache was rewritten with it
-    # inside, on every later visit too (#1017).
+    # inside, on every later visit too (#1017). Under every name the search is read from: a
+    # door declared with `_cont` stays one under ransack 6 (identity's AccountsFilterForm).
     def attributes_without_search_field(attributes)
       return attributes unless search_enabled? && attributes.is_a?(Hash)
 
-      attributes.except(search_field_name.to_s, search_field_name.to_sym)
+      attributes.except(*search_param_names, *search_param_names.map(&:to_sym))
     end
 
     # The simple filters are restored through a SIDE EFFECT and not through the tuple, because

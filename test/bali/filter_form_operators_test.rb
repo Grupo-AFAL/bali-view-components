@@ -28,10 +28,10 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
   test "the panel offers the attribute what it declares, in that order" do
     attributes = CodesFilterForm.new(Movie.all).available_attributes.index_by { |attribute| attribute[:key] }
 
-    assert_equal %w[eq start], Bali::Filters::Operators.for_attribute(attributes[:name]).pluck(:value)
+    assert_equal [ "eq", text("start") ], Bali::Filters::Operators.for_attribute(attributes[:name]).pluck(:value)
     assert_equal "eq", Bali::Filters::Operators.default_for(attributes[:name])
     assert_equal "eq", Bali::Filters::Operators.default_for(attributes[:genre])
-    assert_equal %w[cont eq start end not_cont not_eq],
+    assert_equal Bali::Filters::Operators.for_type(:text).pluck(:value),
                  Bali::Filters::Operators.for_attribute(attributes[:genre]).pluck(:value)
     assert_equal({ key: :website_url, type: :text, label: "Website url", options: [] }, attributes[:website_url])
     assert_nil Bali::Filters::Operators.default_for(attributes[:website_url])
@@ -44,7 +44,7 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
       saved_views_store: Store.new(View.new(1, "Ana's", { "groupings" => { "0" => { "name_cont" => "Ana" } } }))
     )
 
-    assert_equal [ [ "genre", "cont", "Dra" ] ], conditions(from_url)
+    assert_equal [ [ "genre", text("cont"), "Dra" ] ], conditions(from_url)
     assert_equal [ @ana ], from_url.result.to_a
     assert_empty from_view.filter_groups
     assert_equal 2, from_view.result.count
@@ -76,15 +76,15 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
   test "an advanced default is applied with the default operator" do
     defaulted = Class.new(Bali::FilterForm) { filter_attribute :name, type: :text, operators: %i[start], default: "Ana" }
 
-    assert_equal({ "g" => { "0" => { "name_start" => "Ana", "m" => "and" } } }, defaulted.default_filter_params)
+    assert_equal({ "g" => { "0" => { "name_#{text('start')}" => "Ana", "m" => "and" } } }, defaulted.default_filter_params)
   end
 
   test "an operator the type does not offer raises when the form is declared" do
     [
       [ { type: :text, operators: %i[gt] }, /type :text offers no operator gt/ ],
       [ { type: :text, operators: [] }, /offers no operator \(empty list\)/ ],
-      [ { type: :text, operators: %i[eq], default_operator: :cont }, /default_operator: :cont is not among its operators \(eq\)/ ],
-      [ { type: :number, default_operator: :cont }, /default_operator: :cont is not among its operators/ ],
+      [ { type: :text, operators: %i[eq], default_operator: :cont }, /default_operator: :#{text('cont')} is not among its operators \(eq\)/ ],
+      [ { type: :number, default_operator: :cont }, /default_operator: :#{text('cont')} is not among its operators/ ],
       [ { type: :select, operators: %i[eq], simple: true, advanced: false }, /apply to the advanced panel/ ],
       [ { type: :date, default_operator: :between, default: "2026-01-01" }, /default: is applied with :between/ ]
     ].each do |options, message|
@@ -94,6 +94,9 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
   end
 
   private
+
+  # A text operator in the variant the installed ransack gets (#1530).
+  def text(predicate) = Bali::RansackParamName.text_predicate(predicate)
 
   def form(groups)
     CodesFilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: groups }))

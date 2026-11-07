@@ -28,7 +28,8 @@ describe('An attribute that declares its operators', () => {
 
     operator().should(($select) => {
       expect($select[0].value).to.equal('eq')
-      expect(offered($select)).to.include.members(['cont', 'start', 'not_eq'])
+      // The text operators are ransack's version's variant (`cont` or `i_cont`, #1530).
+      expect(offered($select)).to.have.length(6).and.include.members(['eq', 'not_eq'])
       expect($select[0].disabled).to.equal(false)
     })
   })
@@ -47,11 +48,11 @@ describe('An attribute that declares its operators', () => {
   // another date field (filters-between.cy.js) depends on it.
   it('leaves an attribute that declares nothing on the operator the row had', () => {
     attribute().select('folio')
-    operator().select('start')
+    operator().select('starts with')
     attribute().select('name')
 
     operator().should(($select) => {
-      expect($select[0].value).to.equal('start')
+      expect($select[0].selectedOptions[0].textContent.trim()).to.equal('starts with')
       expect($select[0].disabled).to.equal(false)
     })
   })

@@ -409,9 +409,9 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     ))
 
     options = page.all('[data-condition-target="attribute"] option:not([value=""])', visible: :all).index_by(&:value)
-    assert_equal %w[eq start], JSON.parse(options["code"]["data-operators"]).pluck("value")
+    assert_equal [ "eq", Bali::RansackParamName.text_predicate("start") ], JSON.parse(options["code"]["data-operators"]).pluck("value")
     assert_equal "eq", options["code"]["data-default-operator"]
-    assert_equal %w[cont eq start end not_cont not_eq], JSON.parse(options["folio"]["data-operators"]).pluck("value")
+    assert_equal Bali::Filters::Operators.for_type(:text).pluck(:value), JSON.parse(options["folio"]["data-operators"]).pluck("value")
     assert_equal "eq", options["folio"]["data-default-operator"]
     assert_equal "", options["name"]["data-default-operator"]
   end

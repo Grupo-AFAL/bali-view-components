@@ -3382,7 +3382,7 @@ shape did not understand.
 
 # v3 — the same hash the Filters panel takes
 <% q = params[:q].is_a?(ActionController::Parameters) ? params[:q] : {} %>
-<% dt.with_simple_filters(search: { fields: %i[name email], value: q[:name_or_email_cont] }) %>
+<% dt.with_simple_filters(search: { fields: %i[name email], value: q[Bali::RansackParamName.predicate(%i[name email])] }) %>
 ```
 
 The full shape is `fields:`, `value:`, `placeholder:`, `label:`, `icon:` and `width:`,
@@ -3390,7 +3390,8 @@ and **both** components honour all six now. Anything else raises `ArgumentError`
 than rendering a box that submits nothing — including `field_name:`, whose message spells
 the replacement out. `Bali::RansackParamName.predicate([:name, :email])` and `.param(…)`
 are the public way to build `name_or_email_cont` and `q[name_or_email_cont]` yourself if
-you need the string somewhere else.
+you need the string somewhere else — `_i_cont` under ransack 6 (#1530), which is why the
+example above reads the value through it.
 
 ### Whether to keep your `search_placeholder:` depends on your translations
 

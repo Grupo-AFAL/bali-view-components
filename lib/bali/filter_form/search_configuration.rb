@@ -119,10 +119,32 @@ module Bali
 
       # Build the Ransack field name for multi-field search.
       # e.g., [:name, :genre, :tenant_name] => "name_or_genre_or_tenant_name_cont"
+      # (`_i_cont` under ransack 6, see RansackParamName).
+      #
+      # Under ransack 6, a Ransack scope the model allowlists under the box's old `_cont` name
+      # keeps it: Ransack calls a scope only for that exact key, and afal-apps'
+      # `Finding.reported_serial_cont` and bali-auth's `by_user_search_cont` are such scopes.
       #
       # @return [String, nil]
       def search_field_name
-        RansackParamName.predicate(search_fields)
+        return @search_field_name if defined?(@search_field_name)
+
+        alternate = RansackParamName.alternate_predicate(search_fields)
+        @search_field_name = alternate && ransackable_scope?(alternate) ? alternate : RansackParamName.predicate(search_fields)
+      end
+
+      # Every `q` key the quick search is read from: the one it is applied under
+      # (`search_field_name`), the one the box submits, and under ransack 6 the `_cont` it
+      # submitted before (RansackParamName.alternate_predicate). Only `search_field_name` under
+      # ransack 5. A host that drops the search from the raw `q` before building the form drops
+      # all of them: `q.except!(*form.search_param_names)`.
+      #
+      # @return [Array<String>] empty when the listing has no quick search
+      def search_param_names
+        return [] unless search_enabled?
+
+        [ search_field_name, RansackParamName.predicate(search_fields),
+          RansackParamName.alternate_predicate(search_fields) ].compact.uniq
       end
 
       # The `search:` hash every quick-search surface takes -- the Filters
@@ -179,11 +201,13 @@ module Bali
       end
 
       # Extract quick search value from params based on configured search_fields
-      # Looks for q[name_or_genre_or_tenant_name_cont] based on search_fields config
       def extract_search_value(q_params)
-        return nil unless search_enabled?
+        search_param_names.lazy.filter_map { |name| q_params[name] || q_params[name.to_sym] }.first
+      end
 
-        q_params[search_field_name] || q_params[search_field_name.to_sym]
+      def ransackable_scope?(name)
+        scope.respond_to?(:ransackable_scopes) &&
+          scope.ransackable_scopes(ransack_auth_object).map(&:to_s).include?(name)
       end
     end
   end
