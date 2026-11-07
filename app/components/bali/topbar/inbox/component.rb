@@ -51,10 +51,6 @@ module Bali
           ActionController::Base.helpers.tag.span(id: SIGNAL_ID, hidden: true, data: { topbar_inbox_target: "signal" })
         end
 
-        # A comma whatever the host's locale: rails-i18n's `es`, which afal-apps and Centinela load,
-        # writes 13.887, and the fleet is Mexican.
-        def self.count_text(count) = ActiveSupport::NumberHelper.number_to_delimited(count, delimiter: ",")
-
         private
 
         def root_attributes

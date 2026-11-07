@@ -1,0 +1,33 @@
+/* Layered (components): the gaps and the type size are defaults a host utility on the list or
+ * a row has to be able to beat without `!`. The bars' colours are daisyUI's `.progress`. */
+
+.bar-list {
+  @apply flex flex-col gap-3;
+}
+
+.bar-list__row {
+  @apply flex w-full flex-col gap-1;
+}
+
+.bar-list__head {
+  @apply flex items-baseline justify-between gap-3 text-sm;
+}
+
+.bar-list__label {
+  @apply min-w-0 break-words;
+}
+
+.bar-list__value {
+  @apply shrink-0 font-medium tabular-nums;
+}
+
+/* Underlined at rest, faintly: without it a row with a link and one without look the same until
+ * the pointer reaches them, and a touch screen has no pointer. */
+.bar-list__link .bar-list__label {
+  @apply underline decoration-base-content/30 underline-offset-2;
+}
+
+.bar-list__link:hover .bar-list__label,
+.bar-list__link:focus-visible .bar-list__label {
+  @apply decoration-base-content;
+}
