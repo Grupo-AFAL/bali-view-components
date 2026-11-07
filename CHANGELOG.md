@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Un datepicker que ya tenía el foco al conectarse lo conserva y abre el calendario.** Pasa
+  con un campo de fecha con `autofocus`, también dentro de un `Bali::Modal` abierto desde el
+  servidor: flatpickr convertía el campo en `type=hidden` detrás de su `altInput` y el foco se
+  perdía. Del mismo modo, un tooltip o una hover card cuyo disparador ya tenía el foco o el
+  puntero encima al conectarse muestra su globo, en vez de esperar a que el usuario salga y
+  vuelva a entrar.
+- **Bali funciona en un build con code splitting**, el que pone `bundleOptions()` de
+  bali-runtime. Ahí, un `import()` de un módulo CommonJS regresa solo `default`: el datepicker
+  en español caía al inglés sin aviso (separador «to» en vez de «a») y la exportación a PDF del
+  BlockEditor fallaba al leer `createElement` como `undefined`. Además tippy y flatpickr llegan
+  en un chunk después de que la página ya responde: el foco y el puntero que llegan antes los
+  cubre el arreglo anterior, y un `Bali::Dropdown` con `popover: true` ya no pierde el clic que
+  llega antes que tippy. La exportación a Word del BlockEditor se arregla en `bundleOptions()`,
+  no en Bali. Una app que adopte `bundleOptions()` necesita esta versión de Bali o una posterior.
 - **`Bali::SideMenu` fijo: responde al clic desde la primera pintada.** El servidor pintaba el
   `<nav>` con `inert` y solo `SideMenuController` se lo quitaba al conectarse, así que en
   escritorio el menú se veía pero no respondía mientras bajaba el JS (gobierno-corporativo:

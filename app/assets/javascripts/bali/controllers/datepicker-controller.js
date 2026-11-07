@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 import { optionalPeer } from '../utils/optional-peer.js'
+import { commonJs } from '../utils/common-js.js'
 
 /**
  * Datepicker Controller
@@ -82,11 +83,21 @@ export class DatepickerController extends Controller {
     }
     if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
 
+    // Read before flatpickr turns the field into `type=hidden` behind its altInput, which drops
+    // the focus. The focus can come before flatpickr listens: `autofocus`, or, in a build with
+    // code splitting, a click while flatpickr is still a chunk away.
+    const focusedBeforeMount = input === document.activeElement
+
     this.flatpickr = flatpickr(input, options)
     this.forwardAccessibleName(input)
     // flatpickr's own keydown handler skips Escape while allowInput is on and
     // focus is in the input (allowKeydown gate), leaving the calendar stuck open.
     this.flatpickr._input?.addEventListener('keydown', this.closeOnEscape)
+
+    if (focusedBeforeMount) {
+      this.flatpickr._input.focus()
+      this.flatpickr.open()
+    }
   }
 
   // With `altInput` on — the default — flatpickr builds a brand new input, copies
@@ -166,7 +177,7 @@ export class DatepickerController extends Controller {
     es: () =>
       import('flatpickr/dist/l10n/es.js')
         .catch(optionalPeer('flatpickr'))
-        .then(m => m?.Spanish)
+        .then(m => commonJs(m, 'Spanish')?.Spanish)
   }
 
   async setLocale (countryCode) {

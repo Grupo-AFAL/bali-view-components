@@ -1,4 +1,5 @@
-import { drag, tap } from '../support/tap'
+import { holdChunk } from '../support/chunks'
+import { drag, hover, tap, unhover } from '../support/tap'
 
 // #1041 — HoverCard had no E2E spec. Everything it shows is built at runtime:
 // tippy is imported on connect, the card is portaled out of the component into
@@ -7,10 +8,15 @@ import { drag, tap } from '../support/tap'
 describe('HoverCard', () => {
   const trigger = () => cy.get('[data-hovercard-target="trigger"]')
   const card = () => cy.get('body > [data-tippy-root]')
+  // tippy arrives in a chunk after the page is interactive. A synthetic `mouseenter` sent
+  // before it does reaches no listener, and a focus is caught up by `triggeredBeforeMount`
+  // instead of the listener these tests are about.
+  const mounted = () => trigger().should($t => expect($t[0]._tippy, 'tippy mounted').to.exist)
 
   describe('with template content', () => {
     beforeEach(() => {
       cy.visit('/bali/hover_card/default')
+      mounted()
     })
 
     it('shows the template content on hover and hides it on leave', () => {
@@ -67,6 +73,7 @@ describe('HoverCard', () => {
         body: '<p>Loaded from the server</p>'
       }).as('content')
       cy.visit('/bali/hover_card/with_hover_url')
+      mounted()
     })
 
     it('shows a spinner first and replaces it with the response', () => {
@@ -120,7 +127,7 @@ describe('HoverCard', () => {
     beforeEach(() => {
       cy.viewport(390, 844)
       cy.visit('/bali/hover_card/link_trigger')
-      trigger().should($t => expect($t[0]._tippy, 'tippy mounted').to.exist)
+      mounted()
     })
 
     it('opens the card on the first tap and follows the link on the second', () => {
@@ -216,6 +223,7 @@ describe('HoverCard', () => {
   describe('opened by click', () => {
     beforeEach(() => {
       cy.visit('/bali/hover_card/default?open_on_click=true')
+      mounted()
     })
 
     it('ignores hover and waits for the click', () => {
@@ -228,6 +236,45 @@ describe('HoverCard', () => {
       trigger().click()
 
       card().should('be.visible')
+    })
+  })
+
+  // The `focusin` and `mouseenter` that reach the trigger before tippy listens do not come
+  // again until the user leaves it.
+  describe('reached while tippy is still on its way', () => {
+    afterEach(unhover)
+
+    it('opens for the focus it missed and fetches what it shows', () => {
+      cy.intercept('GET', '/show-content-in-hovercard', {
+        statusCode: 200,
+        body: '<p>Loaded from the server</p>'
+      }).as('content')
+      const tippy = holdChunk('tippy.esm')
+      cy.visit('/bali/hover_card/with_hover_url')
+      tippy.requested()
+
+      trigger().find('button').focus()
+      trigger().should($t => expect($t[0]._tippy, 'tippy not mounted yet').to.equal(undefined))
+      tippy.release()
+      mounted()
+
+      card().should('contain.text', 'Loaded from the server')
+    })
+
+    it('opens under a pointer already resting on it', () => {
+      const tippy = holdChunk('tippy.esm')
+      cy.visit('/bali/hover_card/default')
+      tippy.requested()
+
+      trigger().then(hover)
+      trigger().should($t => expect($t[0]._tippy, 'tippy not mounted yet').to.equal(undefined))
+      tippy.release()
+      mounted()
+
+      card().should('be.visible')
+      card().should('contain.text', 'This is the hovercard content')
+      cy.then(unhover)
+      card().should('not.exist')
     })
   })
 })

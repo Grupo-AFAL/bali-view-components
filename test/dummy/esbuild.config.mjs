@@ -1,6 +1,7 @@
 import * as esbuild from 'esbuild'
+import { realpathSync } from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -41,7 +42,29 @@ const resolveGemImports = {
   }
 }
 
-const config = {
+// `import("buffer/")` is CommonJS, so in a split build its namespace holds only `default`:
+// @blocknote/xl-docx-exporter reads `.Buffer` off it (getFonts) and Word export throws in a
+// split build. One shim per importing directory, so each resolves its own `buffer`. Same
+// plugin as `bundleOptions()` in bali-runtime's javascript/esbuild.js.
+const BUFFER_NAMESPACE = 'bali-buffer-interop'
+const bufferInterop = {
+  name: 'buffer-interop',
+  setup (build) {
+    build.onResolve({ filter: /^buffer\/?$/ }, (args) => {
+      if (args.kind !== 'dynamic-import') return null
+      return { path: args.resolveDir, namespace: BUFFER_NAMESPACE }
+    })
+    build.onLoad({ filter: /.*/, namespace: BUFFER_NAMESPACE }, (args) => ({
+      contents: "import buffer from 'buffer/index.js'\n" +
+        'export const { Buffer, SlowBuffer, INSPECT_MAX_BYTES, kMaxLength } = buffer\n' +
+        'export default buffer\n',
+      resolveDir: args.path,
+      loader: 'js'
+    }))
+  }
+}
+
+export const config = {
   // island-demo.js and gantt-island.js are dedicated React island entries:
   // the loaders in application.js inject them on demand (see
   // docs/api/react-island.md).
@@ -57,17 +80,19 @@ const config = {
   sourcemap: true,
   format: 'esm',
   // Minifying also defines NODE_ENV "production" (React's production build).
-  // application.js measured 25.4 MB unminified, 17 MB minified. No `splitting`: no host app
-  // splits, and a split build turns `import()` of a CommonJS module into a bare
-  // `default` (flatpickr's locales, tippy), so Lookbook would test a shape no
-  // host ships. BALI_DEV_BUILD=1 builds unminified to debug.
+  // application.js measured 25.4 MB unminified, 17 MB minified. BALI_DEV_BUILD=1 builds
+  // unminified to debug.
   minify: process.env.BALI_DEV_BUILD !== '1',
+  // Propshaft serves a `-<hash>.digested` file under its own name; any other chunk name it
+  // fingerprints itself, and the entry's relative import 404s.
+  splitting: true,
+  chunkNames: 'chunks/[name]-[hash].digested',
   outdir: path.join(__dirname, 'app/assets/builds'),
   target: ['es2022', 'chrome100', 'firefox100', 'safari15'],
   jsx: 'automatic',
   // Enable "style" condition for packages that export CSS via conditions
   conditions: ['style'],
-  plugins: [resolveGemImports],
+  plugins: [resolveGemImports, bufferInterop],
   alias: {
     // Bali entry points - resolve to local gem source
     bali: path.join(baliGemPath, 'app/frontend/bali'),
@@ -99,11 +124,14 @@ const config = {
   }
 }
 
-if (process.argv.includes('--watch')) {
-  const ctx = await esbuild.context(config)
-  await ctx.watch()
-  console.log('esbuild: watching for changes...')
-} else {
-  await esbuild.build(config)
-  console.log('esbuild: build complete')
+// Imported, it only hands `config` over: test/javascript/split_build_imports.test.js builds it.
+if (import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+  if (process.argv.includes('--watch')) {
+    const ctx = await esbuild.context(config)
+    await ctx.watch()
+    console.log('esbuild: watching for changes...')
+  } else {
+    await esbuild.build(config)
+    console.log('esbuild: build complete')
+  }
 }

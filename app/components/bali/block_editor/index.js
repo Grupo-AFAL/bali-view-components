@@ -247,9 +247,9 @@ export class BlockEditorController extends ReactIslandController {
       // see the note in connect().
       const { PDFExporter, pdfDefaultSchemaMappings } = await import('@blocknote/xl-pdf-exporter')
       const reactPdf = await import('@react-pdf/renderer')
-      const { createElement } = await import('react')
-
       const { pdf, Text, View } = reactPdf
+      const { createElement } = this._react
+
       const mappings = {
         ...pdfDefaultSchemaMappings,
         blockMapping: {

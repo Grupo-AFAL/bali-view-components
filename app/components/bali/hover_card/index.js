@@ -2,6 +2,7 @@ import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
 import { topLayerHost } from '../../../assets/javascripts/bali/utils/top-layer.js'
 import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
+import { triggeredBeforeMount } from '../../../assets/javascripts/bali/utils/triggered-before-mount.js'
 
 // Hardcoded instead of letting `dispatch` default to `this.identifier`, so the
 // public event names stay put when a host registers this controller under a
@@ -70,6 +71,12 @@ export class HovercardController extends Controller {
 
     this.triggerTarget.addEventListener('pointerdown', this.onPointerDown)
     this.triggerTarget.addEventListener('click', this.onClick)
+
+    // `show()` skips the `onTrigger` that fetches `hover_url`.
+    if (triggeredBeforeMount(this.triggerTarget, this.triggerValue)) {
+      this.onTrigger()
+      this.tippy.show()
+    }
   }
 
   getInitialContent () {

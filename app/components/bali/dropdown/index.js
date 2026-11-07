@@ -28,6 +28,10 @@ export class DropdownController extends Controller {
     }
     this.listenOn(this.element)
     if (this.popoverValue) {
+      this.openOnMount = false
+      // Ahead of setupPopover's `await`: tippy.js can be a chunk away, and a click in the
+      // meantime is the one the reader expects to open the menu.
+      this.element.addEventListener('click', this.handleTriggerClick, true)
       this.setupPopover()
     } else if (this.opensOnClick) {
       this.close()
@@ -110,7 +114,7 @@ export class DropdownController extends Controller {
     })
 
     this.element.addEventListener('mousedown', this.holdTriggerFocus)
-    this.element.addEventListener('click', this.handleTriggerClick, true)
+    if (this.openOnMount) this.open()
   }
 
   // daisyUI's CSS dropdown opens from `:focus-within`, so Tab alone unfolded the menu and the
@@ -140,6 +144,10 @@ export class DropdownController extends Controller {
   // `pointer-events: none`.
   handleTriggerClick = (event) => {
     if (this.menu?.contains(event.target)) return
+    if (this.popoverValue && !this.tippy) {
+      this.openOnMount = !this.openOnMount
+      return
+    }
 
     event.preventDefault()
     this.toggle()
