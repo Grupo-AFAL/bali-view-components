@@ -85,7 +85,9 @@ authorize { |(subject, query)| policy(subject).public_send(query) }  # Pundit pa
 Visibility comes from gates alone. An item shows when its gate passes; a module, section or group
 when its own gate passes and something drawn inside it shows — so a module whose only visible
 items are `menu: false` is not offered. A module lands on its first item drawn in the side menu
-that opens in place (no `target:`) unless it declares `landing:`.
+that opens in place (no `target:`) unless it declares `landing:`. A module whose drawn items all
+open elsewhere has no such item, and its switch would come out as `<a href="">`: that module
+declares `landing:`.
 
 ## Paths
 
