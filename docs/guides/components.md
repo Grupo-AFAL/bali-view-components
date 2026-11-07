@@ -1848,6 +1848,14 @@ Data table with optional sorting and pagination.
 <% end %>
 ```
 
+**A header does not wrap** — daisyUI sets `white-space: nowrap` on a `.table`'s thead and the
+header cells inherit it. A header that should break over two lines in a narrow container
+takes `class: "whitespace-normal"`, with no `!`: a value set on the cell beats an inherited one.
+
+```erb
+<% table.with_header(name: "With the ones below", class: "whitespace-normal") %>
+```
+
 **Identity (`id:`)** — a `Bali::Table` emits **one** id, on the
 `<div class="table-component">` that wraps the `<table>`: the id names the whole component,
 and the wrapper is the component's root (the

@@ -15,7 +15,7 @@ module Bali
           @form = form
           @sort_attribute = sort
           @hidden = hidden
-          @options = prepend_class_name(hyphenize_keys(options), "whitespace-nowrap")
+          @options = hyphenize_keys(options)
         end
 
         def call

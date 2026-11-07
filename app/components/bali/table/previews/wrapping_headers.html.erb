@@ -1,0 +1,15 @@
+<div class="max-w-72 rounded-box border border-base-300">
+  <%= render Bali::Table::Component.new do |table| %>
+    <% table.with_header(name: 'Metric') %>
+    <% ['In this node', 'With the ones below'].each do |label| %>
+      <% table.with_header(name: label, class: class_names('text-right', 'whitespace-normal': wrap)) %>
+    <% end %>
+    <% [['People', 12, 148], ['Open positions', 3, 27], ['Vacant positions', 1, 9]].each do |metric, here, below| %>
+      <% table.with_row do %>
+        <td><%= metric %></td>
+        <td class="text-right tabular-nums"><%= here %></td>
+        <td class="text-right tabular-nums"><%= below %></td>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>
