@@ -45,9 +45,9 @@ module Bali
       end
 
       # `with_title_mark` puts an icon in a box or a `Bali::Avatar` before the title, outside
-      # the heading and hidden from screen readers. It is centred on the title's first line:
-      # on a phone, where this title wraps, the mark stays beside its first line. 32px marks
-      # (`Bali::Avatar` `size: :xs`) fit that line exactly.
+      # the heading and hidden from screen readers. A mark up to 32px (`Bali::Avatar`
+      # `size: :xs`) is centred on the title's first line: on a phone, where this title wraps,
+      # it stays beside that line. A taller one is aligned to the title's top.
       #
       # @param title text
       # @param mark select { choices: [avatar, icon] }

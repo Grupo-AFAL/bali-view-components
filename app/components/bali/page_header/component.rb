@@ -38,9 +38,11 @@ module Bali
       # unwrapped, two badges cut a 375px title down to 277px.
       TITLE_ROW_CLASSES = "page-header-title flex items-center gap-3 flex-wrap"
       TITLE_BLOCK_CLASSES = "page-header-title-block min-w-0 space-y-1"
-      # `h-8` is the first line box of TITLE_CLASSES' `text-2xl` (a 2rem line-height): centred
-      # in it, a mark sits on the title's first line however many lines the title wraps to.
-      TITLE_MARK_CLASSES = "page-header-title-mark flex h-8 shrink-0 items-center self-start me-3"
+      # `min-h-8` is the first line box of TITLE_CLASSES' `text-2xl` (a 2rem line-height): a mark
+      # up to 32px is centred on the title's first line however many lines the title wraps to.
+      # A taller one grows the box rather than overhang it: at `h-8` a 48px avatar rode 4px over
+      # the breadcrumbs at 1280px.
+      TITLE_MARK_CLASSES = "page-header-title-mark flex min-h-8 shrink-0 items-center self-start me-3"
 
       # The block form renders INSIDE the heading. Passing a heading of your own
       # nests one heading in another, which the HTML parser splits into an empty
@@ -61,8 +63,10 @@ module Bali
       # name ("The Matrix Action Released") and made it invalid HTML.
       renders_many :title_tags
 
-      # An icon in a box or a `Bali::Avatar` before the title, outside the heading. Hidden from
-      # screen readers: beside the heading that names the page it can only repeat it.
+      # An icon in a box or a `Bali::Avatar` before the title, outside the heading, centred on
+      # the title's first line at the default title size (`text-2xl`). Decorative only, nothing
+      # focusable inside: it is `aria-hidden`, since beside the heading that names the page it
+      # can only repeat it.
       renders_one :title_mark
 
       # `heading:` names the element of the constructor-provided `title:` — the same thing

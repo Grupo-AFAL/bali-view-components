@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`Bali::PageHeader`: slot `with_title_mark`**, un ícono en un cuadro o un `Bali::Avatar`
-  antes del título, fuera del `<h1>` y con `aria-hidden`, centrado en la primera línea del título
-  aunque éste parta en varias. Llega igual por las cinco páginas (`ShowPage`, `IndexPage`,
-  `FormPage`, `DashboardPage`, `DocumentPage`). Una marca de 32 px (`Avatar` `size: :xs`) cabe
-  en esa línea. Reemplaza pasarle a `title:` un `safe_join` con la marca
-  (`git grep -n "header_mark" -- app`).
+  antes del título, fuera del `<h1>` y con `aria-hidden` (sólo decorativa: nada enfocable
+  adentro). Llega igual por las cinco páginas (`ShowPage`, `IndexPage`, `FormPage`,
+  `DashboardPage`, `DocumentPage`). Con el título a su tamaño por omisión, una marca de hasta
+  32 px (`Avatar` `size: :xs`) queda centrada en la primera línea aunque el título parta en
+  varias; una más alta se alinea arriba y agranda el encabezado. En gobierno-corporativo pueden
+  pasar a este slot las marcas que hoy van dentro de `title:`: `mdm/masters/_record_page.html.erb`
+  y las cuatro `title: tag.span(class: "flex items-center gap-2")` de
+  `processes/{macroprocess,procedure,process}_requests/new.html.erb` y
+  `processes/procedures/related_documents/new.html.erb`.
 
 ## [v3.23.0] - 2026-10-28
 

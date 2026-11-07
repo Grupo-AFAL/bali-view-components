@@ -730,9 +730,10 @@ Page-level header with title, subtitle, optional back button, and right-aligned 
 - `with_title_tag` - Badges beside the title. They render as siblings of the heading so they
   stay out of its accessible name, and the row wraps on narrow viewports.
 - `with_title_mark` - An icon in a box or a `Bali::Avatar` before the title, outside the heading
-  and `aria-hidden` (beside the name it can only repeat it). It is centred on the title's first
-  line however many lines the title wraps to; a 32px mark (`Bali::Avatar` `size: :xs`) fits that
-  line, and a taller one overhangs it by half the difference.
+  and `aria-hidden` (beside the name it can only repeat it), so decorative only: nothing
+  focusable inside. At the default title size (`text-2xl`) a mark up to 32px (`Bali::Avatar`
+  `size: :xs`) is centred on the title's first line however many lines the title wraps to; a
+  taller one is aligned to the title's top and grows the header instead.
 
 ```erb
 <%= render Bali::PageHeader::Component.new(title: person.name) do |header| %>
