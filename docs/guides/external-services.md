@@ -43,7 +43,8 @@ end
 
 With no `api_key` it falls back to the `GOOGLE_MAPS_KEY` environment
 variable, which is all v2 ever read — an application that already exports it
-needs no initializer:
+needs no initializer. Without either, LocationsMap renders nothing, so the page
+can show the coordinates in its place:
 
 ```bash
 # .env (add to .gitignore!) or environment configuration
@@ -114,6 +115,7 @@ new maps.Map(element, { center, zoom: 15, mapId })
 | `center_longitude` | Float | -117.0308 | Initial map center longitude |
 | `zoom` | Integer | 12 | Initial zoom level (1-20) |
 | `clustered` | Boolean | false | Enable marker clustering |
+| `map_class` | String | nil | Classes for the map, 450px tall by default: `map_class: "h-56"` makes it shorter, without `!` |
 
 ### Location Markers
 
@@ -140,6 +142,21 @@ Add markers with `with_location`:
 <% end %>
 ```
 
+### Moving the Markers
+
+Once the map has connected, the page can replace its markers by writing
+`data-locations-map-locations-value` on the component: an array of `{ lat, lng }`, each
+with any of `name`, `markerColor`, `markerLabel`, `markerUrl`, `markerBorderColor` and
+`markerGlyphColor`. While it is on the element it stands in for the `with_location`
+markers, and with `fit_to_locations: true` the map frames the new ones. A point with a
+coordinate that is not a number yet, as while it is being typed, is left out.
+
+```js
+const map = document.querySelector('[data-controller~="locations-map"]')
+
+map.dataset.locationsMapLocationsValue = JSON.stringify([{ lat: 32.531, lng: -117.0288 }])
+```
+
 ### Cards (Optional)
 
 Display clickable cards alongside the map that highlight when clicking markers:
@@ -161,7 +178,9 @@ Display clickable cards alongside the map that highlight when clicking markers:
 
 | Issue | Solution |
 |-------|----------|
-| "For development purposes only" watermark | API key missing or invalid. Check `Bali.google_maps.api_key` resolves to it and `google_maps_meta_tags` is in the `<head>`. |
+| LocationsMap renders nothing | No key: `Bali.google_maps.api_key` is blank and `GOOGLE_MAPS_KEY` is not set. |
+| "For development purposes only" watermark | A map loaded without a key (every map but LocationsMap still does). Check `Bali.google_maps.api_key` resolves to it and `google_maps_meta_tags` is in the `<head>`. |
+| "Oops! Something went wrong." and `InvalidKeyMapError` in console | The key is not a valid one. |
 | Map controls in the wrong language | The map follows the `<html lang>`. Set it on the layout's `<html>`. |
 | `ApiProjectMapError` in console | Maps JavaScript API not enabled. Enable it in Google Cloud Console. |
 | `RefererNotAllowedMapError` | Domain not allowed. Add your domain to key restrictions. |

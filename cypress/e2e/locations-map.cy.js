@@ -197,6 +197,108 @@ describe('LocationsMap', () => {
     it('keeps the map 450px tall on a phone', () => mapFills(375))
 
     it('stretches the map across the row on a desktop', () => mapFills(1280))
+
+    // #1537 — Written on the template, `h-[450px]` beat a host's `h-56`: same layer, emitted later.
+    it('takes the height map_class: gives it', () => {
+      cy.viewport(1280, 800)
+      stubGoogleMaps()
+      cy.visit('/bali/locations_map/small?map_class=h-56')
+
+      cy.get('.location-map').should(([map]) => {
+        expect(map.getBoundingClientRect().height).to.eq(224)
+      })
+    })
+  })
+
+  // #1537 — The page moves the markers after connect through `data-locations-map-locations-value`.
+  describe('locations value', () => {
+    const controller = (callback) =>
+      cy.get('[data-controller="locations-map"]').should(($element) => {
+        callback($element[0].ownerDocument.defaultView.Stimulus
+          .getControllerForElementAndIdentifier($element[0], 'locations-map'))
+      })
+
+    const writeLocations = (locations) =>
+      cy.get('[data-controller="locations-map"]').then(([element]) => {
+        element.dataset.locationsMapLocationsValue = JSON.stringify(locations)
+      })
+
+    const onTheMap = (markers) => markers.filter((marker) => marker.map)
+
+    beforeEach(() => {
+      viewport()
+      stubGoogleMaps()
+    })
+
+    it('moves the marker to the point typed in the inputs', () => {
+      cy.visit('/bali/locations_map/following_inputs')
+      registry(({ markers }) => expect(markers).to.have.length(1))
+
+      cy.get('input[name="point[latitude]"]').clear().type('32.531')
+      cy.get('input[name="point[longitude]"]').clear().type('-117.0288')
+
+      registry(({ markers, maps }) => {
+        expect(onTheMap(markers)).to.have.length(1)
+        expect(onTheMap(markers)[0].position).to.deep.eq({ lat: 32.531, lng: -117.0288 })
+        // The preview fits to its locations, so the map frames the point it moved to.
+        expect(maps[0].fittedBounds.points).to.deep.eq([{ lat: 32.531, lng: -117.0288 }])
+      })
+    })
+
+    it('builds its markers from a value already on the element', () => {
+      cy.visit('/bali/empty_state/default')
+      cy.request('/bali/locations_map/default').then(({ body }) => {
+        const component = new DOMParser().parseFromString(body, 'text/html')
+          .querySelector('[data-controller="locations-map"]')
+        component.dataset.locationsMapLocationsValue = JSON.stringify([{ lat: 32.52, lng: -117.02 }])
+
+        cy.get('body').then(([page]) => page.insertAdjacentHTML('beforeend', component.outerHTML))
+      })
+
+      registry(({ markers }) => {
+        expect(markers).to.have.length(1)
+        expect(markers[0].position).to.deep.eq({ lat: 32.52, lng: -117.02 })
+      })
+    })
+
+    it('leaves out a location whose coordinate is not a number', () => {
+      cy.visit('/bali/locations_map/default')
+      registry(({ markers }) => expect(markers).to.have.length(6))
+
+      writeLocations([{ lat: '32.52', lng: '' }, { lat: '32.53', lng: '-117.03' }])
+
+      registry(({ markers }) => {
+        expect(onTheMap(markers)).to.have.length(1)
+        expect(onTheMap(markers)[0].position).to.deep.eq({ lat: 32.53, lng: -117.03 })
+      })
+    })
+
+    it('closes the info window of a marker it takes away', () => {
+      cy.visit('/bali/locations_map/default')
+      registry((_registry, win) => win.__fakeMaps.clickMarker(5))
+      registry(({ infoWindows }) => expect(infoWindows[0].isOpen).to.eq(true))
+
+      writeLocations([{ lat: 32.52, lng: -117.02 }])
+
+      registry(({ infoWindows }) => expect(infoWindows[0].isOpen).to.eq(false))
+    })
+
+    it('hands the new markers to a clusterer of their own', () => {
+      cy.visit('/bali/locations_map/default?clustered=true')
+
+      let previous
+      controller((locationsMap) => {
+        expect(locationsMap.markerCluster, 'clusterer').to.not.eq(undefined)
+        previous = locationsMap.markerCluster
+      })
+
+      writeLocations([{ lat: 32.52, lng: -117.02 }, { lat: 32.53, lng: -117.03 }])
+
+      controller((locationsMap) => {
+        expect(previous.getMap(), 'previous clusterer').to.eq(null)
+        expect(locationsMap.markerCluster.markers).to.have.length(2)
+      })
+    })
   })
 
   describe('clustering', () => {

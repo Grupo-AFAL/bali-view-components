@@ -9,6 +9,13 @@ Bali.config do |config|
   # Set ENABLE_RICH_TEXT_EDITOR=1 to enable for testing
   config.rich_text_editor_enabled = ENV["ENABLE_RICH_TEXT_EDITOR"].present?
 
+  # LocationsMap renders nothing without a key, and its previews have to render: Cypress serves a
+  # stub in place of Google's script, which takes any key. A real one exported as GOOGLE_MAPS_KEY
+  # still wins, and /showcase paints its map only with that one. The stub also reaches every
+  # page through `google_maps_meta_tags` and the `coordinates_polygon_group` field, so without
+  # a real key Google answers every map in development with "Oops! Something went wrong."
+  config.google_maps.api_key = "stub-key" if Rails.env.development? && ENV["GOOGLE_MAPS_KEY"].blank?
+
   # Block Editor is enabled in the dummy app for demonstration
   # In production apps, set to true only if @blocknote/core is installed
   config.block_editor_enabled = true

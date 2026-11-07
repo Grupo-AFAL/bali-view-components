@@ -170,6 +170,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pueden perder el `!`: en afal-apps `marketing/pop_requests/index` y
   `scholarships/requests/index`, y en gobierno-corporativo `governing_bodies/agreements/show`,
   `governing_bodies/sessions/minutes/_agreements` y `_official_format_tab`.
+### Added
+
+- **`Bali::LocationsMap`: `map_class:` y marcas que se mueven** (#1537). `map_class:` va al mapa,
+  de 450 px por omisión: `map_class: "h-56"` lo acorta sin `!`. La página puede reemplazar las
+  marcas después de conectar escribiendo `data-locations-map-locations-value` (`[{ lat, lng }]`).
+  **Anfitrión:** lo que ya acortaba el mapa sigue funcionando. gobierno-corporativo puede cambiar
+  `[&_.location-map]:h-56` por `map_class: "h-56"`, y centinela-web sus `@utility
+  location-map-compact` y `location-map-md` por `map_class: "h-[220px]"` y `"h-[300px]"`
+  (`git grep -n "location-map" -- app`).
+
+### Changed
+
+- **`Bali::LocationsMap` no se pinta sin llave de Google Maps** (#1537). Con
+  `Bali.google_maps.api_key` vacío y sin `GOOGLE_MAPS_KEY` no hay mapa roto ni error de Google
+  en la consola: el componente no sale y deja un aviso en el log. **Anfitrión:** una prueba que
+  busque el mapa en test sin llave se pone roja; dale una (`Bali.google_maps.api_key = "…"`), como
+  ya hacen las de gobierno-corporativo y centinela-web. Una guarda
+  `Bali.google_maps.api_key.present?` que sólo envuelve el mapa sobra.
+
+### Fixed
+
+- **`Bali::LocationsMap`: un punto sin coordenada ya no deja sin marcas a los que siguen**
+  (#1537). Con `with_location(latitude: nil)` Google lanzaba y las marcas después de ese punto no
+  se construían; ahora el punto se omite. Igual con una coordenada que no es número en
+  `data-locations-map-locations-value`.
 
 ## [v3.23.0] - 2026-10-28
 

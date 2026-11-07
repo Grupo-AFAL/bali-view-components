@@ -38,7 +38,7 @@ describe('Google Maps configuration', () => {
     cy.document().then((doc) => {
       if (lang) doc.documentElement.lang = lang
       else doc.documentElement.removeAttribute('lang')
-      // The dummy's layout writes its own when the shell exports GOOGLE_MAPS_KEY.
+      // The dummy's layout writes its own: a stub in development, or the key the shell exports.
       doc.head.querySelectorAll('meta[name^="bali-google-maps"]').forEach((meta) => meta.remove())
       doc.head.insertAdjacentHTML('beforeend', head)
     })
@@ -46,8 +46,7 @@ describe('Google Maps configuration', () => {
 
   const mount = (markup) => cy.get('body').then(([body]) => body.insertAdjacentHTML('beforeend', markup))
 
-  // As the component renders in English, without the key it writes on itself when the shell
-  // exports GOOGLE_MAPS_KEY.
+  // As the component renders in English, without the key the dummy writes on it.
   const mountLocationsMap = () =>
     cy.request('/bali/locations_map/default').then(({ body }) => {
       const component = new DOMParser().parseFromString(body, 'text/html').querySelector('[data-controller="locations-map"]')

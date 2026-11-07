@@ -15,7 +15,9 @@ export class LocationsMapController extends Controller {
     centerLatitude: { type: Number, default: TIJUANA_LAT },
     centerLongitude: { type: Number, default: TIJUANA_LNG },
     apiKey: { type: String, default: '' },
-    minWindowWidth: { type: Number, default: 768 }
+    minWindowWidth: { type: Number, default: 768 },
+    // Written by the host, in place of the location targets: `[{ lat, lng, name, markerColor }]`.
+    locations: Array
   }
 
   async connect () {
@@ -42,11 +44,8 @@ export class LocationsMapController extends Controller {
       // Removed during the await, nothing would destroy it; moved, the other connect builds it.
       if (this.map || !this.element.isConnected) return
 
-      this.loadLocations()
       this.initializeMap()
-      this.addMarkers()
-
-      if (this.fitToLocationsValue) this.fitMapToLocations()
+      this.placeMarkers()
     } catch (error) {
       console.error(error)
     }
@@ -54,6 +53,21 @@ export class LocationsMapController extends Controller {
 
   disconnect () {
     this.themeObserver.disconnect()
+  }
+
+  locationsValueChanged () {
+    // Before the map exists, connect builds the markers from the value.
+    if (!this.map) return
+
+    this.removeMarkers()
+    this.placeMarkers()
+  }
+
+  placeMarkers = () => {
+    this.loadLocations()
+    this.addMarkers()
+
+    if (this.fitToLocationsValue) this.fitMapToLocations()
   }
 
   // Frames every location instead of trusting center/zoom. fitBounds picks
@@ -115,6 +129,14 @@ export class LocationsMapController extends Controller {
     if (this.enableClusteringValue) {
       this.markerCluster = new this.MarkerClusterer({ map: this.map, markers: this.markers })
     }
+  }
+
+  removeMarkers = () => {
+    this.openInfoWindow?.close()
+    this.openInfoWindow = null
+    this.markerCluster?.setMap(null)
+    this.markerCluster = null
+    this.markers.forEach(marker => { marker.map = null })
   }
 
   generateMarker = location => {
@@ -179,10 +201,16 @@ export class LocationsMapController extends Controller {
     return pinElement.element
   }
 
+  // A value item carries the names of a location target's dataset, which
+  // location/component.rb#data_attributes writes. One without a number for either coordinate —
+  // still being typed, or left out in Ruby — is skipped: Google throws on a NaN position, and the
+  // markers after it were never built.
   loadLocations = () => {
-    this.locations = this.locationTargets.map(target => {
-      const data = target.dataset
+    const locations = this.hasLocationsValue
+      ? this.locationsValue
+      : this.locationTargets.map(target => target.dataset)
 
+    this.locations = locations.map(data => {
       return {
         infoViewId: data.infoViewId,
         name: data.name,
@@ -196,7 +224,7 @@ export class LocationsMapController extends Controller {
           glyphColor: data.markerGlyphColor
         }
       }
-    })
+    }).filter(({ lat, lng }) => Number.isFinite(lat) && Number.isFinite(lng))
   }
 
   unselectCards = () => {
