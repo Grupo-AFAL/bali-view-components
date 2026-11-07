@@ -5,9 +5,11 @@
  * It renders as real DOM in the top layer, so automated browser tools (e.g. Claude
  * in Chrome) can operate it — unlike the native window.confirm modal.
  *
- * Wired into Turbo via: Turbo.config.forms.confirm = confirmDialog
+ * installConfirmDialog() wires it into Turbo (Turbo.config.forms.confirm) and remembers the
+ * link clicked last, for a link with data-turbo-method (below).
  *
- * Per-trigger customization via data-attributes on the submitter or form:
+ * Per-trigger customization via data-attributes on the submitter, the form, or a link
+ * with data-turbo-method:
  *   data-bali-confirm-title, data-bali-confirm-variant (danger|warning|info),
  *   data-bali-confirm-accept, data-bali-confirm-cancel
  */
@@ -43,6 +45,16 @@ let activeResolve = null
 let confirmed = false
 let previouslyFocused = null
 let installed = false
+
+// Turbo submits a link with `data-turbo-method` or `data-turbo-stream` through a <form> it
+// builds, which copies no `data-bali-confirm-*`, and asks for the confirm with no submitter
+// (FormLinkClickObserver in @hotwired/turbo 8). The link clicked last stands in for the
+// submitter, for its own question only.
+let clickedLink = null
+
+function rememberClickedLink (event) {
+  clickedLink = event.composedPath()[0].closest?.('a[data-turbo-confirm]') || null
+}
 
 function buildDialog () {
   dialog = document.createElement('dialog')
@@ -102,8 +114,9 @@ export function confirmDialog (message, formElement, submitter) {
   // Rebuild if missing OR detached (Turbo Drive replaces document.body on full visits).
   if (!dialog || !dialog.isConnected) buildDialog()
 
-  const title = dataValue(submitter, formElement, 'baliConfirmTitle')
-  const variant = dataValue(submitter, formElement, 'baliConfirmVariant')
+  const trigger = submitter || (clickedLink?.dataset.turboConfirm === message ? clickedLink : null)
+  const title = dataValue(trigger, formElement, 'baliConfirmTitle')
+  const variant = dataValue(trigger, formElement, 'baliConfirmVariant')
 
   titleEl.textContent = title || ''
   titleEl.hidden = !title
@@ -120,8 +133,8 @@ export function confirmDialog (message, formElement, submitter) {
   messageEl.textContent = message || ''
 
   const fallback = { ...inLanguageOf(dialog, LABELS), ...installedLabels }
-  acceptBtn.textContent = dataValue(submitter, formElement, 'baliConfirmAccept') || fallback.accept
-  cancelBtn.textContent = dataValue(submitter, formElement, 'baliConfirmCancel') || fallback.cancel
+  acceptBtn.textContent = dataValue(trigger, formElement, 'baliConfirmAccept') || fallback.accept
+  cancelBtn.textContent = dataValue(trigger, formElement, 'baliConfirmCancel') || fallback.cancel
 
   acceptBtn.className = 'btn'
   acceptBtn.classList.add(VARIANT_CLASSES[variant] || DEFAULT_ACCEPT_CLASS)
@@ -143,6 +156,7 @@ export function installConfirmDialog (options = {}) {
   if (typeof window === 'undefined' || window.BALI_DISABLE_CONFIRM_DIALOG) return
   if (installed) return
   installed = true
+  document.addEventListener('click', rememberClickedLink, true)
 
   const apply = () => {
     if (window.Turbo && window.Turbo.config && window.Turbo.config.forms) {

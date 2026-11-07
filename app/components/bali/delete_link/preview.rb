@@ -16,7 +16,7 @@ module Bali
       def default(name: nil, variant: :ghost, style: nil, size: nil, icon: false,
                   skip_confirm: false)
         # rubocop:enable Metrics/ParameterLists
-        render DeleteLink::Component.new(
+        render Bali::DeleteLink::Component.new(
           name: name,
           href: '/lookbook',
           variant: variant.to_sym,
@@ -31,14 +31,23 @@ module Bali
       # for. One keyword now says both whether and which.
       # @param icon text
       def with_named_icon(icon: 'circle-x')
-        render DeleteLink::Component.new(name: 'Discard', href: '/lookbook', icon: icon)
+        render Bali::DeleteLink::Component.new(name: 'Discard', href: '/lookbook', icon: icon)
       end
 
+      # For an action that removes a record without deleting what the user sees, `data:` gives
+      # the dialog its own title, accept label and colour: it lands on the button, which the
+      # dialog reads before the form that carries "Confirm deletion" / "Delete".
       # @param custom_confirm text "Custom confirmation message"
-      def with_custom_confirm(custom_confirm: 'Are you absolutely sure you want to delete this?')
-        render DeleteLink::Component.new(
+      # @param title text "Dialog title"
+      # @param accept text "Accept button label"
+      # @param variant select { choices: [~, danger, warning, info] }
+      def with_custom_confirm(custom_confirm: 'Are you absolutely sure you want to delete this?',
+                              title: nil, accept: nil, variant: nil)
+        render Bali::DeleteLink::Component.new(
           href: '/lookbook',
-          confirm: custom_confirm
+          confirm: custom_confirm,
+          data: { bali_confirm_title: title, bali_confirm_accept: accept,
+                  bali_confirm_variant: variant }.compact_blank
         )
       end
 
@@ -51,7 +60,7 @@ module Bali
       # order, taking the hover card with it, and the reason would be mouse-only.
       # @param disabled toggle
       def with_hovercard(disabled: true)
-        render DeleteLink::Component.new(
+        render Bali::DeleteLink::Component.new(
           href: '/lookbook',
           disabled: disabled,
           disabled_hover_url: '/show-content-in-hovercard'
@@ -62,7 +71,7 @@ module Bali
       # @param size select { choices: [~, xs, sm, md, lg, xl] }
       # @param form_class select { choices: [~, bg-base-200, bg-success/20, bg-warning/20] }
       def with_custom_classes(size: nil, form_class: nil)
-        render DeleteLink::Component.new(
+        render Bali::DeleteLink::Component.new(
           href: '/lookbook',
           size: size&.to_sym,
           form_class: form_class
@@ -79,7 +88,7 @@ module Bali
       # This is useful for conditionally hiding delete links based on permissions.
       # @param authorized toggle
       def with_authorization(authorized: false)
-        render DeleteLink::Component.new(
+        render Bali::DeleteLink::Component.new(
           href: '/lookbook',
           authorized: authorized
         )
