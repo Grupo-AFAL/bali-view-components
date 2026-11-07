@@ -376,8 +376,9 @@ export class ConditionController extends Controller {
    * @param {string} type - The attribute type
    * @param {Array} operatorsFromData - The attribute option's data-operators, if it has them
    * @param {string} defaultOperator - The attribute option's data-default-operator
-   *   (Bali::Filters::Operators.default_for): empty when the attribute declares no operators,
-   *   and then the row keeps the operator it had if the list offers it.
+   *   (Bali::Filters::Operators.default_for): empty when the attribute declares neither
+   *   `operators:` nor `default_operator:`, and then the row keeps the operator it had if the
+   *   list offers it.
    */
   updateOperators (type, operatorsFromData = null, defaultOperator = '') {
     if (!this.hasOperatorTarget) return
@@ -400,7 +401,7 @@ export class ConditionController extends Controller {
 
     this.operatorTarget.value = selected
     // Condition::Component#fixed_operator? renders the same rule: only an attribute that
-    // declares its operators, so a boolean's lone "is" stays a select.
+    // declares `operators:` or `default_operator:`, so a boolean's lone "is" stays a select.
     this.operatorTarget.disabled = Boolean(defaultOperator) && operators.length === 1
     if (this.hasOperatorHiddenTarget) {
       this.operatorHiddenTarget.value = selected

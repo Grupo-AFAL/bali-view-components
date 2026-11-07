@@ -22,8 +22,10 @@ module Bali
         end
 
         # A blank row opens on the first text operator ("contains"), the same rule
-        # condition_controller.js#reset reads off `translations_json`. A text operator a host
-        # wrote by hand comes in the variant the installed ransack gets (#1530).
+        # condition_controller.js#reset reads off `translations_json`. Every blank row Bali seeds
+        # (Filters, FilterGroup, FilterGroupParser) carries a nil operator so this is its only
+        # rule. A text operator a host wrote by hand comes in the variant the installed ransack
+        # gets (#1530).
         def operator
           return Operators.for_type(:text).first[:value] if @condition[:operator].nil?
 
@@ -58,13 +60,22 @@ module Bali
           end
         end
 
+        # The attribute's operators, plus the one the condition arrived with when they leave it
+        # out: "between" lets its `gteq` or `lteq` through alone (an OR group, a view saved with
+        # one end), and a panel whose attributes come from the view lets anything through.
+        # Left out, the select would show its first operator over the widget of another.
         def operators_for_current_type
-          @operators_for_current_type ||= Operators.for_attribute(selected_attribute || {})
+          @operators_for_current_type ||= begin
+            offered = Operators.for_attribute(selected_attribute || {})
+            arrived = Operators.for_type(attribute_type).find { |op| op[:value] == operator }
+            arrived.nil? || offered.any? { |op| op[:value] == operator } ? offered : offered + [ arrived ]
+          end
         end
 
-        # Only an attribute that declares its operators: a boolean's lone "is" stays a select
-        # as it always was. condition_controller.js#updateOperators fixes the select by the
-        # same rule, reading the declaration off `data-default-operator`.
+        # Only an attribute that declares `operators:` or `default_operator:`: a boolean's lone
+        # "is" stays a select as it always was. condition_controller.js#updateOperators fixes the
+        # select by the same rule, reading the declaration off `data-default-operator`; a row it
+        # builds never carries the arrived operator `operators_for_current_type` may add.
         def fixed_operator?
           Operators.default_for(selected_attribute || {}).present? && operators_for_current_type.one?
         end

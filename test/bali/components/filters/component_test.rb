@@ -118,41 +118,13 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_button("OR")
   end
 
-  def test_operators_provides_correct_operators_for_text_type
-    operators = Bali::Filters::Operators.for_type(:text)
-    assert_includes(operators.pluck(:value), "cont")
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "start")
-    assert_includes(operators.pluck(:value), "end")
-  end
-
-  def test_operators_provides_correct_operators_for_number_type
-    operators = Bali::Filters::Operators.for_type(:number)
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "gt")
-    assert_includes(operators.pluck(:value), "lt")
-    assert_includes(operators.pluck(:value), "gteq")
-    assert_includes(operators.pluck(:value), "lteq")
-  end
-
-  def test_operators_provides_correct_operators_for_date_type
-    operators = Bali::Filters::Operators.for_type(:date)
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "gt")
-    assert_includes(operators.pluck(:value), "lt")
-    assert_includes(operators.pluck(:value), "gteq")
-    assert_includes(operators.pluck(:value), "lteq")
-  end
-
-  def test_operators_provides_correct_operators_for_select_type
-    operators = Bali::Filters::Operators.for_type(:select)
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "not_eq")
-  end
-
-  def test_operators_provides_correct_operators_for_boolean_type
-    operators = Bali::Filters::Operators.for_type(:boolean)
-    assert_equal([ "eq" ], operators.pluck(:value))
+  def test_an_attribute_with_an_operator_its_type_does_not_offer_raises_instead_of_offering_them_all
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Filters::Component.new(
+        url: "/users", available_attributes: [ { key: :code, label: "Code", type: :text, operators: %i[gt] } ]
+      ))
+    end
+    assert_match "attribute :code: type :text offers no operator gt", error.message
   end
 
   def test_persistence_toggle_returns_false_for_persistence_available_when_no_storage_id
@@ -346,7 +318,7 @@ class BaliFiltersComponentTest < ComponentTestCase
           { attribute: "age", operator: "between", value: { start: "18", end: "30" } }
         ] },
         # A builder row with no attribute and no value: it must NOT travel.
-        { combinator: "or", conditions: [ { attribute: "", operator: "cont", value: "" } ] }
+        { combinator: "or", conditions: [ { attribute: "", operator: nil, value: "" } ] }
       ]
     ))
 

@@ -26,19 +26,26 @@ module Bali
       end
 
       # The operators the panel offers for one attribute: its type's, narrowed to and ordered
-      # by its `operators:` when it declares them (`FilterForm.filter_attribute`, which raises
-      # on one the type does not offer). An attribute hash built in a view or in an
-      # `available_attributes` override skips that check, so an unknown entry is ignored here.
+      # by its `operators:` when it declares them.
       #
-      # @param attribute [Hash] `{ type:, operators: }`, as `FilterForm#available_attributes`
+      # @param attribute [Hash] `{ key:, type:, operators: }`, as `FilterForm#available_attributes`
       #   builds it
       # @return [Array<Hash>]
+      # @raise [ArgumentError] on an empty `operators:` or on an entry its type does not offer.
+      #   `FilterForm.filter_attribute` meets this when the class loads; a hash built in a view
+      #   or in an `available_attributes` override, when the panel or the form reads it.
       def for_attribute(attribute)
         offered = for_type(attribute[:type] || :text)
-        allowed = Array(attribute[:operators]).map { |operator| RansackParamName.text_predicate(operator) }
-        return offered if allowed.empty?
+        return offered if attribute[:operators].nil?
 
-        allowed.filter_map { |value| offered.find { |operator| operator[:value] == value } }.presence || offered
+        declared = Array(attribute[:operators])
+        narrowed = declared.map { |operator| find_operator(offered, operator) }
+        return narrowed if narrowed.any? && narrowed.all?
+
+        unknown = declared.reject { |operator| find_operator(offered, operator) }
+        raise ArgumentError, "attribute #{attribute[:key].inspect}: type :#{attribute[:type] || :text} offers no " \
+                             "operator #{unknown.join(', ').presence || '(empty list)'} " \
+                             "(valid: #{offered.pluck(:value).join(', ')})"
       end
 
       # The operator a condition opens on when the user picks the attribute: its
@@ -47,14 +54,21 @@ module Bali
       # attribute option's `data-default-operator`, which condition_controller.js#attributeChanged
       # reads.
       #
-      # @param attribute [Hash] `{ type:, operators:, default_operator: }`
+      # @param attribute [Hash] `{ key:, type:, operators:, default_operator: }`
       # @return [String, nil]
+      # @raise [ArgumentError] where `for_attribute` raises, and on a `default_operator:` outside
+      #   the attribute's operators
       def default_for(attribute)
-        return if attribute[:default_operator].blank? && attribute[:operators].blank?
+        return if attribute[:default_operator].blank? && attribute[:operators].nil?
 
-        offered = for_attribute(attribute).map { |operator| operator[:value] }
+        offered = for_attribute(attribute).pluck(:value)
+        return offered.first if attribute[:default_operator].blank?
+
         requested = RansackParamName.text_predicate(attribute[:default_operator])
-        offered.include?(requested) ? requested : offered.first
+        return requested if offered.include?(requested)
+
+        raise ArgumentError, "attribute #{attribute[:key].inspect}: default_operator: " \
+                             ":#{attribute[:default_operator]} is not among its operators (#{offered.join(', ')})"
       end
 
       # The Ransack predicates the panel writes for the attribute: one per operator, and the
@@ -91,6 +105,10 @@ module Bali
 
       def text(predicate)
         RansackParamName.text_predicate(predicate)
+      end
+
+      def find_operator(offered, operator)
+        offered.find { |candidate| candidate[:value] == text(operator) }
       end
 
       def number_operators

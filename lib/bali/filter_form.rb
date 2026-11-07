@@ -152,8 +152,11 @@ module Bali
       #   ({Bali::Filters::Operators.for_type}): `%i[eq]` for an identifier that only
       #   matches whole. Only these reach Ransack from the panel, so a saved view, the
       #   filter cache or a URL carrying another one (`q[g][0][code_cont]`) is no filter
-      #   and the panel does not paint it. With a single one, the operator select is fixed.
-      #   The simple UI keeps `predicate:`. Raises on an operator the type does not offer.
+      #   and the panel does not paint it. "between" reaches it as its `gteq` and `lteq`,
+      #   each of which also filters alone (an OR group, a view saved with one end): the
+      #   panel paints that condition with its own operator, which its select then offers
+      #   beside these. With a single one, and no such condition, the operator select is
+      #   fixed. The simple UI keeps `predicate:`. Raises on an operator the type does not offer.
       #   Under ransack 6 a text one may be written `:cont` or `:i_cont` alike
       #   ({Bali::RansackParamName.text_predicate}).
       # @param default_operator [Symbol] The operator a condition opens on when the user
@@ -231,8 +234,6 @@ module Bali
         type = type.to_sym
         input ||= :slim_select if multiple
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
-        operators = operators&.map { |operator| RansackParamName.text_predicate(operator) }
-        default_operator = default_operator && RansackParamName.text_predicate(default_operator)
         validate_auto_submit(key, resolved_input, auto_submit)
         validate_default(key, default, simple, advanced)
         validate_multiple(key, resolved_input, multiple, simple)
@@ -352,7 +353,8 @@ module Bali
       end
 
       # Same contract as an unknown `input:`: an operator the panel's select cannot offer
-      # fails here, instead of a select that offers another one.
+      # fails when the class loads, instead of a select that offers another one. The check is
+      # `Operators.default_for`'s, which a hash built in a view meets when the panel reads it.
       def validate_operators(key, type, operators, default_operator, advanced)
         return if operators.nil? && default_operator.nil?
 
@@ -361,17 +363,8 @@ module Bali
                                "advanced panel, and this one is advanced: false; the simple row takes predicate:"
         end
 
-        offered = Bali::Filters::Operators.for_type(type).map { |operator| operator[:value] }
-        allowed = operators || offered
-        unknown = allowed - offered
-        if allowed.empty? || unknown.any?
-          raise ArgumentError, "filter_attribute #{key}: type :#{type} offers no operator " \
-                               "#{unknown.join(', ').presence || '(empty list)'} (valid: #{offered.join(', ')})"
-        end
-        return if default_operator.nil? || allowed.include?(default_operator)
-
-        raise ArgumentError, "filter_attribute #{key}: default_operator: :#{default_operator} is not " \
-                             "among its operators (#{allowed.join(', ')})"
+        Bali::Filters::Operators.default_for({ key: key, type: type, operators: operators,
+                                               default_operator: default_operator })
       end
 
       # An advanced `default:` travels as one condition of the panel's first group, with its
@@ -865,6 +858,10 @@ module Bali
     # `has_filter_params` cannot tell "nothing arrived" from "an empty view arrived" and with
     # `persist_enabled` it falls into the restore branch — the old cache overwrites the applied
     # view.
+    #
+    # Restored groupings go through `normalize_groupings` like the URL's and a saved view's, not
+    # only later in `applied_groupings`: a host that reads `@groupings` after `super` gets the
+    # keys this ransack is written with, from a cache written under the other one (#1530).
     def fetch_stored_filter_state(attributes, groupings, combinator, search_value, force_write: false)
       return [ attributes, groupings, combinator, search_value ] unless Object.const_defined?("Rails")
 
@@ -912,7 +909,7 @@ module Bali
           )
           Rails.cache.write(cache_key, stored)
           restore_simple_filter_state(stored)
-          [ stored[:attributes] || {}, stored[:groupings], stored[:combinator], nil ]
+          [ stored[:attributes] || {}, normalize_groupings(stored[:groupings]), stored[:combinator], nil ]
         else
           [ {}, nil, nil, nil ]
         end
@@ -938,7 +935,7 @@ module Bali
         restore_simple_filter_state(stored)
         [
           stored[:attributes] || {},
-          stored[:groupings],
+          normalize_groupings(stored[:groupings]),
           stored[:combinator],
           stored[:search_value]
         ]

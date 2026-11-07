@@ -19,10 +19,10 @@ module Bali
 
       private
 
-      # A text condition in the variant this ransack gets (`RansackParamName.text_predicate`),
-      # whichever arrived: a saved view, the filter cache or a bookmark written under the other
-      # ransack carries `name_cont` where Bali now writes `name_i_cont`, or the reverse (#1530).
-      # The panel paints it with its own operator and its next submit writes that one.
+      # A text condition in the variant this ransack gets (`RansackParamName.text_predicate`): a
+      # saved view, the filter cache or a bookmark written under ransack 5 carries `name_cont`
+      # where Bali now writes `name_i_cont` (#1530). The panel paints it with its own operator
+      # and its next submit writes that one.
       def current_condition_key(key)
         attribute, operator = parse_condition_key(key.to_s)
         current = operator && RansackParamName.text_predicate(operator)

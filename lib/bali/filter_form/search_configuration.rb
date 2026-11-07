@@ -133,18 +133,13 @@ module Bali
         @search_field_name = alternate && ransackable_scope?(alternate) ? alternate : RansackParamName.predicate(search_fields)
       end
 
-      # Every `q` key the quick search is read from: the one it is applied under
-      # (`search_field_name`), the one the box submits, and under ransack 6 the `_cont` it
-      # submitted before (RansackParamName.alternate_predicate). Only `search_field_name` under
-      # ransack 5. A host that drops the search from the raw `q` before building the form drops
-      # all of them: `q.except!(*form.search_param_names)`.
+      # Every `q` key the quick search is read from ({RansackParamName.predicates}): the one the
+      # box submits and, under ransack 6, the `_cont` it submitted before. `search_field_name`,
+      # the one it is applied under, is always among them.
       #
       # @return [Array<String>] empty when the listing has no quick search
       def search_param_names
-        return [] unless search_enabled?
-
-        [ search_field_name, RansackParamName.predicate(search_fields),
-          RansackParamName.alternate_predicate(search_fields) ].compact.uniq
+        RansackParamName.predicates(search_fields)
       end
 
       # The `search:` hash every quick-search surface takes -- the Filters

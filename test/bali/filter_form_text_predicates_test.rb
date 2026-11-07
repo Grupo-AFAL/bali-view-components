@@ -74,6 +74,23 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
     end
   end
 
+  # Condition::Component#operator paints it with the first text operator, under either ransack.
+  test "a group the panel cannot draw hands a host a blank row with no operator" do
+    undrawable = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: { "0" => { "name_null" => "1" } } }))
+
+    assert_equal [ { attribute: "", operator: nil, value: "" } ], undrawable.filter_groups.sole[:conditions]
+  end
+
+  test "the search's names come from its fields alone, for a guard that runs before the form" do
+    { false => %w[name_or_genre_cont], true => %w[name_or_genre_i_cont name_or_genre_cont] }.each do |insensitive, names|
+      as_ransack(insensitive) do
+        assert_equal names, Bali::RansackParamName.predicates(%i[name genre]), insensitive
+        assert_equal names, SearchFilterForm.new(Movie.all).search_param_names, insensitive
+      end
+    end
+    assert_empty Bali::RansackParamName.predicates([])
+  end
+
   test "under ransack 5 the search is read under its _cont alone, as it always was" do
     as_ransack(false) do
       assert_equal %w[name_or_genre_cont], SearchFilterForm.new(Movie.all).search_param_names
@@ -171,7 +188,7 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
         searched = ScopedSearchFilterForm.new(ScopedSearchMovie.all, ActionController::Parameters.new(q: { box => "seid" }))
 
         assert_equal "code_cont", searched.search_field_name, box
-        assert_equal [ "code_cont", box ].uniq, searched.search_param_names, box
+        assert_equal [ box, "code_cont" ].uniq, searched.search_param_names, box
         assert_equal [ @seidor.id ], searched.result.pluck(:id), box
       end
     end
@@ -219,9 +236,29 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
     Rails.cache = original_cache
   end
 
+  # identity's AccountsFilterForm reads `@groupings` after `super`, as docs/guides/ransack-6.md
+  # step 4 says.
+  test "under ransack 6 a filter cache written before restores the panel's conditions under i_ keys" do
+    original_cache = Rails.cache
+    Rails.cache = ActiveSupport::Cache::MemoryStore.new
+    as_ransack(false) do
+      SearchFilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: { "0" => { name_cont: "seidor" } } }),
+                           storage_id: "movies")
+    end
+    as_ransack(true) do
+      [ {}, { clear_search: true } ].each do |params|
+        restored = SearchFilterForm.new(Movie.all, ActionController::Parameters.new(params), storage_id: "movies",
+                                                                                             persist_enabled: true)
+
+        assert_equal({ "0" => { "name_i_cont" => "seidor" } }, restored.instance_variable_get(:@groupings), params)
+      end
+    end
+  ensure
+    Rails.cache = original_cache
+  end
+
   private
 
-  # What `case_insensitive_text?` memoizes from the gem, set for the block.
   def form(q)
     SearchFilterForm.new(Movie.all, ActionController::Parameters.new(q: q))
   end

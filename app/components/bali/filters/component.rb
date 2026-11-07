@@ -207,7 +207,7 @@ module Bali
       def default_condition
         {
           attribute: "",
-          operator: "cont",
+          operator: nil,
           value: ""
         }
       end

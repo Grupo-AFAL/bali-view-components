@@ -12,7 +12,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
       { key: :created_at, label: "Created", type: :date },
       { key: :verified, label: "Verified", type: :boolean }
     ]
-    @empty_condition = { attribute: "", operator: "cont", value: "" }
+    @empty_condition = { attribute: "", operator: nil, value: "" }
   end
 
   def test_rendering_renders_the_condition_container
@@ -431,6 +431,21 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
       available_attributes: attributes
     ))
     assert_no_selector('select[data-condition-target="operator"][disabled]', visible: :all)
+  end
+
+  # A panel whose attributes come from the view lets through what its hashes leave out.
+  # filter_form_operators_test.rb draws a "between"'s lone end through a form.
+  def test_a_row_draws_the_operator_it_arrived_with_when_the_attribute_leaves_it_out
+    contains = Bali::RansackParamName.text_predicate("cont")
+    render_inline(Bali::Filters::Condition::Component.new(
+      condition: { attribute: "code", operator: contains, value: "EMP" }, group_index: 0, condition_index: 0,
+      available_attributes: [ { key: :code, label: "Code", type: :text, operators: %i[eq] } ]
+    ))
+
+    select = page.find('[data-condition-target="operator"]', visible: :all)
+    assert_equal [ "eq", contains ], select.all("option", visible: :all).map(&:value)
+    assert_equal contains, select.value
+    refute select.disabled?
   end
 
   def test_a_boolean_keeps_its_lone_operator_in_a_select_it_did_not_declare
