@@ -2,6 +2,7 @@ import { Controller } from '@hotwired/stimulus'
 import zIndexFor from '../../../assets/javascripts/bali/utils/z-index.js'
 import { topLayerHost } from '../../../assets/javascripts/bali/utils/top-layer.js'
 import { optionalPeer } from '../../../assets/javascripts/bali/utils/optional-peer.js'
+import { triggeredBeforeMount } from '../../../assets/javascripts/bali/utils/triggered-before-mount.js'
 
 // Anything the browser puts in the tab order on its own. A trigger slot holding one of
 // these already has a keyboard route to the tooltip; a slot holding plain text does not.
@@ -54,6 +55,8 @@ export class TooltipController extends Controller {
       offset: [0, 24],
       zIndex: zIndexFor('tooltip')
     })
+
+    if (triggeredBeforeMount(this.triggerTarget, this.triggerValue)) this.tippy.show()
   }
 
   // A copy, because tippy MOVES what it is handed: `setContent` runs `appendChild` on

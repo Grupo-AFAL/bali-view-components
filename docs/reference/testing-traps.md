@@ -58,6 +58,13 @@ goes here.
   on a dark page: 3 of 30 switches under Cypress, so the guard went green most runs. Treat such
   a flake as the bug. `useSyncExternalStore` reads the value again once it has subscribed
   (`subscribeToTheme` in `BlockNoteEditorWrapper.jsx`): 0 of 50.
+- **A library loaded with `import()` is not there when `cy.visit` returns.** The dummy builds
+  with code splitting, so tippy, flatpickr or SlimSelect arrive in a chunk after `load`. An
+  event sent before then reaches no listener, and an assertion that something does *not* open
+  passes because nothing could have. Wait on the library's own handle first (`el._tippy`, the
+  input's `_flatpickr`, `select.slim`). To act in that window on purpose, `holdChunk` in
+  `cypress/support/chunks.js`; it clears the HTTP cache, since an immutable chunk an earlier
+  test loaded never reaches `cy.intercept`.
 - **Hidden text is still text.** Assert visibility or state, not `textContent` — hidden notices
   are always in the DOM.
 - **"No request happened"** needs a bounded `cy.wait(…)` before asserting

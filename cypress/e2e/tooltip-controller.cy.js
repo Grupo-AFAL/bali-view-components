@@ -3,15 +3,24 @@
 // template puts around the `trigger` slot — no tabindex, so it never took focus. Neither
 // end of the slot contract worked: a focusable control inside it could not open the
 // balloon, and a slot with nothing focusable in it had no keyboard route at all.
+import { holdChunk } from '../support/chunks'
+import { hover, unhover } from '../support/tap'
+
 describe('TooltipController', () => {
   const balloon = '[data-tippy-root]'
   // Same list the controller uses to decide whether the slot already brought a tab stop.
   const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [contenteditable], ' +
     '[tabindex]:not([tabindex="-1"])'
+  // tippy arrives in a chunk after the page is interactive. Until it does, a focus is caught
+  // up by `triggeredBeforeMount`, not by tippy's own listener, which these tests are about.
+  const mounted = selector => cy.get(selector).should($triggers => {
+    $triggers.each((i, trigger) => expect(trigger._tippy, `tippy mounted on trigger ${i}`).to.exist)
+  })
 
   context('a slot that brings its own focusable control', () => {
     beforeEach(() => {
       cy.visit('/bali/tooltip/keyboard_reach')
+      mounted('.trigger')
     })
 
     it('opens on the control focus and closes when focus leaves', () => {
@@ -43,6 +52,7 @@ describe('TooltipController', () => {
   context('a slot with nothing focusable in it', () => {
     beforeEach(() => {
       cy.visit('/bali/tooltip/keyboard_reach')
+      mounted('.trigger')
     })
 
     it('makes the wrapper the tab stop and opens on its focus', () => {
@@ -64,6 +74,7 @@ describe('TooltipController', () => {
   context('a balloon that holds markup and no text', () => {
     beforeEach(() => {
       cy.visit('/bali/tooltip/markup_content')
+      mounted('.trigger')
     })
 
     it('builds the balloon around an image', () => {
@@ -160,7 +171,7 @@ describe('TooltipController', () => {
       // tippy numbers its instances, so the id is what tells a rebuilt balloon apart from
       // the one the first connect left behind.
       const idsBefore = []
-      cy.get('.tooltip-component .trigger').each($t => idsBefore.push($t[0]._tippy.id))
+      mounted('.tooltip-component .trigger').each($t => idsBefore.push($t[0]._tippy.id))
 
       cy.get('.tooltip-component').then($els => {
         const parent = $els[0].parentNode
@@ -186,6 +197,44 @@ describe('TooltipController', () => {
         cy.get(balloon).should('be.visible')
         cy.wrap($el).find('.trigger').blur()
       })
+    })
+  })
+
+  // The `focusin` and `mouseenter` that reach the trigger before tippy listens do not come
+  // again until the user leaves it, so the balloon stayed shut over a focused trigger.
+  context('a trigger reached while tippy is still on its way', () => {
+    afterEach(unhover)
+
+    it('opens for the focus it missed and closes when focus leaves', () => {
+      const tippy = holdChunk('tippy.esm')
+      cy.visit('/bali/tooltip/keyboard_reach')
+      tippy.requested()
+
+      cy.contains('button', 'Focusable trigger').focus()
+      cy.contains('button', 'Focusable trigger').parents('.trigger')
+        .should($t => expect($t[0]._tippy, 'tippy not mounted yet').to.equal(undefined))
+      tippy.release()
+      mounted('.trigger')
+
+      cy.get(balloon).should('be.visible')
+        .and('contain', 'The button inside the slot is the tab stop')
+      cy.contains('button', 'Focusable trigger').blur()
+      cy.get(balloon).should('not.exist')
+    })
+
+    it('opens under a pointer already resting on it', () => {
+      const tippy = holdChunk('tippy.esm')
+      cy.visit('/bali/tooltip/keyboard_reach')
+      tippy.requested()
+
+      cy.get('.help-tip .trigger').then(hover)
+      cy.get('.help-tip .trigger')
+        .should($t => expect($t[0]._tippy, 'tippy not mounted yet').to.equal(undefined))
+      tippy.release()
+      mounted('.trigger')
+
+      cy.get(balloon).should('be.visible')
+        .and('contain', 'Nothing in this slot can take focus')
     })
   })
 })

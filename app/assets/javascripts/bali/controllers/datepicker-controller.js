@@ -83,11 +83,21 @@ export class DatepickerController extends Controller {
     }
     if (this.hasAppendToTarget) options.appendTo = this.appendToTarget
 
+    // Read before flatpickr turns the field into `type=hidden` behind its altInput, which drops
+    // the focus. In a build with code splitting flatpickr is a chunk away, so a click can land
+    // on the field before it mounts; its `focus` and `click` listeners never saw it.
+    const focusedBeforeMount = input === document.activeElement
+
     this.flatpickr = flatpickr(input, options)
     this.forwardAccessibleName(input)
     // flatpickr's own keydown handler skips Escape while allowInput is on and
     // focus is in the input (allowKeydown gate), leaving the calendar stuck open.
     this.flatpickr._input?.addEventListener('keydown', this.closeOnEscape)
+
+    if (focusedBeforeMount) {
+      this.flatpickr._input.focus()
+      this.flatpickr.open()
+    }
   }
 
   // With `altInput` on — the default — flatpickr builds a brand new input, copies

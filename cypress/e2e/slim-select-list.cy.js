@@ -120,7 +120,9 @@ describe('SlimSelect list', () => {
     beforeEach(() => {
       cy.intercept('GET', '/users.json*').as('remoteSearch')
       cy.visit('/bali/form/slim_select/remote')
+      // SlimSelect arrives in a chunk after the page is interactive.
       cy.get('select[name="form_record[name]"]').as('select').should('have.value', '1')
+        .and($select => expect($select[0].slim, 'SlimSelect mounted').to.exist)
     })
 
     it('writes the chosen result into the <select> once', () => {

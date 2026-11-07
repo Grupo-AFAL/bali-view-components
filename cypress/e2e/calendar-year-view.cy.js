@@ -6,6 +6,10 @@ import { THEMES } from '../support/themes'
 // cell would cost 365 instances; `hover?` restricts it to days with events.
 describe('Calendar year view', () => {
   const year = '/bali/calendar/year'
+  // The card's tippy arrives in a chunk after the page is interactive, and a synthetic
+  // `mouseenter` sent before it does reaches no listener and leaves no `:hover` behind.
+  const dayTrigger = index => cy.get('.hover-card-component').eq(index).find('[data-hovercard-target="trigger"]')
+    .should($trigger => expect($trigger[0]._tippy, 'tippy mounted').to.exist)
 
   it('mounts one hover card per day with events, and none on the empty days', () => {
     cy.viewport(1440, 1200)
@@ -21,8 +25,7 @@ describe('Calendar year view', () => {
     cy.viewport(1440, 1200)
     cy.visit(year)
 
-    cy.get('.hover-card-component').first().find('[data-hovercard-target="trigger"]')
-      .trigger('mouseenter')
+    dayTrigger(0).trigger('mouseenter')
 
     cy.get('.tippy-box').should('be.visible').within(() => {
       cy.get('.badge').should('have.length.greaterThan', 0)
@@ -85,8 +88,7 @@ describe('Calendar year view', () => {
     cy.viewport(1440, 1200)
     cy.visit(year)
 
-    cy.get('.hover-card-component').eq(1).find('[data-hovercard-target="trigger"]')
-      .trigger('mouseenter')
+    dayTrigger(1).trigger('mouseenter')
 
     cy.get('.tippy-box a.tag-component').should('have.length', 2).first().then($a => {
       const a = $a[0]
@@ -128,8 +130,7 @@ describe('Calendar year view', () => {
     cy.viewport(1440, 1200)
     cy.visit(year)
 
-    cy.get('.hover-card-component').eq(1).find('[data-hovercard-target="trigger"]')
-      .trigger('mouseenter')
+    dayTrigger(1).trigger('mouseenter')
 
     cy.get('.tippy-box').should('be.visible').then($box => {
       const box = $box[0]
