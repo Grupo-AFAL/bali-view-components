@@ -91,7 +91,7 @@ costa-norte `53cd183`, centinela-web `85227c8`, identity `a647ed61`, garita `b40
   `href`, and leaves it out of the palette. An item whose destination may not exist says so in its
   gate (centinela-web: `gate: -> { pasaporte_assisted_reset_url.present? }`).
 - **`gate:`** is a zero-arity Proc, or any value, handed as written to `authorize`. **`badge:`**
-  runs only when the item is drawn.
+  is a literal, or a zero-arity Proc run only when the item is drawn.
 - **`target:`** keeps the item out of the palette, which navigates in place. **`hint:`** is the
   link's `title` and palette search text — centinela-web draws both today for its two Pasaporte
   links; **`keywords:`** is search text only (afal-apps' `navigation.formerly`).
@@ -99,11 +99,15 @@ costa-norte `53cd183`, centinela-web `85227c8`, identity `a647ed61`, garita `b40
   `palette_extras`, GC's org charts, costa-norte's «Nuevo envío»). **`match:`** is the path
   matching used when no claim decides; default `:crud`. Keys are unique; `find(key)` returns any node.
 
-Raised while the class body runs, naming the node: a duplicate key; a gate Proc taking arguments
-(afal-apps' and centinela-web's `->(user)`: "gates run in the view, use `current_user`"); a
-non-Proc gate before `authorize`; top-level modules mixed with sections; an item or group at the
-top level; a module, section or group without items; a `controllers:` entry with a leading or
-trailing `/` or a `#`; an item without `path:`. Every DSL method carries YARD.
+Raised while the class body runs, naming the node: a duplicate key; a Proc option (`gate:`,
+`path:`, `landing:`, `badge:`, `keywords:`) taking arguments (afal-apps' and centinela-web's
+`->(user)`: "it runs in the view, use current_user"); a non-Proc gate before `authorize`; top-level
+modules mixed with sections; an item or group at the top level; a module, section or group without
+items, or with none drawn in the side menu (all `menu: false`, the items written directly in a
+module included); items written directly in a module after its sections; a module with nothing
+that opens in place and no `landing:`; a `match:` the side menu does not know; a `controllers:`
+entry with a leading or trailing `/` or a `#`; an item without `path:`. Every DSL method carries
+YARD.
 
 ### garita, complete
 
@@ -185,7 +189,8 @@ class Navigation < Bali::Navigation::Base
          gate: "tdflow.manage", menu: false
   end
 
-  app_module :marketing, icon: "megaphone", gate: Marketing::PERMISSIONS, controllers: %w[marketing] do
+  app_module :marketing, icon: "megaphone", gate: Marketing::PERMISSIONS, controllers: %w[marketing],
+                        landing: :marketing_root_path do
     item :marketing_cedis_catalog, icon: "external-link", path: -> { Marketing::CEDIS_CATALOG_URL },
          gate: "marketing.request", target: "_blank"
   end
@@ -257,7 +262,7 @@ every gate of every visible module runs once.
   tab matches the order decides. Only tied items' paths are resolved for this.
 - `current_app_module` — the location's, or the first visible one (afal-apps' and costa-norte's
   fallback; GC's `:my_space` is its first).
-- `sections(app_module = current_app_module)`, `items(section)` — visible, in order.
+- `sections` (the current module's), `items(section)` — visible, in order.
 - `path(node)`, `landing(app_module)`, `badge(item)`; `active(item)` is `true` for the drawn
   winner, `false` for the others while there is one, and `nil` otherwise, so `match:` decides.
 - `find(key)` — a visible node or nil (centinela-web's `FREQUENT_KEYS`, identity's operator tabs).

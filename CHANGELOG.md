@@ -75,8 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::Breadcrumb`: una ruta que no cabe se desvanece donde se corta** (#1551). En un teléfono la
   ruta muestra su final, y la primera miga a la vista quedaba cortada a media palabra sin señal de
   que se desliza. Ahora se desvanece el borde de inicio mientras hay migas escondidas de ese lado,
-  y el final cuando la ruta se desliza hacia el principio; una ruta que cabe no lleva máscara, y
-  una miga a la que llega Tab se detiene fuera del desvanecido.
+  y el final cuando la ruta se desliza hacia el principio; una ruta que cabe no lleva máscara.
   Lo hace el controlador nuevo `BreadcrumbController`, que `registerAll` ya registra: una app
   que registra controladores uno por uno lo registra como `breadcrumb` (el identificador que fija
   la plantilla), o la ruta se corta como antes.
@@ -85,8 +84,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   grupos e ítems, cada uno con su `gate:` (una lambda que corre en la vista, o un valor que lee
   `authorize`); los ítems llevan su ruta, y módulos, secciones e ítems los controladores que les
   pertenecen. La clase no carga si declara algo que nunca funcionaría: un contenedor sin ningún ítem
-  en el menú lateral, un módulo sin nada que abra en la misma pestaña ni `landing:`, un `match:` que
-  el menú no conoce, o una lambda que recibe argumentos. `Bali::SideMenu` y `Bali::Command` se pintan desde ella con
+  en el menú lateral, un módulo sin nada que abra en la misma pestaña ni `landing:`, ítems directos
+  de un módulo escritos después de sus secciones, un `match:` que el menú no conoce, o una lambda
+  que recibe argumentos. `Bali::SideMenu` y `Bali::Command` se pintan desde ella con
   `navigation: Navigation`, sin cambiar sus slots; `Navigation.locate(controller_path)` dice a
   qué módulo, sección e ítem pertenece un controlador; `require "bali/testing/navigation"` trae
   la prueba de que cada pantalla tiene lugar. Nadie la usa todavía: la migración de cada app (y
@@ -101,8 +101,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   extremo); el panel pinta esa condición con su propio operador («en o después de», «en o antes
   de»), que el selector de la fila ofrece entonces junto a los declarados. `predicate:` sigue
   siendo sólo de la fila simple. Los hashes de `with_filters_panel(available_attributes:)` aceptan
-  las mismas llaves, y un operador que su tipo no ofrece levanta `ArgumentError` al pintar el
-  panel, como el DSL al cargar la clase. Nada cambia para quien no las declara.
+  las mismas llaves. Un operador que su tipo no ofrece, una lista vacía o un `default_operator:`
+  fuera de la lista levantan `ArgumentError`: con el DSL, al cargar la clase; en un hash de la vista
+  o de un `available_attributes` sobrescrito, cuando el panel o el form lo leen (también al
+  consultar, aunque no se pinte el panel). Nada cambia para quien no las declara.
 
 ### Changed
 

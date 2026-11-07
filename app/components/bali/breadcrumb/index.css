@@ -33,19 +33,18 @@
   --bali-breadcrumb-fade-start: 0px;
   --bali-breadcrumb-fade-end: 0px;
   --bali-breadcrumb-fade-axis: to right;
-  /* A crumb that Tab scrolls into view stops clear of the fade, not under it. */
-  scroll-padding-inline: 1.5rem;
+  --bali-breadcrumb-fade: 1.5rem;
 
   &:dir(rtl) {
     --bali-breadcrumb-fade-axis: to left;
   }
 
   &[data-overflow-start] {
-    --bali-breadcrumb-fade-start: 1.5rem;
+    --bali-breadcrumb-fade-start: var(--bali-breadcrumb-fade);
   }
 
   &[data-overflow-end] {
-    --bali-breadcrumb-fade-end: 1.5rem;
+    --bali-breadcrumb-fade-end: var(--bali-breadcrumb-fade);
   }
 
   &:is([data-overflow-start], [data-overflow-end]) {

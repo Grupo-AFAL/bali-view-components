@@ -39,13 +39,13 @@ module Bali
         return offered if attribute[:operators].nil?
 
         declared = Array(attribute[:operators])
-        narrowed = declared.map { |operator| find_operator(offered, operator) }
-        return narrowed if narrowed.any? && narrowed.all?
-
         unknown = declared.reject { |operator| find_operator(offered, operator) }
-        raise ArgumentError, "attribute #{attribute[:key].inspect}: type :#{attribute[:type] || :text} offers no " \
-                             "operator #{unknown.join(', ').presence || '(empty list)'} " \
-                             "(valid: #{offered.pluck(:value).join(', ')})"
+        if declared.empty? || unknown.any?
+          raise ArgumentError, "#{attribute[:key]}: type :#{attribute[:type] || :text} offers no operator " \
+                               "#{unknown.join(', ').presence || '(empty list)'} (valid: #{offered.pluck(:value).join(', ')})"
+        end
+
+        declared.map { |operator| find_operator(offered, operator) }
       end
 
       # The operator a condition opens on when the user picks the attribute: its
@@ -67,8 +67,8 @@ module Bali
         requested = RansackParamName.text_predicate(attribute[:default_operator])
         return requested if offered.include?(requested)
 
-        raise ArgumentError, "attribute #{attribute[:key].inspect}: default_operator: " \
-                             ":#{attribute[:default_operator]} is not among its operators (#{offered.join(', ')})"
+        raise ArgumentError, "#{attribute[:key]}: default_operator: :#{attribute[:default_operator]} " \
+                             "is not among its operators (#{offered.join(', ')})"
       end
 
       # The Ransack predicates the panel writes for the attribute: one per operator, and the

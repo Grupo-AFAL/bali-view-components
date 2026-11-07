@@ -34,6 +34,22 @@ class BaliCommandNavigationTest < ComponentTestCase
     assert_selector "[data-mode='navigation'][data-href='/admin']", text: "Administration", visible: :all
   end
 
+  test "a module whose landing resolves to nil gets no row, and no module means no Modules group" do
+    navigation = Class.new(Bali::Navigation::Base) do
+      app_module(:work, title: "Work") { item :projects, title: "Projects", path: "/projects" }
+      app_module(:archive, title: "Archive") { item :old, title: "Old", path: -> { } }
+    end
+    render_inline(Bali::Command::Component.new(navigation: navigation))
+    assert_selector "[data-mode='navigation'][data-href='/projects']", text: "Work", visible: :all
+    assert_no_selector "[data-mode='navigation']", text: "Archive", visible: :all
+
+    nowhere = Class.new(Bali::Navigation::Base) do
+      app_module(:archive, title: "Archive") { item :old, title: "Old", path: -> { } }
+    end
+    render_inline(Bali::Command::Component.new(navigation: nowhere))
+    assert_not_includes groups.map(&:first), "Modules"
+  end
+
   test "without modules: one group of pages, on open, named by their section" do
     render_inline(Bali::Command::Component.new(navigation: WITH_SECTIONS))
 

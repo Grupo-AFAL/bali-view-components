@@ -4,9 +4,10 @@
   color-scheme: light;
 }
 
-/* Here and not as `h-[450px]` on the template: there it shared @layer utilities with the host's
-   `map_class:`, and Tailwind's emission order picked the winner — `h-56` and `h-[220px]` were
-   emitted before it and lost, `h-full` after it and won (#1537). */
+/* Here and not as `h-[450px] md:flex-1` on the template: there they shared @layer utilities with
+   the host's `map_class:`, and Tailwind's emission order picked the winner — `h-56` and
+   `h-[220px]` were emitted before it and lost, `h-full` after it and won (#1537). */
 .locations-map-component .location-map {
   height: 450px;
+  @apply md:flex-1;
 }

@@ -310,7 +310,13 @@ module Bali
           items = items_below(node)
           raise ArgumentError, "#{name} has no items" if items.empty?
           raise ArgumentError, "#{name} draws nothing in the side menu: every item is menu: false" if items.none?(&:menu?)
-          return unless node.is_a?(AppModule) && node.landing.nil? && items.none? { it.menu? && !it.target }
+          return unless node.is_a?(AppModule)
+
+          implicit = node.children.find { it.is_a?(Section) && it.implicit? }
+          if implicit && items_below(implicit).none?(&:menu?)
+            raise ArgumentError, "what goes directly in #{name} draws nothing in the side menu: every item is menu: false"
+          end
+          return unless node.landing.nil? && items.none? { it.menu? && !it.target }
 
           raise ArgumentError, "#{name} opens nothing in place: declare landing:"
         end

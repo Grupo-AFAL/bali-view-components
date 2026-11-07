@@ -187,6 +187,17 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
     end
   end
 
+  test "items written directly in a module that draw nothing are refused" do
+    assert_raises(ArgumentError, match: "what goes directly in app_module :finance draws nothing in the side menu") do
+      navigation do
+        app_module(:finance) do
+          item :finder, path: "/f", menu: false
+          section(:reports) { item :invoices, path: "/a" }
+        end
+      end
+    end
+  end
+
   test "a module with nothing that opens in place declares its landing" do
     assert_raises(ArgumentError, match: "app_module :marketing opens nothing in place: declare landing:") do
       navigation { app_module(:marketing) { item :apex, path: "https://apex.example", target: "_blank" } }

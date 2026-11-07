@@ -65,11 +65,7 @@ module Bali
         # one end), and a panel whose attributes come from the view lets anything through.
         # Left out, the select would show its first operator over the widget of another.
         def operators_for_current_type
-          @operators_for_current_type ||= begin
-            offered = Operators.for_attribute(selected_attribute || {})
-            arrived = Operators.for_type(attribute_type).find { |op| op[:value] == operator }
-            arrived.nil? || offered.any? { |op| op[:value] == operator } ? offered : offered + [ arrived ]
-          end
+          @operators_for_current_type ||= with_arrived_operator(Operators.for_attribute(selected_attribute || {}))
         end
 
         # Only an attribute that declares `operators:` or `default_operator:`: a boolean's lone
@@ -152,6 +148,13 @@ module Bali
         end
 
         private
+
+        def with_arrived_operator(offered)
+          return offered if offered.pluck(:value).include?(operator)
+
+          arrived = Operators.for_type(attribute_type).find { |op| op[:value] == operator }
+          arrived ? offered + [ arrived ] : offered
+        end
 
         def operator_marked?(mark)
           operators_for_current_type.find { |op| op[:value] == operator }&.dig(mark) || false

@@ -365,6 +365,8 @@ module Bali
 
         Bali::Filters::Operators.default_for({ key: key, type: type, operators: operators,
                                                default_operator: default_operator })
+      rescue ArgumentError => e
+        raise ArgumentError, "filter_attribute #{e.message}"
       end
 
       # An advanced `default:` travels as one condition of the panel's first group, with its
@@ -861,7 +863,7 @@ module Bali
     #
     # Restored groupings go through `normalize_groupings` like the URL's and a saved view's, not
     # only later in `applied_groupings`: a host that reads `@groupings` after `super` gets the
-    # keys this ransack is written with, from a cache written under the other one (#1530).
+    # keys ransack 6 is written with, from a cache written under ransack 5 (#1530).
     def fetch_stored_filter_state(attributes, groupings, combinator, search_value, force_write: false)
       return [ attributes, groupings, combinator, search_value ] unless Object.const_defined?("Rails")
 

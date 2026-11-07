@@ -12,8 +12,10 @@ class BaliInboxBadgeConcernTest < ActionDispatch::IntegrationTest
   end
 
   # A page that already counted the projects it lists.
+  # A page that already counted the projects it lists, after the layout read the badge.
   class WritingProbesController < ApplicationController
     def show
+      inbox_badge
       write_inbox_badge(pending_by_module: { projects: 41 })
       render plain: inbox_badge.pending.to_s
     end
@@ -119,11 +121,14 @@ class BaliInboxBadgeConcernTest < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_while_impersonating_a_page_writes_no_badge
+  def test_while_impersonating_a_page_writes_no_badge_and_shows_its_own_count
+    shown = Bali::Inbox::Badge.compute(User.demo, pending_by_module: { projects: 41 }).pending
+
     draw_probes do
       get "/impersonated_writing_probe"
 
       refute Rails.cache.exist?(badge_key), "the person's cache, written with the impersonated session's number"
+      assert_equal shown.to_s, response.body
     end
   end
 

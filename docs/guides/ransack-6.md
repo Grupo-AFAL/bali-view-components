@@ -57,7 +57,8 @@ One switch, `Bali::RansackParamName.case_insensitive_text?`, decided from the in
    They depend only on the search's fields, so a guard has them before any form exists:
 
    ```ruby
-   Bali::RansackParamName.predicates(%i[name email]).each { |name| q.delete(name) }
+   q = params.fetch(:q, {})
+   Bali::RansackParamName.predicates(UsersFilterForm.defined_search_fields).each { |name| q.delete(name) }
    ```
 
    Where the form exists, `form.search_param_names` is the same list. `search_field_name` alone

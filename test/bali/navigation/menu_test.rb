@@ -117,17 +117,21 @@ class NavigationMenuTest < ActiveSupport::TestCase
     assert_equal "/welcome", menu.landing(nav.find(:home))
   end
 
-  test "a literal badge is drawn as written, and a module lands past an item whose path resolves to nil" do
-    nav = Class.new(Bali::Navigation::Base) do
-      app_module :reports, title: "Reports" do
-        item :pending, title: "Pending", path: -> { }, badge: 3
-        item :done, title: "Done", path: "/done", badge: "New"
-      end
+  LITERALS = Class.new(Bali::Navigation::Base) do
+    app_module :reports, title: "Reports" do
+      item :pending, title: "Pending", path: -> { }, badge: 3
+      item :done, title: "Done", path: "/done", badge: "New"
     end
-    menu = nav.menu(Context.new)
+  end
 
-    assert_equal [ 3, "New" ], [ menu.badge(nav.find(:pending)), menu.badge(nav.find(:done)) ]
-    assert_equal "/done", menu.landing(nav.find(:reports))
+  test "a literal badge is drawn as written" do
+    menu = LITERALS.menu(Context.new)
+
+    assert_equal [ 3, "New" ], [ menu.badge(LITERALS.find(:pending)), menu.badge(LITERALS.find(:done)) ]
+  end
+
+  test "a module lands past an item whose path resolves to nil" do
+    assert_equal "/done", LITERALS.menu(Context.new).landing(LITERALS.find(:reports))
   end
 
   test "the location only counts what this person may open" do

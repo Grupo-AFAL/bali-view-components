@@ -10,7 +10,7 @@ module Bali
     # side menu and the palette share it, so a route both draw is generated once. A menu built for
     # visibility never touches a route. It is lazy: a module stops at its first visible item.
     class Menu
-      attr_reader :navigation, :context
+      attr_reader :navigation
 
       # @param navigation [Class<Bali::Navigation::Base>]
       # @param context [Object] the view, or any object answering what the gates call
@@ -116,6 +116,8 @@ module Bali
       end
 
       private
+
+      attr_reader :context
 
       # @return [Boolean]
       def offered?(node)

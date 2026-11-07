@@ -24,7 +24,7 @@ class BaliFiltersOperatorsTest < ActiveSupport::TestCase
       error = assert_raises(ArgumentError, operators.inspect) do
         Bali::Filters::Operators.for_attribute({ key: :code, type: :text, operators: operators })
       end
-      assert_match "attribute :code: type :text offers no operator #{unknown} (valid:", error.message
+      assert_match "code: type :text offers no operator #{unknown} (valid:", error.message
     end
   end
 
@@ -32,6 +32,6 @@ class BaliFiltersOperatorsTest < ActiveSupport::TestCase
     error = assert_raises(ArgumentError) do
       Bali::Filters::Operators.default_for({ key: :code, type: :text, operators: %i[eq], default_operator: :gt })
     end
-    assert_match "attribute :code: default_operator: :gt is not among its operators (eq)", error.message
+    assert_match "code: default_operator: :gt is not among its operators (eq)", error.message
   end
 end

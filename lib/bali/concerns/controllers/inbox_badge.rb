@@ -61,13 +61,15 @@ module Bali
           Bali::Inbox::Query.new(owner).mark_record_seen!(record)
         end
 
-        # Caches the badge with the count this page already has, and this request's `inbox_badge`
-        # with it. Not while someone acts as the owner: it would be the number they see next (#1536).
+        # This request's `inbox_badge` with the count this page already has, cached for the owner's
+        # next pages. Not cached while someone acts as the owner: it would be the number they see
+        # next (#1536).
         def write_inbox_badge(pending_by_module:)
           owner = inbox_owner
-          return unless owner && owner_reading?
+          return unless owner
 
-          @inbox_badge = Bali::Inbox::Badge.write_from(owner, pending_by_module:)
+          badge = Bali::Inbox::Badge
+          @inbox_badge = owner_reading? ? badge.write_from(owner, pending_by_module:) : badge.compute(owner, pending_by_module:)
         end
 
         def expire_inbox_badge

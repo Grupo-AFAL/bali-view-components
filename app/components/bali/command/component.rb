@@ -122,7 +122,7 @@ module Bali
       # modules the pages wait for a query; without, they are the list the palette opens on.
       def draw_navigation
         menu = helpers.navigation_for(@navigation)
-        landings = menu.app_modules.filter_map { |app_module| (landing = menu.landing(app_module)) && [ app_module, landing ] }
+        landings = menu.app_modules.index_with { menu.landing(it) }.compact
         if landings.any?
           with_group(name: t("bali_view.command.navigation.modules"), mode: :navigation) do |group|
             landings.each { |app_module, landing| group.with_item(title: app_module.title, icon: app_module.icon, href: landing) }

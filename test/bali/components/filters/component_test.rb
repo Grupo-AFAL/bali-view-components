@@ -124,7 +124,7 @@ class BaliFiltersComponentTest < ComponentTestCase
         url: "/users", available_attributes: [ { key: :code, label: "Code", type: :text, operators: %i[gt] } ]
       ))
     end
-    assert_match "attribute :code: type :text offers no operator gt", error.message
+    assert_match "code: type :text offers no operator gt", error.message
   end
 
   def test_persistence_toggle_returns_false_for_persistence_available_when_no_storage_id
