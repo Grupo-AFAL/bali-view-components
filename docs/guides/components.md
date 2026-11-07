@@ -5466,7 +5466,7 @@ screen readers is the real one.
 - `title` - Drawer header title (default: `nil`, falls back to "Feedback")
 - `token_expires_in` - Token expiry in seconds (default: `3600`)
 - `badge_interval` - Polling interval in ms for the badge count (default: `300000`)
-- `trigger` - The button that opens the panel: `:floating` (fixed to the bottom-right corner), `:icon` (a round button the height of `Bali::Topbar::IconAction`) or `:labeled` (the icon and "Opina", icon alone below `sm`); any other value raises (default: `:floating`)
+- `trigger` - The button that opens the panel: `:floating` (fixed to the bottom-right corner), `:icon` (a round button the height of `Bali::Topbar::IconAction`) or `:labeled` (the icon and `bali_view.feedback_widget.trigger_label`, "Feedback" in English and "Retroalimentación" in Spanish; icon alone below `sm`); any other value raises (default: `:floating`)
 - `**options` - HTML attributes for the wrapper `div` (e.g. `id:`); `class:` and `data:` are added to the component's own, and a `data: { controller: }` joins `feedback-widget`
 
 ---

@@ -1215,9 +1215,9 @@ es:
       of: de
 
     feedback_widget:
-      title: "Comentarios"
-      open: "Abrir comentarios"
-      trigger_label: "Opina"
+      title: "Retroalimentación"
+      open: "Abrir retroalimentación"
+      trigger_label: "Retroalimentación"
       unread: "%{count} sin leer"
 
     document_editor:

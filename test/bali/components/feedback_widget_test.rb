@@ -200,12 +200,23 @@ class BaliFeedbackWidgetComponentTest < ComponentTestCase
     end
   end
 
-  # The product's name, whatever the panel's title, and the name the button is read out by.
-  def test_the_labeled_trigger_shows_opina_and_is_named_by_it
+  # Its own key, whatever the panel's title, and the name the button is read out by.
+  def test_the_labeled_trigger_shows_its_label_and_is_named_by_it
     render_inline(widget(trigger: :labeled, title: "Send us feedback"))
 
-    assert_selector("button:not([aria-label]) > span:not([aria-hidden])", exact_text: "Opina")
+    assert_selector("button:not([aria-label]) > span:not([aria-hidden])", exact_text: "Feedback")
     assert_no_selector("button", text: "Send us feedback")
+  end
+
+  def test_the_spanish_defaults_name_the_channel_not_a_product
+    I18n.with_locale(:es) do
+      render_inline(widget(trigger: :labeled))
+      assert_selector("button:not([aria-label]) > span:not([aria-hidden])", exact_text: "Retroalimentación")
+
+      render_inline(widget(trigger: :icon))
+      assert_selector("button[aria-label='Abrir retroalimentación']")
+      assert_selector("#feedback-widget-title", exact_text: "Retroalimentación")
+    end
   end
 
   # The count in the badge is decoration; the description is what is read out, and it

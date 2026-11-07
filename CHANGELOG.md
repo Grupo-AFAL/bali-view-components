@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`Bali::FeedbackWidget`: los textos por omisión ya no nombran a Opina.** En español el panel
+  y el botón con texto dicen «Retroalimentación» y el de ícono «Abrir retroalimentación» (antes
+  «Comentarios», «Opina» y «Abrir comentarios»); en inglés el botón con texto dice «Feedback».
+  Una app que sobrescribía `bali_view.feedback_widget` para esto puede borrar esas llaves, y una
+  prueba que busca «Opina» en el botón tiene que cambiar (`git grep -n "/Opina/" -- test`).
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added

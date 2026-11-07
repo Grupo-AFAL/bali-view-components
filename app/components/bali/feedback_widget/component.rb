@@ -35,7 +35,8 @@ module Bali
       # @param trigger [Symbol] the button that opens the panel. `:floating` (default) pins a
       #   round button to the bottom-right corner of the viewport. `:icon` and `:labeled` render
       #   where the component is rendered, sized for `Bali::Topbar`'s `with_action`: a round
-      #   icon button, or the icon with "Opina" beside it, which drops to the icon below `sm`.
+      #   icon button, or the icon with `bali_view.feedback_widget.trigger_label` beside it, which
+      #   drops to the icon below `sm`.
       # @param options [Hash] HTML attributes for the wrapper `<div>`. `class:` and `data:` are
       #   added to the component's own; `data: { controller: }` joins `feedback-widget`.
       def initialize(project_slug:, opina_url:, token: nil, secret: nil, user_id: nil, email: nil,
