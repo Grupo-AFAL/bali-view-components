@@ -65,6 +65,15 @@ class BaliSideMenuNavigationTest < ComponentTestCase
     assert_no_selector "a.side-menu-expanded[href='/projects'][title]"
   end
 
+  test "an item whose path resolves to nil is drawn disabled" do
+    nav = Class.new(Bali::Navigation) do
+      section(:people, title: "People") { item :pasaporte, title: "Pasaporte", path: -> { nil } }
+    end
+    render_inline(Bali::SideMenu::Component.new(current_path: "/", navigation: nav))
+
+    assert_selector "a.side-menu-expanded[href='#'][disabled]", text: "Pasaporte"
+  end
+
   test "the block's lists come after the navigation's" do
     render_menu do |menu|
       menu.with_list(title: "Shortcuts") { |list| list.with_item(name: "Help", href: "/help") }
