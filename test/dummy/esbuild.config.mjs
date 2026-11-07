@@ -41,6 +41,27 @@ const resolveGemImports = {
   }
 }
 
+// `import("buffer/")` is CommonJS, so in a split build its namespace holds only `default`:
+// @blocknote/xl-docx-exporter reads `.Buffer` off it (getFonts) and Word export threw. Same
+// plugin as `bundleOptions()` in bali-runtime's javascript/esbuild.js.
+const BUFFER_NAMESPACE = 'bali-buffer-interop'
+const bufferInterop = {
+  name: 'buffer-interop',
+  setup (build) {
+    build.onResolve({ filter: /^buffer\/?$/ }, (args) => {
+      if (args.kind !== 'dynamic-import') return null
+      return { path: 'buffer', namespace: BUFFER_NAMESPACE, pluginData: { resolveDir: args.resolveDir } }
+    })
+    build.onLoad({ filter: /.*/, namespace: BUFFER_NAMESPACE }, (args) => ({
+      contents: "import buffer from 'buffer/index.js'\n" +
+        'export const { Buffer, SlowBuffer, INSPECT_MAX_BYTES, kMaxLength } = buffer\n' +
+        'export default buffer\n',
+      resolveDir: args.pluginData.resolveDir,
+      loader: 'js'
+    }))
+  }
+}
+
 const config = {
   // island-demo.js and gantt-island.js are dedicated React island entries:
   // the loaders in application.js inject them on demand (see
@@ -71,7 +92,7 @@ const config = {
   jsx: 'automatic',
   // Enable "style" condition for packages that export CSS via conditions
   conditions: ['style'],
-  plugins: [resolveGemImports],
+  plugins: [resolveGemImports, bufferInterop],
   alias: {
     // Bali entry points - resolve to local gem source
     bali: path.join(baliGemPath, 'app/frontend/bali'),

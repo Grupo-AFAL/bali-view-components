@@ -17,9 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   React. Los demás `import()` de Bali son de paquetes ESM. En ese build tippy y flatpickr
   llegan después de que la página ya responde, y el foco, el puntero o el clic que llegaba
   antes se perdía: el tooltip y la hover card no abrían sobre su disparador, y el datepicker
-  ni abría el calendario ni conservaba el foco. Ahora se abren al montarse. El dummy compila
-  dividido, así que Lookbook y Cypress prueban lo que van a mandar las apps. Una app solo
-  necesita esta versión antes de adoptar `bundleOptions()`.
+  ni abría el calendario ni conservaba el foco. Ahora se abren al montarse. La exportación a
+  Word del BlockEditor también funciona en un build dividido; ese arreglo vive en
+  `bundleOptions()` de bali-runtime, no en Bali. El dummy compila dividido, así que Lookbook y
+  Cypress prueban lo que van a mandar las apps. Una app solo necesita esta versión antes de
+  adoptar `bundleOptions()`.
 
 ## [v3.23.0] - 2026-10-28
 
