@@ -12,11 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Un formulario enviado desde un `Bali::Modal` o un `Bali::Drawer` ya lleva el `name`/`value`
   del botón pulsado** (#1518), como el envío del navegador: dos botones `name="decision"` con
   distinto `value` ya se distinguen, sea el `<button>` de `f.submit` o el
-  `<input type="submit" name="commit">` de Rails. Un `type="button"` (el de `Bali::Button` por
-  omisión) no manda ninguno. El spinner va en el botón aunque el clic caiga en su icono o su
-  etiqueta, y un formulario inválido ya no pasa por el estado de espera. Ninguna app tiene hoy un
-  botón con `name` en un overlay; las que lo rodean con un campo oculto o un radio
-  (gobierno-corporativo, afal-apps) siguen funcionando sin cambios.
+  `<input type="submit" name="commit">` de Rails. `Bali::Button` no manda ninguno: su `name:` es
+  la etiqueta. El spinner va en el botón aunque el clic caiga en su icono o su etiqueta, y un
+  botón con `form="…"` envía el formulario que nombra. Ningún envío lleva hoy un par nuevo: el
+  único botón con `name` que llega a `modal#submit` (pagos de enjoykitchen) ya va deshabilitado.
+  Las apps que lo rodean con un campo oculto o un radio (gobierno-corporativo, afal-apps) siguen
+  funcionando sin cambios.
 - **`data-turbo="false"` dentro de un `Bali::Modal` o un `Bali::Drawer` ya no pide Turbo Streams**
   (#1527). El envío leía el atributo como booleano de JavaScript, y `"false"` lo es: mandaba
   `Accept: text/vnd.turbo-stream.html`. Ahora lo lee como Turbo lee el de un botón: decide el

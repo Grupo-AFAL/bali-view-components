@@ -864,7 +864,7 @@ export class ModalController extends Controller {
    *
    * 1. When Form is submitted successfully, the server redirects to a new page.
    * 2. When Form has an error, the server returns the form with the errors.
-   * 3. When the form has data-turbo="true" and the server responds with
+   * 3. When the nearest data-turbo is "true" and the server responds with
    *    text/vnd.turbo-stream.html, the streams are applied to the page and
    *    the modal/drawer closes (on success), enabling partial page updates.
    *
@@ -907,7 +907,9 @@ export class ModalController extends Controller {
     //
     // (The orphan page-level instance used to reach this line too; since #984 it
     // returns before preventDefault, so its validation is the browser's own.)
-    const form = button.closest('form')
+    // `button.form` first: a submitter from another form makes FormData throw, and a
+    // `form="…"` attribute is how a button outside the form names the one it submits.
+    const form = button.form ?? button.closest('form')
     if (!form.reportValidity()) return
 
     // Built before `_startSubmitting` disables the button: a disabled control never reaches
@@ -1032,9 +1034,6 @@ export class ModalController extends Controller {
    * build.
    */
   _startSubmitting (button) {
-    if (button.dataset.baliSubmitting) return
-
-    button.dataset.baliSubmitting = 'true'
     button.style.minWidth = `${button.getBoundingClientRect().width}px`
     button.setAttribute('disabled', '')
     button.setAttribute('aria-busy', 'true')
