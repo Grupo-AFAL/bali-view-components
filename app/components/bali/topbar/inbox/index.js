@@ -108,10 +108,11 @@ export class TopbarInboxController extends Controller {
   }
 
   // A morphing refresh (a stream `refresh`, or the revisit below on a page that refreshes by
-  // morphing) keeps this element but drops tippy's popper from <body> and draws the panel afresh
-  // inside the element: tippy would still count itself shown, and the icon would never open again.
+  // morphing) drops tippy's popper from <body> and puts the panel back inside this element, moved or
+  // drawn afresh by an older Turbo: tippy would still count itself shown, and the icon would never
+  // open again. A morph that took the icon away too (the sign-in page) leaves it to `disconnect()`.
   forgetMorphedPopper = () => {
-    if (!this.tippy || this.tippy.popper.isConnected) return
+    if (!this.tippy || this.tippy.popper.isConnected || !this.hasPanelTarget) return
 
     this.stopListening()
     this.tippy.destroy()
@@ -155,12 +156,12 @@ export class TopbarInboxController extends Controller {
   }
 
   // The popover frame's `turbo:frame-missing`: the person opened the panel and got another page.
-  // Left alone, Turbo writes "Content missing" into the panel and throws. A redirect is taken to be an
-  // auth gate turning them away (the session expired): the page they are on is visited again, not the answer,
-  // because the gate remembers the path it turned away to return there after signing in, and the
-  // popover's is a fragment with no layout. `replace` makes it Turbo's own refresh of the page, so
-  // no cached copy is painted first. Any other answer, an error page, is shown as it came, at its own
-  // URL.
+  // Left alone, Turbo writes "Content missing" into the panel and throws. A redirect is taken to be
+  // an auth gate turning them away (the session expired): the page they are on is visited again,
+  // not the answer, because the gate remembers the path it turned away to return there after
+  // signing in, and the popover's is a fragment with no layout. `replace` makes it Turbo's own
+  // refresh of the page, so no cached copy is painted first. Any other answer, an error page, is
+  // shown as it came, at its own URL.
   revisitPage = (event) => {
     const { response, visit } = event.detail
     event.preventDefault()

@@ -227,6 +227,33 @@ describe('Topbar inbox', () => {
     })
   })
 
+  // On a morphing page the revisit itself is redirected to sign in, and the morph takes the icon
+  // away with the popper: nothing is left to reset, and nothing may throw.
+  it('lets a morph to the sign-in page take the icon away without an error', () => {
+    const errors = []
+    cy.on('uncaught:exception', (error) => {
+      errors.push(error.message)
+      return false
+    })
+    cy.document().then((doc) => doc.head.insertAdjacentHTML('beforeend', '<meta name="turbo-refresh-method" content="morph">'))
+    cy.intercept({ method: 'GET', url: '**/inbox/popover*', times: 1 }, (req) => req.redirect('/stub-sign-in', 302))
+    cy.intercept({ method: 'GET', pathname: '/stub-sign-in' }, {
+      statusCode: 200,
+      headers: { 'content-type': 'text/html' },
+      body: '<html><head></head><body><form id="sign-in"></form></body></html>'
+    })
+    cy.location('pathname').then((pathname) => cy.intercept({ method: 'GET', pathname, times: 1 }, (req) => {
+      req.continue((res) => { res.body = res.body.replace(/<body[\s\S]*<\/body>/, '<body><form id="sign-in"></form></body>') })
+    }).as('samePage'))
+
+    cy.get(trigger).click()
+
+    cy.wait('@samePage')
+    cy.get('form#sign-in').should('exist')
+    cy.get(trigger).should('not.exist')
+    cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+  })
+
   // An error page is no gate: it is shown as it came, and the page is not visited again (which
   // would drop what the person typed on it, with nothing said).
   it('shows the error page an opened panel gets instead of its frame', () => {
