@@ -144,7 +144,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - **`Bali::Topbar::Inbox::Component.count_text`.** La coma de miles de la bandeja pasa a
-  `Bali::Figure.delimited`, que también usa `Bali::BarList`. Ninguna app la llamaba.
+  `Bali::Number.delimited`, que también usa `Bali::BarList`. Ninguna app la llamaba.
 
 ### Fixed
 
@@ -202,6 +202,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   envuelve) y sólo
   `"true"` pide streams. Cambia el `Accept` de los formularios de firma de td_flow en afal-apps, que ya
   responden HTML; ninguna app tiene que cambiar nada.
+- **`Bali::Topbar::Inbox`: el panel abierto con la sesión vencida lleva a la página que respondió**
+  (la de inicio de sesión), en lugar de escribir «Content missing» dentro del panel y lanzar
+  `TurboFrameMissingError`. El número del ícono, que se refresca solo, conserva el que tenía.
+- **Un `<input type="submit">` de un `Bali::Modal` o un `Bali::Drawer` muestra que está enviando.**
+  El spinner iba dentro del botón, y un `<input>` no pinta hijos: sólo se deshabilitaba. Ahora su
+  texto pasa a su `data-turbo-submits-with` o a «…» (el formulario ya lleva el valor original).
 - **`Bali::Topbar::Inbox`: el panel abierto durante una visita de Turbo está abierto cuando llega
   la página** (#1567). Turbo lo cerraba al reemplazar el `<body>`, también con la vista previa de
   caché. Seguir un enlace desde el panel abierto deja la página nueva con él cerrado, como antes.

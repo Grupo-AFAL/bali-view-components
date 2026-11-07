@@ -2625,7 +2625,7 @@ with scales, see [Chart](#chart).
   `:ghost` both paint `base-content`. There is no `custom_color:`: each track is a
   `Bali::Progress`, which takes names only.
 - `format` - a callable that turns a value into the figure's text, e.g.
-  `->(count) { t('cafeteria.lunches', count:) }` (default: `Bali::Figure`, a thousands comma and
+  `->(count) { t('cafeteria.lunches', count:) }` (default: `Bali::Number`, a thousands comma and
   a decimal point whatever the locale — `13,887.5` also under rails-i18n's `es`, as the inbox's
   counts)
 - `aria_label` - the list's accessible name (default: nil)

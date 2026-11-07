@@ -1036,6 +1036,14 @@ export class ModalController extends Controller {
     button.setAttribute('disabled', '')
     button.setAttribute('aria-busy', 'true')
 
+    // An <input type="submit"> holds no children, so a spinner put inside is never painted: it
+    // shows the wait in its value, as Turbo's `data-turbo-submits-with` does. The body was built
+    // from the real value before this.
+    if (button instanceof window.HTMLInputElement) {
+      button.value = button.dataset.turboSubmitsWith || '…'
+      return
+    }
+
     const spinner = document.createElement('span')
     spinner.className = 'loading loading-spinner loading-sm'
 

@@ -16,7 +16,8 @@
 
   <%= tag.div(id: PANEL_ID, class: "bali-topbar-inbox-panel", role: "dialog", tabindex: "-1", hidden: true,
               aria: { label: t("bali_view.inbox.title") }, data: { topbar_inbox_target: "panel" }) do %>
-    <%= tag.turbo_frame(id: POPOVER_FRAME_ID, target: "_top", data: { topbar_inbox_target: "frame" }) do %>
+    <%= tag.turbo_frame(id: POPOVER_FRAME_ID, target: "_top",
+                        data: { topbar_inbox_target: "frame", action: "turbo:frame-missing->topbar-inbox#showAnswer" }) do %>
       <div class="bali-topbar-inbox-skeleton" aria-busy="true">
         <div class="bali-inbox-popover-header">
           <span class="font-semibold"><%= t("bali_view.inbox.title") %></span>
@@ -25,10 +26,10 @@
             too, on every page. The badge is the one Bali::Tabs' trigger draws. %>
         <div class="<%= SKELETON_TABS_CLASSES %>" aria-hidden="true">
           <span class="tab tab-active">
-            <%= t("bali_view.inbox.tabs.pending") %><span class="badge badge-sm ml-1"><%= Bali::Figure.delimited(@badge.pending) %></span>
+            <%= t("bali_view.inbox.tabs.pending") %><span class="badge badge-sm ml-1"><%= Bali::Number.delimited(@badge.pending) %></span>
           </span>
           <span class="tab">
-            <%= t("bali_view.inbox.tabs.notices") %><% if @badge.unread? %><span class="badge badge-sm ml-1"><%= Bali::Figure.delimited(@badge.unread) %></span><% end %>
+            <%= t("bali_view.inbox.tabs.notices") %><% if @badge.unread? %><span class="badge badge-sm ml-1"><%= Bali::Number.delimited(@badge.unread) %></span><% end %>
           </span>
         </div>
         <div class="flex flex-col gap-4 p-4">

@@ -27,7 +27,7 @@ module Bali
 
     def inbox_fresh?(item, fresh) = fresh.include?([ item.record.class.polymorphic_name, item.record.id ])
 
-    def inbox_count(count) = Bali::Figure.delimited(count)
+    def inbox_count(count) = Bali::Number.delimited(count)
 
     # The «Avisos» pill counts only the unread ones; a screen reader hears that.
     def inbox_unread_count(count)

@@ -30,7 +30,7 @@ module Bali
       #   `<li>`. Any other key raises.
       # @param color [Symbol] Colour of the bars (Bali::Color::NAMES). `:neutral` and `:ghost`
       #   paint base-content, which is daisyUI's own `.progress`.
-      # @param format [#call, nil] Turns a value into the figure's text. Defaults to Bali::Figure:
+      # @param format [#call, nil] Turns a value into the figure's text. Defaults to Bali::Number:
       #   a thousands comma and a decimal point, whatever the locale.
       # @param aria_label [String, nil] The list's accessible name
       # @param options [Hash] HTML attributes for the `<ul>`
@@ -38,7 +38,7 @@ module Bali
         @items = items.map { |item| Item.new(**item) }
         @max = @items.map(&:value).max
         @color = Bali::Color.name!(self.class, color)
-        @format = format || Bali::Figure.method(:delimited)
+        @format = format || Bali::Number.method(:delimited)
         @options = prepend_class_name(options, BASE_CLASSES).merge(role: "list", "aria-label": aria_label)
       end
 

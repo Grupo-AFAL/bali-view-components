@@ -133,6 +133,14 @@ export class TopbarInboxController extends Controller {
     event.preventDefault()
   }
 
+  // The popover frame routes `turbo:frame-missing` here. The person opened the panel, so an answer
+  // without the frame, the sign-in page once the session expired, becomes the page: otherwise
+  // Turbo writes "Content missing" into the panel and throws.
+  showAnswer (event) {
+    event.preventDefault()
+    event.detail.visit(event.detail.response)
+  }
+
   async ensureTippy () {
     if (this.tippy) return this.tippy
 

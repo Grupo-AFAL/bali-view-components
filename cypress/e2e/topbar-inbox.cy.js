@@ -184,6 +184,28 @@ describe('Topbar inbox', () => {
     })
   })
 
+  // The person opened the panel, so an answer without the popover frame (the sign-in page once the
+  // session expired) becomes the page, instead of Turbo's "Content missing" inside the panel.
+  it('shows the page an opened panel gets instead of its frame', () => {
+    const errors = []
+    cy.on('uncaught:exception', (error) => {
+      errors.push(error.message)
+      return false
+    })
+    cy.intercept({ method: 'GET', url: '**/inbox/popover*', times: 1 }, {
+      statusCode: 200,
+      headers: { 'content-type': 'text/html' },
+      body: '<html><head></head><body><form id="sign-in"></form></body></html>'
+    }).as('signIn')
+
+    cy.get(trigger).click()
+
+    cy.wait('@signIn')
+    cy.get('form#sign-in').should('exist')
+    cy.get(panel).should('not.exist')
+    cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+  })
+
   it('marking every notice read from the popover clears the icon\'s dot', () => {
     cy.task('railsRunner', 'Movie.order(:id).first.notify(recipient: User.demo, kind: :movie_released, ' +
             'message: "A notice for Cypress")')
