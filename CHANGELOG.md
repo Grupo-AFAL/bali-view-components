@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Bali funciona en un build con code splitting**, el que pone `bundleOptions()` de
+  bali-runtime. Ahí, un `import()` de un módulo CommonJS regresa solo `default`. Por eso el
+  datepicker en español caía al inglés sin aviso (separador «to» en vez de «a»), y la
+  exportación a PDF del BlockEditor leía `createElement` de `react` como `undefined`. Ahora
+  los dos leen el export en cualquiera de las dos formas, como ya lo hacían las islas de
+  React. Los demás `import()` de Bali son de paquetes ESM. El dummy compila dividido, así que
+  Lookbook y Cypress prueban lo que van a mandar las apps. Una app solo necesita esta versión
+  antes de adoptar `bundleOptions()`.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added

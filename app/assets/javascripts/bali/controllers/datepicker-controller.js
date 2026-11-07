@@ -1,6 +1,7 @@
 import { Controller } from '@hotwired/stimulus'
 import { topLayerHost, enterTopLayer, leaveTopLayer } from '../utils/top-layer.js'
 import { optionalPeer } from '../utils/optional-peer.js'
+import { namedExport } from '../utils/common-js.js'
 
 /**
  * Datepicker Controller
@@ -166,7 +167,7 @@ export class DatepickerController extends Controller {
     es: () =>
       import('flatpickr/dist/l10n/es.js')
         .catch(optionalPeer('flatpickr'))
-        .then(m => m?.Spanish)
+        .then(m => namedExport(m, 'Spanish'))
   }
 
   async setLocale (countryCode) {

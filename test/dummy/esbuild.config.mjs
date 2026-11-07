@@ -57,11 +57,15 @@ const config = {
   sourcemap: true,
   format: 'esm',
   // Minifying also defines NODE_ENV "production" (React's production build).
-  // application.js measured 25.4 MB unminified, 17 MB minified. No `splitting`: no host app
-  // splits, and a split build turns `import()` of a CommonJS module into a bare
-  // `default` (flatpickr's locales, tippy), so Lookbook would test a shape no
-  // host ships. BALI_DEV_BUILD=1 builds unminified to debug.
+  // application.js measured 25.4 MB unminified, 17 MB minified. BALI_DEV_BUILD=1 builds
+  // unminified to debug.
   minify: process.env.BALI_DEV_BUILD !== '1',
+  // The shape hosts ship through bali-runtime's `bundleOptions()`, so Lookbook tests it: a
+  // split build turns `import()` of a CommonJS module into a namespace holding only
+  // `default`. Propshaft serves a `-<hash>.digested` file under its own name; any other
+  // chunk name it fingerprints itself, and the entry's relative import 404s.
+  splitting: true,
+  chunkNames: 'chunks/[name]-[hash].digested',
   outdir: path.join(__dirname, 'app/assets/builds'),
   target: ['es2022', 'chrome100', 'firefox100', 'safari15'],
   jsx: 'automatic',

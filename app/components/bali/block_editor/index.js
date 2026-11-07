@@ -1,4 +1,5 @@
 import { ReactIslandController } from '../../../frontend/bali/react-island'
+import { namedExport } from '../../../assets/javascripts/bali/utils/common-js.js'
 import { EXPORT_COLORS } from './constants'
 
 // BlockNote appends an EMPTY <style> per editor to the head (its rules go in
@@ -247,7 +248,7 @@ export class BlockEditorController extends ReactIslandController {
       // see the note in connect().
       const { PDFExporter, pdfDefaultSchemaMappings } = await import('@blocknote/xl-pdf-exporter')
       const reactPdf = await import('@react-pdf/renderer')
-      const { createElement } = await import('react')
+      const createElement = namedExport(await import('react'), 'createElement')
 
       const { pdf, Text, View } = reactPdf
       const mappings = {

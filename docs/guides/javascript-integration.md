@@ -237,7 +237,15 @@ registerAll(application)  // Includes all 50+ controllers (and installs the conf
 
 ### Code Splitting
 
-Some bundlers (like Vite) automatically split large dependencies into separate chunks that load on demand. This happens automatically - no configuration needed.
+Bali loads its heavy pieces with `import()` — the BlockEditor's exporters and code
+highlighter, the React islands, tippy, chart.js. esbuild only turns those into chunks loaded on
+demand with `splitting: true`; without it they go into every page's bundle. AFAL apps get it
+from bali-runtime's `bundleOptions()`, which also names the chunks so Propshaft serves them
+(`chunks/[name]-[hash].digested`) — see bali-runtime's `docs/guides/sentry.md`.
+
+In a split build, `import()` of a CommonJS module returns a namespace holding only `default`.
+Bali reads its CommonJS imports (`react`, `react-dom/client`, flatpickr's locales) in either
+shape; code of your own that imports a CommonJS package with `import()` has to do the same.
 
 ---
 
