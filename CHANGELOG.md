@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cubre el arreglo anterior, y un `Bali::Dropdown` con `popover: true` ya no pierde el clic que
   llega antes que tippy. La exportación a Word del BlockEditor se arregla en `bundleOptions()`,
   no en Bali. Una app que adopte `bundleOptions()` necesita esta versión de Bali o una posterior.
+- **`Bali::SideMenu` fijo: responde al clic desde la primera pintada.** El servidor pintaba el
+  `<nav>` con `inert` y solo `SideMenuController` se lo quitaba al conectarse, así que en
+  escritorio el menú se veía pero no respondía mientras bajaba el JS (gobierno-corporativo:
+  6.3 MB; una descarga sin caché tardó 41 s), y volvía a quedar inerte tras un refresh con morph
+  (`turbo_refreshes_with method: :morph`, cuatro páginas de afal-apps) hasta navegar. Ahora sale
+  con `data-side-menu-booting`: oculta el drawer cerrado solo por debajo de 1024 px, y el
+  controlador lo quita al conectarse y después de cada morph, cuando también vuelve a poner el
+  `inert` del drawer y el rail colapsado. Nada que hacer en las apps.
 
 ### Security
 

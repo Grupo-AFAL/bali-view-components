@@ -704,7 +704,9 @@ sync with the sidebar, and gets focus back when the drawer closes.
 
 Below the `lg` breakpoint the sidebar is a modal drawer:
 
-- it carries `inert` while closed, so nothing inside it is reachable by Tab;
+- it carries `inert` while closed, so nothing inside it is reachable by Tab; before its
+  controller connects it is `display: none` instead, so the page does not wait on JavaScript
+  for that — and at `lg` and up the sidebar takes clicks from the first paint;
 - opening it moves focus to its first control and keeps Tab inside it;
 - Escape closes it and returns focus to the trigger that opened it.
 
