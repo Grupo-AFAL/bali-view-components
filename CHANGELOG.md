@@ -9,11 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`Bali::Topbar::Inbox`: el panel abierto mientras carga una página sigue abierto cuando la
-  página llega** (#1567). Turbo lo cerraba al reemplazar el `<body>`, también con la vista previa
-  de caché. Seguir un enlace desde el panel abierto deja la página nueva con él cerrado, como
-  antes. Donde `tippy.js` llega como módulo aparte (importmap), abrirlo justo antes de que llegue
-  la página ya no manda a la página completa de la Bandeja. Sin cambios para el host.
+- **`Bali::Topbar::Inbox`: el panel abierto durante una visita de Turbo está abierto cuando llega
+  la página** (#1567). Turbo lo cerraba al reemplazar el `<body>`, también con la vista previa de
+  caché. Seguir un enlace desde el panel abierto deja la página nueva con él cerrado, como antes.
+  Sin cambios para el host.
 
 ## [v3.23.0] - 2026-10-28
 

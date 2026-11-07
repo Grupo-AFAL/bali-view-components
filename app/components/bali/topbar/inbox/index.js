@@ -23,13 +23,14 @@ export class TopbarInboxController extends Controller {
   connect () {
     this.panel = this.panelTarget
     this.frame = this.frameTarget
-    // On the visit's `turbo:load`, once Turbo has cleared `aria-busy`: this render may be the cached
-    // preview the response replaces, and a panel opened now would count as opened during the visit.
+    // Not in connect(): Turbo clears `aria-busy` only just before `turbo:load`, so an open() here
+    // would count as opened during the visit and follow a row's link to the next page.
     if (reopenAfterVisit.delete(this.element)) {
       this.openedDuringVisit = true
       document.addEventListener('turbo:load', this.reopen, { once: true })
     }
     document.addEventListener('turbo:before-render', this.carryOpenPanel)
+    document.addEventListener('turbo:visit', this.forgetOpenedDuringVisit)
     this.ready = true
   }
 
@@ -38,6 +39,7 @@ export class TopbarInboxController extends Controller {
   disconnect () {
     document.removeEventListener('turbo:before-render', this.carryOpenPanel)
     document.removeEventListener('turbo:load', this.reopen)
+    document.removeEventListener('turbo:visit', this.forgetOpenedDuringVisit)
     this.stopListening()
     if (this.tippy) {
       this.tippy.destroy()
@@ -92,6 +94,12 @@ export class TopbarInboxController extends Controller {
   }
 
   reopen = () => this.open()
+
+  // A new visit cancels the one the panel was opened during: a row's link, clicked inside the panel,
+  // never goes through `close()`.
+  forgetOpenedDuringVisit = () => {
+    this.openedDuringVisit = false
+  }
 
   get isOpen () {
     return this.triggerTarget.getAttribute('aria-expanded') === 'true'

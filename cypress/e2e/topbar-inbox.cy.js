@@ -286,6 +286,25 @@ describe('Topbar inbox across a Turbo visit', () => {
     cy.get('[data-tippy-root]').should('not.exist')
   })
 
+  // The row's visit cancels the held one; a click inside the panel never goes through `close()`.
+  it('a panel opened while one visit loads arrives closed on the page a row leads to instead', () => {
+    cy.visit(`${appOrigin}/admin`)
+    holdDestination()
+    followSidebarLink(destination)
+    cy.get('html[aria-busy]').should('exist')
+    cy.get(trigger).click()
+    cy.wait('@popover')
+
+    cy.get(`${panel} .bali-inbox-popover-row`).first().click()
+    releaseDestination()
+
+    visitEnded('/admin/projects/1')
+    cy.get(trigger).should('exist')
+    cy.wait(300)
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
+    cy.get('[data-tippy-root]').should('not.exist')
+  })
+
   // Brought over by the visit, it is now the panel of a loaded page.
   it('a panel the visit brought arrives closed on the page one of its rows leads to', () => {
     cy.visit(`${appOrigin}/admin`)
