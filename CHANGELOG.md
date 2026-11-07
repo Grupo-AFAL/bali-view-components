@@ -207,6 +207,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   La app lleva al inicio de sesión y, al entrar, regresa a esa página: no al fragmento del panel,
   que no tiene layout. Una respuesta de error del panel (un 500) se muestra como página. Sin cambios
   para el host.
+- **`Bali::Topbar::Inbox`: el ícono vuelve a abrir el panel después de un refresh con morph.** Un
+  `refresh` por stream con el panel abierto, en una página con `turbo_refreshes_with method: :morph`
+  (cuatro en afal-apps), sacaba de la página el popper de tippy, que seguía contándose abierto: el
+  ícono ya no respondía hasta navegar. Sin cambios para el host.
 - **Un `<input type="submit">` de un `Bali::Modal` o un `Bali::Drawer` muestra que está enviando.**
   El spinner iba dentro del botón, y un `<input>` no pinta hijos: sólo se deshabilitaba. Ahora su
   texto pasa a su `data-turbo-submits-with` o a «…» (el formulario ya lleva el valor original).

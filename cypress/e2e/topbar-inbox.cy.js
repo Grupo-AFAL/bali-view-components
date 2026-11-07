@@ -195,8 +195,12 @@ describe('Topbar inbox', () => {
         errors.push(error.message)
         return false
       })
+      let morphed = false
       if (morph) {
-        cy.document().then((doc) => doc.head.insertAdjacentHTML('beforeend', '<meta name="turbo-refresh-method" content="morph">'))
+        cy.document().then((doc) => {
+          doc.head.insertAdjacentHTML('beforeend', '<meta name="turbo-refresh-method" content="morph">')
+          doc.addEventListener('turbo:morph', () => { morphed = true }, { once: true })
+        })
       }
       cy.intercept({ method: 'GET', url: '**/inbox/popover*', times: 1 }, (req) => req.redirect('/stub-sign-in', 302))
       cy.intercept({ method: 'GET', pathname: '/stub-sign-in' }, {
@@ -211,6 +215,11 @@ describe('Topbar inbox', () => {
 
       cy.wait('@signIn')
       cy.wait('@samePage')
+      if (morph) {
+        cy.wrap(null).should(() => expect(morphed, 'the revisit is a morphing refresh').to.equal(true))
+        cy.get(trigger).click()
+        cy.get(panel).should('be.visible')
+      }
       cy.get('form#sign-in').should('not.exist')
       cy.contains('Content missing').should('not.exist')
       cy.get('@historyLength').then((length) => cy.window().its('history.length').should('equal', length))

@@ -31,6 +31,7 @@ export class TopbarInboxController extends Controller {
     }
     document.addEventListener('turbo:before-render', this.carryOpenPanel)
     document.addEventListener('turbo:visit', this.forgetOpenedDuringVisit)
+    document.addEventListener('turbo:morph', this.forgetMorphedPopper)
     // On the frame and not as a data-action: tippy moves the panel into its popper, outside this
     // element, where Stimulus no longer routes the frame's events.
     this.frame.addEventListener('turbo:frame-missing', this.revisitPage)
@@ -43,6 +44,7 @@ export class TopbarInboxController extends Controller {
     document.removeEventListener('turbo:before-render', this.carryOpenPanel)
     document.removeEventListener('turbo:load', this.reopen)
     document.removeEventListener('turbo:visit', this.forgetOpenedDuringVisit)
+    document.removeEventListener('turbo:morph', this.forgetMorphedPopper)
     this.frame.removeEventListener('turbo:frame-missing', this.revisitPage)
     this.stopListening()
     if (this.tippy) {
@@ -105,6 +107,21 @@ export class TopbarInboxController extends Controller {
     this.openedDuringVisit = false
   }
 
+  // A morphing refresh (a stream `refresh`, or the revisit below on a page that refreshes by
+  // morphing) keeps this element but drops tippy's popper from <body> and draws the panel afresh
+  // inside the element: tippy would still count itself shown, and the icon would never open again.
+  forgetMorphedPopper = () => {
+    if (!this.tippy || this.tippy.popper.isConnected) return
+
+    this.stopListening()
+    this.tippy.destroy()
+    this.tippy = null
+    this.frame.removeEventListener('turbo:frame-missing', this.revisitPage)
+    this.panel = this.panelTarget
+    this.frame = this.frameTarget
+    this.frame.addEventListener('turbo:frame-missing', this.revisitPage)
+  }
+
   get isOpen () {
     return this.triggerTarget.getAttribute('aria-expanded') === 'true'
   }
@@ -138,11 +155,12 @@ export class TopbarInboxController extends Controller {
   }
 
   // The popover frame's `turbo:frame-missing`: the person opened the panel and got another page.
-  // Left alone, Turbo writes "Content missing" into the panel and throws. A redirect is an auth gate
-  // turning them away (the session expired): the page they are on is visited again, not the answer,
+  // Left alone, Turbo writes "Content missing" into the panel and throws. A redirect is taken to be an
+  // auth gate turning them away (the session expired): the page they are on is visited again, not the answer,
   // because the gate remembers the path it turned away to return there after signing in, and the
   // popover's is a fragment with no layout. `replace` makes it Turbo's own refresh of the page, so
-  // no cached copy is painted first. Any other answer, an error page, is shown as it came.
+  // no cached copy is painted first. Any other answer, an error page, is shown as it came, at its own
+  // URL.
   revisitPage = (event) => {
     const { response, visit } = event.detail
     event.preventDefault()
