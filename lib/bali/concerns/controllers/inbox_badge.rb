@@ -24,8 +24,9 @@ module Bali
       # It also gives every host controller `mark_inbox_seen(record)`, the one way to mark an item
       # read from a screen that is not its `href` (a decision panel in a drawer), and
       # `write_inbox_badge(pending_by_module:)` for a page that already counted a module's items,
-      # because this is the concern each of them already has. Both act only while the owner is the
-      # one reading.
+      # because this is the concern each of them already has. `mark_inbox_seen` acts only while
+      # the owner is the one reading; while someone acts as the owner, `write_inbox_badge` sets this
+      # request's badge and caches nothing.
       module InboxBadge
         extend ActiveSupport::Concern
 

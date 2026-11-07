@@ -363,10 +363,12 @@ module Bali
                                "advanced panel, and this one is advanced: false; the simple row takes predicate:"
         end
 
-        Bali::Filters::Operators.default_for({ key: key, type: type, operators: operators,
-                                               default_operator: default_operator })
-      rescue ArgumentError => e
-        raise ArgumentError, "filter_attribute #{e.message}"
+        begin
+          Bali::Filters::Operators.default_for({ key: key, type: type, operators: operators,
+                                                 default_operator: default_operator })
+        rescue ArgumentError => e
+          raise ArgumentError, "filter_attribute #{e.message}"
+        end
       end
 
       # An advanced `default:` travels as one condition of the panel's first group, with its

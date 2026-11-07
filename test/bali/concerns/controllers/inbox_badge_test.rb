@@ -11,7 +11,6 @@ class BaliInboxBadgeConcernTest < ActionDispatch::IntegrationTest
     def create = head(:no_content)
   end
 
-  # A page that already counted the projects it lists.
   # A page that already counted the projects it lists, after the layout read the badge.
   class WritingProbesController < ApplicationController
     def show

@@ -5076,9 +5076,10 @@ opens on "is exactly" and still offers the rest of the text operators. `operator
 from the type's (`Bali::Filters::Operators.for_type`), in the order the select shows them,
 and a new condition opens on `default_operator:` or, without it, on the first of them. An
 operator the type does not offer, an empty list or a `default_operator:` outside it raises
-`ArgumentError`: when the class loads with the DSL, and in a hash built in a view or an
-`available_attributes` override when the panel or the form reads it — the query included, with no
-panel drawn. Under ransack 6 a text one may be written `:cont` or `:i_cont`
+`ArgumentError`: with the DSL, when the class loads; in a hash built in a view or an
+`available_attributes` override, when the panel draws it. An override with an operator its type
+does not offer, or an empty list, also raises when a request carries panel conditions, panel or
+not. Under ransack 6 a text one may be written `:cont` or `:i_cont`
 alike (see [Accepting ransack 6](ransack-6.md)).
 
 **They are also what reaches Ransack from the panel** (#1346): a saved view, the filter

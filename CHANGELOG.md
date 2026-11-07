@@ -103,8 +103,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   siendo sólo de la fila simple. Los hashes de `with_filters_panel(available_attributes:)` aceptan
   las mismas llaves. Un operador que su tipo no ofrece, una lista vacía o un `default_operator:`
   fuera de la lista levantan `ArgumentError`: con el DSL, al cargar la clase; en un hash de la vista
-  o de un `available_attributes` sobrescrito, cuando el panel o el form lo leen (también al
-  consultar, aunque no se pinte el panel). Nada cambia para quien no las declara.
+  o de un `available_attributes` sobrescrito, cuando el panel lo pinta. Un `available_attributes`
+  sobrescrito con un operador que su tipo no ofrece, o con la lista vacía, levanta también cuando
+  una petición trae condiciones del panel, se pinte o no. Nada cambia para quien no las declara.
 
 ### Changed
 

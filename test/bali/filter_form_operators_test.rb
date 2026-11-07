@@ -112,6 +112,7 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
     ].each do |options, message|
       error = assert_raises(ArgumentError, options.inspect) { Class.new(Bali::FilterForm) { filter_attribute :name, **options } }
       assert_match message, error.message
+      assert_match(/\Afilter_attribute name: (?!filter_attribute)/, error.message)
     end
   end
 
