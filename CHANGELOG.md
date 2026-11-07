@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **`ransack` `>= 5.0.3` en el gemspec** (antes `>= 5.0.2`), por GHSA-58rx-96gf-w92x: en 5.0.2,
+  `sort_link` toma opciones de `url_for` de los params del request (XSS reflejado y open
+  redirect), y las cabeceras ordenables de `Bali::Table` lo llaman
+  (`app/components/bali/table/header/component.rb:51`). **Paso de anfitrión:**
+  `bundle update bali_view_components ransack` al subir Bali. Las seis apps (afal-apps,
+  centinela-web, costa-norte, garita, gobierno-corporativo, identity) y pos-bridge ya tienen 5.0.3
+  en el `Gemfile.lock` de su rama principal (06/11/2026), así que ninguna se mueve; siade, en Bali
+  v3.5.0 con `ransack` 4.4.1, queda fuera de este rango.
+- **Sólo el entorno de desarrollo y pruebas de Bali; ninguna app tiene que hacer nada por este
+  cambio.** `bundle-audit` marcaba 45 avisos en el `Gemfile.lock` del repo (73 entradas: los de
+  `nokogiri` y `sqlite3` salen una vez por plataforma), y por eso el job `scan` de CI fallaba en
+  todos los PRs. Cada gema sube a la primera versión corregida:
+  Rails 8.1.4 → 8.1.4.1 (todos sus componentes), `rack` 3.2.6 → 3.2.8,
+  `nokogiri` 1.19.4 → 1.19.5, `loofah` 2.25.2 → 2.25.3, `rails-html-sanitizer` 1.7.1 → 1.7.2,
+  `addressable` 2.9.0 → 2.9.1, `ransack` 5.0.2 → 5.0.3 y `sqlite3` 2.10.1 → 2.10.2. Una app
+  resuelve estas gemas en su propio `Gemfile.lock`: si sigue en las versiones viejas, tiene los
+  mismos avisos y los corrige ahí.
+- **npm, también sólo de este repo:** `systeminformation` 5.31.12 → 5.33.16 y `qs` 6.15.3 →
+  6.16.1 (los trae Cypress); `undici` 6.29.0 → 6.29.1 y `zod` 4.6.5 → 4.6.6 en la dummy (los trae
+  el SDK de IA de BlockNote). Cierra las 10 alertas abiertas de Dependabot y reemplaza a sus PRs
+  #1542, #1544, #1555 y #1561.
+
+### Dependencies
+
+- **`view_component` `>= 4.23.0`** (antes `>= 4.0.0`; el `Gemfile.lock` del repo pasa de 4.15.0 a
+  4.23.0). Se acaban las líneas `Couldn't find template for digesting: news/new` del log: hasta la
+  4.20, al calcular el digest de un bloque `cache` Action View leía cada
+  `render Bali::…::Component.new` como el partial `news/new` (98 líneas sobre las 89 vistas de la
+  dummy con 4.15, ninguna con 4.23). De paso, el caché de componentes deja de ser experimental
+  (4.18) y, en desarrollo, un componente se recompila solo cuando cambia su plantilla o su
+  traducción, no en cada request (4.17). **Paso de anfitrión:** subir
+  `view_component` junto con Bali (`bundle update bali_view_components view_component`). Desde la
+  4.21 un `config.view_component.<opción>` que no existe no deja arrancar la app
+  (`ViewComponent::UnknownConfigOptionError`), y desde la 4.18 hay que borrar
+  `include ViewComponent::ExperimentallyCacheable`; ninguna app de la flota tiene ninguno de los dos
+  (búsqueda en el `main` de cada una, 06/11/2026). Reemplaza al PR de Dependabot #1558.
+
 ## [v3.23.0] - 2026-10-28
 
 ### Added
