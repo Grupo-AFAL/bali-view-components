@@ -96,9 +96,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   el selector queda fijo), y una condición nueva abre en `default_operator:` o en el primero de
   la lista: `filter_attribute :employee_id, type: :text, operators: %i[eq]`. Lo que el atributo
   no ofrece tampoco llega a Ransack desde el panel: una vista guardada o una URL con otro
-  operador deja de filtrar y el panel no la pinta. `predicate:` sigue siendo sólo de la fila
-  simple. Los hashes de `with_filters_panel(available_attributes:)` aceptan las mismas llaves.
-  Nada cambia para quien no las declara.
+  operador deja de filtrar y el panel no la pinta. «Entre» es la excepción: viaja como `gteq` y
+  `lteq`, y cada uno filtra también solo (en un grupo O, o en una vista guardada con un solo
+  extremo); el panel pinta esa condición con su propio operador («en o después de», «en o antes
+  de»), que el selector de la fila ofrece entonces junto a los declarados. `predicate:` sigue
+  siendo sólo de la fila simple. Los hashes de `with_filters_panel(available_attributes:)` aceptan
+  las mismas llaves, y un operador que su tipo no ofrece levanta `ArgumentError` al pintar el
+  panel, como el DSL al cargar la clase. Nada cambia para quien no las declara.
 
 ### Changed
 
@@ -124,10 +128,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `i_cont`, `not_i_cont`, `i_start` e `i_end`, y Bali sigue leyendo los de antes en URLs,
   vistas guardadas, caché y enlaces. Decide por la gema instalada (`Bali::RansackParamName`).
   Un scope de Ransack con el nombre exacto de la caja en `_cont` (`ransackable_scopes`) lo
-  conserva. `FilterForm#search_param_names` dice bajo qué llaves se lee la búsqueda. Qué hace una
+  conserva. `Bali::RansackParamName.predicates(fields)` dice bajo qué llaves se lee la búsqueda,
+  sin construir el form; `FilterForm#search_param_names` es la misma lista. Qué hace una
   app antes de aceptar ransack 6 (`ransackable_associations`, lecturas a mano de `q[..._cont]`,
   guardas sobre el `q` crudo, operadores por nombre, `_cont`/`_start`/`_end` escritos a mano):
   `docs/guides/ransack-6.md`.
+- **`Bali::FilterForm#filter_groups`: la fila en blanco ya no dice `"cont"`.** Un grupo cuyas
+  condiciones el panel no puede pintar devolvía `{ attribute: "", operator: "cont", value: "" }`;
+  ahora `operator: nil`, y el panel la sigue abriendo en «contiene» (`i_cont` con ransack 6). Sólo
+  afecta a quien compare esa fila.
 
 ### Removed
 
@@ -232,7 +241,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#1528).** Un `gteq` y un `lteq` del mismo atributo se juntaban en un «entre» aunque el grupo
   fuera O o trajera otro operador del atributo, y Aplicar perdía ese otro operador (o, en un
   número, la condición entera). Ahora sólo se juntan en un grupo Y, sin otro operador del
-  atributo y en un tipo que ofrece «entre» (fechas); lo demás queda como condiciones sueltas.
+  atributo y en un atributo que ofrece «entre» (una fecha, salvo que sus `operators:` lo dejen
+  fuera); lo demás queda como condiciones sueltas, cada una pintada con su operador aunque el
+  atributo sólo declare «entre».
   Un atributo que el form no ofrece (un panel con los atributos en la vista) se junta como
   antes, también un número. Quien lea `filter_groups` (`git grep -n "filter_groups"`) recibe
   esas condiciones sueltas.
