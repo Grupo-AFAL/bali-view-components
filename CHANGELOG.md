@@ -205,7 +205,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::Topbar::Inbox`: abrir el panel con la sesión vencida vuelve a pedir la página donde se
   está**, en lugar de escribir «Content missing» dentro del panel y lanzar `TurboFrameMissingError`.
   La app lleva al inicio de sesión y, al entrar, regresa a esa página: no al fragmento del panel,
-  que no tiene layout. Sin cambios para el host.
+  que no tiene layout. Una respuesta de error del panel (un 500) se muestra como página. Sin cambios
+  para el host.
 - **Un `<input type="submit">` de un `Bali::Modal` o un `Bali::Drawer` muestra que está enviando.**
   El spinner iba dentro del botón, y un `<input>` no pinta hijos: sólo se deshabilitaba. Ahora su
   texto pasa a su `data-turbo-submits-with` o a «…» (el formulario ya lleva el valor original).

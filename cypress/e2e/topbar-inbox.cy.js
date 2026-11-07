@@ -184,29 +184,60 @@ describe('Topbar inbox', () => {
     })
   })
 
-  // The person opened the panel and got another page (the sign-in page once the session expired):
-  // the page they are on is asked for again, which an auth gate remembers to return to after signing
-  // in, instead of Turbo's "Content missing" inside the panel or the popover's fragment as the page.
-  it('visits the page again when an opened panel gets another page instead of its frame', () => {
+  // An opened panel turned away by an auth gate (a redirect to sign in once the session expired):
+  // the page the person is on is asked for again, which the gate remembers to return to after
+  // signing in, instead of Turbo's "Content missing" inside the panel or the popover's fragment as
+  // the page. Also with a page that refreshes by morphing, as four of afal-apps' do.
+  ;[false, true].forEach((morph) => {
+    it(`visits the page again when an opened panel is redirected${morph ? ', on a morphing page' : ''}`, () => {
+      const errors = []
+      cy.on('uncaught:exception', (error) => {
+        errors.push(error.message)
+        return false
+      })
+      if (morph) {
+        cy.document().then((doc) => doc.head.insertAdjacentHTML('beforeend', '<meta name="turbo-refresh-method" content="morph">'))
+      }
+      cy.intercept({ method: 'GET', url: '**/inbox/popover*', times: 1 }, (req) => req.redirect('/stub-sign-in', 302))
+      cy.intercept({ method: 'GET', pathname: '/stub-sign-in' }, {
+        statusCode: 200,
+        headers: { 'content-type': 'text/html' },
+        body: '<html><head></head><body><form id="sign-in"></form></body></html>'
+      }).as('signIn')
+      cy.location('pathname').then((pathname) => cy.intercept({ method: 'GET', pathname }).as('samePage'))
+      cy.window().its('history.length').as('historyLength')
+
+      cy.get(trigger).click()
+
+      cy.wait('@signIn')
+      cy.wait('@samePage')
+      cy.get('form#sign-in').should('not.exist')
+      cy.contains('Content missing').should('not.exist')
+      cy.get('@historyLength').then((length) => cy.window().its('history.length').should('equal', length))
+      cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+    })
+  })
+
+  // An error page is no gate: it is shown as it came, and the page is not visited again (which
+  // would drop what the person typed on it, with nothing said).
+  it('shows the error page an opened panel gets instead of its frame', () => {
     const errors = []
     cy.on('uncaught:exception', (error) => {
       errors.push(error.message)
       return false
     })
     cy.intercept({ method: 'GET', url: '**/inbox/popover*', times: 1 }, {
-      statusCode: 200,
+      statusCode: 500,
       headers: { 'content-type': 'text/html' },
-      body: '<html><head></head><body><form id="sign-in"></form></body></html>'
-    }).as('signIn')
-    cy.location('pathname').then((pathname) => cy.intercept({ method: 'GET', pathname }).as('samePage'))
+      body: '<html><head></head><body><h1 id="server-error">We are sorry</h1></body></html>'
+    }).as('serverError')
+    cy.location('pathname').then((pathname) => cy.intercept({ method: 'GET', pathname }, cy.spy().as('samePage')))
 
     cy.get(trigger).click()
 
-    cy.wait('@signIn')
-    cy.wait('@samePage')
-    cy.location('pathname').should('include', '/bali/topbar/inbox/default')
-    cy.get('form#sign-in').should('not.exist')
-    cy.contains('Content missing').should('not.exist')
+    cy.wait('@serverError')
+    cy.get('#server-error').should('exist')
+    cy.get('@samePage').should('not.have.been.called')
     cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
   })
 

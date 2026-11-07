@@ -137,14 +137,20 @@ export class TopbarInboxController extends Controller {
     event.preventDefault()
   }
 
-  // The popover frame's `turbo:frame-missing`: the person opened the panel and got another page,
-  // the sign-in page once the session expired. Left alone, Turbo writes "Content missing" into the
-  // panel and throws. The page they are on is visited again, not that answer: the auth gate
-  // remembers the path it turned away to return there after signing in, and the popover's is a
-  // fragment with no layout. `replace`, because a visit to the same page would add a history entry.
+  // The popover frame's `turbo:frame-missing`: the person opened the panel and got another page.
+  // Left alone, Turbo writes "Content missing" into the panel and throws. A redirect is an auth gate
+  // turning them away (the session expired): the page they are on is visited again, not the answer,
+  // because the gate remembers the path it turned away to return there after signing in, and the
+  // popover's is a fragment with no layout. `replace` makes it Turbo's own refresh of the page, so
+  // no cached copy is painted first. Any other answer, an error page, is shown as it came.
   revisitPage = (event) => {
+    const { response, visit } = event.detail
     event.preventDefault()
-    event.detail.visit(window.location.href, { action: 'replace' })
+    if (response.redirected) {
+      visit(window.location.href, { action: 'replace' })
+    } else {
+      visit(response)
+    }
   }
 
   async ensureTippy () {
