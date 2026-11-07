@@ -20,6 +20,10 @@ module Bali
       # (`Bali::Concerns::Controllers::Inbox`) reads the same two. While someone acts as the owner
       # the badge is counted on every request and never cached: a host may list that session less
       # than the owner, and the owner would see its number on their next page.
+      #
+      # It also gives every host controller `mark_inbox_seen(record)`, the one way to mark an item
+      # read from a screen that is not its `href` (a decision panel in a drawer), because this is
+      # the concern each of them already has.
       module InboxBadge
         extend ActiveSupport::Concern
 
