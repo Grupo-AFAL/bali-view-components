@@ -155,13 +155,17 @@ module Bali
       # shortcut or a view stopped being recognized as active after the first round-trip
       # through the popover or the search box. It is only discarded where the combinator
       # cannot change the result —a one-condition group, or a single group—, never when it
-      # really tells AND from OR.
+      # really tells AND from OR. A text condition saved in the other variant compares as the one
+      # it is applied as (`PanelConditions#current_condition_key`, #1530).
       def comparable_view_state(payload)
         state = payload.to_h.deep_stringify_keys.except("columns").reject { |_k, v| v.blank? }
         groupings = state["groupings"]
         if groupings.is_a?(Hash)
           state["groupings"] = groupings.transform_values do |group|
-            group.is_a?(Hash) && group.except("m").size < 2 ? group.except("m") : group
+            next group unless group.is_a?(Hash)
+
+            group = group.transform_keys { |key| current_condition_key(key) }
+            group.except("m").size < 2 ? group.except("m") : group
           end
           state = state.except("combinator") if groupings.size < 2
         end

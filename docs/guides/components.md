@@ -5065,6 +5065,48 @@ population (so a sort cannot silently move it), and the redirect this section de
 itself off exactly where the grouping default is needed most, on a listing with filter
 persistence on.
 
+#### Which operators the panel offers (`operators:` + `default_operator:`)
+
+An identifier matches whole: whoever types `EMP00` into "contains" gets `EMP001`, `EMP002`…
+
+```ruby
+class EmployeesFilterForm < Bali::FilterForm
+  filter_attribute :employee_id, type: :text, operators: %i[eq]
+  filter_attribute :folio, type: :text, default_operator: :eq
+end
+```
+
+In the advanced panel, "Employee" offers only "is exactly", in a fixed select; "Folio"
+opens on "is exactly" and still offers the rest of the text operators. `operators:` picks
+from the type's (`Bali::Filters::Operators.for_type`), in the order the select shows them,
+and a new condition opens on `default_operator:` or, without it, on the first of them. An
+operator the type does not offer raises when the class loads. Under ransack 6 a text one may be
+written `:cont` or `:i_cont` alike (see [Accepting ransack 6](ransack-6.md)).
+
+**They are also what reaches Ransack from the panel** (#1346): a saved view, the filter
+cache or a URL carrying `q[g][0][employee_id_cont]` is no filter, and the panel does not
+paint it. That makes `operators:` the way to keep the panel off an operator a `ransacker`
+cannot take.
+
+**Count the saved views first** when the attribute was already in the panel: from the deploy
+that narrows it, a view that used another operator on it stops filtering, with nothing on screen
+to say so. The filter cache does the same, for one visit.
+
+```ruby
+# bin/rails runner — views of the "employees" listing that use employee_id with another operator
+offered = %w[employee_id_eq]
+Bali::SavedView.where(storage_id: "employees").count do |view|
+  view.payload.fetch("groupings", {}).values.any? { |group| (group.keys.grep(/\Aemployee_id_/) - offered).any? }
+end
+```
+
+`predicate:` belongs to the simple row and does not move the panel's select. An advanced
+`default:` is applied with the panel's opening operator when the attribute declares one,
+and with `predicate:` otherwise. An `available_attributes` override takes the same two keys,
+for the select and for what reaches Ransack alike. A hash passed to
+`with_filters_panel(available_attributes:)` narrows only the select: what reaches Ransack is
+still what the form offers.
+
 #### A filter with no caption (`label: false` + `aria_label:`)
 
 A SimpleFilters row is tight, and some filters read fine without a caption over them — a
@@ -5172,8 +5214,10 @@ silently.
 
 Both filter surfaces — the `Filters` panel and `DataTable`'s `SimpleFilters` — take the same
 `search:` hash. You declare the **columns**; Bali derives the Ransack parameter from them
-(`[:name, :email]` becomes `q[name_or_email_cont]`), so a listing that moves from one surface
-to the other keeps searching the same thing.
+(`[:name, :email]` becomes `q[name_or_email_cont]`, `q[name_or_email_i_cont]` under ransack 6 —
+see [Accepting ransack 6](ransack-6.md)), so a listing that moves from one surface to the other
+keeps searching the same thing. Read the value back under `Bali::RansackParamName.predicate`,
+not a spelled-out `_cont`:
 
 | Key | Type | Description |
 |--------|------|-------------|
@@ -5190,7 +5234,7 @@ to the other keeps searching the same thing.
 <%= render Bali::Filters::Component.new(
   url: movies_path,
   available_attributes: [...],
-  search: { fields: %i[name genre], value: q[:name_or_genre_cont] }
+  search: { fields: %i[name genre], value: q[Bali::RansackParamName.predicate(%i[name genre])] }
 ) %>
 ```
 

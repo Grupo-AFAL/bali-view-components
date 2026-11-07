@@ -157,11 +157,26 @@ class MoviesFilterForm < Bali::FilterForm
   filter_attribute :created_at, type: :date
   filter_attribute :indie, type: :boolean
 
+  # The panel offers only these operators (one: a fixed select), or opens new conditions on one
+  filter_attribute :employee_id, type: :text, operators: %i[eq]
+  filter_attribute :folio, type: :text, default_operator: :eq
+
   # Standard Ransack attributes
   attribute :name_cont
   attribute :genre_eq
 end
 ```
+
+**`operators:` is also the panel's gate** (#1566): a saved view, the filter cache or a URL with
+an operator the attribute does not offer is no filter, and the panel does not paint it.
+`predicate:` is the simple row's and never moves the panel's operator select. Full rules in
+`docs/guides/components.md`, "Which operators the panel offers".
+
+**Text predicates follow the installed ransack** (#1530): under 5 Bali reads and writes `cont`,
+`start`, `end` (`name_or_genre_cont`), as always; under 6 it writes their `i_` twins and still
+reads the old ones. Never spell the suffix out: `Bali::RansackParamName.predicate(fields)` is the
+box's name, `FilterForm#search_param_names` every key the search is read from, and
+`docs/guides/ransack-6.md` is what an app does before accepting ransack 6.
 
 **Every field here is a Ransack path, and a wrong one fails silently.** An association is
 reached by its Ransack name (`studio_name` for `belongs_to :studio`), never by a Ruby
@@ -312,6 +327,7 @@ FilterForm is organized into focused concerns for maintainability:
 | `search_enabled?` | `Boolean` | True if search is configured |
 | `search_value` | `String` | Current search value from params |
 | `search_field_name` | `String` | Ransack field name (e.g., `name_or_genre_cont`) |
+| `search_param_names` | `Array<String>` | Every `q` key the search is read from: `search_field_name`, the box's name and, under ransack 6, the old `_cont`. A guard that drops the search from the raw `q` drops all of them |
 | `search_config` | `Hash` | The `search:` hash BOTH filter surfaces take — every `Bali::SearchConfig::KEYS` entry (`fields`, `value`, `placeholder`, `label`, `icon`, `width`) |
 | `available_attributes` | `Array<Hash>` | Filter attributes from DSL |
 | `filter_groups` | `Array<Hash>` | Parsed filter groups from params |
@@ -327,7 +343,8 @@ FilterForm is organized into focused concerns for maintainability:
   (`params[:g]`, `params[:m]`) for a host that rewrites conditions after `super`; the nesting
   happens in `ransack_search`.
 - **Only what the panel can write gets through** (#1346): each key of the INSTANCE's
-  `available_attributes` with the operators its type offers (`Filters::Operators.for_type`),
+  `available_attributes` with the operators it offers (its type's, or its `operators:`:
+  `Filters::Operators.predicates_for`),
   lists only on `_in`/`_not_in` with members that fit their column's type, scalar values with
   no control characters. Anything else, from a URL, a saved view or the filter cache, is no
   filter, and the panel does not paint it. A form that offers the panel no attribute (none

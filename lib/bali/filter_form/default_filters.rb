@@ -85,7 +85,8 @@ module Bali
 
         def advanced_default_conditions(attrs)
           attrs.each_with_object({}) do |attr, conditions|
-            conditions["#{attr[:key]}_#{attr[:predicate]}"] = resolve_default(attr[:default])
+            operator = Bali::Filters::Operators.default_for(attr) || attr[:predicate]
+            conditions["#{attr[:key]}_#{operator}"] = resolve_default(attr[:default])
           end
         end
 

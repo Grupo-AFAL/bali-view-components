@@ -21,8 +21,11 @@ module Bali
           @condition[:attribute].to_s
         end
 
+        # In the variant the installed ransack gets (#1530): the "cont" every blank row is seeded
+        # with, and a text operator a host wrote by hand. condition_controller.js#reset puts a row
+        # back on the same one, the first text operator of `translations_json`.
         def operator
-          @condition[:operator] || "cont"
+          RansackParamName.text_predicate(@condition[:operator] || "cont")
         end
 
         def value
@@ -52,7 +55,15 @@ module Bali
         end
 
         def operators_for_current_type
-          Operators.for_type(attribute_type)
+          Operators.for_attribute(selected_attribute || { type: attribute_type })
+        end
+
+        # Only an attribute that declares its operators: a boolean's lone "is" stays a select
+        # as it always was. condition_controller.js#updateOperators fixes the select by the
+        # same rule, reading the declaration off `data-default-operator`.
+        def fixed_operator?
+          selected_attribute.present? && Operators.default_for(selected_attribute).present? &&
+            operators_for_current_type.one?
         end
 
         # Both read the mark Operators.for_type puts on the chosen operator, the same mark

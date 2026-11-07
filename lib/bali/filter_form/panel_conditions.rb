@@ -19,6 +19,16 @@ module Bali
 
       private
 
+      # A text condition in the variant this ransack gets (`RansackParamName.text_predicate`),
+      # whichever arrived: a saved view, the filter cache or a bookmark written under the other
+      # ransack carries `name_cont` where Bali now writes `name_i_cont`, or the reverse (#1530).
+      # The panel paints it with its own operator and its next submit writes that one.
+      def current_condition_key(key)
+        attribute, operator = parse_condition_key(key.to_s)
+        current = operator && RansackParamName.text_predicate(operator)
+        current == operator ? key : "#{attribute}_#{current}"
+      end
+
       # The panel's groups as they are applied: `@groupings`, from whatever source, with
       # only the conditions the panel can write and values the query can take.
       #
@@ -50,7 +60,8 @@ module Bali
         groups = groups.each_with_index.to_h { |group, index| [ index.to_s, group ] } if groups.is_a?(Array)
         return unless groups.is_a?(Hash)
 
-        groups.transform_values { |group| unwrap_params(group) }.select { |_index, group| group.is_a?(Hash) }.presence
+        groups.transform_values { |group| unwrap_params(group) }.select { |_index, group| group.is_a?(Hash) }
+              .transform_values { |group| group.transform_keys { |key| current_condition_key(key) } }.presence
       end
 
       # The group's conditions that pass, with its combinator; nil when none does.
@@ -74,8 +85,7 @@ module Bali
       end
 
       # Every key the panel can write: each attribute of `available_attributes` with each
-      # operator its type offers. "Between" travels as its `_gteq`/`_lteq` pair, which a date
-      # already offers.
+      # operator it offers (`Operators.predicates_for`: its type's, or its `operators:`).
       #
       # nil when the form offers the panel no attribute (none declared, or all `advanced:
       # false`), and then any key goes and Ransack decides, as before: a bare
@@ -87,8 +97,7 @@ module Bali
         return @panel_condition_keys if defined?(@panel_condition_keys)
 
         @panel_condition_keys = available_attributes.flat_map { |attribute|
-          Bali::Filters::Operators.for_type(attribute[:type] || :text)
-                                  .filter_map { |operator| "#{attribute[:key]}_#{operator[:value]}" unless operator[:range] }
+          Bali::Filters::Operators.predicates_for(attribute).map { |predicate| "#{attribute[:key]}_#{predicate}" }
         }.to_set.presence
       end
 

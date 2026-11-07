@@ -53,9 +53,9 @@ Gem::Specification.new do |spec|
   # 5.0.2 is the first 5.x patched for both GHSA-vxc9-rm8f-p56j and GHSA-j3f8-w227-4hh8, which a
   # FilterForm's `q[...]` reaches; 5.0.3 the first for GHSA-58rx-96gf-w92x, which Table::Header's
   # `sort_link` reaches. 6.0 makes `cont`/`start`/`end` case-sensitive on PostgreSQL
-  # (ransack#1715), which this suite on SQLite cannot see, and needs `ransackable_associations` on
-  # every model searched with `g:`. What raising the cap takes is #1530.
-  spec.add_dependency "ransack", ">= 5.0.3", "< 6.0"
+  # (ransack#1715), so Bali writes their `i_` twins under it (Bali::RansackParamName), and needs
+  # `ransackable_associations` on every model searched with `g:`, which an app declares (#1530).
+  spec.add_dependency "ransack", ">= 5.0.3", "< 7.0"
   spec.add_dependency "simple_command"
 
   # The floor is what moves every host on its next Bali bump. Below 4.20 Action View read each

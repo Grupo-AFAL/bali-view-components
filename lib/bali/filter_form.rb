@@ -144,7 +144,23 @@ module Bali
       #   when `input:` is omitted, and like `:toggle_group` it needs a list predicate
       #   (`predicate: :in` or `:not_in`).
       # @param predicate [Symbol] Fixed Ransack predicate for the simple UI
-      #   (default :eq; the advanced UI lets the user pick the operator)
+      #   (default :eq). It does not reach the advanced panel's operator select: that one
+      #   takes `operators:` and `default_operator:`. Without either of them it is also the
+      #   operator an advanced `default:` is applied with.
+      # @param operators [Array<Symbol>] The operators the advanced panel offers for this
+      #   attribute, in this order, out of those of its `type:`
+      #   ({Bali::Filters::Operators.for_type}): `%i[eq]` for an identifier that only
+      #   matches whole. Only these reach Ransack from the panel, so a saved view, the
+      #   filter cache or a URL carrying another one (`q[g][0][code_cont]`) is no filter
+      #   and the panel does not paint it. With a single one, the operator select is fixed.
+      #   The simple UI keeps `predicate:`. Raises on an operator the type does not offer.
+      #   Under ransack 6 a text one may be written `:cont` or `:i_cont` alike
+      #   ({Bali::RansackParamName.text_predicate}).
+      # @param default_operator [Symbol] The operator a condition opens on when the user
+      #   picks this attribute in the panel; without it, the first of `operators:`. Neither
+      #   declared, the row keeps the operator it had when the type offers it, as always.
+      #   That same operator applies an advanced `default:`. Raises when it is not among
+      #   `operators:` (or the type's).
       # @param blank [String, Proc] Blank option text for the simple UI
       # @param default [String, Boolean, Array, Hash, Proc] The value this listing opens on.
       #   It preselects the simple control, and it is what
@@ -200,20 +216,30 @@ module Bali
       # @example Date range with named periods
       #   filter_attribute :created_at, type: :date, input: :date_range, simple: true,
       #     presets: %i[today this_week this_month], blank: 'Any date'
+      #
+      # @example An identifier the panel matches whole, or opens on "equals"
+      #   filter_attribute :employee_id, type: :text, operators: %i[eq]
+      #   filter_attribute :folio, type: :text, default_operator: :eq
       # rubocop:disable Metrics/ParameterLists
       def filter_attribute(key, type: :text, label: nil, aria_label: nil, options: [],
                            collection: nil, simple: false, advanced: true, input: nil,
                            multiple: false, predicate: :eq, blank: nil, default: nil,
                            icon: nil, step: nil, placeholder: nil, placeholder_min: nil,
-                           placeholder_max: nil, auto_submit: false, presets: nil)
+                           placeholder_max: nil, auto_submit: false, presets: nil,
+                           operators: nil, default_operator: nil)
         # rubocop:enable Metrics/ParameterLists
         type = type.to_sym
         input ||= :slim_select if multiple
         resolved_input = simple ? resolve_simple_input(key, type, input) : input&.to_sym
+        operators = operators&.map { |operator| RansackParamName.text_predicate(operator) }
+        default_operator = default_operator && RansackParamName.text_predicate(default_operator)
         validate_auto_submit(key, resolved_input, auto_submit)
         validate_default(key, default, simple, advanced)
         validate_multiple(key, resolved_input, multiple, simple)
         validate_list_input(key, resolved_input, predicate, multiple)
+        validate_operators(key, type, operators, default_operator, advanced)
+        validate_advanced_default_operator(key, { type: type, operators: operators, default_operator: default_operator },
+                                           default, simple)
 
         filter_attributes << {
           key: key.to_sym,
@@ -235,7 +261,9 @@ module Bali
           placeholder_min: placeholder_min,
           placeholder_max: placeholder_max,
           auto_submit: auto_submit,
-          presets: Bali::DateRangePresets.normalize(presets, key: key, input: resolved_input)
+          presets: Bali::DateRangePresets.normalize(presets, key: key, input: resolved_input),
+          operators: operators,
+          default_operator: default_operator
         }
       end
 
@@ -321,6 +349,42 @@ module Bali
         sender = multiple ? "multiple: true" : "input: :toggle_group"
         raise ArgumentError, "filter_attribute #{key}: #{sender} sends a list, which " \
                              "predicate: :#{predicate || :eq} does not take; declare predicate: :in"
+      end
+
+      # Same contract as an unknown `input:`: an operator the panel's select cannot offer
+      # fails here, instead of a select that offers another one.
+      def validate_operators(key, type, operators, default_operator, advanced)
+        return if operators.nil? && default_operator.nil?
+
+        unless advanced
+          raise ArgumentError, "filter_attribute #{key}: operators: and default_operator: apply to the " \
+                               "advanced panel, and this one is advanced: false; the simple row takes predicate:"
+        end
+
+        offered = Bali::Filters::Operators.for_type(type).map { |operator| operator[:value] }
+        allowed = operators || offered
+        unknown = allowed - offered
+        if allowed.empty? || unknown.any?
+          raise ArgumentError, "filter_attribute #{key}: type :#{type} offers no operator " \
+                               "#{unknown.join(', ').presence || '(empty list)'} (valid: #{offered.join(', ')})"
+        end
+        return if default_operator.nil? || allowed.include?(default_operator)
+
+        raise ArgumentError, "filter_attribute #{key}: default_operator: :#{default_operator} is not " \
+                             "among its operators (#{allowed.join(', ')})"
+      end
+
+      # An advanced `default:` travels as one condition of the panel's first group, with its
+      # value under one predicate: "between" is a pair, and the gate would drop the
+      # `<key>_between` it wrote, so the listing would open on a default that filters nothing.
+      def validate_advanced_default_operator(key, attribute, default, simple)
+        return if simple || default.nil? || default == ""
+
+        operator = Bali::Filters::Operators.default_for(attribute)
+        return if operator.nil? || Bali::Filters::Operators.predicates_for(attribute).include?(operator)
+
+        raise ArgumentError, "filter_attribute #{key}: default: is applied with :#{operator}, which " \
+                             "takes no single value; declare a default_operator: that does"
       end
     end
 
@@ -606,7 +670,9 @@ module Bali
     # Override this method for full control; the Filters component consumes
     # whatever it returns.
     #
-    # @return [Array<Hash>] Array of attribute definitions with :key, :type, :label, :options
+    # @return [Array<Hash>] Array of attribute definitions with :key, :type, :label, :options,
+    #   and :operators / :default_operator where the DSL declares them
+    #   ({Bali::Filters::Operators.for_attribute} reads both)
     def available_attributes
       @available_attributes ||=
         self.class.filter_attributes.reject { |attr| attr[:advanced] == false }.map do |attr|
@@ -614,8 +680,10 @@ module Bali
             key: attr[:key],
             type: attr[:type],
             label: resolve_definition_value(attr[:label]) || attr[:key].to_s.humanize,
-            options: resolve_definition_value(attr[:options]) || []
-          }
+            options: resolve_definition_value(attr[:options]) || [],
+            operators: attr[:operators],
+            default_operator: attr[:default_operator]
+          }.compact
         end
     end
 
@@ -892,11 +960,12 @@ module Bali
     # `attribute_names` it lands in `attributes` all the same. Nulling only the first left the
     # predicate inside the restored attributes: the box was empty and the listing stayed
     # narrowed by a term no longer visible anywhere — and since the cache was rewritten with it
-    # inside, on every later visit too (#1017).
+    # inside, on every later visit too (#1017). Under every name the search is read from: a
+    # door declared with `_cont` stays one under ransack 6 (identity's AccountsFilterForm).
     def attributes_without_search_field(attributes)
       return attributes unless search_enabled? && attributes.is_a?(Hash)
 
-      attributes.except(search_field_name.to_s, search_field_name.to_sym)
+      attributes.except(*search_param_names, *search_param_names.map(&:to_sym))
     end
 
     # The simple filters are restored through a SIDE EFFECT and not through the tuple, because

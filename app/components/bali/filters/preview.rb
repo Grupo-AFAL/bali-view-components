@@ -132,6 +132,25 @@ module Bali
         )
       end
 
+      # @label Restricted Operators
+      # @param popover toggle
+      # An attribute may narrow the operators it offers (`operators:`) and pick the one a new
+      # condition opens on (`default_operator:`), as `FilterForm.filter_attribute` declares them.
+      # "Employee ID" only matches whole, so its operator select is fixed; "Folio" opens on
+      # "equals" and still offers the rest; "Name" declares nothing.
+      def restricted_operators(popover: true)
+        render Filters::Component.new(
+          url: '/preview',
+          available_attributes: [
+            { key: :employee_id, label: 'Employee ID', type: :text, operators: %i[eq] },
+            { key: :folio, label: 'Folio', type: :text, default_operator: :eq },
+            { key: :name, label: 'Name', type: :text },
+            { key: :created_at, label: 'Created', type: :date, operators: %i[between eq] }
+          ],
+          popover: popover
+        )
+      end
+
       # @label Compact (Few Attributes)
       # Minimal configuration with only a few attributes.
       # Useful for simple filtering scenarios.
