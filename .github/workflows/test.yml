@@ -162,7 +162,7 @@ jobs:
       - name: Run the filter tests that hold under both ransack versions
         run: |
           bin/rails test test/bali/filter_form_text_predicates_test.rb test/bali/filter_form_operators_test.rb \
-            test/bali/filter_form_between_test.rb
+            test/bali/filter_form_between_test.rb test/bali/components/filters/operators_test.rb
           bin/rails test test/bali/components/filters/condition/component_test.rb -i /carries_the_operators/
           bin/rails test test/bali/components/filters/condition/component_test.rb -i /offers_one_operator/
           bin/rails test test/bali/components/filters/condition/component_test.rb -i /lone_operator/

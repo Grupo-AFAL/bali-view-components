@@ -118,43 +118,6 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_button("OR")
   end
 
-  def test_operators_provides_correct_operators_for_text_type
-    operators = Bali::Filters::Operators.for_type(:text)
-    assert_includes(operators.pluck(:value), "cont")
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "start")
-    assert_includes(operators.pluck(:value), "end")
-  end
-
-  def test_operators_provides_correct_operators_for_number_type
-    operators = Bali::Filters::Operators.for_type(:number)
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "gt")
-    assert_includes(operators.pluck(:value), "lt")
-    assert_includes(operators.pluck(:value), "gteq")
-    assert_includes(operators.pluck(:value), "lteq")
-  end
-
-  def test_operators_provides_correct_operators_for_date_type
-    operators = Bali::Filters::Operators.for_type(:date)
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "gt")
-    assert_includes(operators.pluck(:value), "lt")
-    assert_includes(operators.pluck(:value), "gteq")
-    assert_includes(operators.pluck(:value), "lteq")
-  end
-
-  def test_operators_provides_correct_operators_for_select_type
-    operators = Bali::Filters::Operators.for_type(:select)
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "not_eq")
-  end
-
-  def test_operators_provides_correct_operators_for_boolean_type
-    operators = Bali::Filters::Operators.for_type(:boolean)
-    assert_equal([ "eq" ], operators.pluck(:value))
-  end
-
   def test_persistence_toggle_returns_false_for_persistence_available_when_no_storage_id
     component = Bali::Filters::Component.new(
       url: "/users", available_attributes: @available_attributes
