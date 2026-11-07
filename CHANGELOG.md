@@ -105,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fuera de la lista levantan `ArgumentError`: con el DSL, al cargar la clase; en un hash de la vista
   o de un `available_attributes` sobrescrito, cuando el panel lo pinta. Un `available_attributes`
   sobrescrito con un operador que su tipo no ofrece, o con la lista vacía, levanta también cuando
-  una petición trae condiciones del panel, se pinte o no. Nada cambia para quien no las declara.
+  el form aplica condiciones del panel (URL, vista guardada o caché de filtros), se pinte o no. Nada cambia para quien no las declara.
 
 ### Changed
 

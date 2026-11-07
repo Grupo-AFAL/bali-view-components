@@ -5078,8 +5078,8 @@ and a new condition opens on `default_operator:` or, without it, on the first of
 operator the type does not offer, an empty list or a `default_operator:` outside it raises
 `ArgumentError`: with the DSL, when the class loads; in a hash built in a view or an
 `available_attributes` override, when the panel draws it. An override with an operator its type
-does not offer, or an empty list, also raises when a request carries panel conditions, panel or
-not. Under ransack 6 a text one may be written `:cont` or `:i_cont`
+does not offer, or an empty list, also raises when the form applies panel conditions — from the
+URL, a saved view or the filter cache — panel or not. Under ransack 6 a text one may be written `:cont` or `:i_cont`
 alike (see [Accepting ransack 6](ransack-6.md)).
 
 **They are also what reaches Ransack from the panel** (#1346): a saved view, the filter
