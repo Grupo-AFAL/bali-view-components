@@ -152,8 +152,11 @@ module Bali
       #   ({Bali::Filters::Operators.for_type}): `%i[eq]` for an identifier that only
       #   matches whole. Only these reach Ransack from the panel, so a saved view, the
       #   filter cache or a URL carrying another one (`q[g][0][code_cont]`) is no filter
-      #   and the panel does not paint it. With a single one, the operator select is fixed.
-      #   The simple UI keeps `predicate:`. Raises on an operator the type does not offer.
+      #   and the panel does not paint it. "between" reaches it as its `gteq` and `lteq`,
+      #   each of which also filters alone (an OR group, a view saved with one end): the
+      #   panel paints that condition with its own operator, which its select then offers
+      #   beside these. With a single one, and no such condition, the operator select is
+      #   fixed. The simple UI keeps `predicate:`. Raises on an operator the type does not offer.
       #   Under ransack 6 a text one may be written `:cont` or `:i_cont` alike
       #   ({Bali::RansackParamName.text_predicate}).
       # @param default_operator [Symbol] The operator a condition opens on when the user

@@ -169,6 +169,8 @@ end
 
 **`operators:` is also the panel's gate** (#1566): a saved view, the filter cache or a URL with
 an operator the attribute does not offer is no filter, and the panel does not paint it.
+"between" passes as its `gteq` and `lteq`, each alone too, and the panel paints a lone one with
+its own operator, which the row's select then offers.
 `predicate:` is the simple row's and never moves the panel's operator select. Full rules in
 `docs/guides/components.md`, "Which operators the panel offers".
 

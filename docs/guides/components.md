@@ -5087,7 +5087,9 @@ alike (see [Accepting ransack 6](ransack-6.md)).
 **They are also what reaches Ransack from the panel** (#1346): a saved view, the filter
 cache or a URL carrying `q[g][0][employee_id_cont]` is no filter, and the panel does not
 paint it. That makes `operators:` the way to keep the panel off an operator a `ransacker`
-cannot take.
+cannot take. "Between" travels as a `gteq` and an `lteq`, and each of them also filters
+alone — in an OR group, or in a view saved with one end. The panel paints that condition with
+its own operator ("on or after"), which the row's select then offers beside the declared ones.
 
 **Count the saved views first** when the attribute was already in the panel: from the deploy
 that narrows it, a view that used another operator on it stops filtering, with nothing on screen
@@ -5095,7 +5097,7 @@ to say so. The filter cache does the same, for one visit.
 
 ```ruby
 # bin/rails runner — views of the "employees" listing that use employee_id with another operator
-offered = %w[employee_id_eq]
+offered = %w[employee_id_eq] # Bali::Filters::Operators.predicates_for: "between" is a gteq and an lteq
 Bali::SavedView.where(storage_id: "employees").count do |view|
   view.payload.fetch("groupings", {}).values.any? { |group| (group.keys.grep(/\Aemployee_id_/) - offered).any? }
 end
@@ -5106,7 +5108,8 @@ end
 and with `predicate:` otherwise. An `available_attributes` override takes the same two keys,
 for the select and for what reaches Ransack alike. A hash passed to
 `with_filters_panel(available_attributes:)` narrows only the select: what reaches Ransack is
-still what the form offers.
+still what the form offers, and a condition that arrives with an operator the hash leaves out
+is painted with it, which its select then offers too.
 
 #### A filter with no caption (`label: false` + `aria_label:`)
 

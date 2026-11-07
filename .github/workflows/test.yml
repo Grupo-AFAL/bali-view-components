@@ -166,6 +166,7 @@ jobs:
           bin/rails test test/bali/components/filters/condition/component_test.rb -i /carries_the_operators/
           bin/rails test test/bali/components/filters/condition/component_test.rb -i /offers_one_operator/
           bin/rails test test/bali/components/filters/condition/component_test.rb -i /lone_operator/
+          bin/rails test test/bali/components/filters/condition/component_test.rb -i /operator_it_arrived_with/
           bin/rails test test/bali/components/filters/component_test.rb -i /operators_reach_its_option/
           bin/rails test test/bali/components/data_table/saved_views_test.rb -i /every_name_the_form/
           bin/rails test test/bali/filter_form_test.rb -i /EnumCastingFilterFormTest/

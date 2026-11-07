@@ -58,8 +58,16 @@ module Bali
           end
         end
 
+        # The attribute's operators, plus the one the condition arrived with when they leave it
+        # out: "between" lets its `gteq` or `lteq` through alone (an OR group, a view saved with
+        # one end), and a panel whose attributes come from the view lets anything through.
+        # Left out, the select would show its first operator over the widget of another.
         def operators_for_current_type
-          @operators_for_current_type ||= Operators.for_attribute(selected_attribute || {})
+          @operators_for_current_type ||= begin
+            offered = Operators.for_attribute(selected_attribute || {})
+            arrived = Operators.for_type(attribute_type).find { |op| op[:value] == operator }
+            arrived.nil? || offered.any? { |op| op[:value] == operator } ? offered : offered + [ arrived ]
+          end
         end
 
         # Only an attribute that declares its operators: a boolean's lone "is" stays a select

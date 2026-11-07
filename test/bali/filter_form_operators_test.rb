@@ -66,6 +66,26 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
     assert_equal [ @ana ], applied.result.to_a
   end
 
+  # "between" lets its `gteq` and `lteq` through, each alone too (`Operators.predicates_for`), and
+  # they fold back into a "between" only inside an AND group.
+  test "an OR group draws the bounds of a between-only date with their own operators" do
+    opened = form("0" => { "m" => "or", "release_date_gteq" => "2026-03-01", "release_date_lteq" => "2026-01-31" })
+
+    assert_equal [ @ana, @anabel ], opened.result.order(:release_date).to_a
+    assert_equal [ [ "gteq", false, [ "q[g][0][release_date_gteq]" ] ], [ "lteq", false, [ "q[g][0][release_date_lteq]" ] ] ],
+                 drawn(opened)
+  end
+
+  test "a view saved with one end of a between-only date filters and draws that end" do
+    from_view = CodesFilterForm.new(
+      Movie.all, ActionController::Parameters.new(saved_view: "1"),
+      saved_views_store: Store.new(View.new(1, "Since March", { "groupings" => { "0" => { "release_date_gteq" => "2026-03-01" } } }))
+    )
+
+    assert_equal [ @anabel ], from_view.result.to_a
+    assert_equal [ [ "gteq", false, [ "q[g][0][release_date_gteq]" ] ] ], drawn(from_view)
+  end
+
   test "a date that does not offer between paints its bounds apart" do
     bounded = Class.new(Bali::FilterForm) { filter_attribute :release_date, type: :date, operators: %i[gteq lteq] }
     applied = bounded.new(Movie.all, ActionController::Parameters.new(
@@ -100,5 +120,16 @@ class BaliFilterFormOperatorsTest < ComponentTestCase
   # A text operator in the variant the installed ransack gets (#1530).
   def form(groups)
     CodesFilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: groups }))
+  end
+
+  # Each row the panel draws: the operator its select shows (the first one when no option is
+  # selected, as a browser does), whether the select is disabled, and the names its value submits.
+  def drawn(form)
+    render_inline(Bali::Filters::Component.new(url: "/movies", available_attributes: form.available_attributes,
+                                               filter_form: form, popover: false))
+    page.all("[data-filters-target='groupsContainer'] [data-controller='condition']", visible: :all).map do |row|
+      select = row.find("[data-condition-target='operator']", visible: :all)
+      [ select.value, select.disabled?, row.all("[data-condition-target='valueContainer'] [name]", visible: :all).pluck(:name) ]
+    end
   end
 end
