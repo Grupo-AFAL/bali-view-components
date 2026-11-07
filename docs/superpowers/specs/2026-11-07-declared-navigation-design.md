@@ -1,7 +1,7 @@
 # Declared navigation: one structure for the side menu, the command palette and the analytics modules — Design
 
 Date: 2026-11-07
-Status: Proposed — pending independent review
+Status: Reviewed (DHH, approved with changes, applied) — 2026-11-07
 Issue: #1522 · handbook ADR `2026-10-18-modulos-desde-el-menu`, point 4
 
 ## Purpose
@@ -54,15 +54,16 @@ costa-norte `53cd183`, centinela-web `85227c8`, identity `a647ed61`, garita `b40
 3. **One matching rule**: a `controllers:` entry is a namespace — itself and everything below it
    at a `/`. No exact form, no Regexp (premise above).
 4. **Most specific wins, at any level** (§2): a module claims `td_flow`, an item `td_flow/projects`.
-5. **Visibility is derived**: a container shows when its own gate passes and something inside it
-   shows; an item when its gate passes and its path is not nil. That retires afal-apps' `group`
-   gate union, costa-norte's "a module shows when it has a link" and centinela-web's `reachable`.
-6. **A module lands on its first visible item** unless it declares `landing:`.
+5. **Visibility is derived, from gates alone**: an item shows when its gate passes; a container
+   when its own gate passes and something drawn inside it shows. Paths are resolved only when
+   drawn, so a menu can be built outside a view (§3). That retires afal-apps' `group` gate union,
+   costa-norte's "a module shows when it has a link" and centinela-web's `reachable` block.
+6. **A module lands on its first visible item drawn in the side menu** unless it declares `landing:`.
 7. **Each component gains one keyword, `navigation:`**, filling the slots it already has.
-8. **bali-analytics reads the navigation itself** (§6, a follow-up there). Bali exposes `locate`
-   and titles, not a `dashboard_modules` hash: at initializer time the host's class cannot load and
-   its translations have not loaded — GC (`to_prepare` with hand-typed labels) and identity
-   (`after_routes_loaded`) each work around exactly that today.
+8. **Bali exposes `locate`, `Location` and `title(locale:)`, not a `dashboard_modules` hash** (§6):
+   at initializer time the host's class cannot load and its translations have not loaded — GC
+   (`to_prepare` with hand-typed labels) and identity (`after_routes_loaded`) each work around
+   exactly that. How bali-analytics reads them is that repo's to design.
 9. **The upper level is `app_module`**: `module` is a Ruby keyword. Its I18n key stays
    `navigation.modules.<key>`, as in afal-apps, GC and costa-norte.
 
@@ -71,10 +72,10 @@ costa-norte `53cd183`, centinela-web `85227c8`, identity `a647ed61`, garita `b40
 | Class method | Options | Notes |
 |---|---|---|
 | `authorize { \|gate\| … }` | — | Runs in the view for every gate that is not a Proc. Declared first. |
-| `i18n_scope "admin.nav"` | — | Default `"navigation"`. |
+| `i18n_scope "admin.nav"` | — | Default `"navigation"`. identity's keys live under `admin.nav.items` / `.sections`, read by its topbar and 15 test assertions. |
 | `current_controller_path { … }` | — | Runs in the view; what the request counts as. Default `controller_path`. |
 | `app_module key, …` | `icon:`, `gate:`, `landing:`, `controllers:`, `title:` | Optional level. Either every top-level node is an `app_module` or none is. |
-| `section key, …` | `gate:`, `controllers:`, `title:` (`false`: no heading) | Inside a module or at the top. |
+| `section key, …` | `gate:`, `controllers:`, `title:`, `heading: false` | Inside a module or at the top. `heading: false` draws no heading (identity's main section) and keeps the title for the palette and `locate`. |
 | `group key, …` | `icon:`, `gate:`, `title:` | An expandable entry; children only, no path. One level. |
 | `item key, …` | `path:` (required), `icon:`, `gate:`, `controllers:`, `badge:`, `target:`, `hint:`, `keywords:`, `menu:`, `match:`, `title:` | A destination. |
 | `outside_menu *namespaces` | — | Navigable controllers that deliberately have no place. |
@@ -82,11 +83,15 @@ costa-norte `53cd183`, centinela-web `85227c8`, identity `a647ed61`, garita `b40
 - **Titles** default to `t("<scope>.modules.<key>")`, `.sections.<key>`, `.items.<key>` (groups
   too, as in afal-apps); a String `title:` is used as written. Items written directly in an
   `app_module` form a section headed by the module's title (afal-apps' one list, GC's first one).
-- **`path:`** is a Symbol (a `main_app` route helper), a String (a URL) or a Proc; nil hides the
-  item (centinela-web's Pasaporte links without an IdP). **`gate:`** is a zero-arity Proc, or any
-  value, handed as written to `authorize`. **`badge:`** runs only when the item is drawn.
+- **`path:`** is a Symbol (a `main_app` route helper), a String (a URL) or a Proc, resolved only
+  when drawn; nil there draws the item disabled, as `Bali::SideMenu::Item` does with a blank
+  `href`, and leaves it out of the palette. An item whose destination may not exist says so in its
+  gate (centinela-web: `gate: -> { pasaporte_assisted_reset_url.present? }`).
+- **`gate:`** is a zero-arity Proc, or any value, handed as written to `authorize`. **`badge:`**
+  runs only when the item is drawn.
 - **`target:`** keeps the item out of the palette, which navigates in place. **`hint:`** is the
-  link's `title` and palette search text; **`keywords:`** only the latter (afal-apps' `formerly`).
+  link's `title` and palette search text — centinela-web draws both today for its two Pasaporte
+  links; **`keywords:`** is search text only (afal-apps' `navigation.formerly`).
 - **`menu: false`**: in the palette and in `locate`, not in the side menu (afal-apps'
   `palette_extras`, GC's org charts, costa-norte's «Nuevo envío»). **`match:`** is the path
   matching used when no claim decides; default `:crud`. Keys are unique; `find(key)` returns any node.
@@ -94,7 +99,8 @@ costa-norte `53cd183`, centinela-web `85227c8`, identity `a647ed61`, garita `b40
 Raised while the class body runs, naming the node: a duplicate key; a gate Proc taking arguments
 (afal-apps' and centinela-web's `->(user)`: "gates run in the view, use `current_user`"); a
 non-Proc gate before `authorize`; top-level modules mixed with sections; an item or group at the
-top level; a `controllers:` entry with a leading or trailing `/` or a `#`; an item without `path:`.
+top level; a module, section or group without items; a `controllers:` entry with a leading or
+trailing `/` or a `#`; an item without `path:`. Every DSL method carries YARD.
 
 ### garita, complete
 
@@ -202,40 +208,49 @@ The layouts then shrink to the brand and one keyword each:
 
 ## 2. The query: `Navigation.locate(controller_path)`
 
-Returns `Bali::Navigation::Location` — `Data.define(:app_module, :section, :group, :item)`, any of
-them nil when not applicable — or nil when nothing claims the path. `outside_menu` entries compete
-like any claim and, when one wins, the answer is nil too. Pure: no view, no person. Every node answers `key`, `title(locale: I18n.locale)`, `controllers` and
-`parent`.
+Returns `Bali::Navigation::Location` — `Data.define(:app_module, :section, :item)`, nil where not
+applicable; the group is `item.parent` — or nil when nothing claims the path. `outside_menu`
+entries compete like any claim and, when one wins, the answer is nil too. Pure: no view, no
+person. Every node answers `key`, `title(locale: I18n.locale)`, `controllers` and `parent`.
 
 A claim is a node plus one of its entries that is the path or a `/`-prefix of it (`admin` claims
-`admin/users`, never `administrations`). The winning claim is, in order:
+`admin/users`, never `administrations`). All the entries matching one path are prefixes of it, so
+they nest, and comparing them by segments is comparing them by length. The winning claim is:
 
-1. the longest entry;
-2. on a tie, the deeper node (item over section over module);
-3. on a tie, the node whose ancestors also claim the path, longest first;
-4. on a tie, declaration order.
+1. **the entry with the most segments**; entries tie only when they are the same string;
+2. on a tie, **the claim its ancestors support**: the one whose ancestors' longest matching entry
+   has the most segments (none counts as zero) — this is also what makes an item beat its own
+   module when both name the same entry;
+3. on a tie, **declaration order**.
 
 | Path | Result | Rule |
 |---|---|---|
-| `td_flow/portal/value_showcase` | portal › «Aporte de valor» | 1: its own entry beats the back-office module's `td_flow` |
-| `td_flow/initiatives` | back-office › «Portafolio» | 3: ties with «Mis propuestas» on 1 and 2; only the back-office module also claims it |
-| `td_flow/portal/unknown` | portal module, no item | 1: `td_flow/portal` beats `td_flow` |
-| `conversations/product_request_submissions` (GC) | Datos | 1 |
+| `td_flow/portal/value_showcase` | portal › «Aporte de valor» | 1: three segments beat the back-office module's `td_flow` |
+| `conversations/product_request_submissions` (GC) | Datos | 1: two segments beat Documentos' `conversations` |
+| `td_flow/initiatives` | back-office › «Portafolio» | 2: ties with «Mis propuestas» on 1; only the back-office module (`td_flow`) supports it |
+| `td_flow/scoring_configs` | the first of afal-apps' six Configuración tabs | 3: same entry, same support |
 
-`locate` is what bali-analytics and the tests read; the side menu applies the same rules to what
-the person can see (§3).
+Without rule 2, `td_flow/initiatives` would go to the portal, declared first. `locate` is what
+bali-analytics and the tests read; the side menu applies the same rules to what the person can see.
 
 ## 3. The menu of one request: `navigation_for(Navigation)`
 
 A view helper (registered on `ActionController::Base`, like `Bali::ThemeHelper`) returning a
 `Bali::Navigation::Menu` memoized on the view. view_component 4.15's `Base#helpers` hands every
 component the original view context, so side menu, palette and the host's breadcrumb share one
-menu and each gate runs once per request.
+menu and each gate runs at most once per request. The menu is lazy: the switcher asks a module
+for its first visible descendant and stops there, and only the current module's sections, and
+the palette, walk the rest.
 
-- `app_modules` — the visible ones, in order.
+- `app_modules` — the visible ones, in order. A module whose only visible items are `menu: false`
+  is not one: it would open an empty side menu, so neither it nor its items are offered.
 - `location` — `locate` over visible nodes only, with one more tie-break before declaration
-  order: the item whose path's query the request carries (afal-apps' Configuración tabs, which
-  share `td_flow/scoring_configs`; GC's inbox `?tab=notices`). Nil when nothing visible claims it.
+  order, for items that share a controller and differ by query (afal-apps' Configuración tabs on
+  `td_flow/scoring_configs`; GC's «Bandeja» and «Notificaciones», `inbox` and `inbox?tab=notices`).
+  An item matches when every parameter of its path's query is in `request.query_parameters` with
+  the same value — an item without a query matches with zero; among those that match, the most
+  parameters wins. So `?tab=notices` picks «Notificaciones», no query picks «Bandeja», and when no
+  tab matches the order decides. Only tied items' paths are resolved for this.
 - `current_app_module` — the location's, or the first visible one (afal-apps' and costa-norte's
   fallback; GC's `:my_space` is its first).
 - `sections(app_module = current_app_module)`, `items(section)` — visible, in order.
@@ -259,7 +274,7 @@ end
 
 A reader outside a view (afal-apps' `TDFlow::FeedbackItem` asks which modules a user may see)
 builds `Bali::Navigation::Menu.new(Navigation, context)` against any object answering what its
-gates call.
+gates call: visibility never resolves a path.
 
 ## 4. Drawing it
 
@@ -271,8 +286,10 @@ gates call.
   needs two (`multiple_menus?`) and a navigation without modules adds none, so `menu_switches`
   keeps its meaning and enjoykitchen's hand-written switches keep working;
 - `with_list(title:)` per visible section of the current module;
-- `with_item(name:, icon:, href:, match:, active:, badge:, target:, title: hint)` per drawn item; a
-  group is a `with_item(name:, icon:)` holding its children.
+- `with_item(name:, icon:, href:, match:, active:, badge:, target:)` per drawn item, plus `title:`
+  only when the item has a hint — any extra option sends `Item#leaf_link_attributes`
+  (`item/component.rb:173`) off its written-out fast path. A group is a `with_item(name:, icon:)`
+  holding its children.
 
 The block keeps `with_brand`, `with_switcher` (costa-norte's «Integración»), `with_bottom_item`
 and any further `with_list`, drawn after the navigation's.
@@ -315,37 +332,27 @@ namespace claims nothing and nobody notices. `assert_navigation_translated` runs
 title through `I18n.t!`, because titles become analytics module names. Required explicitly, like
 `bali/testing/widget_catalog`: it constantizes every routed controller.
 
-## 6. bali-analytics (follow-up there, not built here)
+## 6. What bali-analytics gets
 
-The contract this spec gives it:
-
-```ruby
-BaliAnalytics.configure do |c|
-  c.navigation = "Navigation" # constantized on each use
-  # costa-norte: Pack Track and Configuración by section, Inventario as a whole
-  c.navigation_module = ->(location) { location.app_module.key == :inventory ? location.app_module : location.section }
-end
-```
-
-- the module of `controller#action` is the title of `navigation_module.(Navigation.locate(controller))`,
-  default `location.app_module || location.section`; the function is `location.item&.title`;
-- what the navigation places takes its names from it; `dashboard_modules` and
-  `dashboard_action_names` still name the rest (identity's `home` → «Redirección (inicio)»);
-- a String, so every read happens at use — after a reload, after I18n has loaded — which is
-  what GC and identity work around today. The follow-up pins the boot check's order with a test.
-
-identity's «Inicio de sesión» becomes a section without items: it claims `home`, `rodauth` and the
-reset screens, it is never drawn, and it keeps its analytics name.
+`Navigation.locate(controller)`, the `Location` it returns and each node's `title(locale:)` — the
+module of a `controller#action` and the function name are one call away, at whichever level the
+app groups by (afal-apps and GC by module, centinela-web, identity and garita by section,
+costa-norte both). How that is configured, and the reload and I18n timing it has to respect, is a
+follow-up issue in bali-analytics. Controllers that never were in a menu stay in
+`dashboard_modules` and `dashboard_action_names` there: identity declares `outside_menu "home",
+"rodauth"` (and its reset screens) here and keeps «Inicio de sesión» in its hand-written map.
 
 ## 7. Migration, app by app
 
-Each app's PR reports `git diff --shortstat` and must be net negative — except garita's, which
-declares its controllers for the first time; they replace its analytics maps once §6 ships. In
-every app: subclass, render with `navigation:`, delete the helper and the app's own guard, add §5.
+Each app's PR reports `git diff --shortstat` as is and must be net negative — the pilot included.
+In every app: subclass, render with `navigation:`, delete the helper and the app's own guard, add
+§5. The behaviour notes below are to be verified in that app's PR.
 
-- **garita (pilot).** Goes: `Entry`, `navigation_sections`, `administration_entries`, the side
-  menu loop, the «Secciones» palette group (now «Páginas», unless garita overrides the key).
-  Stays: `quick_actions` («Acciones»), `INTERNAL_TOOLS`.
+- **garita (pilot).** Goes: `Entry`, `navigation_sections`, `administration_entries` and the
+  helper's header (40 of its 70 lines), the side menu loop (7) and the «Secciones» palette group
+  (8): 55 lines, measured. In: §1's declaration (31 lines), §5's test (~10) and the two
+  `navigation:` keywords — about 43, so roughly −12. Stays: `quick_actions` («Acciones»),
+  `INTERNAL_TOOLS`. «Secciones» reads «Páginas» unless garita overrides the key.
 - **afal-apps.** Goes: `Item`, `Mod`, `item`, `group`, `modules`, `find`, `module_for`, all of
   `NavigationHelper`, most of both partials, and the finance `landing` (the default reaches the
   same screen for every preset, and Prodigia's explorer instead of a credentials page an
@@ -361,19 +368,25 @@ every app: subclass, render with `navigation:`, delete the helper and the app's 
   `module_dashboard_path` (a `landing:` stays where it is not the first visible item: Mi espacio's
   inbox, Procesos' home), `command_palette_entries`, `palette_title_key`, the hand-written side
   menu (its `policy(…)` checks become gates). Stays: §3's `current_controller_path`, the Datos
-  badge. For that PR to decide: the palette offering every menu entry instead of a curated list,
-  and `publisher_hidden_label`'s struck-through titles (a title is data, without HTML).
+  badge. For that PR to decide: the palette offering every menu entry instead of a curated list —
+  measured, 29 of the side menu's 75 static entries are not in today's palette: 20 behind a
+  `policy(…)` (11 inline, 9 inside an enclosing `if policy`), 2 publisher-hidden, the docs link
+  (`target:`, stays out) and 6 open to the whole module — and `publisher_hidden_label`'s
+  struck-through titles (a title is data, without HTML). Its Datos master catalogs are a loop over
+  `Mdm::CatalogRegistry`, which the class body can run the same way.
 - **costa-norte.** Goes: `MODULES`, `MODULE_DEFINITIONS`, `current_module`, `module_for`,
   `visible_module_definitions`, `module_dashboard_path`, `menu_module`, `side_menu_sections`,
   `sections_for`, `nav_item`, the three `*_sections`, both layout loops. Stays: the «Integración»
   switcher, «Frecuentes», `module_breadcrumbs`; «Nuevo envío» becomes a `menu: false` item.
 - **centinela-web.** Goes: `Item`, `Section`, `sections_for`, `items_for`, `frequent_for`,
-  `reachable`, `nav_path`, `visible_nav_sections`. Stays: `FREQUENT_KEYS` (over `find`). One pages
-  group with the section as `meta` replaces one group per section.
+  `reachable` (its two Pasaporte links put the URL's presence in their gate), `nav_path`,
+  `visible_nav_sections`. Stays: `FREQUENT_KEYS` (over `find`). One pages group with the section
+  as `meta` replaces one group per section.
 - **identity.** Goes: `Item`, `Section`, `extra_active` (the archives controller goes on the audit
   logs item), `nav_sections`, `nav_item_visible?`, `nav_item_allowed?` (now `authorize {
   |(subject, query)| policy(subject).public_send(query) }`), `command_palette_entries`. Stays:
   `AdminHost.link` in path lambdas, the operator function in the gate, the docs bottom item.
+  The main section uses `heading: false`.
 
 `docs/guides/navigation.md` gives the recipe for each starting shape (data module, helper with
 literals, controller map); its examples run as written in the dummy app.
@@ -382,6 +395,7 @@ literals, controller map); its examples run as written in the dummy app.
 
 - bali-analytics reading the navigation (§6): another repo and release. Until it ships, every app
   keeps `dashboard_modules` and `dashboard_action_names` as they are.
+- Retired by the review: a `Location#group` (it is `item.parent`) and sections without items.
 - Migrating any app; garita's pilot is the next stage.
 - Moving controllers or redesigning a menu (#1522; the ADR keeps namespaces following the domain).
 - afal-apps' and costa-norte's `_external_side_menu`: one-screen menus for another audience.
@@ -403,19 +417,26 @@ Tests first; each one run once without the code it covers, and its failure read
 
 1. **The tree** — `lib/bali/navigation.rb` (+ `navigation/node.rb`, `location.rb`), required from
    `lib/bali.rb`. Tests: nesting and order, the implicit section, default/scoped/literal titles and
-   `title: false`, `find`, one per load-time error. Control: drop the duplicate-key check.
-2. **`locate`** — Tests: the `/` boundary (`administrations`), each rule with §2's paths, a
-   module-only claim, `outside_menu`. Control: swap rules 2 and 3; only `td_flow/initiatives` fails.
+   `heading: false`, `find`, one per load-time error. Control: drop the duplicate-key check.
+2. **`locate`** — Tests: the `/` boundary (`administrations`), one per rule with §2's paths, an
+   item beating its own module on the same entry, a module-only claim, `outside_menu`. Control:
+   take rule 2 out and `td_flow/initiatives` lands on the portal.
 3. **`Menu`, `navigation_for`** — `lib/bali/navigation/menu.rb`, `app/helpers/bali/navigation_helper.rb`.
-   `ActionView::TestCase` with a stub `current_user` and `policy`: path forms, nil path, empty
-   containers, `authorize`, landing, fallback module, query tie-break, `current_controller_path`,
-   badge only when drawn, one evaluation per gate. Control: no memoization; the count fails.
+   `ActionView::TestCase` with a stub `current_user` and `policy`: path forms, nil path drawn
+   disabled, empty containers, a module with only `menu: false` items, `authorize`, landing,
+   fallback module, the query tie-break (one test per case: no query, one match, the most
+   parameters, none matching), `current_controller_path`, badge only when drawn, a menu built
+   outside a view, one evaluation per gate and a switcher that stops at the first visible item.
+   Control: no memoization, and the count fails.
 4. **SideMenu `navigation:`** — switches, lists, groups, an item active on a nested controller its
-   path does not match, the host's lists after; existing tests untouched. Preview with `@label`
+   path does not match, `title:` only with a hint, the host's lists after; existing tests
+   untouched. `before_render` only sets slots, never reads `lists` or `menu_switches`: view_component
+   evaluates the host's block on the first slot getter (`slotable.rb:357`), and the comment there
+   says so. Preview with `@label`
    whose navigation is declared inside the preview (String paths, a fixed `current_controller_path`
    to show the active item); YARD on the keyword.
 5. **Command `navigation:`** — both layouts, `target:` out, `menu: false` in, search text, host
-   groups after. Preview; locale keys in `es` and `en`.
+   groups after; same `before_render` rule as task 4. Preview; locale keys in `es` and `en`.
 6. **`Bali::Testing::Navigation`** — a route set drawn in the test (`routes:`) with an engine:
    uncovered controller, unreached entry, `base:`, missing title. Control: skip the engine walk.
 7. **Docs** — `docs/guides/navigation.md`, the component catalog, CHANGELOG `### Added`. The guide's
