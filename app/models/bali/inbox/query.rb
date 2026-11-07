@@ -16,11 +16,19 @@ module Bali
         @providers = Bali::Inbox.providers
       end
 
-      def count = counts_by_kind.values.sum
+      # `pending_by_module` is `Badge.compute`'s.
+      def count(pending_by_module: {})
+        counted = pending_by_module.to_h { |module_key, pending| [ module_key.to_sym, pending ] }
+        unknown = counted.keys - @providers.map(&:first)
+        if unknown.any?
+          raise ArgumentError, "pending_by_module: Bali.inbox_providers has no provider under " \
+                               "#{unknown.map(&:inspect).join(', ')}, so its count would add to every provider's"
+        end
 
-      def counts_by_kind
-        @counts_by_kind ||= @providers.to_h { |_module_key, provider| [ provider.kind.to_sym, provider.pending_count_for(user) ] }
+        counted.values.sum + @providers.sum { |module_key, provider| counted.key?(module_key) ? 0 : pending_count(provider) }
       end
+
+      def counts_by_kind = @providers.to_h { |_module_key, provider| [ provider.kind.to_sym, pending_count(provider) ] }
 
       # A provider's items may name a module of their own, so a module with no provider of its own
       # is still one to filter by.
@@ -90,6 +98,8 @@ module Bali
 
         items
       end
+
+      def pending_count(provider) = (@pending_counts ||= {})[provider.kind.to_sym] ||= provider.pending_count_for(user)
 
       # A provider whose kind spans modules names each item's own.
       def in_module(item, module_key) = item.module_key ? item : item.with(module_key: module_key)

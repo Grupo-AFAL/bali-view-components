@@ -149,8 +149,7 @@ module Bali
         def load_popover
           @items = inbox_query.items.first(POPOVER_LIMIT)
           @fresh = inbox_query.fresh_keys(@items)
-          @badge = Bali::Inbox::Badge.new(pending: inbox_query.count, unread: unread_notices.count)
-          Bali::Inbox::Badge.write(inbox_owner, @badge) if owner_reading?
+          @badge = owner_reading? ? Bali::Inbox::Badge.write_from(inbox_owner) : Bali::Inbox::Badge.compute(inbox_owner)
         end
 
         def popover_notices = { notices: latest_notices, unread_count: unread_notices.count }

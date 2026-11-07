@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#1535). Marca leído el aviso que lo anunció y redirige ahí si es de la misma app (`url_from`, como
   `open_notice`); un destino de otra app se ignora y va al `href`. Desde una liga `drawer:` no abre el
   drawer: el drawer carga el destino de una redirección como página completa.
+- **`Bali::Inbox::Badge.write_from(owner, pending_by_module:)`** (#1533): escribe el número del ícono
+  desde lo que la app ya contó (`{ td_flow: 6 }`, todos los providers de esa llave de
+  `Bali.inbox_providers`). Bali cuenta los demás módulos y los avisos sin leer con la regla de
+  `compute`, que acepta el mismo `pending_by_module:`. La guía («The badge») dice qué es API pública de
+  `Badge`: `for`, `compute`, `write_from`, `expire` y `refresh`; `Badge.new` y `write` no. Una llave
+  sin providers debajo lanza `ArgumentError`, porque contaría dos veces. La app lo llama sólo cuando
+  no se está suplantando. afal-apps, que ya lo guarda así, puede cambiar el `Badge.write(…,
+  Badge.new(…))` de `TDFlow::Home#write_badges` por `write_from(user, pending_by_module: { td_flow:
+  pending })` (`git grep -n "issues/1533" origin/main`).
 
 ### Fixed
 

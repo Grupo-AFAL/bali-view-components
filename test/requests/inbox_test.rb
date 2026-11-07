@@ -292,23 +292,21 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
 
   # In `es`, whose number format in the dummy writes 13.887, as rails-i18n's does in some hosts.
   def test_the_pending_number_is_written_with_a_thousands_comma
-    count = Bali::Inbox::Query.instance_method(:count)
+    TaskInboxProvider.define_method(:pending_count_for) { |_user| 13_887 }
     task("Write")
-    Bali::Inbox::Query.define_method(:count) { 13_887 }
 
     get "/inbox/popover", params: { locale: "es" }
 
     assert_select "[role=tab]#bali-inbox-tab-0 .badge", "13,887"
     assert_match I18n.t("bali_view.inbox.footer.pending", count: 13_887, number: "13,887", locale: :es), response.body
   ensure
-    Bali::Inbox::Query.define_method(:count, count)
+    TaskInboxProvider.remove_method(:pending_count_for)
   end
 
   def test_the_pages_tabs_and_kind_pills_carry_their_numbers_with_a_thousands_comma
-    counts = Bali::Inbox::Query.instance_method(:counts_by_kind)
+    TaskInboxProvider.define_method(:pending_count_for) { |_user| 13_887 }
     task("Write")
     released
-    Bali::Inbox::Query.define_method(:counts_by_kind) { { task: 13_887 } }
 
     get "/inbox", params: { locale: "es" }
 
@@ -317,7 +315,7 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_equal "1 #{I18n.t("bali_view.inbox.notices.unread", locale: :es)}", tabs.last.at_css(".badge")&.text
     assert_select ".split-view-filter-count", text: "13,887", count: 2
   ensure
-    Bali::Inbox::Query.define_method(:counts_by_kind, counts)
+    TaskInboxProvider.remove_method(:pending_count_for)
   end
 
   def test_the_popovers_tabs_use_ids_of_their_own
