@@ -83,7 +83,7 @@ module Bali
         end
 
         # `to` replaces the href. Not from a `drawer:` link: ModalController loads the destination of
-        # a redirect as the whole page.
+        # a redirect as the whole page, so a drawer reads with `mark_inbox_seen` itself.
         def open_item
           item = inbox_query.find(params[:kind], params[:gid])
           destination = item && (url_from(params[:to]) || item.href.presence)

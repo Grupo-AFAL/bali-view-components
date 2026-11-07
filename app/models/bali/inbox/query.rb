@@ -74,9 +74,10 @@ module Bali
       end
 
       # Viewing an item is reading what announced it.
-      def mark_seen!(item)
-        Bali::Notice.mark_read!(announcing_notices_about([ item.record ]))
-      end
+      def mark_seen!(item) = mark_record_seen!(item.record)
+
+      # For a host screen that opens the record itself and has no item.
+      def mark_record_seen!(record) = Bali::Notice.mark_read!(announcing_notices_about([ record ]))
 
       private
 

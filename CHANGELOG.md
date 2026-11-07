@@ -9,10 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`open_item` acepta `to`: el destino donde la app abre el pendiente en lugar de su `href`**
-  (#1535). Marca leído el aviso que lo anunció y redirige ahí si es de la misma app (`url_from`, como
-  `open_notice`); un destino de otra app se ignora y va al `href`. Desde una liga `drawer:` no abre el
-  drawer: el drawer carga el destino de una redirección como página completa.
+- **Marcar leído un pendiente que la app abre en otra pantalla que su `href`** (#1535).
+  - `open_item` acepta `to`: marca leído el aviso que lo anunció y redirige ahí si es de la misma app
+    (`url_from`, como `open_notice`); un destino de otra app se ignora y va al `href`. La liga lleva
+    `data: { turbo_prefetch: "false" }`, como las de Bali: Turbo la precarga al pasar el mouse y
+    `open_item` marca leído en ese GET. Desde una liga `drawer:` no abre el drawer: el drawer carga el
+    destino de una redirección como página completa.
+  - Una pantalla de la app que abre el registro ella misma, como un panel en un drawer, llama
+    `mark_inbox_seen(record)` (privado de `InboxBadge`). No marca mientras se suplanta
+    (`owner_reading?`) ni en un prefetch (`X-Sec-Purpose`, `Sec-Purpose`). Detrás está
+    `Query#mark_record_seen!(record)`, sin armar un `Item` ni pasar por `fresh_keys`; `mark_seen!(item)`
+    no cambia. afal-apps puede cambiar `TDFlow::RecordsDecisions#mark_seen` por `mark_inbox_seen`
+    (`git grep -n "issues/1535" origin/main`).
 - **`Bali::Inbox::Badge.write_from(owner, pending_by_module:)`** (#1533): escribe el número del ícono
   desde lo que la app ya contó (`{ td_flow: 6 }`, todos los providers de esa llave de
   `Bali.inbox_providers`). Bali cuenta los demás módulos y los avisos sin leer con la regla de

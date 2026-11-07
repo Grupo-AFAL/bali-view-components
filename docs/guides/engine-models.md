@@ -552,7 +552,7 @@ Bali.inbox_providers = { governance: %w[SignaturesProvider ApprovalsProvider] }
 | `items(module_key: nil, kind: nil)` | Sorted into «Vencidos» (past due), «Esta semana» (due within 7 days) and «Después» (later or undated). At most `FETCH_CAP` (100) per provider, the first in `pending_for`'s own order and before the module filter — a provider that can pass 100 orders it by due date, or an overdue item can fall past the cap |
 | `capped?` | Once `items` ran, whether it may have left something out: a provider hit the cap and, under `module_key:`, what it cut can be of that module — the provider is that module's, or its first `FETCH_CAP` items name another |
 | `find(kind, gid)` | The item, or `nil` when it is not pending for this user. The gid is only ever matched inside that kind's own `pending_for`, so a forged one reaches nothing |
-| `fresh_keys(items)`, `mark_seen!(item)` | The «Nuevo» marks, and reading them |
+| `fresh_keys(items)`, `mark_seen!(item)`, `mark_record_seen!(record)` | The «Nuevo» marks, and reading them: by the item, or by its record for a screen that has no item |
 
 Labels are yours, under `bali_view.inbox.kinds.<kind>` (with `one`/`other`, since the pills
 pluralize) and `bali_view.inbox.modules.<module>`. Both fall back to the humanized key.
@@ -612,7 +612,24 @@ end
   - Their links carry `data-turbo-prefetch="false"`, so a hover does not read them.
   - Not while someone acts as the owner. When the controller answers `impersonating?` (bali-auth's helper) with `true`, `owner_reading?` is false: nothing is marked read and «Marcar todos como leídos» is not offered. An admin looking at someone's inbox leaves their «Nuevo», their dot and their digest email as they were. A host action of its own that marks read asks `owner_reading?` first.
   - `open_notice` follows an `action_url` on this site — a path, or a URL with this host (Rails' `url_from`). Anything else lands on the «Avisos» tab.
-  - `open_item` takes `to`, for a screen of yours that opens the item somewhere other than its `href`: `open_item_inbox_path(kind: item.kind, gid: item.gid, to: decision_path(item.record))`. It marks the item read and goes there when `to` is on this site, by the same rule; otherwise it goes to the `href`. Not from a `drawer:` link: the drawer loads a redirect's destination as the whole page.
+  - `open_item` takes `to`, for a page of yours that opens the item somewhere other than its `href`. It marks the item read and goes to `to` when it is on this site, by the same rule; otherwise to the `href`. The link carries `data-turbo-prefetch="false"`, as Bali's own do: Turbo prefetches a link on hover, and `open_item` marks read on that GET.
+
+    ```erb
+    <%= render Bali::Link::Component.new(name: "Review", data: { turbo_prefetch: "false" },
+          href: open_item_inbox_path(kind: item.kind, gid: item.gid, to: new_task_review_path(item.record))) %>
+    ```
+
+    Not from a `drawer:` link: the drawer loads a redirect's destination as the whole page.
+  - A screen of yours that opens the record itself, such as a panel in a drawer, calls `mark_inbox_seen(record)` (`InboxBadge`, private). Nothing is marked while someone acts as the owner (`owner_reading?`), nor for a prefetch (`X-Sec-Purpose` from Turbo, `Sec-Purpose` from the browser's speculation rules). A `drawer:` link is never prefetched; a page link to that screen still carries `data-turbo-prefetch="false"`, because Turbo would serve the click from the prefetched page, which marked nothing.
+
+    ```ruby
+    class TaskReviewsController < ApplicationController
+      def new
+        @task = Task.find(params[:task_id])
+        mark_inbox_seen(@task)
+      end
+    end
+    ```
 - **The badge.** The icon's number is `Query#count`; its dot means unread notices that announce nothing. Both are cached per person for one minute.
   - A new notice, a mark-read through the engine, and any request of the person's that is not a GET expire the cache.
   - Someone else's action that changes your items without a notice shows within the minute.

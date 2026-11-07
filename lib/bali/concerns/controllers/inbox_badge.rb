@@ -44,6 +44,17 @@ module Bali
 
         def owner_reading? = !(respond_to?(:impersonating?, true) && impersonating?)
 
+        # For a host screen that opens a record itself, such as a panel in a drawer. A prefetch marks
+        # nothing (Turbo sends `X-Sec-Purpose`, a browser's speculation rules `Sec-Purpose`), but
+        # Turbo serves the click from it, so a page link to such a screen still opts out of prefetch.
+        def mark_inbox_seen(record)
+          owner = inbox_owner
+          return unless owner && owner_reading?
+          return if %w[X-Sec-Purpose Sec-Purpose].any? { request.headers[it].to_s.include?("prefetch") }
+
+          Bali::Inbox::Query.new(owner).mark_record_seen!(record)
+        end
+
         def expire_inbox_badge
           owner = inbox_owner
           Bali::Inbox::Badge.expire(owner) if owner

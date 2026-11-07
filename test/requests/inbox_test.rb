@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "action_view/testing/resolvers"
 
 # #1512 — the dummy's InboxesController is the reference host controller: the whole integration
 # is `include Bali::Concerns::Controllers::Inbox` and the routes. These walk every action.
@@ -9,6 +10,11 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     private
 
     def inbox_owner = nil
+  end
+
+  # Renders docs/guides/engine-models.md's link to `open_item(to:)`, as the guide writes it.
+  class GuideLinksController < ApplicationController
+    def show = render(:show, locals: { item: Bali::Inbox::Query.new(current_user).find(:task, params[:gid]) })
   end
 
   def setup
@@ -388,11 +394,11 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
 
   # bali-auth's helper, private on the controller: the owner is who the request acts as, and an
   # admin is behind it.
-  def impersonating
-    InboxesController.class_eval { private def impersonating? = true }
+  def impersonating(controller = InboxesController)
+    controller.class_eval { private def impersonating? = true }
     yield
   ensure
-    InboxesController.remove_method(:impersonating?)
+    controller.remove_method(:impersonating?)
   end
 
   def test_while_impersonating_viewing_an_item_leaves_its_notice_unread
@@ -454,6 +460,79 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
 
     get "/inbox/popover"
     assert Rails.cache.exist?(key), "control: the owner's own popover writes it"
+  end
+
+  # docs/guides/engine-models.md's example from the fence that starts with `first_line`, as
+  # `class_eval` takes it. Read by the tests that run it, so a broken example fails those alone.
+  def guide_example(fence, first_line)
+    guide = Bali::Engine.root.join("docs/guides/engine-models.md")
+    code = guide.read[/^ *```#{fence}\n( *#{Regexp.escape(first_line)}.*?)^ *```/m, 1]
+    [ code, guide.to_s, guide.readlines.index { it.include?(first_line) } + 1 ]
+  end
+
+  def guide_task_reviews_controller
+    unless self.class.const_defined?(:TaskReviewsController, false)
+      self.class.class_eval(*guide_example("ruby", "class TaskReviewsController"))
+      self.class::TaskReviewsController.prepend_view_path(
+        ActionView::FixtureResolver.new("inbox_request_test/task_reviews/new.html.erb" => "Review")
+      )
+    end
+    self.class::TaskReviewsController
+  end
+
+  def draw_guide_routes(&)
+    with_routing do |routes|
+      routes.draw do
+        resource(:inbox, only: []) { get "items/:kind/:gid/open", action: :open_item, as: :open_item }
+        get "tasks/:task_id/review/new", to: "inbox_request_test/task_reviews#new", as: :new_task_review
+        get "guide_link/:gid", to: "inbox_request_test/guide_links#show"
+      end
+      # An integration test's `with_routing` dispatches through the new routes, but a view still
+      # writes paths with the app's own helpers.
+      GuideLinksController.helper(routes.url_helpers)
+      yield
+    end
+  end
+
+  # The drawer fetches with `layout=false`.
+  def test_the_guides_screen_reads_the_record_it_opens_but_not_for_an_admin_or_a_prefetch
+    controller = guide_task_reviews_controller
+    write = task("Write")
+    notice = assigned(write)
+    path = "/tasks/#{write.id}/review/new"
+
+    draw_guide_routes do
+      { "X-Sec-Purpose" => "prefetch", "Sec-Purpose" => "prefetch;prerender" }.each do |header, value|
+        get path, params: { layout: "false" }, headers: { header => value }
+        assert_response :success
+        assert notice.reload.unread?, "a prefetch (#{header})"
+      end
+
+      impersonating(controller) { get path, params: { layout: "false" } }
+      assert notice.reload.unread?, "an admin acting as the person"
+
+      get path, params: { layout: "false" }
+      refute notice.reload.unread?
+    end
+  end
+
+  # Turbo prefetches a link on hover, and `open_item` marks read on that GET.
+  def test_the_guides_link_to_open_item_is_never_prefetched_and_lands_on_its_destination
+    guide_task_reviews_controller
+    code, = guide_example("erb", '<%= render Bali::Link::Component.new(name: "Review"')
+    GuideLinksController.prepend_view_path(ActionView::FixtureResolver.new("inbox_request_test/guide_links/show.html.erb" => code))
+    write = task("Write")
+    notice = assigned(write)
+
+    draw_guide_routes do
+      get "/guide_link/#{write.to_gid_param}", params: { layout: "false" }
+      link = css_select("a[href*='/open?to=']").sole
+      assert_equal "false", link["data-turbo-prefetch"]
+
+      get link["href"]
+      assert_redirected_to "/tasks/#{write.id}/review/new"
+      refute notice.reload.unread?
+    end
   end
 
   # The host's own templates come first, so app/views/inboxes/show.html.erb replaces Bali's.
