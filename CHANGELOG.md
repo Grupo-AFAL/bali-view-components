@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.24.0] - 2026-11-07
+
 ### Added
 
 - **`Bali::Dropdown`: `with_item(tag: :divider)`** (#1549), una línea entre items (`<li role="separator">`
