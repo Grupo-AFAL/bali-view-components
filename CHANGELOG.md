@@ -83,6 +83,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   de un `.join` pierde su `z-index` (2 y 1); medido comparando el CSS compilado de la dummy con
   4.3.3 y 4.3.4 (tailwindcss#20668, daisyui#4851, abiertos). **Paso de anfitrión:** no aceptar
   `tailwindcss-ruby` 4.3.4; las seis apps siguen en 4.3.3 (07/11/2026).
+- **`Bali::Modal` y `Bali::Drawer` ya no lanzan `Missing target element "template"` al soltar su
+  panel** (Sentry AFAL-APPS-2T). Pasaba cuando el panel salía de la página o el elemento perdía
+  `modal`/`drawer` de su `data-controller`, p. ej. en un morph de Turbo hacia la pantalla de inicio
+  de sesión. Con el panel abierto, el siguiente Tab lanzaba también por `"wrapper"`. Sin cambios
+  para el host.
 
 ## [v3.23.0] - 2026-10-28
 
