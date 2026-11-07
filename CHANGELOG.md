@@ -22,8 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - **`Bali::Topbar::Inbox::Component.count_text`.** La coma de miles de la bandeja pasa a
-  `Bali::Figure.delimited`, que también usa `Bali::BarList`. Ninguna app la llamaba
-  (`git grep count_text origin/main` en las doce).
+  `Bali::Figure.delimited`, que también usa `Bali::BarList`. Ninguna app la llamaba.
 
 ## [v3.23.0] - 2026-10-28
 
