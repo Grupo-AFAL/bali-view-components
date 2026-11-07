@@ -1078,9 +1078,19 @@ Navigation path indicator.
 <%= render Bali::Breadcrumb::Component.new do |bc| %>
   <% bc.with_item(name: "Home", href: "/") %>
   <% bc.with_item(name: "Products", href: "/products") %>
-  <% bc.with_item(name: "Current Page") %>  <%# No href = current %>
+  <% bc.with_item(name: "Current Page") %>  <%# Last and no href = current %>
 <% end %>
 ```
+
+By default, the last crumb is the current page (`aria-current="page"`), and only when it has
+no `href`. A crumb without `href` before it — a menu group, a level the viewer cannot open — is
+plain text. `active: true` makes a crumb the current page even with an `href`; `active: false`
+never does.
+
+A trail wider than its box shows its end and scrolls sideways; the edge where crumbs are cut
+fades out. The fade comes from `BreadcrumbController`, which `registerAll` registers; an app
+that registers controllers one by one registers it as `breadcrumb` (the identifier the template
+sets), or the trail is cut with no fade.
 
 #### Tabs
 

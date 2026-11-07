@@ -134,7 +134,9 @@ Registering a subset is supported, but note which controllers the FormBuilder mo
 on your behalf: leave one out and the field renders and submits exactly as before,
 with the behaviour silently missing. `number-format` is mounted by any numeric
 family given `delimited: true`, so an app that uses that option needs it registered
-or those fields quietly stop grouping.
+or those fields quietly stop grouping. The same goes for the component controllers:
+`Bali::Breadcrumb` mounts `breadcrumb` on every trail, and without it a trail wider than
+its box is cut with no fade at the edge.
 
 ### Component Controllers
 
