@@ -152,9 +152,6 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("[data-side-menu-fixed-value='true']")
   end
 
-  # Rendered `inert`, a desktop sidebar took no clicks until the bundle arrived: the server
-  # cannot tell a drawer from desktop chrome. The booting marker leaves that call to
-  # index.css, by viewport, and index.js drops it on connect.
   def test_a_fixed_sidebar_is_marked_booting_instead_of_inert
     render_inline(component) do |c|
       c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }

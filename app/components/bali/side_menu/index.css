@@ -46,8 +46,6 @@
    still hidden in the task that opens the drawer and focus falls back to
    <body>. Measured — see the note on `syncInert` in ./index.js.
 
-   Before the controller connects, the booting rule below stands in for it.
-
    Both the default and the state that overrides it live in this file, in
    @layer components. Splitting them — a utility on the element for one and CSS
    for the other — would leave the utility winning in both directions and the
@@ -81,10 +79,9 @@
    `display`, not `visibility`: in a browser without `content-visibility`
    (Safari before 18) daisyUI sets `visibility: visible` on an open group's
    `.collapse-content`, and its links stayed reachable by Tab under a hidden
-   <nav>. `:not(.is-active)` because a Turbo morph puts the attribute back
-   without reconnecting the controller, and must not hide an open drawer. */
+   <nav>. */
 @media (max-width: 1023.98px) {
-  .side-menu-component--fixed[data-side-menu-booting]:not(.is-active) {
+  .side-menu-component--fixed[data-side-menu-booting] {
     display: none;
   }
 }
