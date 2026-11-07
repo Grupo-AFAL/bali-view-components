@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::SideMenu` fijo: responde al clic desde la primera pintada.** El servidor pintaba el
+  `<nav>` con `inert` y solo `SideMenuController` se lo quitaba al conectarse, así que en
+  escritorio el menú se veía pero no respondía mientras bajaba el JS (gobierno-corporativo:
+  6.3 MB; una descarga sin caché tardó 41 s), y volvía a quedar inerte tras un refresh con morph
+  (`turbo_refreshes_with method: :morph`, cuatro páginas de afal-apps) hasta navegar. Ahora sale
+  con `data-side-menu-booting`: oculta el drawer cerrado solo por debajo de 1024 px, y el
+  controlador lo quita al conectarse y después de cada morph, cuando también vuelve a poner el
+  `inert` del drawer y el rail colapsado. Nada que hacer en las apps.
+
 ### Security
 
 - **`ransack` `>= 5.0.3` en el gemspec** (antes `>= 5.0.2`), por GHSA-58rx-96gf-w92x: en 5.0.2,

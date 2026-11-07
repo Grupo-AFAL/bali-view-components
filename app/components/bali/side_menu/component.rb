@@ -47,6 +47,11 @@ module Bali
       # AppLayout and Navbar::Burger wired without configuration.
       DEFAULT_ID = "side-menu"
 
+      # Lets index.css hide the closed drawer by viewport until index.js (BOOTING_ATTRIBUTE)
+      # connects and drops it. Not `inert`: the server cannot tell a drawer from desktop
+      # chrome, and an inert desktop sidebar took no clicks until the bundle had loaded.
+      BOOTING_ATTRIBUTE = "data-side-menu-booting"
+
       # @param current_path [String] The current request path for active state detection
       # @param id [String] DOM id — the target of every trigger's `aria-controls`
       # @param fixed [Boolean] Fixed to viewport (true) or inline flow (false). Default: true
@@ -145,11 +150,7 @@ module Bali
         # carrying `data-theme`, so putting it here — and not on <html> — is the
         # whole of "the sidebar is dark and the page is not".
         opts["data-theme"] = @theme if @theme
-        # A pinned sidebar starts closed and off-screen, so it starts out of the
-        # tab order too. SideMenuController takes ownership on connect and drops
-        # the attribute immediately at desktop widths, where the sidebar is
-        # permanent chrome rather than a drawer.
-        opts[:inert] = true if @fixed
+        opts[BOOTING_ATTRIBUTE] = "" if @fixed
         opts
       end
 

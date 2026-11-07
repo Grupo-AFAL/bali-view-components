@@ -152,6 +152,22 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_selector("[data-side-menu-fixed-value='true']")
   end
 
+  def test_a_fixed_sidebar_is_marked_booting_instead_of_inert
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_selector("nav.side-menu-component--fixed[data-side-menu-booting]")
+    assert_no_selector("nav[inert]")
+  end
+
+  def test_an_inline_sidebar_is_never_marked_booting
+    @options[:fixed] = false
+    render_inline(component) do |c|
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+    assert_no_selector("[data-side-menu-booting]")
+  end
+
   # The module switcher is a `<details>`, and a `<details>` closes when its own `<summary>`
   # is pressed again and on no other event — so click-outside and Escape are JavaScript
   # (#830). The controller used to be attached only for `collapsible:` or `fixed:`, which

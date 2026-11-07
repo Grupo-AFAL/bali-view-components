@@ -40,12 +40,11 @@
    a drop shadow for visual depth.
 
    `transform` only moves the closed drawer off-screen; what takes it out of
-   the tab order is the `inert` attribute, which SideMenuController owns and
-   the component renders on first paint. It is deliberately NOT `visibility:
-   hidden` here: the rule that reveals the panel is a transition, so hiding it
-   in CSS would tie "can this be focused" to the animation clock, and the panel
-   is still un-focusable in the task that opened it. Measured — see the note on
-   `syncInert` in ./index.js.
+   the tab order is the `inert` attribute, which SideMenuController owns. It is
+   deliberately NOT `visibility: hidden` here: the items inherit it and
+   `.menu-item`'s `transition-all` animates their own copy, so the first item is
+   still hidden in the task that opens the drawer and focus falls back to
+   <body>. Measured — see the note on `syncInert` in ./index.js.
 
    Both the default and the state that overrides it live in this file, in
    @layer components. Splitting them — a utility on the element for one and CSS
@@ -70,6 +69,20 @@
 @media (min-width: 1024px) {
   .side-menu-component--fixed {
     transform: translateX(0);
+  }
+}
+
+/* Until SideMenuController connects (`data-side-menu-booting`, component.rb).
+   Only below OVERLAY_QUERY's breakpoint (./index.js): at desktop widths the
+   sidebar is permanent chrome and takes clicks from the first paint.
+
+   `display`, not `visibility`: in a browser without `content-visibility`
+   (Safari before 18) daisyUI sets `visibility: visible` on an open group's
+   `.collapse-content`, and its links stayed reachable by Tab under a hidden
+   <nav>. */
+@media (max-width: 1023.98px) {
+  .side-menu-component--fixed[data-side-menu-booting] {
+    display: none;
   }
 }
 
