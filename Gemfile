@@ -11,7 +11,11 @@ gem "csv"
 gem "device_detector"
 gem "propshaft"
 gem "rrule", git: "https://github.com/square/ruby-rrule"
-gem "tailwindcss-rails", "~> 4.0"
+gem "tailwindcss-rails", "~> 4.7"
+# Tailwind 4.3.4 drops the relative selectors inside daisyUI's `.join { @scope (&) }`: a focused
+# or hovered child of a `.join` loses its `z-index` (2 and 1), measured on this repo's build.
+# Raise the cap once tailwindcss#20668 ships.
+gem "tailwindcss-ruby", "< 4.3.4"
 
 gem "lookbook"
 gem "pagy", ">= 43.0"

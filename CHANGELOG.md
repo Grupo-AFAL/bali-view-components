@@ -75,6 +75,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`ViewComponent::UnknownConfigOptionError`), y desde la 4.18 hay que borrar
   `include ViewComponent::ExperimentallyCacheable`; ninguna app de la flota tiene ninguno de los dos
   (búsqueda en el `main` de cada una, 06/11/2026). Reemplaza al PR de Dependabot #1558.
+- **Sólo el entorno de desarrollo de Bali:** `tailwindcss-rails` 4.6.0 → 4.7.0 (el CSS compilado de
+  la dummy sale idéntico byte a byte), `csv` 3.3.6 → 3.3.7, `cypress` 16.2.0 → 16.2.1 y
+  `@babel/core` 8.0.7 → 8.1.0. Reemplaza a los PRs de Dependabot #1559, #1560, #1562 y #1564.
+- **`tailwindcss-ruby` `< 4.3.4` en el `Gemfile` del repo.** Tailwind 4.3.4 descarta los selectores
+  relativos dentro del `@scope (&)` del `.join` de daisyUI, así que el hijo enfocado o con hover
+  de un `.join` pierde su `z-index` (2 y 1); medido comparando el CSS compilado de la dummy con
+  4.3.3 y 4.3.4 (tailwindcss#20668, daisyui#4851, abiertos). **Paso de anfitrión:** no aceptar
+  `tailwindcss-ruby` 4.3.4; las seis apps siguen en 4.3.3 (07/11/2026).
 
 ## [v3.23.0] - 2026-10-28
 
