@@ -21,8 +21,15 @@ module Bali
           @condition[:attribute].to_s
         end
 
+        # A blank row opens on the first text operator ("contains"), the same rule
+        # condition_controller.js#reset reads off `translations_json`. Every blank row Bali seeds
+        # (Filters, FilterGroup, FilterGroupParser) carries a nil operator so this is its only
+        # rule. A text operator a host wrote by hand comes in the variant the installed ransack
+        # gets (#1530).
         def operator
-          @condition[:operator] || "cont"
+          return Operators.for_type(:text).first[:value] if @condition[:operator].nil?
+
+          RansackParamName.text_predicate(@condition[:operator])
         end
 
         def value
@@ -30,7 +37,9 @@ module Bali
         end
 
         def selected_attribute
-          @available_attributes.find { |a| a[:key].to_s == attribute }
+          return @selected_attribute if defined?(@selected_attribute)
+
+          @selected_attribute = @available_attributes.find { |a| a[:key].to_s == attribute }
         end
 
         def attribute_type
@@ -51,8 +60,20 @@ module Bali
           end
         end
 
+        # The attribute's operators, plus the one the condition arrived with when they leave it
+        # out: "between" lets its `gteq` or `lteq` through alone (an OR group, a view saved with
+        # one end), and a panel whose attributes come from the view lets anything through.
+        # Left out, the select would show its first operator over the widget of another.
         def operators_for_current_type
-          Operators.for_type(attribute_type)
+          @operators_for_current_type ||= with_arrived_operator(Operators.for_attribute(selected_attribute || {}))
+        end
+
+        # Only an attribute that declares `operators:` or `default_operator:`: a boolean's lone
+        # "is" stays a select as it always was. condition_controller.js#updateOperators fixes the
+        # select by the same rule, reading the declaration off `data-default-operator`; a row it
+        # builds never carries the arrived operator `operators_for_current_type` may add.
+        def fixed_operator?
+          Operators.default_for(selected_attribute || {}).present? && operators_for_current_type.one?
         end
 
         # Both read the mark Operators.for_type puts on the chosen operator, the same mark
@@ -127,6 +148,13 @@ module Bali
         end
 
         private
+
+        def with_arrived_operator(offered)
+          return offered if offered.pluck(:value).include?(operator)
+
+          arrived = Operators.for_type(attribute_type).find { |op| op[:value] == operator }
+          arrived ? offered + [ arrived ] : offered
+        end
 
         def operator_marked?(mark)
           operators_for_current_type.find { |op| op[:value] == operator }&.dig(mark) || false

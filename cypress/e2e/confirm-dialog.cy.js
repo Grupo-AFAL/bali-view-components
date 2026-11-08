@@ -45,6 +45,44 @@ describe('Confirm dialog', () => {
     cy.contains('button', 'Eliminar registro').should('be.visible')
   })
 
+  // #1532 — Turbo submits a link with a method through a <form> it builds, which copies no
+  // `data-bali-confirm-*`, and asks for the confirm with no submitter.
+  describe('a link with a method', () => {
+    it('takes the title, accept label and variant off the link', () => {
+      cy.intercept('POST', '**/lookbook/noop').as('noop')
+      cy.contains('a[data-turbo-method="post"]', 'Return the role').click()
+
+      cy.get('dialog.modal[open] #bali-confirm-title').should('have.text', 'Return the role')
+      cy.get('#bali-confirm-message').should('have.text', 'Return the role to its holder?')
+      cy.get('#bali-confirm-accept-btn')
+        .should('have.class', 'btn-warning')
+        .and('have.text', 'Return it')
+        .click()
+
+      cy.wait('@noop')
+    })
+
+    // A later confirm with no submitter (Modal's confirm-on-close) asks its own question, so
+    // the link's labels stay with the link. The first dialog closes without a click, as
+    // Escape closes it, since a click would forget the link on its own.
+    it('leaves its labels off a later confirm that asks something else', () => {
+      cy.contains('a[data-turbo-method="post"]', 'Return the role').click()
+      cy.get('dialog.modal[open] #bali-confirm-title').should('have.text', 'Return the role')
+      // The dialog's own `close` listener, added first, is what lets the next confirm open.
+      cy.get('dialog.modal[open]').then($dialog => new Cypress.Promise(resolve => {
+        $dialog[0].addEventListener('close', resolve, { once: true })
+        $dialog[0].close()
+      }))
+
+      cy.window().then(win => { win.Turbo.config.forms.confirm('Discard your changes?') })
+      cy.get('dialog.modal[open] #bali-confirm-message').should('have.text', 'Discard your changes?')
+      cy.get('#bali-confirm-title').should('have.prop', 'hidden', true)
+      cy.get('#bali-confirm-accept-btn')
+        .should('have.class', 'btn-primary')
+        .and('not.have.text', 'Return it')
+    })
+  })
+
   // #1409 — the labels of a trigger that sets none, in the language of the page.
   describe('button labels', () => {
     const openIn = (lang, trigger) => {
@@ -102,5 +140,21 @@ describe('Confirm dialog', () => {
     cy.contains('button', 'Eliminar registro').click()
     cy.get('dialog.modal[open]').should('be.visible')
     cy.get('#bali-confirm-title').should('have.text', 'Eliminar registro')
+  })
+})
+
+// #1521 — DeleteLink's form carries "Confirm deletion" / "Delete" / danger; the caller's `data:`
+// lands on the button, which the dialog reads first.
+describe('DeleteLink confirm labels', () => {
+  it('takes the title, accept label and variant the caller puts in data:', () => {
+    cy.visit('/bali/delete_link/with_custom_confirm?custom_confirm=Remove%20HILLO%20from%20Juan%3F' +
+             '&title=Remove%20assignment&accept=Remove&variant=warning')
+    cy.contains('form.bali-delete-link-form button', 'Delete').click()
+
+    cy.get('dialog.modal[open] #bali-confirm-title').should('have.text', 'Remove assignment')
+    cy.get('#bali-confirm-message').should('have.text', 'Remove HILLO from Juan?')
+    cy.get('#bali-confirm-accept-btn')
+      .should('have.class', 'btn-warning')
+      .and('have.text', 'Remove')
   })
 })

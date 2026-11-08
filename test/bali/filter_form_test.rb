@@ -183,6 +183,8 @@ class StringEnumMovie < ActiveRecord::Base
   enum :genre, { action: "Action", comedy: "Comedy" }
 
   def self.ransackable_attributes(_auth_object = nil) = column_names
+  # ransack 6 asks for it on every search with a grouping, which the panel always sends (#1530).
+  def self.ransackable_associations(_auth_object = nil) = []
 end
 
 class BaliFilterFormTest < ActiveSupport::TestCase

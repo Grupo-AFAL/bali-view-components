@@ -23,7 +23,7 @@ Bali is not published to RubyGems — it is consumed straight from this reposito
 gem "lucide-rails"
 gem "view_component-contrib"
 
-gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.23.0"
+gem "bali_view_components", github: "Grupo-AFAL/bali-view-components", tag: "v3.24.0"
 ```
 
 Then run:
@@ -117,6 +117,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 |-------|-------------|
 | [Installation](docs/guides/installation.md) | Complete setup including Tailwind v4 |
 | [Components](docs/guides/components.md) | Component usage patterns and slots |
+| [Navigation](docs/guides/navigation.md) | One `Bali::Navigation::Base` subclass for the side menu, the command palette and `locate` |
 | [Enum badges](docs/guides/enum-badges.md) | `Bali::Tag.for` / `Bali::Status.for` — one map per enum, and the Tag vs Status criterion |
 | [FormBuilder](docs/guides/form-builder.md) | Enhanced form helpers |
 | [Accessibility](docs/guides/accessibility.md) | WCAG 2.1 compliance |
@@ -135,7 +136,7 @@ In your CSS entry point (e.g., `app/assets/tailwind/application.css`):
 `Breadcrumb`, `Command`, `Dropdown`, `Navbar`, `Pagination`, `PaginationFooter`, `SideMenu`, `Stepper`, `Tabs`, `ViewSwitch`
 
 ### Data Display
-`Attachments`, `Avatar`, `BooleanIcon`, `Chart`, `CommentThread`, `DataTable`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `QrCode`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
+`Attachments`, `Avatar`, `BarList`, `BooleanIcon`, `Chart`, `CommentThread`, `DataTable`, `Heatmap`, `Icon`, `ImageGrid`, `InfoLevel`, `LabelValue`, `List`, `LocationsMap`, `Progress`, `PropertiesTable`, `QrCode`, `Rate`, `Skeleton`, `StatCard`, `Table`, `Tag`, `Tags`, `Timeago`, `Timeline`, `TreeView`
 
 ### Interactive
 `ActionsDropdown`, `BulkActions`, `Button`, `Carousel`, `Clipboard`, `ConfirmDialog`, `DeleteLink`, `Filters`, `HoverCard`, `Kanban`, `Link`, `Reveal`, `SortableList`, `Tooltip`
@@ -291,6 +292,7 @@ The gem is available as open source under the terms of the [MIT License](https:/
 | AppLayout | ✓ | ✓ | ✓ |
 | Attachments | ✓ | ✓ | ✓ |
 | Avatar | ✓ | ✓ | ✓ |
+| BarList | ✓ | ✓ | ✓ |
 | BlockEditor | ✓ | ✓ | ✓ |
 | BooleanIcon | ✓ | ✓ | ✓ |
 | BpmnEditor | ✓ | ✓ | ✓ |

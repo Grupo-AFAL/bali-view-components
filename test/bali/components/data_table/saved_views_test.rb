@@ -3,6 +3,8 @@
 require "test_helper"
 
 class BaliDataTableSavedViewsComponentTest < ComponentTestCase
+  include RansackTestHelpers
+
   FakeStore = Struct.new(:views) do
     def list = views
     def find(id) = views.find { |view| view.id.to_s == id.to_s }
@@ -277,6 +279,21 @@ class BaliDataTableSavedViewsComponentTest < ComponentTestCase
 
     assert_selector "a.text-primary", text: "En rojo"
     assert_no_selector "a.text-primary", text: "Otro"
+  end
+
+  # #1530: under ransack 6 a shortcut written before still names the search with `_cont`; under 5
+  # one with `_i_cont` names nothing, as it never did.
+  def test_a_shortcut_marks_the_search_under_every_name_the_form_reads_it_from
+    { true => [ "name_i_cont", "name_cont", true ], false => [ "name_cont", "name_i_cont", false ] }
+      .each do |ransack6, (searched, written, marked)|
+        as_ransack(ransack6) do
+          form = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: { searched => "rojo" }),
+                                      search_fields: %i[name], saved_views_store: FakeStore.new([]))
+          render_component(form, default_views: [ { name: "Rojos", url: "/listado?q%5B#{written}%5D=rojo" } ])
+
+          assert_equal marked, page.has_selector?("a.text-primary", text: "Rojos", wait: 0), ransack6
+        end
+      end
   end
 
   def test_no_update_action_without_an_origin_view

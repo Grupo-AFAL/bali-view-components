@@ -7,8 +7,8 @@
       element for everything other than painting itself. %>
   <%= content_tag(menu_tag_name, menu_attributes) do %>
     <% if authorized_items.any? %>
-      <% authorized_items.each do |item| %>
-        <li role="none"><%= item %></li>
+      <% menu_items.each do |item| %>
+        <%= divider?(item) ? item : tag.li(item, role: "none") %>
       <% end %>
     <% else %>
       <%= content %>

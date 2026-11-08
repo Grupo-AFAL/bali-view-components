@@ -26,6 +26,20 @@ module Bali
         render_with_template(template: "bali/command/previews/compact")
       end
 
+      # @label From a navigation
+      # `navigation:` adds the modules the person may open, listed on open, and every page they
+      # may open, found as you type by its title, group, section, module or hint. The block's
+      # groups follow — here a create action. The navigation is the side menu preview's,
+      # `Bali::SideMenu::Preview::DemoNavigation`: «Exports» is `menu: false`, so it is found here
+      # and not drawn there. See docs/guides/navigation.md.
+      #
+      # ```erb
+      # <%= render Bali::Command::Component.new(navigation: Navigation) %>
+      # ```
+      def from_navigation
+        render_with_template(template: "bali/command/previews/from_navigation")
+      end
+
       # @label Custom trigger
       # The `with_trigger` slot replaces the default search well — for shapes
       # the default cannot be, like an icon-only toolbar button. The slot

@@ -66,3 +66,6 @@ test/dummy/log/*.log.*
 # no symlink) para que bali-view-components resuelva a ESTE arbol y no al
 # principal; la barra final solo cubria directorios.
 /test/dummy/node_modules
+
+# Derived in CI from Gemfile.lock (gemfiles/ransack_6.gemfile).
+/gemfiles/*.gemfile.lock

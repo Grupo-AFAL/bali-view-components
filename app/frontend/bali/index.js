@@ -91,6 +91,7 @@ export {
   AppLayoutController,
   AppliedTagsController,
   AvatarController,
+  BreadcrumbController,
   BulkActionsController,
   CarouselController,
   ChatController,

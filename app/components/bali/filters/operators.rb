@@ -25,25 +25,90 @@ module Bali
         send(method_name)
       end
 
+      # The operators the panel offers for one attribute: its type's, narrowed to and ordered
+      # by its `operators:` when it declares them.
+      #
+      # @param attribute [Hash] `{ key:, type:, operators: }`, as `FilterForm#available_attributes`
+      #   builds it
+      # @return [Array<Hash>]
+      # @raise [ArgumentError] on an empty `operators:` or on an entry its type does not offer.
+      #   `FilterForm.filter_attribute` meets this when the class loads; a hash built in a view
+      #   or in an `available_attributes` override, when the panel or the form reads it.
+      def for_attribute(attribute)
+        offered = for_type(attribute[:type] || :text)
+        return offered if attribute[:operators].nil?
+
+        declared = Array(attribute[:operators])
+        unknown = declared.reject { |operator| find_operator(offered, operator) }
+        if declared.empty? || unknown.any?
+          raise ArgumentError, "#{attribute[:key]}: type :#{attribute[:type] || :text} offers no operator " \
+                               "#{unknown.join(', ').presence || '(empty list)'} (valid: #{offered.pluck(:value).join(', ')})"
+        end
+
+        declared.map { |operator| find_operator(offered, operator) }
+      end
+
+      # The operator a condition opens on when the user picks the attribute: its
+      # `default_operator:`, else the first of its `operators:`. nil when it declares neither,
+      # and the row keeps the operator it had. condition/component.html.erb writes it as the
+      # attribute option's `data-default-operator`, which condition_controller.js#attributeChanged
+      # reads.
+      #
+      # @param attribute [Hash] `{ key:, type:, operators:, default_operator: }`
+      # @return [String, nil]
+      # @raise [ArgumentError] where `for_attribute` raises, and on a `default_operator:` outside
+      #   the attribute's operators
+      def default_for(attribute)
+        return if attribute[:default_operator].blank? && attribute[:operators].nil?
+
+        offered = for_attribute(attribute).pluck(:value)
+        return offered.first if attribute[:default_operator].blank?
+
+        requested = RansackParamName.text_predicate(attribute[:default_operator])
+        return requested if offered.include?(requested)
+
+        raise ArgumentError, "#{attribute[:key]}: default_operator: :#{attribute[:default_operator]} " \
+                             "is not among its operators (#{offered.join(', ')})"
+      end
+
+      # The Ransack predicates the panel writes for the attribute: one per operator, and the
+      # `gteq`/`lteq` pair a range operator ("between") travels as.
+      #
+      # @param attribute [Hash] `{ type:, operators: }`
+      # @return [Array<String>]
+      def predicates_for(attribute)
+        for_attribute(attribute).flat_map { |operator| operator[:range] ? %w[gteq lteq] : operator[:value] }.uniq
+      end
+
       # Returns the localized label for a specific operator and type.
       # @param operator [String] The operator value (e.g., 'eq', 'cont')
       # @param type [Symbol, String] The field type
       # @return [String] The localized label or the operator value if not found
       def label_for(operator, type)
-        for_type(type).find { |o| o[:value] == operator }&.dig(:label) || operator
+        current = RansackParamName.text_predicate(operator)
+        for_type(type).find { |o| o[:value] == current }&.dig(:label) || operator
       end
 
       private
 
+      # "contains" and its kin in the variant the installed ransack wants (#1530).
       def text_operators
         [
-          { value: "cont", label: t_op("contains") },
+          { value: text("cont"), label: t_op("contains") },
           { value: "eq", label: t_op("equals") },
-          { value: "start", label: t_op("starts_with") },
-          { value: "end", label: t_op("ends_with") },
-          { value: "not_cont", label: t_op("not_contains") },
+          { value: text("start"), label: t_op("starts_with") },
+          { value: text("end"), label: t_op("ends_with") },
+          { value: text("not_cont"), label: t_op("not_contains") },
           { value: "not_eq", label: t_op("not_equals") }
         ]
+      end
+
+      def text(predicate)
+        RansackParamName.text_predicate(predicate)
+      end
+
+      def find_operator(offered, operator)
+        offered.find { |candidate| candidate[:value] == text(operator) }
       end
 
       def number_operators

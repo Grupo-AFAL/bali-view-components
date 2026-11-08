@@ -11,7 +11,7 @@ class BaliFiltersFilterGroupComponentTest < ComponentTestCase
     ]
     @default_group = {
       combinator: "or",
-      conditions: [ { attribute: "", operator: "cont", value: "" } ]
+      conditions: [ { attribute: "", operator: nil, value: "" } ]
     }
     @group_with_conditions = {
       combinator: "and",
@@ -92,7 +92,7 @@ class BaliFiltersFilterGroupComponentTest < ComponentTestCase
   # instead — 5 rows, then 23 (#1121). A group that chose OR keeps it: see below.
   def test_combinator_defaults_to_and
     component = Bali::Filters::FilterGroup::Component.new(
-      group: { conditions: [ { attribute: "", operator: "cont", value: "" } ] },
+      group: { conditions: [ { attribute: "", operator: nil, value: "" } ] },
       index: 0,
       available_attributes: @available_attributes
     )

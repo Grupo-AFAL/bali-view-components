@@ -4,7 +4,12 @@ require "test_helper"
 
 class BaliLocationsMapComponentTest < ComponentTestCase
   def setup
+    Bali.google_maps.api_key = "test-key"
     @component = Bali::LocationsMap::Component.new
+  end
+
+  def teardown
+    Bali.google_maps.api_key = nil
   end
 
   def test_constants_has_frozen_base_classes
@@ -29,6 +34,13 @@ class BaliLocationsMapComponentTest < ComponentTestCase
   def test_default_rendering_renders_the_map_target_div
     render_inline(@component)
     assert_selector('div.location-map[data-locations-map-target="map"]')
+  end
+
+  def test_map_class_lands_on_the_map
+    render_inline(Bali::LocationsMap::Component.new(map_class: "h-56 rounded-box"))
+
+    assert_selector('div.location-map.h-56.rounded-box[data-locations-map-target="map"]')
+    assert_no_selector(".locations-map-component.h-56")
   end
 
   def test_default_rendering_includes_stimulus_controller_data_attributes

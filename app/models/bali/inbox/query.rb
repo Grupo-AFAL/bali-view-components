@@ -16,11 +16,19 @@ module Bali
         @providers = Bali::Inbox.providers
       end
 
-      def count = counts_by_kind.values.sum
+      # `pending_by_module` is `Badge.compute`'s.
+      def count(pending_by_module: {})
+        counted = pending_by_module.to_h { |module_key, pending| [ module_key.to_sym, pending ] }
+        unknown = counted.keys - @providers.map(&:first)
+        if unknown.any?
+          raise ArgumentError, "pending_by_module: Bali.inbox_providers has no provider under " \
+                               "#{unknown.map(&:inspect).join(', ')}, so its count would add to every provider's"
+        end
 
-      def counts_by_kind
-        @counts_by_kind ||= @providers.to_h { |_module_key, provider| [ provider.kind.to_sym, provider.pending_count_for(user) ] }
+        counted.values.sum + @providers.sum { |module_key, provider| counted.key?(module_key) ? 0 : pending_count(provider) }
       end
+
+      def counts_by_kind = @providers.to_h { |_module_key, provider| [ provider.kind.to_sym, pending_count(provider) ] }
 
       # A provider's items may name a module of their own, so a module with no provider of its own
       # is still one to filter by.
@@ -31,16 +39,17 @@ module Bali
       end
 
       def items(module_key: nil, kind: nil)
+        module_key = module_key&.to_sym
         @capped = []
-        found = @providers
+        @providers
           .select { |_module_key, provider| kind.nil? || provider.kind.to_sym == kind.to_sym }
-          .flat_map { |entry_module, provider| fetch(entry_module, provider) }
-          .select { |item| module_key.nil? || item.module_key == module_key.to_sym }
-        @capped &= found.map(&:kind)
-        found.sort_by { |item| sort_key(item) }
+          .flat_map { |entry_module, provider| fetch(entry_module, provider, module_key) }
+          .select { |item| module_key.nil? || item.module_key == module_key }
+          .sort_by { |item| sort_key(item) }
       end
 
-      # Known once `items` has run.
+      # Whether a provider reached FETCH_CAP where the cut could hold items of the asked module:
+      # the rule `fetch` states. Known once `items` has run.
       def capped? = @capped.present?
 
       # The item at `/inbox/items/:kind/:gid`, or nil when it is not pending for this user. The
@@ -66,9 +75,10 @@ module Bali
       end
 
       # Viewing an item is reading what announced it.
-      def mark_seen!(item)
-        Bali::Notice.mark_read!(announcing_notices_about([ item.record ]))
-      end
+      def mark_seen!(item) = mark_record_seen!(item.record)
+
+      # For a host screen that opens the record itself and has no item.
+      def mark_record_seen!(record) = Bali::Notice.mark_read!(announcing_notices_about([ record ]))
 
       private
 
@@ -80,12 +90,18 @@ module Bali
         Bali::Notice.unread.addressed_to(user).where(kind: Bali::Notice.announcing_kinds).merge(about)
       end
 
-      def fetch(module_key, provider)
+      # What the cap cut was never built, so its module is unknown. Only a provider whose first
+      # FETCH_CAP items all sit in its own module is ruled out of another module's list.
+      def fetch(provider_module, provider, wanted)
         records = provider.pending_for(user).first(FETCH_CAP + 1)
-        @capped << provider.kind.to_sym if records.size > FETCH_CAP
+        items = provider.build_items(records.first(FETCH_CAP), user: user).map { |item| in_module(item, provider_module) }
+        spans = items.any? { it.module_key != provider_module }
+        @capped << provider.kind.to_sym if records.size > FETCH_CAP && (spans || [ nil, provider_module ].include?(wanted))
 
-        provider.build_items(records.first(FETCH_CAP), user: user).map { |item| in_module(item, module_key) }
+        items
       end
+
+      def pending_count(provider) = (@pending_counts ||= {})[provider.kind.to_sym] ||= provider.pending_count_for(user)
 
       # A provider whose kind spans modules names each item's own.
       def in_module(item, module_key) = item.module_key ? item : item.with(module_key: module_key)

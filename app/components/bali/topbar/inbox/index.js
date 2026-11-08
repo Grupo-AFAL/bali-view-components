@@ -5,6 +5,11 @@ import { optionalPeer } from '../../../../assets/javascripts/bali/utils/optional
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
 
+// The inbox elements of a <body> Turbo is about to render in place of one whose panel was opened
+// while that visit loaded. A set and not a data attribute: a morph render copies attributes onto
+// the live element, whose controller never reconnects to clear it.
+const reopenAfterVisit = new WeakSet()
+
 // Bali::Topbar::Inbox (#1512). The trigger is a link to the full page: a plain click opens the
 // popover instead, and a modified click, or a page without this controller, still navigates.
 // The popover's frame has no `src` until the first open, so a page that never opens it never
@@ -18,12 +23,29 @@ export class TopbarInboxController extends Controller {
   connect () {
     this.panel = this.panelTarget
     this.frame = this.frameTarget
+    // Not in connect(): Turbo clears `aria-busy` only just before `turbo:load`, so an open() here
+    // would count as opened during the visit and follow a row's link to the next page.
+    if (reopenAfterVisit.delete(this.element)) {
+      this.openedDuringVisit = true
+      document.addEventListener('turbo:load', this.reopen, { once: true })
+    }
+    document.addEventListener('turbo:before-render', this.carryOpenPanel)
+    document.addEventListener('turbo:visit', this.forgetOpenedDuringVisit)
+    document.addEventListener('turbo:morph', this.forgetMorphedPopper)
+    // On the frame and not as a data-action: tippy moves the panel into its popper, outside this
+    // element, where Stimulus no longer routes the frame's events.
+    this.frame.addEventListener('turbo:frame-missing', this.revisitPage)
     this.ready = true
   }
 
   // destroy() leaves the panel inside the popper it is about to throw away; a Turbo render that
   // reconnects this controller would come back without one.
   disconnect () {
+    document.removeEventListener('turbo:before-render', this.carryOpenPanel)
+    document.removeEventListener('turbo:load', this.reopen)
+    document.removeEventListener('turbo:visit', this.forgetOpenedDuringVisit)
+    document.removeEventListener('turbo:morph', this.forgetMorphedPopper)
+    this.frame.removeEventListener('turbo:frame-missing', this.revisitPage)
     this.stopListening()
     if (this.tippy) {
       this.tippy.destroy()
@@ -48,7 +70,11 @@ export class TopbarInboxController extends Controller {
   }
 
   async open () {
+    // Turbo's mark of a visit in progress.
+    this.openedDuringVisit = document.documentElement.hasAttribute('aria-busy')
     const tippy = await this.ensureTippy()
+    // A render replaced the page while tippy.js loaded; the link is only for a missing tippy.js.
+    if (!this.element.isConnected) return
     if (!tippy) {
       window.location.assign(this.triggerTarget.href)
       return
@@ -59,10 +85,43 @@ export class TopbarInboxController extends Controller {
   }
 
   close ({ returnFocus = true } = {}) {
+    this.openedDuringVisit = false
     if (!this.isOpen) return
 
     this.tippy.hide()
     if (returnFocus) this.triggerTarget.focus()
+  }
+
+  // The open panel hangs off the <body> the visit replaces. Only a panel opened while the visit
+  // loaded goes on to the next page: following a link from an open panel lands with it closed.
+  carryOpenPanel = ({ detail: { newBody } }) => {
+    const element = this.openedDuringVisit && newBody.querySelector(`[data-controller~="${this.identifier}"]`)
+    if (element) reopenAfterVisit.add(element)
+  }
+
+  reopen = () => this.open()
+
+  // A new visit ends the one the panel was opened during, whether it cancels it (a row's link,
+  // clicked inside the panel, never goes through `close()`) or follows its redirect.
+  forgetOpenedDuringVisit = () => {
+    this.openedDuringVisit = false
+  }
+
+  // A morphing refresh (a stream `refresh`, or the revisit below on a page that refreshes by
+  // morphing) drops tippy's popper from <body> and puts the panel back inside this element, moved
+  // or drawn afresh by an older Turbo: tippy would still count itself shown, and the icon would
+  // never open again. A morph that took the icon away too (the sign-in page) leaves it to
+  // `disconnect()`.
+  forgetMorphedPopper = () => {
+    if (!this.tippy || this.tippy.popper.isConnected || !this.hasPanelTarget) return
+
+    this.stopListening()
+    this.tippy.destroy()
+    this.tippy = null
+    this.frame.removeEventListener('turbo:frame-missing', this.revisitPage)
+    this.panel = this.panelTarget
+    this.frame = this.frameTarget
+    this.frame.addEventListener('turbo:frame-missing', this.revisitPage)
   }
 
   get isOpen () {
@@ -87,6 +146,30 @@ export class TopbarInboxController extends Controller {
       this.badgeTarget.reload()
     } else {
       this.badgeTarget.src = this.badgeUrlValue
+    }
+  }
+
+  // The badge frame (component.html.erb) routes `turbo:frame-missing` here. Any answer without the
+  // frame, the sign-in page once the session expired or a 5xx page, keeps the count it had. Not
+  // `event.detail.visit(response)`: the refresh comes from the stream, nobody asked to leave.
+  keepBadge (event) {
+    event.preventDefault()
+  }
+
+  // The popover frame's `turbo:frame-missing`: the person opened the panel and got another page.
+  // Left alone, Turbo writes "Content missing" into the panel and throws. A redirect is taken to be
+  // an auth gate turning them away (the session expired): the page they are on is visited again,
+  // not the answer, because the gate remembers the path it turned away to return there after
+  // signing in, and the popover's is a fragment with no layout. `replace` makes it Turbo's own
+  // refresh of the page, so no cached copy is painted first. Any other answer, an error page, is
+  // shown as it came, at its own URL.
+  revisitPage = (event) => {
+    const { response, visit } = event.detail
+    event.preventDefault()
+    if (response.redirected) {
+      visit(window.location.href, { action: 'replace' })
+    } else {
+      visit(response)
     }
   }
 

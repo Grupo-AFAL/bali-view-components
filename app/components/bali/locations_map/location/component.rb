@@ -33,6 +33,8 @@ module Bali
         attr_reader :name, :latitude, :longitude, :label, :color, :border_color, :icon_url,
                     :glyph_color
 
+        # Read by `loadLocations` in ../index.js, which reads the `locations` value a host writes
+        # by these same names: renaming one breaks that value.
         def data_attributes
           {
             locations_map_target: "location",

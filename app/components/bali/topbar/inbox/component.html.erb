@@ -8,7 +8,8 @@
                      data: { topbar_inbox_target: "trigger", action: "click->topbar-inbox#toggle",
                              turbo_prefetch: "false" } do %>
     <%= render Bali::Icon::Component.new("inbox", class: "size-5") %>
-    <%= tag.turbo_frame(id: BADGE_FRAME_ID, data: { topbar_inbox_target: "badge" }) do %>
+    <%= tag.turbo_frame(id: BADGE_FRAME_ID, data: { topbar_inbox_target: "badge",
+                                                   action: "turbo:frame-missing->topbar-inbox#keepBadge" }) do %>
       <%= render Bali::Topbar::Inbox::Badge::Component.new(badge: @badge) %>
     <% end %>
   <% end %>
@@ -24,10 +25,10 @@
             too, on every page. The badge is the one Bali::Tabs' trigger draws. %>
         <div class="<%= SKELETON_TABS_CLASSES %>" aria-hidden="true">
           <span class="tab tab-active">
-            <%= t("bali_view.inbox.tabs.pending") %><span class="badge badge-sm ml-1"><%= self.class.count_text(@badge.pending) %></span>
+            <%= t("bali_view.inbox.tabs.pending") %><span class="badge badge-sm ml-1"><%= Bali::Number.delimited(@badge.pending) %></span>
           </span>
           <span class="tab">
-            <%= t("bali_view.inbox.tabs.notices") %><% if @badge.unread? %><span class="badge badge-sm ml-1"><%= self.class.count_text(@badge.unread) %></span><% end %>
+            <%= t("bali_view.inbox.tabs.notices") %><% if @badge.unread? %><span class="badge badge-sm ml-1"><%= Bali::Number.delimited(@badge.unread) %></span><% end %>
           </span>
         </div>
         <div class="flex flex-col gap-4 p-4">

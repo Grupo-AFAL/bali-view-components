@@ -24,3 +24,31 @@
     margin-inline-end: auto;
   }
 }
+
+/* An edge where the trail is cut fades out, so the cut reads as "more this way". The breadcrumb
+ * controller sets `data-overflow-start` / `-end` while crumbs are hidden past that edge; with no
+ * attribute (a trail that fits, or before the controller connects) there is no mask. Logical
+ * edges: under `rtl` the start is on the right. */
+.breadcrumbs {
+  --bali-breadcrumb-fade-start: 0px;
+  --bali-breadcrumb-fade-end: 0px;
+  --bali-breadcrumb-fade-axis: to right;
+  --bali-breadcrumb-fade: 1.5rem;
+
+  &:dir(rtl) {
+    --bali-breadcrumb-fade-axis: to left;
+  }
+
+  &[data-overflow-start] {
+    --bali-breadcrumb-fade-start: var(--bali-breadcrumb-fade);
+  }
+
+  &[data-overflow-end] {
+    --bali-breadcrumb-fade-end: var(--bali-breadcrumb-fade);
+  }
+
+  &:is([data-overflow-start], [data-overflow-end]) {
+    mask-image: linear-gradient(var(--bali-breadcrumb-fade-axis), transparent,
+      #000 var(--bali-breadcrumb-fade-start), #000 calc(100% - var(--bali-breadcrumb-fade-end)), transparent);
+  }
+}

@@ -72,4 +72,14 @@ class BaliInboxFoldingTest < ActiveSupport::TestCase
 
     assert_equal [ false, true, true ], [ write_notice, ship_notice, comment ].map { |notice| notice.reload.unread? }
   end
+
+  # A host screen that opens the record itself — a decision panel in a drawer — has no item.
+  def test_mark_record_seen_reads_the_announcing_notices_of_that_record_only
+    write_notice = @write.notify(recipient: @ana, kind: :task_assigned, message: "You were assigned Write")
+    ship_notice = @ship.notify(recipient: @ana, kind: :task_assigned, message: "You were assigned Ship")
+
+    query.mark_record_seen!(@write)
+
+    assert_equal [ false, true ], [ write_notice, ship_notice ].map { |notice| notice.reload.unread? }
+  end
 end

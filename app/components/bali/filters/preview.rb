@@ -132,6 +132,43 @@ module Bali
         )
       end
 
+      # @label Restricted Operators
+      # @param popover toggle
+      # An attribute may narrow the operators it offers (`operators:`) and pick the one a new
+      # condition opens on (`default_operator:`), as `FilterForm.filter_attribute` declares them.
+      # "Employee ID" only matches whole, so its operator select is fixed; "Folio" opens on
+      # "equals" and still offers the rest; "Name" declares nothing.
+      def restricted_operators(popover: true)
+        render Filters::Component.new(
+          url: '/preview',
+          available_attributes: restricted_attributes,
+          popover: popover
+        )
+      end
+
+      # @label Restricted Operators, Applied
+      # @param popover toggle
+      # A condition is drawn with the operator it arrived with, even one its attribute leaves out
+      # of `operators:`. "Created" offers "between" and "on", but "between" travels as an "on or
+      # after" and an "on or before" and an OR group keeps them apart: each row reads its own
+      # operator, which its select offers beside the declared ones.
+      def restricted_operators_applied(popover: true)
+        render Filters::Component.new(
+          url: '/preview',
+          available_attributes: restricted_attributes,
+          filter_groups: [
+            {
+              combinator: 'or',
+              conditions: [
+                { attribute: 'created_at', operator: 'gteq', value: '2026-03-01' },
+                { attribute: 'created_at', operator: 'lteq', value: '2026-01-31' }
+              ]
+            }
+          ],
+          popover: popover
+        )
+      end
+
       # @label Compact (Few Attributes)
       # Minimal configuration with only a few attributes.
       # Useful for simple filtering scenarios.
@@ -198,6 +235,15 @@ module Bali
       end
 
       private
+
+      def restricted_attributes
+        [
+          { key: :employee_id, label: 'Employee ID', type: :text, operators: %i[eq] },
+          { key: :folio, label: 'Folio', type: :text, default_operator: :eq },
+          { key: :name, label: 'Name', type: :text },
+          { key: :created_at, label: 'Created', type: :date, operators: %i[between eq] }
+        ]
+      end
 
       def sample_attributes
         [

@@ -118,56 +118,13 @@ class BaliFiltersComponentTest < ComponentTestCase
     assert_button("OR")
   end
 
-  def test_operators_provides_correct_operators_for_text_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :name, type: :text } ]
-    )
-    operators = component.operators_for_type(:text)
-    assert_includes(operators.pluck(:value), "cont")
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "start")
-    assert_includes(operators.pluck(:value), "end")
-  end
-
-  def test_operators_provides_correct_operators_for_number_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :age, type: :number } ]
-    )
-    operators = component.operators_for_type(:number)
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "gt")
-    assert_includes(operators.pluck(:value), "lt")
-    assert_includes(operators.pluck(:value), "gteq")
-    assert_includes(operators.pluck(:value), "lteq")
-  end
-
-  def test_operators_provides_correct_operators_for_date_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :created_at, type: :date } ]
-    )
-    operators = component.operators_for_type(:date)
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "gt")
-    assert_includes(operators.pluck(:value), "lt")
-    assert_includes(operators.pluck(:value), "gteq")
-    assert_includes(operators.pluck(:value), "lteq")
-  end
-
-  def test_operators_provides_correct_operators_for_select_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :status, type: :select } ]
-    )
-    operators = component.operators_for_type(:select)
-    assert_includes(operators.pluck(:value), "eq")
-    assert_includes(operators.pluck(:value), "not_eq")
-  end
-
-  def test_operators_provides_correct_operators_for_boolean_type
-    component = Bali::Filters::Component.new(
-      url: "/users", available_attributes: [ { key: :verified, type: :boolean } ]
-    )
-    operators = component.operators_for_type(:boolean)
-    assert_equal([ "eq" ], operators.pluck(:value))
+  def test_an_attribute_with_an_operator_its_type_does_not_offer_raises_instead_of_offering_them_all
+    error = assert_raises(ArgumentError) do
+      render_inline(Bali::Filters::Component.new(
+        url: "/users", available_attributes: [ { key: :code, label: "Code", type: :text, operators: %i[gt] } ]
+      ))
+    end
+    assert_match "code: type :text offers no operator gt", error.message
   end
 
   def test_persistence_toggle_returns_false_for_persistence_available_when_no_storage_id
@@ -361,7 +318,7 @@ class BaliFiltersComponentTest < ComponentTestCase
           { attribute: "age", operator: "between", value: { start: "18", end: "30" } }
         ] },
         # A builder row with no attribute and no value: it must NOT travel.
-        { combinator: "or", conditions: [ { attribute: "", operator: "cont", value: "" } ] }
+        { combinator: "or", conditions: [ { attribute: "", operator: nil, value: "" } ] }
       ]
     ))
 
@@ -586,6 +543,19 @@ class BaliFiltersComponentTest < ComponentTestCase
     end
 
     assert_includes error.message, ":field_name"
+  end
+
+  # #1566. The attribute's own operators reach the row the JS reads them from, and the JSON
+  # host tests read.
+  def test_an_attributes_operators_reach_its_option_and_the_attributes_json
+    render_inline(Bali::Filters::Component.new(
+      url: "/users", available_attributes: [ { key: :code, label: "Code", type: :text, operators: %i[eq] } ]
+    ))
+
+    option = page.find('[data-condition-target="attribute"] option[value="code"]', match: :first, visible: :all)
+    assert_equal %w[eq], JSON.parse(option["data-operators"]).pluck("value")
+    json = JSON.parse(page.find('[data-controller="filters"]')["data-filters-attributes-value"]).sole
+    assert_equal %w[eq], json["operators"].pluck("value")
   end
 
   private

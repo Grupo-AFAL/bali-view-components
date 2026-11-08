@@ -24,9 +24,10 @@ module Bali
       COMBINATORS = %w[and or].freeze
       extend ActiveSupport::Concern
 
-      # Ransack operators ordered by specificity (longer operators first to avoid partial matches)
-      RANSACK_OPERATORS = %w[not_cont not_eq not_in gteq lteq cont start end matches eq gt lt
-                             in].freeze
+      # Longest first, so an operator that ends another (`cont` in `not_i_cont`) never wins. The
+      # `i_` twins come from RansackParamName, which `PanelConditions#current_condition_key` reads.
+      RANSACK_OPERATORS = (%w[not_cont not_eq not_in gteq lteq cont start end matches eq gt lt in] +
+                           RansackParamName::CASE_INSENSITIVE.values).sort_by { -it.length }.freeze
 
       # Parse the current filter state into a structure for Filters component.
       # Automatically extracts filter groups from Ransack grouping params (q[g][...]).
@@ -122,44 +123,36 @@ module Bali
       end
 
       # Parse a single filter group from Ransack params into component structure.
-      # Consolidates gteq/lteq pairs into 'between' operator for better UX.
-      # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       def parse_filter_group(group_params)
-        raw_conditions = {}
-
-        group_params.each do |key, value|
-          next if key == :m # Skip combinator
-
-          attr, operator = parse_condition_key(key.to_s)
-          next unless attr
-
-          raw_conditions[attr] ||= {}
-          raw_conditions[attr][operator] = value
+        combinator = sanitized_combinator(group_params[:m]) ||
+                     Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR
+        conditions = group_params.except(:m).filter_map do |key, value|
+          attribute, operator = parse_condition_key(key.to_s)
+          { attribute: attribute, operator: operator, value: value } if attribute
         end
+        conditions = fold_ranges(conditions) if combinator == "and"
 
-        # Convert raw conditions, consolidating gteq+lteq into 'between'
-        conditions = raw_conditions.flat_map do |attribute, ops|
-          if ops["gteq"] && ops["lteq"]
-            # Combine into a single 'between' condition for date ranges
-            [ {
-              attribute: attribute,
-              operator: "between",
-              value: { start: ops["gteq"], end: ops["lteq"] }
-            } ]
-          else
-            ops.map do |operator, value|
-              { attribute: attribute, operator: operator, value: value }
-            end
-          end
-        end
-
-        {
-          combinator: sanitized_combinator(group_params[:m]) ||
-            Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR,
-          conditions: conditions.presence || [ default_filter_condition ]
-        }
+        { combinator: combinator, conditions: conditions.presence || [ default_filter_condition ] }
       end
-      # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+
+      # The panel's "between" travels as a `gteq` and an `lteq` (`ActiveFilterParams`), and the
+      # panel paints what this returns, which its next submit applies (#1528).
+      def fold_ranges(conditions)
+        conditions.group_by { |condition| condition[:attribute] }.flat_map do |attribute, own|
+          bounds = own.to_h { |condition| condition.values_at(:operator, :value) }
+          next own unless bounds.keys.sort == %w[gteq lteq] && range_attribute?(attribute)
+
+          [ { attribute: attribute, operator: "between", value: { start: bounds["gteq"], end: bounds["lteq"] } } ]
+        end
+      end
+
+      # An attribute the form does not offer folds as it always did: its panel takes its
+      # attributes in the view (`with_filters_panel(available_attributes:)`, the dummy's
+      # admin/movies), whose types the form cannot see.
+      def range_attribute?(attribute)
+        offered = available_attributes.find { |candidate| candidate[:key].to_s == attribute }
+        offered.nil? || Bali::Filters::Operators.for_attribute(offered).any? { |operator| operator[:range] }
+      end
 
       # Parse a Ransack condition key like "name_cont" or "created_at_gteq"
       # into [attribute, operator] pair.
@@ -176,7 +169,7 @@ module Bali
 
       # Default empty condition for new filter groups
       def default_filter_condition
-        { attribute: "", operator: "cont", value: "" }
+        { attribute: "", operator: nil, value: "" }
       end
 
       # Format a filter value for display, resolving select option labels

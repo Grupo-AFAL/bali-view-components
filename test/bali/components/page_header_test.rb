@@ -151,6 +151,18 @@ class BaliPageHeaderComponentTest < ComponentTestCase
     assert_selector(".page-header-title.flex-wrap")
   end
 
+  # A `Bali::Avatar` given `name:` is an image named after the person: exposed beside the
+  # heading, the page's name was read out twice.
+  def test_the_title_mark_goes_before_the_heading_hidden_from_screen_readers
+    render_inline(Bali::PageHeader::Component.new(title: "Ana García López")) do |c|
+      c.with_title_mark { '<div class="avatar">AG</div>'.html_safe }
+    end
+
+    assert_selector(".page-header-title-mark[aria-hidden='true'] + .page-header-title-block > h1", text: "Ana García López")
+    assert_selector(".page-header-title-mark[aria-hidden='true'] .avatar")
+    assert_equal("Ana García López", page.find("h1.title").text.strip)
+  end
+
   def test_title_tags_render_without_a_title
     render_inline(Bali::PageHeader::Component.new) do |c|
       c.with_title_tag { '<span class="badge">Action</span>'.html_safe }

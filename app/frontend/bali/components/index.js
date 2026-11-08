@@ -64,6 +64,7 @@ import {
 import { DocumentEditorController } from '../../../components/bali/document_editor/index'
 import { DocumentPageController } from '../../../components/bali/document_page/index'
 import { TreeViewItemController } from '../../../components/bali/tree_view/item/index'
+import { BreadcrumbController } from '../../../components/bali/breadcrumb/index'
 import { FeedbackWidgetController } from '../../../components/bali/feedback_widget/index'
 import { CommandController } from '../../../components/bali/command/index'
 import { StatusController } from '../../../components/bali/status/index'
@@ -79,6 +80,7 @@ export {
   AppLayoutController,
   AppliedTagsController,
   AvatarController,
+  BreadcrumbController,
   BulkActionsController,
   CarouselController,
   ChatController,
@@ -216,6 +218,7 @@ export const CONTROLLERS = /* @__PURE__ */ Object.freeze({
 
   // Navigation
   'tree-view-item': TreeViewItemController,
+  breadcrumb: BreadcrumbController,
 
   // Integration
   'feedback-widget': FeedbackWidgetController,

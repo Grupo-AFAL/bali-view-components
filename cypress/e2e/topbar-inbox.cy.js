@@ -135,17 +135,151 @@ describe('Topbar inbox', () => {
 
   // What Bali::Inbox::Badge.refresh broadcasts: a fresh Bali::Topbar::Inbox::Component::SIGNAL_ID
   // element and no count. Its arrival is what makes the icon fetch its own badge.
+  const announceNotice = () => cy.window().then((win) => win.Turbo.renderStreamMessage(
+    '<turbo-stream action="replace" target="bali-inbox-signal"><template>' +
+    '<span id="bali-inbox-signal" hidden data-topbar-inbox-target="signal"></span></template></turbo-stream>'
+  ))
+
   it('a new notice on the stream makes the icon fetch its badge', () => {
     cy.intercept('GET', '**/inbox/badge').as('badge')
     cy.get('#bali-inbox-signal').should('exist')
 
-    cy.window().then((win) => win.Turbo.renderStreamMessage(
-      '<turbo-stream action="replace" target="bali-inbox-signal"><template>' +
-      '<span id="bali-inbox-signal" hidden data-topbar-inbox-target="signal"></span></template></turbo-stream>'
-    ))
+    announceNotice()
 
     cy.wait('@badge')
     cy.get('#bali-inbox-badge .sr-only').should('exist')
+  })
+
+  // With the session expired, the badge request is redirected to the sign-in page, which has no
+  // badge frame; an error page has none either.
+  ;[200, 500].forEach((statusCode) => {
+    it(`keeps its count when the badge request answers ${statusCode} without the frame`, () => {
+      const errors = []
+      cy.on('uncaught:exception', (error) => {
+        errors.push(error.message)
+        return false
+      })
+      cy.intercept({ method: 'GET', url: '**/inbox/badge', times: 1 }, {
+        statusCode,
+        headers: { 'content-type': 'text/html' },
+        body: '<html><head></head><body><form id="sign-in"></form></body></html>'
+      }).as('badge')
+      cy.get('#bali-inbox-badge .sr-only').invoke('text').as('label')
+
+      announceNotice()
+
+      cy.wait('@badge')
+      cy.get('#bali-inbox-badge[complete]').should('exist')
+      // Turbo's rejection reaches the window in a task of its own: count the errors a frame later.
+      cy.window().then((win) => new Cypress.Promise((resolve) => win.requestAnimationFrame(resolve)))
+      cy.get('#bali-inbox-badge .turbo-frame-error').should('not.exist')
+      cy.get('@label').then((label) => cy.get('#bali-inbox-badge .sr-only').should('have.text', label))
+      cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+
+      cy.intercept('GET', '**/inbox/badge').as('badgeAgain')
+      announceNotice()
+      cy.wait('@badgeAgain').its('response.body').should('include', 'id="bali-inbox-badge"')
+      cy.get('#bali-inbox-badge .sr-only').should('exist')
+      cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+    })
+  })
+
+  // An opened panel turned away by an auth gate (a redirect to sign in once the session expired):
+  // the page the person is on is asked for again, which the gate remembers to return to after
+  // signing in, instead of Turbo's "Content missing" inside the panel or the popover's fragment as
+  // the page. Also with a page that refreshes by morphing, as four of afal-apps' do.
+  ;[false, true].forEach((morph) => {
+    it(`visits the page again when an opened panel is redirected${morph ? ', on a morphing page' : ''}`, () => {
+      const errors = []
+      cy.on('uncaught:exception', (error) => {
+        errors.push(error.message)
+        return false
+      })
+      let morphed = false
+      if (morph) {
+        cy.document().then((doc) => {
+          doc.head.insertAdjacentHTML('beforeend', '<meta name="turbo-refresh-method" content="morph">')
+          doc.addEventListener('turbo:morph', () => { morphed = true }, { once: true })
+        })
+      }
+      cy.intercept({ method: 'GET', url: '**/inbox/popover*', times: 1 }, (req) => req.redirect('/stub-sign-in', 302))
+      cy.intercept({ method: 'GET', pathname: '/stub-sign-in' }, {
+        statusCode: 200,
+        headers: { 'content-type': 'text/html' },
+        body: '<html><head></head><body><form id="sign-in"></form></body></html>'
+      }).as('signIn')
+      cy.location('pathname').then((pathname) => cy.intercept({ method: 'GET', pathname }).as('samePage'))
+      cy.window().its('history.length').as('historyLength')
+
+      cy.get(trigger).click()
+
+      cy.wait('@signIn')
+      cy.wait('@samePage')
+      if (morph) {
+        cy.wrap(null).should(() => expect(morphed, 'the revisit is a morphing refresh').to.equal(true))
+        cy.get(trigger).click()
+        cy.get(panel).should('be.visible')
+      }
+      cy.get('form#sign-in').should('not.exist')
+      cy.contains('Content missing').should('not.exist')
+      cy.get('@historyLength').then((length) => cy.window().its('history.length').should('equal', length))
+      cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+    })
+  })
+
+  // On a morphing page the revisit itself is redirected to sign in, and the morph takes the icon
+  // away with the popper: nothing is left to reset, and nothing may throw.
+  it('lets a morph to the sign-in page take the icon away without an error', () => {
+    const errors = []
+    cy.on('uncaught:exception', (error) => {
+      errors.push(error.message)
+      return false
+    })
+    let morphed = false
+    cy.document().then((doc) => {
+      doc.head.insertAdjacentHTML('beforeend', '<meta name="turbo-refresh-method" content="morph">')
+      doc.addEventListener('turbo:morph', () => { morphed = true }, { once: true })
+    })
+    cy.intercept({ method: 'GET', url: '**/inbox/popover*', times: 1 }, (req) => req.redirect('/stub-sign-in', 302))
+    cy.intercept({ method: 'GET', pathname: '/stub-sign-in' }, {
+      statusCode: 200,
+      headers: { 'content-type': 'text/html' },
+      body: '<html><head></head><body><form id="sign-in"></form></body></html>'
+    })
+    cy.location('pathname').then((pathname) => cy.intercept({ method: 'GET', pathname, times: 1 }, (req) => {
+      req.continue((res) => { res.body = res.body.replace(/<body[\s\S]*<\/body>/, '<body><form id="sign-in"></form></body>') })
+    }).as('samePage'))
+
+    cy.get(trigger).click()
+
+    cy.wait('@samePage')
+    cy.wrap(null).should(() => expect(morphed, 'the revisit is a morphing refresh').to.equal(true))
+    cy.get('form#sign-in').should('exist')
+    cy.get(trigger).should('not.exist')
+    cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
+  })
+
+  // An error page is no gate: it is shown as it came, and the page is not visited again (which
+  // would drop what the person typed on it, with nothing said).
+  it('shows the error page an opened panel gets instead of its frame', () => {
+    const errors = []
+    cy.on('uncaught:exception', (error) => {
+      errors.push(error.message)
+      return false
+    })
+    cy.intercept({ method: 'GET', url: '**/inbox/popover*', times: 1 }, {
+      statusCode: 500,
+      headers: { 'content-type': 'text/html' },
+      body: '<html><head></head><body><h1 id="server-error">We are sorry</h1></body></html>'
+    }).as('serverError')
+    cy.location('pathname').then((pathname) => cy.intercept({ method: 'GET', pathname }, cy.spy().as('samePage')))
+
+    cy.get(trigger).click()
+
+    cy.wait('@serverError')
+    cy.get('#server-error').should('exist')
+    cy.get('@samePage').should('not.have.been.called')
+    cy.then(() => expect(errors.join('\n'), 'uncaught errors').to.be.empty)
   })
 
   it('marking every notice read from the popover clears the icon\'s dot', () => {
@@ -178,5 +312,167 @@ describe('Topbar inbox', () => {
 
     cy.wait('@notices')
     cy.get('#bali-inbox-popover-notices').should('exist')
+  })
+})
+
+// #1567 — the open panel hangs off the <body> a Turbo visit replaces. The admin shell has the icon
+// in its topbar and a sidebar link to a page whose response the test holds, so the visit stays in
+// progress (`aria-busy` on <html>) for as long as the test needs.
+describe('Topbar inbox across a Turbo visit', () => {
+  const appOrigin = new URL(Cypress.config('baseUrl')).origin
+  const trigger = 'a.bali-topbar-inbox-trigger'
+  const panel = '#bali-inbox-panel'
+  const destination = '/admin/studios'
+  let release
+
+  const holdDestination = () => {
+    release = null
+    cy.intercept({ method: 'GET', pathname: destination }, (req) =>
+      new Promise((resolve) => { release = resolve }).then(() => req.continue())
+    )
+  }
+  const releaseDestination = () =>
+    cy.wrap(null).should(() => expect(release, 'the held request').to.be.a('function')).then(() => release())
+
+  // The element's own `click()`: no pointer crosses the link, so Turbo's `mouseenter` prefetch sends
+  // no second request for the hold to catch.
+  const followSidebarLink = (path) => cy.get(`a[href="${path}"]:visible`).first().then(($link) => $link[0].click())
+
+  const visitEnded = (path) => {
+    cy.location('pathname').should('eq', path)
+    cy.get('html[aria-busy]').should('not.exist')
+  }
+
+  beforeEach(() => {
+    cy.intercept('GET', '**/inbox/popover*').as('popover')
+  })
+
+  it('a panel opened while the visit loads is open on the page it brings', () => {
+    cy.visit(`${appOrigin}/admin`)
+    holdDestination()
+    followSidebarLink(destination)
+    cy.get('html[aria-busy]').should('exist')
+
+    cy.get(trigger).click()
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'true')
+    releaseDestination()
+
+    visitEnded(destination)
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'true')
+    cy.get(panel).should('be.visible')
+    cy.get(`${panel} .bali-inbox-popover-row`).should('have.length.at.least', 1)
+  })
+
+  // Turbo paints the cached page first and then the response: two renders, two controllers.
+  it('a panel opened before the cached preview paints is open once the response replaces it', () => {
+    cy.visit(`${appOrigin}${destination}`)
+    followSidebarLink('/admin')
+    visitEnded('/admin')
+    holdDestination()
+
+    cy.get(trigger).then(($trigger) => {
+      const doc = $trigger[0].ownerDocument
+      doc.querySelector(`a[href="${destination}"]`).click()
+      expect(doc.documentElement.hasAttribute('aria-busy'), 'the visit has started').to.equal(true)
+      expect(doc.documentElement.hasAttribute('data-turbo-preview'), 'the preview has not painted yet').to.equal(false)
+      $trigger[0].click()
+    })
+    cy.get('html[data-turbo-preview]').should('exist')
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
+    releaseDestination()
+
+    visitEnded(destination)
+    cy.get('html[data-turbo-preview]').should('not.exist')
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'true')
+    cy.get(panel).should('be.visible')
+  })
+
+  it('a panel opened and closed while the visit loads stays closed', () => {
+    cy.visit(`${appOrigin}/admin`)
+    holdDestination()
+    followSidebarLink(destination)
+    cy.get('html[aria-busy]').should('exist')
+
+    cy.get(trigger).click()
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'true')
+    cy.get(trigger).click()
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
+    releaseDestination()
+
+    visitEnded(destination)
+    // Long enough for an open on `turbo:load` to have shown the panel.
+    cy.wait(300)
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
+    cy.get('[data-tippy-root]').should('not.exist')
+  })
+
+  // The row's link renders the next page while the panel is still open.
+  it('a panel opened on a loaded page arrives closed on the page one of its rows leads to', () => {
+    cy.visit(`${appOrigin}/admin`)
+    cy.get(trigger).click()
+    cy.wait('@popover')
+    cy.get(`${panel} .bali-inbox-popover-row`).first().click()
+
+    visitEnded('/admin/projects/1')
+    cy.get(trigger).should('exist')
+    cy.wait(300)
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
+    cy.get('[data-tippy-root]').should('not.exist')
+  })
+
+  // The row's visit cancels the held one; a click inside the panel never goes through `close()`.
+  it('a panel opened while one visit loads arrives closed on the page a row leads to instead', () => {
+    cy.visit(`${appOrigin}/admin`)
+    holdDestination()
+    followSidebarLink(destination)
+    cy.get('html[aria-busy]').should('exist')
+    cy.get(trigger).click()
+    cy.wait('@popover')
+
+    cy.get(`${panel} .bali-inbox-popover-row`).first().click()
+    releaseDestination()
+
+    visitEnded('/admin/projects/1')
+    cy.get(trigger).should('exist')
+    cy.wait(300)
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
+    cy.get('[data-tippy-root]').should('not.exist')
+  })
+
+  // Brought over by the visit, it is now the panel of a loaded page.
+  it('a panel the visit brought arrives closed on the page one of its rows leads to', () => {
+    cy.visit(`${appOrigin}/admin`)
+    holdDestination()
+    followSidebarLink(destination)
+    cy.get('html[aria-busy]').should('exist')
+    cy.get(trigger).click()
+    releaseDestination()
+    visitEnded(destination)
+    cy.get(`${panel} .bali-inbox-popover-row`).should('have.length.at.least', 1)
+
+    cy.get(`${panel} .bali-inbox-popover-row`).first().click()
+
+    visitEnded('/admin/projects/1')
+    cy.get(trigger).should('exist')
+    cy.wait(300)
+    cy.get(trigger).should('have.attr', 'aria-expanded', 'false')
+    cy.get('[data-tippy-root]').should('not.exist')
+  })
+
+  // A render can replace the page while `open()` waits for tippy.js, a chunk of its own in a split
+  // build. Here the element leaves in the same task as the click, before the import resolves.
+  it('an open whose element leaves the page before tippy.js arrives does not go to the full page', () => {
+    cy.visit(`${appOrigin}/admin`)
+    cy.intercept({ method: 'GET', pathname: '/inbox' }).as('fullPage')
+
+    cy.get(trigger).then(($trigger) => {
+      $trigger[0].click()
+      $trigger[0].closest('[data-controller~="topbar-inbox"]').remove()
+    })
+
+    // Long enough for `location.assign` to have left.
+    cy.wait(500)
+    cy.get('@fullPage.all').should('have.length', 0)
+    cy.location('pathname').should('eq', '/admin')
   })
 })

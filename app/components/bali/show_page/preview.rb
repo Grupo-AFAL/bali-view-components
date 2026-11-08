@@ -9,6 +9,14 @@ module Bali
         render_with_template(template: "bali/show_page/previews/default")
       end
 
+      # @label With title mark
+      # `with_title_mark` reaches the header as `with_title_tag` does: an icon in a box or a
+      # `Bali::Avatar` before the title, outside the heading.
+      # @param mark_size select { choices: [xs, sm] }
+      def with_title_mark(mark_size: :xs)
+        render_with_template(template: "bali/show_page/previews/with_title_mark", locals: { mark_size: mark_size.to_sym })
+      end
+
       # @label Without Sidebar
       # Full-width show page without a sidebar column.
       def without_sidebar

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "action_view/testing/resolvers"
 
 # #1512 — the dummy's InboxesController is the reference host controller: the whole integration
 # is `include Bali::Concerns::Controllers::Inbox` and the routes. These walk every action.
@@ -9,6 +10,11 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     private
 
     def inbox_owner = nil
+  end
+
+  # Renders docs/guides/engine-models.md's link to `open_item(to:)`, as the guide writes it.
+  class GuideLinksController < ApplicationController
+    def show = render(:show, locals: { item: Bali::Inbox::Query.new(current_user).find(:task, params[:gid]) })
   end
 
   def setup
@@ -64,6 +70,18 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal [ "Newer", "Older" ], css_select(".bali-inbox-notice-message").map { |node| node.text.strip }
+  end
+
+  # The range and «Marcar todos como leídos» are about the notices: with none, the header is an empty
+  # bordered strip over the empty state.
+  def test_the_notices_header_is_left_out_without_notices
+    get "/inbox", params: { tab: "notices" }
+    assert_select ".bali-inbox .empty-state-component", 1
+    assert_select ".bali-inbox-notices-header", 0
+
+    released
+    get "/inbox", params: { tab: "notices" }
+    assert_select ".bali-inbox-notices-header", 1
   end
 
   def test_notices_page_20_at_a_time
@@ -165,6 +183,27 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     refute notice.reload.unread?
   end
 
+  # A host whose screen opens the item somewhere other than its href, as afal-apps' Inicio does.
+  def test_open_item_to_a_destination_of_this_site_marks_read_and_goes_there
+    write = task("Write")
+    notice = assigned(write)
+
+    get "#{item_path_for(write)}/open", params: { to: "/admin/movies?status=done" }
+
+    assert_redirected_to "/admin/movies?status=done"
+    refute notice.reload.unread?
+  end
+
+  def test_open_item_never_follows_a_destination_off_the_site
+    write = task("Write")
+
+    [ "https://evil.example/phish", "//evil.example/phish", "/\\evil.example/phish", "javascript:alert(1)" ].each do |to|
+      get "#{item_path_for(write)}/open", params: { to: to }
+
+      assert_redirected_to "/admin/projects/#{@project.id}", to
+    end
+  end
+
   def test_open_item_on_a_stale_item_lands_on_gone
     get "#{item_path_for(task('Ship', status: :done))}/open"
 
@@ -259,23 +298,21 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
 
   # In `es`, whose number format in the dummy writes 13.887, as rails-i18n's does in some hosts.
   def test_the_pending_number_is_written_with_a_thousands_comma
-    count = Bali::Inbox::Query.instance_method(:count)
+    TaskInboxProvider.define_method(:pending_count_for) { |_user| 13_887 }
     task("Write")
-    Bali::Inbox::Query.define_method(:count) { 13_887 }
 
     get "/inbox/popover", params: { locale: "es" }
 
     assert_select "[role=tab]#bali-inbox-tab-0 .badge", "13,887"
     assert_match I18n.t("bali_view.inbox.footer.pending", count: 13_887, number: "13,887", locale: :es), response.body
   ensure
-    Bali::Inbox::Query.define_method(:count, count)
+    TaskInboxProvider.remove_method(:pending_count_for)
   end
 
   def test_the_pages_tabs_and_kind_pills_carry_their_numbers_with_a_thousands_comma
-    counts = Bali::Inbox::Query.instance_method(:counts_by_kind)
+    TaskInboxProvider.define_method(:pending_count_for) { |_user| 13_887 }
     task("Write")
     released
-    Bali::Inbox::Query.define_method(:counts_by_kind) { { task: 13_887 } }
 
     get "/inbox", params: { locale: "es" }
 
@@ -284,7 +321,7 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
     assert_equal "1 #{I18n.t("bali_view.inbox.notices.unread", locale: :es)}", tabs.last.at_css(".badge")&.text
     assert_select ".split-view-filter-count", text: "13,887", count: 2
   ensure
-    Bali::Inbox::Query.define_method(:counts_by_kind, counts)
+    TaskInboxProvider.remove_method(:pending_count_for)
   end
 
   def test_the_popovers_tabs_use_ids_of_their_own
@@ -357,11 +394,11 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
 
   # bali-auth's helper, private on the controller: the owner is who the request acts as, and an
   # admin is behind it.
-  def impersonating
-    InboxesController.class_eval { private def impersonating? = true }
+  def impersonating(controller = InboxesController)
+    controller.class_eval { private def impersonating? = true }
     yield
   ensure
-    InboxesController.remove_method(:impersonating?)
+    controller.remove_method(:impersonating?)
   end
 
   def test_while_impersonating_viewing_an_item_leaves_its_notice_unread
@@ -409,6 +446,93 @@ class InboxRequestTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to "/inbox?tab=notices"
     assert notice.reload.unread?
+  end
+
+  # The cache is the person's: what an impersonated session lists — a host may hide rows from it —
+  # would be the number they see on their next page.
+  def test_while_impersonating_the_popover_leaves_the_owners_badge_cache_alone
+    task("Write")
+    key = Bali::Inbox::Badge.key(@ana)
+
+    impersonating { get "/inbox/popover" }
+    assert_response :success
+    refute Rails.cache.exist?(key)
+
+    get "/inbox/popover"
+    assert Rails.cache.exist?(key), "control: the owner's own popover writes it"
+  end
+
+  # docs/guides/engine-models.md's example from the fence that starts with `first_line`, as
+  # `class_eval` takes it. Read by the tests that run it, so a broken example fails those alone.
+  def guide_example(fence, first_line)
+    guide = Bali::Engine.root.join("docs/guides/engine-models.md")
+    code = guide.read[/^ *```#{fence}\n( *#{Regexp.escape(first_line)}.*?)^ *```/m, 1]
+    [ code, guide.to_s, guide.readlines.index { it.include?(first_line) } + 1 ]
+  end
+
+  def guide_task_reviews_controller
+    unless self.class.const_defined?(:TaskReviewsController, false)
+      self.class.class_eval(*guide_example("ruby", "class TaskReviewsController"))
+      self.class::TaskReviewsController.prepend_view_path(
+        ActionView::FixtureResolver.new("inbox_request_test/task_reviews/new.html.erb" => "Review")
+      )
+    end
+    self.class::TaskReviewsController
+  end
+
+  def draw_guide_routes(&)
+    with_routing do |routes|
+      routes.draw do
+        resource(:inbox, only: []) { get "items/:kind/:gid/open", action: :open_item, as: :open_item }
+        get "tasks/:task_id/review/new", to: "inbox_request_test/task_reviews#new", as: :new_task_review
+        get "guide_link/:gid", to: "inbox_request_test/guide_links#show"
+      end
+      # An integration test's `with_routing` dispatches through the new routes, but a view still
+      # writes paths with the app's own helpers.
+      GuideLinksController.helper(routes.url_helpers)
+      yield
+    end
+  end
+
+  # The drawer fetches with `layout=false`.
+  def test_the_guides_screen_reads_the_record_it_opens_but_not_for_an_admin_or_a_prefetch
+    controller = guide_task_reviews_controller
+    write = task("Write")
+    notice = assigned(write)
+    path = "/tasks/#{write.id}/review/new"
+
+    draw_guide_routes do
+      { "X-Sec-Purpose" => "prefetch", "Sec-Purpose" => "prefetch;prerender" }.each do |header, value|
+        get path, params: { layout: "false" }, headers: { header => value }
+        assert_response :success
+        assert notice.reload.unread?, "a prefetch (#{header})"
+      end
+
+      impersonating(controller) { get path, params: { layout: "false" } }
+      assert notice.reload.unread?, "an admin acting as the person"
+
+      get path, params: { layout: "false" }
+      refute notice.reload.unread?
+    end
+  end
+
+  # Turbo prefetches a link on hover, and `open_item` marks read on that GET.
+  def test_the_guides_link_to_open_item_is_never_prefetched_and_lands_on_its_destination
+    guide_task_reviews_controller
+    code, = guide_example("erb", '<%= render Bali::Link::Component.new(name: "Review"')
+    GuideLinksController.prepend_view_path(ActionView::FixtureResolver.new("inbox_request_test/guide_links/show.html.erb" => code))
+    write = task("Write")
+    notice = assigned(write)
+
+    draw_guide_routes do
+      get "/guide_link/#{write.to_gid_param}", params: { layout: "false" }
+      link = css_select("a[href*='/open?to=']").sole
+      assert_equal "false", link["data-turbo-prefetch"]
+
+      get link["href"]
+      assert_redirected_to "/tasks/#{write.id}/review/new"
+      refute notice.reload.unread?
+    end
   end
 
   # The host's own templates come first, so app/views/inboxes/show.html.erb replaces Bali's.

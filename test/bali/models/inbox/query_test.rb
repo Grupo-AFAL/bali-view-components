@@ -60,6 +60,28 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     def build_item(task, user:) = Bali::Inbox::Item.new(kind: "column", record: task, title: task.title, module_key: "docs")
   end
 
+  # One kind whose items each name their own module, like a workflow step its subject's.
+  class StepsProvider
+    include Bali::Inbox::Provider
+
+    def kind = :step
+
+    def pending_for(_user) = Task.in_progress.order(:id)
+
+    def build_item(task, user:) = item(task, title: task.title, module_key: task.title.start_with?("Minute") ? :minutes : :powers)
+  end
+
+  # Writes the module it is registered under on each item, which spans nothing.
+  class OwnModuleProvider
+    include Bali::Inbox::Provider
+
+    def kind = :own
+
+    def pending_for(_user) = Task.in_progress.order(:id)
+
+    def build_item(task, user:) = item(task, title: task.title, module_key: :docs)
+  end
+
   def setup
     @providers = Bali.inbox_providers
     @kinds = Bali.notice_kinds
@@ -182,6 +204,38 @@ class BaliInboxQueryTest < ActiveSupport::TestCase
     inbox = query
 
     assert_equal [ "Policy" ], inbox.items(module_key: :docs).map(&:title)
+    assert_not inbox.capped?
+
+    inbox.items(module_key: :demo)
+    assert inbox.capped?, "filtered by its own module, what it cut is that module's"
+  end
+
+  # The cap comes before the module filter, so a kind whose items name their own module may have cut
+  # the filtered module's: the first 100 steps are «Minutes», the 101st is «Powers».
+  def test_a_kind_spanning_modules_cut_before_the_module_filter_is_still_capped
+    Bali.inbox_providers = { workflows: [ StepsProvider.name ], minutes: [], powers: [] }
+    Bali.notice_kinds = {}
+    now = Time.current
+    rows = Array.new(Bali::Inbox::Query::FETCH_CAP) { |n| "Minute #{n}" } + [ "Power" ]
+    Task.insert_all(rows.map { |title| { project_id: @project.id, title: title, status: 2, created_at: now, updated_at: now } })
+
+    inbox = query
+
+    assert_empty inbox.items(module_key: :powers)
+    assert inbox.capped?
+  end
+
+  def test_a_provider_naming_its_own_module_on_each_item_is_not_taken_for_one_spanning_modules
+    Bali.inbox_providers = { docs: [ OwnModuleProvider.name ], other: [] }
+    Bali.notice_kinds = {}
+    now = Time.current
+    Task.insert_all(Array.new(Bali::Inbox::Query::FETCH_CAP + 1) do |n|
+      { project_id: @project.id, title: "T#{n}", status: 2, created_at: now, updated_at: now }
+    end)
+
+    inbox = query
+    inbox.items(module_key: :other)
+
     assert_not inbox.capped?
   end
 

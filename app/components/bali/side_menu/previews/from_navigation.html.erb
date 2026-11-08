@@ -1,0 +1,9 @@
+<div class="h-[640px] bg-base-200 p-4 flex gap-4">
+  <div class="w-xs">
+    <%= render Bali::SideMenu::Component.new(current_path: "/elsewhere", fixed: false,
+                                             navigation: Bali::SideMenu::Preview::DemoNavigation) %>
+  </div>
+  <div class="flex-1 p-4">
+    <p class="text-base-content/70">The request counts as <code><%= controller_path %></code>.</p>
+  </div>
+</div>

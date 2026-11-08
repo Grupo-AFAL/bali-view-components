@@ -1,4 +1,4 @@
-<nav class="<%= container_classes %>" aria-label="<%= aria_label %>">
+<nav class="<%= container_classes %>" aria-label="<%= aria_label %>" data-controller="breadcrumb" data-action="scroll->breadcrumb#update">
   <ul>
     <% items.each do |item| %>
       <%= item %>

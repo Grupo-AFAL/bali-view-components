@@ -13,6 +13,9 @@ const FOCUSABLE = [
   'iframe:not([tabindex="-1"])', '[tabindex]:not([tabindex="-1"])'
 ].join(', ')
 
+// What an <input type="submit"> without `data-turbo-submits-with` reads while it sends.
+const SUBMITTING_VALUE = '…'
+
 // Size classes matching Modal::Component::SIZES
 const SIZE_CLASSES = {
   sm: 'max-w-sm',
@@ -118,13 +121,6 @@ export class ModalController extends Controller {
     }
 
     if (this.hasTemplateTarget) {
-      // Listen on the template (overlay) instead of the backdrop because DaisyUI 5's
-      // modal-backdrop has z-index: -1 which can prevent clicks from reaching it.
-      // We detect clicks outside the wrapper to close the modal.
-      this.templateTarget.addEventListener('mousedown', this._onOverlayMousedown)
-      this.templateTarget.addEventListener('click', this._onOverlayClick)
-      this.templateTarget.addEventListener('cancel', this._onDialogCancel)
-
       // Capture-phase probe for the popup guard (see _recordPopupState).
       this.element.addEventListener('keydown', this._recordPopupState, true)
     }
@@ -220,9 +216,6 @@ export class ModalController extends Controller {
     }
 
     if (this.hasTemplateTarget) {
-      this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
-      this.templateTarget.removeEventListener('click', this._onOverlayClick)
-      this.templateTarget.removeEventListener('cancel', this._onDialogCancel)
       this.element.removeEventListener('keydown', this._recordPopupState, true)
     }
 
@@ -235,16 +228,23 @@ export class ModalController extends Controller {
     document.removeEventListener('turbo:before-cache', this._closeBeforeCache)
   }
 
-  templateTargetConnected () {
-    this.templateTarget.addEventListener('mousedown', this._onOverlayMousedown)
-    this.templateTarget.addEventListener('click', this._onOverlayClick)
-    this.templateTarget.addEventListener('cancel', this._onDialogCancel)
+  // The panel's listeners live only here: Stimulus connects a target before `connect()` and
+  // disconnects it after `disconnect()`. On the template (overlay), not the backdrop, because
+  // daisyUI 5's modal-backdrop has z-index: -1 and clicks may never reach it.
+  templateTargetConnected (template) {
+    template.addEventListener('mousedown', this._onOverlayMousedown)
+    template.addEventListener('click', this._onOverlayClick)
+    template.addEventListener('cancel', this._onDialogCancel)
   }
 
-  templateTargetDisconnected () {
-    this.templateTarget.removeEventListener('mousedown', this._onOverlayMousedown)
-    this.templateTarget.removeEventListener('click', this._onOverlayClick)
-    this.templateTarget.removeEventListener('cancel', this._onDialogCancel)
+  // The argument, not `this.templateTarget`: Stimulus disconnects a target once the scope no
+  // longer reaches it (the panel left the page, or `modal` left `data-controller`), and the
+  // getter throws there. `handleTabKey` too: on a panel still open it would read the wrapper.
+  templateTargetDisconnected (template) {
+    template.removeEventListener('mousedown', this._onOverlayMousedown)
+    template.removeEventListener('click', this._onOverlayClick)
+    template.removeEventListener('cancel', this._onDialogCancel)
+    template.removeEventListener('keydown', this.handleTabKey)
   }
 
   setOptionsAndOpenModal = event => {
@@ -864,7 +864,7 @@ export class ModalController extends Controller {
    *
    * 1. When Form is submitted successfully, the server redirects to a new page.
    * 2. When Form has an error, the server returns the form with the errors.
-   * 3. When the form has data-turbo="true" and the server responds with
+   * 3. When the nearest data-turbo is "true" and the server responds with
    *    text/vnd.turbo-stream.html, the streams are applied to the page and
    *    the modal/drawer closes (on success), enabling partial page updates.
    *
@@ -885,8 +885,15 @@ export class ModalController extends Controller {
 
     event.preventDefault()
 
-    const button = event.target
-    this._startSubmitting(button)
+    // `currentTarget` is the element carrying the action; `target` is whatever was under the
+    // pointer, the label <span> or the icon inside the button. A host that calls `submit`
+    // itself once the dispatch is over gets `currentTarget` back as null (enjoykitchen, from
+    // its payment form's Conekta callback), so the fallback climbs to the button the same way.
+    const button = event.currentTarget ?? event.target.closest('button, input[type="submit"]')
+
+    // `button.form` first: a submitter from another form makes FormData throw, and a
+    // `form="…"` attribute is how a button outside the form names the one it submits.
+    const form = button.form ?? button.closest('form')
 
     // `reportValidity()` on the FORM, not `checkValidity()` plus a hand-rolled loop.
     //
@@ -904,14 +911,21 @@ export class ModalController extends Controller {
     //
     // (The orphan page-level instance used to reach this line too; since #984 it
     // returns before preventDefault, so its validation is the browser's own.)
-    const form = button.closest('form')
-    if (!form.reportValidity()) {
-      this._stopSubmitting(button)
-      return
-    }
+    if (!form.reportValidity()) return
+
+    // Built before `_startSubmitting` disables the button: a disabled control never reaches
+    // the entry list, the submitter included (measured in Chromium 148 and Firefox 150). A
+    // `type="button"`, which is what `Bali::Button` renders by default, is no submitter,
+    // and FormData throws if handed one.
+    const body = new FormData(form, button.type === 'submit' ? button : null)
+    this._startSubmitting(button)
 
     const formURL = form.getAttribute('action')
-    const enableTurbo = button.dataset.turbo || form.dataset.turbo
+    // Turbo's reading of a submitter with Drive off (`elementIsNavigatable`): the nearest
+    // `data-turbo` decides, and only the string "true" opts in — `dataset` hands back
+    // strings, and `"false"` is truthy. Turbo also asks the form, which would turn off the
+    // button-only opt-in identity and ga-apps write on a form without the attribute.
+    const enableTurbo = button.closest('[data-turbo]')?.dataset.turbo === 'true'
 
     const url = this._buildURL(formURL, this.redirectTo)
     const options = {
@@ -919,7 +933,7 @@ export class ModalController extends Controller {
       mode: 'same-origin',
       redirect: 'follow',
       credentials: 'include',
-      body: new FormData(form)
+      body
     }
 
     if (enableTurbo) {
@@ -1021,39 +1035,22 @@ export class ModalController extends Controller {
    * build.
    */
   _startSubmitting (button) {
-    if (button.dataset.baliSubmitting) return
-
-    button.dataset.baliSubmitting = 'true'
     button.style.minWidth = `${button.getBoundingClientRect().width}px`
     button.setAttribute('disabled', '')
     button.setAttribute('aria-busy', 'true')
 
-    // The label is kept rather than serialised: moving the nodes preserves whatever
-    // the call site put in the button — an icon, a translated span — and gives
-    // `_stopSubmitting` something exact to put back.
-    const label = document.createElement('span')
-    label.hidden = true
-    label.dataset.baliSubmitLabel = ''
-    label.append(...button.childNodes)
+    // An <input type="submit"> holds no children, so a spinner put inside is never painted: it
+    // shows the wait in its value, as Turbo's `data-turbo-submits-with` does. The body was built
+    // from the real value before this.
+    if (button instanceof window.HTMLInputElement) {
+      button.value = button.dataset.turboSubmitsWith || SUBMITTING_VALUE
+      return
+    }
 
     const spinner = document.createElement('span')
     spinner.className = 'loading loading-spinner loading-sm'
 
-    button.replaceChildren(label, spinner)
-  }
-
-  // Only the client-side validation path comes back here: a 422 re-renders the
-  // whole panel and a redirect replaces the page, and in both cases this button is
-  // gone. Guarded on the stashed label so calling it twice is harmless.
-  _stopSubmitting (button) {
-    const label = button.querySelector('[data-bali-submit-label]')
-    if (!label) return
-
-    button.replaceChildren(...label.childNodes)
-    button.style.minWidth = ''
-    button.removeAttribute('disabled')
-    button.removeAttribute('aria-busy')
-    delete button.dataset.baliSubmitting
+    button.replaceChildren(spinner)
   }
 
   normalizeClass (classes) {

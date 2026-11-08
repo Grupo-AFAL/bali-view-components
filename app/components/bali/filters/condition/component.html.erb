@@ -19,7 +19,8 @@
         <option value="<%= attr[:key] %>"
                 data-type="<%= attr[:type] %>"
                 data-options="<%= (attr[:options] || []).to_json %>"
-                data-operators="<%= Bali::Filters::Operators.for_type(attr[:type]).to_json %>"
+                data-operators="<%= Bali::Filters::Operators.for_attribute(attr).to_json %>"
+                data-default-operator="<%= Bali::Filters::Operators.default_for(attr) %>"
                 <%= 'selected' if attr[:key].to_s == attribute %>>
           <%= attr[:label] %>
         </option>
@@ -32,7 +33,8 @@
     <select class="select select-bordered select-sm w-full truncate"
             aria-label="<%= t('bali_view.filters.aria_labels.operator') %>"
             data-action="condition#operatorChanged"
-            data-condition-target="operator">
+            data-condition-target="operator"
+            <%= 'disabled' if fixed_operator? %>>
       <% operators_for_current_type.each do |op| %>
         <option value="<%= op[:value] %>"
                 data-multiple="<%= op[:multiple] || false %>"

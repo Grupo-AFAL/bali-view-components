@@ -9,6 +9,10 @@ module Bali
         @options = options
       end
 
+      def before_render
+        items.last&.last!
+      end
+
       # Translated aria-label for navigation
       def aria_label
         I18n.t("bali_view.breadcrumb.aria_label")

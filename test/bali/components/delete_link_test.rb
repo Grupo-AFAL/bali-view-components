@@ -158,6 +158,17 @@ class BaliDeleteLinkComponentTest < ComponentTestCase
     assert_selector("form[data-bali-confirm-cancel='Cancel']")
   end
 
+  # The dialog reads the button that submits before its form, so the caller's labels go on
+  # the button and win over the defaults the form keeps.
+  def test_data_puts_the_callers_dialog_labels_on_the_button_beside_the_forms_defaults
+    @options.merge!(data: { bali_confirm_title: "Remove assignment", bali_confirm_accept: "Remove",
+                            bali_confirm_variant: "warning" })
+    render_inline(component)
+    assert_selector("form[data-bali-confirm-title='Confirm deletion'][data-bali-confirm-variant='danger'] " \
+                    "button[data-bali-confirm-title='Remove assignment'][data-bali-confirm-accept='Remove']" \
+                    "[data-bali-confirm-variant='warning']")
+  end
+
   # Inside another form the parser drops a `<form>` start tag, and the `</form>` that follows
   # closes the outer form early. `page` comes from `Capybara.HTML`, which empties every
   # `<template>`; the fragment `render_inline` returns keeps the form inside it.

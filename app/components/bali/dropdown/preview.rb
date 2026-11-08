@@ -56,6 +56,15 @@ module Bali
 
       # @!endgroup
 
+      # With a Divider
+      # ---------------
+      # `tag: :divider` sets the last item apart. It is drawn only between two items that are
+      # drawn: turn `retire_authorized` off and the divider leaves with the item after it.
+      # @param retire_authorized toggle
+      def with_divider(retire_authorized: true)
+        render_with_template(locals: { retire_authorized: retire_authorized })
+      end
+
       # Inside a Modal or Drawer
       # ---------------
       # `popover: true` in a panel opened with `showModal()`. Everything outside the

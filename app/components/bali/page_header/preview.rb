@@ -44,6 +44,17 @@ module Bali
         render_with_template(locals: { title: title })
       end
 
+      # `with_title_mark` puts an icon in a box or a `Bali::Avatar` before the title, outside
+      # the heading and hidden from screen readers. A mark up to 32px (`Bali::Avatar`
+      # `size: :xs`) is centred on the title's first line: on a phone, where this title wraps,
+      # it stays beside that line. A taller one sits at the top of the row and grows it.
+      #
+      # @param title text
+      # @param mark select { choices: [avatar, icon] }
+      def with_title_mark(title: 'Ana Sofía García López de la Fuente', mark: :avatar)
+        render_with_template(locals: { title: title, mark: mark.to_sym })
+      end
+
       # `tag:` is semantic only — it sets the element, never the size. Use
       # `class:` for the size. The title defaults to `h1`; pass `tag: :h2` when
       # the surrounding layout already owns the page's `h1`.

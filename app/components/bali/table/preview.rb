@@ -178,6 +178,16 @@ module Bali
         )
       end
 
+      # @label Wrapping headers
+      # A header does not wrap by default: daisyUI sets `white-space: nowrap` on a `.table`'s
+      # thead and the header cells inherit it. `class: "whitespace-normal"` on a header beats
+      # an inherited value without `!`, so in a narrow panel its text breaks over two lines
+      # instead of pushing its column out of the panel.
+      # @param wrap toggle
+      def wrapping_headers(wrap: true)
+        render_with_template(template: 'bali/table/previews/wrapping_headers', locals: { wrap: wrap })
+      end
+
       def empty_table
         render_with_template(
           template: 'bali/table/previews/default',

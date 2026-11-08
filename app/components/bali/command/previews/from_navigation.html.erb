@@ -1,0 +1,7 @@
+<div class="p-6 bg-base-200 min-h-[480px]">
+  <%= render Bali::Command::Component.new(navigation: Bali::SideMenu::Preview::DemoNavigation, class: "max-w-md") do |c| %>
+    <% c.with_group(name: "Actions") do |g| %>
+      <% g.with_item(title: "New project", meta: "Create", icon: "plus", href: "/projects/new") %>
+    <% end %>
+  <% end %>
+</div>

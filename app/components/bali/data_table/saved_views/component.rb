@@ -133,23 +133,19 @@ module Bali
           q = params.fetch("q", {})
           q = {} unless q.is_a?(Hash)
           filter_form.state_matches_current_state?(
-            "attributes" => q.except("g", "m", *search_predicate),
+            "attributes" => q.except("g", "m", *search_predicates),
             "groupings" => q["g"],
             "combinator" => q["m"],
-            "search_value" => search_predicate && q[search_predicate],
+            "search_value" => q.values_at(*search_predicates).compact.first,
             "group_by" => params["group_by"]
           )
         rescue URI::InvalidURIError
           false
         end
 
-        # Combined predicate emitted by the quick search (e.g. "name_or_code_cont"), or nil if
-        # this listing has no search.
-        def search_predicate
-          return @search_predicate if defined?(@search_predicate)
-
-          fields = filter_form.try(:search_config)&.dig(:fields)
-          @search_predicate = Bali::RansackParamName.predicate(fields)
+        # Every name the form reads the quick search from, which a shortcut's URL may carry.
+        def search_predicates
+          @search_predicates ||= filter_form.try(:search_param_names) || []
         end
       end
     end

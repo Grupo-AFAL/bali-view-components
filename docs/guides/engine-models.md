@@ -548,11 +548,11 @@ Bali.inbox_providers = { governance: %w[SignaturesProvider ApprovalsProvider] }
 
 | Method | Returns |
 |---|---|
-| `count`, `counts_by_kind` | What the badge and the filter pills show |
-| `items(module_key: nil, kind: nil)` | Sorted into «Vencidos» (past due), «Esta semana» (due within 7 days) and «Después» (later or undated). At most `FETCH_CAP` (100) per provider, the first in `pending_for`'s own order — a provider that can pass 100 orders it by due date, or an overdue item can fall past the cap |
-| `capped?` | Whether a provider hit the cap, once `items` ran |
+| `count(pending_by_module: {})`, `counts_by_kind` | What the badge and the filter pills show. `pending_by_module` takes what the caller already counted, as `Badge.compute` does |
+| `items(module_key: nil, kind: nil)` | Sorted into «Vencidos» (past due), «Esta semana» (due within 7 days) and «Después» (later or undated). At most `FETCH_CAP` (100) per provider, the first in `pending_for`'s own order and before the module filter — a provider that can pass 100 orders it by due date, or an overdue item can fall past the cap |
+| `capped?` | Once `items` ran, whether it may have left something out: a provider hit the cap and, under `module_key:`, what it cut can be of that module — the provider is that module's, or its first `FETCH_CAP` items name another |
 | `find(kind, gid)` | The item, or `nil` when it is not pending for this user. The gid is only ever matched inside that kind's own `pending_for`, so a forged one reaches nothing |
-| `fresh_keys(items)`, `mark_seen!(item)` | The «Nuevo» marks, and reading them |
+| `fresh_keys(items)`, `mark_seen!(item)`, `mark_record_seen!(record)` | The «Nuevo» marks, and reading them: by the item, or by its record for a screen that has no item |
 
 Labels are yours, under `bali_view.inbox.kinds.<kind>` (with `one`/`other`, since the pills
 pluralize) and `bali_view.inbox.modules.<module>`. Both fall back to the humanized key.
@@ -612,10 +612,31 @@ end
   - Their links carry `data-turbo-prefetch="false"`, so a hover does not read them.
   - Not while someone acts as the owner. When the controller answers `impersonating?` (bali-auth's helper) with `true`, `owner_reading?` is false: nothing is marked read and «Marcar todos como leídos» is not offered. An admin looking at someone's inbox leaves their «Nuevo», their dot and their digest email as they were. A host action of its own that marks read asks `owner_reading?` first.
   - `open_notice` follows an `action_url` on this site — a path, or a URL with this host (Rails' `url_from`). Anything else lands on the «Avisos» tab.
+  - `open_item` takes `to`, for a page of yours that opens the item somewhere other than its `href`. It marks the item read and goes to `to` when it is on this site, by the same rule; otherwise to the `href`. The link carries `data-turbo-prefetch="false"`, as Bali's own do: Turbo prefetches a link on hover, and `open_item` marks read on that GET.
+
+    ```erb
+    <%= render Bali::Link::Component.new(name: "Review", data: { turbo_prefetch: "false" },
+          href: open_item_inbox_path(kind: item.kind, gid: item.gid, to: new_task_review_path(item.record))) %>
+    ```
+
+    Not from a `drawer:` link: the drawer loads a redirect's destination as the whole page.
+  - A screen of yours that opens the record itself, such as a panel in a drawer, calls `mark_inbox_seen(record)` (`InboxBadge`, private). Nothing is marked while someone acts as the owner (`owner_reading?`), nor for a prefetch (`X-Sec-Purpose` from Turbo, `Sec-Purpose` from the browser's speculation rules). A `drawer:` link is never prefetched; a page link to that screen still carries `data-turbo-prefetch="false"`, because Turbo would serve the click from the prefetched page, which marked nothing.
+
+    ```ruby
+    class TaskReviewsController < ApplicationController
+      def new
+        @task = Task.find(params[:task_id])
+        mark_inbox_seen(@task)
+      end
+    end
+    ```
 - **The badge.** The icon's number is `Query#count`; its dot means unread notices that announce nothing. Both are cached per person for one minute.
   - A new notice, a mark-read through the engine, and any request of the person's that is not a GET expire the cache.
   - Someone else's action that changes your items without a notice shows within the minute.
   - With a warm cache a page runs one cache read and no provider or notice query.
+  - Not while someone acts as the owner (`owner_reading?` false). The icon and the popover then count on every request and leave the person's cache alone: a host may show that session fewer rows, and the person would see its number on their next page.
+  - `Bali::Inbox::Badge` is public in five calls: `for(owner)`, the cached numbers `inbox_badge` reads; `compute(owner, pending_by_module: {})`, counted now; `write_from(owner, pending_by_module: {})`, counted now and cached; `expire(owner)`; and `refresh(owner)`, which also tells the person's open pages. `Badge.new` and `write` are not: a member added to `Badge` would break a host that builds one.
+  - A page of yours that already counted a module's items hands the count over instead of repeating Bali's rule: `write_inbox_badge(pending_by_module: { projects: @pending_tasks.size })` in the controller (`InboxBadge`), which also sets that request's `inbox_badge`. The key is a module of `Bali.inbox_providers` with providers, and its count stands for every provider under it; any other key raises `ArgumentError`. Bali counts the other modules and the unread notices, as `compute` does. It writes nothing while someone acts as the owner: it would be the number they see on their next page. Outside a controller, `Bali::Inbox::Badge.write_from(user, pending_by_module:)` writes unconditionally, so ask your own impersonation check first.
   - Once its transaction commits, writing a notice does not fail on account of the badge or the email. A failure in the broadcast or in the delivery job's enqueue — Action Cable's database down, the queue unreachable — goes to `Rails.error` instead of raising into whoever wrote it. The cache is expired before the broadcast, so the next page load counts again, while a page already open keeps its old number until it loads another; the hourly sweep resends an email whose job never went in. The delivery row is written inside the transaction, so a failure writing it still rolls the notice back.
 - **turbo-rails.** The popover and «Marcar todos como leídos» answer with Turbo Streams, so the inbox needs turbo-rails, as dashboard widgets do; Bali's gemspec does not declare it.
 - **The stream.** `stream:` subscribes the page to `[owner, :bali_inbox]`. Each new notice broadcasts a signal that carries no count, and the icon fetches `badge_url` again. That needs Action Cable too; without `stream:` the icon refreshes on the next page.

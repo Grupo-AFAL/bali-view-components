@@ -33,9 +33,10 @@ module Bali
       # <%= google_maps_meta_tags %>
       # ```
       # With nothing configured it falls back to the `GOOGLE_MAPS_KEY`
-      # environment variable. Without either, the component still renders and
-      # the map area stays blank — the missing key is reported in the browser
-      # console, not by a server-side error.
+      # environment variable. Without either, the component renders nothing, so
+      # the page can show the coordinates in its place. The dummy's own key is a
+      # stub unless the shell exports a real one, and Google answers it with
+      # "Oops! Something went wrong."
       # See [External Services Guide](/docs/guides/external-services.md) for setup instructions.
       #
       # The map's labels are in the language of the `<html lang>`, which the dummy writes from
@@ -67,6 +68,30 @@ module Bali
             c.with_location(**location_attrs)
           end
         end
+      end
+
+      # @label Small
+      # A map small enough to confirm one point inside a card. `map_class:` lands
+      # on the map, 450px tall by default, and a height there wins without `!`.
+      # @param map_class select { choices: [h-56, h-96] }
+      def small(map_class: 'h-56')
+        render Bali::LocationsMap::Component.new(zoom: 15, fit_to_locations: true, map_class: map_class) do |c|
+          c.with_location(**LOCATIONS.first)
+        end
+      end
+
+      # @label Following inputs
+      # The markers follow `data-locations-map-locations-value` once the map
+      # has connected: the page writes it, here from two inputs, as an array
+      # of `{ lat, lng }` plus any of `name`, `markerColor`, `markerLabel`,
+      # `markerUrl`, `markerBorderColor` and `markerGlyphColor`. While the
+      # value is on the element, it replaces the locations rendered with
+      # `with_location`.
+      def following_inputs
+        render_with_template(
+          template: 'bali/locations_map/previews/following_inputs',
+          locals: { location: LOCATIONS.first }
+        )
       end
 
       # @label With Cards

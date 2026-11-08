@@ -38,6 +38,11 @@ module Bali
       # unwrapped, two badges cut a 375px title down to 277px.
       TITLE_ROW_CLASSES = "page-header-title flex items-center gap-3 flex-wrap"
       TITLE_BLOCK_CLASSES = "page-header-title-block min-w-0 space-y-1"
+      # `min-h-8` is the first line box of TITLE_CLASSES' `text-2xl` (a 2rem line-height): a mark
+      # up to 32px is centred on the title's first line however many lines the title wraps to.
+      # A taller one grows the box rather than overhang it: at `h-8` a 48px avatar rode 4px over
+      # the breadcrumbs at 1280px.
+      TITLE_MARK_CLASSES = "page-header-title-mark flex min-h-8 shrink-0 items-center self-start me-3"
 
       # The block form renders INSIDE the heading. Passing a heading of your own
       # nests one heading in another, which the HTML parser splits into an empty
@@ -57,6 +62,12 @@ module Bali
       # heading, not children of it: inside, they became part of its accessible
       # name ("The Matrix Action Released") and made it invalid HTML.
       renders_many :title_tags
+
+      # An icon in a box or a `Bali::Avatar` before the title, outside the heading, centred on
+      # the title's first line at the default title size (`text-2xl`). Decorative only, nothing
+      # focusable inside: it is `aria-hidden`, since beside the heading that names the page it
+      # can only repeat it.
+      renders_one :title_mark
 
       # `heading:` names the element of the constructor-provided `title:` — the same thing
       # the slot's `tag:` does, and like it, semantic only: the size stays TITLE_CLASSES.
@@ -120,6 +131,10 @@ module Bali
           else
             tag.div(class: TITLE_ROW_CLASSES) { safe_join([ heading, *title_tags ].compact) }
           end
+      end
+
+      def title_mark_element
+        tag.div(title_mark, class: TITLE_MARK_CLASSES, "aria-hidden": true) if title_mark?
       end
 
       def render_title_block?

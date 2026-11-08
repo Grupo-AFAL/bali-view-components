@@ -8,7 +8,9 @@
     <% end %>
     <% if render_title_block? %>
       <% level.with_item(class: 'max-sm:w-full min-w-0') do %>
-        <div class="<%= TITLE_BLOCK_CLASSES %>">
+        <%# The mark on the block's own line, so a header without one renders byte for byte
+            what it did (test/fixtures/layout_markup). %>
+        <%= title_mark_element %><div class="<%= TITLE_BLOCK_CLASSES %>">
           <%= title_row %>
           <%= subtitle_element %>
         </div>
