@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Un peer opcional cuyo chunk no cargó ya no se reporta como paquete sin instalar** (#1589).
+  En el build dividido, tippy.js, flatpickr, slim-select, chart.js, @glidejs/glide, sortablejs y
+  @googlemaps/markerclusterer van cada uno en su chunk. Si ese archivo no llegaba (por la red, o
+  porque la página pedía un chunk de un deploy anterior), `optionalPeer` lo tomaba por un paquete
+  sin instalar y sólo escribía en la consola «Run `yarn add …`». Ahora lo pasa a `reportError`
+  como error, con la falla del navegador como `cause`, para que llegue al rastreador de errores
+  de la app; el componente se sigue quedando apagado. El paquete que de verdad falta y el que
+  truena al evaluarse no cambian. Las apps no tienen que hacer nada: lo reciben al subir de
+  versión.
+
 ## [v3.24.0] - 2026-11-07
 
 ### Added
