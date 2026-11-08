@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.25.0] - 2026-11-08
+
 ### Added
 
 - **`Bali::Navigation`: cuatro opciones que la navegación declarada no expresaba** y que
