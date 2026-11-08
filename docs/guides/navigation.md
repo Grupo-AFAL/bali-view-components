@@ -15,22 +15,26 @@ or `Item` is still your model: `gate: -> { policy(Location).index? }` asks about
 # app/models/navigation.rb
 class Navigation < Bali::Navigation::Base
   app_module :work, title: "Work", icon: "briefcase", controllers: %w[projects] do
-    item :projects, title: "Projects", icon: "folder-kanban", path: "/projects", controllers: %w[projects]
+    item :projects, title: "Projects", icon: "folder-kanban", path: "/projects", controllers: %w[projects],
+                    frequent: true
     item :calendar, title: "Calendar", icon: "calendar-days", path: "/calendar", controllers: %w[calendars],
                     hint: "The team's calendar"
-    item :inbox, title: "Inbox", icon: "inbox", path: "/inbox", controllers: %w[inbox], badge: -> { 4 }
-    group :settings, title: "Settings", icon: "settings" do
+    item :inbox, title: "Inbox", icon: "inbox", path: "/inbox", controllers: %w[inbox], badge: -> { 4 },
+                 frequent: true
+    group :settings, title: "Settings", icon: "settings", badge: -> { 2 } do
       item :members, title: "Members", path: "/settings/members", controllers: %w[settings/members]
       item :billing, title: "Billing", path: "/settings/billing", controllers: %w[settings/billing]
     end
     section :reports, title: "Reports" do
       item :monthly, title: "Monthly", icon: "chart-pie", path: "/reports/monthly", controllers: %w[reports]
+      item :archive, title: "Archive", icon: "archive", path: "/reports/archive", controllers: %w[reports/archive],
+                     link_class: "line-through opacity-60"
       item :exports, title: "Exports", icon: "file-down", path: "/reports/exports", menu: false
     end
   end
 
   app_module :administration, title: "Administration", icon: "shield", controllers: %w[admin] do
-    item :users, title: "Users", icon: "users", path: "/admin/users", controllers: %w[admin/users]
+    item :users, title: "Users", icon: "users", path: "/admin/users", controllers: %w[admin/users], frequent: true
     item :roles, title: "Roles", icon: "key-round", path: "/admin/roles", controllers: %w[admin/roles]
   end
 end
@@ -59,8 +63,11 @@ the block keeps `with_brand`, `with_switcher`, `with_bottom_item` and any extra 
   by the module's title.
 - **`section`** — a list of the side menu. `heading: false` draws it without a heading and keeps
   its title for the palette and for `locate`.
-- **`group`** — an expandable entry; it holds items and has no path.
-- **`item`** — a destination.
+- **`group`** — an expandable entry; it holds items and has no path. Its `badge:` is drawn on
+  its row in the side menu with an item's contract: a lambda run in the view when the group is
+  drawn, a String or an Integer; nil draws none.
+- **`item`** — a destination. `link_class:` is a class on its link in the side menu's expanded
+  row; the collapsed rail and its flyouts draw the link without it.
 
 Keys are unique across the navigation, and `Navigation.find(key)` returns any node. Titles come
 from I18n — `navigation.modules.<key>`, `navigation.sections.<key>`, `navigation.items.<key>`
@@ -91,8 +98,9 @@ drawn in the side menu that opens in place (no `target:`) and has a path, unless
 The class refuses to load what could never work: a module, section or group with no item drawn in
 the side menu (every item `menu: false`), a module with nothing that opens in place and no
 `landing:`, items written directly in a module after its sections, a `match:` the side menu does
-not know, and a lambda option (`gate:`, `path:`, `landing:`, `badge:`, `keywords:`) that takes
-arguments — they run in the view, where `current_user` is at hand.
+not know, a `frequent:` item with `target:`, and a lambda option (`gate:`, `path:`, `landing:`,
+`badge:`, `keywords:`) that takes arguments — they run in the view, where `current_user` is at
+hand.
 
 ## Paths
 
@@ -139,8 +147,16 @@ Pages are every item the person may open, with a path and without `target:` (the
 navigates in place). `menu: false` offers an item in the palette only. Each page is found by its
 title, its group, section and module, its `hint:` (also the link's `title` in the side menu) and
 its `keywords:` (a String, an Array or a lambda). With modules, a modules group is listed on open
-and the pages as you type; without, the pages are listed on open. The group names are
-`bali_view.command.navigation.modules` and `.pages`, which a host renames in its own locale.
+and the pages as you type; without, the pages are listed on open.
+
+`frequent: true` marks a page the palette opens on. When at least one is left for this person — a
+frequent page follows the palette's rules: its gate, a path, and no `target:` —, a frequent group
+lists them on open, in declaration order, and the modules and the pages wait for a query. Typing
+finds a frequent page among the pages and hides the frequent group, so it is never listed twice.
+With none left, the palette opens as above.
+
+The group names are `bali_view.command.navigation.frequent`, `.modules` and `.pages`, which a host
+renames in its own locale. A group's `badge:` and an item's `link_class:` stay in the side menu.
 
 ## Outside a view
 
@@ -158,7 +174,8 @@ A model or a job builds a menu against any object that answers what the gates ca
   `sections` in a navigation with modules; `request` as well, and those items' paths, when items
   share a controller and differ by query;
 - **`main_app`**, or whatever the path lambdas call: `path(item)`, `landing(app_module)`,
-  `palette_entries`; `badge(item)` needs what the badge calls.
+  `palette_entries`, `frequent_entries`; `badge(item)` and `badge(group)` need what the badge
+  calls.
 
 ## The test
 

@@ -18,11 +18,19 @@ class NavigationPreviewsTest < ActionDispatch::IntegrationTest
     assert_select "a.side-menu-expanded.active[aria-current=page][href='/admin/users']", text: /Users/
   end
 
-  test "the palette offers the modules, the pages, and the block's group after them" do
+  test "the side menu draws a group's badge and an item's link class" do
+    get SIDE_MENU
+    assert_select ".collapse-title", text: /Settings\s*2/
+    assert_select "a.side-menu-expanded.line-through.opacity-60[href='/reports/archive']", text: /Archive/
+  end
+
+  test "the palette offers the frequent pages, the modules, the pages, and the block's group after them" do
     get COMMAND
     assert_response :ok
 
-    assert_equal %w[Modules Pages Actions], css_select(".cmd-group").map { it.text.strip }
+    assert_equal %w[Frequent Modules Pages Actions], css_select(".cmd-group").map { it.text.strip }
+    assert_equal %w[/projects /inbox /admin/users],
+                 css_select("[data-command-target=row][data-mode=recent]").map { it["data-href"] }
     assert_select "[data-command-target=row][data-href='/reports/exports']", text: /Exports/
   end
 end

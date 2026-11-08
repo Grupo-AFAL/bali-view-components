@@ -12,7 +12,11 @@ class NavigationGuideExampleTest < ActiveSupport::TestCase
   end
 
   def projection(navigation)
-    navigation.nodes.map { [ it.class, it.key, it.title, it.controllers, it.try(:path), it.try(:hint), it.try(:menu?) ] }
+    navigation.nodes.map do |node|
+      badge = node.try(:badge)
+      [ node.class, node.key, node.title, node.controllers, node.try(:path), node.try(:hint), node.try(:menu?),
+        node.try(:frequent?), node.try(:link_class), badge.is_a?(Proc) ? badge.call : badge ]
+    end
   end
 
   test "the guide's first navigation declares what the previews draw" do

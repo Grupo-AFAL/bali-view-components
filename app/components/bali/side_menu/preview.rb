@@ -9,22 +9,26 @@ module Bali
         current_controller_path { params[:controller_path].presence || "projects/tasks" }
 
         app_module :work, title: "Work", icon: "briefcase", controllers: %w[projects] do
-          item :projects, title: "Projects", icon: "folder-kanban", path: "/projects", controllers: %w[projects]
+          item :projects, title: "Projects", icon: "folder-kanban", path: "/projects", controllers: %w[projects],
+                          frequent: true
           item :calendar, title: "Calendar", icon: "calendar-days", path: "/calendar", controllers: %w[calendars],
                           hint: "The team's calendar"
-          item :inbox, title: "Inbox", icon: "inbox", path: "/inbox", controllers: %w[inbox], badge: -> { 4 }
-          group :settings, title: "Settings", icon: "settings" do
+          item :inbox, title: "Inbox", icon: "inbox", path: "/inbox", controllers: %w[inbox], badge: -> { 4 },
+                       frequent: true
+          group :settings, title: "Settings", icon: "settings", badge: -> { 2 } do
             item :members, title: "Members", path: "/settings/members", controllers: %w[settings/members]
             item :billing, title: "Billing", path: "/settings/billing", controllers: %w[settings/billing]
           end
           section :reports, title: "Reports" do
             item :monthly, title: "Monthly", icon: "chart-pie", path: "/reports/monthly", controllers: %w[reports]
+            item :archive, title: "Archive", icon: "archive", path: "/reports/archive", controllers: %w[reports/archive],
+                           link_class: "line-through opacity-60"
             item :exports, title: "Exports", icon: "file-down", path: "/reports/exports", menu: false
           end
         end
 
         app_module :administration, title: "Administration", icon: "shield", controllers: %w[admin] do
-          item :users, title: "Users", icon: "users", path: "/admin/users", controllers: %w[admin/users]
+          item :users, title: "Users", icon: "users", path: "/admin/users", controllers: %w[admin/users], frequent: true
           item :roles, title: "Roles", icon: "key-round", path: "/admin/roles", controllers: %w[admin/roles]
         end
       end
@@ -188,8 +192,9 @@ module Bali
       # `navigation:` draws the sidebar from the app's `Bali::Navigation::Base` subclass: a switch per module the
       # person may open, then the current module's sections. The active item comes from the
       # controller the request belongs to, not from the URL — pick another controller and the item
-      # follows, `admin/users` moving to the other module. The navigation is
-      # `Bali::SideMenu::Preview::DemoNavigation`; see docs/guides/navigation.md.
+      # follows, `admin/users` moving to the other module. Settings carries a group's `badge:`, and
+      # Archive a `link_class:`. The navigation is `Bali::SideMenu::Preview::DemoNavigation`; see
+      # docs/guides/navigation.md.
       #
       # ```erb
       # <%= render Bali::SideMenu::Component.new(current_path: request.path, navigation: Navigation) %>

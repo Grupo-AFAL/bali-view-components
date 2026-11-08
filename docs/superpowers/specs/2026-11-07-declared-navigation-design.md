@@ -417,3 +417,11 @@ literals, controller map); its examples run as written in the dummy app.
 
 None for Bali. The two visible changes GC's migration has to settle are listed in §7 so that
 nobody settles them by accident.
+
+## 10. Amended 2026-11-08
+
+Migrating centinela-web and GC took three options §1 did not have. `item … frequent:` brings
+«Frecuentes», which §4 and §8 left to the host, into Bali: the palette opens on the frequent pages
+this person may open, and the modules and the pages wait for a query. `group … badge:` draws GC's
+Datos count on its group row. `item … link_class:` gives GC's struck-through entries a class on
+the link, so their titles stay data without HTML. `docs/guides/navigation.md` carries the contract.

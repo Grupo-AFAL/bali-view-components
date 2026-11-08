@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Navigation`: tres opciones que la navegación declarada no expresaba** y que
+  centinela-web y gobierno-corporativo dibujan hoy a mano. Las apps que ya usan `navigation:`
+  (garita) no cambian.
+  - **`item … frequent: true`.** Si a la persona le queda al menos una página frecuente (con su
+    gate, una ruta y sin `target:`, como toda página de la paleta), `Bali::Command` abre con un
+    grupo «Frecuentes» con esas páginas, en el orden en que se declaran, y los módulos y las
+    páginas salen al teclear. La página frecuente sigue en «Páginas» y no sale dos veces. Si no le
+    queda ninguna, la paleta abre como antes. Con `target:` la clase no carga. La llave es
+    `bali_view.command.navigation.frequent`, y cada app la renombra en su locale, como `.modules` y
+    `.pages`. Una app que escribe ese grupo a mano (centinela-web, con `FREQUENT_KEYS`) marca los
+    ítems y lo borra.
+  - **`group … badge:`**, con el contrato del `badge:` de un ítem: la insignia en la fila del grupo
+    del menú lateral, con el marcado de `with_item(…, badge:)` (el conteo de Pendientes de Datos en
+    gobierno-corporativo). La paleta no la muestra.
+  - **`item … link_class:`**: una clase en el enlace del menú lateral expandido. No la llevan la
+    paleta, el riel colapsado ni sus menús flotantes. Con `"line-through opacity-60"` en lugar del
+    `span` de gobierno-corporativo, la opacidad atenúa también el ícono y el fondo del ítem activo.
+
 ## [v3.24.1] - 2026-11-08
 
 ### Removed
