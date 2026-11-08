@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Los git hooks del repo (`.githooks/`).** El `pre-push` corría la suite completa en cada push,
+  incluso al borrar ramas, y fallaba en clones con archivos locales en `docs/plans/` que el CI no
+  tiene. RuboCop, StandardJS, Minitest y Cypress siguen corriendo en el CI de cada PR. Sin efecto
+  en las apps; un clon que había corrido `git config core.hooksPath .githooks` puede deshacerlo
+  con `git config --unset core.hooksPath`.
+
 ## [v3.24.0] - 2026-11-07
 
 ### Added
