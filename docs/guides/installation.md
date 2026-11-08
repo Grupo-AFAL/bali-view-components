@@ -405,10 +405,10 @@ missing.
 > at BUNDLE time like any other import and fails the build on a specifier it cannot find —
 > dynamic or not — **unless the call carries a `.catch()`**; its own error message says so.
 > Every one of these calls now does, through `optionalPeer()`, which logs the package name
-> and the `yarn add` line and lets the controller return. In a split build, a package that is
-> installed but whose chunk did not load is reported as an error instead, without the
-> `yarn add` line. Before that, skipping any of them
-> broke `yarn build` with `Could not resolve` and this paragraph was simply wrong.
+> and the `yarn add` line and lets the controller return. Before that, skipping any of them
+> broke `yarn build` with `Could not resolve` and this paragraph was simply wrong. In a split
+> build, a package that is installed but whose chunk did not load is reported as an error
+> instead, once per page, without the `yarn add` line.
 >
 > The six peers that this could NOT be done for — the ones a top-level `import` pulls in
 > unconditionally — were moved to *required* in Step 2 instead. The rule, both directions:
