@@ -86,6 +86,50 @@ class BaliSideMenuNavigationTest < ComponentTestCase
     assert_selector "a.side-menu-expanded[href='#'][disabled]", text: "Pasaporte"
   end
 
+  test "a group's badge is drawn on its row as with_item draws it, and nil draws none" do
+    nav = Class.new(Bali::Navigation::Base) do
+      section :data, title: "Data" do
+        group :pending, title: "Pending", icon: "inbox", badge: -> { 3 } do
+          item :discrepancies, title: "Discrepancies", path: "/discrepancies"
+        end
+        group :explore, title: "Explore", badge: -> { } do
+          item :catalog, title: "Catalog", path: "/catalog"
+        end
+      end
+    end
+    render_inline(Bali::SideMenu::Component.new(current_path: "/", navigation: nav))
+    drawn = page.find(".collapse-title", text: "Pending").native.to_html
+
+    assert_selector ".collapse-title .rounded-box", text: "3"
+    assert page.find(".collapse-title", text: "Explore").has_no_css?(".rounded-box")
+
+    render_inline(Bali::SideMenu::Component.new(current_path: "/")) do |menu|
+      menu.with_list(title: "Data") do |list|
+        list.with_item(name: "Pending", icon: "inbox", badge: 3) do |group|
+          group.with_item(name: "Discrepancies", href: "/discrepancies")
+        end
+      end
+    end
+    assert_equal page.find(".collapse-title", text: "Pending").native.to_html, drawn
+  end
+
+  test "an item's link_class lands on its link, in a group too" do
+    nav = Class.new(Bali::Navigation::Base) do
+      section :documents, title: "Documents" do
+        item :templates, title: "Templates", icon: "file", path: "/templates", link_class: "line-through opacity-60"
+        item :portal, title: "Portal", icon: "network", path: "/portal"
+        group :configuration, title: "Configuration" do
+          item :glossary, title: "Glossary", path: "/glossary", link_class: "line-through opacity-60"
+        end
+      end
+    end
+    render_inline(Bali::SideMenu::Component.new(current_path: "/", navigation: nav))
+
+    assert_selector "a.side-menu-expanded.line-through.opacity-60[href='/templates']", text: "Templates"
+    assert_selector ".collapse-content a.line-through.opacity-60[href='/glossary']", text: "Glossary"
+    assert_selector "a.side-menu-expanded[href='/portal']:not(.line-through)", text: "Portal"
+  end
+
   test "the block's lists come after the navigation's" do
     render_menu do |menu|
       menu.with_list(title: "Shortcuts") { |list| list.with_item(name: "Help", href: "/help") }

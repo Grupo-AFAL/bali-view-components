@@ -232,7 +232,7 @@ module Bali
       def draw_navigation_entry(list, entry)
         return list.with_item(**navigation_item_options(entry)) if entry.item?
 
-        list.with_item(name: entry.title, icon: entry.icon) do |group|
+        list.with_item(name: entry.title, icon: entry.icon, badge: navigation_menu.badge(entry)) do |group|
           navigation_menu.items(entry).each { |item| group.with_item(**navigation_item_options(item)) }
         end
       end
@@ -240,7 +240,7 @@ module Bali
       def navigation_item_options(item)
         menu = navigation_menu
         { name: item.title, icon: item.icon, href: menu.path(item), match: item.match, active: menu.active(item),
-          badge: menu.badge(item), target: item.target, title: item.hint }
+          badge: menu.badge(item), target: item.target, title: item.hint, class: item.link_class }
       end
 
       def navigation_menu = helpers.navigation_for(@navigation)
