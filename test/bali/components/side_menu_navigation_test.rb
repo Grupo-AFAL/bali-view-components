@@ -130,6 +130,36 @@ class BaliSideMenuNavigationTest < ComponentTestCase
     assert_selector "a.side-menu-expanded[href='/portal']:not(.line-through)", text: "Portal"
   end
 
+  test "a group with item_icons: false draws its items as a hand-written group without icons" do
+    nav = Class.new(Bali::Navigation::Base) do
+      section :documents, title: "Documents" do
+        group :supervision, title: "Supervision", icon: "users", item_icons: false do
+          item :team, title: "Team", icon: "users-round", path: "/team"
+          item :control, title: "Control", icon: "clipboard-check", path: "/control"
+        end
+        group :explore, title: "Explore", icon: "compass" do
+          item :catalog, title: "Catalog", icon: "folder-tree", path: "/catalog"
+        end
+      end
+    end
+    render_inline(Bali::SideMenu::Component.new(current_path: "/", navigation: nav))
+    drawn = page.all(".side-menu-list > li").first.native.inner_html
+
+    assert_no_selector ".collapse-content a[href='/team'] svg"
+    assert_no_selector ".side-menu-collapsed-flyout a[href='/team'] svg", visible: :all
+    assert_selector ".collapse-content a[href='/catalog'] svg"
+
+    render_inline(Bali::SideMenu::Component.new(current_path: "/")) do |menu|
+      menu.with_list(title: "Documents") do |list|
+        list.with_item(name: "Supervision", icon: "users") do |group|
+          group.with_item(name: "Team", href: "/team", match: :crud)
+          group.with_item(name: "Control", href: "/control", match: :crud)
+        end
+      end
+    end
+    assert_equal page.all(".side-menu-list > li").first.native.inner_html, drawn
+  end
+
   test "the block's lists come after the navigation's" do
     render_menu do |menu|
       menu.with_list(title: "Shortcuts") { |list| list.with_item(name: "Help", href: "/help") }

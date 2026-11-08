@@ -18,9 +18,11 @@ class NavigationPreviewsTest < ActionDispatch::IntegrationTest
     assert_select "a.side-menu-expanded.active[aria-current=page][href='/admin/users']", text: /Users/
   end
 
-  test "the side menu draws a group's badge and an item's link class" do
+  test "the side menu draws a group's badge, a group's items without icons, and an item's link class" do
     get SIDE_MENU
     assert_select ".collapse-title", text: /Settings\s*2/
+    assert_select ".collapse-content a[href='/settings/members']", text: /Members/
+    assert_select ".collapse-content a[href='/settings/members'] svg", count: 0
     assert_select "a.side-menu-expanded.line-through.opacity-60[href='/reports/archive']", text: /Archive/
   end
 
@@ -31,6 +33,7 @@ class NavigationPreviewsTest < ActionDispatch::IntegrationTest
     assert_equal %w[Frequent Modules Pages Actions], css_select(".cmd-group").map { it.text.strip }
     assert_equal %w[/projects /inbox /admin/users],
                  css_select("[data-command-target=row][data-mode=recent]").map { it["data-href"] }
+    assert_select "[data-command-target=row][data-href='/settings/members'] .cmd-row-ic svg"
     assert_select "[data-command-target=row][data-href='/reports/exports']", text: /Exports/
   end
 end

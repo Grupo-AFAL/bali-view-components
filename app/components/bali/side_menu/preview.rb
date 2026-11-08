@@ -15,9 +15,9 @@ module Bali
                           hint: "The team's calendar"
           item :inbox, title: "Inbox", icon: "inbox", path: "/inbox", controllers: %w[inbox], badge: -> { 4 },
                        frequent: true
-          group :settings, title: "Settings", icon: "settings", badge: -> { 2 } do
-            item :members, title: "Members", path: "/settings/members", controllers: %w[settings/members]
-            item :billing, title: "Billing", path: "/settings/billing", controllers: %w[settings/billing]
+          group :settings, title: "Settings", icon: "settings", badge: -> { 2 }, item_icons: false do
+            item :members, title: "Members", icon: "users", path: "/settings/members", controllers: %w[settings/members]
+            item :billing, title: "Billing", icon: "credit-card", path: "/settings/billing", controllers: %w[settings/billing]
           end
           section :reports, title: "Reports" do
             item :monthly, title: "Monthly", icon: "chart-pie", path: "/reports/monthly", controllers: %w[reports]
@@ -192,8 +192,9 @@ module Bali
       # `navigation:` draws the sidebar from the app's `Bali::Navigation::Base` subclass: a switch per module the
       # person may open, then the current module's sections. The active item comes from the
       # controller the request belongs to, not from the URL — pick another controller and the item
-      # follows, `admin/users` moving to the other module. Settings carries a group's `badge:`, and
-      # Archive a `link_class:`. The navigation is `Bali::SideMenu::Preview::DemoNavigation`; see
+      # follows, `admin/users` moving to the other module. Settings carries a group's `badge:` and
+      # `item_icons: false` (its items keep their icons in the palette), and Archive a
+      # `link_class:`. The navigation is `Bali::SideMenu::Preview::DemoNavigation`; see
       # docs/guides/navigation.md.
       #
       # ```erb

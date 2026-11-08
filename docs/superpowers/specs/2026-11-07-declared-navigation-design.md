@@ -420,8 +420,10 @@ nobody settles them by accident.
 
 ## 10. Amended 2026-11-08
 
-Migrating centinela-web and GC took three options §1 did not have. `item … frequent:` brings
+Migrating centinela-web, GC and afal-apps took four options §1 did not have. `item … frequent:` brings
 «Frecuentes», which §4 and §8 left to the host, into Bali: the palette opens on the frequent pages
 this person may open, and the modules and the pages wait for a query. `group … badge:` draws GC's
 Datos count on its group row. `item … link_class:` gives GC's struck-through entries a class on
-the link, so their titles stay data without HTML. `docs/guides/navigation.md` carries the contract.
+the link, so their titles stay data without HTML. `group … item_icons: false` draws a group's
+items without icons in the side menu, as afal-apps and GC's Documentos draw them, while the palette
+keeps them. `docs/guides/navigation.md` carries the contract.

@@ -142,6 +142,17 @@ class BaliCommandNavigationTest < ComponentTestCase
     assert_no_selector ".line-through", visible: :all
   end
 
+  test "the items of a group with item_icons: false keep their icons in the palette" do
+    navigation = Class.new(Bali::Navigation::Base) do
+      section :documents, title: "Documents" do
+        group(:supervision, title: "Supervision", item_icons: false) { item :team, title: "Team", icon: "users-round", path: "/team" }
+      end
+    end
+    render_inline(Bali::Command::Component.new(navigation: navigation))
+
+    assert_selector "[data-command-target='row'][data-href='/team'] .cmd-row-ic svg", visible: :all
+  end
+
   test "the group names are Bali's translation" do
     I18n.with_locale(:es) { render_inline(Bali::Command::Component.new(navigation: WITH_FREQUENT)) }
 

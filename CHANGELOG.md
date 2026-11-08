@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`Bali::Navigation`: tres opciones que la navegación declarada no expresaba** y que
+- **`Bali::Navigation`: cuatro opciones que la navegación declarada no expresaba** y que
   centinela-web y gobierno-corporativo dibujan hoy a mano. Las apps que ya usan `navigation:`
   (garita) no cambian.
   - **`item … frequent: true`.** Si a la persona le queda al menos una página frecuente (con su
@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **`item … link_class:`**: una clase en el enlace del menú lateral expandido. No la llevan la
     paleta, el riel colapsado ni sus menús flotantes. Con `"line-through opacity-60"` en lugar del
     `span` de gobierno-corporativo, la opacidad atenúa también el ícono y el fondo del ítem activo.
+  - **`group … item_icons: false`**: los ítems del grupo se dibujan sin ícono en el menú lateral
+    (el acordeón y el menú flotante del riel colapsado) y conservan su ícono en la paleta. Por
+    omisión se dibujan con ícono, como hasta ahora. Es para el menú que hoy dibuja los hijos de grupo
+    sin ícono: los grupos de afal-apps, y Supervisión y Configuración documental en
+    gobierno-corporativo.
 
 ## [v3.24.1] - 2026-11-08
 

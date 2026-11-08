@@ -108,10 +108,16 @@ module Bali
 
       attr_reader :icon, :badge
 
-      def initialize(icon: nil, badge: nil, **)
+      def initialize(icon: nil, badge: nil, item_icons: true, **)
         super(**)
         @icon = icon
         @badge = badge
+        @item_icons = item_icons
+      end
+
+      # False when the side menu draws its items without their icons.
+      def item_icons?
+        @item_icons != false
       end
     end
 

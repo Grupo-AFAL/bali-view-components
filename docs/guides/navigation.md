@@ -21,9 +21,9 @@ class Navigation < Bali::Navigation::Base
                     hint: "The team's calendar"
     item :inbox, title: "Inbox", icon: "inbox", path: "/inbox", controllers: %w[inbox], badge: -> { 4 },
                  frequent: true
-    group :settings, title: "Settings", icon: "settings", badge: -> { 2 } do
-      item :members, title: "Members", path: "/settings/members", controllers: %w[settings/members]
-      item :billing, title: "Billing", path: "/settings/billing", controllers: %w[settings/billing]
+    group :settings, title: "Settings", icon: "settings", badge: -> { 2 }, item_icons: false do
+      item :members, title: "Members", icon: "users", path: "/settings/members", controllers: %w[settings/members]
+      item :billing, title: "Billing", icon: "credit-card", path: "/settings/billing", controllers: %w[settings/billing]
     end
     section :reports, title: "Reports" do
       item :monthly, title: "Monthly", icon: "chart-pie", path: "/reports/monthly", controllers: %w[reports]
@@ -65,7 +65,9 @@ the block keeps `with_brand`, `with_switcher`, `with_bottom_item` and any extra 
   its title for the palette and for `locate`.
 - **`group`** — an expandable entry; it holds items and has no path. Its `badge:` is drawn on
   its row in the side menu with an item's contract: a lambda run in the view when the group is
-  drawn, a String or an Integer; nil draws none.
+  drawn, a String or an Integer; nil draws none. `item_icons: false` draws its items without
+  their icons in the side menu, in the accordion and in the collapsed rail's flyout; the palette
+  keeps them.
 - **`item`** — a destination. `link_class:` is a class on its link in the side menu's expanded
   row; the collapsed rail and its flyouts draw the link without it.
 

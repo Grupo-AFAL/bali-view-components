@@ -134,15 +134,18 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
     end
   end
 
-  test "an item keeps frequent: and link_class:, a group its badge" do
+  test "an item keeps frequent: and link_class:, a group its badge and item_icons:" do
     nav = navigation do
       section :reports do
-        group(:settings, badge: 2) { item :archive, path: "/archive", frequent: true, link_class: "line-through" }
+        group(:settings, badge: 2, item_icons: false) { item :archive, path: "/archive", frequent: true, link_class: "line-through" }
+        group(:exports) { item :monthly, path: "/monthly" }
         item :invoices, path: "/invoices"
       end
     end
 
     assert_equal 2, nav.find(:settings).badge
+    assert_not nav.find(:settings).item_icons?
+    assert nav.find(:exports).item_icons?
     assert nav.find(:archive).frequent?
     assert_equal "line-through", nav.find(:archive).link_class
     assert_not nav.find(:invoices).frequent?

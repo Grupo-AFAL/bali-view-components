@@ -15,7 +15,8 @@ class NavigationGuideExampleTest < ActiveSupport::TestCase
     navigation.nodes.map do |node|
       badge = node.try(:badge)
       [ node.class, node.key, node.title, node.controllers, node.try(:path), node.try(:hint), node.try(:menu?),
-        node.try(:frequent?), node.try(:link_class), badge.is_a?(Proc) ? badge.call : badge ]
+        node.try(:icon), node.try(:frequent?), node.try(:link_class), node.try(:item_icons?),
+        badge.is_a?(Proc) ? badge.call : badge ]
     end
   end
 

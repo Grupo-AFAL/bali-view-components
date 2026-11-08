@@ -85,11 +85,13 @@ module Bali
         # @param gate [Proc, Object, nil] zero-arity Proc run in the view, or a value for `authorize`
         # @param badge [Proc, String, Integer, nil] drawn on the group's row in the side menu; a Proc
         #   runs in the view when the group is drawn; nil draws no badge
+        # @param item_icons [Boolean] false draws its items without their icons in the side menu; the
+        #   palette keeps them
         # @param title [String, nil] a literal title instead of the I18n one
         # @return [Group]
-        def group(key, icon: nil, gate: nil, badge: nil, title: nil, &block)
+        def group(key, icon: nil, gate: nil, badge: nil, item_icons: true, title: nil, &block)
           reject_nested!(:group, key) if building.is_a?(Group)
-          build(Group, key, block, parent: entry_parent(:group, key), icon:, gate:, badge:, title:)
+          build(Group, key, block, parent: entry_parent(:group, key), icon:, gate:, badge:, item_icons:, title:)
         end
 
         # A destination.
