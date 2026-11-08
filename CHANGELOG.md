@@ -23,6 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ninguna fila vaciaba de todos modos la caché de consultas del resto de la petición. Ahora devuelve 0 sin
   escribir. Ninguna app tiene que cambiar nada. Cuando sí hay avisos sin leer, la escritura sigue
   vaciando la caché, así que un `mark_inbox_seen` en un `after_action` sigue siendo correcto.
+- **Un peer opcional cuyo chunk no cargó ya no se reporta como paquete sin instalar** (#1589).
+  En el build dividido, tippy.js, flatpickr, slim-select, chart.js, @glidejs/glide, sortablejs y
+  @googlemaps/markerclusterer van cada uno en su chunk. Si ese archivo no llegaba (por la red, o
+  porque la página pedía un chunk de un deploy anterior), `optionalPeer` lo tomaba por un paquete
+  sin instalar y sólo escribía en la consola «Run `yarn add …`». Ahora lo pasa a `reportError`
+  como error, una vez por paquete y por página, con la falla del navegador como `cause`, para
+  que llegue al rastreador de errores de la app. El componente se sigue quedando apagado, salvo
+  el Datepicker: si sólo falta el chunk de su idioma, abre en inglés, como antes. El paquete que
+  de verdad falta y el que truena al evaluarse no cambian. Las apps no tienen que hacer nada: lo
+  reciben al subir de versión.
 
 ## [v3.24.0] - 2026-11-07
 

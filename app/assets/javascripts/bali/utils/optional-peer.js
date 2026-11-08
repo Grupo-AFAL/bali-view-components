@@ -26,6 +26,11 @@
  * Telling the second host to `yarn add` something they already have sends them
  * chasing an installation that is not the problem.
  *
+ * A split build adds a third case: the package is installed, esbuild put it in a
+ * chunk of its own, and that file did not arrive — the network, or a page asking
+ * for a chunk of an earlier deploy. That one is reported as an error, because it
+ * happens in visitors' browsers, where nobody reads the console.
+ *
  * WHY A `.catch()` HANDLER AND NOT AN `importOptional('tippy.js')` THAT RETURNS
  * THE MODULE OR NULL — which would be the nicer API, and cannot work. A loader
  * like that receives the package name as a VARIABLE, and esbuild only bundles an
@@ -48,15 +53,37 @@
  * @returns {(error: Error) => null}
  */
 
-// The shapes a module-resolution failure takes. The first is what Chromium
-// produces for a bundled-but-unresolved bare specifier (measured); the rest are
-// the same failure in Firefox, Safari and in a server-side/bundler context, kept
-// so the message stays right away from the browser this was measured in.
-const NOT_INSTALLED = /failed to resolve module specifier|failed to fetch dynamically imported module|error loading dynamically imported module|bare specifier|importing a module script failed|cannot find module/i
+// The shapes a module-resolution failure takes: Chromium's and Firefox's for a
+// bundled-but-unresolved bare specifier (both measured), then the same failure in
+// a server-side/bundler context.
+const NOT_INSTALLED = /failed to resolve module specifier|bare specifier|cannot find module/i
+
+// The shapes a chunk that did not load takes: Chromium's and Firefox's (both
+// measured, #1589), then Safari's (not measured).
+const DID_NOT_LOAD = /failed to fetch dynamically imported module|error loading dynamically imported module|importing a module script failed/i
+
+// Every instance runs its own `import()`, and each one rejects: four Tooltips on
+// a page whose chunk did not load were four errors (measured, #1589).
+const reportedPackages = new Set()
 
 export function optionalPeer (packageName) {
   return error => {
-    if (NOT_INSTALLED.test(String(error && error.message))) {
+    const message = String(error && error.message)
+
+    if (DID_NOT_LOAD.test(message)) {
+      if (reportedPackages.has(packageName)) return null
+      reportedPackages.add(packageName)
+
+      // `reportError`, not `console.error`: it reaches `window.onerror`, where the
+      // host's error tracker listens. The outer message names the package and says
+      // what went wrong. Unwrapped, Chromium's own message is dropped by Sentry's
+      // `ignoreErrors` in bali-runtime up to v0.15.1 (bali-runtime#196).
+      globalThis.reportError(new Error(
+        `[bali] the \`${packageName}\` npm package is installed, but the file the build put it ` +
+          'in did not load. `yarn add` will not help.',
+        { cause: error }
+      ))
+    } else if (NOT_INSTALLED.test(message)) {
       console.error(
         `[bali] needs the \`${packageName}\` npm package, which bali-view-components lists as an ` +
           `optional peer and does not bundle. Run \`yarn add ${packageName}\` and rebuild. ` +
@@ -65,7 +92,7 @@ export function optionalPeer (packageName) {
       )
     } else {
       console.error(
-        `[bali] the \`${packageName}\` npm package IS installed but failed while loading, so the ` +
+        `[bali] the \`${packageName}\` npm package IS installed but threw while evaluating, so the ` +
           'component that needs it stayed off. This is not a missing dependency — `yarn add` ' +
           'will not help. The error it threw:',
         error
