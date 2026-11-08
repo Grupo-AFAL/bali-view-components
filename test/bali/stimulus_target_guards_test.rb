@@ -23,7 +23,7 @@ require "test_helper"
 # navbar previews and both dummy layouts have the target and look fine.
 #
 # A grep and not a lint rule, on purpose. The package lints JS with StandardJS
-# (`.githooks/pre-commit`, `.github/workflows/standardjs.yml`), and standard accepts no rule
+# (`.github/workflows/standardjs.yml`), and standard accepts no rule
 # configuration by design — one custom rule would mean replacing it with a hand-configured
 # ESLint plus a second config and a second CI job. This needs no new dependency and already
 # runs where the rest of the suite runs.

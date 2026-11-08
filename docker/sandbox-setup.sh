@@ -49,7 +49,6 @@ echo "=== Installing JS dependencies ==="
 # on the sandbox's PATH, so it answers to `yarn` before that one.
 command -v corepack >/dev/null || npm install -g --prefix "$HOME/.local" corepack
 corepack enable --install-directory "$HOME/.local/bin"
-git config core.hooksPath .githooks
 yarn install
 (cd test/dummy && yarn install)
 

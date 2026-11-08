@@ -185,7 +185,6 @@ pins the version. Corepack ships with Node 22 and 24; from Node 25 it is a separ
 ```bash
 corepack enable                       # once per Node installation
 yarn --version                        # 4.18.1
-git config core.hooksPath .githooks   # once per clone: RuboCop and StandardJS on commit, Minitest on push
 bundle install
 yarn install && (cd test/dummy && yarn install)
 (cd test/dummy && bin/rails db:schema:load db:seed)   # Lookbook and Cypress read the seeds
