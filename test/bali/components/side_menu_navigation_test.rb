@@ -23,6 +23,9 @@ class BaliSideMenuNavigationTest < ComponentTestCase
     end
   end
 
+  # gobierno-corporativo's `publisher_hidden_label`.
+  def struck(text) = ActionController::Base.helpers.tag.span(text, class: "line-through opacity-60")
+
   def render_menu(&)
     render_inline(Bali::SideMenu::Component.new(current_path: "/elsewhere", navigation: NAVIGATION), &)
   end
@@ -113,21 +116,41 @@ class BaliSideMenuNavigationTest < ComponentTestCase
     assert_equal page.find(".collapse-title", text: "Pending").native.to_html, drawn
   end
 
-  test "an item's link_class lands on its link, in a group too" do
+  test "an item's title_class wraps its title as a hand-written span name does, in a group too" do
     nav = Class.new(Bali::Navigation::Base) do
       section :documents, title: "Documents" do
-        item :templates, title: "Templates", icon: "file", path: "/templates", link_class: "line-through opacity-60"
+        item :templates, title: "Templates", icon: "file", path: "/templates", title_class: "line-through opacity-60"
         item :portal, title: "Portal", icon: "network", path: "/portal"
-        group :configuration, title: "Configuration" do
-          item :glossary, title: "Glossary", path: "/glossary", link_class: "line-through opacity-60"
+        group :configuration, title: "Configuration", icon: "settings-2" do
+          item :glossary, title: "Glossary", path: "/glossary", title_class: "line-through opacity-60"
         end
       end
     end
-    render_inline(Bali::SideMenu::Component.new(current_path: "/", navigation: nav))
+    render_inline(Bali::SideMenu::Component.new(current_path: "/", navigation: nav, collapsible: true))
+    drawn = page.find(".side-menu-list").native.to_html
 
-    assert_selector "a.side-menu-expanded.line-through.opacity-60[href='/templates']", text: "Templates"
-    assert_selector ".collapse-content a.line-through.opacity-60[href='/glossary']", text: "Glossary"
-    assert_selector "a.side-menu-expanded[href='/portal']:not(.line-through)", text: "Portal"
+    assert_selector "a.side-menu-expanded[href='/templates'] span.line-through.opacity-60", text: "Templates"
+    assert_no_selector "a[href='/portal'] .line-through", visible: :all
+
+    render_inline(Bali::SideMenu::Component.new(current_path: "/", collapsible: true)) do |menu|
+      menu.with_list(title: "Documents") do |list|
+        list.with_item(name: struck("Templates"), icon: "file", href: "/templates", match: :crud)
+        list.with_item(name: "Portal", icon: "network", href: "/portal", match: :crud)
+        list.with_item(name: "Configuration", icon: "settings-2") do |group|
+          group.with_item(name: struck("Glossary"), href: "/glossary", match: :crud)
+        end
+      end
+    end
+    assert_equal page.find(".side-menu-list").native.to_html, drawn
+  end
+
+  test "the collapsed rail's initial of an item without an icon is its title's, not its markup's" do
+    nav = Class.new(Bali::Navigation::Base) do
+      section(:documents, title: "Documents") { item :templates, title: "Templates", path: "/templates", title_class: "line-through" }
+    end
+    render_inline(Bali::SideMenu::Component.new(current_path: "/", navigation: nav, collapsible: true))
+
+    assert_selector ".tooltip-component a[href='/templates'] span", exact_text: "T", visible: :all
   end
 
   test "a group with item_icons: false draws its items as a hand-written group without icons" do

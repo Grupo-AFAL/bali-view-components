@@ -128,11 +128,11 @@ class BaliCommandNavigationTest < ComponentTestCase
     assert_equal [ [ "Modules", "navigation" ], [ "Pages", "searchable" ] ], groups
   end
 
-  test "the palette draws no group's badge and no item's link class" do
+  test "the palette draws no group's badge and no item's title class" do
     navigation = Class.new(Bali::Navigation::Base) do
       section :data, title: "Data" do
         group :pending, title: "Pending", badge: -> { raise "the palette ran a group's badge" } do
-          item :discrepancies, title: "Discrepancies", path: "/discrepancies", link_class: "line-through"
+          item :discrepancies, title: "Discrepancies", path: "/discrepancies", title_class: "line-through"
         end
       end
     end

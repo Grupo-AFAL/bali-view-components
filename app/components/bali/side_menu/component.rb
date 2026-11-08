@@ -241,8 +241,9 @@ module Bali
 
       def navigation_item_options(item, icon: true)
         menu = navigation_menu
-        { name: item.title, icon: (item.icon if icon), href: menu.path(item), match: item.match, active: menu.active(item),
-          badge: menu.badge(item), target: item.target, title: item.hint, class: item.link_class }
+        name = item.title_class.present? ? tag.span(item.title, class: item.title_class) : item.title
+        { name: name, icon: (item.icon if icon), href: menu.path(item), match: item.match, active: menu.active(item),
+          badge: menu.badge(item), target: item.target, title: item.hint }
       end
 
       def navigation_menu = helpers.navigation_for(@navigation)

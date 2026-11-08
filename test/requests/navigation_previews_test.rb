@@ -18,12 +18,12 @@ class NavigationPreviewsTest < ActionDispatch::IntegrationTest
     assert_select "a.side-menu-expanded.active[aria-current=page][href='/admin/users']", text: /Users/
   end
 
-  test "the side menu draws a group's badge, a group's items without icons, and an item's link class" do
+  test "the side menu draws a group's badge, a group's items without icons, and an item's title class" do
     get SIDE_MENU
     assert_select ".collapse-title", text: /Settings\s*2/
     assert_select ".collapse-content a[href='/settings/members']", text: /Members/
     assert_select ".collapse-content a[href='/settings/members'] svg", count: 0
-    assert_select "a.side-menu-expanded.line-through.opacity-60[href='/reports/archive']", text: /Archive/
+    assert_select "a.side-menu-expanded[href='/reports/archive'] span.line-through.opacity-60", text: "Archive"
   end
 
   test "the palette offers the frequent pages, the modules, the pages, and the block's group after them" do

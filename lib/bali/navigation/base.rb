@@ -111,11 +111,12 @@ module Bali
         # @param frequent [Boolean] the palette opens on the frequent pages this person may open, and
         #   lists the rest as you type
         # @param match [Symbol] `Bali::SideMenu::Item`'s path matching, for when no claim decides
-        # @param link_class [String, nil] classes for the item's link in the side menu
+        # @param title_class [String, nil] classes for a `<span>` around the title wherever the side menu
+        #   draws it; the palette draws the plain title
         # @param title [String, nil] a literal title instead of the I18n one
         # @return [Item]
         def item(key, path: nil, icon: nil, gate: nil, controllers: [], badge: nil, target: nil, hint: nil,
-                 keywords: nil, menu: true, frequent: false, match: :crud, link_class: nil, title: nil)
+                 keywords: nil, menu: true, frequent: false, match: :crud, title_class: nil, title: nil)
           raise ArgumentError, "item #{key.inspect} has no path:" if path.nil?
           unless Bali::SideMenu::Item::Component::MATCH_TYPES.include?(match)
             raise ArgumentError, "item #{key.inspect}: match: #{match.inspect} is not one of " \
@@ -127,7 +128,7 @@ module Bali
           end
 
           build(Item, key, nil, parent: entry_parent(:item, key), path:, icon:, gate:, controllers:, badge:,
-                                target:, hint:, keywords:, menu:, frequent:, match:, link_class:, title:)
+                                target:, hint:, keywords:, menu:, frequent:, match:, title_class:, title:)
         end
 
         # Navigable controllers that deliberately have no place in the menu.

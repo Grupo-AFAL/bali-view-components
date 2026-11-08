@@ -22,7 +22,7 @@ module Bali
           section :reports, title: "Reports" do
             item :monthly, title: "Monthly", icon: "chart-pie", path: "/reports/monthly", controllers: %w[reports]
             item :archive, title: "Archive", icon: "archive", path: "/reports/archive", controllers: %w[reports/archive],
-                           link_class: "line-through opacity-60"
+                           title_class: "line-through opacity-60"
             item :exports, title: "Exports", icon: "file-down", path: "/reports/exports", menu: false
           end
         end
@@ -194,7 +194,7 @@ module Bali
       # controller the request belongs to, not from the URL — pick another controller and the item
       # follows, `admin/users` moving to the other module. Settings carries a group's `badge:` and
       # `item_icons: false` (its items keep their icons in the palette), and Archive a
-      # `link_class:`. The navigation is `Bali::SideMenu::Preview::DemoNavigation`; see
+      # `title_class:`. The navigation is `Bali::SideMenu::Preview::DemoNavigation`; see
       # docs/guides/navigation.md.
       #
       # ```erb

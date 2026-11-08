@@ -28,7 +28,7 @@ class Navigation < Bali::Navigation::Base
     section :reports, title: "Reports" do
       item :monthly, title: "Monthly", icon: "chart-pie", path: "/reports/monthly", controllers: %w[reports]
       item :archive, title: "Archive", icon: "archive", path: "/reports/archive", controllers: %w[reports/archive],
-                     link_class: "line-through opacity-60"
+                     title_class: "line-through opacity-60"
       item :exports, title: "Exports", icon: "file-down", path: "/reports/exports", menu: false
     end
   end
@@ -68,8 +68,8 @@ the block keeps `with_brand`, `with_switcher`, `with_bottom_item` and any extra 
   drawn, a String or an Integer; nil draws none. `item_icons: false` draws its items without
   their icons in the side menu, in the accordion and in the collapsed rail's flyout; the palette
   keeps them.
-- **`item`** — a destination. `link_class:` is a class on its link in the side menu's expanded
-  row; the collapsed rail and its flyouts draw the link without it.
+- **`item`** — a destination. `title_class:` wraps its title in a `<span>` with that class
+  wherever the side menu draws it: the row, the collapsed rail's tooltip and a group's flyout.
 
 Keys are unique across the navigation, and `Navigation.find(key)` returns any node. Titles come
 from I18n — `navigation.modules.<key>`, `navigation.sections.<key>`, `navigation.items.<key>`
@@ -158,7 +158,7 @@ finds a frequent page among the pages and hides the frequent group, so it is nev
 With none left, the palette opens as above.
 
 The group names are `bali_view.command.navigation.frequent`, `.modules` and `.pages`, which a host
-renames in its own locale. A group's `badge:` and an item's `link_class:` stay in the side menu.
+renames in its own locale. A group's `badge:` and an item's `title_class:` stay in the side menu.
 
 ## Outside a view
 

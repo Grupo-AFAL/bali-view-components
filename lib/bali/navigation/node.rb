@@ -125,10 +125,10 @@ module Bali
     class Item < Node
       I18N_GROUP = "items"
 
-      attr_reader :path, :icon, :badge, :target, :hint, :keywords, :match, :link_class
+      attr_reader :path, :icon, :badge, :target, :hint, :keywords, :match, :title_class
 
       def initialize(path:, icon: nil, badge: nil, target: nil, hint: nil, keywords: nil, menu: true,
-                     frequent: false, match: :crud, link_class: nil, **)
+                     frequent: false, match: :crud, title_class: nil, **)
         super(**)
         @path = path
         @icon = icon
@@ -139,7 +139,7 @@ module Bali
         @menu = menu
         @frequent = frequent
         @match = match
-        @link_class = link_class
+        @title_class = title_class
       end
 
       def item?

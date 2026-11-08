@@ -134,10 +134,10 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
     end
   end
 
-  test "an item keeps frequent: and link_class:, a group its badge and item_icons:" do
+  test "an item keeps frequent: and title_class:, a group its badge and item_icons:" do
     nav = navigation do
       section :reports do
-        group(:settings, badge: 2, item_icons: false) { item :archive, path: "/archive", frequent: true, link_class: "line-through" }
+        group(:settings, badge: 2, item_icons: false) { item :archive, path: "/archive", frequent: true, title_class: "line-through" }
         group(:exports) { item :monthly, path: "/monthly" }
         item :invoices, path: "/invoices"
       end
@@ -147,9 +147,9 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
     assert_not nav.find(:settings).item_icons?
     assert nav.find(:exports).item_icons?
     assert nav.find(:archive).frequent?
-    assert_equal "line-through", nav.find(:archive).link_class
+    assert_equal "line-through", nav.find(:archive).title_class
     assert_not nav.find(:invoices).frequent?
-    assert_nil nav.find(:invoices).link_class
+    assert_nil nav.find(:invoices).title_class
   end
 
   test "a frequent item that opens elsewhere is refused" do
