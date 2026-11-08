@@ -9,13 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **`mark_inbox_seen`, `open_item` e `item` ya no escriben cuando quien abre no tiene nada sin leer**
-  (#1588). `Bali::Notice.mark_read!` mandaba el `UPDATE` aunque no coincidiera ninguna fila, y esa
-  escritura vaciaba la caché de consultas del resto de la petición: en afal-apps, el panel de
-  decisión volvía a leer los pasos de la solicitud. Ahora pregunta antes con `exists?` y devuelve 0
-  sin escribir. Al subir, afal-apps puede regresar `mark_inbox_seen` al `new` de sus tres
-  controladores de decisión y borrar la nota de `app/controllers/concerns/td_flow/records_decisions.rb:13`
-  (`git grep -n "after_action -> { mark_inbox_seen" origin/main`).
+- **`Bali::Notice.mark_read!` ya no escribe cuando no hay nada sin leer** (#1588). Esto también
+  vale para todo lo que pasa por él: `mark_all_read!`, `Query#mark_seen!` y `#mark_record_seen!`,
+  `mark_inbox_seen`, y `open_item` e `item` del concern `Inbox`. Un `UPDATE` que no coincidía con
+  ninguna fila vaciaba de todos modos la caché de consultas del resto de la petición. Ahora devuelve 0 sin
+  escribir. Ninguna app tiene que cambiar nada. Cuando sí hay avisos sin leer, la escritura sigue
+  vaciando la caché, así que un `mark_inbox_seen` en un `after_action` sigue siendo correcto.
 
 ## [v3.24.0] - 2026-11-07
 
