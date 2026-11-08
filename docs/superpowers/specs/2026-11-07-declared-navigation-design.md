@@ -296,8 +296,10 @@ gates call: visibility never resolves a path.
   keeps its meaning and enjoykitchen's hand-written switches keep working;
 - `with_list(title:)` per visible section of the current module;
 - `with_item(name:, icon:, href:, match:, active:, badge:, target:, title:)` per drawn item, `title:`
-  being the hint; `Item::Component` compacts its options, so a nil one keeps the written-out fast
-  path of `Item#leaf_link_attributes`. A group is a `with_item(name:, icon:)` holding its children.
+  being the hint and `name:` a `<span>` when the item has `title_class:` (§10); `Item::Component`
+  compacts its options, so a nil one keeps the written-out fast path of `Item#leaf_link_attributes`.
+  A group is a `with_item(name:, icon:, badge:)` holding its children, drawn without their icons
+  under `item_icons: false`.
 
 The block keeps `with_brand`, `with_switcher` (costa-norte's «Integración»), `with_bottom_item`
 and any further `with_list`, drawn after the navigation's.
@@ -375,21 +377,23 @@ In every app: subclass, render with `navigation:`, delete the helper and the app
   its six `enabled: false` placeholders, `current_module`, `visible_module_definitions`,
   `module_dashboard_path` (a `landing:` stays where it is not the first visible item: Mi espacio's
   inbox, Procesos' home), `command_palette_entries`, `palette_title_key`, the hand-written side
-  menu (its `policy(…)` checks become gates). Stays: §3's `current_controller_path`, the Datos
-  badge. For that PR to decide: the palette offering every menu entry instead of a curated list —
-  measured, 29 of the side menu's 75 static entries are not in today's palette: 20 behind a
-  `policy(…)` (11 inline, 9 inside an enclosing `if policy`), 2 publisher-hidden, the docs link
-  (`target:`, stays out) and 6 open to the whole module — and `publisher_hidden_label`'s
-  struck-through titles (a title is data, without HTML). Its Datos master catalogs are a loop over
-  `Mdm::CatalogRegistry`, which the class body can run the same way.
+  menu (its `policy(…)` checks become gates), and the hand-written «Páginas frecuentes» palette
+  group, whose pages become `frequent: true` (§10). Stays: §3's `current_controller_path`; the
+  Datos badge moves to `group … badge:` (§10). For that PR to decide: the palette offering every
+  menu entry instead of a curated list — measured, 29 of the side menu's 75 static entries are not
+  in today's palette: 20 behind a `policy(…)` (11 inline, 9 inside an enclosing `if policy`), 2
+  publisher-hidden, the docs link (`target:`, stays out) and 6 open to the whole module — and
+  `publisher_hidden_label`'s struck-through titles (a title is data, without HTML; the span is
+  `title_class:`, §10). Its Datos master catalogs are a loop over `Mdm::CatalogRegistry`, which the
+  class body can run the same way.
 - **costa-norte.** Goes: `MODULES`, `MODULE_DEFINITIONS`, `current_module`, `module_for`,
   `visible_module_definitions`, `module_dashboard_path`, `menu_module`, `side_menu_sections`,
   `sections_for`, `nav_item`, the three `*_sections`, both layout loops. Stays: the «Integración»
   switcher, «Frecuentes», `module_breadcrumbs`; «Nuevo envío» becomes a `menu: false` item.
 - **centinela-web.** Goes: `Item`, `Section`, `sections_for`, `items_for`, `frequent_for`,
   `reachable` (its two Pasaporte links put the URL's presence in their gate), `nav_path`,
-  `visible_nav_sections`. Stays: `FREQUENT_KEYS` (over `find`). One pages group with the section
-  as `meta` replaces one group per section.
+  `visible_nav_sections`, and `FREQUENT_KEYS`, whose items become `frequent: true` (§10). One pages
+  group with the section as `meta` replaces one group per section.
 - **identity.** Goes: `Item`, `Section`, `extra_active` (the archives controller goes on the audit
   logs item), `nav_sections`, `nav_item_visible?`, `nav_item_allowed?` (now `authorize {
   |(subject, query)| policy(subject).public_send(query) }`), `command_palette_entries`. Stays:
@@ -420,10 +424,13 @@ nobody settles them by accident.
 
 ## 10. Amended 2026-11-08
 
-Migrating centinela-web, GC and afal-apps took four options §1 did not have. `item … frequent:` brings
-«Frecuentes», which §4 and §8 left to the host, into Bali: the palette opens on the frequent pages
-this person may open, and the modules and the pages wait for a query. `group … badge:` draws GC's
-Datos count on its group row. `item … link_class:` gives GC's struck-through entries a class on
-the link, so their titles stay data without HTML. `group … item_icons: false` draws a group's
-items without icons in the side menu, as afal-apps and GC's Documentos draw them, while the palette
-keeps them. `docs/guides/navigation.md` carries the contract.
+Migrating centinela-web, GC and afal-apps took four options §1 did not have; §4 and §7 above are
+updated for them. Of §8's host code, «Frecuentes» can now be declared (costa-norte's, which lists
+modules, stays in the host), and GC's struck-through titles become `title_class:`.
+`item … frequent:` brings «Frecuentes» into Bali: the palette opens on the frequent pages this
+person may open, and the modules and the pages wait for a query. `group … badge:` draws GC's Datos
+count on its group row. `item … title_class:` wraps the title in a `<span>` wherever the side menu
+draws it, which is GC's struck-through markup, so its titles stay data without HTML.
+`group … item_icons: false` draws a group's items without icons in the side menu, as afal-apps
+and GC's Documentos draw them, while the palette keeps them. `docs/guides/navigation.md` carries
+the contract.
