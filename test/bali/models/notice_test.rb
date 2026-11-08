@@ -121,6 +121,17 @@ class BaliNoticeTest < ActiveSupport::TestCase
     assert theirs.reload.unread?
   end
 
+  def test_mark_read_with_nothing_unread_leaves_the_query_cache_alone
+    notice(:movie_released, read_at: 1.hour.ago)
+
+    ActiveRecord::Base.cache do
+      Bali::Notice.addressed_to(@ana).to_a
+
+      assert_equal 0, Bali::Notice.mark_read!(Bali::Notice.addressed_to(@ana))
+      assert_queries_count(0) { Bali::Notice.addressed_to(@ana).to_a }
+    end
+  end
+
   def test_recent_orders_newest_first
     older = notice(:movie_released, created_at: 2.days.ago)
     newer = notice(:movie_released)

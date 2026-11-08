@@ -44,8 +44,13 @@ module Bali
         mark_read!(addressed_to(recipient)).tap { Bali::Inbox::Badge.expire(recipient) }
       end
 
+      # `exists?` first: an `update_all` that matches nothing still clears the request's query
+      # cache, and the usual case is a reader with nothing unread (#1588).
       def mark_read!(notices)
-        notices.unread.update_all(read_at: Time.current, updated_at: Time.current)
+        unread = notices.unread
+        return 0 unless unread.exists?
+
+        unread.update_all(read_at: Time.current, updated_at: Time.current)
       end
 
       private

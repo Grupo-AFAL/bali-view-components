@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`Bali::Notice.mark_read!` ya no escribe cuando no hay nada sin leer** (#1588). Esto también
+  vale para todo lo que pasa por él: `mark_all_read!`, `Query#mark_seen!` y `#mark_record_seen!`,
+  `mark_inbox_seen`, y `open_item` e `item` del concern `Inbox`. Un `UPDATE` que no coincidía con
+  ninguna fila vaciaba de todos modos la caché de consultas del resto de la petición. Ahora devuelve 0 sin
+  escribir. Ninguna app tiene que cambiar nada. Cuando sí hay avisos sin leer, la escritura sigue
+  vaciando la caché, así que un `mark_inbox_seen` en un `after_action` sigue siendo correcto.
 - **Un peer opcional cuyo chunk no cargó ya no se reporta como paquete sin instalar** (#1589).
   En el build dividido, tippy.js, flatpickr, slim-select, chart.js, @glidejs/glide, sortablejs y
   @googlemaps/markerclusterer van cada uno en su chunk. Si ese archivo no llegaba (por la red, o
