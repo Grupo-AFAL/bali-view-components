@@ -143,6 +143,7 @@ en:
         one: "%{count} result"
         other: "%{count} results"
       navigation:
+        frequent: "Frequent"
         modules: "Modules"
         pages: "Pages"
 

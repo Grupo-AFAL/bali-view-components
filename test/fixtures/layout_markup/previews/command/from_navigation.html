@@ -30,9 +30,48 @@
         </div>
 
         <div class="cmd-list p-1.5 max-h-80 overflow-y-auto">
-            <div data-command-target="group" data-mode="navigation">
+            <div data-command-target="group" data-mode="recent">
+  <div class="cmd-group text-xs font-semibold uppercase tracking-wider text-base-content/70 px-3 pt-3 pb-1.5">Frequent</div>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="recent" data-href="/projects" data-search="projects work" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: folder-kanban --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Projects</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">Work</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="recent" data-href="/inbox" data-search="inbox work" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: inbox --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Inbox</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">Work</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="recent" data-href="/admin/users" data-search="users administration" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: users --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Users</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">Administration</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+</div>
+            <div data-command-target="group" data-mode="searchable">
   <div class="cmd-group text-xs font-semibold uppercase tracking-wider text-base-content/70 px-3 pt-3 pb-1.5">Modules</div>
-    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="navigation" data-href="/projects" data-search="work" data-action="click-&gt;command#select">
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/projects" data-search="work" data-action="click-&gt;command#select">
     <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
       <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: briefcase --></svg></span>
     </span>
@@ -43,7 +82,7 @@
     <kbd class="kbd kbd-xs">⏎</kbd>
   </span>
 </button>
-    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="navigation" data-href="/admin/users" data-search="administration" data-action="click-&gt;command#select">
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/admin/users" data-search="administration" data-action="click-&gt;command#select">
     <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
       <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: shield --></svg></span>
     </span>
@@ -94,6 +133,9 @@
   </span>
 </button>
     <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/settings/members" data-search="members settings work" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: users --></svg></span>
+    </span>
   <span class="cmd-row-body flex-1 min-w-0 flex">
     <span class="cmd-row-title text-sm text-base-content truncate">Members</span>
       <span class="cmd-row-meta text-xs text-base-content/70 truncate">Work</span>
@@ -103,6 +145,9 @@
   </span>
 </button>
     <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/settings/billing" data-search="billing settings work" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: credit-card --></svg></span>
+    </span>
   <span class="cmd-row-body flex-1 min-w-0 flex">
     <span class="cmd-row-title text-sm text-base-content truncate">Billing</span>
       <span class="cmd-row-meta text-xs text-base-content/70 truncate">Work</span>
@@ -117,6 +162,18 @@
     </span>
   <span class="cmd-row-body flex-1 min-w-0 flex">
     <span class="cmd-row-title text-sm text-base-content truncate">Monthly</span>
+      <span class="cmd-row-meta text-xs text-base-content/70 truncate">Work</span>
+  </span>
+  <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">
+    <kbd class="kbd kbd-xs">⏎</kbd>
+  </span>
+</button>
+    <button type="button" class="cmd-row group flex items-center gap-2.5 w-full rounded-md text-left text-sm text-base-content cursor-pointer" data-command-target="row" data-mode="searchable" data-href="/reports/archive" data-search="archive reports work" data-action="click-&gt;command#select">
+    <span class="cmd-row-ic size-7 rounded-md grid place-items-center shrink-0">
+      <span class="icon-component size-3.5" aria-hidden="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon" width="16" height="16" class="lucide-icon"><!-- lucide: archive --></svg></span>
+    </span>
+  <span class="cmd-row-body flex-1 min-w-0 flex">
+    <span class="cmd-row-title text-sm text-base-content truncate">Archive</span>
       <span class="cmd-row-meta text-xs text-base-content/70 truncate">Work</span>
   </span>
   <span class="cmd-row-hint shrink-0 inline-flex items-center gap-1 transition-opacity">

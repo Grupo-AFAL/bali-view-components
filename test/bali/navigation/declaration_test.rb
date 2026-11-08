@@ -129,6 +129,33 @@ class NavigationDeclarationTest < ActiveSupport::TestCase
     assert_raises(ArgumentError, match: "the landing: of :finance takes arguments") do
       navigation { app_module(:finance, landing: ->(user) { user.home }) { item :invoices, path: "/a" } }
     end
+    assert_raises(ArgumentError, match: "the badge: of :settings takes arguments") do
+      navigation { section(:reports) { group(:settings, badge: ->(user) { user.count }) { item :archive, path: "/a" } } }
+    end
+  end
+
+  test "an item keeps frequent: and title_class:, a group its badge and item_icons:" do
+    nav = navigation do
+      section :reports do
+        group(:settings, badge: 2, item_icons: false) { item :archive, path: "/archive", frequent: true, title_class: "line-through" }
+        group(:exports) { item :monthly, path: "/monthly" }
+        item :invoices, path: "/invoices"
+      end
+    end
+
+    assert_equal 2, nav.find(:settings).badge
+    assert_not nav.find(:settings).item_icons?
+    assert nav.find(:exports).item_icons?
+    assert nav.find(:archive).frequent?
+    assert_equal "line-through", nav.find(:archive).title_class
+    assert_not nav.find(:invoices).frequent?
+    assert_nil nav.find(:invoices).title_class
+  end
+
+  test "a frequent item that opens elsewhere is refused" do
+    assert_raises(ArgumentError, match: "item :apex is frequent: and has target:") do
+      navigation { section(:reports) { item :apex, path: "https://apex.example", target: "_blank", frequent: true } }
+    end
   end
 
   test "a match the side menu does not know is refused" do

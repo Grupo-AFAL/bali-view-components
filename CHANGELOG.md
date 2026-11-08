@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.25.0] - 2026-11-08
+
+### Added
+
+- **`Bali::Navigation`: cuatro opciones que la navegación declarada no expresaba** y que
+  centinela-web, gobierno-corporativo y afal-apps dibujan hoy a mano. Las apps que ya usan
+  `navigation:` (garita) no cambian.
+  - **`item … frequent: true`.** Si a la persona le queda al menos una página frecuente (con su
+    gate, una ruta y sin `target:`, como toda página de la paleta), `Bali::Command` abre con un
+    grupo «Frecuentes» con esas páginas, en el orden en que se declaran, y los módulos y las
+    páginas salen al teclear. La página frecuente sigue en «Páginas» y no sale dos veces. Si no le
+    queda ninguna, la paleta abre como antes. Con `target:` la clase no carga. La llave es
+    `bali_view.command.navigation.frequent`, y cada app la renombra en su locale, como `.modules` y
+    `.pages`. La app que escribe ese grupo a mano marca los ítems y lo borra: centinela-web
+    (`FREQUENT_KEYS`) y gobierno-corporativo (`shared/_command_palette.html.erb`); enjoykitchen,
+    que todavía no declara su navegación, escribe uno igual. costa-norte no: su paleta abre con los
+    módulos y dos páginas, y marcar una página mandaría el grupo de Módulos a `:searchable`, así
+    que su grupo se queda en la app.
+  - **`group … badge:`**, con el contrato del `badge:` de un ítem: la insignia en la fila del grupo
+    del menú lateral, con el marcado de `with_item(…, badge:)` (el conteo de Pendientes de Datos en
+    gobierno-corporativo). La paleta no la muestra.
+  - **`item … title_class:`**: envuelve el título en un `<span>` con esa clase dondequiera que el
+    menú lateral lo dibuja (la fila, el tooltip del riel colapsado y el menú flotante de un grupo);
+    la paleta dibuja el título sin él. Es el marcado que gobierno-corporativo escribe con
+    `publisher_hidden_label`.
+  - **`group … item_icons: false`**: los ítems del grupo se dibujan sin ícono en el menú lateral
+    (el acordeón y el menú flotante del riel colapsado) y conservan su ícono en la paleta. Por
+    omisión se dibujan con ícono, como hasta ahora. Es para el menú que hoy dibuja los hijos de grupo
+    sin ícono: los grupos de afal-apps, y Supervisión y Configuración documental en
+    gobierno-corporativo.
+
+### Fixed
+
+- **`Bali::SideMenu`: en el riel colapsado, un ítem sin ícono cuyo `name:` es HTML (un
+  `tag.span`, o el `title_class:` de arriba) muestra la inicial de su texto, no «<».** Un `name:`
+  de texto plano no cambia.
+
 ## [v3.24.1] - 2026-11-08
 
 ### Removed

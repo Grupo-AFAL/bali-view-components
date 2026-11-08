@@ -210,6 +210,27 @@ class NavigationMenuTest < ActiveSupport::TestCase
     assert_equal "/config?tab=scoring", entries["Scoring"][:href]
   end
 
+  test "the frequent pages are the palette's entries of frequent items, in declaration order" do
+    nav = Class.new(Bali::Navigation::Base) do
+      authorize { |key| can?(key) }
+      app_module :work, title: "Work" do
+        item :inbox, title: "Inbox", path: "/inbox", frequent: true
+        item :drafts, title: "Drafts", path: "/drafts"
+        item :reports, title: "Reports", path: "/reports", frequent: true, gate: "reports"
+        item :archive, title: "Archive", path: -> { }, frequent: true
+        item :finder, title: "Finder", path: "/finder", frequent: true, menu: false
+      end
+      app_module :admin, title: "Admin", gate: "admin" do
+        item :users, title: "Users", path: "/users", frequent: true
+      end
+    end
+    menu = nav.menu(Context.new(allowed: %w[reports admin]))
+
+    assert_equal %w[Inbox Finder], nav.menu(Context.new).frequent_entries.pluck(:title)
+    assert_equal %w[Inbox Reports Finder Users], menu.frequent_entries.pluck(:title)
+    assert_equal menu.palette_entries.find { it[:title] == "Users" }, menu.frequent_entries.last
+  end
+
   test "an item without a path is left out of the palette" do
     nav = Class.new(Bali::Navigation::Base) do
       section :people, title: "People" do

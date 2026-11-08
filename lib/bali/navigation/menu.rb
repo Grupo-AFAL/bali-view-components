@@ -80,9 +80,10 @@ module Bali
         end
       end
 
+      # @param node [Item, Group]
       # @return [Object, nil]
-      def badge(item)
-        item.badge.is_a?(Proc) ? context.instance_exec(&item.badge) : item.badge
+      def badge(node)
+        node.badge.is_a?(Proc) ? context.instance_exec(&node.badge) : node.badge
       end
 
       # True for the item the location names, false for the rest while it is drawn, and nil when
@@ -107,12 +108,14 @@ module Bali
       #
       # @return [Array<Hash>] `title:`, `meta:`, `icon:`, `href:`, `search:` for `Bali::Command`'s items
       def palette_entries
-        @palette_entries ||= palette_roots.flat_map { |root| offered_items(root) }.filter_map do |item|
-          next if item.target
+        palette_pages.values
+      end
 
-          href = path(item)
-          { title: item.title, meta: palette_meta(item), icon: item.icon, href: href, search: search_text(item) } if href
-        end
+      # The palette entries of the items declared `frequent: true`, in declaration order.
+      #
+      # @return [Array<Hash>]
+      def frequent_entries
+        palette_pages.filter_map { |item, entry| entry if item.frequent? }
       end
 
       private
@@ -197,6 +200,18 @@ module Bali
           return found if found
         end
         nil
+      end
+
+      def palette_pages
+        @palette_pages ||= {}.compare_by_identity.tap do |pages|
+          palette_roots.flat_map { |root| offered_items(root) }.each do |item|
+            href = path(item) unless item.target
+            next unless href
+
+            pages[item] = { title: item.title, meta: palette_meta(item), icon: item.icon, href: href,
+                            search: search_text(item) }
+          end
+        end
       end
 
       def palette_roots

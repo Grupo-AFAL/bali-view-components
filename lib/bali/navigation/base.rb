@@ -83,11 +83,15 @@ module Bali
         # @param key [Symbol] unique in the navigation; the title's I18n key (under `items`)
         # @param icon [String, nil] Lucide icon name
         # @param gate [Proc, Object, nil] zero-arity Proc run in the view, or a value for `authorize`
+        # @param badge [Proc, String, Integer, nil] drawn on the group's row in the side menu; a Proc
+        #   runs in the view when the group is drawn; nil draws no badge
+        # @param item_icons [Boolean] false draws its items without their icons in the side menu; the
+        #   palette keeps them
         # @param title [String, nil] a literal title instead of the I18n one
         # @return [Group]
-        def group(key, icon: nil, gate: nil, title: nil, &block)
+        def group(key, icon: nil, gate: nil, badge: nil, item_icons: true, title: nil, &block)
           reject_nested!(:group, key) if building.is_a?(Group)
-          build(Group, key, block, parent: entry_parent(:group, key), icon:, gate:, title:)
+          build(Group, key, block, parent: entry_parent(:group, key), icon:, gate:, badge:, item_icons:, title:)
         end
 
         # A destination.
@@ -104,19 +108,27 @@ module Bali
         # @param hint [String, nil] the link's `title`, and search text in the palette
         # @param keywords [String, Array<String>, Proc, nil] more search text for the palette
         # @param menu [Boolean] false offers the item in the palette only
+        # @param frequent [Boolean] the palette opens on the frequent pages this person may open, and
+        #   lists the rest as you type
         # @param match [Symbol] `Bali::SideMenu::Item`'s path matching, for when no claim decides
+        # @param title_class [String, nil] classes for a `<span>` around the title wherever the side menu
+        #   draws it; the palette draws the plain title
         # @param title [String, nil] a literal title instead of the I18n one
         # @return [Item]
         def item(key, path: nil, icon: nil, gate: nil, controllers: [], badge: nil, target: nil, hint: nil,
-                 keywords: nil, menu: true, match: :crud, title: nil)
+                 keywords: nil, menu: true, frequent: false, match: :crud, title_class: nil, title: nil)
           raise ArgumentError, "item #{key.inspect} has no path:" if path.nil?
           unless Bali::SideMenu::Item::Component::MATCH_TYPES.include?(match)
             raise ArgumentError, "item #{key.inspect}: match: #{match.inspect} is not one of " \
                                  "#{Bali::SideMenu::Item::Component::MATCH_TYPES.join(', ')}"
           end
+          if frequent && target
+            raise ArgumentError, "item #{key.inspect} is frequent: and has target:, and the palette offers " \
+                                 "nothing that opens elsewhere"
+          end
 
           build(Item, key, nil, parent: entry_parent(:item, key), path:, icon:, gate:, controllers:, badge:,
-                                target:, hint:, keywords:, menu:, match:, title:)
+                                target:, hint:, keywords:, menu:, frequent:, match:, title_class:, title:)
         end
 
         # Navigable controllers that deliberately have no place in the menu.

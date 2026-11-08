@@ -58,8 +58,9 @@ module Bali
       # @param no_results_text [String] Heading when the query has no matches.
       # @param no_results_subtitle [String, nil] Optional secondary line.
       # @param navigation [Class<Bali::Navigation::Base>, nil] The app's declared navigation. Adds,
-      #   ahead of the block's groups, a group of the modules this person may open (when the
-      #   navigation has modules) and one of the pages. nil renders only the block's groups.
+      #   ahead of the block's groups, a group of the frequent pages this person may open (when
+      #   any is), one of the modules (when the navigation has modules) and one of the pages. nil
+      #   renders only the block's groups.
       def initialize(
         trigger: true,
         placeholder: nil,
@@ -118,24 +119,28 @@ module Bali
       end
 
       # Setters only, never `groups`: view_component runs the host's block on the first slot
-      # getter (`__vc_get_slot`), and a getter here would put the block's groups first. With
-      # modules the pages wait for a query; without, they are the list the palette opens on.
+      # getter (`__vc_get_slot`), and a getter here would put the block's groups first. A
+      # frequent page is listed in Pages too, where a query finds it: `:recent` hides its row in
+      # Frequent as soon as there is a query.
       def draw_navigation
         menu = helpers.navigation_for(@navigation)
-        landings = menu.app_modules.index_with { menu.landing(it) }.compact
-        if landings.any?
-          with_group(name: t("bali_view.command.navigation.modules"), mode: :navigation) do |group|
-            landings.each { |app_module, landing| group.with_item(title: app_module.title, icon: app_module.icon, href: landing) }
-          end
+        frequent = menu.frequent_entries
+        modules = menu.app_modules.filter_map do |app_module|
+          landing = menu.landing(app_module)
+          { title: app_module.title, icon: app_module.icon, href: landing } if landing
         end
 
-        entries = menu.palette_entries
+        navigation_group(t("bali_view.command.navigation.frequent"), frequent, :recent)
+        navigation_group(t("bali_view.command.navigation.modules"), modules,
+                         frequent.any? ? :searchable : :navigation)
+        navigation_group(t("bali_view.command.navigation.pages"), menu.palette_entries,
+                         (frequent.any? || @navigation.app_modules?) ? :searchable : :navigation)
+      end
+
+      def navigation_group(name, entries, mode)
         return if entries.empty?
 
-        with_group(name: t("bali_view.command.navigation.pages"),
-                   mode: @navigation.app_modules? ? :searchable : :navigation) do |group|
-          entries.each { |entry| group.with_item(**entry) }
-        end
+        with_group(name: name, mode: mode) { |group| entries.each { group.with_item(**it) } }
       end
     end
   end

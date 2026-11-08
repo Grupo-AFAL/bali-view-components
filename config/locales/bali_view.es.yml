@@ -138,6 +138,7 @@ es:
         one: "%{count} resultado"
         other: "%{count} resultados"
       navigation:
+        frequent: "Frecuentes"
         modules: "Módulos"
         pages: "Páginas"
 

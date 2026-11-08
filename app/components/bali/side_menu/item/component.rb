@@ -138,11 +138,13 @@ module Bali
           @render_icon ||= render Bali::Icon::Component.new(icon, class: "size-4")
         end
 
+        # A name given as markup (a navigation item's `title_class:` span) starts with "<". Only a
+        # SafeBuffer goes through `strip_tags`, which costs 25 µs a call: every item without an
+        # icon draws an initial, a group's children included.
         def render_initial_icon
-          tag.span(
-            (content || name)&.to_s&.first&.upcase,
-            class: "size-4 flex items-center justify-center text-xs font-medium"
-          )
+          label = content || name
+          label = strip_tags(label) if label.is_a?(ActiveSupport::SafeBuffer)
+          tag.span(label&.to_s&.first&.upcase, class: "size-4 flex items-center justify-center text-xs font-medium")
         end
 
         def render_icon_or_initial

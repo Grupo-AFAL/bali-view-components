@@ -106,11 +106,18 @@ module Bali
     class Group < Node
       I18N_GROUP = "items"
 
-      attr_reader :icon
+      attr_reader :icon, :badge
 
-      def initialize(icon: nil, **)
+      def initialize(icon: nil, badge: nil, item_icons: true, **)
         super(**)
         @icon = icon
+        @badge = badge
+        @item_icons = item_icons
+      end
+
+      # False when the side menu draws its items without their icons.
+      def item_icons?
+        @item_icons != false
       end
     end
 
@@ -118,10 +125,10 @@ module Bali
     class Item < Node
       I18N_GROUP = "items"
 
-      attr_reader :path, :icon, :badge, :target, :hint, :keywords, :match
+      attr_reader :path, :icon, :badge, :target, :hint, :keywords, :match, :title_class
 
       def initialize(path:, icon: nil, badge: nil, target: nil, hint: nil, keywords: nil, menu: true,
-                     match: :crud, **)
+                     frequent: false, match: :crud, title_class: nil, **)
         super(**)
         @path = path
         @icon = icon
@@ -130,7 +137,9 @@ module Bali
         @hint = hint
         @keywords = keywords
         @menu = menu
+        @frequent = frequent
         @match = match
+        @title_class = title_class
       end
 
       def item?
@@ -140,6 +149,11 @@ module Bali
       # False for an item offered only by the command palette.
       def menu?
         @menu != false
+      end
+
+      # True for a page the palette opens on.
+      def frequent?
+        @frequent
       end
     end
   end

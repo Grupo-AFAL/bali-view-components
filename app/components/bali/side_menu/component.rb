@@ -232,14 +232,17 @@ module Bali
       def draw_navigation_entry(list, entry)
         return list.with_item(**navigation_item_options(entry)) if entry.item?
 
-        list.with_item(name: entry.title, icon: entry.icon) do |group|
-          navigation_menu.items(entry).each { |item| group.with_item(**navigation_item_options(item)) }
+        list.with_item(name: entry.title, icon: entry.icon, badge: navigation_menu.badge(entry)) do |group|
+          navigation_menu.items(entry).each do |item|
+            group.with_item(**navigation_item_options(item, icon: entry.item_icons?))
+          end
         end
       end
 
-      def navigation_item_options(item)
+      def navigation_item_options(item, icon: true)
         menu = navigation_menu
-        { name: item.title, icon: item.icon, href: menu.path(item), match: item.match, active: menu.active(item),
+        name = item.title_class.present? ? tag.span(item.title, class: item.title_class) : item.title
+        { name: name, icon: (item.icon if icon), href: menu.path(item), match: item.match, active: menu.active(item),
           badge: menu.badge(item), target: item.target, title: item.hint }
       end
 

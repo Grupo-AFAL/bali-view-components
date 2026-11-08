@@ -27,9 +27,10 @@ module Bali
       end
 
       # @label From a navigation
-      # `navigation:` adds the modules the person may open, listed on open, and every page they
-      # may open, found as you type by its title, group, section, module or hint. The block's
-      # groups follow — here a create action. The navigation is the side menu preview's,
+      # `navigation:` adds the frequent pages the person may open, listed on open — Projects, Inbox
+      # and Users are `frequent: true` —, then the modules and every page they may open, found as
+      # you type by its title, group, section, module or hint. The block's groups follow — here a
+      # create action. The navigation is the side menu preview's,
       # `Bali::SideMenu::Preview::DemoNavigation`: «Exports» is `menu: false`, so it is found here
       # and not drawn there. See docs/guides/navigation.md.
       #
