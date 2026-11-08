@@ -40,7 +40,7 @@ export default class extends Controller { … }            // ✗ does not exist
 
 Named exports are what `app/frontend/bali/index.js` re-exports and what hosts import
 (`import { ModalController } from 'bali-view-components'`). StandardJS is the lint
-(pre-commit hook + CI) — single quotes, no semicolons, space before parens.
+CI runs — single quotes, no semicolons, space before parens.
 
 ## A real controller, in full
 
