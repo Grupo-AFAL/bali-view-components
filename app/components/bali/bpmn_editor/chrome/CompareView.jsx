@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ReactFlow, ReactFlowProvider, Background, ConnectionMode } from '@xyflow/react'
-import { layoutLanes, poolOrigin } from '../model/geometry.js'
+import { layoutLanes, poolOrigin, activityShapeOf } from '../model/geometry.js'
 import { routeAll, findJumps } from '../model/routing.js'
 import { placeEdgeLabels } from '../model/edgeLabels.js'
 import { buildRfNodes, buildRfEdges, laneNodeId, isLaneNodeId, laneIdOf } from '../model/flow.js'
@@ -39,7 +39,7 @@ function Diagram ({ doc, diff, t, caption, focus, peerId, onPoint = noop, onInst
   const [focusId, setFocusId] = useState(null)
   const highlightId = focusId || peerId || null
   const canvas = useMemo(() => ({
-    t, routes, origin: poolOrigin(doc), orientation: layout.orientation, editable: false, connectable: false,
+    t, routes, origin: poolOrigin(doc), orientation: layout.orientation, activityShape: activityShapeOf(doc), editable: false, connectable: false,
     renamingId: null, highlightId, startRename: noop, renderRename: noop, renderEdgeRename: noop,
     onLaneResize: noop, onLaneResizing: noop, quickMenuId: null, renderQuickMenu: noop,
     edgeLabels: placeEdgeLabels(doc, routes), jumps: findJumps(routes), badgesVisible

@@ -13,7 +13,21 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     JSON.parse(island["data-bpmn-editor-#{name}-value"])
   end
 
-  %w[default playground host_integration configured review catalog pair split_view compare_flows resized_activities].each do |preview|
+  def test_the_macroprocess_map_draws_chevrons_with_the_default_chrome
+    get "#{PREVIEW}/macroprocess_map"
+
+    assert_equal "chevron", island_value("data")["activity_shape"]
+    assert_equal [], island_value("legend")
+    assert_nil island["data-bpmn-editor-controls-value"]
+
+    get "#{PREVIEW}/macroprocess_map", params: { hidden: "all", minimap: true, legend: true, activity_shape: "card" }
+    assert_equal({ "zoom" => false, "fit" => false, "fullscreen" => false, "minimap" => true }, island_value("controls"))
+    assert_not_empty island_value("legend")
+    assert_equal "card", island_value("data")["activity_shape"]
+  end
+
+  %w[default playground host_integration configured review catalog pair split_view compare_flows resized_activities
+     macroprocess_map].each do |preview|
     define_method("test_the_#{preview}_preview_renders_the_island_and_its_loader_metas") do
       get "#{PREVIEW}/#{preview}"
 
@@ -33,7 +47,8 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     rule_severity: Bali::BpmnEditor::Preview::RULE_PRESETS.keys + %w[structure off],
     server: Admin::ProcessFlows::DemoServer::MODES,
     theme: %w[light dark],
-    locale: %w[es en]
+    locale: %w[es en],
+    activity_shape: %w[card chevron]
   }.each do |param, values|
     define_method("test_the_playground_renders_every_#{param}") do
       values.each do |value|

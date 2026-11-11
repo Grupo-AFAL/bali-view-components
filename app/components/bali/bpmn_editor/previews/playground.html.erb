@@ -1,4 +1,4 @@
-<%# locals: flow, locale, theme, optional_rules, server, options %>
+<%# locals: flow, locale, theme, optional_rules, server, options, activity_shape (optional) %>
 <%# What an app writes: one render call with its endpoints in `urls:`. The
     `server` and `locale` query parameters on the URLs are the dummy's
     demonstration switch (Admin::ProcessFlows::DemoServer), not part of the
@@ -10,7 +10,7 @@
 <% en = locale.to_s == "en" %>
 <%= tag.div(data: { theme: (theme if theme == "dark") }, class: "bg-base-100 p-2 text-base-content") do %>
   <%= I18n.with_locale(locale) { render Bali::BpmnEditor::Component.new(
-        data: flow.to_diagram(locale: locale),
+        data: flow.to_diagram(locale: locale).merge({ activity_shape: local_assigns[:activity_shape] }.compact),
         editable: true,
         **options,
         fields: {

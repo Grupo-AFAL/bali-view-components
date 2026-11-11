@@ -11,7 +11,7 @@ import { NodeShape, AppearanceMark } from '../shapes.jsx'
 import { DIFF_MARKS, diffMark } from '../canvas/diffMarks.js'
 import { appearanceOf } from '../model/appearance.js'
 import { categoryOf, CATEGORY, edgeType } from '../model/catalog.js'
-import { layoutLanes, laneRect, nodeBox, contentBounds } from '../model/geometry.js'
+import { layoutLanes, laneRect, nodeBox, contentBounds, activityShapeOf } from '../model/geometry.js'
 import { routeAll, pathWithJumps, findJumps } from '../model/routing.js'
 import { placeEdgeLabels } from '../model/edgeLabels.js'
 import { nodeLabelBox, insideLabelBox, badgeTabBox, fitBadge, BADGE_TAB, wrap } from '../model/labels.js'
@@ -80,6 +80,7 @@ function DiffChip ({ x, y, mark, colors }) {
 // `diff` marks one side of a comparison: diff.js's `base` or `current`.
 export default function ExportDiagram ({ doc, paint, colors, title, subtitle, watermark, notes = [], tags = [], page = null, badges = true, fontFamily = FONT, diff = null }) {
   const layout = layoutLanes(doc, { print: true })
+  const activityShape = activityShapeOf(doc)
   const routes = routeAll(doc)
   const edgeLabels = placeEdgeLabels(doc, routes)
   const jumps = findJumps(routes)
@@ -198,8 +199,8 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
         const category = categoryOf(node)
         const note = notesByElement.get(String(node.id))
         const look = appearanceOf(node)
-        const tab = badges && look && look.badge ? badgeTabBox(node, look.badge, { note: Boolean(note) }) : null
-        const area = category === CATEGORY.activity ? insideLabelBox(node, { badge: Boolean(tab) }) : null
+        const tab = badges && look && look.badge ? badgeTabBox(node, look.badge, { note: Boolean(note), activityShape }) : null
+        const area = category === CATEGORY.activity ? insideLabelBox(node, { badge: Boolean(tab), activityShape }) : null
         const state = stateOf('nodes', node.id)
         const mark = markOf('nodes', node.id)
         const opacity = (look && look.dimmed ? 0.45 : 1) * (state === 'removed' ? 0.55 : 1)
@@ -207,8 +208,8 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
           <g key={`node-${node.id}`} opacity={opacity < 1 ? opacity : undefined}>
             {state && <rect x={box.x - 4} y={box.y - 4} width={box.w + 8} height={box.h + 8} rx={8} fill='none' stroke={toneOf(state)} strokeWidth={2} strokeDasharray={state === 'removed' ? '5 3' : undefined} />}
             <g transform={`translate(${box.x} ${box.y})`}>
-              <NodeShape node={node} width={box.w} height={box.h} paint={paint} external={external.has(String(node.lane_id))} badge={Boolean(tab)} />
-              {look && <AppearanceMark node={node} width={box.w} height={box.h} color={look.color} />}
+              <NodeShape node={node} width={box.w} height={box.h} paint={paint} external={external.has(String(node.lane_id))} badge={Boolean(tab)} activityShape={activityShape} />
+              {look && <AppearanceMark node={node} width={box.w} height={box.h} color={look.color} activityShape={activityShape} />}
             </g>
             {area && <Text x={area.x + area.w / 2} y={area.y + area.h / 2} text={node.name} maxChars={Math.floor(area.w / 6.8)} firstChars={Math.floor((area.w - area.corner * 2) / 6.8)} maxLines={area.lines} lineHeight={14} fill={colors.text} />}
             {node.type === 'text_annotation' && <Text x={box.x + 18} y={box.cy + (tab ? 3 : 0)} anchor='start' text={node.name} maxChars={Math.floor((box.w - 20) / 6.5)} maxLines={3} weight={400} fill={colors.text} />}

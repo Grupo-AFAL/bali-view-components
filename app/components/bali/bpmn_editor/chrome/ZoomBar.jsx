@@ -6,30 +6,39 @@ import { fitDiagram } from '../canvas/fit.js'
 // Zoom with a visible percentage, "Center the flow", and — when editing —
 // "Select all" with the selection counter (the tablet path to multi-select).
 // `expand` — the minimal chrome's own way into full screen: { expanded, onToggle }.
-export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect, onBoxSelect, fit = { padding: 0.12 }, badges = null, expand = null }) {
+// `zoom` and `center` — Component `controls:` zoom and fit.
+export default function ZoomBar ({ t, onSelectAll, selectedCount = 0, boxSelect, onBoxSelect, fit = { padding: 0.12 }, badges = null, expand = null, zoom: zoomButtons = true, center = true }) {
   const flow = useReactFlow()
   const { zoomIn, zoomOut } = flow
   const { zoom } = useViewport()
   const button = 'btn btn-ghost btn-xs btn-square'
   return (
     <Panel position='bottom-left' className='bpmn-chrome flex items-center gap-2'>
+      {(zoomButtons || center || expand) && (
       <div className='flex items-center rounded-lg border border-base-300 bg-base-100 shadow-sm' role='group' aria-label={t('zoom_in')}>
-        <button type='button' className={button} onClick={() => zoomOut({ duration: 150 })} aria-label={t('zoom_out')} title={t('zoom_out')}>
-          <Icon name='minus' size={14} />
-        </button>
-        <span className='w-12 text-center font-mono text-xs tabular-nums' aria-live='polite'>{Math.round(zoom * 100)}%</span>
-        <button type='button' className={button} onClick={() => zoomIn({ duration: 150 })} aria-label={t('zoom_in')} title={t('zoom_in')}>
-          <Icon name='plus' size={14} />
-        </button>
-        <button type='button' className={button} onClick={() => fitDiagram(flow, fit, 200)} aria-label={t('center')} title={t('center')}>
-          <Icon name='crosshair' size={14} />
-        </button>
+        {zoomButtons && (
+          <>
+            <button type='button' className={button} onClick={() => zoomOut({ duration: 150 })} aria-label={t('zoom_out')} title={t('zoom_out')} data-testid='bpmn-zoom-out'>
+              <Icon name='minus' size={14} />
+            </button>
+            <span className='w-12 text-center font-mono text-xs tabular-nums' aria-live='polite'>{Math.round(zoom * 100)}%</span>
+            <button type='button' className={button} onClick={() => zoomIn({ duration: 150 })} aria-label={t('zoom_in')} title={t('zoom_in')} data-testid='bpmn-zoom-in'>
+              <Icon name='plus' size={14} />
+            </button>
+          </>
+        )}
+        {center && (
+          <button type='button' className={button} onClick={() => fitDiagram(flow, fit, 200)} aria-label={t('center')} title={t('center')} data-testid='bpmn-center'>
+            <Icon name='crosshair' size={14} />
+          </button>
+        )}
         {expand && (
           <button type='button' className={button} onClick={expand.onToggle} aria-label={t(expand.expanded ? 'exit_fullscreen' : 'expand')} title={t(expand.expanded ? 'exit_fullscreen' : 'expand')} data-testid='bpmn-expand'>
             <Icon name={expand.expanded ? 'minimize' : 'maximize'} size={14} />
           </button>
         )}
       </div>
+      )}
       {onSelectAll && (
         <button type='button' className='btn btn-xs border-base-300 bg-base-100 shadow-sm' onClick={onSelectAll} title='Ctrl+A'>
           <Icon name='selectAll' size={14} /><span className='bpmn-tool-label'>{t('select_all')}</span>

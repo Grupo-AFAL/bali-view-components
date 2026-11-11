@@ -108,12 +108,34 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_includes error.message, "confirm_linked_delete must be true or false"
   end
 
-  def test_external_lanes_can_be_turned_off_and_take_their_legend_entries_along
+  # Everything shows but the minimap; only what differs from that travels.
+  def test_controls_send_only_what_differs_from_the_defaults
     render_inline(component)
+    assert_nil island["data-bpmn-editor-controls-value"]
+
+    render_inline(component(controls: { minimap: true, exports: false, zoom: true }))
+    assert_equal({ "minimap" => true, "exports" => false }, JSON.parse(island["data-bpmn-editor-controls-value"]))
+
+    render_inline(component(controls: { "help" => false }))
+    assert_equal({ "help" => false }, JSON.parse(island["data-bpmn-editor-controls-value"]))
+  end
+
+  def test_controls_reject_unknown_keys_and_non_booleans
+    error = assert_raises(ArgumentError) { component(controls: { legend: false }) }
+    assert_includes error.message, "unknown controls: keys [:legend]"
+
+    error = assert_raises(ArgumentError) { component(controls: { minimap: "yes" }) }
+    assert_includes error.message, "controls: minimap must be true or false"
+
+    assert_raises(ArgumentError) { component(controls: [ :minimap ]) }
+  end
+
+  def test_external_lanes_can_be_turned_off_and_take_their_legend_entries_along
+    render_inline(component(legend: true))
     assert_equal "true", island["data-bpmn-editor-external-lanes-value"]
     assert_includes JSON.parse(island["data-bpmn-editor-legend-value"]).pluck("key"), "external_lane"
 
-    render_inline(component(external_lanes: false))
+    render_inline(component(external_lanes: false, legend: true))
     assert_equal "false", island["data-bpmn-editor-external-lanes-value"]
     assert_equal %w[task sub_process issue], JSON.parse(island["data-bpmn-editor-legend-value"]).pluck("key")
   end
@@ -223,6 +245,14 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
 
     keys = JSON.parse(island["data-bpmn-editor-legend-value"]).pluck("key")
     assert_equal %w[task sub_process external_lane issue rework], keys
+  end
+
+  def test_the_legend_is_hidden_unless_the_host_asks_for_it
+    render_inline(component)
+    assert_equal [], JSON.parse(island["data-bpmn-editor-legend-value"])
+
+    render_inline(component(legend: true))
+    assert_equal Bali::BpmnEditor::Component::DEFAULT_LEGEND, JSON.parse(island["data-bpmn-editor-legend-value"]).pluck("key")
   end
 
   def test_the_legend_can_be_hidden_and_rejects_unknown_swatches

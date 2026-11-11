@@ -137,6 +137,8 @@
 .bpmn-node.has-badge .bpmn-label-annotation { top: 10px; }
 .bpmn-node.has-badge .bpmn-label-group { top: 12px; }
 .bpmn-node-link { position: absolute; top: 3px; right: 6px; font-size: 12px; color: var(--color-secondary); }
+/* A chevron's top edge ends its depth short of the box (labels.js chevronDepth). */
+.bpmn-node.is-chevron .bpmn-node-link { right: calc(var(--bpmn-chevron-depth) + 2px); }
 /* The app's look of a node (node.appearance, model/appearance.js); the band and
  * the outline are SVG (shapes.jsx AppearanceMark). The badge is a tab across
  * the top edge, half outside, flush with the left one (model/labels.js

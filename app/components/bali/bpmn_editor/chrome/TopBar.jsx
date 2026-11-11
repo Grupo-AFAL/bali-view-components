@@ -46,7 +46,7 @@ export default function TopBar ({
       {!pageHeader && statusLabel && <span className='badge badge-ghost badge-sm whitespace-nowrap'>{statusLabel}</span>}
       {!pageHeader && (editable ? <SaveStatus t={t} saveStatus={saveStatus} /> : <span className='badge badge-sm'>{t('read_only')}</span>)}
       {!pageHeader && notesOnly && <SaveStatus t={t} saveStatus={saveStatus} notesOnly />}
-      {editable && issues.length > 0 && (
+      {editable && onIssues && issues.length > 0 && (
         <button
           type='button'
           className={`btn btn-xs gap-1 ${errors ? 'btn-warning' : 'btn-ghost border-base-300'}`}

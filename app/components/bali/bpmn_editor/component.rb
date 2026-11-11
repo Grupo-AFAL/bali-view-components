@@ -61,6 +61,13 @@ module Bali
       FIELD_TYPES = %w[text textarea number select multi_select readonly].freeze
       # Mirrors LEGEND_SWATCHES in chrome/Legend.jsx (contract_test.rb).
       LEGEND_SWATCHES = %w[task sub_process gateway start_event end_event external_lane external_task issue color].freeze
+      # Each piece of the chrome `controls:` shows or hides, and whether it shows when the
+      # host says nothing. Mirrors CONTROLS in BpmnEditor.jsx (contract_test.rb).
+      CONTROLS = {
+        zoom: true, fit: true, fullscreen: true, minimap: false, navigate: true, participants: true,
+        selection: true, stencil: true, add_lane: true, auto_layout: true, connect: true,
+        pending: true, rules: true, compare: true, exports: true, help: true
+      }.freeze
       DEFAULT_LEGEND = %w[task sub_process external_lane external_task issue].freeze
       EXTERNAL_LEGEND = %w[external_lane external_task].freeze
       FULL_PAGE_KEYS = %i[title close_url status].freeze
@@ -95,8 +102,16 @@ module Bali
       # @param page [Hash] { width:, height: } in inches and orientation: "landscape" |
       #   "portrait" — the compact layout's target and the print/export sheet. Letter, landscape.
       # @param palette [Symbol, Array, Hash] see Bali::BpmnEditor::Palette.resolve.
-      # @param legend [Hash, Array, false] { add: [{ key:, label:, swatch: }], remove: [keys] }, a
-      #   full list of entries, or false to hide it.
+      # @param legend [Boolean, Hash, Array] hidden unless given: true shows the default entries,
+      #   { add: [{ key:, label:, swatch: }], remove: [keys] } edits them, an Array replaces them.
+      #   The colours of the review notes in use (`review: { tags: }`) show either way.
+      # @param controls [Hash] { key => true | false } over CONTROLS: which pieces of the chrome
+      #   show. By default all but the minimap. zoom: (−, % and +), fit: («Center»), fullscreen:,
+      #   minimap:, navigate:, participants: (the view toolbar); selection: («Select all» and the
+      #   box selection), stencil:, add_lane:, auto_layout:, connect: (editing aids); pending:,
+      #   rules:, compare:, exports: (the top bar); help: (the line under the canvas). The legend
+      #   is `legend:`, the badge switch `badge_toggle:` and the orientation switch
+      #   `lock_orientation:`.
       # @param rules [Hash, Symbol, false] { disabled: [ids], enabled: [ids], severities: { id => :warning },
       #   messages: { id => "text" }, options: { min_lanes:, min_activities:, max_activities: } };
       #   :structure keeps only STRUCTURE_PROFILE (and their blocks), for diagrams that are not
@@ -163,7 +178,7 @@ module Bali
                      rules: {}, fields: {}, urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil,
                      selected_id: nil, chrome: :full, min_zoom: DEFAULT_MIN_ZOOM, annotatable: false,
                      badges: true, badge_toggle: true, wheel_zoom: :auto, compare_open: false, compare_index: 0,
-                     full_page: nil, bordered: true, **options)
+                     full_page: nil, bordered: true, controls: {}, **options)
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @autosave = autosave
@@ -192,6 +207,7 @@ module Bali
         @wheel_zoom = resolve_wheel_zoom(wheel_zoom)
         @full_page = resolve_full_page(full_page)
         @bordered = resolve_boolean(:bordered, bordered)
+        @controls = resolve_controls(controls)
         @i18n = i18n
         # The locale it was built in: Lookbook builds a component inside
         # `I18n.with_locale` and renders it after that block returns.
@@ -299,7 +315,8 @@ module Bali
           bpmn_editor_compare_open_value: @compare_open,
           bpmn_editor_compare_index_value: (@compare_index unless @compare_index.zero?),
           bpmn_editor_full_page_value: ("true" if full_page?),
-          bpmn_editor_bordered_value: ("false" unless bordered?)
+          bpmn_editor_bordered_value: ("false" unless bordered?),
+          bpmn_editor_controls_value: (@controls.to_json if @controls.any?)
         }.compact
       end
 
@@ -396,6 +413,18 @@ module Bali
         raise ArgumentError, "full_page status: needs a label:" if status[:label].blank?
 
         { label: status[:label].to_s, color: Bali::Color.name!("Bali::BpmnEditor full_page status", status[:color]) }
+      end
+
+      # Only what differs from CONTROLS travels: the island holds the defaults.
+      def resolve_controls(controls)
+        raise ArgumentError, "controls must be a Hash { key => true | false }, got #{controls.inspect}" unless controls.is_a?(Hash)
+
+        controls = controls.symbolize_keys
+        unknown = controls.keys - CONTROLS.keys
+        raise ArgumentError, "unknown controls: keys #{unknown.inspect}; expected #{CONTROLS.keys.inspect}" if unknown.any?
+
+        controls.to_h { |key, shown| [ key, resolve_boolean("controls: #{key}", shown) ] }
+                .reject { |key, shown| CONTROLS[key] == shown }
       end
 
       def resolve_chrome(chrome)
@@ -599,11 +628,11 @@ module Bali
       end
 
       def resolve_legend(legend)
-        return [] if legend == false
+        return [] if legend.nil? || legend == false
 
         entries =
           case legend
-          when nil then default_legend.map { |key| { key: key } }
+          when true then default_legend.map { |key| { key: key } }
           when Array then legend.map { |entry| legend_entry(entry) }
           when Hash
             legend = legend.symbolize_keys
@@ -611,7 +640,7 @@ module Bali
             default_legend.reject { |key| removed.include?(key) }.map { |key| { key: key } } +
               Array(legend[:add]).map { |entry| legend_entry(entry) }
           else
-            raise ArgumentError, "legend must be nil, false, an Array or a Hash, got #{legend.class}"
+            raise ArgumentError, "legend must be true, false, an Array or a Hash, got #{legend.class}"
           end
         entries.each { |entry| check_legend_entry!(entry) }
       end

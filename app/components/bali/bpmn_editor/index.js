@@ -75,7 +75,9 @@ export class BpmnEditorController extends ReactIslandController {
     // the editor — down to the bottom of the window.
     fullPage: { type: Boolean, default: false },
     // Component `bordered:` — false when a container around it draws the frame.
-    bordered: { type: Boolean, default: true }
+    bordered: { type: Boolean, default: true },
+    // Component `controls:` — only what differs from CONTROLS in BpmnEditor.jsx.
+    controls: { type: Object, default: {} }
   }
 
   connect () {

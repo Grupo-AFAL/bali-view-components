@@ -6,8 +6,22 @@
 // are daisyUI variables (theme-aware); the export resolves them first,
 // because an SVG rasterised through <img> has no access to the page's custom
 // properties.
+import { createContext, useContext } from 'react'
 import { categoryOf, CATEGORY, isBinaryDecision } from './model/catalog.js'
-import { markerZone, taskMarkerAt, activityRadius } from './model/labels.js'
+import { markerZone, taskMarkerAt, activityRadius, chevronDepth } from './model/labels.js'
+
+// The document's `activity_shape` for the icons drawn outside the canvas —
+// palette, quick menu, legend. The canvas and the outputs pass theirs, since
+// a comparison draws two documents side by side.
+export const ActivityShapeContext = createContext('card')
+
+// An activity's outline: the rounded card, or a chevron pointing along the
+// flow, its notch on the left as deep as its point.
+function ActivityOutline ({ w, h, shape, ...props }) {
+  if (shape !== 'chevron') return <rect x={1} y={1} width={w - 2} height={h - 2} rx={activityRadius(h)} {...props} />
+  const d = chevronDepth(h)
+  return <path d={`M1,1 L${w - d},1 L${w - 1},${h / 2} L${w - d},${h - 1} L1,${h - 1} L${1 + d},${h / 2} Z`} strokeLinejoin='round' {...props} />
+}
 
 const soft = (token, amount = 12) => `color-mix(in oklab, var(${token}) ${amount}%, var(--color-base-100))`
 // The related procedure (collapsed sub-process): grey with its [+] unless the
@@ -175,18 +189,18 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
 // high) and the palette icon (21 px) are the same figure. The markers keep a
 // legible floor at icon size. Where they go is model/labels.js's, which the
 // name inside keeps clear of; `badge` moves the task marker under the tab.
-function ActivityShape ({ node, w, h, paint, external, badge }) {
+function ActivityShape ({ node, w, h, paint, external, badge, shape }) {
   const colors = paintFor(node, paint, external)
   const sub = node.type === 'sub_process'
   const unlinked = sub && !node.reference
-  const marker = taskMarkerAt(h, badge)
+  const marker = taskMarkerAt(h, badge, shape)
   const zone = markerZone(h)
   const plus = zone.size
   const plusY = h - zone.height
   return (
     <g>
-      <rect
-        x={1} y={1} width={w - 2} height={h - 2} rx={activityRadius(h)}
+      <ActivityOutline
+        w={w} h={h} shape={shape}
         style={{ fill: colors.fill, stroke: colors.stroke }}
         strokeWidth={sub ? 2.2 : 1.5} strokeDasharray={unlinked ? '5 3' : undefined}
       />
@@ -244,12 +258,13 @@ function ArtifactShape ({ node, w, h, paint }) {
 // its outline, and a tint over an activity's body. Drawn over NodeShape, on
 // the canvas and in the outputs alike; the task marker and the [+] stay
 // visible through the tint.
-export function AppearanceMark ({ node, width: w, height: h, color }) {
+export function AppearanceMark ({ node, width: w, height: h, color, activityShape }) {
+  const contextShape = useContext(ActivityShapeContext)
   if (!color) return null
   const line = { fill: 'none', stroke: color, strokeWidth: 2.6 }
   const category = categoryOf(node)
   if (category === CATEGORY.activity) {
-    return <rect data-appearance={color} x={1} y={1} width={w - 2} height={h - 2} rx={Math.round(h * 0.1 * 10) / 10} fill={color} fillOpacity={0.16} stroke={color} strokeWidth={2.6} />
+    return <ActivityOutline data-appearance={color} w={w} h={h} shape={activityShape || contextShape} fill={color} fillOpacity={0.16} stroke={color} strokeWidth={2.6} />
   }
   if (category === CATEGORY.event) return <circle data-appearance={color} cx={w / 2} cy={h / 2} r={Math.min(w, h) / 2 - 1.5} {...line} />
   if (category === CATEGORY.gateway) return <path data-appearance={color} d={`M${w / 2},1.5 L${w - 1.5},${h / 2} L${w / 2},${h - 1.5} L1.5,${h / 2} Z`} {...line} strokeLinejoin='round' />
@@ -259,8 +274,9 @@ export function AppearanceMark ({ node, width: w, height: h, color }) {
 // The colour an element is outlined in — the minimap paints with it.
 export const strokeOf = (node, external = false) => paintFor(node, LIVE_PAINT, external).stroke
 
-export function NodeShape ({ node, width, height, paint = LIVE_PAINT, external = false, badge = false }) {
-  const props = { node, w: width, h: height, paint, external, badge }
+export function NodeShape ({ node, width, height, paint = LIVE_PAINT, external = false, badge = false, activityShape }) {
+  const contextShape = useContext(ActivityShapeContext)
+  const props = { node, w: width, h: height, paint, external, badge, shape: activityShape || contextShape }
   switch (categoryOf(node)) {
     case CATEGORY.activity: return <ActivityShape {...props} />
     case CATEGORY.gateway: return <GatewayShape {...props} />

@@ -10,7 +10,8 @@ import '@xyflow/react/dist/style.css'
 import './flow.css'
 import { translator } from './i18n.js'
 import { normalize, namedByReference, isLinked } from './model/document.js'
-import { layoutLanes, nodeBox, poolOrigin } from './model/geometry.js'
+import { layoutLanes, nodeBox, poolOrigin, activityShapeOf } from './model/geometry.js'
+import { ActivityShapeContext } from './shapes.jsx'
 import { routeAll, boxesById, distanceToRoute, findJumps } from './model/routing.js'
 import { buildRfNodes, buildRfEdges, isLaneNodeId, laneIdOf, laneNodeId } from './model/flow.js'
 import { PALETTE_ITEMS, isFlowNode, isArtifactLike, edgeType } from './model/catalog.js'
@@ -64,6 +65,27 @@ const MAX_ZOOM = 2.5
 export const NARROW_WIDTH = 768
 // Mirrors Bali::BpmnEditor::Component::CHROMES (contract_test.rb).
 export const CHROMES = ['full', 'minimal']
+// Each piece of the chrome the app may show or hide (Component `controls:`),
+// and whether it shows when the app says nothing. Mirrors
+// Bali::BpmnEditor::Component::CONTROLS (contract_test.rb).
+export const CONTROLS = {
+  zoom: true,
+  fit: true,
+  fullscreen: true,
+  minimap: false,
+  navigate: true,
+  participants: true,
+  selection: true,
+  stencil: true,
+  add_lane: true,
+  auto_layout: true,
+  connect: true,
+  pending: true,
+  rules: true,
+  compare: true,
+  exports: true,
+  help: true
+}
 // What the wheel does. Mirror Bali::BpmnEditor::Component::WHEEL_ZOOMS (contract_test.rb).
 export const WHEEL_ZOOMS = ['auto', 'true', 'false']
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '')
@@ -80,9 +102,10 @@ function Editor ({
   data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, confirmLinkedDelete = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
   name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false,
   badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0, takeHostEvents,
-  fullPage = false, bordered = true
+  fullPage = false, bordered = true, controls
 }) {
   const t = useMemo(() => translator(i18n), [i18n])
+  const shown = useMemo(() => ({ ...CONTROLS, ...(controls || {}) }), [controls])
   const editable = Boolean(editableProp)
   // `chrome: :minimal` — a diagram embedded in the app's own page: the canvas
   // and its zoom bar, at the height of its container.
@@ -1002,6 +1025,7 @@ function Editor ({
     routes,
     origin,
     orientation: layout.orientation,
+    activityShape: activityShapeOf(doc),
     editable: interactive,
     connectable: interactive,
     renamingId,
@@ -1023,7 +1047,7 @@ function Editor ({
     connectSource,
     connectInvalid,
     badgesVisible
-  }), [edgeLabels, jumps, t, routes, origin, layout.orientation, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, onNodeResize, onNodeResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel, activateNode, connectSource, connectInvalid, badgesVisible])
+  }), [edgeLabels, jumps, t, routes, origin, layout.orientation, doc.activity_shape, interactive, renamingId, highlightId, renderRename, renderEdgeRename, onLaneResize, onLaneResizing, onNodeResize, onNodeResizing, quickMenuId, renderQuickMenu, notesByElement, showPanel, activateNode, connectSource, connectInvalid, badgesVisible])
 
   // ── finalize ───────────────────────────────────────────────────────────
   // The draft always saves; finalizing needs a flow without errors, checked
@@ -1054,6 +1078,7 @@ function Editor ({
 
   return (
     <CanvasContext.Provider value={canvas}>
+      <ActivityShapeContext.Provider value={canvas.activityShape}>
       <HintLayer rootRef={wrapperRef}>
       <div
         ref={wrapperRef}
@@ -1070,15 +1095,15 @@ function Editor ({
             saveStatus={saver.status}
             autosave={autosave}
             issues={issueList}
-            onIssues={() => setDialog('pending')}
-            onRules={validating ? () => setDialog('rules') : null}
+            onIssues={shown.pending ? () => setDialog('pending') : null}
+            onRules={validating && shown.rules ? () => setDialog('rules') : null}
             history={{ undo, redo, canUndo: state.past.length > 0, canRedo: state.future.length > 0 }}
             onSave={saver.save}
             canFinalize={Boolean(urls.finalize)}
             onFinalize={finalize}
             finalizing={saver.finalizing}
-            exports={exports}
-            onCompare={compare ? () => setComparison((c) => ({ ...c, mode: c.mode ? null : DEFAULT_COMPARE_MODE })) : null}
+            exports={shown.exports ? exports : null}
+            onCompare={compare && shown.compare ? () => setComparison((c) => ({ ...c, mode: c.mode ? null : DEFAULT_COMPARE_MODE })) : null}
             comparing={comparing}
             pageHeader={fullPage && !fullscreen}
           />
@@ -1182,24 +1207,26 @@ function Editor ({
               zoomOnPinch={wheelMode !== 'off'}
             >
               <Background gap={20} size={1} />
-              {!minimal && <MiniMap className='bpmn-chrome' nodeColor={minimapColor} pannable zoomable ariaLabel={t('minimap')} />}
+              {!minimal && shown.minimap && <MiniMap className='bpmn-chrome' nodeColor={minimapColor} pannable zoomable ariaLabel={t('minimap')} />}
               {!minimal && (
                 <CanvasToolbar
                   t={t}
                   editable={interactive}
                   orientation={layout.orientation}
-                  onAddLane={addLane}
+                  onAddLane={shown.add_lane ? addLane : null}
                   onToggleOrientation={lockOrientation ? null : () => {
                     apply((d) => ops.setOrientation(d, layout.orientation === 'horizontal' ? 'vertical' : 'horizontal'))
                     setTimeout(() => fitDiagram(flow, fit, 250), 50)
                   }}
-                  onAutoLayout={() => {
-                    apply((d) => ({ doc: autoLayout(d, layoutOptions) }), { arrange: false })
-                    notify(t('toast_layout'), 'success')
-                    setTimeout(() => fitDiagram(flow, fit, 250), 50)
-                  }}
+                  onAutoLayout={shown.auto_layout
+                    ? () => {
+                        apply((d) => ({ doc: autoLayout(d, layoutOptions) }), { arrange: false })
+                        notify(t('toast_layout'), 'success')
+                        setTimeout(() => fitDiagram(flow, fit, 250), 50)
+                      }
+                    : null}
                   connecting={Boolean(tool && tool.kind === 'connect')}
-                  onConnect={() => setTool((current) => (current && current.kind === 'connect' ? null : { kind: 'connect', edge: 'sequence_flow', source: null }))}
+                  onConnect={shown.connect ? () => setTool((current) => (current && current.kind === 'connect' ? null : { kind: 'connect', edge: 'sequence_flow', source: null })) : null}
                   onImport={urls.import ? () => openDrawerUrl(withParams(urls.import, { editor_id: hostElement && hostElement.id })) : null}
                 />
               )}
@@ -1207,20 +1234,20 @@ function Editor ({
                 <ViewToolbar
                   t={t}
                   editable={editable}
-                  onParticipants={doc.lanes.length ? () => setPanel((p) => (p === 'participants' ? null : 'participants')) : null}
+                  onParticipants={shown.participants && doc.lanes.length ? () => setPanel((p) => (p === 'participants' ? null : 'participants')) : null}
                   participantsOpen={panel === 'participants'}
                   onProperties={narrow && (editable || notesOnly) && hasSelection ? () => setPanel((p) => (p === 'properties' ? null : 'properties')) : null}
                   propertiesOpen={panel === 'properties'}
                   navigating={mode === 'navigate'}
-                  onNavigate={() => { setMode((m) => (m === 'navigate' ? 'edit' : 'navigate')); setTool(null) }}
+                  onNavigate={shown.navigate ? () => { setMode((m) => (m === 'navigate' ? 'edit' : 'navigate')); setTool(null) } : null}
                   fullscreen={fullscreen}
-                  onFullscreen={toggleFullscreen}
+                  onFullscreen={shown.fullscreen ? toggleFullscreen : null}
                   badges={badgeSwitch}
                 />
               )}
               <Legend t={t} entries={legendEntries} open={legendOpen} onToggle={setLegendOpen} />
-              {interactive && !showPanel && !minimal && <Stencil t={t} items={doc.stencil} startOpen={!narrow} />}
-              <ZoomBar t={t} fit={fit} onSelectAll={interactive && !minimal ? selectAll : null} selectedCount={interactive ? selectedCount : 0} boxSelect={boxSelect} onBoxSelect={interactive ? () => setBoxSelect((b) => !b) : null} badges={minimal ? badgeSwitch : null} expand={minimal && document.fullscreenEnabled ? { expanded: fullscreen, onToggle: toggleFullscreen } : null} />
+              {interactive && !showPanel && !minimal && shown.stencil && <Stencil t={t} items={doc.stencil} startOpen={!narrow} />}
+              <ZoomBar t={t} fit={fit} zoom={shown.zoom} center={shown.fit} onSelectAll={interactive && !minimal && shown.selection ? selectAll : null} selectedCount={interactive ? selectedCount : 0} boxSelect={boxSelect} onBoxSelect={interactive && shown.selection ? () => setBoxSelect((b) => !b) : null} badges={minimal ? badgeSwitch : null} expand={minimal && shown.fullscreen && document.fullscreenEnabled ? { expanded: fullscreen, onToggle: toggleFullscreen } : null} />
             </ReactFlow>
             )}
             <Notices notices={notices} t={t} onDismiss={(id) => setNotices((list) => list.filter((n) => n.id !== id))} />
@@ -1239,7 +1266,7 @@ function Editor ({
               : null}
           </div>
         </div>
-        {!comparing && !minimal && (
+        {!comparing && !minimal && shown.help && (
           // The context help lives under the canvas, where it covers nothing.
           <p className='bpmn-chrome flex items-center gap-2 border-t border-base-300 px-3 py-1.5 text-xs text-base-content/70' data-testid='bpmn-help'>
             <Icon name='info' size={13} />{help}
@@ -1282,6 +1309,7 @@ function Editor ({
         )}
       </div>
       </HintLayer>
+      </ActivityShapeContext.Provider>
     </CanvasContext.Provider>
   )
 }

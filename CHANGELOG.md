@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::BpmnEditor`: `controls:` muestra u oculta cada pieza del chrome.** Las llaves son
+  `zoom:`, `fit:`, `fullscreen:`, `minimap:`, `navigate:`, `participants:`, `selection:`,
+  `stencil:`, `add_lane:`, `auto_layout:`, `connect:`, `pending:`, `rules:`, `compare:`,
+  `exports:` y `help:`. Por omisión todas se muestran menos el minimapa. Una llave desconocida o
+  un valor que no sea `true`/`false` lanza `ArgumentError`. La paleta, deshacer, «Guardar
+  borrador» y «Finalizar» siguen mientras haya `editable:`.
+- **`Bali::BpmnEditor`: actividades en chevron.** Con `activity_shape: "chevron"` en el documento,
+  cada tarea y subproceso se dibuja como chevron, para un mapa de macroprocesos. Aplica en el
+  canvas, la paleta, «Por colocar», la leyenda, la comparación y las exportaciones. Las flechas
+  entran por la muesca y salen por la punta en carriles horizontales; el chevron siempre apunta a
+  la derecha, así que en carriles verticales las flechas entran por arriba y abajo. `"card"` (la
+  tarjeta de hoy) sigue siendo el default, y un valor desconocido lanza `InvalidError`.
+
+### Changed
+
+- **`Bali::BpmnEditor`: el minimapa y la leyenda ya no aparecen por omisión.** El chrome por
+  omisión conserva −/+, centrar y pantalla completa, y en el editor la barra superior, las
+  barras del canvas, «Por colocar» y la línea de ayuda. Para recuperarlos:
+  `controls: { minimap: true }` y `legend: true`. Una app que pasa su propia leyenda (un `Array` o
+  `{ add:, remove: }`) la sigue viendo. En gobierno-corporativo cambia el editor de
+  `business_processes/diagrams/edit` (pierde ambos) y los visores `chrome: :minimal` sin
+  `legend:` (pierden la leyenda plegada); los mapas con `bpmn_flow_status_legend` no cambian.
+
 ## [v3.25.0] - 2026-11-08
 
 ### Added

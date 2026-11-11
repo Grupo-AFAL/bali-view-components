@@ -105,7 +105,8 @@ authorize every endpoint on the server anyway.
 | `layout:` | `:compact` | How "Tidy up" (and the first layout of a document without coordinates) arranges the flow: `:compact` folds it to fit `page:` legibly, `:straight` keeps the happy path in one line — see [Layout](#layout). An unknown value raises |
 | `page:` | `{ width: 8.5, height: 11, orientation: "landscape" }` | The sheet, in inches: the compact layout's target, and what the image, SVG and print outputs are laid on. `orientation:` is `"landscape"` or `"portrait"`; anything else, or a non-positive size, raises |
 | `palette:` | `:descriptive` | A preset, an `Array` of keys (exactly those), or a `Hash` — see [Palette](#palette) |
-| `legend:` | default entries | `{ add: [...], remove: [...] }`, a full `Array`, or `false` — see [Legend](#legend) |
+| `legend:` | hidden | `true` (the default entries), `{ add: [...], remove: [...] }`, a full `Array`, or `false` — see [Legend](#legend) |
+| `controls:` | all but `minimap:` | `{ key => true \| false }`: which pieces of the chrome show — see [Controls](#controls). An unknown key or a value that is not true or false raises |
 | `rules:` | `{}` | `{ disabled:, enabled:, severities:, messages:, options: }` — see [Rules](#rules). `:structure` keeps only what holds for any diagram with lanes — `R11`, `R18`, `R25`, `R26`, `B09`, `VIS-10` and the inside-a-lane block — for a map of processes or an architecture, which is no process model. `false` runs no rule at all: no pending issues, no immediate blocks while drawing, no "Rules" button — and "Finalize" checks nothing on the client (the host's `urls[:finalize]` still may) |
 | `fields:` | `{}` | `{ nodes: { type => [field] }, lanes: [field] }`, the properties panel's own fields — see [Fields](#fields). An unknown key raises |
 | `urls:` | `{}` | `save`, `diagram`, `finalize`, `references`, `new_reference`, `lane_assignees`, `new_lane_assignee`, `import`, `annotations`. An unknown key raises |
@@ -157,6 +158,7 @@ is another table with its own key.
 {
   "version": 12,                       // optimistic lock; the server bumps it
   "orientation": "horizontal",         // or "vertical"
+  "activity_shape": "card",            // or "chevron" — see Activity shape
   "status_label": "Borrador v0.3",     // shown as is; the editor interprets no states
   "pool": { "x": 0, "y": 0, "length": null },
   "lanes": [
@@ -381,21 +383,73 @@ are island strings like any other: an app replaces them with `i18n:`. The toolti
 portaled into the editor's root — a tooltip inside the scrolling palette would be
 clipped or give it a horizontal scrollbar — and takes the page's theme.
 
-## Legend
+## Controls
 
-A collapsible legend floats over the canvas. Default entries: `task`,
-`sub_process`, `external_lane`, `external_task`, `issue` — without the two external
-ones under `external_lanes: false`.
+`controls:` shows or hides each piece of the chrome. All show by default but the minimap;
+pass only what changes:
 
 ```ruby
+controls: { minimap: true }                  # add the minimap
+controls: { exports: false, help: false }    # a viewer without downloads or the help line
+```
+
+| Key | What it shows |
+|---|---|
+| `zoom:` | −, the percentage and + in the zoom bar |
+| `fit:` | «Center the flow» in the zoom bar |
+| `fullscreen:` | «Full screen» in the view toolbar, «Expand» with `chrome: :minimal` |
+| `minimap:` | The minimap (`false` by default) |
+| `navigate:`, `participants:` | Those buttons of the view toolbar |
+| `selection:` | «Select all» and the box selection beside the zoom (editable) |
+| `stencil:` | «To place» (editable) |
+| `add_lane:`, `auto_layout:`, `connect:` | Those buttons of the canvas toolbar (editable) |
+| `pending:`, `rules:`, `compare:`, `exports:` | The pending issues, «Rules», «Compare» and the four downloads in the top bar |
+| `help:` | The help line under the canvas |
+
+The palette, undo/redo, «Save draft» and «Finalize» are what editing is, and stay while
+`editable:`. `open_issues:` still opens the pending panel on load with `pending: false`;
+closed, nothing reopens it. Three pieces have an option of their own: the legend (`legend:`), «Show badges»
+(`badge_toggle:`) and the orientation switch (`lock_orientation:`). `chrome: :minimal` has no
+top bar or toolbars, so only `zoom:`, `fit:` and `fullscreen:` change anything there.
+Keyboard shortcuts and the wheel are not chrome: hiding the zoom buttons leaves `wheel_zoom:`
+as it is.
+
+## Activity shape
+
+`data[:activity_shape]` is what every task and sub-process is drawn as: `"card"` (the
+default, a rounded rectangle) or `"chevron"`, an arrow pointing right, for a map of
+macroprocesses whose activities are the processes. Flows of a process or a procedure keep
+the cards. It is drawn for horizontal lanes, where the flow reads left to right: in
+vertical ones it still points right and connections enter by its top and bottom.
+
+```ruby
+# A macroprocess map; the flows of its processes leave it out.
+data: FlowDiagram.new(flow).to_h.merge(activity_shape: "chevron")
+```
+
+It belongs to the document, like `orientation`: the canvas, the palette and «To place», the
+legend, the comparison and the image, SVG and print outputs all draw it, and a save sends it
+back. In horizontal lanes a connection enters a chevron by its notch and leaves by its point; the name, the task
+marker and the pending mark keep inside its outline, and a linked sub-process keeps its [+].
+The `.bpmn` export has no shape for it and writes BPMN tasks as always. Anything else
+raises `InvalidError`.
+
+## Legend
+
+A collapsible legend floats over the canvas when the app asks for it. `legend: true`
+shows the default entries: `task`, `sub_process`, `external_lane`, `external_task`,
+`issue` — without the two external ones under `external_lanes: false`. Editing them or
+giving a list shows it too.
+
+```ruby
+legend: true
 legend: { remove: %i[external_task],
           add: [ { key: "rework", label: "Rework", swatch: "color", color: "#dc2626" } ] }
-legend: false
 ```
 
 Swatches: `task`, `sub_process`, `gateway`, `start_event`, `end_event`,
 `external_lane`, `external_task`, `issue`, `color` (needs `color:`). Review-note
-tags in use are added automatically.
+tags in use are added automatically, and show even without `legend:`.
 
 The related procedure (a collapsed sub-process with its [+]) is grey on the palette, the
 canvas, the legend, the minimap and the outputs alike. Its colour is one CSS custom
@@ -1150,8 +1204,9 @@ is the maintainers' call, not a default here.
 
 | Preview | What it shows |
 |---|---|
-| `bali/bpmn_editor/playground` | The whole editor against the dummy's endpoints, every option a parameter: `sample` (invoice, empty, rework, parallel, partners, large), `orientation`, `palette`, `layout`, `page` (Letter, A4, Legal × landscape, portrait), `lock_orientation`, `external_lanes`, `autosave`, `optional_rules`, `rule_severity` (default, strict, relaxed: `rules:` with `enabled:`, `disabled:`, `severities:`, `messages:` and `options:`; structure: `rules: :structure`; off: `rules: false`), `server`, `theme`, `locale`, `name`, `watermark`, `fresh`. Each sample keeps its own record; `fresh` puts it back on every visit |
-| `bali/bpmn_editor/default` | Read-only viewer: no `editable:`, no `urls:`. `appearance` on: the app's colours, fading and badges on four elements and one lane (`Sin responsable`), explained in the legend and carried into the outputs |
+| `bali/bpmn_editor/playground` | The whole editor against the dummy's endpoints, every option a parameter: `sample` (invoice, empty, rework, parallel, partners, large), `orientation`, `palette`, `layout`, `page` (Letter, A4, Legal × landscape, portrait), `lock_orientation`, `external_lanes`, `autosave`, `optional_rules`, `rule_severity` (default, strict, relaxed: `rules:` with `enabled:`, `disabled:`, `severities:`, `messages:` and `options:`; structure: `rules: :structure`; off: `rules: false`), `server`, `theme`, `locale`, `name`, `watermark`, `fresh`, `activity_shape`, `legend`, `minimap` (both on here). Each sample keeps its own record; `fresh` puts it back on every visit |
+| `bali/bpmn_editor/macroprocess_map` | A map of processes drawn as chevrons (`activity_shape: "chevron"`) with the default chrome; `activity_shape=card` for the cards, `legend` and `minimap` add them, `hidden` takes `zoom`, `fit`, `fullscreen` or all three away. Horizontal lanes |
+| `bali/bpmn_editor/default` | Read-only viewer: no `editable:`, no `urls:`. `legend` and `minimap` add them. `appearance` on: the app's colours, fading and badges on four elements and one lane (`Sin responsable`), explained in the legend and carried into the outputs |
 | `bali/bpmn_editor/split_view` | The «50/50» pattern in a collapsible `Bali::SplitView`: a map of processes in vertical lanes (`appearance:`, `chrome: :minimal`, `rules: :structure`, a colour legend), alone until a box is clicked, and then, sliding in beside it, the read-only flow behind that box (`chrome: :minimal`, `annotatable:`); «Close» or Esc return to the map. `?selected=b3` is a deep link (`selected_id:`, opened on load). The dummy's own Stimulus controller listens to `selection-change` (and shows the box's lane from it), takes `open-reference` over, swaps the right-hand editor and drives "Previous" / "Next" with `bali-bpmn:select`; a version picker swaps the document too, and the app's own «Compare» menu compares the flow against its previous version or another flow (`bali-bpmn:compare`, kept in step by `compare-change`); `?compare_open=true` opens it comparing |
 | `bali/bpmn_editor/compare_flows` | "Supplier onboarding" against "Customer onboarding" or "Employee onboarding" (`match: :name`) or its own previous version (`match: :id`), picked from links above the editor. `compare_open` / `compare_index` open it comparing on load; `chrome=minimal` draws it without the top bar, with the app's own menu (option and view) above it |
 | `bali/bpmn_editor/full_page` | `full_page:`: the header with «Exit», the title, the status, the save status, the app's actions (`actions`) and a notice above the canvas (`notice`). `mode` (edit, read only, locked, version) picks the status, and `document` gives none of the app's: the document's own `status_label`, kept current; `server`: `slow` makes «Exit» wait ~2 s for the save, `error` makes it offer «Retry» and «Exit without saving»; `autosave` off leaves «Exit» the last change to save |
