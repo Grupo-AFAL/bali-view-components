@@ -80,13 +80,27 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_not_equal ids.first, ids.last
   end
 
-  # The orientation has one source, the document; the host only locks it.
+  # The orientation has one source, the document; the host locks it, or names
+  # the one the island turns the document to on load.
   def test_the_host_can_lock_the_documents_orientation
     render_inline(component(lock_orientation: true))
     assert_equal "true", island["data-bpmn-editor-lock-orientation-value"]
+    assert_nil island["data-bpmn-editor-orientation-value"]
 
     render_inline(component)
     assert_equal "false", island["data-bpmn-editor-lock-orientation-value"]
+  end
+
+  def test_the_host_can_force_one_orientation
+    render_inline(component(lock_orientation: :vertical))
+    assert_equal "true", island["data-bpmn-editor-lock-orientation-value"]
+    assert_equal "vertical", island["data-bpmn-editor-orientation-value"]
+
+    render_inline(component(lock_orientation: "horizontal"))
+    assert_equal "horizontal", island["data-bpmn-editor-orientation-value"]
+
+    error = assert_raises(ArgumentError) { component(lock_orientation: :diagonal) }
+    assert_match "lock_orientation:", error.message
   end
 
   def test_the_pending_issues_panel_can_open_on_load

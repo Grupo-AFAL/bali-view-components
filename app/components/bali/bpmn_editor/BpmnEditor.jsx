@@ -10,7 +10,7 @@ import '@xyflow/react/dist/style.css'
 import './flow.css'
 import { translator } from './i18n.js'
 import { normalize, namedByReference, isLinked } from './model/document.js'
-import { layoutLanes, nodeBox, poolOrigin, activityShapeOf } from './model/geometry.js'
+import { layoutLanes, nodeBox, poolOrigin, activityShapeOf, ORIENTATIONS } from './model/geometry.js'
 import { ActivityShapeContext } from './shapes.jsx'
 import { routeAll, boxesById, distanceToRoute, findJumps } from './model/routing.js'
 import { buildRfNodes, buildRfEdges, isLaneNodeId, laneIdOf, laneNodeId } from './model/flow.js'
@@ -99,7 +99,7 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, autosave, lockOrientation, externalLanes = true, openIssues = false, confirmLinkedDelete = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
+  data, editable: editableProp, autosave, lockOrientation, orientation: lockedOrientation, externalLanes = true, openIssues = false, confirmLinkedDelete = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
   name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false,
   badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0, takeHostEvents,
   fullPage = false, bordered = true, controls
@@ -115,7 +115,11 @@ function Editor ({
   // Notes on a read-only diagram, saved on their own (Component `annotatable:`).
   const notesOnly = !editable && Boolean(annotatable) && Boolean(urls && urls.annotations)
   // The compact layout and the print/export sheet (Component `layout:`, `page:`).
-  const layoutOptions = useMemo(() => ({ mode: layoutMode === 'straight' ? 'straight' : 'compact', page: { ...LETTER, ...(page || {}) } }), [layoutMode, page])
+  const layoutOptions = useMemo(() => ({
+    mode: layoutMode === 'straight' ? 'straight' : 'compact',
+    page: { ...LETTER, ...(page || {}) },
+    orientation: ORIENTATIONS.includes(lockedOrientation) ? lockedOrientation : null
+  }), [layoutMode, page, lockedOrientation])
   const policy = useMemo(() => blockPolicy(rules), [rules])
   const [arranging, setArranging] = useState(false)
   const [legendOpen, setLegendOpen] = useState(!minimal)
@@ -1214,7 +1218,7 @@ function Editor ({
                   editable={interactive}
                   orientation={layout.orientation}
                   onAddLane={shown.add_lane ? addLane : null}
-                  onToggleOrientation={lockOrientation ? null : () => {
+                  onToggleOrientation={lockOrientation || layoutOptions.orientation ? null : () => {
                     apply((d) => ops.setOrientation(d, layout.orientation === 'horizontal' ? 'vertical' : 'horizontal'))
                     setTimeout(() => fitDiagram(flow, fit, 250), 50)
                   }}

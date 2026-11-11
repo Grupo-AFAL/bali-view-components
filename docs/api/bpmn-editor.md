@@ -98,7 +98,7 @@ authorize every endpoint on the server anyway.
 | `data:` | required | The document (`Hash` or `Bali::BpmnEditor::Data`) |
 | `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save. Why it cannot be edited is the host's to say, with a `Bali::Alert` above it |
 | `autosave:` | `true` | Save with a ~1.2 s debounce after each change. `false`: only the "Save draft" button saves |
-| `lock_orientation:` | `false` | `true` keeps the document's own orientation (`data[:orientation]`, the one source of it) and the toolbar offers no switch — e.g. a host whose lanes are always horizontal |
+| `lock_orientation:` | `false` | No orientation switch in the toolbar. `true` keeps the document's own orientation (`data[:orientation]`, the one source of it); `:horizontal` or `:vertical` turns a document stored the other way on load, as the switch would, and the next save stores it — e.g. a macroprocess map whose lanes are always vertical. Anything else raises `ArgumentError` |
 | `external_lanes:` | `true` | Lanes may be marked as external participants (grey lane, white activities, joined by message flows). `false` hides that checkbox in the lane panel and the external entries of the default legend |
 | `open_issues:` | `false` | Open the pending-issues panel on load (editable only): for a page whose purpose is to show what a diagram still has to fix |
 | `confirm_linked_delete:` | `false` | Ask before deleting a sub-process linked to an entity of the app (`reference` with an `id`): «Delete linked sub-processes?» names them, with Cancel and Delete. Anything else is deleted at once, as always. What the app does with the entity afterwards is its own — the dummy offers it again under «To place», since its `stencil` lists what no sub-process links |
@@ -419,17 +419,18 @@ as it is.
 `data[:activity_shape]` is what every task and sub-process is drawn as: `"card"` (the
 default, a rounded rectangle) or `"chevron"`, an arrow pointing right, for a map of
 macroprocesses whose activities are the processes. Flows of a process or a procedure keep
-the cards. It is drawn for horizontal lanes, where the flow reads left to right: in
-vertical ones it still points right and connections enter by its top and bottom.
+the cards. It points right in either orientation; in vertical lanes a connection from above
+enters by its top, one from the side by its notch.
 
 ```ruby
-# A macroprocess map; the flows of its processes leave it out.
-data: FlowDiagram.new(flow).to_h.merge(activity_shape: "chevron")
+# A macroprocess map, always in vertical lanes; the flows of its processes leave both out.
+data: FlowDiagram.new(flow).to_h.merge(activity_shape: "chevron"),
+lock_orientation: :vertical
 ```
 
 It belongs to the document, like `orientation`: the canvas, the palette and «To place», the
 legend, the comparison and the image, SVG and print outputs all draw it, and a save sends it
-back. In horizontal lanes a connection enters a chevron by its notch and leaves by its point; the name, the task
+back. A connection from the side enters a chevron by its notch and leaves by its point; the name, the task
 marker and the pending mark keep inside its outline, and a linked sub-process keeps its [+].
 The `.bpmn` export has no shape for it and writes BPMN tasks as always. Anything else
 raises `InvalidError`.
@@ -1204,8 +1205,8 @@ is the maintainers' call, not a default here.
 
 | Preview | What it shows |
 |---|---|
-| `bali/bpmn_editor/playground` | The whole editor against the dummy's endpoints, every option a parameter: `sample` (invoice, empty, rework, parallel, partners, large), `orientation`, `palette`, `layout`, `page` (Letter, A4, Legal × landscape, portrait), `lock_orientation`, `external_lanes`, `autosave`, `optional_rules`, `rule_severity` (default, strict, relaxed: `rules:` with `enabled:`, `disabled:`, `severities:`, `messages:` and `options:`; structure: `rules: :structure`; off: `rules: false`), `server`, `theme`, `locale`, `name`, `watermark`, `fresh`, `activity_shape`, `legend`, `minimap` (both on here). Each sample keeps its own record; `fresh` puts it back on every visit |
-| `bali/bpmn_editor/macroprocess_map` | A map of processes drawn as chevrons (`activity_shape: "chevron"`) with the default chrome; `activity_shape=card` for the cards, `legend` and `minimap` add them, `hidden` takes `zoom`, `fit`, `fullscreen` or all three away. Horizontal lanes |
+| `bali/bpmn_editor/playground` | The whole editor against the dummy's endpoints, every option a parameter: `sample` (invoice, empty, rework, parallel, partners, large), `orientation`, `palette`, `layout`, `page` (Letter, A4, Legal × landscape, portrait), `lock_orientation` (false, true, horizontal, vertical), `external_lanes`, `autosave`, `optional_rules`, `rule_severity` (default, strict, relaxed: `rules:` with `enabled:`, `disabled:`, `severities:`, `messages:` and `options:`; structure: `rules: :structure`; off: `rules: false`), `server`, `theme`, `locale`, `name`, `watermark`, `fresh`, `activity_shape`, `legend`, `minimap` (both on here). Each sample keeps its own record; `fresh` puts it back on every visit |
+| `bali/bpmn_editor/macroprocess_map` | A map of processes drawn as chevrons (`activity_shape: "chevron"`) with the default chrome; `activity_shape=card` for the cards, `legend` and `minimap` add them, `hidden` takes `zoom`, `fit`, `fullscreen` or all three away. Stored in horizontal lanes and shown in vertical ones (`lock_orientation: :vertical`); `lock_orientation` takes `horizontal` or `false` too |
 | `bali/bpmn_editor/default` | Read-only viewer: no `editable:`, no `urls:`. `legend` and `minimap` add them. `appearance` on: the app's colours, fading and badges on four elements and one lane (`Sin responsable`), explained in the legend and carried into the outputs |
 | `bali/bpmn_editor/split_view` | The «50/50» pattern in a collapsible `Bali::SplitView`: a map of processes in vertical lanes (`appearance:`, `chrome: :minimal`, `rules: :structure`, a colour legend), alone until a box is clicked, and then, sliding in beside it, the read-only flow behind that box (`chrome: :minimal`, `annotatable:`); «Close» or Esc return to the map. `?selected=b3` is a deep link (`selected_id:`, opened on load). The dummy's own Stimulus controller listens to `selection-change` (and shows the box's lane from it), takes `open-reference` over, swaps the right-hand editor and drives "Previous" / "Next" with `bali-bpmn:select`; a version picker swaps the document too, and the app's own «Compare» menu compares the flow against its previous version or another flow (`bali-bpmn:compare`, kept in step by `compare-change`); `?compare_open=true` opens it comparing |
 | `bali/bpmn_editor/compare_flows` | "Supplier onboarding" against "Customer onboarding" or "Employee onboarding" (`match: :name`) or its own previous version (`match: :id`), picked from links above the editor. `compare_open` / `compare_index` open it comparing on load; `chrome=minimal` draws it without the top bar, with the app's own menu (option and view) above it |

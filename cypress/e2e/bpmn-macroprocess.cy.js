@@ -1,10 +1,17 @@
-// `controls:` and `activity_shape: "chevron"` on the macroprocess map
-// preview: the default chrome is zoom, «Center» and full screen — no minimap,
-// no legend — and every activity is a chevron a connection enters by its notch.
+// `controls:`, `activity_shape: "chevron"` and `lock_orientation: :vertical`
+// on the macroprocess map preview: the default chrome is zoom, «Center» and
+// full screen — no minimap, no legend —, every activity is a chevron a
+// connection enters by its notch, and the lanes, stored horizontal, stand
+// side by side.
 
 const MAP = '/bali/bpmn_editor/macroprocess_map'
 const SHOTS = 'bpmn-macroprocess'
 const nodeNamed = (name) => cy.contains('.react-flow__node-bpmn', name)
+const lanesStand = (orientation) => cy.get('[data-testid="bpmn-lane"]').should(($lanes) => {
+  const [first, second] = [...$lanes].map((lane) => lane.getBoundingClientRect())
+  const sideBySide = Math.abs(first.top - second.top) < 1 && second.left > first.left
+  expect(sideBySide, `lanes ${orientation}`).to.equal(orientation === 'vertical')
+})
 
 describe('the macroprocess map', () => {
   beforeEach(() => cy.viewport(1280, 800))
@@ -18,6 +25,7 @@ describe('the macroprocess map', () => {
     cy.contains('.bpmn-view-toolbar button', 'Pantalla completa').should('be.visible')
     cy.get('.react-flow__minimap').should('not.exist')
     cy.get('.bpmn-legend').should('not.exist')
+    lanesStand('vertical')
     cy.screenshot(`${SHOTS}/default-chrome`)
   })
 
@@ -30,8 +38,14 @@ describe('the macroprocess map', () => {
     cy.contains('.bpmn-view-toolbar button', 'Pantalla completa').should('not.exist')
   })
 
+  it('keeps the stored horizontal lanes when the app forces that orientation', () => {
+    cy.visit(`${MAP}?lock_orientation=horizontal`)
+    lanesStand('horizontal')
+  })
+
   it('draws every activity as a chevron, entered by its notch', () => {
-    cy.visit(MAP)
+    // Horizontal lanes: the connection into «Facturación» reaches it from the side.
+    cy.visit(`${MAP}?lock_orientation=horizontal`)
     // The outline is the shape's first element; the [+] is a rect after it.
     nodeNamed('Facturación').find('.bpmn-node-shape > g > :first-child').should('match', 'path')
     // The connection into «Facturación» ends past the box's left edge, in the notch.
@@ -82,5 +96,17 @@ describe('the playground with chevrons', () => {
     cy.wait('@save', { timeout: 8000 }).its('request.body.diagram').should('have.property', 'activity_shape', 'chevron')
     nodeNamed('Validar factura').find('.bpmn-node').should('have.class', 'is-chevron')
     cy.screenshot(`${SHOTS}/playground-chevrons`)
+  })
+
+  it('turns a horizontal diagram to vertical lanes when the app forces them, with no switch', () => {
+    cy.intercept('PUT', '**/diagram*').as('save')
+    cy.visit('/bali/bpmn_editor/playground?activity_shape=chevron&lock_orientation=vertical')
+    cy.get('[data-testid="bpmn-auto-layout"]').should('be.visible')
+    cy.get('[data-testid="bpmn-orientation"]').should('not.exist')
+    lanesStand('vertical')
+    cy.get('[data-testid="bpmn-auto-layout"]').click()
+    cy.wait('@save', { timeout: 8000 }).its('request.body.diagram').should('include', { orientation: 'vertical', activity_shape: 'chevron' })
+    lanesStand('vertical')
+    cy.screenshot(`${SHOTS}/playground-vertical`)
   })
 })

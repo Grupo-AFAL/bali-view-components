@@ -57,6 +57,7 @@ module Bali
     class Data
       class InvalidError < ArgumentError; end
 
+      # Mirrors ORIENTATIONS in model/geometry.js (contract_test.rb).
       ORIENTATIONS = %w[horizontal vertical].freeze
       # Mirrors ACTIVITY_SHAPES in model/geometry.js (contract_test.rb).
       ACTIVITY_SHAPES = %w[card chevron].freeze

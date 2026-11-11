@@ -13,6 +13,10 @@ module Bali
         "legal_portrait" => { width: 8.5, height: 14, orientation: "portrait" }
       }.freeze
 
+      # The `lock_orientation` selects default to a string: Lookbook casts a
+      # param by its default's type, and `false` would turn "vertical" into true.
+      LOCKS = { "true" => true, "false" => false }.freeze
+
       # `rules:` presets: the defaults; strict (optional rules on, two warnings
       # raised to errors, a custom message, tighter limits); relaxed (three rules
       # off, a warning instead of an error, one lane allowed).
@@ -51,7 +55,7 @@ module Bali
       # @param palette select "Palette preset" { choices: [descriptive, analytic, full] }
       # @param layout select "What «Autoajustar» and the first layout do (straight here; the component's default is compact)" { choices: [straight, compact] }
       # @param page select "Sheet for the compact layout and the outputs" { choices: [letter_landscape, letter_portrait, a4_landscape, a4_portrait, legal_landscape, legal_portrait] }
-      # @param lock_orientation toggle "Hide the orientation switch"
+      # @param lock_orientation select "No switch: false offers it, true keeps the document's, horizontal or vertical turns the document to it" { choices: ["false", "true", horizontal, vertical] }
       # @param external_lanes toggle "Offer the external participant checkbox"
       # @param confirm_linked_delete toggle "Ask before deleting a sub-process linked to the app (one from «Por colocar»)"
       # @param autosave toggle "Save after every change (off: only «Guardar borrador»)"
@@ -70,7 +74,7 @@ module Bali
       # reads it left to right, while compact folds anything that would print
       # below 6 pt on the page (VIS-02). The component keeps `:compact`.
       def playground(sample: "invoice", orientation: "horizontal", palette: :analytic, layout: :straight,
-                     page: "letter_landscape", lock_orientation: false, external_lanes: true, autosave: true,
+                     page: "letter_landscape", lock_orientation: "false", external_lanes: true, autosave: true,
                      confirm_linked_delete: false, optional_rules: false, rule_severity: "default", server: "normal", theme: "light",
                      locale: :es, name: "", watermark: "", fresh: true, activity_shape: "card", legend: true, minimap: true)
         flow = ProcessFlow.for_sample(sample.to_s, locale: locale, fresh: fresh, orientation: orientation.to_s)
@@ -79,7 +83,8 @@ module Bali
           locals: { flow: flow, locale: locale, theme: theme.to_s, optional_rules: optional_rules, server: server.to_s,
                     activity_shape: activity_shape.to_s,
                     options: { legend: legend, controls: { minimap: minimap }, palette: palette.to_sym, layout: layout.to_sym, page: PAGES.fetch(page.to_s),
-                               lock_orientation: lock_orientation, external_lanes: external_lanes,
+                               lock_orientation: LOCKS.fetch(lock_orientation.to_s) { lock_orientation.to_sym },
+                               external_lanes: external_lanes,
                                confirm_linked_delete: confirm_linked_delete,
                                autosave: autosave, rules: { "off" => false, "structure" => :structure }.fetch(rule_severity.to_s) { RULE_PRESETS.fetch(rule_severity.to_s) },
                                name: name.presence, watermark: watermark.presence } }
@@ -148,17 +153,21 @@ module Bali
       # of a process or a procedure. The chrome is the component's default:
       # zoom, «Center» and full screen, with no minimap and no legend until the
       # app asks for them (`controls: { minimap: true }`, `legend: true`).
-      # `hidden` takes the rest away through `controls:`.
+      # `hidden` takes the rest away through `controls:`. The map is stored with
+      # horizontal lanes; `lock_orientation: :vertical` turns it on load.
       # @param activity_shape select { choices: [chevron, card] }
+      # @param lock_orientation select { choices: [vertical, horizontal, "false"] }
       # @param legend toggle "legend: true"
       # @param minimap toggle "controls: { minimap: true }"
       # @param hidden select "controls: { zoom:, fit:, fullscreen: } off" { choices: [none, zoom, fit, fullscreen, all] }
       # @param locale select { choices: [es, en] }
-      def macroprocess_map(activity_shape: "chevron", legend: false, minimap: false, hidden: "none", locale: :es)
+      def macroprocess_map(activity_shape: "chevron", lock_orientation: "vertical", legend: false, minimap: false,
+                           hidden: "none", locale: :es)
         data = BpmnProcessMap.map(locale: locale, reference_url: ->(id) { "/lookbook/preview/bali/bpmn_editor/default?box=#{id}" })
         data = data.merge(activity_shape: activity_shape.to_s, orientation: "horizontal")
         off = { "none" => [], "all" => %i[zoom fit fullscreen] }.fetch(hidden.to_s) { [ hidden.to_sym ] }
         island(locale, data: data, rules: :structure, wheel_zoom: true,
+                       lock_orientation: LOCKS.fetch(lock_orientation.to_s) { lock_orientation.to_sym },
                        legend: legend && BpmnProcessMap.legend(locale),
                        controls: { minimap: minimap }.merge(off.index_with(false)))
       end

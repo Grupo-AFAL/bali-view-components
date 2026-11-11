@@ -17,10 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   borrador» y «Finalizar» siguen mientras haya `editable:`.
 - **`Bali::BpmnEditor`: actividades en chevron.** Con `activity_shape: "chevron"` en el documento,
   cada tarea y subproceso se dibuja como chevron, para un mapa de macroprocesos. Aplica en el
-  canvas, la paleta, «Por colocar», la leyenda, la comparación y las exportaciones. Las flechas
-  entran por la muesca y salen por la punta en carriles horizontales; el chevron siempre apunta a
-  la derecha, así que en carriles verticales las flechas entran por arriba y abajo. `"card"` (la
-  tarjeta de hoy) sigue siendo el default, y un valor desconocido lanza `InvalidError`.
+  canvas, la paleta, «Por colocar», la leyenda, la comparación y las exportaciones. El chevron
+  siempre apunta a la derecha: una flecha que llega de lado entra por la muesca y una que llega
+  de arriba, por arriba. `"card"` (la tarjeta de hoy) sigue siendo el default, y un valor
+  desconocido lanza `InvalidError`.
+- **`Bali::BpmnEditor`: `lock_orientation: :vertical` o `:horizontal` fuerza la orientación.**
+  Un documento guardado en la otra orientación se voltea al abrirlo, como lo haría el botón, y el
+  siguiente guardado lo guarda así; no hay botón para cambiarla. `true` sigue conservando la del
+  documento, y cualquier otro valor lanza `ArgumentError`. Para un macroproceso en
+  gobierno-corporativo: `activity_shape: "chevron"` en el documento y `lock_orientation: :vertical`.
 
 ### Changed
 

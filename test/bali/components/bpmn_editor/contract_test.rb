@@ -77,6 +77,10 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_match(/^\s+controls: \{ type: Object, default: \{\} \}/, ROOT.join("index.js").read)
   end
 
+  def test_orientations
+    assert_equal Bali::BpmnEditor::Data::ORIENTATIONS, js_list("model/geometry.js", "ORIENTATIONS")
+  end
+
   def test_activity_shapes
     assert_equal Bali::BpmnEditor::Data::ACTIVITY_SHAPES, js_list("model/geometry.js", "ACTIVITY_SHAPES")
   end

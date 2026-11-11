@@ -88,8 +88,9 @@ module Bali
       # @param editable [Boolean] the island may change the document (the host authorizes).
       # @param autosave [Boolean] save with a debounce after each change (default) or only from
       #   the "Save draft" button.
-      # @param lock_orientation [Boolean] keep the document's own orientation (`data[:orientation]`);
-      #   the toolbar offers no switch.
+      # @param lock_orientation [Boolean, Symbol] true keeps the document's own orientation
+      #   (`data[:orientation]`); :horizontal or :vertical turns a document drawn the other way
+      #   on load, as the switch would (the next save stores it). Either way, no switch.
       # @param external_lanes [Boolean] offer marking a lane as an external participant (default);
       #   false hides that checkbox and the external entries of the default legend.
       # @param confirm_linked_delete [Boolean] ask before deleting a sub-process linked to an
@@ -182,7 +183,7 @@ module Bali
         @data = data.is_a?(Data) ? data : Data.new(data)
         @editable = editable
         @autosave = autosave
-        @lock_orientation = lock_orientation
+        @lock_orientation = resolve_lock_orientation(lock_orientation)
         @external_lanes = external_lanes
         @open_issues = open_issues
         @confirm_linked_delete = resolve_boolean(:confirm_linked_delete, confirm_linked_delete)
@@ -286,7 +287,8 @@ module Bali
           bpmn_editor_data_value: data.to_h.to_json,
           bpmn_editor_editable_value: editable?.to_s,
           bpmn_editor_autosave_value: (!!@autosave).to_s,
-          bpmn_editor_lock_orientation_value: (!!@lock_orientation).to_s,
+          bpmn_editor_lock_orientation_value: (@lock_orientation != false).to_s,
+          bpmn_editor_orientation_value: (@lock_orientation if @lock_orientation.is_a?(String)),
           bpmn_editor_external_lanes_value: (!!@external_lanes).to_s,
           bpmn_editor_open_issues_value: (!!@open_issues).to_s,
           bpmn_editor_confirm_linked_delete_value: ("true" if @confirm_linked_delete),
@@ -344,6 +346,13 @@ module Bali
       # Notes on a read-only diagram, saved to their own endpoint.
       def annotatable?
         !!@annotatable && !editable? && @urls[:annotations].present?
+      end
+
+      def resolve_lock_orientation(value)
+        return value if value == true || value == false
+        return value.to_s if Data::ORIENTATIONS.include?(value.to_s)
+
+        raise ArgumentError, "lock_orientation: must be true, false or one of #{Data::ORIENTATIONS.inspect}, got #{value.inspect}"
       end
 
       def resolve_boolean(name, value)
