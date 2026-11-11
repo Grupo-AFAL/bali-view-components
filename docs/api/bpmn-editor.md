@@ -97,7 +97,7 @@ authorize every endpoint on the server anyway.
 |---|---|---|
 | `data:` | required | The document (`Hash` or `Bali::BpmnEditor::Data`) |
 | `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save. Why it cannot be edited is the host's to say, with a `Bali::Alert` above it |
-| `autosave:` | `true` | Save with a ~1.2 s debounce after each change. `false`: only the "Save draft" button saves |
+| `autosave:` | `true` | Save with a ~1.2 s debounce after each change, with no save button: a failed save is not tried again until the next change, so «Retry save» appears until one succeeds. `false`: only the «Save draft» button saves |
 | `lock_orientation:` | `false` | No orientation switch in the toolbar. `true` keeps the document's own orientation (`data[:orientation]`, the one source of it); `:horizontal` or `:vertical` turns a document stored the other way on load, as the switch would, and the next save stores it — e.g. a macroprocess map whose lanes are always vertical. Anything else raises `ArgumentError` |
 | `external_lanes:` | `true` | Lanes may be marked as external participants (grey lane, white activities, joined by message flows). `false` hides that checkbox in the lane panel and the external entries of the default legend |
 | `open_issues:` | `false` | Open the pending-issues panel on load (editable only): for a page whose purpose is to show what a diagram still has to fix |
@@ -287,7 +287,7 @@ whole document.**
 
 | Request | When | Answer |
 |---|---|---|
-| `PUT urls[:save]` `{ diagram:, version: }` | autosave (debounced), or "Save draft" | `200` the whole document with the new `version` and server `issues` · `409` stale version · `422` `{ errors: [...] }` or `{ errors: [...], issues: [...] }` |
+| `PUT urls[:save]` `{ diagram:, version: }` | autosave (debounced) and «Retry save», or «Save draft» without autosave | `200` the whole document with the new `version` and server `issues` · `409` stale version · `422` `{ errors: [...] }` or `{ errors: [...], issues: [...] }` |
 | `GET urls[:diagram]` | after a 409, and on `bali-bpmn:reload` | `200` the whole document |
 | `POST urls[:finalize]` `{ diagram:, version: }` | "Finalize flow", once the client found no errors and any save in flight is answered | `200` the whole document · `422` `{ errors:, issues:, version: }` |
 
@@ -406,8 +406,8 @@ controls: { exports: false, help: false }    # a viewer without downloads or the
 | `pending:`, `rules:`, `compare:`, `exports:` | The pending issues, «Rules», «Compare» and the four downloads in the top bar |
 | `help:` | The help line under the canvas |
 
-The palette, undo/redo, «Save draft» and «Finalize» are what editing is, and stay while
-`editable:`. `open_issues:` still opens the pending panel on load with `pending: false`;
+The palette, undo/redo, «Save draft» (`autosave: false`) and «Finalize» are what editing
+is, and stay while `editable:`. `open_issues:` still opens the pending panel on load with `pending: false`;
 closed, nothing reopens it. Three pieces have an option of their own: the legend (`legend:`), «Show badges»
 (`badge_toggle:`) and the orientation switch (`lock_orientation:`). `chrome: :minimal` has no
 top bar or toolbars, so only `zoom:`, `fit:` and `fullscreen:` change anything there.

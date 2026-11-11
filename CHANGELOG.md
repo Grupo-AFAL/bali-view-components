@@ -36,6 +36,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{ add:, remove: }`) la sigue viendo. En gobierno-corporativo cambia el editor de
   `business_processes/diagrams/edit` (pierde ambos) y los visores `chrome: :minimal` sin
   `legend:` (pierden la leyenda plegada); los mapas con `bpmn_flow_status_legend` no cambian.
+- **`Bali::BpmnEditor`: con `autosave:` (el default) ya no está «Guardar borrador».** Si un
+  guardado falla, aparece «Reintentar guardado» hasta que uno salga bien, porque el guardado
+  automático no lo vuelve a intentar hasta el siguiente cambio. Con `autosave: false` el botón
+  sigue igual. En gobierno-corporativo, el editor de `business_processes/diagrams/edit` deja de
+  mostrarlo.
 
 ## [v3.25.0] - 2026-11-08
 

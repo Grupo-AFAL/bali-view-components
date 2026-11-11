@@ -106,6 +106,31 @@ describe('BPMN editor island', () => {
       cy.get('[data-testid="bpmn-notice"]', { timeout: 8000 }).should('contain', 'Alguien más modificó este diagrama')
     })
 
+    it('offers no «Save draft» with autosave, and a retry once a save fails', () => {
+      const server = { down: true }
+      cy.intercept('PUT', DIAGRAM, (request) => { if (server.down) request.reply({ statusCode: 500, body: {} }) }).as('save')
+      cy.visit(EDITABLE)
+      cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
+      cy.get('[data-testid="bpmn-save-draft"]').should('not.exist')
+      placeTask()
+      cy.wait('@save')
+      cy.get('[data-testid="bpmn-save-status"]').should('contain', 'No se pudo guardar')
+      cy.then(() => { server.down = false })
+      cy.get('[data-testid="bpmn-save-draft"]').should('have.text', 'Reintentar guardado').click()
+      cy.wait('@save').its('response.statusCode').should('eq', 200)
+      cy.get('[data-testid="bpmn-save-status"]').should('contain', 'Borrador guardado')
+      cy.get('[data-testid="bpmn-save-draft"]').should('not.exist')
+    })
+
+    it('keeps «Save draft» without autosave', () => {
+      cy.intercept('PUT', DIAGRAM).as('save')
+      cy.visit(`${EDITABLE}?autosave=false`)
+      cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
+      placeTask()
+      cy.get('[data-testid="bpmn-save-draft"]').should('have.text', 'Guardar borrador').click()
+      cy.wait('@save').its('response.statusCode').should('eq', 200)
+    })
+
     it('opens the pending panel with the issues a refused finalize brings', () => {
       cy.visit(`${EDITABLE}?sample=partners&server=reject_finalize`)
       cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 7)
@@ -258,7 +283,6 @@ describe('BPMN editor island', () => {
         cy.get('.react-flow__pane').click(lane.left - pane.left + lane.width * 0.7, lane.top - pane.top + lane.height / 2)
       })
       cy.get('[data-testid="bpmn-node"]').should('have.length', 10)
-      cy.get('[data-testid="bpmn-save-draft"], button').contains('Guardar borrador').click()
       cy.wait('@stale')
       cy.wait('@fetch')
       cy.get('[data-testid="bpmn-notice"]').should('contain', 'Alguien más modificó este diagrama')

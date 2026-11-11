@@ -86,8 +86,8 @@ module Bali
 
       # @param data [Hash, Bali::BpmnEditor::Data] the document (contract in Bali::BpmnEditor::Data)
       # @param editable [Boolean] the island may change the document (the host authorizes).
-      # @param autosave [Boolean] save with a debounce after each change (default) or only from
-      #   the "Save draft" button.
+      # @param autosave [Boolean] save with a debounce after each change (default), with no save
+      #   button but a "Retry save" one after a failed save; false saves only from "Save draft".
       # @param lock_orientation [Boolean, Symbol] true keeps the document's own orientation
       #   (`data[:orientation]`); :horizontal or :vertical turns a document drawn the other way
       #   on load, as the switch would (the next save stores it). Either way, no switch.

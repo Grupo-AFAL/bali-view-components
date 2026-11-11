@@ -463,6 +463,7 @@ es:
         save_finalized: "Finalizado"
         autosave: "Guardado automático"
         save_draft: "Guardar borrador"
+        save_retry: "Reintentar guardado"
         finalize: "Finalizar flujo"
         pending_one: "1 pendiente"
         pending_other: "%{count} pendientes"

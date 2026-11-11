@@ -88,9 +88,12 @@ export default function TopBar ({
               <Icon name='refresh' size={12} />{t('autosave')}
             </span>
           )}
-          <button type='button' className='btn btn-outline btn-sm gap-1' onClick={onSave} disabled={saveStatus === 'saving'}>
-            <Icon name='save' size={14} />{t('save_draft')}
-          </button>
+          {/* A failed autosave is not tried again until the next change: this is the retry. */}
+          {(!autosave || saveStatus === 'error') && (
+            <button type='button' className='btn btn-outline btn-sm gap-1' onClick={onSave} disabled={saveStatus === 'saving'} data-testid='bpmn-save-draft'>
+              <Icon name='save' size={14} />{t(autosave ? 'save_retry' : 'save_draft')}
+            </button>
+          )}
           {canFinalize && (
             <button type='button' className='btn btn-success btn-sm gap-1' onClick={onFinalize} disabled={finalizing} data-testid='bpmn-finalize'>
               <Icon name='flag' size={14} />{t('finalize')}
