@@ -452,13 +452,31 @@ Swatches: `task`, `sub_process`, `gateway`, `start_event`, `end_event`,
 `external_lane`, `external_task`, `issue`, `color` (needs `color:`). Review-note
 tags in use are added automatically, and show even without `legend:`.
 
-The related procedure (a collapsed sub-process with its [+]) is grey on the palette, the
-canvas, the legend, the minimap and the outputs alike. Its colour is one CSS custom
-property a host may set on the editor:
+### Colours
+
+Each kind of element has its own colour, the same in every theme (SoftExpert's
+convention): the start event yellow, activities blue, gateways orange, the Yes/No decision
+blue, the end event red and the related procedure (a collapsed sub-process with its [+])
+grey. The palette, the canvas, the legend, the minimap and the outputs all draw them. Each is
+one CSS custom property on the editor, the border; the fill is that colour mixed with the
+canvas at `--bpmn-fill`, so it darkens with a dark theme and the name inside keeps reading
+(10.9:1 light, 7.6:1 dark, measured on an activity):
+
+| Property | Default | Paints |
+|---|---|---|
+| `--bpmn-start` | `#e6c300` | Start events |
+| `--bpmn-activity` | `#1597c9` | Tasks (and the border of an external participant's) |
+| `--bpmn-decision` | `var(--bpmn-activity)` | The Yes/No decision (an exclusive gateway without its X) |
+| `--bpmn-gateway` | `#e8891c` | Gateways and intermediate events |
+| `--bpmn-end` | `#d32f2f` | End events |
+| `--bpmn-sub-process` | a grey of the theme | Related procedures |
+| `--bpmn-fill` | `45%` | How much of each colour its fill takes |
 
 ```css
-.bali-bpmn-editor { --bpmn-sub-process: var(--color-secondary); }
+.bali-bpmn-editor { --bpmn-activity: #2563eb; --bpmn-fill: 30%; }
 ```
+
+An element's `appearance.color` (the app's look) still goes over its kind's colour.
 
 ---
 
@@ -658,6 +676,9 @@ A limit given as `nil` is no limit.
    ```
 
    The editor links the node and saves. Cancelled, the node stays unlinked and R11 lists it.
+   The form's button closes the drawer on that answer only with `drawer: true`
+   (`f.submit_group "Create and link", drawer: true`); without it the node is linked and the
+   drawer stays open. The same holds for the lane responsible's and the import's drawers.
 3. **Stencil** — the document's `stencil` shows as "To place"; dragging one creates a
    linked sub-process.
 4. **Lane responsible** — a grouped search at `urls[:lane_assignees]?group=…&q=` (the

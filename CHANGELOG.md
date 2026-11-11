@@ -36,6 +36,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{ add:, remove: }`) la sigue viendo. En gobierno-corporativo cambia el editor de
   `business_processes/diagrams/edit` (pierde ambos) y los visores `chrome: :minimal` sin
   `legend:` (pierden la leyenda plegada); los mapas con `bpmn_flow_status_legend` no cambian.
+- **`Bali::BpmnEditor`: los colores siguen la convención de SoftExpert.** Inicio amarillo,
+  actividades azules, compuertas naranjas, la decisión Sí/No azul, fin rojo y el procedimiento
+  relacionado gris, iguales en todos los temas; antes salían de los colores del tema (inicio
+  verde, actividades en el primario). Cada uno es una propiedad CSS que la app puede cambiar
+  (`--bpmn-start`, `--bpmn-activity`, `--bpmn-decision`, `--bpmn-gateway`, `--bpmn-end`, y
+  `--bpmn-fill` para la intensidad del relleno). En gobierno-corporativo cambian todos los
+  diagramas; los colores de estado que pone con `appearance` siguen encima.
 - **`Bali::BpmnEditor`: con `autosave:` (el default) ya no está «Guardar borrador».** Si un
   guardado falla, aparece «Reintentar guardado» hasta que uno salga bien, porque el guardado
   automático no lo vuelve a intentar hasta el siguiente cambio. Con `autosave: false` el botón

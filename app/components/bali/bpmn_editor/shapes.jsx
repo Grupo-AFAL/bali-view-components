@@ -23,21 +23,21 @@ function ActivityOutline ({ w, h, shape, ...props }) {
   return <path d={`M1,1 L${w - d},1 L${w - 1},${h / 2} L${w - d},${h - 1} L1,${h - 1} L${1 + d},${h / 2} Z`} strokeLinejoin='round' {...props} />
 }
 
-const soft = (token, amount = 12) => `color-mix(in oklab, var(${token}) ${amount}%, var(--color-base-100))`
+const tint = (token) => `color-mix(in oklab, var(${token}) var(--bpmn-fill), var(--color-base-100))`
 // The related procedure (collapsed sub-process): grey with its [+] unless the
 // host sets `--bpmn-sub-process` on the editor (AFAL SUB-01, VIS-09).
 const SUB_PROCESS = 'var(--bpmn-sub-process, color-mix(in oklab, var(--color-base-content) 55%, var(--color-base-100)))'
 
 export const LIVE_PAINT = {
-  activity: { fill: soft('--color-primary', 10), stroke: 'var(--color-primary)' },
-  externalActivity: { fill: 'var(--color-base-100)', stroke: 'var(--color-primary)' },
-  subProcess: { fill: `color-mix(in oklab, ${SUB_PROCESS} 14%, var(--color-base-100))`, stroke: SUB_PROCESS },
-  gateway: { fill: soft('--color-warning', 12), stroke: 'var(--color-warning)' },
+  activity: { fill: tint('--bpmn-activity'), stroke: 'var(--bpmn-activity)' },
+  externalActivity: { fill: 'var(--color-base-100)', stroke: 'var(--bpmn-activity)' },
+  subProcess: { fill: `color-mix(in oklab, ${SUB_PROCESS} 25%, var(--color-base-100))`, stroke: SUB_PROCESS },
+  gateway: { fill: tint('--bpmn-gateway'), stroke: 'var(--bpmn-gateway)' },
   // The Yes/No decision, blue and without its X (AFAL COM-02).
-  decision: { fill: soft('--color-info', 14), stroke: 'var(--color-info)' },
-  start: { fill: soft('--color-success', 12), stroke: 'var(--color-success)' },
-  intermediate: { fill: 'var(--color-base-100)', stroke: 'var(--color-warning)' },
-  end: { fill: soft('--color-error', 10), stroke: 'var(--color-error)' },
+  decision: { fill: tint('--bpmn-decision'), stroke: 'var(--bpmn-decision)' },
+  start: { fill: tint('--bpmn-start'), stroke: 'var(--bpmn-start)' },
+  intermediate: { fill: 'var(--color-base-100)', stroke: 'var(--bpmn-gateway)' },
+  end: { fill: tint('--bpmn-end'), stroke: 'var(--bpmn-end)' },
   neutral: { fill: 'var(--color-base-100)', stroke: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
   text: 'var(--color-base-content)',
   marker: 'var(--color-base-100)'

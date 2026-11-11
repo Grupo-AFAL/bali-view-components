@@ -11,6 +11,14 @@
   --bpmn-line: color-mix(in oklab, var(--color-base-content) 72%, transparent);
   --bpmn-border: var(--color-base-300);
   --bpmn-select: var(--color-primary);
+  /* Each kind's border, the same in every theme (SoftExpert's convention);
+   * its fill is that colour mixed with the canvas at --bpmn-fill (shapes.jsx). */
+  --bpmn-start: #e6c300;
+  --bpmn-activity: #1597c9;
+  --bpmn-decision: var(--bpmn-activity);
+  --bpmn-gateway: #e8891c;
+  --bpmn-end: #d32f2f;
+  --bpmn-fill: 45%;
 }
 
 .bpmn-canvas { position: relative; min-height: 420px; background: var(--color-base-100); container: bpmn-canvas / inline-size; }
