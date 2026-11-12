@@ -46,8 +46,6 @@ describe('the title in the editor’s bar', () => {
   const title = 'Macroproceso: Operación de Restaurantes'
   const withTitle = (name) => `${PLAYGROUND}?title=${encodeURIComponent(name)}&title_badge=${encodeURIComponent('Modo edición')}`
 
-  // Before the full screen one: after the browser's own full screen, Cypress
-  // leaves the window at its default width whatever cy.viewport asks.
   it('is cut with «…» on a narrow screen instead of pushing the editor out', () => {
     cy.viewport(700, 800)
     cy.visit(withTitle(`${title} con un nombre bastante largo para la barra`))
@@ -63,7 +61,7 @@ describe('the title in the editor’s bar', () => {
 
   it('names what is being edited, in full screen too', () => {
     cy.viewport(1400, 900)
-    cy.visit(withTitle(title))
+    cy.visit(withTitle(title), { onBeforeLoad: fakeFullscreen })
     cy.get('[data-testid="bpmn-title"] h2').should('have.text', title).and('have.attr', 'title', title)
     cy.get('[data-testid="bpmn-title"]').should('contain', 'Modo edición')
     cy.contains('button', 'Pantalla completa').click()
@@ -71,3 +69,13 @@ describe('the title in the editor’s bar', () => {
     cy.contains('button', 'Salir de pantalla completa').click()
   })
 })
+
+// Headless Chrome refuses a full screen the test asks for (it is no user
+// gesture): the API is stubbed, as in bpmn-page.cy.js.
+function fakeFullscreen (win) {
+  let current = null
+  Object.defineProperty(win.document, 'fullscreenElement', { configurable: true, get: () => current })
+  const change = (element) => { current = element; win.document.dispatchEvent(new win.Event('fullscreenchange')); return Promise.resolve() }
+  win.Element.prototype.requestFullscreen = function () { return change(this) }
+  win.document.exitFullscreen = () => change(null)
+}
