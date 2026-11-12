@@ -128,10 +128,12 @@ module Bali
       #   or the drawer stays open after their answer.
       # @param name [String] the diagram's name: title of the image and print outputs, file
       #   names, and the main participant of the .bpmn export.
-      # @param title [String] what is being edited, centred in the editor's own bar, there in
-      #   full screen too (e.g. "Macroproceso: Operación de Restaurantes"); a long one is cut
-      #   with «…» and read whole on hover. Not with `full_page:`, whose header has its title.
-      # @param title_badge [String] a badge beside `title:` (e.g. "Modo edición").
+      # @param title [String] what is being edited, in the editor's own bar between its left
+      #   and right controls, there in full screen too (e.g. "Macroproceso: Operación de
+      #   Restaurantes"); a long one is cut with «…» and read whole on hover. Raises with
+      #   `full_page:` (its header has the title) and with `chrome: :minimal` (no bar).
+      #   Island value `title` in index.js.
+      # @param title_badge [String] a badge beside `title:` (e.g. "Modo edición"); needs `title:`.
       # @param watermark [String] text across the image and print outputs (e.g. "Borrador").
       # @param review [Hash] { tags: [{ key:, label:, color: }] of the review notes,
       #   compare_with: one comparison or a list of them, picked in the comparison bar — each
@@ -226,6 +228,7 @@ module Bali
         if @chrome == :minimal && editable?
           raise ArgumentError, "chrome: :minimal is for read-only diagrams (it has no palette or save status); drop editable: or use chrome: :full"
         end
+        check_title
         return unless @chrome == :minimal && @full_page
 
         raise ArgumentError, "full_page: draws the whole editor around its header; it does not combine with chrome: :minimal"
@@ -238,6 +241,15 @@ module Bali
       end
 
       def minimal? = @chrome == :minimal
+
+      # `title:` sits in the editor's own bar, which chrome: :minimal does not draw and
+      # full_page: replaces with its header (whose `title:` names the page).
+      def check_title
+        raise ArgumentError, "title_badge: goes beside title:; pass title: too" if @title_badge && !@title
+        return unless @title && (minimal? || @full_page)
+
+        raise ArgumentError, "title: is shown in the editor's bar, which #{minimal? ? 'chrome: :minimal does not draw' : "full_page: replaces (use full_page: { title: })"}"
+      end
 
       def full_page? = !@full_page.nil?
 

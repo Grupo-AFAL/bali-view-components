@@ -10,8 +10,10 @@ import { textOn } from '../model/contrast.js'
 import { safeUrl } from '../model/urls.js'
 import { useCanvas } from './CanvasContext.js'
 
-// The card's selection sits 5–6 px out (flow.css `.is-selected::after`).
+// The card's selection sits 5–6 px out (flow.css `.is-selected::after`), its
+// read-only halo 4 px beyond its 2.5 px ring: drawn outside it, not over the shape.
 const SELECTION_INSET = 6
+const HALO_INSET = SELECTION_INSET + 1.25 + 2
 const SIDES = [['top', Position.Top], ['right', Position.Right], ['bottom', Position.Bottom], ['left', Position.Left]]
 
 // Names drawn inside the shape. A name outside it (events, gateways, data)
@@ -143,7 +145,7 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
       </svg>
       {chevron && (
         <svg className='bpmn-node-selection' width={box.w} height={box.h} aria-hidden='true' data-testid='bpmn-node-selection'>
-          <path className='bpmn-node-selection-halo' d={chevronAround(box.w, box.h, SELECTION_INSET)} />
+          <path className='bpmn-node-selection-halo' d={chevronAround(box.w, box.h, HALO_INSET)} />
           <path d={chevronAround(box.w, box.h, SELECTION_INSET)} />
         </svg>
       )}

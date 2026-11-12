@@ -101,6 +101,12 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_nil island["data-bpmn-editor-title-badge-value"]
   end
 
+  def test_the_title_goes_where_the_editors_bar_is
+    assert_match "title_badge:", assert_raises(ArgumentError) { component(title_badge: "Modo edición") }.message
+    assert_match "chrome: :minimal", assert_raises(ArgumentError) { component(title: "Mapa", chrome: :minimal) }.message
+    assert_match "full_page:", assert_raises(ArgumentError) { component(title: "Mapa", full_page: { title: "Mapa", close_url: "/" }) }.message
+  end
+
   def test_the_host_can_force_one_orientation
     render_inline(component(lock_orientation: :vertical))
     assert_equal "true", island["data-bpmn-editor-lock-orientation-value"]

@@ -77,6 +77,13 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_match(/^\s+controls: \{ type: Object, default: \{\} \}/, ROOT.join("index.js").read)
   end
 
+  def test_the_title_values
+    index = ROOT.join("index.js").read
+    assert_includes index, "title: { type: String"
+    assert_includes index, "titleBadge: { type: String"
+    assert_includes ROOT.join("component.rb").read, "Island value `title` in index.js"
+  end
+
   def test_orientations
     assert_equal Bali::BpmnEditor::Data::ORIENTATIONS, js_list("model/geometry.js", "ORIENTATIONS")
   end

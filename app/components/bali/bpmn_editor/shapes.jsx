@@ -17,12 +17,18 @@ export const ActivityShapeContext = createContext('card')
 
 // An activity's outline: the rounded card, or a chevron pointing along the
 // flow, its notch on the left as deep as its point.
-// A chevron `inset` px outside a w×h one, its slants as steep: the selection
-// around a chevron activity (canvas/FlowNode.jsx), not the card's rectangle.
+// ActivityOutline's chevron with every side moved `inset` px out, the slants
+// along their normal: the selection around a chevron activity (canvas/FlowNode.jsx).
+// Moving the corners diagonally instead left the notch 3 px from the shape.
 export function chevronAround (w, h, inset) {
-  const d = chevronDepth(h) * (h + 2 * inset) / h
-  const [left, top, right, bottom] = [-inset, -inset, w + inset, h + inset]
-  return `M${left},${top} L${right - d},${top} L${right},${h / 2} L${right - d},${bottom} L${left},${bottom} L${left + d},${h / 2} Z`
+  const d = chevronDepth(h)
+  const k = d / (h / 2 - 1) // horizontal run of a slant per px down
+  const out = inset * Math.sqrt(1 + k * k)
+  const [top, bottom, middle] = [1 - inset, h - 1 + inset, h / 2]
+  const left = 1 - k * inset - out
+  const right = w - d - k * inset + out
+  const n = (value) => Math.round(value * 10) / 10
+  return `M${n(left)},${n(top)} L${n(right)},${n(top)} L${n(w - 1 + out)},${middle} L${n(right)},${n(bottom)} L${n(left)},${n(bottom)} L${n(1 + d - out)},${middle} Z`
 }
 
 function ActivityOutline ({ w, h, shape, ...props }) {

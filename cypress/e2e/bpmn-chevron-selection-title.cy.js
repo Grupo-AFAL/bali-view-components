@@ -17,7 +17,16 @@ describe('selecting a chevron activity', () => {
     nodeNamed('Facturación').click()
     nodeNamed('Facturación').find('.bpmn-node').should(($node) => expect(afterContent($node)).to.eq('none'))
     nodeNamed('Facturación').find('[data-testid="bpmn-node-selection"]').should('be.visible')
-      .find('path').last().invoke('attr', 'd').should('match', /^M-6,-6 L[\d.]+,-6 L[\d.]+,32 L[\d.]+,70 L-6,70 L[\d.]+,32 Z$/)
+    // The ring keeps its 6 px off the shape at the notch and the point too, not only along the flat edges.
+    nodeNamed('Facturación').find('.bpmn-node-shape').then(($shape) => {
+      const [w, h] = [Number($shape.attr('width')), Number($shape.attr('height'))]
+      const depth = Math.round(h * 0.25 * 10) / 10
+      nodeNamed('Facturación').find('[data-testid="bpmn-node-selection"] path').last().invoke('attr', 'd').then((d) => {
+        const xs = d.match(/-?[\d.]+(?=,)/g).map(Number)
+        expect(xs[5], 'the notch').to.be.at.most(1 + depth - 6)
+        expect(xs[2], 'the point').to.be.at.least(w - 1 + 6)
+      })
+    })
   })
 
   it('outlines it as a chevron while editing, and a card keeps its box', () => {

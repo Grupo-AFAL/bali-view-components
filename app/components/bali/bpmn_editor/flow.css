@@ -196,8 +196,8 @@
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--bpmn-select) 22%, transparent);
 }
 .bpmn-canvas.is-readonly .bpmn-node-selection path { stroke-width: 2.5; stroke-dasharray: none; }
-.bpmn-canvas.is-readonly .bpmn-node-selection .bpmn-node-selection-halo {
-  display: inline; stroke: color-mix(in oklab, var(--bpmn-select) 22%, transparent); stroke-width: 10.5;
+.bpmn-canvas.is-readonly .bpmn-node.is-selected .bpmn-node-selection .bpmn-node-selection-halo {
+  display: inline; stroke: color-mix(in oklab, var(--bpmn-select) 22%, transparent); stroke-width: 4; stroke-dasharray: none;
 }
 .bpmn-canvas.is-readonly .react-flow__node-bpmn { cursor: default; }
 .bpmn-canvas.is-readonly .react-flow__node-bpmn:has(.bpmn-node-link) { cursor: pointer; }

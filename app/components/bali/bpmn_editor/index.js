@@ -48,7 +48,7 @@ export class BpmnEditorController extends ReactIslandController {
     fields: { type: Object, default: {} },
     urls: { type: Object, default: {} },
     name: { type: String, default: '' },
-    // Component `title:` / `title_badge:`, in the editor's own bar.
+    // Component `title:` / `title_badge:` (component.rb check_title), in the editor's own bar.
     title: { type: String, default: '' },
     titleBadge: { type: String, default: '' },
     watermark: { type: String, default: '' },

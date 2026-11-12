@@ -34,9 +34,9 @@ export function SaveStatus ({ t, saveStatus, notesOnly = false }) {
 
 // The editor's own bar: what the host says about the document, whether the
 // draft is saved, the pending issues, history, exports and the save /
-// finalize actions. Page title, "edit mode" and "exit" belong to the host —
-// or to the page header of `full_page:`, which then also shows the save
-// status (`pageHeader`).
+// finalize actions, and the host's `title:`. "Exit" belongs to the host — or
+// to the page header of `full_page:`, which then also shows the title and the
+// save status (`pageHeader`).
 export default function TopBar ({
   t, editable, notesOnly = false, statusLabel, saveStatus, dirty = true, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
   finalizing, exports, onCompare, comparing, pageHeader = false, title, titleBadge

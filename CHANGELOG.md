@@ -10,14 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`Bali::BpmnEditor`: `title:` y `title_badge:` dicen qué se edita en la barra del editor.** El
-  título va centrado (por ejemplo «Macroproceso: Operación de Restaurantes») con un badge
-  opcional («Modo edición»), y se sigue viendo en pantalla completa. Si es largo se corta con «…»
-  y se lee completo al pasar el cursor; si en la fila de la barra quedan menos de 17rem, baja a su
-  propia línea. No se muestra con `full_page:` (su encabezado ya lleva el título) ni con
-  `chrome: :minimal`.
-- **`Bali::BpmnEditor`: una actividad en chevron seleccionada se marca con la forma del chevron**,
-  no con el rectángulo redondeado de la tarjeta: el anillo con halo en modo lectura y el punteado
-  en edición. El foco de teclado también sigue su forma.
+  título (por ejemplo «Macroproceso: Operación de Restaurantes») va entre los controles de la
+  izquierda y los de la derecha, con un badge opcional («Modo edición»), y se sigue viendo en
+  pantalla completa. Si es largo se corta con «…» y se lee completo al pasar el cursor; si en la
+  fila de la barra quedan menos de 17rem, pasa a la siguiente. `title_badge:` requiere `title:`, y
+  `title:` lanza `ArgumentError` con `full_page:` (usa su `title:`) o con `chrome: :minimal`.
 - **`Bali::BpmnEditor`: `controls:` muestra u oculta cada pieza del chrome.** Las llaves son
   `zoom:`, `fit:`, `fullscreen:`, `minimap:`, `navigate:`, `participants:`, `selection:`,
   `stencil:`, `add_lane:`, `auto_layout:`, `connect:`, `pending:`, `rules:`, `compare:`,
@@ -26,10 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   borrador» (con `autosave: false`) y «Finalizar» siguen mientras haya `editable:`.
 - **`Bali::BpmnEditor`: actividades en chevron.** Con `activity_shape: "chevron"` en el documento,
   cada tarea y subproceso se dibuja como chevron, para un mapa de macroprocesos. Aplica en el
-  canvas, la paleta, «Por colocar», la leyenda, la comparación y las exportaciones. El chevron
-  siempre apunta a la derecha: una flecha que llega de lado entra por la muesca y una que llega
-  de arriba, por arriba. `"card"` (la tarjeta de hoy) sigue siendo el default, y un valor
-  desconocido lanza `InvalidError`.
+  canvas, la paleta, «Por colocar», la leyenda, la comparación y las exportaciones.
+  Seleccionada (o con el foco de teclado), una actividad en chevron se marca con su propia forma
+  y no con el rectángulo redondeado de la tarjeta. El chevron siempre apunta a la derecha: una
+  flecha que llega de lado entra por la muesca y una que llega de arriba, por arriba. `"card"`
+  (la tarjeta de hoy) sigue siendo el default, y un valor desconocido lanza `InvalidError`.
 - **`Bali::BpmnEditor`: `lock_orientation: :vertical` o `:horizontal` fuerza la orientación.**
   Un documento guardado en la otra orientación se voltea al abrirlo, como lo haría el botón, y el
   siguiente guardado lo guarda así; no hay botón para cambiarla. `true` sigue conservando la del
