@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.26.0] - 2026-11-12
+
 ### Added
 
 - **`Bali::BpmnEditor`: `title:` y `title_badge:` dicen qué se edita en la barra del editor.** El
