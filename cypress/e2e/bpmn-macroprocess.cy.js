@@ -39,11 +39,11 @@ describe('the macroprocess map', () => {
   })
 
   it('draws every activity as a chevron, entered by its notch', () => {
-    // Horizontal lanes: the connection into «Facturación» reaches it from the side.
+    // Horizontal lanes: the connection into the billing process reaches it from the side.
     cy.visit(`${MAP}?lock_orientation=horizontal`)
     // The outline is the shape's first element; the [+] is a rect after it.
     nodeNamed('Facturación').find('.bpmn-node-shape > g > :first-child').should('match', 'path')
-    // The connection into «Facturación» ends past the box's left edge, in the notch.
+    // That connection ends past the box's left edge, in the notch.
     nodeNamed('Facturación').find('.bpmn-node-shape').then(($shape) => {
       const box = $shape[0].getBoundingClientRect()
       cy.get('.react-flow__edge[data-id="e1"] path.react-flow__edge-path').then(($path) => {
