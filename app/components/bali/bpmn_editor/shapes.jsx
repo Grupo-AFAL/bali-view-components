@@ -17,6 +17,14 @@ export const ActivityShapeContext = createContext('card')
 
 // An activity's outline: the rounded card, or a chevron pointing along the
 // flow, its notch on the left as deep as its point.
+// A chevron `inset` px outside a w×h one, its slants as steep: the selection
+// around a chevron activity (canvas/FlowNode.jsx), not the card's rectangle.
+export function chevronAround (w, h, inset) {
+  const d = chevronDepth(h) * (h + 2 * inset) / h
+  const [left, top, right, bottom] = [-inset, -inset, w + inset, h + inset]
+  return `M${left},${top} L${right - d},${top} L${right},${h / 2} L${right - d},${bottom} L${left},${bottom} L${left + d},${h / 2} Z`
+}
+
 function ActivityOutline ({ w, h, shape, ...props }) {
   if (shape !== 'chevron') return <rect x={1} y={1} width={w - 2} height={h - 2} rx={activityRadius(h)} {...props} />
   const d = chevronDepth(h)

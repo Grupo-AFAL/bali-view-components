@@ -100,7 +100,7 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, autosave, lockOrientation, orientation: lockedOrientation, externalLanes = true, openIssues = false, confirmLinkedDelete = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
+  data, editable: editableProp, autosave, lockOrientation, orientation: lockedOrientation, externalLanes = true, openIssues = false, confirmLinkedDelete = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement, title, titleBadge,
   name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false,
   badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0, takeHostEvents,
   fullPage = false, bordered = true, controls
@@ -1127,6 +1127,8 @@ function Editor ({
             onCompare={compare && shown.compare ? () => setComparison((c) => ({ ...c, mode: c.mode ? null : DEFAULT_COMPARE_MODE })) : null}
             comparing={comparing}
             pageHeader={fullPage && !fullscreen}
+            title={fullPage ? null : title}
+            titleBadge={titleBadge}
           />
         )}
         {compareShown && (

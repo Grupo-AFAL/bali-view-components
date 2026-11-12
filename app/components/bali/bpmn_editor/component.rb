@@ -128,6 +128,10 @@ module Bali
       #   or the drawer stays open after their answer.
       # @param name [String] the diagram's name: title of the image and print outputs, file
       #   names, and the main participant of the .bpmn export.
+      # @param title [String] what is being edited, centred in the editor's own bar, there in
+      #   full screen too (e.g. "Macroproceso: Operación de Restaurantes"); a long one is cut
+      #   with «…» and read whole on hover. Not with `full_page:`, whose header has its title.
+      # @param title_badge [String] a badge beside `title:` (e.g. "Modo edición").
       # @param watermark [String] text across the image and print outputs (e.g. "Borrador").
       # @param review [Hash] { tags: [{ key:, label:, color: }] of the review notes,
       #   compare_with: one comparison or a list of them, picked in the comparison bar — each
@@ -178,7 +182,7 @@ module Bali
       #   omitted, so two editors on one page never share it.
       def initialize(data:, editable: false, autosave: true, lock_orientation: false, external_lanes: true,
                      open_issues: false, confirm_linked_delete: false, layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil,
-                     rules: {}, fields: {}, urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil,
+                     rules: {}, fields: {}, urls: {}, name: nil, title: nil, title_badge: nil, watermark: nil, review: {}, i18n: nil, id: nil,
                      selected_id: nil, chrome: :full, min_zoom: DEFAULT_MIN_ZOOM, annotatable: false,
                      badges: true, badge_toggle: true, wheel_zoom: :auto, compare_open: false, compare_index: 0,
                      full_page: nil, bordered: true, controls: {}, **options)
@@ -197,6 +201,8 @@ module Bali
         @fields = resolve_fields(fields)
         @urls = resolve_urls(urls)
         @name = name
+        @title = title.presence
+        @title_badge = title_badge.presence
         @watermark = watermark
         @review = resolve_review(review)
         @compare_open = resolve_compare_open(compare_open)
@@ -304,6 +310,8 @@ module Bali
           bpmn_editor_fields_value: @fields.to_json,
           bpmn_editor_urls_value: @urls.to_json,
           bpmn_editor_name_value: @name,
+          bpmn_editor_title_value: @title,
+          bpmn_editor_title_badge_value: @title_badge,
           bpmn_editor_watermark_value: @watermark,
           bpmn_editor_review_value: @review.to_json,
           bpmn_editor_i18n_key_value: i18n_key,

@@ -111,6 +111,7 @@ authorize every endpoint on the server anyway.
 | `fields:` | `{}` | `{ nodes: { type => [field] }, lanes: [field] }`, the properties panel's own fields — see [Fields](#fields). An unknown key raises |
 | `urls:` | `{}` | `save`, `diagram`, `finalize`, `references`, `new_reference`, `lane_assignees`, `new_lane_assignee`, `import`, `annotations`. An unknown key raises |
 | `name:` | `nil` | Title of the image and print outputs, the file names, the main participant of the `.bpmn` |
+| `title:` / `title_badge:` | `nil` | What is being edited, centred in the editor's own bar (e.g. `"Macroproceso: Operación de Restaurantes"`) with an optional badge (`"Modo edición"`). The bar stays in full screen, so it names the diagram there too. A long title is cut with «…» and read whole on hover; with less than 17rem left on the bar's row it takes a line of its own. Not shown with `full_page:`, whose header carries the title, nor with `chrome: :minimal`, which has no bar |
 | `watermark:` | `nil` | Text across the image and print outputs, e.g. `"Borrador"` |
 | `review:` | `{}` | `{ tags: [{ key:, label:, color: }], compare_with: { document:, label:, match: }, compare_bar: { title:, match_note:, exit:, captions: } }`: the tags of the review notes and another document to compare against, paired `match: :id` (default) or `:name` — see [Outputs, notes and comparison](#outputs-notes-and-comparison). `compare_bar:` leaves pieces of the comparison bar out, each `false` (all shown by default): `title` (the «Compare with …» label of a single comparison; a list keeps its picker), `match_note` («Elements paired by name»), `exit` («Close comparison») and `captions` (each side's label over its diagram). «Only changes», «Sync» and the views always stay. An unknown key or a value that is not true or false raises |
 | `compare_open:` | `false` | Opens on load comparing against `review: { compare_with: }` — `true` (side by side, the comparison's default view), `:side_by_side` or `:overlay`. The overlay is offered only for versions of one process; asked for two different processes, the comparison opens side by side, and `bali-bpmn:compare-change` reports `mode: "side_by_side"`. Needs `compare_with:` (ArgumentError otherwise). For a `chrome: :minimal` editor, which has no «Compare» button: the app opens it with this or with `bali-bpmn:compare` — see [Embedding a diagram](#embedding-a-diagram) |
@@ -432,6 +433,8 @@ It belongs to the document, like `orientation`: the canvas, the palette and «To
 legend, the comparison and the image, SVG and print outputs all draw it, and a save sends it
 back. A connection from the side enters a chevron by its notch and leaves by its point; the name, the task
 marker and the pending mark keep inside its outline, and a linked sub-process keeps its [+].
+Selected, a chevron is outlined with its own shape (the solid, haloed ring while reading, the
+dashed one while editing), and so is its keyboard focus.
 The `.bpmn` export has no shape for it and writes BPMN tasks as always. Anything else
 raises `InvalidError`.
 

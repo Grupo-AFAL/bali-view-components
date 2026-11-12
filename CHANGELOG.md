@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::BpmnEditor`: `title:` y `title_badge:` dicen qué se edita en la barra del editor.** El
+  título va centrado (por ejemplo «Macroproceso: Operación de Restaurantes») con un badge
+  opcional («Modo edición»), y se sigue viendo en pantalla completa. Si es largo se corta con «…»
+  y se lee completo al pasar el cursor; si en la fila de la barra quedan menos de 17rem, baja a su
+  propia línea. No se muestra con `full_page:` (su encabezado ya lleva el título) ni con
+  `chrome: :minimal`.
+- **`Bali::BpmnEditor`: una actividad en chevron seleccionada se marca con la forma del chevron**,
+  no con el rectángulo redondeado de la tarjeta: el anillo con halo en modo lectura y el punteado
+  en edición. El foco de teclado también sigue su forma.
 - **`Bali::BpmnEditor`: `controls:` muestra u oculta cada pieza del chrome.** Las llaves son
   `zoom:`, `fit:`, `fullscreen:`, `minimap:`, `navigate:`, `participants:`, `selection:`,
   `stencil:`, `add_lane:`, `auto_layout:`, `connect:`, `pending:`, `rules:`, `compare:`,

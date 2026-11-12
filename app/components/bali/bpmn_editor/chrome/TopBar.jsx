@@ -39,7 +39,7 @@ export function SaveStatus ({ t, saveStatus, notesOnly = false }) {
 // status (`pageHeader`).
 export default function TopBar ({
   t, editable, notesOnly = false, statusLabel, saveStatus, dirty = true, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
-  finalizing, exports, onCompare, comparing, pageHeader = false
+  finalizing, exports, onCompare, comparing, pageHeader = false, title, titleBadge
 }) {
   const errors = issues.filter((i) => i.severity === 'error').length
   // A retry stays, disabled, while its save is out, rather than vanishing under the pointer;
@@ -72,7 +72,16 @@ export default function TopBar ({
           <Icon name='compare' size={13} />{t('compare')}
         </button>
       )}
-      <span className='grow' />
+      {title
+        ? (
+          // A row with less than 17rem left (a readable title and its badge) sends the title to
+          // a line of its own; there it fits the line and is cut with «…».
+          <div className='flex min-w-0 grow basis-[17rem] items-center justify-center gap-2' data-testid='bpmn-title'>
+            <h2 className='min-w-0 truncate text-sm font-semibold' title={title}>{title}</h2>
+            {titleBadge && <span className='badge badge-info badge-sm whitespace-nowrap'>{titleBadge}</span>}
+          </div>
+          )
+        : <span className='grow' />}
       {editable && (
         <div className='flex items-center' role='group'>
           <IconButton icon='undo' label={t('undo')} shortcut='Ctrl+Z' onClick={history.undo} disabled={!history.canUndo} />

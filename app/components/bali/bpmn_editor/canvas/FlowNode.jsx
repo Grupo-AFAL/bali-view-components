@@ -1,6 +1,6 @@
 import { memo, useLayoutEffect, useRef, useState } from 'react'
 import { Handle, NodeResizeControl, NodeToolbar, Position, useStore } from '@xyflow/react'
-import { NodeShape, IssueMarker, AppearanceMark } from '../shapes.jsx'
+import { NodeShape, IssueMarker, AppearanceMark, chevronAround } from '../shapes.jsx'
 import { appearanceOf } from '../model/appearance.js'
 import { DIFF_MARKS, diffMark } from './diffMarks.js'
 import { categoryOf, nodeSize, isResizable, CATEGORY, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
@@ -10,6 +10,8 @@ import { textOn } from '../model/contrast.js'
 import { safeUrl } from '../model/urls.js'
 import { useCanvas } from './CanvasContext.js'
 
+// The card's selection sits 5–6 px out (flow.css `.is-selected::after`).
+const SELECTION_INSET = 6
 const SIDES = [['top', Position.Top], ['right', Position.Right], ['bottom', Position.Bottom], ['left', Position.Left]]
 
 // Names drawn inside the shape. A name outside it (events, gateways, data)
@@ -139,6 +141,12 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
         {look && <AppearanceMark node={node} width={box.w} height={box.h} color={look.color} activityShape={canvas.activityShape} />}
         {issue && (() => { const b = badgeBox({ ...node, x: 0, y: 0 }, canvas.activityShape); return <IssueMarker x={b.x + b.w / 2} y={b.y + 8} /> })()}
       </svg>
+      {chevron && (
+        <svg className='bpmn-node-selection' width={box.w} height={box.h} aria-hidden='true' data-testid='bpmn-node-selection'>
+          <path className='bpmn-node-selection-halo' d={chevronAround(box.w, box.h, SELECTION_INSET)} />
+          <path d={chevronAround(box.w, box.h, SELECTION_INSET)} />
+        </svg>
+      )}
       {renaming
         ? canvas.renderRename(node)
         : name && <Label node={node} name={name} orientation={canvas.orientation} activityShape={canvas.activityShape} category={category} badge={Boolean(badge)} link={showLink} />}

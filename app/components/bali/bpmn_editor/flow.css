@@ -129,6 +129,16 @@
 .bpmn-node.is-selected::after {
   content: ''; position: absolute; inset: -5px; border: 1.5px dashed var(--bpmn-select); border-radius: 10px; pointer-events: none;
 }
+/* A chevron's selection and keyboard focus follow its outline (FlowNode.jsx,
+ * shapes.jsx chevronAround), not the card's rounded box. */
+.bpmn-node.is-chevron.is-selected::after { content: none; }
+.bpmn-node.is-chevron:focus-visible { outline: none; }
+.bpmn-node-selection { position: absolute; inset: 0; overflow: visible; pointer-events: none; display: none; }
+.bpmn-node.is-selected > .bpmn-node-selection,
+.bpmn-node:focus-visible > .bpmn-node-selection { display: block; }
+.bpmn-node:focus-visible:not(.is-selected) > .bpmn-node-selection path { stroke-width: 2; stroke-dasharray: none; }
+.bpmn-node-selection path { fill: none; stroke: var(--bpmn-select); stroke-width: 1.5; stroke-dasharray: 5 3; stroke-linejoin: round; }
+.bpmn-node-selection .bpmn-node-selection-halo { display: none; }
 .bpmn-node.is-highlighted .bpmn-node-shape { filter: drop-shadow(0 0 0.5px var(--bpmn-select)) drop-shadow(0 0 3px color-mix(in oklab, var(--bpmn-select) 55%, transparent)); }
 .bpmn-node.is-highlighted .bpmn-node-shape { animation: bpmn-pulse 1.2s ease-in-out 2; }
 @keyframes bpmn-pulse { 50% { filter: drop-shadow(0 0 6px var(--bpmn-select)); } }
@@ -184,6 +194,10 @@
 .bpmn-canvas.is-readonly .bpmn-node.is-selected::after {
   inset: -6px; border: 2.5px solid var(--bpmn-select); border-radius: 12px;
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--bpmn-select) 22%, transparent);
+}
+.bpmn-canvas.is-readonly .bpmn-node-selection path { stroke-width: 2.5; stroke-dasharray: none; }
+.bpmn-canvas.is-readonly .bpmn-node-selection .bpmn-node-selection-halo {
+  display: inline; stroke: color-mix(in oklab, var(--bpmn-select) 22%, transparent); stroke-width: 10.5;
 }
 .bpmn-canvas.is-readonly .react-flow__node-bpmn { cursor: default; }
 .bpmn-canvas.is-readonly .react-flow__node-bpmn:has(.bpmn-node-link) { cursor: pointer; }
