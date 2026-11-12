@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{ add:, remove: }`) la sigue viendo. En gobierno-corporativo cambia el editor de
   `business_processes/diagrams/edit` (pierde ambos) y los visores `chrome: :minimal` sin
   `legend:` (pierden la leyenda plegada); los mapas con `bpmn_flow_status_legend` no cambian.
+- **`Bali::BpmnEditor`: un elemento seleccionado bajo el panel de propiedades se desplaza para
+  quedar visible.** Sin la leyenda, el primer encuadre ya no reserva el lado derecho y el panel
+  tapaba la actividad seleccionada (y su asa de tamaño); ahora el canvas se corre a la izquierda lo
+  justo, sin cambiar el zoom.
 - **`Bali::BpmnEditor`: los colores siguen la convención de SoftExpert.** Inicio amarillo,
   actividades azules, compuertas naranjas, la decisión Sí/No azul, fin rojo y el procedimiento
   relacionado gris, iguales en todos los temas; antes salían de los colores del tema (inicio

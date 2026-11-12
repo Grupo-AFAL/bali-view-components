@@ -90,6 +90,8 @@ export const CONTROLS = {
 export const WHEEL_ZOOMS = ['auto', 'true', 'false']
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '')
 
+const PANEL_ROOM = 300 + 16
+
 export default function BpmnEditor (props) {
   return (
     <ReactFlowProvider>
@@ -948,6 +950,21 @@ function Editor ({
     anchorStart(flow, fit)
   }, [flow, fit])
   useRefitOnResize(wrapperRef, refitLive, minimal, 0)
+
+  // The properties panel opens over the canvas' right side (PropertiesPanel:
+  // w-72 at right-3, 300 px): the one node selected under it slides left until
+  // it is clear, at the same zoom and never past the left padding.
+  useEffect(() => {
+    if (!panelOpen || selection.nodes.length !== 1 || selection.edges.length) return
+    const canvasEl = wrapperRef.current && wrapperRef.current.querySelector('.react-flow')
+    const node = flow.getInternalNode(selection.nodes[0])
+    if (!canvasEl || !node) return
+    const { x, y, zoom } = flow.getViewport()
+    const left = node.internals.positionAbsolute.x * zoom + x
+    const right = left + (node.measured.width || 0) * zoom
+    const over = right - (canvasEl.clientWidth - PANEL_ROOM)
+    if (over > 0) flow.setViewport({ x: x - Math.min(over, Math.max(0, left - 40)), y, zoom }, { duration: 200 })
+  }, [panelOpen, selection.nodes, selection.edges, flow])
   const notesByElement = useMemo(() => {
     const map = new Map()
     for (const note of doc.annotations || []) {
