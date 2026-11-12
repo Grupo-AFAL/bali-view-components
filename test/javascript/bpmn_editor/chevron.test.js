@@ -100,3 +100,14 @@ test('a connection dragged into a chevron already ends in its notch', () => {
   assert.deepEqual(points[points.length - 1], { x: b.x + chevronDepth(b.h), y: b.cy })
   assert.equal(quickRouteAll(row()).get('e1').points.at(-1).x, b.x, 'a card at its box')
 })
+
+test('a tall, narrow chevron keeps its notch short of its point and its name a width', () => {
+  const n = node('a', 'task', 'l1', 200, 300, { width: 80, height: 400 })
+  const box = nodeBox(n)
+  const d = chevronDepth(box.h, box.w)
+
+  assert.ok(1 + d < box.w - 1 - d, `notch at ${1 + d}, point at ${box.w - 1}`)
+  assert.ok(insideLabelBox(n, { activityShape: 'chevron' }).w > 0)
+  const port = portPoint(n, box, 'left', 0, 'chevron')
+  assert.ok(port.x >= box.x && port.x <= box.x + box.w, 'the connection ends on the shape')
+})

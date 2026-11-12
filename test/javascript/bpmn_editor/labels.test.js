@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { boxesOverlap } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
-import { insideLabelBox, badgeTabBox, markerZone, taskMarkerAt, nodeLabelBox, badgeBox, wrap } from '../../../app/components/bali/bpmn_editor/model/labels.js'
+import { insideLabelBox, badgeTabBox, markerZone, taskMarkerAt, nodeLabelBox, badgeBox, wrap, fitBadge } from '../../../app/components/bali/bpmn_editor/model/labels.js'
 import { node } from './helpers.js'
 
 const NAME = 'Manage insurance and claims for company fixed assets'
@@ -108,4 +108,10 @@ test('wrap cuts a word longer than a line, as the canvas does, and narrows the f
 test('a gateway’s name, above-left, clears its badge tab', () => {
   const gateway = node('g', 'exclusive_gateway', 'l1', 200, 100, { name: 'Approved by the committee?', appearance: { badge: 'Completo' } })
   assert.equal(boxesOverlap(nodeLabelBox(gateway), badgeTabBox(gateway, 'Completo')), false)
+})
+
+test('an emoji is never cut in half: whole characters, so the image export can encode the text', () => {
+  const lines = wrap('Validar 🔴🔴🔴🔴🔴🔴🔴🔴', 9, 3)
+  for (const line of lines) assert.doesNotThrow(() => encodeURIComponent(line), line)
+  assert.doesNotThrow(() => encodeURIComponent(fitBadge('Pendiente 🔴🔴🔴🔴🔴🔴🔴🔴🔴', 40).text))
 })

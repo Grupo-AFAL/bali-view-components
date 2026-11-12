@@ -7,6 +7,8 @@ import { FIXTURES, supplierOnboarding } from './fixtures.js'
 import { normalize } from '../../../app/components/bali/bpmn_editor/model/document.js'
 import { autoLayout } from '../../../app/components/bali/bpmn_editor/model/layout.js'
 import { arrange } from '../../../app/components/bali/bpmn_editor/model/arrange.js'
+import { nodeBox } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
+import { doc, lanes, node, flow } from './helpers.js'
 import { measure } from './support/layoutQuality.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 import { setOrientation } from '../../../app/components/bali/bpmn_editor/model/operations.js'
@@ -91,4 +93,26 @@ test('the target page is an option: a portrait page folds more', () => {
   const landscape = compact(doc)
   const portrait = autoLayout(doc, { mode: 'compact', page: { ...LETTER, orientation: 'portrait' } })
   assert.ok(pageFit(portrait, { ...LETTER, orientation: 'portrait' }).width < pageFit(landscape).width)
+})
+
+test('a group, and an artifact in no lane, move with the lane they lie over when it shrinks', () => {
+  const two = lanes('A', 'B')
+  two[0].size = 400
+  const d = doc({
+    lanes: two,
+    nodes: [
+      node('a', 'task', 'l1', 200, 100), node('b', 'task', 'l2', 200, 500), node('c', 'task', 'l2', 420, 500),
+      { id: 'g', type: 'group', lane_id: 'l2', name: '', x: 110, y: 450, width: 430, height: 110 },
+      node('do', 'data_object', null, 700, 480)
+    ],
+    edges: [flow('e', 'b', 'c')]
+  })
+  const r = arrange(d)
+  const at = (id) => r.nodes.find((n) => n.id === id)
+  const frames = (outer, inner) => { const a = nodeBox(outer); const b = nodeBox(inner); return b.x >= a.x && b.y >= a.y && b.x + b.w <= a.x + a.w && b.y + b.h <= a.y + a.h }
+
+  assert.ok(at('b').y < 500, 'the lane shrank and its content moved up')
+  assert.ok(frames(at('g'), at('b')) && frames(at('g'), at('c')), 'the group still frames its activities')
+  assert.equal(at('do').y - d.nodes.find((n) => n.id === 'do').y, at('b').y - d.nodes.find((n) => n.id === 'b').y, 'the data object moved with the lane')
+  assert.equal(arrange(r), r)
 })

@@ -5,6 +5,8 @@
 //
 // Mirror Bali::BpmnEditor::Data::APPEARANCE_COLLECTIONS, APPEARANCE_KEYS and
 // BADGE_MAX (contract_test.rb).
+import { cutText } from './text.js'
+
 export const APPEARANCE_COLLECTIONS = ['lanes', 'nodes']
 export const APPEARANCE_KEYS = ['color', 'dimmed', 'badge']
 export const BADGE_MAX = 24
@@ -18,7 +20,7 @@ export function appearanceOf (element) {
   if (!a || typeof a !== 'object') return null
   const color = typeof a.color === 'string' && HEX.test(a.color.trim()) ? a.color.trim() : null
   const dimmed = a.dimmed === true
-  const badge = typeof a.badge === 'string' && a.badge.trim() ? a.badge.trim().slice(0, BADGE_MAX) : null
+  const badge = typeof a.badge === 'string' && a.badge.trim() ? cutText(a.badge.trim(), BADGE_MAX) : null
   return color || dimmed || badge ? { color, dimmed, badge } : null
 }
 

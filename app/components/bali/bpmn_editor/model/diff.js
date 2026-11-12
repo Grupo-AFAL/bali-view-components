@@ -209,9 +209,12 @@ export function diffDocuments (baseDoc, currentDoc, { match = 'id' } = {}) {
     ['name', fromName(a, b) ? normalizeName(a.name) !== normalizeName(b.name) : !same(a.name, b.name)],
     ['type', !same(a.type, b.type)],
     ['documentation', !same(a.documentation, b.documentation)],
-    ['lane', mode === 'name'
-      ? baseLaneName.get(String(a.lane_id)) !== currentLaneName.get(String(b.lane_id))
-      : (laneIdentity.get(String(a.lane_id)) ?? `base:${a.lane_id}`) !== String(b.lane_id)],
+    // Lanes are optional (data.rb): two nodes in none are in the same one.
+    ['lane', a.lane_id == null && b.lane_id == null
+      ? false
+      : mode === 'name'
+        ? baseLaneName.get(String(a.lane_id)) !== currentLaneName.get(String(b.lane_id))
+        : (laneIdentity.get(String(a.lane_id)) ?? `base:${a.lane_id}`) !== String(b.lane_id)],
     ['event', !same(a.event_definition && a.event_definition.kind, b.event_definition && b.event_definition.kind)],
     ['reference', !same(a.reference && a.reference.id, b.reference && b.reference.id)]
   ])
