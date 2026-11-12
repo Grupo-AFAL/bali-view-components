@@ -91,6 +91,22 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     assert_equal "false", island["data-bpmn-editor-lock-orientation-value"]
   end
 
+  def test_the_title_and_its_badge_travel_only_when_given
+    render_inline(component(title: "Macroproceso: Operación de Restaurantes", title_badge: "Modo edición"))
+    assert_equal "Macroproceso: Operación de Restaurantes", island["data-bpmn-editor-title-value"]
+    assert_equal "Modo edición", island["data-bpmn-editor-title-badge-value"]
+
+    render_inline(component(title: "", title_badge: nil))
+    assert_nil island["data-bpmn-editor-title-value"]
+    assert_nil island["data-bpmn-editor-title-badge-value"]
+  end
+
+  def test_the_title_goes_where_the_editors_bar_is
+    assert_match "title_badge:", assert_raises(ArgumentError) { component(title_badge: "Modo edición") }.message
+    assert_match "chrome: :minimal", assert_raises(ArgumentError) { component(title: "Mapa", chrome: :minimal) }.message
+    assert_match "full_page:", assert_raises(ArgumentError) { component(title: "Mapa", full_page: { title: "Mapa", close_url: "/" }) }.message
+  end
+
   def test_the_host_can_force_one_orientation
     render_inline(component(lock_orientation: :vertical))
     assert_equal "true", island["data-bpmn-editor-lock-orientation-value"]

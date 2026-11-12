@@ -314,3 +314,11 @@ test('the overlay is offered for versions of one process only', () => {
   assert.equal(sameProcess('auto', SAME_PROCESS_SHARE + 0.01), true)
   assert.equal(sameProcess('auto', SAME_PROCESS_SHARE), false)
 })
+
+test('nodes in no lane are in the same lane on both sides', () => {
+  const laneless = doc({ nodes: [node('a', 'task', undefined, 200, 100), node('b', 'task', undefined, 400, 100)] })
+  for (const match of ['id', 'auto', 'name']) {
+    const { summary } = diffDocuments(laneless, laneless, { match })
+    assert.deepEqual({ changed: summary.changed, moved: summary.moved }, { changed: 0, moved: 0 }, match)
+  }
+})

@@ -469,7 +469,8 @@ export function appendNode (doc, sourceId, attrs, direction, { policy = DEFAULT_
   if (!source) return blocked('block_no_space')
   const orientation = orientationOf(doc)
   const axis = axisFor(orientation)
-  const probe = { ...attrs, id: '__probe__' }
+  // In the source's lane: a probe in none would read as another participant.
+  const probe = { ...attrs, id: '__probe__', lane_id: source.lane_id }
   const connectError = connectionError({ ...doc, nodes: [...doc.nodes, probe] }, source.id, probe.id, { policy })
   if (connectError) return blocked(connectError)
   const box = nodeBox(source)

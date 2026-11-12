@@ -100,7 +100,7 @@ export default function BpmnEditor (props) {
 }
 
 function Editor ({
-  data, editable: editableProp, autosave, lockOrientation, orientation: lockedOrientation, externalLanes = true, openIssues = false, confirmLinkedDelete = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement,
+  data, editable: editableProp, autosave, lockOrientation, orientation: lockedOrientation, externalLanes = true, openIssues = false, confirmLinkedDelete = false, layout: layoutMode, page, palette, legend, rules, fields, urls, i18n, hostElement, title, titleBadge,
   name, watermark, review, selectedId = '', chrome = 'full', minZoom = MIN_FIT_ZOOM, annotatable = false,
   badges = true, badgeToggle = true, badgeToggleLabel = '', wheelZoom = 'auto', compareOpen = '', compareIndex = 0, takeHostEvents,
   fullPage = false, bordered = true, controls
@@ -751,6 +751,8 @@ function Editor ({
   const redo = useCallback(() => setState(history.redo), [])
   const selectAll = useCallback(() => select({ nodes: docRef.current.nodes.map((n) => String(n.id)) }), [select])
   const arrowRun = useRef(null) // the run of arrow presses not yet settled
+  // Read by onKeyDown, declared before the comparison it reflects.
+  const comparingRef = useRef(false)
   const onKeyDown = useCallback((event) => {
     if (event.defaultPrevented || /^(input|textarea|select)$/i.test(event.target.tagName) || event.target.isContentEditable) return
     const mod = event.ctrlKey || event.metaKey
@@ -763,7 +765,9 @@ function Editor ({
       if (tool || renamingId != null || (editable && (selection.nodes.length || selection.edges.length || selection.lanes.length))) event.preventDefault()
       setTool(null); setRenamingId(null); clearByPerson(); return
     }
-    if (!interactive) return
+    // A dialog over the canvas (pending issues, rules, a confirmation) keeps its
+    // keys, and so does the comparison: its canvas is hidden, its selection not.
+    if (!interactive || event.target.closest('[role="dialog"]') || comparingRef.current) return
     if (mod && key === 'z' && !event.shiftKey) {
       event.preventDefault(); undo()
     } else if (mod && (key === 'y' || (key === 'z' && event.shiftKey))) {
@@ -810,18 +814,26 @@ function Editor ({
   }, [fullPage, hostElement])
 
   // ── fullscreen ─────────────────────────────────────────────────────────
+  // Refitted on every change, Esc's included: the browser leaves full screen
+  // without the button, and the viewport would stay the full screen's.
+  const fitRef = useRef(null)
+  fitRef.current = () => setTimeout(() => fitDiagram(flow, fit, 200), 50)
   useEffect(() => {
-    const onChange = () => setFullscreen(document.fullscreenElement === wrapperRef.current)
+    const onChange = () => {
+      setFullscreen(document.fullscreenElement === wrapperRef.current)
+      fitRef.current()
+    }
     document.addEventListener('fullscreenchange', onChange)
     return () => document.removeEventListener('fullscreenchange', onChange)
   }, [])
+  // A refusal (an iframe without allowfullscreen, a permission policy) leaves
+  // the editor as it was.
   const toggleFullscreen = useCallback(() => {
     const el = wrapperRef.current
     if (!el) return
-    const done = () => setTimeout(() => fitDiagram(flow, fit, 200), 50)
-    if (document.fullscreenElement) document.exitFullscreen().then(done)
-    else if (el.requestFullscreen) el.requestFullscreen().then(done)
-  }, [flow, fit])
+    const request = document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen && el.requestFullscreen()
+    if (request) request.catch(() => {})
+  }, [])
 
   // ── host events ────────────────────────────────────────────────────────
   const reload = saver.reload
@@ -876,6 +888,7 @@ function Editor ({
   // Normalized when the comparison opens, not on load: normalize lays out a
   // document without coordinates, for a view most readers never open.
   const comparing = Boolean(comparison.mode)
+  comparingRef.current = comparing
   const compareBase = useMemo(() => (compare && comparing ? load(compare.document, layoutOptions) : null), [compare, comparing, layoutOptions])
   const compareDiff = useMemo(() => (compareBase ? diffDocuments(compareBase, doc, { match: compare.match }) : null), [compareBase, doc, compare])
   const compareShown = compareDiff ? shownMode(comparison.mode, compareDiff.sameProcess) : null
@@ -1127,6 +1140,8 @@ function Editor ({
             onCompare={compare && shown.compare ? () => setComparison((c) => ({ ...c, mode: c.mode ? null : DEFAULT_COMPARE_MODE })) : null}
             comparing={comparing}
             pageHeader={fullPage && !fullscreen}
+            title={fullPage ? null : title}
+            titleBadge={titleBadge}
           />
         )}
         {compareShown && (

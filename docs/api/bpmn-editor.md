@@ -111,8 +111,9 @@ authorize every endpoint on the server anyway.
 | `fields:` | `{}` | `{ nodes: { type => [field] }, lanes: [field] }`, the properties panel's own fields — see [Fields](#fields). An unknown key raises |
 | `urls:` | `{}` | `save`, `diagram`, `finalize`, `references`, `new_reference`, `lane_assignees`, `new_lane_assignee`, `import`, `annotations`. An unknown key raises |
 | `name:` | `nil` | Title of the image and print outputs, the file names, the main participant of the `.bpmn` |
+| `title:` / `title_badge:` | `nil` | What is being edited, in the editor's own bar, centred in the room between its left controls (save status, pending, rules) and its right ones (history, outputs, save), with an optional badge (`"Modo edición"`), e.g. `"Macroproceso: Operación de Restaurantes"`. The bar stays in full screen, so it names the diagram there too. A long title is cut with «…» and read whole on hover; when less than 17rem is left on the bar's row it moves to the next one, with whatever controls follow it that fit. `title_badge:` needs `title:`; `title:` raises with `full_page:` (use its `title:`) and with `chrome: :minimal` (no bar) |
 | `watermark:` | `nil` | Text across the image and print outputs, e.g. `"Borrador"` |
-| `review:` | `{}` | `{ tags: [{ key:, label:, color: }], compare_with: { document:, label:, match: }, compare_bar: { title:, match_note:, exit:, captions: } }`: the tags of the review notes and another document to compare against, paired `match: :id` (default) or `:name` — see [Outputs, notes and comparison](#outputs-notes-and-comparison). `compare_bar:` leaves pieces of the comparison bar out, each `false` (all shown by default): `title` (the «Compare with …» label of a single comparison; a list keeps its picker), `match_note` («Elements paired by name»), `exit` («Close comparison») and `captions` (each side's label over its diagram). «Only changes», «Sync» and the views always stay. An unknown key or a value that is not true or false raises |
+| `review:` | `{}` | `{ tags: [{ key:, label:, color: }], compare_with: { document:, label:, match: }, compare_bar: { title:, match_note:, exit:, captions: } }`: the tags of the review notes and another document to compare against, paired `match: :auto` (default), `:id` or `:name` — see [Outputs, notes and comparison](#outputs-notes-and-comparison). `compare_bar:` leaves pieces of the comparison bar out, each `false` (all shown by default): `title` (the «Compare with …» label of a single comparison; a list keeps its picker), `match_note` («Elements paired by name»), `exit` («Close comparison») and `captions` (each side's label over its diagram). «Only changes», «Sync» and the views always stay. An unknown key or a value that is not true or false raises |
 | `compare_open:` | `false` | Opens on load comparing against `review: { compare_with: }` — `true` (side by side, the comparison's default view), `:side_by_side` or `:overlay`. The overlay is offered only for versions of one process; asked for two different processes, the comparison opens side by side, and `bali-bpmn:compare-change` reports `mode: "side_by_side"`. Needs `compare_with:` (ArgumentError otherwise). For a `chrome: :minimal` editor, which has no «Compare» button: the app opens it with this or with `bali-bpmn:compare` — see [Embedding a diagram](#embedding-a-diagram) |
 | `compare_index:` | `0` | Which comparison of `compare_with:` is picked on load (with `compare_open:`, or for «Compare»). An index outside the list raises ArgumentError |
 | `selected_id:` | `nil` | The node shown selected on load — read-only too. The app moves it later with `bali-bpmn:select` — see [Embedding a diagram](#embedding-a-diagram) |
@@ -432,6 +433,8 @@ It belongs to the document, like `orientation`: the canvas, the palette and «To
 legend, the comparison and the image, SVG and print outputs all draw it, and a save sends it
 back. A connection from the side enters a chevron by its notch and leaves by its point; the name, the task
 marker and the pending mark keep inside its outline, and a linked sub-process keeps its [+].
+Selected, a chevron is outlined with its own shape (the solid, haloed ring while reading, the
+dashed one while editing), and so is its keyboard focus.
 The `.bpmn` export has no shape for it and writes BPMN tasks as always. Anything else
 raises `InvalidError`.
 
@@ -1078,8 +1081,9 @@ wider than a column empty).
   - `:auto` (default) — by id first, then what id left unpaired by name, with the rules of
     `:name` below. A version whose ids the app recreated (a destructive import) still
     pairs; two different processes pair by name. Ids are trusted only while at least half
-    of the named elements they pair keep their name (`ID_NAME_AGREEMENT`): two documents
-    made in the editor share `n_3`, `n_4`… without being related, and then pair as `:name`.
+    of the named elements they pair keep their name (`ID_NAME_AGREEMENT`): two processes
+    whose ids the app numbers on its own (rows `1`, `2`…) share ids without being related,
+    and then pair as `:name`.
   - `:id` — two versions of **one** document, whose ids are stable across saves. A renamed
     task is *changed*.
   - `:name` — two **different** documents that share steps ("Supplier onboarding"

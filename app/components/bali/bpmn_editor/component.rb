@@ -128,6 +128,12 @@ module Bali
       #   or the drawer stays open after their answer.
       # @param name [String] the diagram's name: title of the image and print outputs, file
       #   names, and the main participant of the .bpmn export.
+      # @param title [String] what is being edited, in the editor's own bar between its left
+      #   and right controls, there in full screen too (e.g. "Macroproceso: Operación de
+      #   Restaurantes"); a long one is cut with «…» and read whole on hover. Raises with
+      #   `full_page:` (its header has the title) and with `chrome: :minimal` (no bar).
+      #   Island value `title` in index.js.
+      # @param title_badge [String] a badge beside `title:` (e.g. "Modo edición"); needs `title:`.
       # @param watermark [String] text across the image and print outputs (e.g. "Borrador").
       # @param review [Hash] { tags: [{ key:, label:, color: }] of the review notes,
       #   compare_with: one comparison or a list of them, picked in the comparison bar — each
@@ -178,7 +184,7 @@ module Bali
       #   omitted, so two editors on one page never share it.
       def initialize(data:, editable: false, autosave: true, lock_orientation: false, external_lanes: true,
                      open_issues: false, confirm_linked_delete: false, layout: :compact, page: DEFAULT_PAGE, palette: nil, legend: nil,
-                     rules: {}, fields: {}, urls: {}, name: nil, watermark: nil, review: {}, i18n: nil, id: nil,
+                     rules: {}, fields: {}, urls: {}, name: nil, title: nil, title_badge: nil, watermark: nil, review: {}, i18n: nil, id: nil,
                      selected_id: nil, chrome: :full, min_zoom: DEFAULT_MIN_ZOOM, annotatable: false,
                      badges: true, badge_toggle: true, wheel_zoom: :auto, compare_open: false, compare_index: 0,
                      full_page: nil, bordered: true, controls: {}, **options)
@@ -197,6 +203,8 @@ module Bali
         @fields = resolve_fields(fields)
         @urls = resolve_urls(urls)
         @name = name
+        @title = title.presence
+        @title_badge = title_badge.presence
         @watermark = watermark
         @review = resolve_review(review)
         @compare_open = resolve_compare_open(compare_open)
@@ -220,6 +228,7 @@ module Bali
         if @chrome == :minimal && editable?
           raise ArgumentError, "chrome: :minimal is for read-only diagrams (it has no palette or save status); drop editable: or use chrome: :full"
         end
+        check_title
         return unless @chrome == :minimal && @full_page
 
         raise ArgumentError, "full_page: draws the whole editor around its header; it does not combine with chrome: :minimal"
@@ -232,6 +241,15 @@ module Bali
       end
 
       def minimal? = @chrome == :minimal
+
+      # `title:` sits in the editor's own bar, which chrome: :minimal does not draw and
+      # full_page: replaces with its header (whose `title:` names the page).
+      def check_title
+        raise ArgumentError, "title_badge: goes beside title:; pass title: too" if @title_badge && !@title
+        return unless @title && (minimal? || @full_page)
+
+        raise ArgumentError, "title: is shown in the editor's bar, which #{minimal? ? 'chrome: :minimal does not draw' : "full_page: replaces (use full_page: { title: })"}"
+      end
 
       def full_page? = !@full_page.nil?
 
@@ -304,6 +322,8 @@ module Bali
           bpmn_editor_fields_value: @fields.to_json,
           bpmn_editor_urls_value: @urls.to_json,
           bpmn_editor_name_value: @name,
+          bpmn_editor_title_value: @title,
+          bpmn_editor_title_badge_value: @title_badge,
           bpmn_editor_watermark_value: @watermark,
           bpmn_editor_review_value: @review.to_json,
           bpmn_editor_i18n_key_value: i18n_key,

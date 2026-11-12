@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Bali::BpmnEditor`: `title:` y `title_badge:` dicen qué se edita en la barra del editor.** El
+  título (por ejemplo «Macroproceso: Operación de Restaurantes») va entre los controles de la
+  izquierda y los de la derecha, con un badge opcional («Modo edición»), y se sigue viendo en
+  pantalla completa. Si es largo se corta con «…» y se lee completo al pasar el cursor; si en la
+  fila de la barra quedan menos de 17rem, pasa a la siguiente. `title_badge:` requiere `title:`, y
+  `title:` lanza `ArgumentError` con `full_page:` (usa su `title:`) o con `chrome: :minimal`.
 - **`Bali::BpmnEditor`: `controls:` muestra u oculta cada pieza del chrome.** Las llaves son
   `zoom:`, `fit:`, `fullscreen:`, `minimap:`, `navigate:`, `participants:`, `selection:`,
   `stencil:`, `add_lane:`, `auto_layout:`, `connect:`, `pending:`, `rules:`, `compare:`,
@@ -17,10 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   borrador» (con `autosave: false`) y «Finalizar» siguen mientras haya `editable:`.
 - **`Bali::BpmnEditor`: actividades en chevron.** Con `activity_shape: "chevron"` en el documento,
   cada tarea y subproceso se dibuja como chevron, para un mapa de macroprocesos. Aplica en el
-  canvas, la paleta, «Por colocar», la leyenda, la comparación y las exportaciones. El chevron
-  siempre apunta a la derecha: una flecha que llega de lado entra por la muesca y una que llega
-  de arriba, por arriba. `"card"` (la tarjeta de hoy) sigue siendo el default, y un valor
-  desconocido lanza `InvalidError`.
+  canvas, la paleta, «Por colocar», la leyenda, la comparación y las exportaciones.
+  Seleccionada (o con el foco de teclado), una actividad en chevron se marca con su propia forma
+  y no con el rectángulo redondeado de la tarjeta. El chevron siempre apunta a la derecha: una
+  flecha que llega de lado entra por la muesca y una que llega de arriba, por arriba. `"card"`
+  (la tarjeta de hoy) sigue siendo el default, y un valor desconocido lanza `InvalidError`.
 - **`Bali::BpmnEditor`: `lock_orientation: :vertical` o `:horizontal` fuerza la orientación.**
   Un documento guardado en la otra orientación se voltea al abrirlo, como lo haría el botón, y el
   siguiente guardado lo guarda así; no hay botón para cambiarla. `true` sigue conservando la del
@@ -55,6 +62,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   automático no lo vuelve a intentar hasta el siguiente cambio. Con `autosave: false` el botón
   sigue igual. En gobierno-corporativo, el editor de `business_processes/diagrams/edit` deja de
   mostrarlo.
+
+### Fixed
+
+- **`Bali::BpmnEditor`: los atajos de teclado ya no actúan detrás de un diálogo ni de la
+  comparación.** Con la lista de pendientes, las reglas o una confirmación abiertas, o con la
+  comparación encima, Supr, Ctrl+Z y las flechas borraban, deshacían o movían el elemento
+  seleccionado del diagrama de abajo, y el guardado automático lo guardaba.
+- **`Bali::BpmnEditor`: un emoji en el nombre o la insignia de un elemento ya no rompe «Descargar
+  imagen».** El texto se cortaba a la mitad del emoji y la exportación fallaba; ahora se corta por
+  caracteres.
+- **`Bali::BpmnEditor`: una actividad en chevron alta y angosta ya no se cruza consigo misma.** La
+  muesca no pasa de un tercio del ancho, así que el nombre y las conexiones siguen sobre la figura.
+- **`Bali::BpmnEditor`: la comparación ya no marca como «cambiado» lo que no está en un carril.**
+- **`Bali::BpmnEditor`: los grupos, y los artefactos fuera de un carril, se mueven con el carril**
+  cuando el acomodo lo encoge; antes se quedaban donde estaban y el grupo dejaba de enmarcar.
+- **`Bali::BpmnEditor`: el menú rápido ya deja agregar el siguiente elemento en el carril de un
+  participante externo**, como lo deja dibujar a mano.
+- **`Bali::BpmnEditor`: al salir de pantalla completa con Esc, el diagrama se vuelve a ajustar**, y
+  si el navegador niega la pantalla completa el editor sigue igual, sin error.
 
 ## [v3.25.0] - 2026-11-08
 

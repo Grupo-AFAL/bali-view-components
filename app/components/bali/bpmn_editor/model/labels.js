@@ -10,6 +10,7 @@
 import { categoryOf, CATEGORY } from './catalog.js'
 import { nodeBox } from './geometry.js'
 import { appearanceOf } from './appearance.js'
+import { textLength, cutText } from './text.js'
 
 // Average glyph width of the 11.5 px semibold label font. 6.4 cut names off:
 // «Tiempo (captura)» measured 6.9 px a glyph in Chromium and wrapped into a
@@ -69,7 +70,7 @@ export function nodeLabelBox (node, orientation = 'horizontal') {
 // chevron's straight top edge, which ends before its point.
 export function badgeBox (node, activityShape = 'card') {
   const box = nodeBox(node)
-  const point = isChevron(node, activityShape) ? chevronDepth(box.h) : 0
+  const point = isChevron(node, activityShape) ? chevronDepth(box.h, box.w) : 0
   return { x: box.x + box.w - point - 9, y: box.y - 9, w: 18, h: 16 }
 }
 
@@ -94,16 +95,18 @@ export const hasTaskMarker = (node) => TASK_MARKER_TYPES.includes(node.type)
 // badge tab when there is one (the tab's inner half ends at 8 px). In a
 // chevron it moves right by half the notch, which reaches 10.5 px in at the
 // marker's foot in the 64 px box.
-export function taskMarkerAt (h, badge = false, activityShape = 'card') {
+export function taskMarkerAt (h, badge = false, activityShape = 'card', w = Infinity) {
   const scale = clamp(h / 64, 0.7, 1)
-  const notch = activityShape === 'chevron' ? chevronDepth(h) / 2 : 0
+  const notch = activityShape === 'chevron' ? chevronDepth(h, w) / 2 : 0
   return { x: 6 * scale + notch, y: badge ? BADGE_TAB.height / 2 + 2 : 5 * scale, size: 16 * scale, scale }
 }
 
 export const activityRadius = (h) => Math.round(h * 0.1 * 10) / 10
 // How far a chevron's point juts out on the right, and its notch cuts in on
 // the left, for a height `h`: 16 px in the 64 px box.
-export const chevronDepth = (h) => Math.round(h * 0.25 * 10) / 10
+// A quarter of its height, at most a third of its width: a tall, narrow chevron
+// would cross its own outline (its notch past its point).
+export const chevronDepth = (h, w = Infinity) => Math.round(Math.min(h * 0.25, w / 3) * 10) / 10
 const isChevron = (node, activityShape) => activityShape === 'chevron' && categoryOf(node) === CATEGORY.activity
 
 // The app's badge (node.appearance.badge): a tab across the top edge, half
@@ -118,7 +121,7 @@ const NOTE = 22
 
 export function badgeTabBox (node, text, { topRight = false, note = false, activityShape = 'card' } = {}) {
   const box = nodeBox(node)
-  const point = isChevron(node, activityShape) ? chevronDepth(box.h) : 0
+  const point = isChevron(node, activityShape) ? chevronDepth(box.h, box.w) : 0
   const { w, text: shown } = fitBadge(text, box.w - point - (topRight ? TOP_RIGHT : 0) - (note ? NOTE : 0))
   const radius = categoryOf(node) === CATEGORY.activity ? activityRadius(box.h) : 4
   return { x: box.x, y: box.y - BADGE_TAB.height / 2, w, h: BADGE_TAB.height, text: shown, radius }
@@ -127,9 +130,9 @@ export function badgeTabBox (node, text, { topRight = false, note = false, activ
 // A badge's width and the text it shows within `max` px, cut with an ellipsis.
 export function fitBadge (text, max) {
   const full = String(text)
-  const w = Math.min(Math.max(BADGE_TAB.height, max), Math.ceil(full.length * BADGE_TAB.char + BADGE_TAB.pad * 2))
+  const w = Math.min(Math.max(BADGE_TAB.height, max), Math.ceil(textLength(full) * BADGE_TAB.char + BADGE_TAB.pad * 2))
   const fits = Math.max(1, Math.floor((w - BADGE_TAB.pad * 2) / BADGE_TAB.char))
-  return { w, text: full.length > fits ? `${full.slice(0, Math.max(1, fits - 1))}…` : full }
+  return { w, text: textLength(full) > fits ? `${cutText(full, Math.max(1, fits - 1))}…` : full }
 }
 
 // The name inside an activity: clear of the badge tab's inner half and of
@@ -145,13 +148,13 @@ const LINK_BOTTOM = 21
 
 export function insideLabelBox (node, { badge = false, link = false, activityShape = 'card' } = {}) {
   const box = nodeBox(node)
-  const marker = hasTaskMarker(node) ? taskMarkerAt(box.h, badge, activityShape) : null
+  const marker = hasTaskMarker(node) ? taskMarkerAt(box.h, badge, activityShape, box.w) : null
   const cornerBottom = Math.max(marker ? marker.y + marker.size : 0, link ? LINK_BOTTOM : 0)
   const top = Math.max(badge ? BADGE_TAB.height / 2 + 2 : INSET.y, cornerBottom - LINE)
   const bottom = hasBottomMarker(node) ? markerZone(box.h).height + 1 : INSET.y
   const h = Math.max(LINE, box.h - top - bottom)
   // A chevron's notch and point take its depth off each side at mid-height.
-  const inset = INSET.x + (isChevron(node, activityShape) ? chevronDepth(box.h) : 0)
+  const inset = INSET.x + (isChevron(node, activityShape) ? chevronDepth(box.h, box.w) : 0)
   const w = Math.max(0, box.w - inset * 2)
   return { x: box.x + inset, y: box.y + top, w, h, lines: Math.max(1, Math.floor(h / LINE)), corner: cornerBottom ? CORNER : 0 }
 }
@@ -169,17 +172,17 @@ export function wrap (text, maxChars, maxLines, firstChars = maxChars) {
   while (pieces.length) {
     const room = widthOf(lines.length)
     const word = pieces.shift()
-    if (current && (current + ' ' + word).length <= room) { current = `${current} ${word}`; continue }
+    if (current && textLength(`${current} ${word}`) <= room) { current = `${current} ${word}`; continue }
     if (current) { lines.push(current); current = ''; pieces.unshift(word); continue }
-    if (word.length <= room) { current = word; continue }
+    if (textLength(word) <= room) { current = word; continue }
     // A word longer than the line, cut where the line ends.
-    lines.push(word.slice(0, room))
-    pieces.unshift(word.slice(room))
+    lines.push(cutText(word, room))
+    pieces.unshift(Array.from(word).slice(room).join(''))
   }
   if (current) lines.push(current)
   if (lines.length > maxLines) {
     const kept = lines.slice(0, maxLines)
-    kept[maxLines - 1] = `${kept[maxLines - 1].slice(0, widthOf(maxLines - 1) - 1)}…`
+    kept[maxLines - 1] = `${cutText(kept[maxLines - 1], widthOf(maxLines - 1) - 1)}…`
     return kept
   }
   return lines

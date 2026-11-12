@@ -70,13 +70,16 @@ module Bali
       # @param activity_shape select "What the activities are drawn as (the document's activity_shape)" { choices: [card, chevron] }
       # @param legend toggle "The legend (legend: true; hidden by default)"
       # @param minimap toggle "The minimap (controls: { minimap: true }; hidden by default)"
+      # @param title text "What is being edited, centred in the editor's bar (title:)"
+      # @param title_badge text "A badge beside it (title_badge:)"
       # `layout` starts straight here: a demo builds a flow step by step and
       # reads it left to right, while compact folds anything that would print
       # below 6 pt on the page (VIS-02). The component keeps `:compact`.
       def playground(sample: "invoice", orientation: "horizontal", palette: :analytic, layout: :straight,
                      page: "letter_landscape", lock_orientation: "false", external_lanes: true, autosave: true,
                      confirm_linked_delete: false, optional_rules: false, rule_severity: "default", server: "normal", theme: "light",
-                     locale: :es, name: "", watermark: "", fresh: true, activity_shape: "card", legend: true, minimap: true)
+                     locale: :es, name: "", watermark: "", fresh: true, activity_shape: "card", legend: true, minimap: true,
+                     title: "", title_badge: "")
         flow = ProcessFlow.for_sample(sample.to_s, locale: locale, fresh: fresh, orientation: orientation.to_s)
         render_with_template(
           template: "bali/bpmn_editor/previews/playground",
@@ -87,7 +90,8 @@ module Bali
                                external_lanes: external_lanes,
                                confirm_linked_delete: confirm_linked_delete,
                                autosave: autosave, rules: { "off" => false, "structure" => :structure }.fetch(rule_severity.to_s) { RULE_PRESETS.fetch(rule_severity.to_s) },
-                               name: name.presence, watermark: watermark.presence } }
+                               name: name.presence, watermark: watermark.presence,
+                               title: title.presence, title_badge: title_badge.presence } }
         )
       end
 

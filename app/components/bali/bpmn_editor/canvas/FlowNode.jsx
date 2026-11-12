@@ -1,6 +1,6 @@
 import { memo, useLayoutEffect, useRef, useState } from 'react'
 import { Handle, NodeResizeControl, NodeToolbar, Position, useStore } from '@xyflow/react'
-import { NodeShape, IssueMarker, AppearanceMark } from '../shapes.jsx'
+import { NodeShape, IssueMarker, AppearanceMark, chevronAround } from '../shapes.jsx'
 import { appearanceOf } from '../model/appearance.js'
 import { DIFF_MARKS, diffMark } from './diffMarks.js'
 import { categoryOf, nodeSize, isResizable, CATEGORY, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
@@ -10,6 +10,10 @@ import { textOn } from '../model/contrast.js'
 import { safeUrl } from '../model/urls.js'
 import { useCanvas } from './CanvasContext.js'
 
+// The card's selection sits 5–6 px out (flow.css `.is-selected::after`), its
+// read-only halo 4 px beyond its 2.5 px ring: drawn outside it, not over the shape.
+const SELECTION_INSET = 6
+const HALO_INSET = SELECTION_INSET + 1.25 + 2
 const SIDES = [['top', Position.Top], ['right', Position.Right], ['bottom', Position.Bottom], ['left', Position.Left]]
 
 // Names drawn inside the shape. A name outside it (events, gateways, data)
@@ -117,7 +121,7 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
   return (
     <div
       className={`bpmn-node bpmn-node-${category}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}${look && look.dimmed ? ' is-dimmed' : ''}${badge ? ' has-badge' : ''}${canvas.connectSource === id ? ' is-connect-source' : ''}${canvas.connectInvalid && canvas.connectInvalid.has(id) ? ' is-connect-invalid' : ''}${chevron ? ' is-chevron' : ''}`}
-      style={chevron ? { '--bpmn-chevron-depth': `${chevronDepth(box.h)}px` } : undefined}
+      style={chevron ? { '--bpmn-chevron-depth': `${chevronDepth(box.h, box.w)}px` } : undefined}
       data-node-type={node.type}
       data-testid='bpmn-node'
       data-node-id={id}
@@ -139,13 +143,19 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
         {look && <AppearanceMark node={node} width={box.w} height={box.h} color={look.color} activityShape={canvas.activityShape} />}
         {issue && (() => { const b = badgeBox({ ...node, x: 0, y: 0 }, canvas.activityShape); return <IssueMarker x={b.x + b.w / 2} y={b.y + 8} /> })()}
       </svg>
+      {chevron && (
+        <svg className='bpmn-node-selection' width={box.w} height={box.h} aria-hidden='true' data-testid='bpmn-node-selection'>
+          <path className='bpmn-node-selection-halo' d={chevronAround(box.w, box.h, HALO_INSET)} />
+          <path d={chevronAround(box.w, box.h, SELECTION_INSET)} />
+        </svg>
+      )}
       {renaming
         ? canvas.renderRename(node)
         : name && <Label node={node} name={name} orientation={canvas.orientation} activityShape={canvas.activityShape} category={category} badge={Boolean(badge)} link={showLink} />}
       {mark && <span className={`bpmn-diff-mark bpmn-diff-chip is-${mark.tone}`} data-testid='bpmn-diff-mark' data-mark={diffMark(diff, diffReasons)} aria-hidden='true'>{mark.symbol}</span>}
       {badge
         ? (
-          <div className='bpmn-node-tabs' style={{ '--bpmn-tab-radius': `${tab.radius}px`, '--bpmn-tab-reserve': `${(issue || showLink ? 20 : 0) + (chevron ? chevronDepth(box.h) : 0)}px` }}>
+          <div className='bpmn-node-tabs' style={{ '--bpmn-tab-radius': `${tab.radius}px`, '--bpmn-tab-reserve': `${(issue || showLink ? 20 : 0) + (chevron ? chevronDepth(box.h, box.w) : 0)}px` }}>
             <span className='bpmn-node-badge' data-testid='bpmn-node-badge' style={look.color ? { '--bpmn-badge': look.color, '--bpmn-badge-text': textOn(look.color) } : undefined}>{badge}</span>
             {noteNumber}
           </div>

@@ -214,6 +214,7 @@ export function fitLanesToContent (doc) {
   const mainD = main === 'y' ? 'dy' : 'dx'
   let offset = 0
   const shiftByNode = new Map()
+  const shiftByLane = new Map()
   const sizes = new Map()
   for (const entry of layout.entries) {
     const inLane = doc.nodes.filter((n) => String(n.lane_id) === String(entry.id) && n.type !== 'group' && !(isArtifactLike(n) && n.lane_id == null))
@@ -234,8 +235,20 @@ export function fitLanesToContent (doc) {
       size = Math.max(size, snap(contentEnd - contentStart + LANE_PAD * 2 + GRID / 2))
     }
     for (const n of inLane) shiftByNode.set(String(n.id), inner)
+    // What frames or annotates the lane follows it: its content's shift, or the lane's own.
+    shiftByLane.set(String(entry.id), contentStart != null ? inner : offset - entry.offset)
     sizes.set(String(entry.id), size)
     offset += size
+  }
+  // Groups, and artifacts dropped in no lane, were left out of the content
+  // above (they do not size a lane) and move with the lane they lie over.
+  for (const n of doc.nodes) {
+    if (shiftByNode.has(String(n.id)) || (n.type !== 'group' && !isArtifactLike(n))) continue
+    const box = nodeBox(n)
+    const middle = main === 'y' ? box.cy : box.cx
+    const lane = n.lane_id != null ? layout.byId.get(String(n.lane_id)) : layout.entries.find((e) => middle >= e.offset && middle < e.offset + e.size)
+    const shift = lane && shiftByLane.get(String(lane.id))
+    if (shift) shiftByNode.set(String(n.id), shift)
   }
   let changed = false
   const lanes = doc.lanes.map((l) => {
