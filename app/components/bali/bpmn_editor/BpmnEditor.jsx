@@ -10,6 +10,7 @@ import '@xyflow/react/dist/style.css'
 import './flow.css'
 import { translator } from './i18n.js'
 import { normalize, namedByReference, isLinked } from './model/document.js'
+import { load } from './model/load.js'
 import { layoutLanes, nodeBox, poolOrigin, activityShapeOf, ORIENTATIONS } from './model/geometry.js'
 import { ActivityShapeContext } from './shapes.jsx'
 import { routeAll, boxesById, distanceToRoute, findJumps } from './model/routing.js'
@@ -21,7 +22,7 @@ import { autoLayout } from './model/layout.js'
 import { LETTER } from './model/page.js'
 import { arrange } from './model/arrange.js'
 import { placeEdgeLabels } from './model/edgeLabels.js'
-import { fitOptions, fitDiagram, anchorStart, MIN_FIT_ZOOM } from './canvas/fit.js'
+import { fitOptions, fitDiagram, anchorStart, MIN_FIT_ZOOM, PANEL_RESERVE } from './canvas/fit.js'
 import { hasBadges } from './model/appearance.js'
 import useRefitOnResize from './hooks/useRefitOnResize.js'
 import { blockPolicy, evaluate, mergeIssues, issuesByElement, hasErrors, ruleList } from './model/rules/engine.js'
@@ -89,8 +90,6 @@ export const CONTROLS = {
 // What the wheel does. Mirror Bali::BpmnEditor::Component::WHEEL_ZOOMS (contract_test.rb).
 export const WHEEL_ZOOMS = ['auto', 'true', 'false']
 const IS_MAC = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '')
-
-const PANEL_ROOM = 300 + 16
 
 export default function BpmnEditor (props) {
   return (
@@ -162,7 +161,7 @@ function Editor ({
   }, [])
 
   // ── document & history ─────────────────────────────────────────────────
-  const [state, setRendered] = useState(() => history.initialHistory(normalize(data, layoutOptions)))
+  const [state, setRendered] = useState(() => history.initialHistory(load(data, layoutOptions)))
   const doc = state.present
   const docRef = useRef(doc)
   docRef.current = doc
@@ -877,7 +876,7 @@ function Editor ({
   // Normalized when the comparison opens, not on load: normalize lays out a
   // document without coordinates, for a view most readers never open.
   const comparing = Boolean(comparison.mode)
-  const compareBase = useMemo(() => (compare && comparing ? normalize(compare.document, layoutOptions) : null), [compare, comparing, layoutOptions])
+  const compareBase = useMemo(() => (compare && comparing ? load(compare.document, layoutOptions) : null), [compare, comparing, layoutOptions])
   const compareDiff = useMemo(() => (compareBase ? diffDocuments(compareBase, doc, { match: compare.match }) : null), [compareBase, doc, compare])
   const compareShown = compareDiff ? shownMode(comparison.mode, compareDiff.sameProcess) : null
   // Opened comparing, the canvas mounted hidden, at no size, and its first fit
@@ -951,9 +950,9 @@ function Editor ({
   }, [flow, fit])
   useRefitOnResize(wrapperRef, refitLive, minimal, 0)
 
-  // The properties panel opens over the canvas' right side (PropertiesPanel:
-  // w-72 at right-3, 300 px): the one node selected under it slides left until
-  // it is clear, at the same zoom and never past the left padding.
+  // The properties panel opens over the canvas' right side: the one node
+  // selected under it slides left until it is clear, at the same zoom and never
+  // past the left padding.
   useEffect(() => {
     if (!panelOpen || selection.nodes.length !== 1 || selection.edges.length) return
     const canvasEl = wrapperRef.current && wrapperRef.current.querySelector('.react-flow')
@@ -962,7 +961,7 @@ function Editor ({
     const { x, y, zoom } = flow.getViewport()
     const left = node.internals.positionAbsolute.x * zoom + x
     const right = left + (node.measured.width || 0) * zoom
-    const over = right - (canvasEl.clientWidth - PANEL_ROOM)
+    const over = right - (canvasEl.clientWidth - PANEL_RESERVE)
     if (over > 0) flow.setViewport({ x: x - Math.min(over, Math.max(0, left - 40)), y, zoom }, { duration: 200 })
   }, [panelOpen, selection.nodes, selection.edges, flow])
   const notesByElement = useMemo(() => {
@@ -1114,6 +1113,7 @@ function Editor ({
             notesOnly={notesOnly}
             statusLabel={doc.status_label}
             saveStatus={saver.status}
+            dirty={saver.dirty}
             autosave={autosave}
             issues={issueList}
             onIssues={shown.pending ? () => setDialog('pending') : null}

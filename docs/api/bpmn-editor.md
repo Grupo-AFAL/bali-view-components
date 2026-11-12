@@ -98,7 +98,7 @@ authorize every endpoint on the server anyway.
 | `data:` | required | The document (`Hash` or `Bali::BpmnEditor::Data`) |
 | `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save. Why it cannot be edited is the host's to say, with a `Bali::Alert` above it |
 | `autosave:` | `true` | Save with a ~1.2 s debounce after each change, with no save button: a failed save is not tried again until the next change, so «Retry save» appears until one succeeds. `false`: only the «Save draft» button saves |
-| `lock_orientation:` | `false` | No orientation switch in the toolbar. `true` keeps the document's own orientation (`data[:orientation]`, the one source of it); `:horizontal` or `:vertical` turns a document stored the other way on load, as the switch would, and the next save stores it — e.g. a macroprocess map whose lanes are always vertical. The host stores `orientation` and sends it back in every 200 (the `Data` contract): a 200 without it reads as horizontal and would be turned again. Anything else raises `ArgumentError` |
+| `lock_orientation:` | `false` | No orientation switch in the toolbar. `true` keeps the document's own orientation (`data[:orientation]`, the one source of it); `:horizontal` or `:vertical` turns a document stored the other way on load, as the switch would, and the next save stores it — e.g. a macroprocess map whose lanes are always vertical. A 200 that leaves `orientation` out is read in the forced one: it is the document the island sent. `nil` is `false`. Anything else raises `ArgumentError` |
 | `external_lanes:` | `true` | Lanes may be marked as external participants (grey lane, white activities, joined by message flows). `false` hides that checkbox in the lane panel and the external entries of the default legend |
 | `open_issues:` | `false` | Open the pending-issues panel on load (editable only): for a page whose purpose is to show what a diagram still has to fix |
 | `confirm_linked_delete:` | `false` | Ask before deleting a sub-process linked to an entity of the app (`reference` with an `id`): «Delete linked sub-processes?» names them, with Cancel and Delete. Anything else is deleted at once, as always. What the app does with the entity afterwards is its own — the dummy offers it again under «To place», since its `stencil` lists what no sub-process links |
@@ -474,6 +474,9 @@ canvas at `--bpmn-fill`, so it darkens with a dark theme and the name inside kee
 | `--bpmn-end` | `#d32f2f` | End events |
 | `--bpmn-sub-process` | a grey of the theme | Related procedures |
 | `--bpmn-fill` | `45%` | How much of each colour its fill takes |
+
+The defaults are declared in `@layer base` under `:where()`, so any rule of the app's sheet
+wins, in a layer or out of one.
 
 ```css
 .bali-bpmn-editor { --bpmn-activity: #2563eb; --bpmn-fill: 30%; }

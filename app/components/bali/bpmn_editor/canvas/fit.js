@@ -6,12 +6,14 @@
 // `minimal` (Component `chrome: :minimal`): no toolbar over the canvas, so
 // only the zoom bar's room is kept.
 export const MIN_FIT_ZOOM = 0.4
+// The properties panel's room on the right: w-72 at right-3 in PropertiesPanel.jsx (300 px) and a gap.
+export const PANEL_RESERVE = 320
 
 export function fitOptions ({ legendOpen = false, panelOpen = false, duration, minZoom = MIN_FIT_ZOOM, minimal = false } = {}) {
   return {
     padding: {
       top: minimal ? '16px' : '76px',
-      right: panelOpen ? '320px' : legendOpen ? '290px' : minimal ? '16px' : '40px',
+      right: panelOpen ? `${PANEL_RESERVE}px` : legendOpen ? '290px' : minimal ? '16px' : '40px',
       bottom: minimal ? '52px' : '64px',
       left: minimal ? '16px' : '40px'
     },

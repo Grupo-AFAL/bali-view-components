@@ -11,5 +11,5 @@
           "The app turns the file into a document and answers bali_bpmn_reload. This demo does not parse BPMN: it reloads the sample, so the round trip can be tried." :
           "La app convierte el archivo en un documento y responde bali_bpmn_reload. Esta demostración no lee BPMN: recarga el ejemplo, para probar el viaje completo." %>
   <% end %>
-  <%= f.submit_group(params[:locale] == "en" ? "Import" : "Importar") %>
+  <%= f.submit_group(params[:locale] == "en" ? "Import" : "Importar", drawer: true) %>
 <% end %>

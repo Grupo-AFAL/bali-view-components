@@ -123,7 +123,9 @@ module Bali
       #   field schema], documentation: { maxlength: } (the built-in «Description») }.
       #   `maxlength:` (a positive integer) is for text and textarea fields, `min:`/`max:`
       #   (numbers, min <= max) for number fields; anything else raises.
-      # @param urls [Hash] island endpoints, keys in URL_KEYS — see docs/api/bpmn-editor.md.
+      # @param urls [Hash] island endpoints, keys in URL_KEYS — see docs/api/bpmn-editor.md. The
+      #   drawers' forms (new_reference, new_lane_assignee, import) submit with `drawer: true`,
+      #   or the drawer stays open after their answer.
       # @param name [String] the diagram's name: title of the image and print outputs, file
       #   names, and the main participant of the .bpmn export.
       # @param watermark [String] text across the image and print outputs (e.g. "Borrador").
@@ -349,6 +351,7 @@ module Bali
       end
 
       def resolve_lock_orientation(value)
+        return false if value.nil?
         return value if value == true || value == false
         return value.to_s if Data::ORIENTATIONS.include?(value.to_s)
 

@@ -47,15 +47,20 @@ describe('the colour of each kind of element', () => {
     shapeOf('Registrar pago').should('have.css', 'fill', 'oklch(1 0 0)')
   })
 
-  it("takes an app's colour for a kind, on the canvas and in the SVG", () => {
+  // The app's sheet is in <head> before the island links flow.css after it.
+  it("takes an app's colour for a kind from its stylesheet, in a layer or not, on the canvas and in the SVG", () => {
     cy.visit(PLAYGROUND, {
       onBeforeLoad (win) {
         win.document.addEventListener('bali-bpmn:exported', (event) => { win.exported = event.detail })
+        const style = win.document.createElement('style')
+        // Tailwind's own order first, as an app's build opens with it.
+        style.textContent = '@layer theme, base, components, utilities; .bali-bpmn-editor { --bpmn-activity: #7c3aed } @layer components { .bali-bpmn-editor { --bpmn-end: #0f766e } }'
+        win.document.head.appendChild(style)
       }
     })
     cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
-    cy.get('.bali-bpmn-editor').invoke('attr', 'style', '--bpmn-activity: #7c3aed')
     shapeOf('Validar factura').should('have.css', 'stroke', 'rgb(124, 58, 237)')
+    shapeOf('Pago realizado').should('have.css', 'stroke', 'rgb(15, 118, 110)')
     cy.get('[data-controller="bpmn-editor"]').then(($editor) => {
       $editor[0].dispatchEvent(new CustomEvent('bali-bpmn:export', { detail: { request_id: 'colors', format: 'svg', frame: false } }))
     })

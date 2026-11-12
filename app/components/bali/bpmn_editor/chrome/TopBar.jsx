@@ -38,11 +38,12 @@ export function SaveStatus ({ t, saveStatus, notesOnly = false }) {
 // or to the page header of `full_page:`, which then also shows the save
 // status (`pageHeader`).
 export default function TopBar ({
-  t, editable, notesOnly = false, statusLabel, saveStatus, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
+  t, editable, notesOnly = false, statusLabel, saveStatus, dirty = true, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
   finalizing, exports, onCompare, comparing, pageHeader = false
 }) {
   const errors = issues.filter((i) => i.severity === 'error').length
-  // A retry stays, disabled, while its save is out, rather than vanishing under the pointer.
+  // A retry stays, disabled, while its save is out, rather than vanishing under the pointer;
+  // an error with nothing unsaved (a failed «Finalize») has nothing to retry.
   const [retrying, setRetrying] = useState(false)
   useEffect(() => { if (saveStatus !== 'saving' && saveStatus !== 'error') setRetrying(false) }, [saveStatus])
   const retry = () => { setRetrying(true); onSave() }
@@ -94,7 +95,7 @@ export default function TopBar ({
             </span>
           )}
           {/* A failed autosave is not tried again until the next change: this is the retry. */}
-          {(!autosave || saveStatus === 'error' || retrying) && (
+          {(!autosave || (saveStatus === 'error' && dirty) || retrying) && (
             <button type='button' className='btn btn-outline btn-sm gap-1' onClick={autosave ? retry : onSave} disabled={saveStatus === 'saving'} data-testid='bpmn-save-draft'>
               <Icon name='save' size={14} />{t(autosave ? 'save_retry' : 'save_draft')}
             </button>

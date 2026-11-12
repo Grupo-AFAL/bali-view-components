@@ -11,6 +11,13 @@
   --bpmn-line: color-mix(in oklab, var(--color-base-content) 72%, transparent);
   --bpmn-border: var(--color-base-300);
   --bpmn-select: var(--color-primary);
+}
+
+/* In base and without specificity: flow.css is linked after the host's sheets
+ * when the island mounts, unlayered, so a default declared here like the rules
+ * above would beat a host's `.bali-bpmn-editor { --bpmn-activity: … }` — in a
+ * layer or out of one. */
+@layer base { :where(.bali-bpmn-editor) {
   /* Each kind's border, the same in every theme (SoftExpert's convention);
    * its fill is that colour mixed with the canvas at --bpmn-fill (shapes.jsx). */
   --bpmn-start: #e6c300;
@@ -20,7 +27,7 @@
   --bpmn-gateway: #d97706;
   --bpmn-end: #d32f2f;
   --bpmn-fill: 45%;
-}
+} }
 
 .bpmn-canvas { position: relative; min-height: 420px; background: var(--color-base-100); container: bpmn-canvas / inline-size; }
 

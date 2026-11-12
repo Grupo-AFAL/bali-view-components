@@ -3,23 +3,18 @@
 // kept, so a save never drops what the host (or an imported file) put there.
 import { autoLayout, needsLayout } from './layout.js'
 import { APPEARANCE_COLLECTIONS, withoutAppearance } from './appearance.js'
-import { setOrientation } from './operations.js'
 
 const COLLECTIONS = ['lanes', 'nodes', 'edges', 'annotations', 'stencil', 'issues']
 
 // A document without coordinates is laid out with `layoutOptions`
-// (autoLayout's mode and page); one in the other orientation than
-// `layoutOptions.orientation` (Component `lock_orientation: :vertical`) is
-// turned as the toolbar's switch would turn it.
+// (autoLayout's mode and page).
 export function normalize (data, layoutOptions) {
   const doc = { ...(data || {}) }
   for (const key of COLLECTIONS) doc[key] = Array.isArray(doc[key]) ? doc[key] : []
   doc.orientation = doc.orientation === 'vertical' ? 'vertical' : 'horizontal'
   doc.pool = { x: 0, y: 0, ...(doc.pool || {}) }
   doc.nodes = doc.nodes.map((n) => (namedByReference(n) && n.name !== n.reference.label ? { ...n, name: n.reference.label } : n))
-  const forced = layoutOptions && layoutOptions.orientation
-  if (needsLayout(doc)) return autoLayout(forced ? { ...doc, orientation: forced } : doc, layoutOptions)
-  return forced ? setOrientation(doc, forced).doc : doc
+  return needsLayout(doc) ? autoLayout(doc, layoutOptions) : doc
 }
 
 // A related procedure carries the official name of the one it cites (AFAL

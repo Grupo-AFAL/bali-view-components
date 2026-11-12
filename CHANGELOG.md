@@ -24,8 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::BpmnEditor`: `lock_orientation: :vertical` o `:horizontal` fuerza la orientación.**
   Un documento guardado en la otra orientación se voltea al abrirlo, como lo haría el botón, y el
   siguiente guardado lo guarda así; no hay botón para cambiarla. `true` sigue conservando la del
-  documento, y cualquier otro valor lanza `ArgumentError`. La app debe guardar `orientation` y
-  devolverla en cada 200 (gobierno-corporativo ya lo hace); sin ella, el 200 se lee horizontal. Para un macroproceso en
+  documento, y cualquier otro valor lanza `ArgumentError`. Un 200 que no trae `orientation`
+  se lee en la orientación forzada, y `nil` equivale a `false`. Para un macroproceso en
   gobierno-corporativo: `activity_shape: "chevron"` en el documento y `lock_orientation: :vertical`.
 
 ### Changed

@@ -126,6 +126,16 @@ describe('BPMN editor island', () => {
       cy.get('[data-testid="bpmn-save-draft"]').should('not.exist')
     })
 
+    it('offers no retry after a failed «Finalize» with nothing unsaved', () => {
+      cy.intercept('POST', /\/finalization(\?.*)?$/, { statusCode: 500, body: {} }).as('finalize')
+      cy.visit(`${EDITABLE}?sample=partners`)
+      cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 7)
+      cy.get('[data-testid="bpmn-finalize"]').click()
+      cy.wait('@finalize')
+      cy.get('[data-testid="bpmn-save-status"]').should('contain', 'No se pudo guardar')
+      cy.get('[data-testid="bpmn-save-draft"]').should('not.exist')
+    })
+
     it('keeps «Save draft» without autosave', () => {
       cy.intercept('PUT', DIAGRAM).as('save')
       cy.visit(`${EDITABLE}?autosave=false`)

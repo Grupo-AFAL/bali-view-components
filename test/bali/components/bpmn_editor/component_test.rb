@@ -99,6 +99,9 @@ class BaliBpmnEditorComponentTest < ComponentTestCase
     render_inline(component(lock_orientation: "horizontal"))
     assert_equal "horizontal", island["data-bpmn-editor-orientation-value"]
 
+    render_inline(component(lock_orientation: nil))
+    assert_equal "false", island["data-bpmn-editor-lock-orientation-value"]
+
     error = assert_raises(ArgumentError) { component(lock_orientation: :diagonal) }
     assert_match "lock_orientation:", error.message
   end
