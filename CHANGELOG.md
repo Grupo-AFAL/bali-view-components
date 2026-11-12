@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.26.0] - 2026-11-11
+
 ### Added
 
 - **`Bali::BpmnEditor`: `controls:` muestra u oculta cada pieza del chrome.** Las llaves son
