@@ -24,6 +24,9 @@ export class BpmnEditorController extends ReactIslandController {
     autosave: { type: Boolean, default: true },
     // Keeps the document's own orientation: no switch in the toolbar.
     lockOrientation: { type: Boolean, default: false },
+    // 'horizontal' | 'vertical' — Component `lock_orientation:` naming one; the
+    // document is turned to it on load (model/document.js normalize).
+    orientation: { type: String, default: '' },
     // Lanes may be marked as external participants (the lane panel's checkbox).
     externalLanes: { type: Boolean, default: true },
     // Opens the pending-issues panel on load (Component `open_issues:`).
@@ -75,7 +78,9 @@ export class BpmnEditorController extends ReactIslandController {
     // the editor — down to the bottom of the window.
     fullPage: { type: Boolean, default: false },
     // Component `bordered:` — false when a container around it draws the frame.
-    bordered: { type: Boolean, default: true }
+    bordered: { type: Boolean, default: true },
+    // Component `controls:` — only what differs from CONTROLS in BpmnEditor.jsx.
+    controls: { type: Object, default: {} }
   }
 
   connect () {

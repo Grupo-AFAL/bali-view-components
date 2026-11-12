@@ -69,6 +69,22 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_equal Bali::BpmnEditor::Component::FIELD_TYPES, js_list("chrome/PropertiesPanel.jsx", "FIELD_TYPES")
   end
 
+  def test_controls_and_their_defaults
+    body = ROOT.join("BpmnEditor.jsx").read[/export const CONTROLS = \{([^}]*)\}/m, 1] or flunk "CONTROLS not found in BpmnEditor.jsx"
+    js = body.scan(/(\w+): (true|false)/).to_h { |key, shown| [ key.to_sym, shown == "true" ] }
+
+    assert_equal Bali::BpmnEditor::Component::CONTROLS, js
+    assert_match(/^\s+controls: \{ type: Object, default: \{\} \}/, ROOT.join("index.js").read)
+  end
+
+  def test_orientations
+    assert_equal Bali::BpmnEditor::Data::ORIENTATIONS, js_list("model/geometry.js", "ORIENTATIONS")
+  end
+
+  def test_activity_shapes
+    assert_equal Bali::BpmnEditor::Data::ACTIVITY_SHAPES, js_list("model/geometry.js", "ACTIVITY_SHAPES")
+  end
+
   def test_legend_swatches
     assert_equal Bali::BpmnEditor::Component::LEGEND_SWATCHES, js_list("chrome/Legend.jsx", "LEGEND_SWATCHES")
   end

@@ -65,10 +65,12 @@ export function nodeLabelBox (node, orientation = 'horizontal') {
   return { x: box.cx - block.w / 2, y: box.y + box.h + GAP, w: block.w, h: block.h, lines: block.lines }
 }
 
-// The pending-issue triangle, on the top-right corner of the shape.
-export function badgeBox (node) {
+// The pending-issue triangle, on the top-right corner of the shape — of a
+// chevron's straight top edge, which ends before its point.
+export function badgeBox (node, activityShape = 'card') {
   const box = nodeBox(node)
-  return { x: box.x + box.w - 9, y: box.y - 9, w: 18, h: 16 }
+  const point = isChevron(node, activityShape) ? chevronDepth(box.h) : 0
+  return { x: box.x + box.w - point - 9, y: box.y - 9, w: 18, h: 16 }
 }
 
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v))
@@ -89,26 +91,35 @@ export const TASK_MARKER_TYPES = ['user_task', 'service_task', 'send_task', 'rec
 export const hasTaskMarker = (node) => TASK_MARKER_TYPES.includes(node.type)
 
 // The task-type marker, 16 px at scale 1, in the top-left corner; under the
-// badge tab when there is one (the tab's inner half ends at 8 px).
-export function taskMarkerAt (h, badge = false) {
+// badge tab when there is one (the tab's inner half ends at 8 px). In a
+// chevron it moves right by half the notch, which reaches 10.5 px in at the
+// marker's foot in the 64 px box.
+export function taskMarkerAt (h, badge = false, activityShape = 'card') {
   const scale = clamp(h / 64, 0.7, 1)
-  return { x: 6 * scale, y: badge ? BADGE_TAB.height / 2 + 2 : 5 * scale, size: 16 * scale, scale }
+  const notch = activityShape === 'chevron' ? chevronDepth(h) / 2 : 0
+  return { x: 6 * scale + notch, y: badge ? BADGE_TAB.height / 2 + 2 : 5 * scale, size: 16 * scale, scale }
 }
 
 export const activityRadius = (h) => Math.round(h * 0.1 * 10) / 10
+// How far a chevron's point juts out on the right, and its notch cuts in on
+// the left, for a height `h`: 16 px in the 64 px box.
+export const chevronDepth = (h) => Math.round(h * 0.25 * 10) / 10
+const isChevron = (node, activityShape) => activityShape === 'chevron' && categoryOf(node) === CATEGORY.activity
 
 // The app's badge (node.appearance.badge): a tab across the top edge, half
 // outside, flush with the left edge — of the bounding box for an event or a
 // gateway. It stops short of the top-right corner while the pending marker or
-// the link arrow is there (TOP_RIGHT), and of a note number that follows it.
+// the link arrow is there (TOP_RIGHT), of a note number that follows it, and
+// of a chevron's point, where the top edge ends.
 // Width by the 10 px semibold font's average glyph.
 export const BADGE_TAB = { height: 16, pad: 6, char: 6.2 }
 const TOP_RIGHT = 20
 const NOTE = 22
 
-export function badgeTabBox (node, text, { topRight = false, note = false } = {}) {
+export function badgeTabBox (node, text, { topRight = false, note = false, activityShape = 'card' } = {}) {
   const box = nodeBox(node)
-  const { w, text: shown } = fitBadge(text, box.w - (topRight ? TOP_RIGHT : 0) - (note ? NOTE : 0))
+  const point = isChevron(node, activityShape) ? chevronDepth(box.h) : 0
+  const { w, text: shown } = fitBadge(text, box.w - point - (topRight ? TOP_RIGHT : 0) - (note ? NOTE : 0))
   const radius = categoryOf(node) === CATEGORY.activity ? activityRadius(box.h) : 4
   return { x: box.x, y: box.y - BADGE_TAB.height / 2, w, h: BADGE_TAB.height, text: shown, radius }
 }
@@ -132,15 +143,17 @@ const INSET = { x: 8, y: 4 }
 const CORNER = 16
 const LINK_BOTTOM = 21
 
-export function insideLabelBox (node, { badge = false, link = false } = {}) {
+export function insideLabelBox (node, { badge = false, link = false, activityShape = 'card' } = {}) {
   const box = nodeBox(node)
-  const marker = hasTaskMarker(node) ? taskMarkerAt(box.h, badge) : null
+  const marker = hasTaskMarker(node) ? taskMarkerAt(box.h, badge, activityShape) : null
   const cornerBottom = Math.max(marker ? marker.y + marker.size : 0, link ? LINK_BOTTOM : 0)
   const top = Math.max(badge ? BADGE_TAB.height / 2 + 2 : INSET.y, cornerBottom - LINE)
   const bottom = hasBottomMarker(node) ? markerZone(box.h).height + 1 : INSET.y
   const h = Math.max(LINE, box.h - top - bottom)
-  const w = Math.max(0, box.w - INSET.x * 2)
-  return { x: box.x + INSET.x, y: box.y + top, w, h, lines: Math.max(1, Math.floor(h / LINE)), corner: cornerBottom ? CORNER : 0 }
+  // A chevron's notch and point take its depth off each side at mid-height.
+  const inset = INSET.x + (isChevron(node, activityShape) ? chevronDepth(box.h) : 0)
+  const w = Math.max(0, box.w - inset * 2)
+  return { x: box.x + inset, y: box.y + top, w, h, lines: Math.max(1, Math.floor(h / LINE)), corner: cornerBottom ? CORNER : 0 }
 }
 
 // Greedy word wrap by an average glyph width, for the outputs (the canvas'

@@ -10,5 +10,5 @@
   <%= f.text_group :label, label: (en ? "Name" : "Nombre"), required: true,
                            placeholder: (en ? "E.g. Supplier onboarding" : "Ej. Alta de proveedor") %>
   <%= f.select_group :group, groups, label: (en ? "Area" : "Área") %>
-  <%= f.submit_group(en ? "Create and link" : "Crear y vincular") %>
+  <%= f.submit_group(en ? "Create and link" : "Crear y vincular", drawer: true) %>
 <% end %>

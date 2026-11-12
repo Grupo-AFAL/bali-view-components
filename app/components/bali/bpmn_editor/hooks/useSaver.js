@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { saveDocument, saveAnnotations, fetchDocument, finalizeDocument } from '../saveClient.js'
-import { forSave, normalize } from '../model/document.js'
+import { forSave } from '../model/document.js'
+import { loadAnswer } from '../model/load.js'
 import { createSaver } from '../model/saver.js'
 
 const AUTOSAVE_DELAY = 1200
@@ -35,7 +36,7 @@ export default function useSaver ({ doc, revision, current, layoutOptions, urls,
     t,
     setStatus,
     // A server document without coordinates is laid out as on load.
-    prepare: (body) => normalize(body, layoutOptions),
+    prepare: (body) => loadAnswer(body, layoutOptions),
     forSave: notesOnly ? annotationsOf : forSave,
     defer: (fn) => setTimeout(fn, 0)
   }

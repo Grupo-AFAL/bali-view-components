@@ -27,7 +27,13 @@ export const PRINT_TAIL = { horizontal: 40, vertical: 40 }
 export const LANE_PADDING = 10
 
 export const axisFor = (orientation) => AXES[orientation] || AXES.horizontal
+// Mirrors Bali::BpmnEditor::Data::ORIENTATIONS (contract_test.rb).
+export const ORIENTATIONS = ['horizontal', 'vertical']
 export const orientationOf = (doc) => (doc && doc.orientation === 'vertical' ? 'vertical' : 'horizontal')
+// What every activity is drawn as (`doc.activity_shape`). Mirrors
+// Bali::BpmnEditor::Data::ACTIVITY_SHAPES (contract_test.rb).
+export const ACTIVITY_SHAPES = ['card', 'chevron']
+export const activityShapeOf = (doc) => (doc && doc.activity_shape === 'chevron' ? 'chevron' : 'card')
 export const poolOrigin = (doc) => ({ x: Number(doc.pool && doc.pool.x) || 0, y: Number(doc.pool && doc.pool.y) || 0 })
 
 export function sortedLanes (doc) {

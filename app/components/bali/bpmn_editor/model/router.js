@@ -22,8 +22,8 @@
 // this routes into a layout the user owns. Measured on the 60-activity fixture:
 // see routing.test.js.
 import { categoryOf, CATEGORY, edgeType, isGateway } from './catalog.js'
-import { layoutLanes, nodeBox, orientationOf } from './geometry.js'
-import { nodeLabelBox, badgeBox, labelSide, textBlock } from './labels.js'
+import { layoutLanes, nodeBox, orientationOf, activityShapeOf } from './geometry.js'
+import { nodeLabelBox, badgeBox, labelSide, textBlock, chevronDepth } from './labels.js'
 
 export const STUB = 18
 const CLEARANCE = 10
@@ -39,8 +39,9 @@ const DIR = { left: { dx: -1, dy: 0 }, right: { dx: 1, dy: 0 }, top: { dx: 0, dy
 // ── ports ──────────────────────────────────────────────────────────────────
 
 // A point on the node's outline on `side`, `offset` px from the side's middle
-// (diamonds and circles have their outline inside the box).
-export function portPoint (node, box, side, offset = 0) {
+// (diamonds, circles and a chevron's notch and point have their outline
+// inside the box).
+export function portPoint (node, box, side, offset = 0, activityShape = 'card') {
   const category = categoryOf(node)
   const horizontalSide = side === 'top' || side === 'bottom'
   const half = horizontalSide ? box.w / 2 : box.h / 2
@@ -50,6 +51,9 @@ export function portPoint (node, box, side, offset = 0) {
   else if (category === CATEGORY.event) {
     const r = Math.min(box.w, box.h) / 2
     inset = r - Math.sqrt(Math.max(0, r * r - o * o))
+  } else if (category === CATEGORY.activity && activityShape === 'chevron' && !horizontalSide) {
+    const towardCorner = Math.abs(o) / half
+    inset = chevronDepth(box.h) * (side === 'left' ? 1 - towardCorner : towardCorner)
   }
   switch (side) {
     case 'top': return { x: box.cx + o, y: box.y + inset }
@@ -61,8 +65,8 @@ export function portPoint (node, box, side, offset = 0) {
 
 // The port on `side` and the end of its stub: STUB px out from the node's
 // box, on a whole pixel across the side so neighbouring lines stay parallel.
-function endpoint (node, box, side, offset) {
-  const point = portPoint(node, box, side, offset)
+function endpoint (node, box, side, offset, activityShape) {
+  const point = portPoint(node, box, side, offset, activityShape)
   const d = DIR[side]
   if (side === 'left' || side === 'right') {
     const y = Math.round(point.y)
@@ -191,7 +195,7 @@ function assignPorts (doc, edges, ctx) {
     list.forEach((slot, i) => {
       const offset = rightOnly ? i * step : (i - (list.length - 1) / 2) * step
       if (!ports.has(slot.edgeId)) ports.set(slot.edgeId, {})
-      ports.get(slot.edgeId)[slot.end] = { side, ...endpoint(node, box, side, offset) }
+      ports.get(slot.edgeId)[slot.end] = { side, ...endpoint(node, box, side, offset, ctx.activityShape) }
     })
   }
   for (const [edgeId, s] of sides) {
@@ -620,7 +624,7 @@ const EDGE_KEYS = ['id', 'source', 'target', 'type', 'ports', 'waypoints']
 export function sameRouting (a, b) {
   if (a === b) return true
   const orientation = orientationOf(a)
-  if (orientation !== orientationOf(b)) return false
+  if (orientation !== orientationOf(b) || activityShapeOf(a) !== activityShapeOf(b)) return false
   const nodesA = a.nodes || []
   const nodesB = b.nodes || []
   const edgesA = a.edges || []
@@ -671,6 +675,7 @@ export function routeAfresh (doc, order = null) {
     outCount,
     inCount,
     orientation,
+    activityShape: activityShapeOf(doc),
     forwardOut: horizontal ? 'right' : 'bottom',
     forwardIn: horizontal ? 'left' : 'top',
     mainKey: layout.axis.main,
@@ -692,7 +697,7 @@ export function routeAfresh (doc, order = null) {
     const label = nodeLabelBox(n, orientation)
     if (label) obstacles.push({ x: label.x - 3, y: label.y - 3, w: label.w + 6, h: label.h + 6 })
     if (categoryOf(n) !== CATEGORY.artifact && categoryOf(n) !== CATEGORY.data) {
-      const badge = badgeBox(n)
+      const badge = badgeBox(n, ctx.activityShape)
       obstacles.push({ x: badge.x - 2, y: badge.y - 2, w: badge.w + 4, h: badge.h + 4 })
     }
   }
@@ -797,7 +802,7 @@ function otherSides (edge, ctx, blockers, occupied, bounds, taken = new Set()) {
     if (labelSide(node, ctx.orientation) === side) return null
     for (const offset of [0, CHANNEL, -CHANNEL, 2 * CHANNEL, -2 * CHANNEL]) {
       if (side === 'top' && isGateway(node) && offset < 0) continue
-      const { point, stub } = endpoint(node, box, side, offset)
+      const { point, stub } = endpoint(node, box, side, offset, ctx.activityShape)
       if (!occupied.overlaps(point, stub) && !inside(stub)) return { side, point, stub }
     }
     return null

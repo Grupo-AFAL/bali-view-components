@@ -16,6 +16,12 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
     }
   end
 
+  def test_activities_are_cards_unless_the_document_says_chevron
+    assert_equal "card", Data.new({}).activity_shape
+    assert_equal "chevron", Data.new(activity_shape: "chevron").activity_shape
+    assert_equal "chevron", Data.new("activity_shape" => :chevron).activity_shape
+  end
+
   def test_a_valid_document_is_symbolized_and_kept_whole
     data = Data.new(valid.merge("custom" => { "keep" => true }))
 
@@ -40,6 +46,7 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
     {
       "not a hash" => "flow",
       "bad orientation" => { orientation: "diagonal" },
+      "unknown activity shape" => { activity_shape: "hexagon" },
       "lane without id" => { lanes: [ { name: "x" } ] },
       "unknown lane kind" => { lanes: [ { id: "l1", kind: "partner" } ] },
       "node without type" => { nodes: [ { id: "n1" } ] },

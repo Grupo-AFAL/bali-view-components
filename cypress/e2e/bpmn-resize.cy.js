@@ -63,6 +63,14 @@ describe('BPMN editor activity size', () => {
       cy.get(PANEL).find('[data-testid="bpmn-node-size"] button').should('have.attr', 'aria-pressed', 'true').and('be.disabled')
     })
 
+    it('slides an activity selected under the properties panel clear of it', () => {
+      nodeNamed('Registrar pago').click()
+      cy.get(PANEL).then(($panel) => {
+        const panel = $panel[0].getBoundingClientRect()
+        nodeNamed('Registrar pago').should(($node) => expect($node[0].getBoundingClientRect().right).to.be.at.most(panel.left))
+      })
+    })
+
     it('resizes by the corner in one undo step, and «Auto» gives the default back', () => {
       nodeNamed('Registrar pago').click()
       dragHandle(120, 60)

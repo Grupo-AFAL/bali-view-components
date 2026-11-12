@@ -18,19 +18,19 @@ function Tool ({ icon, label, title, onClick, active, disabled, testId }) {
 // Floating bar over the canvas: lanes, orientation, layout, connect, import
 // on the left; participants, navigate and full screen on the right.
 export function CanvasToolbar ({ t, editable, orientation, onAddLane, onToggleOrientation, onAutoLayout, connecting, onConnect, onImport }) {
-  if (!editable) return null
+  if (!editable || !(onAddLane || onToggleOrientation || onAutoLayout || onConnect || onImport)) return null
   const next = orientation === 'horizontal' ? 'vertical' : 'horizontal'
   return (
     // Wraps instead of running under the view toolbar on the right (Participants,
     // Navigate, Full screen: ~24rem) when the canvas is narrow.
     <Panel position='top-left' className='bpmn-chrome bpmn-canvas-toolbar flex max-w-[calc(100%-25rem)] flex-wrap items-center gap-0.5 rounded-lg border border-base-300 bg-base-100 p-1 shadow-sm'>
-      <Tool icon='lane' label={t('add_lane')} onClick={onAddLane} testId='bpmn-add-lane' />
+      {onAddLane && <Tool icon='lane' label={t('add_lane')} onClick={onAddLane} testId='bpmn-add-lane' />}
       {onToggleOrientation && <Tool icon='swap' label={t(`orientation_${next}`)} title={t('switch_orientation')} onClick={onToggleOrientation} testId='bpmn-orientation' />}
-      <Tool icon='layout' label={t('auto_layout')} title={t('auto_layout_hint')} onClick={onAutoLayout} testId='bpmn-auto-layout' />
-      <Tool icon='arrowRight' label={t('connect')} onClick={onConnect} active={connecting} testId='bpmn-connect' />
+      {onAutoLayout && <Tool icon='layout' label={t('auto_layout')} title={t('auto_layout_hint')} onClick={onAutoLayout} testId='bpmn-auto-layout' />}
+      {onConnect && <Tool icon='arrowRight' label={t('connect')} onClick={onConnect} active={connecting} testId='bpmn-connect' />}
       {onImport && (
         <>
-          <span className='mx-1 h-5 w-px bg-base-300' />
+          {(onAddLane || onToggleOrientation || onAutoLayout || onConnect) && <span className='mx-1 h-5 w-px bg-base-300' />}
           <Tool icon='upload' label={t('import_bpmn')} onClick={onImport} />
         </>
       )}
@@ -52,14 +52,16 @@ export function ViewToolbar ({ t, editable, onParticipants, participantsOpen, on
           <Icon name='users' size={15} /><span className='bpmn-tool-label'>{t('participants')}</span>
         </button>
       )}
-      {editable && (
+      {editable && onNavigate && (
         <button type='button' className={`btn btn-sm gap-1 border-base-300 bg-base-100 font-normal shadow-sm ${navigating ? 'btn-active text-primary' : ''}`} onClick={onNavigate} aria-pressed={String(navigating)}>
           <Icon name='move' size={15} /><span className='bpmn-tool-label'>{t('navigate')}</span>
         </button>
       )}
-      <button type='button' className='btn btn-sm gap-1 border-base-300 bg-base-100 font-normal shadow-sm' onClick={onFullscreen}>
-        <Icon name={fullscreen ? 'minimize' : 'maximize'} size={15} /><span className='bpmn-tool-label'>{t(fullscreen ? 'exit_fullscreen' : 'fullscreen')}</span>
-      </button>
+      {onFullscreen && (
+        <button type='button' className='btn btn-sm gap-1 border-base-300 bg-base-100 font-normal shadow-sm' onClick={onFullscreen}>
+          <Icon name={fullscreen ? 'minimize' : 'maximize'} size={15} /><span className='bpmn-tool-label'>{t(fullscreen ? 'exit_fullscreen' : 'fullscreen')}</span>
+        </button>
+      )}
     </Panel>
   )
 }

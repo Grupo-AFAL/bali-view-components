@@ -7,7 +7,9 @@
 // obstacle — rejects any whose segments cross another element, and keeps the
 // shortest, with each bend costing BEND_COST of length. Sixty connections
 // route in ~8 ms (routing.test.js), so it runs on every frame of a drag.
-import { nodeBox } from './geometry.js'
+import { nodeBox, activityShapeOf } from './geometry.js'
+import { categoryOf, CATEGORY } from './catalog.js'
+import { chevronDepth } from './labels.js'
 import { routeDiagram } from './router.js'
 
 export const SIDES = ['top', 'right', 'bottom', 'left']
@@ -15,11 +17,12 @@ const STUB = 18
 const CLEARANCE = 8
 const BEND_COST = 30
 
+// `box.notch`: a chevron's, which the left port reaches into (boxesById).
 export function port (box, side) {
   switch (side) {
     case 'top': return { x: box.cx, y: box.y, dx: 0, dy: -1 }
     case 'bottom': return { x: box.cx, y: box.y + box.h, dx: 0, dy: 1 }
-    case 'left': return { x: box.x, y: box.cy, dx: -1, dy: 0 }
+    case 'left': return { x: box.x + (box.notch || 0), y: box.cy, dx: -1, dy: 0 }
     default: return { x: box.x + box.w, y: box.cy, dx: 1, dy: 0 }
   }
 }
@@ -152,7 +155,12 @@ export function routeEdge (edge, sourceBox, targetBox, obstacles = []) {
 
 // A group is a frame drawn around other elements, so lines may cross it.
 export function boxesById (doc) {
-  return new Map((doc.nodes || []).map((n) => [String(n.id), { ...nodeBox(n), passThrough: n.type === 'group' }]))
+  const chevron = activityShapeOf(doc) === 'chevron'
+  return new Map((doc.nodes || []).map((n) => {
+    const box = nodeBox(n)
+    const notch = chevron && categoryOf(n) === CATEGORY.activity ? chevronDepth(box.h) : 0
+    return [String(n.id), { ...box, notch, passThrough: n.type === 'group' }]
+  }))
 }
 
 // The routes of the document's connections. The full router (router.js)

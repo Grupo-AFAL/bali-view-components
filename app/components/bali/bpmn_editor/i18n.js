@@ -22,6 +22,7 @@ export const DEFAULT_I18N = {
   save_finalized: 'Finalized',
   autosave: 'Autosave',
   save_draft: 'Save draft',
+  save_retry: 'Retry save',
   finalize: 'Finalize flow',
   pending_one: '1 pending',
   pending_other: '%{count} pending',

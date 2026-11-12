@@ -13,6 +13,22 @@
   --bpmn-select: var(--color-primary);
 }
 
+/* In base and without specificity: flow.css is linked after the host's sheets
+ * when the island mounts, unlayered, so a default declared here like the rules
+ * above would beat a host's `.bali-bpmn-editor { --bpmn-activity: … }` — in a
+ * layer or out of one. */
+@layer base { :where(.bali-bpmn-editor) {
+  /* Each kind's border, the same in every theme (SoftExpert's convention);
+   * its fill is that colour mixed with the canvas at --bpmn-fill (shapes.jsx). */
+  --bpmn-start: #e6c300;
+  --bpmn-activity: #1597c9;
+  --bpmn-decision: var(--bpmn-activity);
+  /* 3.2:1 on white, WCAG's 3:1 for an outline; the start's yellow is 1.7:1, kept for the convention. */
+  --bpmn-gateway: #d97706;
+  --bpmn-end: #d32f2f;
+  --bpmn-fill: 45%;
+} }
+
 .bpmn-canvas { position: relative; min-height: 420px; background: var(--color-base-100); container: bpmn-canvas / inline-size; }
 
 /* Embedded (chrome: :minimal): the host's container decides the height; the
@@ -137,6 +153,8 @@
 .bpmn-node.has-badge .bpmn-label-annotation { top: 10px; }
 .bpmn-node.has-badge .bpmn-label-group { top: 12px; }
 .bpmn-node-link { position: absolute; top: 3px; right: 6px; font-size: 12px; color: var(--color-secondary); }
+/* A chevron's top edge ends its depth short of the box (labels.js chevronDepth). */
+.bpmn-node.is-chevron .bpmn-node-link { right: calc(var(--bpmn-chevron-depth) + 2px); }
 /* The app's look of a node (node.appearance, model/appearance.js); the band and
  * the outline are SVG (shapes.jsx AppearanceMark). The badge is a tab across
  * the top edge, half outside, flush with the left one (model/labels.js

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import Icon from './icons.jsx'
 
 const STATUS = {
@@ -37,16 +38,21 @@ export function SaveStatus ({ t, saveStatus, notesOnly = false }) {
 // or to the page header of `full_page:`, which then also shows the save
 // status (`pageHeader`).
 export default function TopBar ({
-  t, editable, notesOnly = false, statusLabel, saveStatus, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
+  t, editable, notesOnly = false, statusLabel, saveStatus, dirty = true, autosave, issues, onIssues, onRules, history, onSave, onFinalize, canFinalize,
   finalizing, exports, onCompare, comparing, pageHeader = false
 }) {
   const errors = issues.filter((i) => i.severity === 'error').length
+  // A retry stays, disabled, while its save is out, rather than vanishing under the pointer;
+  // an error with nothing unsaved (a failed «Finalize») has nothing to retry.
+  const [retrying, setRetrying] = useState(false)
+  useEffect(() => { if (saveStatus !== 'saving' && saveStatus !== 'error') setRetrying(false) }, [saveStatus])
+  const retry = () => { setRetrying(true); onSave() }
   return (
     <div className='bpmn-chrome flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-base-300 bg-base-100 px-3 py-2'>
       {!pageHeader && statusLabel && <span className='badge badge-ghost badge-sm whitespace-nowrap'>{statusLabel}</span>}
       {!pageHeader && (editable ? <SaveStatus t={t} saveStatus={saveStatus} /> : <span className='badge badge-sm'>{t('read_only')}</span>)}
       {!pageHeader && notesOnly && <SaveStatus t={t} saveStatus={saveStatus} notesOnly />}
-      {editable && issues.length > 0 && (
+      {editable && onIssues && issues.length > 0 && (
         <button
           type='button'
           className={`btn btn-xs gap-1 ${errors ? 'btn-warning' : 'btn-ghost border-base-300'}`}
@@ -88,9 +94,12 @@ export default function TopBar ({
               <Icon name='refresh' size={12} />{t('autosave')}
             </span>
           )}
-          <button type='button' className='btn btn-outline btn-sm gap-1' onClick={onSave} disabled={saveStatus === 'saving'}>
-            <Icon name='save' size={14} />{t('save_draft')}
-          </button>
+          {/* A failed autosave is not tried again until the next change: this is the retry. */}
+          {(!autosave || (saveStatus === 'error' && dirty) || retrying) && (
+            <button type='button' className='btn btn-outline btn-sm gap-1' onClick={autosave ? retry : onSave} disabled={saveStatus === 'saving'} data-testid='bpmn-save-draft'>
+              <Icon name='save' size={14} />{t(autosave ? 'save_retry' : 'save_draft')}
+            </button>
+          )}
           {canFinalize && (
             <button type='button' className='btn btn-success btn-sm gap-1' onClick={onFinalize} disabled={finalizing} data-testid='bpmn-finalize'>
               <Icon name='flag' size={14} />{t('finalize')}

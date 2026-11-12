@@ -7,7 +7,7 @@
 // vertical one, sliding along the first stretches until it touches no node,
 // name, badge, line or other label. Only when every spot near the source is
 // taken does it look further along the line.
-import { nodeBox, layoutLanes } from './geometry.js'
+import { nodeBox, layoutLanes, activityShapeOf } from './geometry.js'
 import { nodeLabelBox, badgeBox, edgeLabelSize } from './labels.js'
 import { categoryOf, CATEGORY } from './catalog.js'
 
@@ -49,13 +49,14 @@ function * besideSegment (p, q, w, h, start = 6, { reach = 2, past = 0 } = {}) {
 
 export function placeEdgeLabels (doc, routes) {
   const orientation = layoutLanes(doc).orientation
+  const activityShape = activityShapeOf(doc)
   const nodes = (doc.nodes || []).filter((n) => n.type !== 'group')
   const blocked = []
   for (const n of nodes) {
     blocked.push(nodeBox(n))
     const label = nodeLabelBox(n, orientation)
     if (label) blocked.push(label)
-    if (categoryOf(n) !== CATEGORY.artifact && categoryOf(n) !== CATEGORY.data) blocked.push(badgeBox(n))
+    if (categoryOf(n) !== CATEGORY.artifact && categoryOf(n) !== CATEGORY.data) blocked.push(badgeBox(n, activityShape))
   }
   const lines = []
   for (const route of routes.values()) {

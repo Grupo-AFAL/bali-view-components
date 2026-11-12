@@ -5,7 +5,7 @@ import { appearanceOf } from '../model/appearance.js'
 import { DIFF_MARKS, diffMark } from './diffMarks.js'
 import { categoryOf, nodeSize, isResizable, CATEGORY, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
 import { nodeBox } from '../model/geometry.js'
-import { nodeLabelBox, badgeBox, insideLabelBox, badgeTabBox } from '../model/labels.js'
+import { nodeLabelBox, badgeBox, insideLabelBox, badgeTabBox, chevronDepth } from '../model/labels.js'
 import { textOn } from '../model/contrast.js'
 import { safeUrl } from '../model/urls.js'
 import { useCanvas } from './CanvasContext.js'
@@ -23,9 +23,9 @@ function insideClass (type) {
 
 // An activity's name keeps clear of what it draws in its corners, and ends
 // in an ellipsis past the lines that fit; the whole name is the node's title.
-function Label ({ node, name, orientation, category, badge, link }) {
+function Label ({ node, name, orientation, activityShape, category, badge, link }) {
   if (category === CATEGORY.activity) {
-    const area = insideLabelBox({ ...node, x: 0, y: 0 }, { badge, link })
+    const area = insideLabelBox({ ...node, x: 0, y: 0 }, { badge, link, activityShape })
     return (
       <div className='bpmn-label bpmn-label-inside' data-testid='bpmn-node-label' style={{ left: area.x, top: area.y, width: area.w, height: area.h }}>
         <span style={{ WebkitLineClamp: area.lines, '--bpmn-label-corner': `${area.corner}px` }}>
@@ -110,12 +110,14 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
   // name, the app's badge, «faded» (`appearance_dimmed`, which the app may
   // reword — the meaning is the app's), and what a comparison found.
   const showLink = Boolean(linked && !canvas.editable)
-  const tab = badge ? badgeTabBox({ ...node, x: 0, y: 0 }, badge) : null
+  const tab = badge ? badgeTabBox({ ...node, x: 0, y: 0 }, badge, { activityShape: canvas.activityShape }) : null
   const noteNumber = note && <span className='bpmn-note-number' style={{ '--bpmn-note-color': note.color, '--bpmn-note-text': textOn(note.color) || undefined }} title={note.text}>{note.number}</span>
+  const chevron = category === CATEGORY.activity && canvas.activityShape === 'chevron'
   const spoken = [name || node.type, badge, look && look.dimmed && canvas.t('appearance_dimmed'), mark && canvas.t(mark.label)].filter(Boolean).join(', ')
   return (
     <div
-      className={`bpmn-node bpmn-node-${category}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}${look && look.dimmed ? ' is-dimmed' : ''}${badge ? ' has-badge' : ''}${canvas.connectSource === id ? ' is-connect-source' : ''}${canvas.connectInvalid && canvas.connectInvalid.has(id) ? ' is-connect-invalid' : ''}`}
+      className={`bpmn-node bpmn-node-${category}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}${look && look.dimmed ? ' is-dimmed' : ''}${badge ? ' has-badge' : ''}${canvas.connectSource === id ? ' is-connect-source' : ''}${canvas.connectInvalid && canvas.connectInvalid.has(id) ? ' is-connect-invalid' : ''}${chevron ? ' is-chevron' : ''}`}
+      style={chevron ? { '--bpmn-chevron-depth': `${chevronDepth(box.h)}px` } : undefined}
       data-node-type={node.type}
       data-testid='bpmn-node'
       data-node-id={id}
@@ -133,17 +135,17 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
         : undefined}
     >
       <svg className='bpmn-node-shape' width={box.w} height={box.h} aria-hidden='true'>
-        <NodeShape node={node} width={box.w} height={box.h} external={external} badge={Boolean(badge)} />
-        {look && <AppearanceMark node={node} width={box.w} height={box.h} color={look.color} />}
-        {issue && (() => { const b = badgeBox({ ...node, x: 0, y: 0 }); return <IssueMarker x={b.x + b.w / 2} y={b.y + 8} /> })()}
+        <NodeShape node={node} width={box.w} height={box.h} external={external} badge={Boolean(badge)} activityShape={canvas.activityShape} />
+        {look && <AppearanceMark node={node} width={box.w} height={box.h} color={look.color} activityShape={canvas.activityShape} />}
+        {issue && (() => { const b = badgeBox({ ...node, x: 0, y: 0 }, canvas.activityShape); return <IssueMarker x={b.x + b.w / 2} y={b.y + 8} /> })()}
       </svg>
       {renaming
         ? canvas.renderRename(node)
-        : name && <Label node={node} name={name} orientation={canvas.orientation} category={category} badge={Boolean(badge)} link={showLink} />}
+        : name && <Label node={node} name={name} orientation={canvas.orientation} activityShape={canvas.activityShape} category={category} badge={Boolean(badge)} link={showLink} />}
       {mark && <span className={`bpmn-diff-mark bpmn-diff-chip is-${mark.tone}`} data-testid='bpmn-diff-mark' data-mark={diffMark(diff, diffReasons)} aria-hidden='true'>{mark.symbol}</span>}
       {badge
         ? (
-          <div className='bpmn-node-tabs' style={{ '--bpmn-tab-radius': `${tab.radius}px`, '--bpmn-tab-reserve': issue || showLink ? '20px' : '0px' }}>
+          <div className='bpmn-node-tabs' style={{ '--bpmn-tab-radius': `${tab.radius}px`, '--bpmn-tab-reserve': `${(issue || showLink ? 20 : 0) + (chevron ? chevronDepth(box.h) : 0)}px` }}>
             <span className='bpmn-node-badge' data-testid='bpmn-node-badge' style={look.color ? { '--bpmn-badge': look.color, '--bpmn-badge-text': textOn(look.color) } : undefined}>{badge}</span>
             {noteNumber}
           </div>

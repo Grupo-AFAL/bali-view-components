@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::BpmnEditor`: `controls:` muestra u oculta cada pieza del chrome.** Las llaves son
+  `zoom:`, `fit:`, `fullscreen:`, `minimap:`, `navigate:`, `participants:`, `selection:`,
+  `stencil:`, `add_lane:`, `auto_layout:`, `connect:`, `pending:`, `rules:`, `compare:`,
+  `exports:` y `help:`. Por omisión todas se muestran menos el minimapa. Una llave desconocida o
+  un valor que no sea `true`/`false` lanza `ArgumentError`. La paleta, deshacer, «Guardar
+  borrador» (con `autosave: false`) y «Finalizar» siguen mientras haya `editable:`.
+- **`Bali::BpmnEditor`: actividades en chevron.** Con `activity_shape: "chevron"` en el documento,
+  cada tarea y subproceso se dibuja como chevron, para un mapa de macroprocesos. Aplica en el
+  canvas, la paleta, «Por colocar», la leyenda, la comparación y las exportaciones. El chevron
+  siempre apunta a la derecha: una flecha que llega de lado entra por la muesca y una que llega
+  de arriba, por arriba. `"card"` (la tarjeta de hoy) sigue siendo el default, y un valor
+  desconocido lanza `InvalidError`.
+- **`Bali::BpmnEditor`: `lock_orientation: :vertical` o `:horizontal` fuerza la orientación.**
+  Un documento guardado en la otra orientación se voltea al abrirlo, como lo haría el botón, y el
+  siguiente guardado lo guarda así; no hay botón para cambiarla. `true` sigue conservando la del
+  documento, y cualquier otro valor lanza `ArgumentError`. Un 200 que no trae `orientation`
+  se lee en la orientación forzada, y `nil` equivale a `false`. Para un macroproceso en
+  gobierno-corporativo: `activity_shape: "chevron"` en el documento y `lock_orientation: :vertical`.
+
+### Changed
+
+- **`Bali::BpmnEditor`: el minimapa y la leyenda ya no aparecen por omisión.** El chrome por
+  omisión conserva −/+, centrar y pantalla completa, y en el editor la barra superior, las
+  barras del canvas, «Por colocar» y la línea de ayuda. Para recuperarlos:
+  `controls: { minimap: true }` y `legend: true`. Una app que pasa su propia leyenda (un `Array` o
+  `{ add:, remove: }`) la sigue viendo. En gobierno-corporativo cambia el editor de
+  `business_processes/diagrams/edit` (pierde ambos) y los visores `chrome: :minimal` sin
+  `legend:` (pierden la leyenda plegada); los mapas con `bpmn_flow_status_legend` no cambian.
+- **`Bali::BpmnEditor`: un elemento seleccionado bajo el panel de propiedades se desplaza para
+  quedar visible.** Sin la leyenda, el primer encuadre ya no reserva el lado derecho y el panel
+  tapaba la actividad seleccionada (y su asa de tamaño); ahora el canvas se corre a la izquierda lo
+  justo, sin cambiar el zoom.
+- **`Bali::BpmnEditor`: los colores siguen la convención de SoftExpert.** Inicio amarillo,
+  actividades azules, compuertas naranjas, la decisión Sí/No azul, fin rojo y el procedimiento
+  relacionado gris, iguales en todos los temas; antes salían de los colores del tema (inicio
+  verde, actividades en el primario). Cada uno es una propiedad CSS que la app puede cambiar
+  (`--bpmn-start`, `--bpmn-activity`, `--bpmn-decision`, `--bpmn-gateway`, `--bpmn-end`, y
+  `--bpmn-fill` para la intensidad del relleno). En gobierno-corporativo cambian todos los
+  diagramas; una actividad con color de estado (`appearance`) pierde el relleno de su tipo para
+  que ese color se lea como en su leyenda. El amarillo del inicio queda en 1.7:1 sobre blanco,
+  bajo el 3:1 de WCAG para un contorno, por respetar la convención.
+- **`Bali::BpmnEditor`: con `autosave:` (el default) ya no está «Guardar borrador».** Si un
+  guardado falla, aparece «Reintentar guardado» para volver a intentarlo, porque el guardado
+  automático no lo vuelve a intentar hasta el siguiente cambio. Con `autosave: false` el botón
+  sigue igual. En gobierno-corporativo, el editor de `business_processes/diagrams/edit` deja de
+  mostrarlo.
+
 ## [v3.25.0] - 2026-11-08
 
 ### Added

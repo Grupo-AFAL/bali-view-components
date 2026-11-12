@@ -8,5 +8,5 @@
   <%= f.text_group :label, label: (en ? "Name" : "Nombre"), required: true,
                            placeholder: (en ? "E.g. Treasury analyst" : "Ej. Analista de tesorería") %>
   <%= f.select_group :group, groups, label: (en ? "Group" : "Grupo") %>
-  <%= f.submit_group(en ? "Create and assign" : "Crear y asignar") %>
+  <%= f.submit_group(en ? "Create and assign" : "Crear y asignar", drawer: true) %>
 <% end %>

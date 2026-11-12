@@ -8,6 +8,7 @@ module Bali
     #   {
     #     version: 12,                    # optimistic concurrency; the server bumps it
     #     orientation: "horizontal",      # or "vertical"
+    #     activity_shape: "card",         # or "chevron": every task and sub-process drawn as an arrow
     #     status_label: "Borrador",       # shown as is; the component interprets no states
     #     pool: { x: 0, y: 0, length: nil },  # length: shared lane length, when resized by hand
     #     lanes: [
@@ -56,7 +57,10 @@ module Bali
     class Data
       class InvalidError < ArgumentError; end
 
+      # Mirrors ORIENTATIONS in model/geometry.js (contract_test.rb).
       ORIENTATIONS = %w[horizontal vertical].freeze
+      # Mirrors ACTIVITY_SHAPES in model/geometry.js (contract_test.rb).
+      ACTIVITY_SHAPES = %w[card chevron].freeze
       LANE_KINDS = %w[internal external].freeze
       # Mirrors EDGE_TYPES in model/catalog.js (contract_test.rb).
       EDGE_TYPES = %w[sequence_flow message_flow association].freeze
@@ -93,6 +97,7 @@ module Bali
       def to_h = @payload
 
       def orientation = (@payload[:orientation] || "horizontal").to_s
+      def activity_shape = (@payload[:activity_shape] || "card").to_s
       def lanes = Array(@payload[:lanes])
       def nodes = Array(@payload[:nodes])
       def edges = Array(@payload[:edges])
@@ -103,6 +108,9 @@ module Bali
       def validate!
         unless ORIENTATIONS.include?(orientation)
           raise InvalidError, "orientation must be one of #{ORIENTATIONS.inspect}, got #{orientation.inspect}"
+        end
+        unless ACTIVITY_SHAPES.include?(activity_shape)
+          raise InvalidError, "activity_shape must be one of #{ACTIVITY_SHAPES.inspect}, got #{activity_shape.inspect}"
         end
 
         integer!(@payload[:version], "version") unless @payload[:version].nil?
