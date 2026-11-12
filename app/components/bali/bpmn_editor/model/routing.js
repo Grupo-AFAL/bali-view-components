@@ -158,7 +158,7 @@ export function boxesById (doc) {
   const chevron = activityShapeOf(doc) === 'chevron'
   return new Map((doc.nodes || []).map((n) => {
     const box = nodeBox(n)
-    const notch = chevron && categoryOf(n) === CATEGORY.activity ? chevronDepth(box.h) : 0
+    const notch = chevron && categoryOf(n) === CATEGORY.activity ? chevronDepth(box.h, box.w) : 0
     return [String(n.id), { ...box, notch, passThrough: n.type === 'group' }]
   }))
 }

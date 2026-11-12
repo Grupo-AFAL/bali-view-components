@@ -21,7 +21,7 @@ export const ActivityShapeContext = createContext('card')
 // along their normal: the selection around a chevron activity (canvas/FlowNode.jsx).
 // Moving the corners diagonally instead left the notch 3 px from the shape.
 export function chevronAround (w, h, inset) {
-  const d = chevronDepth(h)
+  const d = chevronDepth(h, w)
   const k = d / (h / 2 - 1) // horizontal run of a slant per px down
   const out = inset * Math.sqrt(1 + k * k)
   const [top, bottom, middle] = [1 - inset, h - 1 + inset, h / 2]
@@ -33,7 +33,7 @@ export function chevronAround (w, h, inset) {
 
 function ActivityOutline ({ w, h, shape, ...props }) {
   if (shape !== 'chevron') return <rect x={1} y={1} width={w - 2} height={h - 2} rx={activityRadius(h)} {...props} />
-  const d = chevronDepth(h)
+  const d = chevronDepth(h, w)
   return <path d={`M1,1 L${w - d},1 L${w - 1},${h / 2} L${w - d},${h - 1} L1,${h - 1} L${1 + d},${h / 2} Z`} strokeLinejoin='round' {...props} />
 }
 
@@ -210,7 +210,7 @@ function ActivityShape ({ node, w, h, paint, external, badge, shape }) {
   const colors = paintFor(node, paint, external)
   const sub = node.type === 'sub_process'
   const unlinked = sub && !node.reference
-  const marker = taskMarkerAt(h, badge, shape)
+  const marker = taskMarkerAt(h, badge, shape, w)
   const zone = markerZone(h)
   const plus = zone.size
   const plusY = h - zone.height

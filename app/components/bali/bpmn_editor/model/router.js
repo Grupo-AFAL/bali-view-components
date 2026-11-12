@@ -53,7 +53,7 @@ export function portPoint (node, box, side, offset = 0, activityShape = 'card') 
     inset = r - Math.sqrt(Math.max(0, r * r - o * o))
   } else if (category === CATEGORY.activity && activityShape === 'chevron' && !horizontalSide) {
     const towardCorner = Math.abs(o) / half
-    inset = chevronDepth(box.h) * (side === 'left' ? 1 - towardCorner : towardCorner)
+    inset = chevronDepth(box.h, box.w) * (side === 'left' ? 1 - towardCorner : towardCorner)
   }
   switch (side) {
     case 'top': return { x: box.cx + o, y: box.y + inset }

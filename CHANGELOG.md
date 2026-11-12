@@ -63,6 +63,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sigue igual. En gobierno-corporativo, el editor de `business_processes/diagrams/edit` deja de
   mostrarlo.
 
+### Fixed
+
+- **`Bali::BpmnEditor`: los atajos de teclado ya no actúan detrás de un diálogo ni de la
+  comparación.** Con la lista de pendientes, las reglas o una confirmación abiertas, o con la
+  comparación encima, Supr, Ctrl+Z y las flechas borraban, deshacían o movían el elemento
+  seleccionado del diagrama de abajo, y el guardado automático lo guardaba.
+- **`Bali::BpmnEditor`: un emoji en el nombre o la insignia de un elemento ya no rompe «Descargar
+  imagen».** El texto se cortaba a la mitad del emoji y la exportación fallaba; ahora se corta por
+  caracteres.
+- **`Bali::BpmnEditor`: una actividad en chevron alta y angosta ya no se cruza consigo misma.** La
+  muesca no pasa de un tercio del ancho, así que el nombre y las conexiones siguen sobre la figura.
+- **`Bali::BpmnEditor`: la comparación ya no marca como «cambiado» lo que no está en un carril.**
+- **`Bali::BpmnEditor`: los grupos, y los artefactos fuera de un carril, se mueven con el carril**
+  cuando el acomodo lo encoge; antes se quedaban donde estaban y el grupo dejaba de enmarcar.
+- **`Bali::BpmnEditor`: el menú rápido ya deja agregar el siguiente elemento en el carril de un
+  participante externo**, como lo deja dibujar a mano.
+- **`Bali::BpmnEditor`: al salir de pantalla completa con Esc, el diagrama se vuelve a ajustar**, y
+  si el navegador niega la pantalla completa el editor sigue igual, sin error.
+
 ## [v3.25.0] - 2026-11-08
 
 ### Added

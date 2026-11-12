@@ -420,3 +420,14 @@ test('ids are minted from the random source a replay seeds, and never collide wi
     mintIdsWith(null)
   }
 })
+
+test("the quick menu adds after a node in an external participant's lane, as a hand-drawn flow may", () => {
+  const participants = lanes('Us', 'Partner')
+  participants[1].kind = 'external'
+  const d = doc({ lanes: participants, nodes: [node('p', 'task', 'l2', 200, 270), node('q', 'task', 'l2', 500, 270)] })
+
+  assert.equal(ops.connectionError(d, 'p', 'q'), null)
+  const result = ops.appendNode(d, 'p', { type: 'task' }, 'right')
+  assert.equal(result.error, undefined)
+  assert.equal(result.doc.nodes.find((n) => n.id === result.id).lane_id, 'l2')
+})

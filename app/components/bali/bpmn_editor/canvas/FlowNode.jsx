@@ -121,7 +121,7 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
   return (
     <div
       className={`bpmn-node bpmn-node-${category}${selected ? ' is-selected' : ''}${canvas.highlightId === id ? ' is-highlighted' : ''}${diff ? ` bpmn-diff-${diff}` : ''}${look && look.dimmed ? ' is-dimmed' : ''}${badge ? ' has-badge' : ''}${canvas.connectSource === id ? ' is-connect-source' : ''}${canvas.connectInvalid && canvas.connectInvalid.has(id) ? ' is-connect-invalid' : ''}${chevron ? ' is-chevron' : ''}`}
-      style={chevron ? { '--bpmn-chevron-depth': `${chevronDepth(box.h)}px` } : undefined}
+      style={chevron ? { '--bpmn-chevron-depth': `${chevronDepth(box.h, box.w)}px` } : undefined}
       data-node-type={node.type}
       data-testid='bpmn-node'
       data-node-id={id}
@@ -155,7 +155,7 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
       {mark && <span className={`bpmn-diff-mark bpmn-diff-chip is-${mark.tone}`} data-testid='bpmn-diff-mark' data-mark={diffMark(diff, diffReasons)} aria-hidden='true'>{mark.symbol}</span>}
       {badge
         ? (
-          <div className='bpmn-node-tabs' style={{ '--bpmn-tab-radius': `${tab.radius}px`, '--bpmn-tab-reserve': `${(issue || showLink ? 20 : 0) + (chevron ? chevronDepth(box.h) : 0)}px` }}>
+          <div className='bpmn-node-tabs' style={{ '--bpmn-tab-radius': `${tab.radius}px`, '--bpmn-tab-reserve': `${(issue || showLink ? 20 : 0) + (chevron ? chevronDepth(box.h, box.w) : 0)}px` }}>
             <span className='bpmn-node-badge' data-testid='bpmn-node-badge' style={look.color ? { '--bpmn-badge': look.color, '--bpmn-badge-text': textOn(look.color) } : undefined}>{badge}</span>
             {noteNumber}
           </div>

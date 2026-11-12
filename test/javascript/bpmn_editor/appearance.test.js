@@ -55,3 +55,9 @@ test('hasBadges: only a badge the node would draw counts', () => {
   assert.equal(hasBadges({ nodes: [] }), false)
   assert.equal(hasBadges(null), false)
 })
+
+test('a badge at the limit keeps an emoji whole', () => {
+  const badge = appearanceOf({ appearance: { badge: 'Pendiente de revisión x🔴' } }).badge
+  assert.equal(badge, 'Pendiente de revisión x🔴')
+  assert.doesNotThrow(() => encodeURIComponent(badge))
+})
