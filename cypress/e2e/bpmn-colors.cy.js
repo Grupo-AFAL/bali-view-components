@@ -26,7 +26,7 @@ describe('the colour of each kind of element', () => {
     cy.visit(PLAYGROUND)
     shapeOf('Factura recibida').should('have.css', 'stroke', 'rgb(230, 195, 0)')
     shapeOf('Validar factura').should('have.css', 'stroke', 'rgb(21, 151, 201)')
-    shapeOf('¿La factura es válida?').should('have.css', 'stroke', 'rgb(232, 137, 28)')
+    shapeOf('¿La factura es válida?').should('have.css', 'stroke', 'rgb(217, 119, 6)')
     shapeOf('Pago realizado').should('have.css', 'stroke', 'rgb(211, 47, 47)')
   })
 
@@ -41,6 +41,11 @@ describe('the colour of each kind of element', () => {
       })
     })
   }
+
+  it('leaves the body of an activity the app colours to that colour alone', () => {
+    cy.visit('/bali/bpmn_editor/default?appearance=true')
+    shapeOf('Registrar pago').should('have.css', 'fill', 'oklch(1 0 0)')
+  })
 
   it("takes an app's colour for a kind, on the canvas and in the SVG", () => {
     cy.visit(PLAYGROUND, {

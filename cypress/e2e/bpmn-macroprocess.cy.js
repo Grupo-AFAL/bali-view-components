@@ -38,11 +38,6 @@ describe('the macroprocess map', () => {
     cy.contains('.bpmn-view-toolbar button', 'Pantalla completa').should('not.exist')
   })
 
-  it('keeps the stored horizontal lanes when the app forces that orientation', () => {
-    cy.visit(`${MAP}?lock_orientation=horizontal`)
-    lanesStand('horizontal')
-  })
-
   it('draws every activity as a chevron, entered by its notch', () => {
     // Horizontal lanes: the connection into «Facturación» reaches it from the side.
     cy.visit(`${MAP}?lock_orientation=horizontal`)
@@ -96,6 +91,12 @@ describe('the playground with chevrons', () => {
     cy.wait('@save', { timeout: 8000 }).its('request.body.diagram').should('have.property', 'activity_shape', 'chevron')
     nodeNamed('Validar factura').find('.bpmn-node').should('have.class', 'is-chevron')
     cy.screenshot(`${SHOTS}/playground-chevrons`)
+  })
+
+  it('turns a vertical diagram to horizontal lanes when the app forces them', () => {
+    cy.visit('/bali/bpmn_editor/playground?orientation=vertical&lock_orientation=horizontal')
+    cy.get('[data-testid="bpmn-orientation"]').should('not.exist')
+    lanesStand('horizontal')
   })
 
   it('turns a horizontal diagram to vertical lanes when the app forces them, with no switch', () => {

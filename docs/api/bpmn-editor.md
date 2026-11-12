@@ -98,7 +98,7 @@ authorize every endpoint on the server anyway.
 | `data:` | required | The document (`Hash` or `Bali::BpmnEditor::Data`) |
 | `editable:` | `false` | May change the document. Without `urls[:save]` it stays read-only: there would be nowhere to save. Why it cannot be edited is the host's to say, with a `Bali::Alert` above it |
 | `autosave:` | `true` | Save with a ~1.2 s debounce after each change, with no save button: a failed save is not tried again until the next change, so «Retry save» appears until one succeeds. `false`: only the «Save draft» button saves |
-| `lock_orientation:` | `false` | No orientation switch in the toolbar. `true` keeps the document's own orientation (`data[:orientation]`, the one source of it); `:horizontal` or `:vertical` turns a document stored the other way on load, as the switch would, and the next save stores it — e.g. a macroprocess map whose lanes are always vertical. Anything else raises `ArgumentError` |
+| `lock_orientation:` | `false` | No orientation switch in the toolbar. `true` keeps the document's own orientation (`data[:orientation]`, the one source of it); `:horizontal` or `:vertical` turns a document stored the other way on load, as the switch would, and the next save stores it — e.g. a macroprocess map whose lanes are always vertical. The host stores `orientation` and sends it back in every 200 (the `Data` contract): a 200 without it reads as horizontal and would be turned again. Anything else raises `ArgumentError` |
 | `external_lanes:` | `true` | Lanes may be marked as external participants (grey lane, white activities, joined by message flows). `false` hides that checkbox in the lane panel and the external entries of the default legend |
 | `open_issues:` | `false` | Open the pending-issues panel on load (editable only): for a page whose purpose is to show what a diagram still has to fix |
 | `confirm_linked_delete:` | `false` | Ask before deleting a sub-process linked to an entity of the app (`reference` with an `id`): «Delete linked sub-processes?» names them, with Cancel and Delete. Anything else is deleted at once, as always. What the app does with the entity afterwards is its own — the dummy offers it again under «To place», since its `stencil` lists what no sub-process links |
@@ -457,7 +457,10 @@ tags in use are added automatically, and show even without `legend:`.
 Each kind of element has its own colour, the same in every theme (SoftExpert's
 convention): the start event yellow, activities blue, gateways orange, the Yes/No decision
 blue, the end event red and the related procedure (a collapsed sub-process with its [+])
-grey. The palette, the canvas, the legend, the minimap and the outputs all draw them. Each is
+grey. The palette, the canvas, the legend, the minimap and the image, SVG and print outputs
+draw them (the `.bpmn` export carries only `appearance.color`). The start's yellow is 1.7:1 on
+white, under WCAG's 3:1 for an outline — the convention's colour, kept on purpose; the others
+reach it. Each is
 one CSS custom property on the editor, the border; the fill is that colour mixed with the
 canvas at `--bpmn-fill`, so it darkens with a dark theme and the name inside keeps reading
 (10.9:1 light, 7.6:1 dark, measured on an activity):
@@ -467,7 +470,7 @@ canvas at `--bpmn-fill`, so it darkens with a dark theme and the name inside kee
 | `--bpmn-start` | `#e6c300` | Start events |
 | `--bpmn-activity` | `#1597c9` | Tasks (and the border of an external participant's) |
 | `--bpmn-decision` | `var(--bpmn-activity)` | The Yes/No decision (an exclusive gateway without its X) |
-| `--bpmn-gateway` | `#e8891c` | Gateways and intermediate events |
+| `--bpmn-gateway` | `#d97706` | Gateways and intermediate events |
 | `--bpmn-end` | `#d32f2f` | End events |
 | `--bpmn-sub-process` | a grey of the theme | Related procedures |
 | `--bpmn-fill` | `45%` | How much of each colour its fill takes |
@@ -476,7 +479,8 @@ canvas at `--bpmn-fill`, so it darkens with a dark theme and the name inside kee
 .bali-bpmn-editor { --bpmn-activity: #2563eb; --bpmn-fill: 30%; }
 ```
 
-An element's `appearance.color` (the app's look) still goes over its kind's colour.
+An activity the app colours (`appearance.color`) leaves its kind's fill out, so the app's
+colour reads as its legend shows it.
 
 ---
 

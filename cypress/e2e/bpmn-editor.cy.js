@@ -108,7 +108,10 @@ describe('BPMN editor island', () => {
 
     it('offers no «Save draft» with autosave, and a retry once a save fails', () => {
       const server = { down: true }
-      cy.intercept('PUT', DIAGRAM, (request) => { if (server.down) request.reply({ statusCode: 500, body: {} }) }).as('save')
+      cy.intercept('PUT', DIAGRAM, (request) => {
+        if (server.down) return request.reply({ statusCode: 500, body: {} })
+        request.on('response', (response) => { response.setDelay(800) })
+      }).as('save')
       cy.visit(EDITABLE)
       cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 9)
       cy.get('[data-testid="bpmn-save-draft"]').should('not.exist')
@@ -117,6 +120,7 @@ describe('BPMN editor island', () => {
       cy.get('[data-testid="bpmn-save-status"]').should('contain', 'No se pudo guardar')
       cy.then(() => { server.down = false })
       cy.get('[data-testid="bpmn-save-draft"]').should('have.text', 'Reintentar guardado').click()
+      cy.get('[data-testid="bpmn-save-draft"]').should('be.disabled')
       cy.wait('@save').its('response.statusCode').should('eq', 200)
       cy.get('[data-testid="bpmn-save-status"]').should('contain', 'Borrador guardado')
       cy.get('[data-testid="bpmn-save-draft"]').should('not.exist')

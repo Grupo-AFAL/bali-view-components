@@ -16,7 +16,8 @@
   --bpmn-start: #e6c300;
   --bpmn-activity: #1597c9;
   --bpmn-decision: var(--bpmn-activity);
-  --bpmn-gateway: #e8891c;
+  /* 3.2:1 on white, WCAG's 3:1 for an outline; the start's yellow is 1.7:1, kept for the convention. */
+  --bpmn-gateway: #d97706;
   --bpmn-end: #d32f2f;
   --bpmn-fill: 45%;
 }

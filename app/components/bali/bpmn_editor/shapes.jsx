@@ -45,8 +45,11 @@ export const LIVE_PAINT = {
 
 function paintFor (node, paint, external) {
   const category = categoryOf(node)
-  if (node.type === 'sub_process') return paint.subProcess
-  if (category === CATEGORY.activity) return external ? paint.externalActivity : paint.activity
+  // The app's colour (AppearanceMark) is laid at 16% over the body: over the
+  // kind's own fill it would no longer be the legend's colour.
+  const looked = category === CATEGORY.activity && node.appearance && node.appearance.color
+  if (node.type === 'sub_process') return looked ? { ...paint.subProcess, fill: paint.neutral.fill } : paint.subProcess
+  if (category === CATEGORY.activity) return looked || external ? paint.externalActivity : paint.activity
   if (isBinaryDecision(node)) return paint.decision
   if (category === CATEGORY.gateway) return paint.gateway
   if (node.type === 'start_event') return paint.start

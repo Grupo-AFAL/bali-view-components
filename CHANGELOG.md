@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `stencil:`, `add_lane:`, `auto_layout:`, `connect:`, `pending:`, `rules:`, `compare:`,
   `exports:` y `help:`. Por omisión todas se muestran menos el minimapa. Una llave desconocida o
   un valor que no sea `true`/`false` lanza `ArgumentError`. La paleta, deshacer, «Guardar
-  borrador» y «Finalizar» siguen mientras haya `editable:`.
+  borrador» (con `autosave: false`) y «Finalizar» siguen mientras haya `editable:`.
 - **`Bali::BpmnEditor`: actividades en chevron.** Con `activity_shape: "chevron"` en el documento,
   cada tarea y subproceso se dibuja como chevron, para un mapa de macroprocesos. Aplica en el
   canvas, la paleta, «Por colocar», la leyenda, la comparación y las exportaciones. El chevron
@@ -24,7 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`Bali::BpmnEditor`: `lock_orientation: :vertical` o `:horizontal` fuerza la orientación.**
   Un documento guardado en la otra orientación se voltea al abrirlo, como lo haría el botón, y el
   siguiente guardado lo guarda así; no hay botón para cambiarla. `true` sigue conservando la del
-  documento, y cualquier otro valor lanza `ArgumentError`. Para un macroproceso en
+  documento, y cualquier otro valor lanza `ArgumentError`. La app debe guardar `orientation` y
+  devolverla en cada 200 (gobierno-corporativo ya lo hace); sin ella, el 200 se lee horizontal. Para un macroproceso en
   gobierno-corporativo: `activity_shape: "chevron"` en el documento y `lock_orientation: :vertical`.
 
 ### Changed
@@ -42,9 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   verde, actividades en el primario). Cada uno es una propiedad CSS que la app puede cambiar
   (`--bpmn-start`, `--bpmn-activity`, `--bpmn-decision`, `--bpmn-gateway`, `--bpmn-end`, y
   `--bpmn-fill` para la intensidad del relleno). En gobierno-corporativo cambian todos los
-  diagramas; los colores de estado que pone con `appearance` siguen encima.
+  diagramas; una actividad con color de estado (`appearance`) pierde el relleno de su tipo para
+  que ese color se lea como en su leyenda. El amarillo del inicio queda en 1.7:1 sobre blanco,
+  bajo el 3:1 de WCAG para un contorno, por respetar la convención.
 - **`Bali::BpmnEditor`: con `autosave:` (el default) ya no está «Guardar borrador».** Si un
-  guardado falla, aparece «Reintentar guardado» hasta que uno salga bien, porque el guardado
+  guardado falla, aparece «Reintentar guardado» para volver a intentarlo, porque el guardado
   automático no lo vuelve a intentar hasta el siguiente cambio. Con `autosave: false` el botón
   sigue igual. En gobierno-corporativo, el editor de `business_processes/diagrams/edit` deja de
   mostrarlo.

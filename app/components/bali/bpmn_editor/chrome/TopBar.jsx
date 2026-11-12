@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import Icon from './icons.jsx'
 
 const STATUS = {
@@ -41,6 +42,10 @@ export default function TopBar ({
   finalizing, exports, onCompare, comparing, pageHeader = false
 }) {
   const errors = issues.filter((i) => i.severity === 'error').length
+  // A retry stays, disabled, while its save is out, rather than vanishing under the pointer.
+  const [retrying, setRetrying] = useState(false)
+  useEffect(() => { if (saveStatus !== 'saving' && saveStatus !== 'error') setRetrying(false) }, [saveStatus])
+  const retry = () => { setRetrying(true); onSave() }
   return (
     <div className='bpmn-chrome flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-base-300 bg-base-100 px-3 py-2'>
       {!pageHeader && statusLabel && <span className='badge badge-ghost badge-sm whitespace-nowrap'>{statusLabel}</span>}
@@ -89,8 +94,8 @@ export default function TopBar ({
             </span>
           )}
           {/* A failed autosave is not tried again until the next change: this is the retry. */}
-          {(!autosave || saveStatus === 'error') && (
-            <button type='button' className='btn btn-outline btn-sm gap-1' onClick={onSave} disabled={saveStatus === 'saving'} data-testid='bpmn-save-draft'>
+          {(!autosave || saveStatus === 'error' || retrying) && (
+            <button type='button' className='btn btn-outline btn-sm gap-1' onClick={autosave ? retry : onSave} disabled={saveStatus === 'saving'} data-testid='bpmn-save-draft'>
               <Icon name='save' size={14} />{t(autosave ? 'save_retry' : 'save_draft')}
             </button>
           )}
