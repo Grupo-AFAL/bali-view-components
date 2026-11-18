@@ -4,13 +4,14 @@
  * (Bali::Timeline::Component#next_item_side), so an item emits exactly one
  * content box and there is no second copy left to hide here.
  *
- * What remains is text alignment for the alternating layout: a box on the start
- * side hugs the centre line from its left, so its text reads better right-aligned.
+ * What remains is text alignment for the alternating vertical layout: a box on the
+ * start side hugs the centre line from its left, so its text reads better
+ * right-aligned. Horizontal boxes sit above and below the line, so they keep theirs.
  * Unlayered, like every other component sheet in this package - DaisyUI never sets
  * `text-align` on `.timeline-*`, so there is no cascade fight to win either way.
  */
 
-.timeline.timeline-centered {
+.timeline.timeline-vertical.timeline-centered {
   .timeline-content-box.timeline-start {
     @apply text-right;
   }

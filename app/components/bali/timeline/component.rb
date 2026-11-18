@@ -8,6 +8,12 @@ module Bali
     # renders exactly once: the side of the line it lands on is decided here, in
     # Ruby, instead of emitting both sides and hiding one with CSS.
     #
+    # @example Horizontal, boxes alternating above and below the line
+    #   render Bali::Timeline::Component.new(orientation: :horizontal, position: :center) do |c|
+    #     c.with_item(heading: 'Ordered')
+    #     c.with_item(heading: 'Received')
+    #   end
+    #
     # @example Basic usage
     #   render Bali::Timeline::Component.new do |c|
     #     c.with_header(text: 'Start')
@@ -16,16 +22,24 @@ module Bali
     #   end
     #
     class Component < ApplicationViewComponent
-      # Base classes for the timeline container
-      BASE_CLASSES = "timeline timeline-vertical"
+      # Base class for the timeline container; the orientation adds its own.
+      BASE_CLASSES = "timeline"
+
+      # DaisyUI's direction modifiers. Only one is emitted: with both on the
+      # container, `.timeline-vertical` wins, since DaisyUI compiles it after.
+      # A horizontal line wider than its parent scrolls inside itself.
+      ORIENTATIONS = {
+        vertical: "timeline-vertical",
+        horizontal: "timeline-horizontal overflow-x-auto"
+      }.freeze
 
       # DaisyUI modifier that collapses the timeline to a single column
       COMPACT_CLASS = "timeline-compact"
 
       # Position modifiers for timeline layout
-      # - :left   - Default, items on the start side
+      # - :left   - Default, items on the start side (above the line when horizontal)
       # - :center - Items alternate between both sides
-      # - :right  - Items on the end side (uses DaisyUI's snap-icon modifier)
+      # - :right  - Items on the end side (below the line when horizontal; uses DaisyUI's snap-icon modifier)
       POSITIONS = {
         left: "",
         center: "timeline-centered",
@@ -58,10 +72,14 @@ module Bali
       # @param position [:left, :center, :right] Timeline layout position
       # @param compact [Boolean] Collapse to a single column (DaisyUI timeline-compact).
       #   Every content box lands on the end side, so `position:` no longer alternates.
+      # @param orientation [:vertical, :horizontal] Direction of the line. Horizontal puts the
+      #   start side above it and the end side below; a line wider than its parent
+      #   scrolls inside itself.
       # @param options [Hash] Additional HTML attributes for the container
-      def initialize(position: :left, compact: false, **options)
+      def initialize(position: :left, compact: false, orientation: :vertical, **options)
         @position = position.to_sym
         @compact = compact
+        @orientation = validated_orientation(orientation)
         @options = options
         @item_index = 0
       end
@@ -86,7 +104,16 @@ module Bali
 
       private
 
-      attr_reader :position, :compact, :options
+      attr_reader :position, :compact, :orientation, :options
+
+      def validated_orientation(orientation)
+        key = orientation.to_sym
+        return key if ORIENTATIONS.key?(key)
+
+        raise ArgumentError,
+              "Bali::Timeline::Component: unknown orientation #{key.inspect}. " \
+              "Valid: #{ORIENTATIONS.keys.map(&:inspect).join(', ')}."
+      end
 
       # Alternation counts items only, so a header between two items no longer
       # flips the side the way the old `li:nth-child(odd)` rule did. Compact
@@ -104,6 +131,7 @@ module Bali
       def component_classes
         class_names(
           BASE_CLASSES,
+          ORIENTATIONS.fetch(orientation),
           POSITIONS.fetch(position, ""),
           compact && COMPACT_CLASS,
           options[:class]

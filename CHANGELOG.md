@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Bali::Timeline`: `orientation: :horizontal`** (#1628). La línea corre de izquierda a derecha
+  con los recuadros arriba (`position: :left`), abajo (`:right`) o alternando (`:center`). Por
+  omisión sigue `:vertical`, sin cambio para quien ya la usa. Antes no había forma: el contenedor
+  traía `timeline-vertical` fijo y un `class: "timeline-horizontal"` perdía contra él en el CSS de
+  DaisyUI. Una orientación desconocida lanza `ArgumentError`. Una línea más ancha que su
+  contenedor se desliza de lado sin envolverla.
+
 ## [v3.26.0] - 2026-11-12
 
 ### Added
