@@ -198,6 +198,31 @@ class BaliTimelineComponentTest < ComponentTestCase
     assert_selector(".timeline-content-box", count: 2)
   end
 
+  def test_orientation_is_vertical_by_default
+    render_inline(Bali::Timeline::Component.new)
+    assert_selector("ul.timeline.timeline-vertical")
+    assert_no_selector("ul.timeline-horizontal")
+  end
+
+  def test_orientation_horizontal_emits_only_the_horizontal_modifier
+    render_inline(Bali::Timeline::Component.new(orientation: "horizontal"))
+    assert_selector("ul.timeline.timeline-horizontal")
+    assert_no_selector("ul.timeline-vertical")
+  end
+
+  def test_orientation_horizontal_center_alternates_above_and_below
+    render_inline(Bali::Timeline::Component.new(orientation: :horizontal, position: :center)) do |c|
+      4.times { |i| c.with_item(heading: "Event #{i}") }
+    end
+    starts = page.all(".timeline-content-box").map { |box| box[:class].include?("timeline-start") }
+    assert_equal [ true, false, true, false ], starts
+  end
+
+  def test_orientation_unknown_raises_naming_the_valid_ones
+    error = assert_raises(ArgumentError) { Bali::Timeline::Component.new(orientation: :diagonal) }
+    assert_match ":vertical, :horizontal", error.message
+  end
+
   def test_compact_adds_the_daisyui_compact_class
     render_inline(Bali::Timeline::Component.new(compact: true))
     assert_selector("ul.timeline.timeline-vertical.timeline-compact")
@@ -411,7 +436,12 @@ class BaliTimelineComponentTest < ComponentTestCase
   end
 
   def test_constants_defines_base_classes
-    assert_equal("timeline timeline-vertical", Bali::Timeline::Component::BASE_CLASSES)
+    assert_equal("timeline", Bali::Timeline::Component::BASE_CLASSES)
+  end
+
+  def test_constants_defines_frozen_orientations_hash
+    assert(Bali::Timeline::Component::ORIENTATIONS.frozen?)
+    assert_equal(%i[vertical horizontal], Bali::Timeline::Component::ORIENTATIONS.keys)
   end
 
   def test_constants_defines_frozen_positions_hash

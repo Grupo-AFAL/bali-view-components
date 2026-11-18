@@ -40,6 +40,23 @@ module Bali
         end
       end
 
+      # Horizontal
+      # ----------
+      # `orientation: :horizontal` runs the line left to right: `:left` puts every
+      # box above it, `:right` below, and `:center` alternates. A line wider than
+      # its parent scrolls sideways.
+      #
+      # @param position select [center, left, right]
+      def horizontal(position: :center)
+        render Bali::Timeline::Component.new(orientation: :horizontal, position: position) do |c|
+          c.with_item(heading: 'PO approved', state: :done, timestamp: 'Aug 13, 22:35') { tag.p 'In EBS' }
+          c.with_item(heading: 'ASN created', state: :done, timestamp: 'Sep 1, 12:00') { tag.p '1,920 units' }
+          c.with_item(heading: 'Truck arrived', state: :done, timestamp: 'Nov 17, 10:24') { tag.p 'Appointment 25603' }
+          c.with_item(heading: 'ASN verified', state: :current, timestamp: 'Nov 17, 10:54') { tag.p '1,920 of 1,920' }
+          c.with_item(heading: 'Received in EBS', state: :pending) { tag.p 'Pending' }
+        end
+      end
+
       # Timeline with Icons
       # ---------------------
       # Each timeline item can display a Lucide icon in the marker.
