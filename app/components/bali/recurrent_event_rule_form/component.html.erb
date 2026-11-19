@@ -196,7 +196,6 @@
       <div class="weekday-checkboxes-container py-1"
         data-recurrent-event-rule-target="freqCustomizationInputs"
         data-rrule-freq-option="weekly_1">
-        <% weekday_initials = t('.weekday_initials', default: I18n.t('date.abbr_day_names')) %>
         <% I18n.t('date.day_names').each_with_index do |day, index| %>
           <% day_value = index.zero? ? 6 : index - 1 %>
           <%# Wraps each checkbox-label pair to isolate the peer relationship, and carries the
@@ -205,7 +204,6 @@
             <%= check_box_tag "byweekday_#{unique_id}_[]", day_value, false,
                 id: "byweekday_#{unique_id}_#{day_value}",
                 disabled: disabled,
-                'aria-label': day,
                 class: 'peer sr-only',
                 data: { rrule_attr: 'byweekday', action: 'recurrent-event-rule#setRule' } %>
             <%# `peer-checked:hover:bg-primary` is not redundant: without it `hover:bg-base-content/20`,
@@ -215,7 +213,9 @@
                 of black afal-dark from 5.78 to 4.76.
                 A disabled day takes no pointer: gating these hovers on `peer-enabled:` would tie
                 `peer-checked:hover:bg-primary` and be emitted after it, 1.53:1 again (#1272). %>
-            <%= label_tag "byweekday_#{unique_id}_#{day_value}", weekday_initials[index],
+            <%# The visible initials are hidden from assistive tech and the full day name is read
+                instead, so the accessible name contains the visible text (WCAG 2.5.3). %>
+            <%= label_tag "byweekday_#{unique_id}_#{day_value}",
                 disabled: disabled,
                 title: day,
                 class: 'flex items-center justify-center w-8 h-8 rounded-full ' \
@@ -228,7 +228,10 @@
                        'peer-checked:hover:outline-primary ' \
                        'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 ' \
                        'peer-focus-visible:outline-base-content ' \
-                       'peer-disabled:opacity-50 peer-disabled:pointer-events-none' %>
+                       'peer-disabled:opacity-50 peer-disabled:pointer-events-none' do %>
+              <span aria-hidden="true"><%= weekday_initials[index] %></span>
+              <span class="sr-only"><%= day %></span>
+            <% end %>
           </span>
         <% end %>
       </div>
