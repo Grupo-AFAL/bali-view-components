@@ -181,6 +181,67 @@ class BaliRecurrentEventRuleFormComponentTest < ComponentTestCase
     assert_selector('input[type="checkbox"][data-rrule-attr="byweekday"]', count: 7)
   end
 
+  def test_weekday_labels_are_unique_in_every_locale
+    %i[en es].each do |locale|
+      I18n.with_locale(locale) do
+        render_inline(component)
+        labels = weekday_circles.map { |_, text, _| text }
+
+        assert_equal(7, labels.size)
+        assert_equal(labels.uniq, labels, "ambiguous weekday labels for #{locale}: #{labels.inspect}")
+      end
+    end
+  end
+
+  def test_weekday_labels_in_spanish_follow_the_calendar_convention
+    I18n.with_locale(:es) do
+      render_inline(component)
+      assert_equal(%w[D L M X J V S], weekday_circles.map { |_, text, _| text })
+    end
+  end
+
+  def test_weekday_labels_in_english_are_two_letters
+    I18n.with_locale(:en) do
+      render_inline(component)
+      assert_equal(%w[Su Mo Tu We Th Fr Sa], weekday_circles.map { |_, text, _| text })
+    end
+  end
+
+  def test_weekday_controls_are_named_with_the_full_day_name
+    I18n.with_locale(:es) do
+      render_inline(component)
+      names = weekday_circles.map(&:first)
+
+      assert_equal(I18n.t("date.day_names"), names)
+      assert_empty(page.all('input[data-rrule-attr="byweekday"][aria-label]', visible: :all))
+    end
+  end
+
+  def test_weekday_circles_fall_back_to_abbr_day_names_when_the_locale_has_no_initials
+    abbr = %w[Dim Lun Mar Mer Jeu Ven Sam]
+    available = I18n.available_locales
+    default = I18n.default_locale
+    I18n.available_locales = available + [ :fr ]
+    # Drop the default-locale hop so fr does not borrow the English initials.
+    I18n.fallbacks.defaults = [ :fr ]
+    I18n.fallbacks.clear
+    I18n.backend.store_translations(:fr, date: { month_names: [ nil ] + (1..12).map { |n| "mois #{n}" }, abbr_day_names: abbr, day_names: %w[dimanche lundi mardi mercredi jeudi vendredi samedi] })
+    I18n.with_locale(:fr) do
+      render_inline(component)
+      assert_equal(abbr, weekday_circles.map { |_, text, _| text })
+    end
+  ensure
+    I18n.fallbacks.defaults = [ default ]
+    I18n.available_locales = available
+    I18n.fallbacks.clear
+    I18n.backend.reload!
+  end
+
+  def test_weekday_order_and_rrule_values_are_unchanged
+    render_inline(component)
+    assert_equal(%w[6 0 1 2 3 4 5], weekday_circles.map(&:last))
+  end
+
   def test_weekly_customization_section_applies_peer_classes_for_label_styling
     render_inline(component)
     assert_selector('input[type="checkbox"].peer.sr-only')
@@ -243,5 +304,15 @@ class BaliRecurrentEventRuleFormComponentTest < ComponentTestCase
   def test_i18n_translates_end_label
     render_inline(component)
     assert_text(/End|Termina/i)
+  end
+
+  private
+
+  # Each weekday circle as [accessible name, visible text, RRULE value] (#1632).
+  def weekday_circles
+    page.all('input[data-rrule-attr="byweekday"][type="checkbox"]', visible: :all).map do |box|
+      label = page.find("label[for='#{box['id']}']", visible: :all)
+      [ label.find("span.sr-only", visible: :all).text, label.find("span[aria-hidden]", visible: :all).text, box["value"] ]
+    end
   end
 end

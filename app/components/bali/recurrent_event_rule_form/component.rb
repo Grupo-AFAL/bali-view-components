@@ -81,6 +81,12 @@ module Bali
 
       private
 
+      # The fallback lives outside `t(default:)`: an Array there is read as a list of
+      # alternatives and would return only its first element.
+      def weekday_initials
+        t(".weekday_initials", default: nil) || I18n.t("date.abbr_day_names")
+      end
+
       attr_reader :form, :method, :value, :disabled, :skip_end_method, :allowed_frequencies,
                   :options
 
