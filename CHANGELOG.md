@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.27.1] - 2026-11-19
+
 ### Fixed
 
 - **`Bali::RecurrentEventRuleForm`: los círculos de «Repetir en Días» ya no repiten letra** (#1632).
