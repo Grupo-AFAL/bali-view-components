@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`Bali::RecurrentEventRuleForm`: los círculos de «Repetir en Días» ya no repiten letra** (#1632).
+  Cada uno mostraba la primera letra del día, así que en español martes y miércoles eran «M» y
+  un lector de pantalla decía «m» para los dos. Ahora el texto sale de la clave propia
+  `recurrent_event_rule_form.weekday_initials` (español `D L M X J V S`, con la «X» del
+  calendario para miércoles; inglés `Su Mo Tu We Th Fr Sa`), y el nombre accesible de cada
+  casilla es el día completo, que también se ve al pasar el cursor. Un idioma sin la clave cae a
+  `date.abbr_day_names`. El orden (domingo primero) y los valores del `BYDAY` no cambian.
+
 ## [v3.27.0] - 2026-11-17
 
 ### Added

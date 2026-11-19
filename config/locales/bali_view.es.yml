@@ -1204,6 +1204,12 @@ es:
       yearly_options: Opciones Anuales
       monthly_options: Opciones Mensuales
       repeat_on_days: Repetir en Días
+      # Visible text of the weekday circles, indexed like `date.day_names` (Sunday
+      # first). Each entry must be unique within its locale: the circle's text is
+      # all a sighted user reads, and single initials collide (Tuesday/Thursday,
+      # Tuesday/Wednesday). A locale without this key falls back to
+      # `date.abbr_day_names`. The control's accessible name is the full day name.
+      weekday_initials: [D, L, M, X, J, V, S]
       # Accessible names for the controls of the recurrence builder. None of
       # them is reachable by a <label for>: the visible text around them is
       # loose copy ("Repeat", "every", "On the"), so without these each select
