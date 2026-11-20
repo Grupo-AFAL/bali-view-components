@@ -121,7 +121,7 @@ describe('ConditionController', () => {
     const texts = (...expected) => ($els) => expect($els.toArray().map((el) => el.textContent.trim())).to.deep.eq(expected)
     const input = 'input[data-condition-target="value"]'
 
-    widget('name', 'cont', input).should('have.attr', 'placeholder', 'placeholders.enter_value')
+    widget('name', 'contains', input).should('have.attr', 'placeholder', 'placeholders.enter_value')
     widget('age', 'eq', input).should('have.attr', 'placeholder', 'placeholders.number')
     widget('birth_date', 'eq', input).should('have.attr', 'placeholder', 'placeholders.select_date')
     widget('last_login', 'eq', input).should('have.attr', 'placeholder', 'placeholders.select_datetime')

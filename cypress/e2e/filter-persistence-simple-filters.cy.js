@@ -1,3 +1,5 @@
+import { containsPredicate } from '../support/ransack'
+
 // The "Remember filters" toggle governs the quick search but did not cover the simple
 // filters, and a saved view over THE SAME listing did restore them: two mechanisms of the
 // same component with two definitions of "the filter state" (#852).
@@ -12,6 +14,10 @@ describe('Filter persistence covers the simple filters', () => {
   // checkout's server.
   const appOrigin = new URL(Cypress.config('baseUrl')).origin
   const listing = `${appOrigin}/admin/studios`
+
+  // The quick search's box, named for the variant of `cont` this ransack gets from Bali.
+  let search
+  beforeEach(() => containsPredicate().then((cont) => { search = `q[name_${cont}]` }))
 
   // The total comes from the pagination footer, not from counting `<tr>`: the table paginates
   // by 10, so the rows do not tell 9 from 34.
@@ -75,12 +81,12 @@ describe('Filter persistence covers the simple filters', () => {
     // one fell into the RESTORE branch and the cache beat the URL: the same link rendered
     // differently depending on a cookie of whoever opened it (9 rows against 10, measured over
     // `?q[country_eq]=USA`).
-    cy.visit(`${listing}?q[name_cont]=a`)
-    cy.get('input[name="q[name_cont]"]').should('have.value', 'a')
+    cy.visit(`${listing}?${search}=a`)
+    cy.get(`input[name="${search}"]`).should('have.value', 'a')
 
     cy.visit(`${listing}?q[country_in][]=USA`)
     // The direct proof: the old search showed up in the box, and nobody wrote it into the URL.
-    cy.get('input[name="q[name_cont]"]').should('have.value', '')
+    cy.get(`input[name="${search}"]`).should('have.value', '')
 
     total().then(withPersistence => {
       cy.clearCookie('bali_persist_admin_studios')
@@ -93,13 +99,13 @@ describe('Filter persistence covers the simple filters', () => {
     // `clearSearch` navigates discarding ALL the `q[...]`, so if the saved state does not
     // keep them — or keeps them and does not apply them — the selects empty out along
     // with the search.
-    cy.visit(`${listing}?q[size_eq]=large&q[name_cont]=a`)
+    cy.visit(`${listing}?q[size_eq]=large&${search}=a`)
 
     total().then(searchedAndFiltered => {
-      cy.get('input[name="q[name_cont]"]').should('have.value', 'a')
+      cy.get(`input[name="${search}"]`).should('have.value', 'a')
 
       cy.visit(`${listing}?clear_search=true`)
-      cy.get('input[name="q[name_cont]"]').should('have.value', '')
+      cy.get(`input[name="${search}"]`).should('have.value', '')
       cy.get('input[name="q[size_eq]"][value="large"]').should('be.checked')
       total().should('be.greaterThan', searchedAndFiltered)
     })

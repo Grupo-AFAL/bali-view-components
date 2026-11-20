@@ -1,3 +1,5 @@
+import { containsPredicate } from '../support/ransack'
+
 // The secondary-actions ⋯ lives in the PageHeader, OUTSIDE the node that a filter
 // submit's turbo_stream replaces. Whether the href stays up to date after filtering is
 // invisible to Minitest: the served HTML always carries the correct state.
@@ -9,6 +11,10 @@ describe('Page export links', () => {
   // `http://localhost:3001` ignores CYPRESS_BASE_URL and quietly tests another
   // checkout's server whenever the suite runs from a git worktree.
   const appOrigin = new URL(Cypress.config('baseUrl')).origin
+
+  // The variant of `cont` this ransack gets from Bali: it names the quick search's box.
+  let cont
+  beforeEach(() => containsPredicate().then((predicate) => { cont = predicate }))
 
   it('carries the active slice from the server render', () => {
     cy.visit('/bali/index_page/complete?group_by=genre&q%5Bname_cont%5D=a&page=2')
@@ -61,13 +67,13 @@ describe('Page export links', () => {
     cy.get('[data-filters-target="searchInput"]').type('Alien')
     cy.get('[data-action*="filters#submitSearch"]').click()
 
-    cy.location('search').should('include', 'name_or_genre_or_studio_name_cont')
+    cy.location('search').should('include', `name_or_genre_or_studio_name_${cont}`)
 
     cy.get(secondaryActions).click()
     cy.get(exportLink).first().should(($link) => {
       const href = $link.attr('href')
       expect(href).to.include('format=csv')
-      expect(href).to.include('name_or_genre_or_studio_name_cont')
+      expect(href).to.include(`name_or_genre_or_studio_name_${cont}`)
     })
   })
 
