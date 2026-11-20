@@ -164,6 +164,14 @@ module Bali
       #   declared, the row keeps the operator it had when the type offers it, as always.
       #   That same operator applies an advanced `default:`. Raises when it is not among
       #   `operators:` (or the type's).
+      # @param nullable [Boolean] Offer "is empty" and "is not empty" for this attribute in the
+      #   advanced panel, after the operators of its type (#1613). They take no value:
+      #   the condition travels as `q[g][0][owner_id_null]=1` (`_not_null`; on `type: :text`
+      #   `_blank` and `_present`, so that '' counts as empty). Off by default, because on a
+      #   required field they only add noise; `operators:` may instead name them (`%i[eq null
+      #   not_null]`), and with both the empty ones are added to what `operators:` lists. A
+      #   saved view, the filter cache or a URL carrying them on an attribute that offers neither
+      #   is no filter, as with any other operator. `default_operator:` cannot be one of them.
       # @param blank [String, Proc] Blank option text for the simple UI
       # @param default [String, Boolean, Array, Hash, Proc] The value this listing opens on.
       #   It preselects the simple control, and it is what
@@ -223,13 +231,17 @@ module Bali
       # @example An identifier the panel matches whole, or opens on "equals"
       #   filter_attribute :employee_id, type: :text, operators: %i[eq]
       #   filter_attribute :folio, type: :text, default_operator: :eq
+      #
+      # @example An optional field the panel can ask about being empty
+      #   filter_attribute :program_id, type: :select, nullable: true,
+      #     options: -> { Program.order(:name).pluck(:name, :id) }
       # rubocop:disable Metrics/ParameterLists
       def filter_attribute(key, type: :text, label: nil, aria_label: nil, options: [],
                            collection: nil, simple: false, advanced: true, input: nil,
                            multiple: false, predicate: :eq, blank: nil, default: nil,
                            icon: nil, step: nil, placeholder: nil, placeholder_min: nil,
                            placeholder_max: nil, auto_submit: false, presets: nil,
-                           operators: nil, default_operator: nil)
+                           operators: nil, default_operator: nil, nullable: false)
         # rubocop:enable Metrics/ParameterLists
         type = type.to_sym
         input ||= :slim_select if multiple
@@ -238,9 +250,9 @@ module Bali
         validate_default(key, default, simple, advanced)
         validate_multiple(key, resolved_input, multiple, simple)
         validate_list_input(key, resolved_input, predicate, multiple)
-        validate_operators(key, type, operators, default_operator, advanced)
-        validate_advanced_default_operator(key, { type: type, operators: operators, default_operator: default_operator },
-                                           default, simple)
+        panel = { key: key, type: type, operators: operators, default_operator: default_operator, nullable: nullable }
+        validate_operators(key, panel, advanced)
+        validate_advanced_default_operator(key, panel, default, simple)
 
         filter_attributes << {
           key: key.to_sym,
@@ -264,7 +276,8 @@ module Bali
           auto_submit: auto_submit,
           presets: Bali::DateRangePresets.normalize(presets, key: key, input: resolved_input),
           operators: operators,
-          default_operator: default_operator
+          default_operator: default_operator,
+          nullable: nullable
         }
       end
 
@@ -355,17 +368,16 @@ module Bali
       # Same contract as an unknown `input:`: an operator the panel's select cannot offer
       # fails when the class loads, instead of a select that offers another one. The check is
       # `Operators.default_for`'s, which a hash built in a view meets when the panel reads it.
-      def validate_operators(key, type, operators, default_operator, advanced)
-        return if operators.nil? && default_operator.nil?
+      def validate_operators(key, panel, advanced)
+        return if panel[:operators].nil? && panel[:default_operator].nil? && !panel[:nullable]
 
         unless advanced
-          raise ArgumentError, "filter_attribute #{key}: operators: and default_operator: apply to the " \
+          raise ArgumentError, "filter_attribute #{key}: operators:, default_operator: and nullable: apply to the " \
                                "advanced panel, and this one is advanced: false; the simple row takes predicate:"
         end
 
         begin
-          Bali::Filters::Operators.default_for({ key: key, type: type, operators: operators,
-                                                 default_operator: default_operator })
+          Bali::Filters::Operators.default_for(panel)
         rescue ArgumentError => e
           raise ArgumentError, "filter_attribute #{e.message}"
         end
@@ -378,7 +390,13 @@ module Bali
         return if simple || default.nil? || default == ""
 
         operator = Bali::Filters::Operators.default_for(attribute)
-        return if operator.nil? || Bali::Filters::Operators.predicates_for(attribute).include?(operator)
+        return if operator.nil?
+
+        if Bali::Filters::Operators.valueless?(operator)
+          raise ArgumentError, "filter_attribute #{key}: default_operator: :#{operator} takes no value, so " \
+                               "default: has nothing to say through it; declare a default_operator: that takes one"
+        end
+        return if Bali::Filters::Operators.predicates_for(attribute).include?(operator)
 
         raise ArgumentError, "filter_attribute #{key}: default: is applied with :#{operator}, which " \
                              "takes no single value; declare a default_operator: that does"
@@ -668,7 +686,7 @@ module Bali
     # whatever it returns.
     #
     # @return [Array<Hash>] Array of attribute definitions with :key, :type, :label, :options,
-    #   and :operators / :default_operator where the DSL declares them
+    #   and :operators / :default_operator / :nullable where the DSL declares them
     #   ({Bali::Filters::Operators.for_attribute} reads both)
     def available_attributes
       @available_attributes ||=
@@ -679,7 +697,8 @@ module Bali
             label: resolve_definition_value(attr[:label]) || attr[:key].to_s.humanize,
             options: resolve_definition_value(attr[:options]) || [],
             operators: attr[:operators],
-            default_operator: attr[:default_operator]
+            default_operator: attr[:default_operator],
+            nullable: attr[:nullable].presence
           }.compact
         end
     end

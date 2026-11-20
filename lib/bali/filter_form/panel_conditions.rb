@@ -79,6 +79,7 @@ module Bali
       # The value the query can take under `key`, whoever wrote it: the panel, a flat
       # `attribute` or a simple filter (#1351).
       def queryable_condition?(key, value)
+        return flag_condition?(value) if valueless_predicate?(key)
         return queryable_value?(value) unless list_predicate?(key)
 
         Array.wrap(value).all? { |member| queryable_value?(member) } && fits_column?(key, value)
@@ -99,6 +100,17 @@ module Bali
         @panel_condition_keys = available_attributes.flat_map { |attribute|
           Bali::Filters::Operators.predicates_for(attribute).map { |predicate| "#{attribute[:key]}_#{predicate}" }
         }.to_set.presence
+      end
+
+      # "Is empty" and "is not empty" carry no value, and Ransack reads the one they travel with
+      # as a boolean: `q[g][0][owner_id_null]=0` is `IS NOT NULL`, which the panel would paint
+      # as "is empty". Only a true one is the question those operators ask (#1613).
+      def valueless_predicate?(key)
+        RansackParamName::VALUELESS.include?(parse_condition_key(key.to_s)&.last)
+      end
+
+      def flag_condition?(value)
+        queryable_value?(value) && ActiveModel::Type::Boolean.new.cast(value) == true
       end
 
       # A list only where the operator takes one — of the panel's, `_in` and `_not_in`.

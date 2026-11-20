@@ -97,9 +97,10 @@ export class ConditionController extends Controller {
     // The operator may have changed with the list
     const isMultiple = this.operatorFlag('multiple')
     const isRange = this.operatorFlag('range')
+    const isValueless = this.operatorFlag('valueless')
 
     // Update value input for this type
-    this.renderValueInput(type, attributeKey, options, isMultiple, isRange)
+    this.renderValueInput(type, attributeKey, options, isMultiple, isRange, isValueless)
 
     // A different attribute is a fresh start: its option list is a different one, so
     // losing the previous value is correct and there is nothing to explain yet.
@@ -118,6 +119,7 @@ export class ConditionController extends Controller {
     const operator = event.target.value
     const isMultiple = this.operatorFlag('multiple')
     const isRange = this.operatorFlag('range')
+    const isValueless = this.operatorFlag('valueless')
 
     // Update hidden field
     if (this.hasOperatorHiddenTarget) {
@@ -137,11 +139,13 @@ export class ConditionController extends Controller {
     // widget over the same option list, so rebuilding it only threw the user's choice
     // away — and the empty condition then travelled as a blank Ransack predicate, which
     // the server discards without a word (#652).
-    if (this.needsWidgetSwap(type, isMultiple, isRange)) {
-      const hadValue = this.hasValue()
+    if (this.needsWidgetSwap(type, isMultiple, isRange, isValueless)) {
+      // The hidden `1` of "is empty" is not a choice the user made, so leaving it loses nothing.
+      const hadValue = !this.rendersValueless() && this.hasValue()
       const previous = this.selectedValues()
-      this.renderValueInput(type, attributeKey, options, isMultiple, isRange)
-      const kept = this.restoreSelectedValues(previous, isMultiple)
+      this.renderValueInput(type, attributeKey, options, isMultiple, isRange, isValueless)
+      // Nothing to restore into the hidden `1`, and choosing "is empty" gave the value up on purpose.
+      const kept = isValueless || this.restoreSelectedValues(previous, isMultiple)
       // The swap dropped something the user had chosen. That IS the silent loss this
       // component was reported for, so the row owes an explanation from here on.
       if (hadValue && !kept) this.flagged = true
@@ -157,7 +161,9 @@ export class ConditionController extends Controller {
    * The answer comes from the rendered DOM rather than from the previous operator, so a
    * server-rendered row and a JS-rendered one are read the same way.
    */
-  needsWidgetSwap (type, isMultiple, isRange) {
+  needsWidgetSwap (type, isMultiple, isRange, isValueless) {
+    if (isValueless !== this.rendersValueless()) return true
+    if (isValueless) return false
     if (type === 'select') return isMultiple !== this.rendersMultiSelect()
     if (type === 'date' || type === 'datetime') return isRange !== this.rendersRange()
     return false
@@ -174,14 +180,23 @@ export class ConditionController extends Controller {
     return this.hasRangeStartTarget
   }
 
+  // "Is empty" / "is not empty": a hidden input stands where the widget was
+  // (#buildValuelessInput, and condition/component.html.erb on the server).
+  rendersValueless () {
+    return (
+      this.hasValueContainerTarget &&
+      !!this.valueContainerTarget.querySelector('[data-valueless="true"]')
+    )
+  }
+
   /**
    * The values chosen in this condition, as an array of strings: one entry for a single
    * widget, one per checked box for a multi-select. A range widget reports nothing —
    * a point in time and an interval are different kinds of value, so moving between
-   * them starts over on purpose.
+   * them starts over on purpose — and neither does "is empty", whose `1` is no choice.
    */
   selectedValues () {
-    if (!this.hasValueContainerTarget || this.rendersRange()) return []
+    if (!this.hasValueContainerTarget || this.rendersRange() || this.rendersValueless()) return []
 
     const checkboxes = this.valueContainerTarget.querySelectorAll('input[type="checkbox"]')
     if (checkboxes.length > 0) {
@@ -304,6 +319,9 @@ export class ConditionController extends Controller {
   }
 
   hasValue () {
+    // The operator is the whole question: nothing is left to fill in.
+    if (this.rendersValueless()) return true
+
     if (this.rendersRange()) {
       // `between` needs both ends. Half a range is a different filter, not a narrower
       // one, so it does not travel and the row says it is unfinished.
@@ -363,9 +381,10 @@ export class ConditionController extends Controller {
     this.refreshHint()
   }
 
-  // `range` or `multiple`, as Bali::Filters::Operators.for_type marks the chosen operator: its
+  // `range`, `multiple` or `valueless`, as Bali::Filters::Operators.for_type marks the chosen operator: its
   // <option> carries the mark, from condition/component.html.erb or #updateOperators. The
-  // template draws its own widget from the same mark (Condition::Component#range_operator?).
+  // template draws its own widget from the same mark (Condition::Component#range_operator?,
+  // #valueless_operator?).
   operatorFlag (flag) {
     const option = this.hasOperatorTarget ? this.operatorTarget.selectedOptions[0] : null
     return option?.dataset[flag] === 'true'
@@ -395,7 +414,7 @@ export class ConditionController extends Controller {
     this.operatorTarget.innerHTML = operators
       .map(
         (op) =>
-          `<option value="${this.escapeHtml(op.value)}" data-multiple="${op.multiple || false}" data-range="${op.range || false}" ${op.value === selected ? 'selected' : ''}>${this.escapeHtml(op.label)}</option>`
+          `<option value="${this.escapeHtml(op.value)}" data-multiple="${op.multiple || false}" data-range="${op.range || false}" data-valueless="${op.valueless || false}" ${op.value === selected ? 'selected' : ''}>${this.escapeHtml(op.label)}</option>`
       )
       .join('')
 
@@ -411,12 +430,17 @@ export class ConditionController extends Controller {
   /**
    * Render the appropriate value input based on type
    */
-  renderValueInput (type, attributeKey, options, isMultiple = false, isRange = false) {
+  renderValueInput (type, attributeKey, options, isMultiple = false, isRange = false, isValueless = false) {
     if (!this.hasValueContainerTarget) return
 
     const fieldName = this.buildFieldName(attributeKey)
     const rangeFieldNames = this.buildRangeFieldNames(attributeKey)
     let html = ''
+
+    if (isValueless) {
+      this.valueContainerTarget.innerHTML = this.buildValuelessInput(fieldName)
+      return
+    }
 
     switch (type) {
       case 'select':
@@ -561,6 +585,12 @@ export class ConditionController extends Controller {
   // aria-label.
   get valueAriaLabel () {
     return this.t.value_aria_label
+  }
+
+  // The hidden `1` condition/component.html.erb writes for "is empty" and "is not empty": change
+  // both. Ransack reads it as true.
+  buildValuelessInput (fieldName) {
+    return `<input type="hidden" name="${fieldName}" value="1" data-condition-target="value" data-valueless="true">`
   }
 
   buildTextInput (fieldName) {

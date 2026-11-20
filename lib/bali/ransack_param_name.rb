@@ -23,6 +23,13 @@ module Bali
       "cont" => "i_cont", "not_cont" => "not_i_cont", "start" => "i_start", "end" => "i_end"
     }.freeze
 
+    # The predicates that take no value: Ransack reads `1` as `true` and answers "is empty"
+    # (`null`; `blank`, which on text counts the empty string too) or "is not empty" (`not_null`,
+    # `present`). The panel's "is empty" and "is not empty" write them (#1613). Here and not in
+    # `Bali::Filters::Operators` because `FilterGroupParser` reads them while the gem loads, before
+    # the components are autoloadable.
+    VALUELESS = %w[null not_null blank present].freeze
+
     class << self
       # Whether the installed ransack is 6 or later, asked of the gem's own predicates, so an
       # app's `add_predicate "i_start"` does not flip it.

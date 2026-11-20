@@ -169,6 +169,41 @@ module Bali
         )
       end
 
+      # @label Empty Operators
+      # @param popover toggle
+      # An attribute that may be left blank asks for "is empty" and "is not empty" with
+      # `nullable: true`, as `FilterForm.filter_attribute` declares it. Those two take no value:
+      # picking one drops the value field, and the condition travels as `q[g][0][owner_id_null]=1`
+      # (`_blank` on text, so '' counts as empty). "Name" declares nothing and offers neither.
+      def empty_operators(popover: true)
+        render Filters::Component.new(
+          url: '/preview',
+          available_attributes: nullable_attributes,
+          popover: popover
+        )
+      end
+
+      # @label Empty Operators, Applied
+      # @param popover toggle
+      # Conditions that arrived with an empty operator: no value field, and the pill reads
+      # "Owner is empty" without a value.
+      def empty_operators_applied(popover: true)
+        render Filters::Component.new(
+          url: '/preview',
+          available_attributes: nullable_attributes,
+          filter_groups: [
+            {
+              combinator: 'and',
+              conditions: [
+                { attribute: 'owner', operator: 'null', value: '1' },
+                { attribute: 'notes', operator: 'present', value: '1' }
+              ]
+            }
+          ],
+          popover: popover
+        )
+      end
+
       # @label Compact (Few Attributes)
       # Minimal configuration with only a few attributes.
       # Useful for simple filtering scenarios.
@@ -242,6 +277,18 @@ module Bali
           { key: :folio, label: 'Folio', type: :text, default_operator: :eq },
           { key: :name, label: 'Name', type: :text },
           { key: :created_at, label: 'Created', type: :date, operators: %i[between eq] }
+        ]
+      end
+
+      def nullable_attributes
+        [
+          { key: :name, label: 'Name', type: :text },
+          { key: :notes, label: 'Notes', type: :text, nullable: true },
+          { key: :owner, label: 'Owner', type: :select, nullable: true,
+            options: [['Ana', 'ana'], ['Luis', 'luis'], ['Marta', 'marta']] },
+          { key: :budget, label: 'Budget', type: :number, nullable: true },
+          { key: :closed_on, label: 'Closed on', type: :date, nullable: true },
+          { key: :archived, label: 'Archived', type: :boolean, nullable: true }
         ]
       end
 

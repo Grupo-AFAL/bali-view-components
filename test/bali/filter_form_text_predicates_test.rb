@@ -76,7 +76,7 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
 
   # Condition::Component#operator paints it with the first text operator, under either ransack.
   test "a group the panel cannot draw hands a host a blank row with no operator" do
-    undrawable = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: { "0" => { "name_null" => "1" } } }))
+    undrawable = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: { "0" => { "name_true" => "1" } } }))
 
     assert_equal [ { attribute: "", operator: nil, value: "" } ], undrawable.filter_groups.sole[:conditions]
   end

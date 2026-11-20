@@ -48,12 +48,17 @@ module Bali
                 operator: condition[:operator],
                 operator_label: operator_label(condition[:operator], attr_config[:type]),
                 value: condition[:value],
-                value_label: value_label(condition[:value], attr_config)
+                value_label: valueless?(condition) ? nil : value_label(condition[:value], attr_config)
               }
             end
           end
 
           filters
+        end
+
+        # "Is empty" and "is not empty" carry a hidden `1`, which is not something to read out.
+        def valueless?(condition)
+          Operators.valueless?(condition[:operator])
         end
 
         def operator_label(operator, type)

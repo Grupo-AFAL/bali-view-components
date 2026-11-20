@@ -85,6 +85,9 @@ en:
         # Select operators
         is_any_of: "is any of"
         is_not_any_of: "is not any of"
+        # Empty operators: no value
+        is_empty: "is empty"
+        is_not_empty: "is not empty"
         # Number operators
         greater_than: "greater than"
         less_than: "less than"
