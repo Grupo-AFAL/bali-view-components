@@ -1,0 +1,11 @@
+# frozen_string_literal: true
+
+# The project's Gemfile with ransack 5 (#1530). Bali accepts `ransack >= 5.0.3, < 7.0` and its own
+# lock is on 6, so this is the only place ransack 5 is installed: the `test-ransack-5` job in
+# .github/workflows/test.yml runs with it the tests that hold under both versions. Its lock is not
+# versioned: the job derives it from Gemfile.lock, because a frozen copy breaks on any change to
+# the Gemfile, the gemspec or Bali's version.
+main = File.expand_path("../Gemfile", __dir__)
+eval_gemfile main, File.read(main).sub(/^gem "ransack"\n/, "")
+
+gem "ransack", "~> 5.0"

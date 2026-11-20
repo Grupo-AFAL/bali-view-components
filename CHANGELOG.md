@@ -28,6 +28,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   en un form sin atributos declarados, una liga con `q[g][0][x_null]=1` llega ahora a
   `filter_groups` como `null`.
 
+### Changed
+
+- **El `Gemfile.lock` de Bali pasa a `ransack` 6.1.1; ninguna app tiene que hacer nada.** Sólo
+  cambia el entorno de pruebas de Bali: el gemspec sigue en `>= 5.0.3, < 7.0` y, con ransack 5,
+  Bali lee y escribe los mismos nombres que antes. ransack 6.1 exige Ruby >= 3.3 y Rails >= 8.1,
+  que el gemspec de Bali ya pide. El job de CI que instalaba ransack 6 (`test-ransack-6`) pasa a
+  instalar ransack 5 (`test-ransack-5`) y corre con 5.0.3 las pruebas que valen con las dos
+  versiones.
+
 ## [v3.27.1] - 2026-11-19
 
 ### Fixed
