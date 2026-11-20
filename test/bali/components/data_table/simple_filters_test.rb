@@ -3,6 +3,8 @@
 require "test_helper"
 
 class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
+  include RansackTestHelpers
+
   def setup
     @filters = [
       {
@@ -302,7 +304,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
 
   def test_search_parameter_renders_search_input_when_search_is_provided
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
-    assert_selector("input[type='text'][name='q[name_cont]']")
+    assert_selector("input[type='text'][name='q[name_#{text('cont')}]']")
     assert_selector("input[placeholder='Search by name...']")
   end
 
@@ -311,8 +313,8 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
   def test_search_input_name_is_derived_from_several_columns
     search = @search.merge(fields: %i[name email])
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: search))
-    assert_selector("input[type='text'][name='q[name_or_email_cont]']")
-    assert_selector("input#simple-filter-search-q-name_or_email_cont")
+    assert_selector("input[type='text'][name='q[name_or_email_#{text('cont')}]']")
+    assert_selector("input#simple-filter-search-q-name_or_email_#{text('cont')}")
   end
 
   def test_an_unknown_search_option_raises
@@ -351,7 +353,7 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
 
   def test_search_parameter_renders_search_input_before_filter_selects
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
-    assert_selector("input[type='text'][name='q[name_cont]']")
+    assert_selector("input[type='text'][name='q[name_#{text('cont')}]']")
     assert_selector("select[name='q[status_eq]']")
   end
 
@@ -393,14 +395,14 @@ class BaliDataTableSimpleFiltersComponentTest < ComponentTestCase
   def test_search_parameter_renders_with_search_only_and_no_filters
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: [], search: @search))
     assert_selector("form")
-    assert_selector("input[type='text'][name='q[name_cont]']")
+    assert_selector("input[type='text'][name='q[name_#{text('cont')}]']")
     assert_no_selector("select")
   end
 
   def test_search_parameter_submits_search_and_filters_together_in_one_form
     render_inline(Bali::DataTable::SimpleFilters::Component.new(url: "/test", filters: @filters, search: @search))
     assert_selector("form")
-    assert_selector("input[name='q[name_cont]']")
+    assert_selector("input[name='q[name_#{text('cont')}]']")
     assert_selector("select[name='q[status_eq]']")
   end
 

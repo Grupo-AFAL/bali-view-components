@@ -3,6 +3,8 @@
 require "test_helper"
 
 class BaliFiltersConditionComponentTest < ComponentTestCase
+  include RansackTestHelpers
+
   def setup
     @available_attributes = [
       { key: :name, label: "Name", type: :text },
@@ -340,7 +342,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     component = Bali::Filters::Condition::Component.new(
       condition: @empty_condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
     )
-    assert_equal("q[g][0][__ATTR___cont]", component.field_name)
+    assert_equal("q[g][0][__ATTR___#{text('cont')}]", component.field_name)
   end
 
   def test_operators_for_current_type_returns_operators_for_the_selected_attribute_type
@@ -359,7 +361,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
       condition: @empty_condition, group_index: 0, condition_index: 0, available_attributes: @available_attributes
     )
     operators = component.operators_for_current_type
-    assert_includes(operators.pluck(:value), "cont")
+    assert_includes(operators.pluck(:value), text("cont"))
     assert_includes(operators.pluck(:value), "eq")
   end
 

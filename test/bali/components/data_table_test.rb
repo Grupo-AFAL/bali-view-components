@@ -17,6 +17,8 @@ class DefaultGroupingDataTableFilterForm < Bali::FilterForm
 end
 
 class BaliDataTableComponentTest < ComponentTestCase
+  include RansackTestHelpers
+
   def setup
     @options = {}
   end
@@ -139,7 +141,7 @@ class BaliDataTableComponentTest < ComponentTestCase
         c.with_table { '<div class="table-component"></div>'.html_safe }
       end
 
-      assert_selector("input[name='q[name_or_genre_cont]'][placeholder='Declared']", visible: :all)
+      assert_selector("input[name='q[name_or_genre_#{text('cont')}]'][placeholder='Declared']", visible: :all)
     end
   end
 
@@ -150,7 +152,7 @@ class BaliDataTableComponentTest < ComponentTestCase
     end
 
     # The declared columns survive an override that only names the placeholder.
-    assert_selector("input[name='q[name_or_genre_cont]'][placeholder='Overridden']", visible: :all)
+    assert_selector("input[name='q[name_or_genre_#{text('cont')}]'][placeholder='Overridden']", visible: :all)
   end
 
   def test_no_group_by_hidden_field_when_grouping_inactive

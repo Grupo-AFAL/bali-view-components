@@ -3,6 +3,8 @@
 require "test_helper"
 
 class BaliFiltersComponentTest < ComponentTestCase
+  include RansackTestHelpers
+
   def setup
     @available_attributes = [
       { key: :name, label: "Name", type: :text },
@@ -393,8 +395,8 @@ class BaliFiltersComponentTest < ComponentTestCase
       filter_form: applied_filter_form
     ))
 
-    assert_selector '[data-filters-target="form"] input[name="q[g][0][name_cont]"][value="Alien"]', visible: :all
-    assert_selector '[data-filters-target="form"] input[name="q[g][1][genre_cont]"][value="Drama"]', visible: :all
+    assert_selector %([data-filters-target="form"] input[name="q[g][0][name_#{text('cont')}]"][value="Alien"]), visible: :all
+    assert_selector %([data-filters-target="form"] input[name="q[g][1][genre_#{text('cont')}]"][value="Drama"]), visible: :all
     assert_selector '[data-filters-target="form"] input[name="q[m]"][value="or"]', visible: :all
     assert_selector '[data-combinator="or"][aria-pressed="true"]', visible: :all
     assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="or"]', visible: :all
@@ -406,7 +408,7 @@ class BaliFiltersComponentTest < ComponentTestCase
       filter_form: applied_filter_form, filter_groups: two_applied_groups, combinator: :and
     ))
 
-    assert_selector '[data-filters-target="form"] input[name="q[g][0][name_cont]"][value="a"]', visible: :all
+    assert_selector %([data-filters-target="form"] input[name="q[g][0][name_#{text('cont')}]"][value="a"]), visible: :all
     assert_no_selector 'input[value="Alien"]', visible: :all
     assert_selector '[data-filters-target="form"] input[name="q[m]"][value="and"]', visible: :all
     assert_selector '[data-filters-target="searchForm"] input[name="q[m]"][value="and"]', visible: :all
@@ -473,7 +475,7 @@ class BaliFiltersComponentTest < ComponentTestCase
       search: { fields: %i[name email] }
     ))
 
-    assert_selector 'input[name="q[name_or_email_cont]"]'
+    assert_selector %(input[name="q[name_or_email_#{text('cont')}]"])
   end
 
   def test_the_search_input_takes_its_accessible_name_from_label

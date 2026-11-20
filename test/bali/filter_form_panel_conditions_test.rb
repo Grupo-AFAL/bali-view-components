@@ -25,7 +25,9 @@ class BaliFilterFormPanelConditionsTest < ActiveSupport::TestCase
   class ReemittingPanelFilterForm < PanelFilterForm
     def initialize(...)
       super
-      @groupings = @groupings.transform_values { |group| group.except("name_cont") } if filter_groups.any?
+      # The key the form hands back is the `i_` one under ransack 6, whichever way it came in.
+      searched = "name_#{Bali::RansackParamName.text_predicate('cont')}"
+      @groupings = @groupings.transform_values { |group| group.except(searched) } if filter_groups.any?
     end
   end
 
@@ -147,7 +149,7 @@ class BaliFilterFormPanelConditionsTest < ActiveSupport::TestCase
       offered_none = form({ "0" => { name_cont: "Ana", genre_cont: "Dra" }, "1" => { name_eq: "A\u0000na" },
                             "2" => { g: { "0" => { name_eq: "Bob" } } } }, form_class: form_class)
 
-      assert_equal [ [ "name", "cont", "Ana" ], [ "genre", "cont", "Dra" ] ], conditions(offered_none), form_class.name
+      assert_equal [ [ "name", text("cont"), "Ana" ], [ "genre", text("cont"), "Dra" ] ], conditions(offered_none), form_class.name
       assert_equal [ @ana ], offered_none.result.to_a
     end
   end
