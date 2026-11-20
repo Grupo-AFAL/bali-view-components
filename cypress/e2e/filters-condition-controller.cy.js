@@ -133,13 +133,14 @@ describe('ConditionController', () => {
   })
 
   // #1530 — a reset row goes back to the first text operator Ruby hands over in the translations
-  // (Bali::Filters::Operators, `i_cont` under ransack 6), as Condition::Component#operator paints
-  // a blank row. The list here puts another variant first and keeps `cont` in it.
+  // (Bali::Filters::Operators), as Condition::Component#operator paints a blank row. The list here
+  // puts first a value the page never offers, so only a reset that reads the translations lands
+  // on it: one that fixes the variant the page does offer (`cont`, `i_cont`) fails under both ransacks.
   it('resets a row to the first text operator of its translations', () => {
     cy.visit('/bali/filters/all_field_types?popover=false')
     cy.get('[data-controller="condition"]').first().then(($condition) => {
       const translations = JSON.parse($condition.attr('data-condition-translations-value'))
-      translations.operators.text = [{ value: 'i_cont', label: 'contains' }, ...translations.operators.text]
+      translations.operators.text = [{ value: 'first_text_operator', label: 'contains' }, ...translations.operators.text]
       $condition.attr('data-condition-translations-value', JSON.stringify(translations))
     })
     cy.get('[data-condition-target="attribute"]').first().select('name')
@@ -147,8 +148,8 @@ describe('ConditionController', () => {
 
     cy.get('[data-action="filters#reset"]').first().click()
 
-    operator().first().should('have.value', 'i_cont')
-    cy.get('[data-condition-target="operatorHidden"]').first().should('have.value', 'i_cont')
+    operator().first().should('have.value', 'first_text_operator')
+    cy.get('[data-condition-target="operatorHidden"]').first().should('have.value', 'first_text_operator')
   })
 
   context('on Apply', () => {

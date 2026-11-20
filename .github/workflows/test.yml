@@ -128,9 +128,10 @@ jobs:
           path: coverage/
           retention-days: 7
 
-  # Bali's own lock is on ransack 6 and its gemspec still accepts 5 (#1530). This job installs
-  # ransack 5 and runs the tests written to hold under both versions: "the switch is whether the
-  # installed ransack is 6" fails here when the switch takes ransack 5 for 6.
+  # Bali's own lock is on ransack 6 and its gemspec still accepts 5 (#1530), which identity pins
+  # (`~> 5.0`, #487) and the apps still on 5.0.3 run. This job installs the latest 5.x and runs
+  # test/bali: the tests that name a search box or a panel field hold under both versions, and
+  # "the switch is whether the installed ransack is 6" fails here when it takes 5 for 6.
   test-ransack-5:
     runs-on: ubuntu-latest
     permissions:
@@ -158,16 +159,6 @@ jobs:
         run: bin/rails db:schema:load
         env:
           RAILS_ENV: test
-      # One `-i` per test: an `-i` that matches nothing makes minitest exit 1.
-      - name: Run the filter tests that hold under both ransack versions
-        run: |
-          bin/rails test test/bali/filter_form_text_predicates_test.rb test/bali/filter_form_operators_test.rb \
-            test/bali/filter_form_between_test.rb test/bali/components/filters/operators_test.rb \
-            test/bali/filter_form_empty_operators_test.rb
-          bin/rails test test/bali/components/filters/condition/component_test.rb -i /carries_the_operators/
-          bin/rails test test/bali/components/filters/condition/component_test.rb -i /offers_one_operator/
-          bin/rails test test/bali/components/filters/condition/component_test.rb -i /lone_operator/
-          bin/rails test test/bali/components/filters/condition/component_test.rb -i /operator_it_arrived_with/
-          bin/rails test test/bali/components/filters/component_test.rb -i /operators_reach_its_option/
-          bin/rails test test/bali/components/data_table/saved_views_test.rb -i /every_name_the_form/
-          bin/rails test test/bali/filter_form_test.rb -i /EnumCastingFilterFormTest/
+      # test/bali only: test/requests needs the built assets this job does not make.
+      - name: Run test/bali with ransack 5
+        run: bin/rails test test/bali
