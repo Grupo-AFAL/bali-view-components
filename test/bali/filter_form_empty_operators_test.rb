@@ -48,7 +48,10 @@ class BaliFilterFormEmptyOperatorsTest < ComponentTestCase
 
     assert_equal %w[eq null], offered.call({ key: :genre, type: :select, operators: %i[eq null] })
     assert_equal %w[eq present], offered.call({ key: :synopsis, type: :text, operators: %i[eq present] })
-    assert_equal %w[eq null not_null], offered.call({ key: :genre, type: :select, operators: %i[eq null], nullable: true })
+    assert_equal %w[eq null not_null], offered.call({ key: :genre, type: :select, operators: %i[eq], nullable: true })
+    # Naming a pair is the choice: `nullable:` does not add the other one beside it.
+    assert_equal %w[eq blank present], offered.call({ key: :genre, type: :select, operators: %i[eq blank present], nullable: true })
+    assert_equal %w[eq null], offered.call({ key: :synopsis, type: :text, operators: %i[eq null], nullable: true })
   end
 
   # A select over a string column that stores '' is not found by `null`: it may name `blank`.

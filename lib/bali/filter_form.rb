@@ -169,7 +169,8 @@ module Bali
       #   the condition travels as `q[g][0][owner_id_null]=1` (`_not_null`; on `type: :text`
       #   `_blank` and `_present`, so that '' counts as empty). Off by default, because on a
       #   required field they only add noise; `operators:` may instead name them (`%i[eq null
-      #   not_null]`), and with both the empty ones are added to what `operators:` lists. A
+      #   not_null]`); with both, `nullable: true` adds the pair of its type after `operators:`, unless
+      #   `operators:` already names one. A
       #   saved view, the filter cache or a URL carrying them on an attribute that offers neither
       #   is no filter, as with any other operator. `default_operator:` may be one of them; an
       #   advanced `default:` cannot go through one, because it has no value to hold.

@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   atributos, un `nullable:` en el hash de `with_filters_panel(available_attributes:)` sólo cambia
   el select. `_null` encuentra NULL y nada más: un select sobre una columna de texto que guarda
   `''` no encuentra esas filas como vacías (guardar NULL con `normalizes`, o
-  `operators: %i[eq blank present]`). Una liga con una bandera que Ransack no lee como verdadera
+  `operators: %i[eq not_eq in not_in blank present]`). Una liga con una bandera que Ransack no lee como verdadera
   (`_null=0`, `_null=false`, `_null=yes`) no se pinta como «vacío», y con atributos declarados no
   filtra. `default_operator:` puede ser uno de ellos; `default:` no. `Operators.for_type` recibe
   `nullable:`. Quien evalúa los operadores del panel por nombre (un filtro en memoria que

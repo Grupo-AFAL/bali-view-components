@@ -5128,19 +5128,20 @@ They take no value. Choosing one drops the value field, and the condition travel
 `_blank` and `_present`, so that the empty string counts as empty too; on every other type, as
 `_null` and `_not_null`. The pill reads "Assignee is empty", with no value, and the condition
 counts as an active filter, is kept by saved views and the filter cache, and is painted again
-from a link, like any other. Over a `ransacker` it is `<expression> IS NULL`.
+from a link, like any other. Over a `ransacker`, `_null` is `<expression> IS NULL`.
 
 **`_null` finds NULL and nothing else.** A select over a string column that stores `''` when the
 form leaves it blank (`f.select :genre, include_blank: true` writes `""`) does not find those
-rows as empty. Store NULL (`normalizes :genre, with: ->(genre) { genre.presence }`), or name the
-text pair for that attribute: `operators: %i[eq blank present]`. It is not the default for a
-select because Ransack counts a `ransacker` as a string column and compiles `blank` over it as
+rows as empty. Store NULL (`normalizes :genre, with: ->(genre) { genre.presence }`, and a backfill
+for the rows that already hold `''`: `normalizes` does not touch them), or name the text pair for
+that attribute: `operators: %i[eq not_eq in not_in blank present]`. It is not the default for a
+select because a `ransacker` has no column to cast the `''` against, and `blank` over it is
 `<expression> = ''`, which a number does not take.
 
 **They are off by default**, because on a required field they only add noise. Besides
 `nullable: true`, `operators:` may name them (`%i[eq null not_null]`, `%i[eq present]` on text);
-with both, `nullable: true` adds them to what `operators:` lists. `default_operator:` may be one of
-them, so a new condition opens on "is empty"; an advanced `default:` cannot go through one, and
+with both, `nullable: true` adds the pair of its type after `operators:`, unless `operators:`
+already names one. `default_operator:` may be one of them, so a new condition opens on "is empty"; an advanced `default:` cannot go through one, and
 raises, because it has no value to hold.
 
 Declare it on the form. When the form declares its attributes, a condition reaches Ransack only
@@ -5150,7 +5151,9 @@ passed to `with_filters_panel(available_attributes:)` only changes the select. A
 declares none lets any key through, and there the view's `nullable:` filters end to end. Either
 way a flag Ransack does not read as true (`=0`, `=false`, `=yes`) is not drawn as "is empty", and
 where the form declares its attributes it is no filter: Ransack reads `assignee_id_null=0` as
-`IS NOT NULL`, and `=yes` as nothing.
+`IS NOT NULL`, and `=yes` as nothing. On a form that declares none, Ransack still applies the
+`=0` as "is not empty" and the panel neither draws nor counts it, nor does a bulk action's
+"select all" carry it.
 
 What evaluates the panel's operators by name (an in-memory filter that switches on `"cont"`,
 `"not_eq"`…) has to learn the four before an attribute declares `nullable:`. On a form that

@@ -61,7 +61,7 @@ module Bali
         end
 
         offered = declared.map { |operator| find_operator(universe, operator) }
-        nullable ? offered | emptiness_operators(type) : offered
+        nullable && offered.none? { |operator| operator[:valueless] } ? offered + emptiness_operators(type) : offered
       end
 
       # The operator a condition opens on when the user picks the attribute: its
@@ -103,11 +103,11 @@ module Bali
         Ransack::Constants::TRUE_VALUES.include?(value)
       end
 
-      # The operator hash a condition that arrived with `value` is drawn with: the type's own, or
-      # one of the four that take no value, which a link may carry on any type.
+      # The operator hash a condition that arrived with `operator` is drawn with: the type's own,
+      # or one of the four that take no value, which a link may carry on any type.
       # @return [Hash, nil]
-      def find_for_type(type, value)
-        find_operator(for_type(type) | every_emptiness_operator, value.to_s)
+      def find_for_type(type, operator)
+        find_operator(for_type(type) | every_emptiness_operator, operator.to_s)
       end
 
       # Returns the localized label for a specific operator and type.
@@ -139,7 +139,7 @@ module Bali
 
       # `blank` and `present` on text, so that '' is empty too; `null` and `not_null` elsewhere.
       # Ransack compiles `blank` as `IS NULL OR = ''` on a string column and as `IS NULL` on the
-      # rest, but a ransacker has no column and counts as a string: `<number expression> = ''`.
+      # rest, but a ransacker has no column to cast the '' against: `<number expression> = ''`.
       def emptiness_operators(type)
         text = OPERATOR_METHODS.fetch(type.to_sym, :text_operators) == :text_operators
         empty, filled = text ? %w[blank present] : %w[null not_null]
