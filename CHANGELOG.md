@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`filter_attribute nullable: true`: «está vacío» y «no está vacío» en el panel avanzado** (#1613).
+  Un atributo con `nullable: true` ofrece los dos operadores después de los de su tipo; con
+  `operators:` se piden por nombre (`%i[eq null not_null]`, y `blank`/`present` en texto). No llevan
+  valor: elegirlos quita el campo de valor y la condición viaja sola, `q[g][0][responsable_null]=1`
+  (`_not_null`; en texto `_blank` y `_present`, para que la cadena vacía cuente como vacía). La
+  píldora dice «Responsable está vacío», y la condición cuenta como filtro activo y la llevan las
+  vistas guardadas, la memoria de filtros y las ligas. Por omisión no se ofrecen: en un campo
+  obligatorio sólo hacen ruido, y una app que no declara `nullable:` no ve ningún cambio. Se declara
+  en el `FilterForm`; un `nullable:` en el hash de `with_filters_panel(available_attributes:)` sólo
+  cambia el select. Una liga con `_null=0` o `_null=false` no filtra: Ransack la leería como
+  «no vacío» y el panel pintaría «vacío». `default_operator:` puede ser uno de ellos; `default:` no.
+  `Operators.for_type` recibe `nullable:`. Quien evalúa los operadores del panel por nombre (un
+  filtro en memoria que distingue `"cont"`, `"not_eq"`…) tiene que conocer los cuatro antes de
+  declarar `nullable:`; mientras ninguna app lo declare, no le llega ninguno.
+
 ## [v3.27.1] - 2026-11-19
 
 ### Fixed

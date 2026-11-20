@@ -5109,6 +5109,45 @@ for the select and for what reaches Ransack alike. A hash passed to
 still what the form offers, and a condition that arrives with an operator the hash leaves out
 is painted with it, which its select then offers too.
 
+#### Asking whether a field is empty (`nullable:`)
+
+"Tasks with no owner", "projects with a closing date": the question is about the value being
+missing, and no operator that takes a value can ask it. `nullable: true` adds **is empty** and
+**is not empty** to the attribute, after the operators of its type (#1613):
+
+```ruby
+class TasksFilterForm < Bali::FilterForm
+  filter_attribute :assignee_id, type: :select, nullable: true,
+                   options: -> { User.order(:name).pluck(:name, :id) }
+  filter_attribute :notes, type: :text, nullable: true
+end
+```
+
+They take no value. Choosing one drops the value field, and the condition travels alone:
+`q[g][0][assignee_id_null]=1` (`_not_null` for "is not empty"). On `type: :text` they travel as
+`_blank` and `_present`, so that the empty string counts as empty too; on every other type an
+empty value is NULL, and they travel as `_null` and `_not_null`. The pill reads "Owner is
+empty", with no value, and the condition counts as an active filter, is kept by saved views and
+the filter cache, and is painted again from a link, like any other. Over a `ransacker` it is
+`<expression> IS NULL`.
+
+**They are off by default**, because on a required field they only add noise. Besides
+`nullable: true`, `operators:` may name them (`%i[eq null not_null]`, `%i[eq present]` on text);
+with both, `nullable: true` adds them to what `operators:` lists. `default_operator:` may be one of
+them, so a new condition opens on "is empty"; an advanced `default:` cannot go through one, and
+raises, because it has no value to hold.
+
+Declare it on the form. As with any operator, it reaches Ransack only where the form offers it:
+a saved view, the filter cache or a link carrying `q[g][0][name_null]=1` on an attribute that
+does not is no filter, and a `nullable:` in a hash passed to
+`with_filters_panel(available_attributes:)` only changes the select. A flag that is not true
+(`=0`, `=false`) is no filter either: Ransack reads `assignee_id_null=0` as `IS NOT NULL`, and
+the panel would paint "is empty" over it.
+
+What evaluates the panel's operators by name (an in-memory filter that switches on `"cont"`,
+`"not_eq"`…) has to learn the four before an attribute declares `nullable:`; until then
+nothing carries them.
+
 #### A filter with no caption (`label: false` + `aria_label:`)
 
 A SimpleFilters row is tight, and some filters read fine without a caption over them — a
