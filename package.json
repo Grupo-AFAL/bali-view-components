@@ -59,6 +59,8 @@
       "context",
       "describe",
       "expect",
+      "before",
+      "after",
       "beforeEach",
       "afterEach",
       "Cypress",

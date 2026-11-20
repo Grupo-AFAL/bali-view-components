@@ -19,33 +19,49 @@ module Bali
 
       # Returns operators for a given field type with localized labels.
       # @param type [Symbol, String] :text, :number, :date, :datetime, :select, or :boolean
-      # @return [Array<Hash>] Operator hashes with :value, :label, and optional :multiple
-      def for_type(type)
+      # @param nullable [Boolean] Also offer "is empty" and "is not empty" (#1613), last
+      # @return [Array<Hash>] Operator hashes with :value, :label, and optional :multiple,
+      #   :range or :valueless
+      def for_type(type, nullable: false)
         method_name = OPERATOR_METHODS.fetch(type.to_sym, :text_operators)
-        send(method_name)
+        operators = send(method_name)
+        nullable ? operators + emptiness_operators(type) : operators
+      end
+
+      # Whether the operator is one of the four that take no value ({RansackParamName::VALUELESS}).
+      # @param operator [String, Symbol, nil]
+      def valueless?(operator)
+        RansackParamName::VALUELESS.include?(operator.to_s)
       end
 
       # The operators the panel offers for one attribute: its type's, narrowed to and ordered
-      # by its `operators:` when it declares them.
+      # by its `operators:` when it declares them. "Is empty" and "is not empty" come only when
+      # it asks for them, with `nullable: true` (after the rest) or by naming them in
+      # `operators:`: on a required field they only add noise (#1613). `nullable:` picks the pair
+      # of its type; `operators:` may name either (`blank` and `present` for a select over a
+      # string column that stores '').
       #
-      # @param attribute [Hash] `{ key:, type:, operators: }`, as `FilterForm#available_attributes`
-      #   builds it
+      # @param attribute [Hash] `{ key:, type:, operators:, nullable: }`, as
+      #   `FilterForm#available_attributes` builds it
       # @return [Array<Hash>]
       # @raise [ArgumentError] on an empty `operators:` or on an entry its type does not offer.
       #   `FilterForm.filter_attribute` meets this when the class loads; a hash built in a view
       #   or in an `available_attributes` override, when the panel or the form reads it.
       def for_attribute(attribute)
-        offered = for_type(attribute[:type] || :text)
-        return offered if attribute[:operators].nil?
+        type = attribute[:type] || :text
+        nullable = attribute[:nullable].present?
+        return for_type(type, nullable: nullable) if attribute[:operators].nil?
 
+        universe = for_type(type) | every_emptiness_operator
         declared = Array(attribute[:operators])
-        unknown = declared.reject { |operator| find_operator(offered, operator) }
+        unknown = declared.reject { |operator| find_operator(universe, operator) }
         if declared.empty? || unknown.any?
-          raise ArgumentError, "#{attribute[:key]}: type :#{attribute[:type] || :text} offers no operator " \
-                               "#{unknown.join(', ').presence || '(empty list)'} (valid: #{offered.pluck(:value).join(', ')})"
+          raise ArgumentError, "#{attribute[:key]}: type :#{type} offers no operator " \
+                               "#{unknown.join(', ').presence || '(empty list)'} (valid: #{universe.pluck(:value).join(', ')})"
         end
 
-        declared.map { |operator| find_operator(offered, operator) }
+        offered = declared.map { |operator| find_operator(universe, operator) }
+        nullable && offered.none? { |operator| operator[:valueless] } ? offered + emptiness_operators(type) : offered
       end
 
       # The operator a condition opens on when the user picks the attribute: its
@@ -80,13 +96,27 @@ module Bali
         for_attribute(attribute).flat_map { |operator| operator[:range] ? %w[gteq lteq] : operator[:value] }.uniq
       end
 
+      # Whether what an empty operator travels with is a yes. Ransack reads `owner_null=0` as
+      # "is not empty", so the panel neither applies nor draws one that is not.
+      # @param value [Object]
+      def asks_empty?(value)
+        Ransack::Constants::TRUE_VALUES.include?(value)
+      end
+
+      # The operator hash a condition that arrived with `operator` is drawn with: the type's own,
+      # or one of the four that take no value, which a link may carry on any type.
+      # @return [Hash, nil]
+      def find_for_type(type, operator)
+        find_operator(for_type(type) | every_emptiness_operator, operator.to_s)
+      end
+
       # Returns the localized label for a specific operator and type.
       # @param operator [String] The operator value (e.g., 'eq', 'cont')
       # @param type [Symbol, String] The field type
       # @return [String] The localized label or the operator value if not found
       def label_for(operator, type)
         current = RansackParamName.text_predicate(operator)
-        for_type(type).find { |o| o[:value] == current }&.dig(:label) || operator
+        find_for_type(type, current)&.dig(:label) || operator
       end
 
       private
@@ -105,6 +135,22 @@ module Bali
 
       def text(predicate)
         RansackParamName.text_predicate(predicate)
+      end
+
+      # `blank` and `present` on text, so that '' is empty too; `null` and `not_null` elsewhere.
+      # Ransack compiles `blank` as `IS NULL OR = ''` on a string column and as `IS NULL` on the
+      # rest, but a ransacker has no column to cast the '' against: `<number expression> = ''`.
+      def emptiness_operators(type)
+        text = OPERATOR_METHODS.fetch(type.to_sym, :text_operators) == :text_operators
+        empty, filled = text ? %w[blank present] : %w[null not_null]
+        [
+          { value: empty, label: t_op("is_empty"), valueless: true },
+          { value: filled, label: t_op("is_not_empty"), valueless: true }
+        ]
+      end
+
+      def every_emptiness_operator
+        emptiness_operators(:text) + emptiness_operators(:number)
       end
 
       def find_operator(offered, operator)

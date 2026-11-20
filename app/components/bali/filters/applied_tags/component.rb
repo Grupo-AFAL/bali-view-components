@@ -48,7 +48,7 @@ module Bali
                 operator: condition[:operator],
                 operator_label: operator_label(condition[:operator], attr_config[:type]),
                 value: condition[:value],
-                value_label: value_label(condition[:value], attr_config)
+                value_label: Operators.valueless?(condition[:operator]) ? nil : value_label(condition[:value], attr_config)
               }
             end
           end

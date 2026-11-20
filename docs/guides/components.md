@@ -5109,6 +5109,57 @@ for the select and for what reaches Ransack alike. A hash passed to
 still what the form offers, and a condition that arrives with an operator the hash leaves out
 is painted with it, which its select then offers too.
 
+#### Asking whether a field is empty (`nullable:`)
+
+"Tasks with no owner", "projects with a closing date": the question is about the value being
+missing, and no operator that takes a value can ask it. `nullable: true` adds **is empty** and
+**is not empty** to the attribute, after the operators of its type (#1613):
+
+```ruby
+class TasksFilterForm < Bali::FilterForm
+  filter_attribute :assignee_id, type: :select, nullable: true,
+                   options: -> { User.order(:name).pluck(:name, :id) }
+  filter_attribute :notes, type: :text, nullable: true
+end
+```
+
+They take no value. Choosing one drops the value field, and the condition travels alone:
+`q[g][0][assignee_id_null]=1` (`_not_null` for "is not empty"). On `type: :text` they travel as
+`_blank` and `_present`, so that the empty string counts as empty too; on every other type, as
+`_null` and `_not_null`. The pill reads "Assignee is empty", with no value, and the condition
+counts as an active filter, is kept by saved views and the filter cache, and is painted again
+from a link, like any other. Over a `ransacker`, `_null` is `<expression> IS NULL`.
+
+**`_null` finds NULL and nothing else.** A select over a string column that stores `''` when the
+form leaves it blank (`f.select :genre, include_blank: true` writes `""`) does not find those
+rows as empty. Store NULL (`normalizes :genre, with: ->(genre) { genre.presence }`, and a backfill
+for the rows that already hold `''`: `normalizes` does not touch them), or name the text pair for
+that attribute: `operators: %i[eq not_eq in not_in blank present]`. It is not the default for a
+select because a `ransacker` has no column to cast the `''` against, and `blank` over it is
+`<expression> = ''`, which a number does not take.
+
+**They are off by default**, because on a required field they only add noise. Besides
+`nullable: true`, `operators:` may name them (`%i[eq null not_null]`, `%i[eq present]` on text);
+with both, `nullable: true` adds the pair of its type after `operators:`, unless `operators:`
+already names one. `default_operator:` may be one of them, so a new condition opens on "is empty"; an advanced `default:` cannot go through one, and
+raises, because it has no value to hold.
+
+Declare it on the form. When the form declares its attributes, a condition reaches Ransack only
+where the form offers it: a saved view, the filter cache or a link carrying
+`q[g][0][name_null]=1` on an attribute that does not is no filter, and a `nullable:` in a hash
+passed to `with_filters_panel(available_attributes:)` only changes the select. A form that
+declares none lets any key through, and there the view's `nullable:` filters end to end. Either
+way a flag Ransack does not read as true (`=0`, `=false`, `=yes`) is not drawn as "is empty", and
+where the form declares its attributes it is no filter: Ransack reads `assignee_id_null=0` as
+`IS NOT NULL`, and `=yes` as nothing. On a form that declares none, Ransack still applies the
+`=0` as "is not empty" and the panel neither draws nor counts it, nor does a bulk action's
+"select all" carry it.
+
+What evaluates the panel's operators by name (an in-memory filter that switches on `"cont"`,
+`"not_eq"`…) has to learn the four before an attribute declares `nullable:`. On a form that
+declares no attributes, a link with `q[g][0][name_null]=1` now reaches `filter_groups` as
+`null`.
+
 #### A filter with no caption (`label: false` + `aria_label:`)
 
 A SimpleFilters row is tight, and some filters read fine without a caption over them — a

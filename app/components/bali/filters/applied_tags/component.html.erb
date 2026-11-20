@@ -20,9 +20,11 @@
           <%= filter[:operator_label] %>
         </span>
 
-        <span class="font-medium max-w-24 truncate" title="<%= filter[:value_label] %>">
-          <%= filter[:value_label] %>
-        </span>
+        <% if filter[:value_label] %>
+          <span class="font-medium max-w-24 truncate" title="<%= filter[:value_label] %>">
+            <%= filter[:value_label] %>
+          </span>
+        <% end %>
 
         <%# The aria-label names WHICH filter it removes: the bar lists several visually
             identical buttons and a bare "Remove filter" does not tell them apart (#1028). %>
@@ -31,7 +33,7 @@
                 data-action="applied-tags#removeFilter"
                 data-group-index="<%= filter[:group_index] %>"
                 data-condition-index="<%= filter[:condition_index] %>"
-                aria-label="<%= "#{t('bali_view.filters.remove_filter')}: #{filter[:attribute_label]} #{filter[:operator_label]} #{filter[:value_label]}" %>"
+                aria-label="<%= [ "#{t('bali_view.filters.remove_filter')}:", filter[:attribute_label], filter[:operator_label], filter[:value_label] ].compact.join(' ') %>"
                 title="<%= t('bali_view.filters.remove_filter') %>">
           <%= render Bali::Icon::Component.new('times', class: 'w-2.5 h-2.5') %>
         </button>

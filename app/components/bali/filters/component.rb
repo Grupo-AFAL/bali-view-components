@@ -23,7 +23,7 @@ module Bali
       # @param url [String] The URL to submit filters to
       # @param available_attributes [Array<Hash>] Available filterable attributes
       #   Each hash should have: { key:, label:, type:, options: (for select) }, and may carry
-      #   `operators:` and `default_operator:` (see `FilterForm.filter_attribute`)
+      #   `operators:`, `default_operator:` and `nullable:` (see `FilterForm.filter_attribute`)
       #   Types: :text, :number, :date, :datetime, :select, :boolean
       # @param filter_groups [Array<Hash>] Initial filter state (from URL params). Without it,
       #   the `filter_form:`'s `filter_groups`; without either, one empty group.
@@ -192,7 +192,8 @@ module Bali
             type: attr[:type] || :text,
             options: attr[:options] || [],
             operators: attr[:operators],
-            default_operator: attr[:default_operator]
+            default_operator: attr[:default_operator],
+            nullable: attr[:nullable].presence
           }.compact
         end
       end

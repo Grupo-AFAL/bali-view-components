@@ -24,10 +24,13 @@ module Bali
       COMBINATORS = %w[and or].freeze
       extend ActiveSupport::Concern
 
-      # Longest first, so an operator that ends another (`cont` in `not_i_cont`) never wins. The
-      # `i_` twins come from RansackParamName, which `PanelConditions#current_condition_key` reads.
+      # Longest first, so an operator that ends another (`cont` in `not_i_cont`, `null` in
+      # `not_null`) never wins. The `i_` twins come from RansackParamName, which
+      # `PanelConditions#current_condition_key` reads; the four that take no value, from
+      # RansackParamName::VALUELESS.
       RANSACK_OPERATORS = (%w[not_cont not_eq not_in gteq lteq cont start end matches eq gt lt in] +
-                           RansackParamName::CASE_INSENSITIVE.values).sort_by { -it.length }.freeze
+                           RansackParamName::CASE_INSENSITIVE.values +
+                           RansackParamName::VALUELESS).sort_by { -it.length }.freeze
 
       # Parse the current filter state into a structure for Filters component.
       # Automatically extracts filter groups from Ransack grouping params (q[g][...]).
@@ -108,7 +111,7 @@ module Bali
               attribute_label: attr_config&.dig(:label) || condition[:attribute].to_s.humanize,
               operator: condition[:operator],
               value: condition[:value],
-              value_label: format_filter_value(condition[:value], attr_config)
+              value_label: (format_filter_value(condition[:value], attr_config) unless Bali::Filters::Operators.valueless?(condition[:operator]))
             }
           end
         end
@@ -128,7 +131,12 @@ module Bali
                      Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR
         conditions = group_params.except(:m).filter_map do |key, value|
           attribute, operator = parse_condition_key(key.to_s)
-          { attribute: attribute, operator: operator, value: value } if attribute
+          next unless attribute
+          # A form that declares no attributes lets `owner_null=0` through to Ransack, which
+          # reads it as "is not empty": the panel must not draw "is empty" over it (#1613).
+          next if Bali::Filters::Operators.valueless?(operator) && !Bali::Filters::Operators.asks_empty?(value)
+
+          { attribute: attribute, operator: operator, value: value }
         end
         conditions = fold_ranges(conditions) if combinator == "and"
 

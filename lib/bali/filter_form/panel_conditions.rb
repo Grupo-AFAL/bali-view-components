@@ -71,7 +71,10 @@ module Bali
       end
 
       def applicable_condition?(key, value)
-        return false if panel_condition_keys && !panel_condition_keys.include?(key)
+        if panel_condition_keys
+          return false unless panel_condition_keys.include?(key)
+          return false if valueless_predicate?(key) && !flag_condition?(value)
+        end
 
         queryable_condition?(key, value)
       end
@@ -99,6 +102,22 @@ module Bali
         @panel_condition_keys = available_attributes.flat_map { |attribute|
           Bali::Filters::Operators.predicates_for(attribute).map { |predicate| "#{attribute[:key]}_#{predicate}" }
         }.to_set.presence
+      end
+
+      # "Is empty" and "is not empty" carry no value, and Ransack reads the one they travel with
+      # as a boolean: `q[g][0][owner_id_null]=0` is `IS NOT NULL`, which the panel would paint
+      # as "is empty". Only what Ransack reads as true is the question those operators ask
+      # (#1613). The gate is the panel's alone: a simple filter with `predicate: :null` sends
+      # `false` on purpose («archived»), through `queryable_condition?`, and a form that offers
+      # the panel no attribute passes any key as it always did.
+      def valueless_predicate?(key)
+        Bali::Filters::Operators.valueless?(parse_condition_key(key.to_s)&.last)
+      end
+
+      # Ransack's own vocabulary, not ActiveModel's: it reads "yes" as nothing and drops the
+      # condition, while the panel would paint "is empty" over a listing that is not filtered.
+      def flag_condition?(value)
+        queryable_value?(value) && Bali::Filters::Operators.asks_empty?(value)
       end
 
       # A list only where the operator takes one — of the panel's, `_in` and `_not_in`.

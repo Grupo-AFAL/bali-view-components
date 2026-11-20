@@ -85,6 +85,9 @@ es:
         # Select operators
         is_any_of: "es cualquiera de"
         is_not_any_of: "no es ninguno de"
+        # Empty operators: no value
+        is_empty: "está vacío"
+        is_not_empty: "no está vacío"
         # Number operators
         greater_than: "mayor que"
         less_than: "menor que"

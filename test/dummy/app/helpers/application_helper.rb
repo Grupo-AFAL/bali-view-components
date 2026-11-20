@@ -18,7 +18,8 @@ module ApplicationHelper
     studios = Tenant.order(:name).pluck(:name, :id)
     [
       { key: :name, label: "Name", type: :text },
-      { key: :genre, label: "Genre", type: :select, options: genres },
+      # `nullable: true` adds "is empty" and "is not empty" (#1613); filters-empty.cy.js.
+      { key: :genre, label: "Genre", type: :select, options: genres, nullable: true },
       { key: :tenant_id, label: "Studio", type: :select, options: studios },
       # The option's value is the enum's LABEL (`k`), not the integer: it is the natural way
       # to write it and it is exactly the one that returned the opposite records before

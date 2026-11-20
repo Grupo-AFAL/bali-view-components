@@ -87,6 +87,16 @@ module Bali
           operator_marked?(:range)
         end
 
+        # "Is empty" and "is not empty": the operator is the whole question, so the row draws no
+        # value widget and travels a hidden `1` (condition_controller.js#buildValuelessInput).
+        def valueless_operator?
+          operator_marked?(:valueless)
+        end
+
+        def value_widget
+          valueless_operator? ? :valueless : attribute_type.to_sym
+        end
+
         # Build field names for range operators (between)
         # Returns { start: "q[g][0][field_gteq]", end: "q[g][0][field_lteq]" }
         def range_field_names
@@ -152,7 +162,7 @@ module Bali
         def with_arrived_operator(offered)
           return offered if offered.pluck(:value).include?(operator)
 
-          arrived = Operators.for_type(attribute_type).find { |op| op[:value] == operator }
+          arrived = Operators.find_for_type(attribute_type, operator)
           arrived ? offered + [ arrived ] : offered
         end
 
