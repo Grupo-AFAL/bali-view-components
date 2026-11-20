@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.28.0] - 2026-11-20
+
 ### Added
 
 - **`filter_attribute nullable: true`: «está vacío» y «no está vacío» en el panel avanzado** (#1613).
