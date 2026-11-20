@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Ruby 4.0.9 → 4.0.10**, por el aviso de ruby-lang.org del 18/11/2026: siete fallas en el motor de expresiones regulares y en el cambio de mayúsculas/minúsculas de los strings, varias con prueba de ejecución remota de código (entre ellas ruby2ßhell, GHSA-34m4-m9fh-gqp5; aún sin CVE). Solo cambia la versión con la que corren el CI y el desarrollo (`.ruby-version`): la gema corre con el Ruby de la app que la carga, y `required_ruby_version` no se mueve.
 ## [v3.28.0] - 2026-11-20
 
 ### Added
