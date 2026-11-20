@@ -171,7 +171,8 @@ module Bali
       #   required field they only add noise; `operators:` may instead name them (`%i[eq null
       #   not_null]`), and with both the empty ones are added to what `operators:` lists. A
       #   saved view, the filter cache or a URL carrying them on an attribute that offers neither
-      #   is no filter, as with any other operator. `default_operator:` cannot be one of them.
+      #   is no filter, as with any other operator. `default_operator:` may be one of them; an
+      #   advanced `default:` cannot go through one, because it has no value to hold.
       # @param blank [String, Proc] Blank option text for the simple UI
       # @param default [String, Boolean, Array, Hash, Proc] The value this listing opens on.
       #   It preselects the simple control, and it is what
@@ -393,8 +394,8 @@ module Bali
         return if operator.nil?
 
         if Bali::Filters::Operators.valueless?(operator)
-          raise ArgumentError, "filter_attribute #{key}: default_operator: :#{operator} takes no value, so " \
-                               "default: has nothing to say through it; declare a default_operator: that takes one"
+          raise ArgumentError, "filter_attribute #{key}: default: is applied with :#{operator}, which takes no " \
+                               "value; declare a default_operator: that takes one"
         end
         return if Bali::Filters::Operators.predicates_for(attribute).include?(operator)
 

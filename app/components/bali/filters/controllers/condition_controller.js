@@ -49,7 +49,7 @@ export class ConditionController extends Controller {
     // A condition that ARRIVED incomplete came from a URL that no longer filters anything
     // (a bookmark written before #652, or a hand-edited query string). Say so straight
     // away — that one is not work in progress.
-    this.everHadValue = this.hasValue()
+    this.everHadValue = this.hasChosenValue()
     this.flagged = this.incomplete()
     this.refreshHint()
   }
@@ -65,7 +65,7 @@ export class ConditionController extends Controller {
    * why — so it starts explaining itself before Apply, while it can still be fixed.
    */
   valueChanged () {
-    if (this.hasValue()) {
+    if (this.hasChosenValue()) {
       this.everHadValue = true
     } else if (this.everHadValue) {
       this.flagged = true
@@ -141,11 +141,17 @@ export class ConditionController extends Controller {
     // the server discards without a word (#652).
     if (this.needsWidgetSwap(type, isMultiple, isRange, isValueless)) {
       // The hidden `1` of "is empty" is not a choice the user made, so leaving it loses nothing.
-      const hadValue = !this.rendersValueless() && this.hasValue()
+      const wasValueless = this.rendersValueless()
+      const hadValue = !wasValueless && this.hasValue()
       const previous = this.selectedValues()
       this.renderValueInput(type, attributeKey, options, isMultiple, isRange, isValueless)
       // Nothing to restore into the hidden `1`, and choosing "is empty" gave the value up on purpose.
       const kept = isValueless || this.restoreSelectedValues(previous, isMultiple)
+      // Entering or leaving "is empty" is a fresh start, like picking another attribute.
+      if (isValueless || wasValueless) {
+        this.everHadValue = false
+        this.flagged = false
+      }
       // The swap dropped something the user had chosen. That IS the silent loss this
       // component was reported for, so the row owes an explanation from here on.
       if (hadValue && !kept) this.flagged = true
@@ -316,6 +322,11 @@ export class ConditionController extends Controller {
    */
   incomplete () {
     return this.selectedAttribute() !== '' && !this.hasValue()
+  }
+
+  // A value the user chose: the hidden `1` of "is empty" is not one.
+  hasChosenValue () {
+    return !this.rendersValueless() && this.hasValue()
   }
 
   hasValue () {

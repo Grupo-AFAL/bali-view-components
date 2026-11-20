@@ -2,9 +2,7 @@
 
 require "test_helper"
 
-# #1613. `filter_attribute nullable: true` (or `operators:` naming them) offers "is empty" and
-# "is not empty" in the advanced panel. They take no value: the condition travels as
-# `q[g][N][attribute_null]=1` (`_blank` on text, which also counts the empty string).
+# #1613: "is empty" and "is not empty" in the advanced panel.
 class BaliFilterFormEmptyOperatorsTest < ComponentTestCase
   include RansackTestHelpers
 
@@ -53,11 +51,15 @@ class BaliFilterFormEmptyOperatorsTest < ComponentTestCase
     assert_equal %w[eq null not_null], offered.call({ key: :genre, type: :select, operators: %i[eq null], nullable: true })
   end
 
-  test "an empty operator the type does not offer raises" do
-    { { type: :text, operators: %i[null] } => "null", { type: :number, operators: %i[blank] } => "blank" }.each do |attribute, unknown|
-      error = assert_raises(ArgumentError) { Bali::Filters::Operators.for_attribute({ key: :code, **attribute }) }
-      assert_match "code: type :#{attribute[:type]} offers no operator #{unknown} (valid:", error.message
-    end
+  # A select over a string column that stores '' is not found by `null`: it may name `blank`.
+  test "operators may name either pair, whatever the type" do
+    offered = ->(attribute) { Bali::Filters::Operators.for_attribute(attribute).pluck(:value) }
+
+    assert_equal %w[eq blank present], offered.call({ key: :genre, type: :select, operators: %i[eq blank present] })
+    assert_equal %w[eq null], offered.call({ key: :synopsis, type: :text, operators: %i[eq null] })
+    assert_equal "is empty", I18n.with_locale(:en) { Bali::Filters::Operators.label_for("null", :text) }
+    error = assert_raises(ArgumentError) { offered.call({ key: :code, type: :text, operators: %i[gt null] }) }
+    assert_match "code: type :text offers no operator gt (valid:", error.message
   end
 
   test "the four are marked as taking no value, and nothing else is" do
@@ -66,7 +68,6 @@ class BaliFilterFormEmptyOperatorsTest < ComponentTestCase
     assert_equal [ "is empty", "is not empty" ], I18n.with_locale(:en) { Bali::Filters::Operators.for_type(:number, nullable: true).last(2).pluck(:label) }
     assert_equal [ "está vacío", "no está vacío" ], I18n.with_locale(:es) { Bali::Filters::Operators.for_type(:number, nullable: true).last(2).pluck(:label) }
     assert_equal %w[null not_null], Bali::Filters::Operators.for_type(:date, nullable: true).last(2).pluck(:value)
-    assert(%w[null not_null blank present].all? { |operator| Bali::Filters::Operators.valueless?(operator) })
     refute(%w[eq in between cont].any? { |operator| Bali::Filters::Operators.valueless?(operator) })
     assert_empty Bali::Filters::Operators.for_type(:select).select { |operator| operator[:valueless] }
   end
@@ -89,8 +90,28 @@ class BaliFilterFormEmptyOperatorsTest < ComponentTestCase
   end
 
   test "text counts the empty string as empty and a select only NULL" do
-    assert_equal [ @blank_genre ], form("0" => { "synopsis_blank" => "true" }).result.to_a
-    assert_empty form("0" => { "genre_not_null" => "1", "synopsis_blank" => "1" }).result.where(name: "Complete")
+    emptied = Movie.create!(name: "Emptied", genre: "", synopsis: "", studio: @filled.studio)
+
+    assert_includes form("0" => { "synopsis_blank" => "1" }).result, emptied
+    assert_not_includes form("0" => { "genre_null" => "1" }).result, emptied
+    assert_includes form("0" => { "genre_not_null" => "1" }).result, emptied
+  end
+
+  # A link may carry one of the four on a type that does not offer it (a form that declares no
+  # attributes lets any key through): the row draws it, and the pill names it.
+  test "a condition that arrives with the pair of another type is drawn with it" do
+    attributes = [ { key: :name, label: "Name", type: :text }, { key: :budget, label: "Budget", type: :number } ]
+    groups = [ { combinator: "and", conditions: [ { attribute: "name", operator: "null", value: "1" },
+                                                  { attribute: "budget", operator: "blank", value: "1" } ] } ]
+    render_inline(Bali::Filters::Component.new(url: "/movies", available_attributes: attributes, filter_groups: groups, popover: false))
+    rows = page.all("[data-filters-target='groupsContainer'] [data-controller='condition']", visible: :all)
+
+    assert_equal %w[null blank], rows.map { |row| row.find("[data-condition-target='operator']", visible: :all).value }
+    assert_equal [ [ "hidden", "1" ] ] * 2, rows.map { |row| row.find("[data-condition-target='valueContainer'] [data-valueless='true']", visible: :all).then { |input| [ input[:type], input[:value] ] } }
+    assert_equal [ "Name is empty", "Budget is empty" ], I18n.with_locale(:en) {
+      render_inline(Bali::Filters::AppliedTags::Component.new(filter_groups: groups, available_attributes: attributes, url: "/movies"))
+      page.all("[data-applied-tags-target='tag']").map { |tag| tag.text.squish }
+    }
   end
 
   # `budget_band` is a SQL CASE the dummy's Movie declares as a ransacker.
@@ -110,13 +131,35 @@ class BaliFilterFormEmptyOperatorsTest < ComponentTestCase
     assert_equal [ @filled ], applied.result.to_a
   end
 
-  test "a flag that is not true is no filter, because the panel would paint the opposite" do
-    %w[0 false].each do |flag|
+  test "a flag Ransack does not read as true is no filter, because the panel would paint the opposite" do
+    %w[0 false yes on 2].each do |flag|
       applied = form("0" => { "genre_null" => flag })
 
       assert_empty applied.filter_groups, flag
       assert_equal 2, applied.result.count, flag
     end
+    %w[1 true t TRUE].each { |flag| assert_equal [ @blank_genre ], form("0" => { "genre_null" => flag }).result.to_a, flag }
+  end
+
+  # The form that offers the panel no attribute lets any key through, as it always did, and
+  # the panel draws nothing over the "is not empty" Ransack reads in `genre_null=false`.
+  test "a form with no attributes keeps the flag it was given and draws no condition for it" do
+    bare = Bali::FilterForm.new(Movie.all, ActionController::Parameters.new(q: { g: { "0" => { "genre_null" => "false" } } }))
+
+    assert_match(/"genre" IS NOT NULL/, bare.result.to_sql)
+    assert_equal [ [ "", nil, "" ] ], conditions(bare)
+  end
+
+  # `predicate: :null` is how a simple filter asks «archived» (`archived_at_null=false`), and
+  # `queryable_condition?` is the gate the simple filters share with the panel.
+  test "a simple filter with a null predicate keeps its false" do
+    archived = Class.new(Bali::FilterForm) do
+      filter_attribute :genre, type: :select, simple: true, advanced: false, predicate: :null, options: [ [ "With", "false" ] ]
+    end
+    applied = archived.new(Movie.all, ActionController::Parameters.new(q: { genre_null: "false" }))
+
+    assert_equal({ "genre_null" => "false" }, applied.active_simple_filters)
+    assert_match(/"genre" IS NOT NULL/, applied.result.to_sql)
   end
 
   test "an attribute that does not offer them takes no empty condition, from a URL or a saved view" do
@@ -152,7 +195,7 @@ class BaliFilterFormEmptyOperatorsTest < ComponentTestCase
     rows = drawn(form("0" => { "genre_null" => "1", "budget_not_null" => "1", "synopsis_blank" => "1" }))
 
     assert_equal [ [ "null", [ "q[g][0][genre_null]" ] ], [ "not_null", [ "q[g][0][budget_not_null]" ] ],
-                  [ "blank", [ "q[g][0][synopsis_blank]" ] ] ], rows.map { |operator, names, widgets| [ operator, names ] }
+                  [ "blank", [ "q[g][0][synopsis_blank]" ] ] ], rows.map { |operator, names, _widgets| [ operator, names ] }
     assert(rows.all? { |_, _, widgets| widgets == [ [ "hidden", "1" ] ] })
   end
 
@@ -188,7 +231,7 @@ class BaliFilterFormEmptyOperatorsTest < ComponentTestCase
   test "the declaration is checked when the form is declared" do
     [
       [ { type: :select, nullable: true, simple: true, advanced: false }, /apply to the advanced panel/ ],
-      [ { type: :text, nullable: true, default_operator: :blank, default: "x" }, /default_operator: :blank takes no value/ ]
+      [ { type: :text, nullable: true, default_operator: :blank, default: "x" }, /default: is applied with :blank, which takes no value/ ]
     ].each do |options, message|
       error = assert_raises(ArgumentError, options.inspect) { Class.new(Bali::FilterForm) { filter_attribute :name, **options } }
       assert_match message, error.message

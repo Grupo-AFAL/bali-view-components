@@ -29,8 +29,6 @@ module Bali
       end
 
       # Whether the operator is one of the four that take no value ({RansackParamName::VALUELESS}).
-      # The hash `for_type` returns marks them `valueless: true`, which the condition's template
-      # and condition_controller.js read to draw no value widget.
       # @param operator [String, Symbol, nil]
       def valueless?(operator)
         RansackParamName::VALUELESS.include?(operator.to_s)
@@ -38,9 +36,10 @@ module Bali
 
       # The operators the panel offers for one attribute: its type's, narrowed to and ordered
       # by its `operators:` when it declares them. "Is empty" and "is not empty" come only when
-      # it asks for them, with `nullable: true` (after the rest) or by naming `null` and
-      # `not_null` (`blank` and `present` on text) in `operators:`: on a required field they
-      # only add noise (#1613).
+      # it asks for them, with `nullable: true` (after the rest) or by naming them in
+      # `operators:`: on a required field they only add noise (#1613). `nullable:` picks the pair
+      # of its type; `operators:` may name either (`blank` and `present` for a select over a
+      # string column that stores '').
       #
       # @param attribute [Hash] `{ key:, type:, operators:, nullable: }`, as
       #   `FilterForm#available_attributes` builds it
@@ -53,7 +52,7 @@ module Bali
         nullable = attribute[:nullable].present?
         return for_type(type, nullable: nullable) if attribute[:operators].nil?
 
-        universe = for_type(type, nullable: true)
+        universe = for_type(type) | every_emptiness_operator
         declared = Array(attribute[:operators])
         unknown = declared.reject { |operator| find_operator(universe, operator) }
         if declared.empty? || unknown.any?
@@ -97,13 +96,27 @@ module Bali
         for_attribute(attribute).flat_map { |operator| operator[:range] ? %w[gteq lteq] : operator[:value] }.uniq
       end
 
+      # Whether what an empty operator travels with is a yes. Ransack reads `owner_null=0` as
+      # "is not empty", so the panel neither applies nor draws one that is not.
+      # @param value [Object]
+      def asks_empty?(value)
+        Ransack::Constants::TRUE_VALUES.include?(value)
+      end
+
+      # The operator hash a condition that arrived with `value` is drawn with: the type's own, or
+      # one of the four that take no value, which a link may carry on any type.
+      # @return [Hash, nil]
+      def find_for_type(type, value)
+        find_operator(for_type(type) | every_emptiness_operator, value.to_s)
+      end
+
       # Returns the localized label for a specific operator and type.
       # @param operator [String] The operator value (e.g., 'eq', 'cont')
       # @param type [Symbol, String] The field type
       # @return [String] The localized label or the operator value if not found
       def label_for(operator, type)
         current = RansackParamName.text_predicate(operator)
-        for_type(type, nullable: true).find { |o| o[:value] == current }&.dig(:label) || operator
+        find_for_type(type, current)&.dig(:label) || operator
       end
 
       private
@@ -124,8 +137,9 @@ module Bali
         RansackParamName.text_predicate(predicate)
       end
 
-      # `blank` and `present` on text, so that '' is empty too; `null` and `not_null` elsewhere,
-      # where Ransack's blank would compare a number or a date with '' (ransack#1552).
+      # `blank` and `present` on text, so that '' is empty too; `null` and `not_null` elsewhere.
+      # Ransack compiles `blank` as `IS NULL OR = ''` on a string column and as `IS NULL` on the
+      # rest, but a ransacker has no column and counts as a string: `<number expression> = ''`.
       def emptiness_operators(type)
         text = OPERATOR_METHODS.fetch(type.to_sym, :text_operators) == :text_operators
         empty, filled = text ? %w[blank present] : %w[null not_null]
@@ -133,6 +147,10 @@ module Bali
           { value: empty, label: t_op("is_empty"), valueless: true },
           { value: filled, label: t_op("is_not_empty"), valueless: true }
         ]
+      end
+
+      def every_emptiness_operator
+        emptiness_operators(:text) + emptiness_operators(:number)
       end
 
       def find_operator(offered, operator)

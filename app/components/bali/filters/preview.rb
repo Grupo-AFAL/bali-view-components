@@ -173,7 +173,7 @@ module Bali
       # @param popover toggle
       # An attribute that may be left blank asks for "is empty" and "is not empty" with
       # `nullable: true`, as `FilterForm.filter_attribute` declares it. Those two take no value:
-      # picking one drops the value field, and the condition travels as `q[g][0][owner_id_null]=1`
+      # picking one drops the value field, and the condition travels as `q[g][0][owner_null]=1`
       # (`_blank` on text, so '' counts as empty). "Name" declares nothing and offers neither.
       def empty_operators(popover: true)
         render Filters::Component.new(

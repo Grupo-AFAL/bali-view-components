@@ -111,7 +111,7 @@ module Bali
               attribute_label: attr_config&.dig(:label) || condition[:attribute].to_s.humanize,
               operator: condition[:operator],
               value: condition[:value],
-              value_label: (format_filter_value(condition[:value], attr_config) unless RansackParamName::VALUELESS.include?(condition[:operator]))
+              value_label: (format_filter_value(condition[:value], attr_config) unless Bali::Filters::Operators.valueless?(condition[:operator]))
             }
           end
         end
@@ -131,7 +131,12 @@ module Bali
                      Bali::Filters::FilterGroup::Component::DEFAULT_COMBINATOR
         conditions = group_params.except(:m).filter_map do |key, value|
           attribute, operator = parse_condition_key(key.to_s)
-          { attribute: attribute, operator: operator, value: value } if attribute
+          next unless attribute
+          # A form that declares no attributes lets `owner_null=0` through to Ransack, which
+          # reads it as "is not empty": the panel must not draw "is empty" over it (#1613).
+          next if Bali::Filters::Operators.valueless?(operator) && !Bali::Filters::Operators.asks_empty?(value)
+
+          { attribute: attribute, operator: operator, value: value }
         end
         conditions = fold_ranges(conditions) if combinator == "and"
 
