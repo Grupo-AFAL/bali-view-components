@@ -1,3 +1,5 @@
+import { containsPredicate } from '../support/ransack'
+
 // Regression cover for #799: rendered without `search:`, the panel's Apply button did
 // nothing at all — no request, no navigation, no message.
 //
@@ -10,6 +12,11 @@
 // because that split is exactly how the bug survived: every Filters preview is wired
 // WITHOUT a search, while the DataTable, where the panel is usually met, always brings one.
 describe('FiltersController', () => {
+  // The variant of `cont` this ransack gets from Bali: it names the field a text condition
+  // submits and the quick search's box.
+  let cont
+  beforeEach(() => containsPredicate().then((predicate) => { cont = predicate }))
+
   const applyButton = '[data-filters-target="form"] button[type="submit"]'
   const attribute = '[data-condition-target="attribute"]'
   const value = '[data-condition-target="value"]'
@@ -54,7 +61,7 @@ describe('FiltersController', () => {
 
       filterParams().should('deep.equal', [
         ['q[g][0][m]', 'and'],
-        ['q[g][0][name_cont]', 'Alien']
+        [`q[g][0][name_${cont}]`, 'Alien']
       ])
     })
 
@@ -76,8 +83,8 @@ describe('FiltersController', () => {
 
       filterParams().should('deep.equal', [
         ['q[g][0][m]', 'and'],
-        ['q[g][0][name_cont]', 'Alien'],
-        ['q[g][0][email_cont]', 'ripley']
+        [`q[g][0][name_${cont}]`, 'Alien'],
+        [`q[g][0][email_${cont}]`, 'ripley']
       ])
       cy.get('[data-filter-group-target="combinatorToggle"] [data-combinator="and"]')
         .should('have.attr', 'aria-pressed', 'true')
@@ -95,7 +102,7 @@ describe('FiltersController', () => {
 
       filterParams().should('deep.equal', [
         ['q[g][0][m]', 'and'],
-        ['q[g][0][name_cont]', 'Alien']
+        [`q[g][0][name_${cont}]`, 'Alien']
       ])
     })
   })
@@ -192,7 +199,7 @@ describe('FiltersController', () => {
       cy.location('search').should((search) => {
         const params = new URLSearchParams(search)
         expect(params.getAll('locale')).to.deep.equal(['es'])
-        expect(params.get('q[g][0][name_cont]')).to.equal('Alien')
+        expect(params.get(`q[g][0][name_${cont}]`)).to.equal('Alien')
       })
     })
 
@@ -235,7 +242,7 @@ describe('FiltersController', () => {
           const keys = entries.map(([key]) => key)
           excluded.concat('clear_filters').forEach((key) => expect(keys).not.to.include(key))
           expect(entries).to.deep.include(['view', 'grid'])
-          expect(entries).to.deep.include(['q[g][0][name_cont]', 'Alien'])
+          expect(entries).to.deep.include([`q[g][0][name_${cont}]`, 'Alien'])
         })
         cy.location('search').should('not.include', 'saved_view').and('include', 'view=grid')
       })
@@ -277,8 +284,8 @@ describe('FiltersController', () => {
       cy.wait('@listing').then(({ request }) => {
         const query = new URL(request.url).search
         const params = new URLSearchParams(query)
-        expect(params.get('q[name_or_genre_or_studio_name_cont]')).to.equal('the')
-        expect(params.get('q[g][0][name_cont]')).to.equal('a')
+        expect(params.get(`q[name_or_genre_or_studio_name_${cont}]`)).to.equal('the')
+        expect(params.get(`q[g][0][name_${cont}]`)).to.equal('a')
         expect(params.get('group_by')).to.equal('genre')
         cy.location('search').should('equal', query)
       })
@@ -287,7 +294,7 @@ describe('FiltersController', () => {
     // The search form's hidden fields hold the groups as last APPLIED, for a submit the
     // controller does not intercept; the URL holds the panel as it is on screen.
     it('searches with the groups the URL keeps', () => {
-      cy.visit(`${appOrigin}/admin/movies?q[g][0][m]=and&q[g][0][name_cont]=a`)
+      cy.visit(`${appOrigin}/admin/movies?q[g][0][m]=and&q[g][0][name_${cont}]=a`)
       openPanel()
       cy.get(value).clear().type('e')
       cy.get(searchInput).type('the')
@@ -298,8 +305,8 @@ describe('FiltersController', () => {
       cy.wait('@listing').then(({ request }) => {
         const query = new URL(request.url).search
         const params = new URLSearchParams(query)
-        expect(params.get('q[g][0][name_cont]')).to.equal('e')
-        expect(params.get('q[name_or_genre_or_studio_name_cont]')).to.equal('the')
+        expect(params.get(`q[g][0][name_${cont}]`)).to.equal('e')
+        expect(params.get(`q[name_or_genre_or_studio_name_${cont}]`)).to.equal('the')
         cy.location('search').should('equal', query)
       })
     })

@@ -3,16 +3,21 @@
 require "test_helper"
 
 class BaliRansackParamNameTest < ActiveSupport::TestCase
+  include RansackTestHelpers
+
+  # The matcher is spelled out for each ransack: it is what these tests pin.
+  def matcher = ransack_6? ? "i_cont" : "cont"
+
   def test_predicate_joins_the_columns_and_appends_the_matcher
-    assert_equal("name_or_genre_cont", Bali::RansackParamName.predicate(%i[name genre]))
+    assert_equal("name_or_genre_#{matcher}", Bali::RansackParamName.predicate(%i[name genre]))
   end
 
   def test_predicate_accepts_a_single_column
-    assert_equal("name_cont", Bali::RansackParamName.predicate(:name))
+    assert_equal("name_#{matcher}", Bali::RansackParamName.predicate(:name))
   end
 
   def test_predicate_accepts_strings
-    assert_equal("name_or_tenant_name_cont", Bali::RansackParamName.predicate(%w[name tenant_name]))
+    assert_equal("name_or_tenant_name_#{matcher}", Bali::RansackParamName.predicate(%w[name tenant_name]))
   end
 
   def test_predicate_is_nil_without_columns
@@ -22,7 +27,7 @@ class BaliRansackParamNameTest < ActiveSupport::TestCase
   end
 
   def test_param_wraps_the_predicate_in_the_ransack_scope
-    assert_equal("q[name_or_genre_cont]", Bali::RansackParamName.param(%i[name genre]))
+    assert_equal("q[name_or_genre_#{matcher}]", Bali::RansackParamName.param(%i[name genre]))
   end
 
   def test_param_is_nil_without_columns
@@ -31,6 +36,8 @@ class BaliRansackParamNameTest < ActiveSupport::TestCase
 end
 
 class BaliSearchConfigTest < ActiveSupport::TestCase
+  include RansackTestHelpers
+
   def test_wrap_accepts_nil
     config = Bali::SearchConfig.wrap(nil)
     assert_not(config.enabled?)
@@ -50,8 +57,9 @@ class BaliSearchConfigTest < ActiveSupport::TestCase
 
   def test_derives_the_ransack_param_from_the_columns
     config = Bali::SearchConfig.new(fields: %i[name genre])
-    assert_equal("name_or_genre_cont", config.predicate)
-    assert_equal("q[name_or_genre_cont]", config.param_name)
+    matcher = ransack_6? ? "i_cont" : "cont"
+    assert_equal("name_or_genre_#{matcher}", config.predicate)
+    assert_equal("q[name_or_genre_#{matcher}]", config.param_name)
   end
 
   def test_blank_columns_are_dropped

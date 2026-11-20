@@ -188,6 +188,8 @@ class StringEnumMovie < ActiveRecord::Base
 end
 
 class BaliFilterFormTest < ActiveSupport::TestCase
+  include RansackTestHelpers
+
   def setup
     @tenant = Tenant.create(name: "Test")
     @iron_man_3 = @tenant.movies.create(name: "Iron man 3", status: 1)
@@ -512,7 +514,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
     assert_empty(@form.active_filters)
     assert_equal(
-      [ [ "q[g][0][m]", "and" ], [ "q[g][0][name_cont]", "Iron" ] ],
+      [ [ "q[g][0][m]", "and" ], [ "q[g][0][name_#{text('cont')}]", "Iron" ] ],
       Bali::Filters::ActiveFilterParams.for_filter_form(@form)
     )
   end
@@ -637,7 +639,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     assert_equal(1, groups.size)
     assert_equal("or", groups[0][:combinator])
     assert_equal(1, groups[0][:conditions].size)
-    assert_equal({ attribute: "name", operator: "cont", value: "Iron" }, groups[0][:conditions][0])
+    assert_equal({ attribute: "name", operator: text("cont"), value: "Iron" }, groups[0][:conditions][0])
   end
 
   def test_filter_groups_parses_multiple_conditions_in_a_group
@@ -776,7 +778,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 
   def test_search_field_name_builds_ransack_field_name_from_search_fields
     @form = SearchableMovieFilterForm.new(Movie.all, params({}))
-    assert_equal("name_or_genre_or_tenant_name_cont", @form.search_field_name)
+    assert_equal("name_or_genre_or_tenant_name_#{text('cont')}", @form.search_field_name)
   end
 
   def test_search_field_name_returns_nil_when_no_search_fields
@@ -870,7 +872,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
   def test_search_fields_via_initialize_parameter_accepts_search_fields_as_initialize_parameter
     @form = Bali::FilterForm.new(Movie.all, params({}), search_fields: %i[name description])
     assert_equal(%i[name description], @form.search_fields)
-    assert_equal("name_or_description_cont", @form.search_field_name)
+    assert_equal("name_or_description_#{text('cont')}", @form.search_field_name)
   end
 
   def test_search_fields_via_initialize_parameter_extracts_search_value_with_dynamic_search_fields
@@ -894,7 +896,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
   def test_ransack_params_includes_search_value_when_search_is_enabled
     filter_params = { name_or_genre_or_tenant_name_cont: "Iron" }
     @form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
-    assert_equal("Iron", @form.ransack_params["name_or_genre_or_tenant_name_cont"])
+    assert_equal("Iron", @form.ransack_params["name_or_genre_or_tenant_name_#{text('cont')}"])
   end
 
   def test_ransack_params_includes_groupings_when_present
@@ -904,7 +906,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     }
     @form = AdvancedMovieFilterForm.new(Movie.all, params(filter_params))
     assert(@form.ransack_params[:g].present?)
-    assert_equal("Iron", @form.ransack_params[:g]["0"]["name_cont"])
+    assert_equal("Iron", @form.ransack_params[:g]["0"]["name_#{text('cont')}"])
   end
 
   def test_ransack_params_includes_combinator_when_present
@@ -923,7 +925,7 @@ class BaliFilterFormTest < ActiveSupport::TestCase
     }
     @form = SearchableMovieFilterForm.new(Movie.all, params(filter_params))
     ransack_params = @form.ransack_params
-    assert_equal("Iron", ransack_params["name_or_genre_or_tenant_name_cont"])
+    assert_equal("Iron", ransack_params["name_or_genre_or_tenant_name_#{text('cont')}"])
     assert(ransack_params[:g].present?)
     assert_equal("and", ransack_params[:m])
   end
@@ -941,6 +943,8 @@ class BaliFilterFormTest < ActiveSupport::TestCase
 end
 
 class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
+  include RansackTestHelpers
+
   # Use memory store for these tests since test env uses null_store by default
 
   def setup
@@ -1140,7 +1144,7 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
     stored = Rails.cache.read(cache_key_for(AdvancedMovieFilterForm))
     assert_kind_of(Hash, stored)
     assert(stored[:groupings].present?)
-    assert_equal("Iron", stored[:groupings]["0"]["name_cont"])
+    assert_equal("Iron", stored[:groupings]["0"]["name_#{text('cont')}"])
     assert_equal("and", stored[:combinator])
   end
 
@@ -1329,6 +1333,8 @@ class BaliFilterFormPersistenceTest < ActiveSupport::TestCase
 end
 
 class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
+  include RansackTestHelpers
+
   def setup
     @tenant = Tenant.create(name: "Test")
   end
@@ -1601,7 +1607,7 @@ class BaliFilterFormTestSimpleFilters < ActiveSupport::TestCase
     assert_kind_of(Hash, config)
     assert_equal(%i[name genre], config[:fields])
     assert_equal("Search by name, genre...", config[:placeholder])
-    assert_equal("q[name_or_genre_cont]", Bali::SearchConfig.wrap(config).param_name)
+    assert_equal("q[name_or_genre_#{text('cont')}]", Bali::SearchConfig.wrap(config).param_name)
   end
 
   def test_search_config_carries_the_search_icon

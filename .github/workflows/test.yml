@@ -128,45 +128,37 @@ jobs:
           path: coverage/
           retention-days: 7
 
-  # Bali's own lock stays on ransack 5, which the fleet runs (#1530). This job runs with ransack 6
-  # the tests written to hold under both versions; the rest of the suite pins the names ransack 5
-  # gets. "the switch is whether the installed ransack is 6" only fails here.
-  test-ransack-6:
+  # Bali's own lock is on ransack 6 and its gemspec still accepts 5 (#1530), which identity pins
+  # (`~> 5.0`, #487) and the apps still on 5.0.3 run. This job installs the latest 5.x and runs
+  # test/bali: the tests that name a search box or a panel field hold under both versions, and
+  # "the switch is whether the installed ransack is 6" fails here when it takes 5 for 6.
+  test-ransack-5:
     runs-on: ubuntu-latest
     permissions:
       contents: read
     env:
-      BUNDLE_GEMFILE: gemfiles/ransack_6.gemfile
+      BUNDLE_GEMFILE: gemfiles/ransack_5.gemfile
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
       # No bundler-cache: it installs frozen from a versioned lock, and this one is derived
-      # (gemfiles/ransack_6.gemfile says why).
+      # (gemfiles/ransack_5.gemfile says why).
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
-      - name: Derive the ransack 6 lock from Gemfile.lock and install
+      - name: Derive the ransack 5 lock from Gemfile.lock and install
         env:
           BUNDLE_GITHUB__COM: x-access-token:${{ secrets.BUNDLE_GITHUB_TOKEN }}
         run: |
-          cp Gemfile.lock gemfiles/ransack_6.gemfile.lock
+          cp Gemfile.lock gemfiles/ransack_5.gemfile.lock
           bundle lock --update ransack --conservative
           bundle install
-      - name: Check that ransack 6 is the one installed
+      - name: Check that ransack 5 is the one installed
         run: |
-          bundle exec ruby -e 'abort "ransack #{Gem.loaded_specs["ransack"].version}, not 6" unless Gem.loaded_specs["ransack"].version >= Gem::Version.new("6")'
+          bundle exec ruby -e 'abort "ransack #{Gem.loaded_specs["ransack"].version}, not 5" unless Gem.loaded_specs["ransack"].version < Gem::Version.new("6")'
       - name: Set up database schema
         run: bin/rails db:schema:load
         env:
           RAILS_ENV: test
-      # One `-i` per test: an `-i` that matches nothing makes minitest exit 1.
-      - name: Run the filter tests that hold under both ransack versions
-        run: |
-          bin/rails test test/bali/filter_form_text_predicates_test.rb test/bali/filter_form_operators_test.rb \
-            test/bali/filter_form_between_test.rb test/bali/components/filters/operators_test.rb
-          bin/rails test test/bali/components/filters/condition/component_test.rb -i /carries_the_operators/
-          bin/rails test test/bali/components/filters/condition/component_test.rb -i /offers_one_operator/
-          bin/rails test test/bali/components/filters/condition/component_test.rb -i /lone_operator/
-          bin/rails test test/bali/components/filters/condition/component_test.rb -i /operator_it_arrived_with/
-          bin/rails test test/bali/components/filters/component_test.rb -i /operators_reach_its_option/
-          bin/rails test test/bali/components/data_table/saved_views_test.rb -i /every_name_the_form/
-          bin/rails test test/bali/filter_form_test.rb -i /EnumCastingFilterFormTest/
+      # test/bali only: test/requests needs the built assets this job does not make.
+      - name: Run test/bali with ransack 5
+        run: bin/rails test test/bali

@@ -67,5 +67,5 @@ test/dummy/log/*.log.*
 # principal; la barra final solo cubria directorios.
 /test/dummy/node_modules
 
-# Derived in CI from Gemfile.lock (gemfiles/ransack_6.gemfile).
+# Derived in CI from Gemfile.lock (gemfiles/ransack_5.gemfile).
 /gemfiles/*.gemfile.lock
