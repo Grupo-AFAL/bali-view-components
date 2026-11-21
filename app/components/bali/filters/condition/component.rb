@@ -109,7 +109,7 @@ module Bali
         end
 
         # Parse range values from condition
-        # Range values are stored as { start: date1, end: date2 }
+        # Range values are stored as { start: first end, end: last end }, dates or numbers
         def range_values
           return {} unless value.is_a?(Hash)
 

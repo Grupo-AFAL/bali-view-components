@@ -86,7 +86,6 @@ es:
         before: "antes de"
         on_or_after: "en o después de"
         on_or_before: "en o antes de"
-        not_on: "no es"
         # Select operators
         is_any_of: "es cualquiera de"
         is_not_any_of: "no es ninguno de"

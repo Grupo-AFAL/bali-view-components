@@ -179,7 +179,7 @@ module Bali
           { value: "lt", label: t_op("before") },
           { value: "gteq", label: t_op("on_or_after") },
           { value: "lteq", label: t_op("on_or_before") },
-          { value: "not_eq", label: t_op("not_on") }
+          { value: "not_eq", label: t_op("is_not") }
         ]
       end
 

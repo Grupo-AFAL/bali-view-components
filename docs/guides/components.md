@@ -5093,8 +5093,8 @@ A number's "between" is the same pair, drawn as two number fields (v3.29.0).
 **What each type offers, in the order the select shows them** (`Bali::Filters::Operators.for_type`):
 text — contains, is exactly, starts with, ends with, does not contain, is not, does not start
 with, does not end with; number — `=`, `≠`, `>`, `<`, `≥`, `≤`, between; date and datetime — is,
-between, after, before, on or after, on or before, not on; select — is, is not, is any of, is not any
-of; boolean — is. "Not on" over a datetime column leaves out the whole day, not only its midnight:
+between, after, before, on or after, on or before, is not; select — is, is not, is any of, is not any
+of; boolean — is. "Is not" over a datetime column leaves out the whole day, not only its midnight:
 `created_at_not_eq=2026-08-27` becomes `created_at_lt` the start of the day OR `created_at_gt` its
 end.
 

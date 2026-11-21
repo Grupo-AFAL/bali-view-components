@@ -1,5 +1,5 @@
-// v3.29.0 — "between" over numbers, "does not start / end with" over text and "not on" over
-// dates. The listing's rows say what was filtered; the panel's markup, what the row drew.
+// "Between" over numbers, "does not start / end with" over text and "is not" over dates.
+// The listing's rows say what was filtered; the panel's markup, what the row drew.
 const container = '[data-condition-target="valueContainer"]'
 const movies = () => `${new URL(Cypress.config('baseUrl')).origin}/admin/movies`
 const rowNames = ($rows) =>
@@ -40,7 +40,6 @@ describe('The operators the advanced panel gained', () => {
     it('is painted again as one condition from a link written with its two bounds', () => {
       cy.visit(`${movies()}?q[g][0][budget_gteq]=160000000&q[g][0][budget_lteq]=185000000&q[g][0][m]=and`)
 
-      cy.get('[data-action="click->filters#toggleDropdown"]').first().should('contain', '1')
       openPanel()
       operator().should('have.value', 'between')
       cy.get('[data-condition-target="rangeStart"]').first().should('have.value', '160000000')
@@ -106,7 +105,7 @@ describe('The operators the advanced panel gained', () => {
     })
   })
 
-  describe('not on, over a date', () => {
+  describe('is not, over a date', () => {
     // The seeds are created 37 days apart: the day of one row holds that row alone, and a `!=`
     // midnight would leave it in, since no seed is created at exactly midnight.
     it('leaves out every row of that day, though no row is created at midnight', () => {

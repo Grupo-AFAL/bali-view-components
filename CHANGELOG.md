@@ -12,23 +12,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Cuatro operadores más en el panel avanzado: «entre» en números, «no comienza con» y «no termina
-  con» en texto, «no es» en fechas.** Los ofrece todo panel sin declarar nada; `operators:` deja
-  fuera el que una app no quiera. «Entre» pinta dos campos numéricos y viaja como `x_gteq` y
-  `x_lteq`, igual que el de las fechas. Los dos de texto escriben `not_i_start` y `not_i_end` con
-  ransack 6 y `not_start` y `not_end` con 5 (`Bali::RansackParamName`), y una liga o vista
-  guardada con el nombre de la otra versión se lee igual. «No es» sobre una columna de fecha y hora
-  deja fuera el día entero (`x_lt` el inicio del día o `x_gt` su fin) y no sólo la medianoche, que
-  habría dejado pasar casi todas las filas.
+  con» en texto, «no es» en fechas** (#1669). Los ofrece todo panel sin declarar nada;
+  `operators:` deja fuera el que una app no quiera. «Entre» pinta dos campos numéricos y viaja
+  como `x_gteq` y `x_lteq`, igual que el de las fechas. Los dos de texto escriben `not_i_start` y
+  `not_i_end` con ransack 6 y `not_start` y `not_end` con 5 (`Bali::RansackParamName`); con
+  ransack 6, una liga o vista guardada con `not_start`/`not_end` se lee y se pinta como su gemelo
+  `i_`. «No es» sobre una columna de fecha y hora deja fuera el día entero (`x_lt` el inicio del
+  día o `x_gt` su fin) y no sólo la medianoche, que habría dejado pasar casi todas las filas; lo
+  mismo vale para un `q[created_at_not_eq]=2026-08-27` plano (un filtro simple con
+  `predicate: :not_eq`), que antes comparaba contra las 00:00.
 
 ### Changed
 
-- **Una liga o vista guardada con los dos límites de un número bajo AND se pinta ahora como una
-  sola condición «entre».** La consulta es la misma; cambia que el conteo de «Filtros» baja de 2 a 1
-  y que la píldora lee «Rating entre 2 – 5». Bajo OR siguen siendo dos condiciones. Qué hacer: sólo
-  quien tenga una prueba que cuente las condiciones de un par `x_gteq`/`x_lteq` numérico, o un
-  filtro en memoria o un `case` que evalúe los operadores del panel por nombre: debe conocer
-  `not_start`/`not_end` (y `not_i_start`/`not_i_end`), `between` en números y `not_eq` en fechas, o
-  acotar lo que ofrece con `operators:`.
+- **Una liga o vista guardada con los dos límites de un número bajo AND se pinta como una sola
+  condición «entre»** cuando el `FilterForm` declara ese atributo (y sin atributos declarados ya
+  se plegaba, con una fila rota). La consulta es la misma; cambia que el conteo de «Filtros» baja
+  de 2 a 1 y que la píldora lee «Rating entre 2 – 5», que ahora también es como lee la de las
+  fechas (antes imprimía el Hash). Bajo OR, o con `operators: %i[gteq lteq]`, siguen siendo dos.
+  Qué hacer: nada, salvo quien tenga una prueba que cuente esas condiciones, o un filtro en
+  memoria o un `case` que evalúe los operadores del panel por nombre: sin `not_start`/`not_end`
+  (y `not_i_start`/`not_i_end`), «no comienza con» deja la lista vacía sin error con ransack 6 y
+  lanza `ArgumentError` con 5; o se acota lo que ofrece con `operators:`.
 
 ## [v3.28.0] - 2026-11-20
 

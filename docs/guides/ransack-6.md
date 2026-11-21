@@ -67,14 +67,16 @@ One switch, `Bali::RansackParamName.case_insensitive_text?`, decided from the in
    `git grep -n -e search_field_name -e RansackParamName app`.
 
 4. **Code that handles the panel's conditions by key.**
-   - What evaluates the panel's operators by name (`"cont"`, `"not_cont"`, `"start"`, `"end"`)
-     accepts the `i_` ones, or a condition from the panel reaches it unknown.
+   - What evaluates the panel's operators by name (`"cont"`, `"not_cont"`, `"start"`, `"end"`,
+     `"not_start"`, `"not_end"`) accepts the `i_` ones. A name it does not know raises, or, in a
+     `case` with no `else`, matches nothing: "does not start with" then empties the listing
+     without an error.
    - What rewrites `q[g]` after `super` — `ransack_params`, `extract_groupings`, `@groupings` —
      receives the text conditions already under the `i_` key (`name_i_cont`), whether they came
      from the URL, a saved view or the filter cache, so a lookup of `name_cont` there no longer
      finds it.
 
-   `git grep -n -E "\"(not_)?cont\"|\"start\"|\"end\"|groupings|\[:g\]" app/forms app/models`.
+   `git grep -n -E "\"(not_)?(cont|start|end)\"|groupings|\[:g\]" app/forms app/models`.
 
 5. **`_cont`, `_start` and `_end` written by hand** — a flat `attribute :name_cont`, a simple filter
    with `predicate: :cont`, a link with `q: { name_cont: ... }`, a `ransack(...)` call in a

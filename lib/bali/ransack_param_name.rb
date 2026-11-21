@@ -43,8 +43,8 @@ module Bali
       # The variant of a text predicate this ransack gets from Bali: itself under ransack 5, its
       # `i_` twin under 6.
       #
-      # @param predicate [String] "cont", "not_cont", "start" or "end", or one of their `i_`
-      #   twins; anything else comes back as it is
+      # @param predicate [String] "cont", "not_cont", "start", "end", "not_start" or "not_end", or
+      #   one of their `i_` twins; anything else comes back as it is
       # @return [String] e.g. "cont" => "cont" under ransack 5, "i_cont" under 6
       def text_predicate(predicate)
         predicate = predicate.to_s

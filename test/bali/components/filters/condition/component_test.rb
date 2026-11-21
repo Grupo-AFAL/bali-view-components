@@ -200,6 +200,18 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     end
   end
 
+  def test_names_the_two_ends_of_a_number_range_in_the_page_language
+    I18n.with_locale(:es) do
+      render_inline(Bali::Filters::Condition::Component.new(
+        condition: { attribute: "age", operator: "between" }, group_index: 0, condition_index: 0,
+        available_attributes: @available_attributes
+      ))
+    end
+
+    assert_selector('input[type="number"][data-condition-target="rangeStart"][aria-label="Desde"]')
+    assert_selector('input[type="number"][data-condition-target="rangeEnd"][aria-label="Hasta"]')
+  end
+
   def test_a_datetime_range_picks_whole_days
     render_inline(Bali::Filters::Condition::Component.new(
       condition: { attribute: "logged_in_at", operator: "between" }, group_index: 0, condition_index: 0,
@@ -288,6 +300,7 @@ class BaliFiltersConditionComponentTest < ComponentTestCase
     widgets = [
       [ "name", "cont", value, "placeholder", %w[placeholders enter_value] ],
       [ "age", "eq", value, "placeholder", %w[placeholders number] ],
+      [ "age", "between", '[data-condition-target="rangeStart"]', "placeholder", %w[placeholders number] ],
       [ "created_at", "eq", value, "placeholder", %w[placeholders select_date] ],
       [ "starts_at", "eq", value, "placeholder", %w[placeholders select_datetime] ],
       [ "created_at", "between", '[data-condition-target="rangeInput"]', "placeholder", %w[placeholders select_date_range] ],

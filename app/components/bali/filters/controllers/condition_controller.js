@@ -135,7 +135,7 @@ export class ConditionController extends Controller {
     const options = this.parseOptions(attributeOption?.dataset?.options)
 
     // Only rebuild the value input when the operator changes the WIDGET: single vs
-    // multiple for a select, single vs range for a date. "is" -> "is not" keeps the same
+    // multiple for a select, single vs range for a number or a date. "is" -> "is not" keeps the same
     // widget over the same option list, so rebuilding it only threw the user's choice
     // away — and the empty condition then travelled as a blank Ransack predicate, which
     // the server discards without a word (#652).
@@ -198,7 +198,7 @@ export class ConditionController extends Controller {
   /**
    * The values chosen in this condition, as an array of strings: one entry for a single
    * widget, one per checked box for a multi-select. A range widget reports nothing —
-   * a point in time and an interval are different kinds of value, so moving between
+   * a single value and an interval are different kinds of value, so moving between
    * them starts over on purpose — and neither does "is empty", whose `1` is no choice.
    */
   selectedValues () {

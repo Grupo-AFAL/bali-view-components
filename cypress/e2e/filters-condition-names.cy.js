@@ -141,6 +141,11 @@ describe('Filter condition accessible names', () => {
       'combobox «Field»', 'combobox «Operator»', 'spinbutton «Value»'
     ])
 
+    operator().select('between')
+    conditionControls().should('deep.equal', [
+      'combobox «Field»', 'combobox «Operator»', 'spinbutton «From»', 'spinbutton «To»'
+    ])
+
     attribute().select('birth_date')
     flatpickrMounted()
     conditionControls().should('deep.equal', [

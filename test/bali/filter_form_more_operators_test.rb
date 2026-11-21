@@ -2,8 +2,8 @@
 
 require "test_helper"
 
-# v3.29.0: the operators the advanced panel lacked next to Ransack's. "Does not start with" and
-# "does not end with" on text, "between" on numbers, and "not on" on dates.
+# The operators the advanced panel lacked next to Ransack's: "does not start with" and "does not
+# end with" on text, "between" on numbers, and "is not" on dates.
 class BaliFilterFormMoreOperatorsTest < ComponentTestCase
   include RansackTestHelpers
 
@@ -21,8 +21,10 @@ class BaliFilterFormMoreOperatorsTest < ComponentTestCase
     @bruno = Movie.create!(name: "Bruno", rating: 8, release_date: "2026-05-10", created_at: "2026-08-26 23:59:59", studio: studio)
   end
 
+  # Written out, not through `text()`: that helper is the code under test.
   test "the text operators end with the two negations, in the variant of the installed ransack" do
-    assert_equal [ text("not_start"), text("not_end") ], Bali::Filters::Operators.for_type(:text).last(2).pluck(:value)
+    assert_equal ransack_6? ? %w[not_i_start not_i_end] : %w[not_start not_end],
+                 Bali::Filters::Operators.for_type(:text).last(2).pluck(:value)
     assert_equal [ "does not start with", "does not end with" ],
                  I18n.with_locale(:en) { Bali::Filters::Operators.for_type(:text).last(2).pluck(:label) }
     assert_equal [ "no comienza con", "no termina con" ],
@@ -39,13 +41,16 @@ class BaliFilterFormMoreOperatorsTest < ComponentTestCase
     assert_equal [ @ana, @bruno ], ends.result.order(:id).to_a
   end
 
-  # What was written before ransack 6 carries the plain name, which Bali reads as the variant of
-  # the installed one.
-  test "a link written with the plain negation is read in the variant of the installed ransack" do
-    applied = form("0" => { "name_not_start" => "An" })
-
-    assert_equal [ [ "name", text("not_start"), "An" ] ], conditions(applied)
-    assert_equal [ @bruno ], applied.result.to_a
+  # What an app on ransack 5 wrote keeps reading once it moves to 6: the plain name is painted, and
+  # applied, as its `i_` twin. Under 5 itself nothing is renamed.
+  test "a link written with the plain negation is read as its twin under ransack 6" do
+    as_ransack(true) do
+      assert_equal [ [ "name", "not_i_start", "An" ], [ "name", "not_i_end", "el" ] ],
+                   conditions(form("0" => { "name_not_start" => "An", "name_not_end" => "el" }))
+    end
+    as_ransack(false) do
+      assert_equal [ [ "name", "not_start", "An" ] ], conditions(form("0" => { "name_not_start" => "An" }))
+    end
   end
 
   test "a number's two bounds fold into a between that filters and draws two inputs" do
@@ -68,38 +73,38 @@ class BaliFilterFormMoreOperatorsTest < ComponentTestCase
     assert(Bali::Filters::Operators.for_type(:number).last[:range])
   end
 
-  test "not on a day leaves out every row of that day on a datetime column" do
+  test "is not on a day leaves out every row of that day on a datetime column" do
     applied = form("0" => { "created_at_not_eq" => "2026-08-27" })
 
     assert_equal [ [ "created_at", "not_eq", "2026-08-27" ] ], conditions(applied)
     assert_equal [ @anabel, @bruno ], applied.result.order(:id).to_a
   end
 
-  test "not on a minute leaves out the rows of that minute" do
+  test "is not on a minute leaves out the rows of that minute" do
     assert_equal [ @anabel, @bruno ], form("0" => { "created_at_not_eq" => "2026-08-27 21:22:00" }).result.order(:id).to_a
   end
 
-  test "not on combines with the other conditions of an OR group" do
+  test "is not on combines with the other conditions of an OR group" do
     applied = form("0" => { "m" => "or", "name_eq" => "Ana", "created_at_not_eq" => "2026-08-28" })
 
     assert_equal [ @ana, @bruno ], applied.result.order(:id).to_a
   end
 
-  test "not on a day over a date column is the plain inequality" do
+  test "is not on a day over a date column is the plain inequality" do
     applied = form("0" => { "release_date_not_eq" => "2026-01-10" })
 
     assert_equal [ @anabel, @bruno ], applied.result.order(:id).to_a
     assert_match(/!=/, applied.result.to_sql)
   end
 
-  test "dates offer not on, labeled in both languages, after their other operators" do
+  test "dates offer is not, labeled in both languages, after their other operators" do
     assert_equal "not_eq", Bali::Filters::Operators.for_type(:date).last[:value]
     assert_equal "not_eq", Bali::Filters::Operators.for_type(:datetime).last[:value]
-    assert_equal [ "not on", "no es" ],
+    assert_equal [ "is not", "no es" ],
                  [ :en, :es ].map { |locale| I18n.with_locale(locale) { Bali::Filters::Operators.for_type(:date).last[:label] } }
   end
 
-  test "the panel offers a number between and a date not on through the attribute" do
+  test "the panel offers a number between and a date is not through the attribute" do
     attributes = MoviesFilterForm.new(Movie.all).available_attributes.index_by { |attribute| attribute[:key] }
 
     assert_includes Bali::Filters::Operators.for_attribute(attributes[:rating]).pluck(:value), "between"

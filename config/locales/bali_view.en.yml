@@ -86,7 +86,6 @@ en:
         before: "before"
         on_or_after: "on or after"
         on_or_before: "on or before"
-        not_on: "not on"
         # Select operators
         is_any_of: "is any of"
         is_not_any_of: "is not any of"

@@ -38,10 +38,7 @@ class BaliFilterFormBetweenTest < ComponentTestCase
     assert_equal [ @high ], applied.result.to_a
   end
 
-  # A number offers "between" since v3.29.0, so its two bounds under AND fold like a date's. Before
-  # that the row had no operator to show for them and named its input `rating_between`, which
-  # the next submit could not apply; a link or saved view written with the pair now paints one
-  # condition where it painted two.
+  # A number's two bounds under AND are one "between", as a date's are; under OR they stay two.
   test "a number's two bounds under AND are its between" do
     assert_equal [ [ "rating", "between", { start: "2", end: "8" } ] ],
                  conditions(form("rating_gteq" => "2", "rating_lteq" => "8"))
