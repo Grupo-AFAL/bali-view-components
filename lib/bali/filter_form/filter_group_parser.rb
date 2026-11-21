@@ -28,7 +28,7 @@ module Bali
       # `not_null`) never wins. The `i_` twins come from RansackParamName, which
       # `PanelConditions#current_condition_key` reads; the four that take no value, from
       # RansackParamName::VALUELESS.
-      RANSACK_OPERATORS = (%w[not_cont not_eq not_in gteq lteq cont start end matches eq gt lt in] +
+      RANSACK_OPERATORS = (%w[not_cont not_eq not_in not_start not_end gteq lteq cont start end matches eq gt lt in] +
                            RansackParamName::CASE_INSENSITIVE.values +
                            RansackParamName::VALUELESS).sort_by { -it.length }.freeze
 

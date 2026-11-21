@@ -20,7 +20,8 @@ module Bali
   module RansackParamName
     # Each text predicate Bali writes, and its case-insensitive twin.
     CASE_INSENSITIVE = {
-      "cont" => "i_cont", "not_cont" => "not_i_cont", "start" => "i_start", "end" => "i_end"
+      "cont" => "i_cont", "not_cont" => "not_i_cont", "start" => "i_start", "end" => "i_end",
+      "not_start" => "not_i_start", "not_end" => "not_i_end"
     }.freeze
 
     # The predicates that take no value: Ransack reads `1` as `true` and answers "is empty"
@@ -42,8 +43,8 @@ module Bali
       # The variant of a text predicate this ransack gets from Bali: itself under ransack 5, its
       # `i_` twin under 6.
       #
-      # @param predicate [String] "cont", "not_cont", "start" or "end", or one of their `i_`
-      #   twins; anything else comes back as it is
+      # @param predicate [String] "cont", "not_cont", "start", "end", "not_start" or "not_end", or
+      #   one of their `i_` twins; anything else comes back as it is
       # @return [String] e.g. "cont" => "cont" under ransack 5, "i_cont" under 6
       def text_predicate(predicate)
         predicate = predicate.to_s

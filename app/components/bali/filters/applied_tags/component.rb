@@ -61,6 +61,8 @@ module Bali
         end
 
         def value_label(value, attr_config)
+          return value.values_at(:start, :end).join(" – ") if value.is_a?(Hash)
+
           # Handle boolean type
           if attr_config[:type].to_sym == :boolean
             return I18n.t(value.to_s == "true" ? "bali_view.filters.boolean.yes" : "bali_view.filters.boolean.no")

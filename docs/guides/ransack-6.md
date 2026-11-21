@@ -20,8 +20,9 @@ does *before* it lets Dependabot or `bundle update` move it to ransack 6 — an 
 One switch, `Bali::RansackParamName.case_insensitive_text?`, decided from the installed gem:
 
 - The quick search submits `q[<fields>_i_cont]` instead of `q[<fields>_cont]`.
-- The panel's "contains", "does not contain", "starts with" and "ends with" write `i_cont`,
-  `not_i_cont`, `i_start` and `i_end`, including a new condition and a reset row.
+- The panel's "contains", "does not contain", "starts with", "ends with", "does not start with"
+  and "does not end with" write `i_cont`, `not_i_cont`, `i_start`, `i_end`, `not_i_start` and
+  `not_i_end`, including a new condition and a reset row.
 - What was written before keeps reading: a URL, a saved view, the filter cache or a link that
   carries `name_cont` applies as `name_i_cont`, and the panel paints it as "contains". The
   quick search is read under every name of `Bali::RansackParamName.predicates(fields)`, which
@@ -66,14 +67,16 @@ One switch, `Bali::RansackParamName.case_insensitive_text?`, decided from the in
    `git grep -n -e search_field_name -e RansackParamName app`.
 
 4. **Code that handles the panel's conditions by key.**
-   - What evaluates the panel's operators by name (`"cont"`, `"not_cont"`, `"start"`, `"end"`)
-     accepts the `i_` ones, or a condition from the panel reaches it unknown.
+   - What evaluates the panel's operators by name (`"cont"`, `"not_cont"`, `"start"`, `"end"`,
+     `"not_start"`, `"not_end"`) accepts the `i_` ones. A name it does not know raises, or, in a
+     `case` with no `else`, matches nothing: "does not start with" then empties the listing
+     without an error.
    - What rewrites `q[g]` after `super` — `ransack_params`, `extract_groupings`, `@groupings` —
      receives the text conditions already under the `i_` key (`name_i_cont`), whether they came
      from the URL, a saved view or the filter cache, so a lookup of `name_cont` there no longer
      finds it.
 
-   `git grep -n -E "\"(not_)?cont\"|\"start\"|\"end\"|groupings|\[:g\]" app/forms app/models`.
+   `git grep -n -E "\"(not_)?(cont|start|end)\"|groupings|\[:g\]" app/forms app/models`.
 
 5. **`_cont`, `_start` and `_end` written by hand** — a flat `attribute :name_cont`, a simple filter
    with `predicate: :cont`, a link with `q: { name_cont: ... }`, a `ransack(...)` call in a

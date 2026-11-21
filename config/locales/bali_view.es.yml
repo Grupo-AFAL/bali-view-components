@@ -44,6 +44,8 @@ es:
         field: "Campo"
         operator: "Operador"
         value: "Valor"
+        value_from: "Desde"
+        value_to: "Hasta"
 
       # Selected count for multi-select
       selected_count: "%{count} seleccionados"
@@ -73,6 +75,8 @@ es:
         ends_with: "termina con"
         not_contains: "no contiene"
         not_equals: "no es"
+        not_starts_with: "no comienza con"
+        not_ends_with: "no termina con"
         # Date/time operators
         "on": "es"
         is: "es"

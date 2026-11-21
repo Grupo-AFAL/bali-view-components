@@ -135,7 +135,7 @@ export class ConditionController extends Controller {
     const options = this.parseOptions(attributeOption?.dataset?.options)
 
     // Only rebuild the value input when the operator changes the WIDGET: single vs
-    // multiple for a select, single vs range for a date. "is" -> "is not" keeps the same
+    // multiple for a select, single vs range for a number or a date. "is" -> "is not" keeps the same
     // widget over the same option list, so rebuilding it only threw the user's choice
     // away — and the empty condition then travelled as a blank Ransack predicate, which
     // the server discards without a word (#652).
@@ -171,7 +171,7 @@ export class ConditionController extends Controller {
     if (isValueless !== this.rendersValueless()) return true
     if (isValueless) return false
     if (type === 'select') return isMultiple !== this.rendersMultiSelect()
-    if (type === 'date' || type === 'datetime') return isRange !== this.rendersRange()
+    if (type === 'date' || type === 'datetime' || type === 'number') return isRange !== this.rendersRange()
     return false
   }
 
@@ -198,7 +198,7 @@ export class ConditionController extends Controller {
   /**
    * The values chosen in this condition, as an array of strings: one entry for a single
    * widget, one per checked box for a multi-select. A range widget reports nothing —
-   * a point in time and an interval are different kinds of value, so moving between
+   * a single value and an interval are different kinds of value, so moving between
    * them starts over on purpose — and neither does "is empty", whose `1` is no choice.
    */
   selectedValues () {
@@ -474,7 +474,9 @@ export class ConditionController extends Controller {
           : this.buildDatetimeInput(fieldName)
         break
       case 'number':
-        html = this.buildNumberInput(fieldName)
+        html = isRange
+          ? this.buildNumberRangeInput(rangeFieldNames)
+          : this.buildNumberInput(fieldName)
         break
       default:
         html = this.buildTextInput(fieldName)
@@ -626,6 +628,32 @@ export class ConditionController extends Controller {
              placeholder="${this.escapeHtml(placeholder)}"
              aria-label="${this.escapeHtml(this.valueAriaLabel)}"
              data-condition-target="value">
+    `
+  }
+
+  // "Between" over numbers: the two inputs condition/component.html.erb draws, attribute for
+  // attribute: change both. They are the range targets, so hasValue asks for both ends.
+  buildNumberRangeInput (rangeFieldNames) {
+    const placeholder = this.escapeHtml(this.t.placeholders.number)
+    const { from, to } = this.t.range_aria_labels
+    return `
+      <div class="flex w-full items-center gap-2" data-condition-target="value">
+        <input type="number"
+               class="input input-sm w-full min-w-0"
+               name="${rangeFieldNames.start}"
+               step="any"
+               placeholder="${placeholder}"
+               aria-label="${this.escapeHtml(from)}"
+               data-condition-target="rangeStart">
+        <span aria-hidden="true">&ndash;</span>
+        <input type="number"
+               class="input input-sm w-full min-w-0"
+               name="${rangeFieldNames.end}"
+               step="any"
+               placeholder="${placeholder}"
+               aria-label="${this.escapeHtml(to)}"
+               data-condition-target="rangeEnd">
+      </div>
     `
   }
 

@@ -7,9 +7,9 @@ require "test_helper"
 class BaliFiltersOperatorsTest < ActiveSupport::TestCase
   test "each type offers its operators in the order the select shows them" do
     {
-      number: %w[eq not_eq gt lt gteq lteq],
-      date: %w[eq between gt lt gteq lteq],
-      datetime: %w[eq between gt lt gteq lteq],
+      number: %w[eq not_eq gt lt gteq lteq between],
+      date: %w[eq between gt lt gteq lteq not_eq],
+      datetime: %w[eq between gt lt gteq lteq not_eq],
       select: %w[eq not_eq in not_in],
       boolean: %w[eq]
     }.each do |type, operators|

@@ -36,10 +36,10 @@ class BaliFilterFormEmptyOperatorsTest < ComponentTestCase
 
     assert_equal %w[eq not_eq in not_in], offered.call({ key: :genre, type: :select })
     assert_equal %w[eq not_eq in not_in null not_null], offered.call({ key: :genre, type: :select, nullable: true })
-    assert_equal %w[eq not_eq gt lt gteq lteq null not_null], offered.call({ key: :budget, type: :number, nullable: true })
-    assert_equal %w[eq between gt lt gteq lteq null not_null], offered.call({ key: :at, type: :date, nullable: true })
+    assert_equal %w[eq not_eq gt lt gteq lteq between null not_null], offered.call({ key: :budget, type: :number, nullable: true })
+    assert_equal %w[eq between gt lt gteq lteq not_eq null not_null], offered.call({ key: :at, type: :date, nullable: true })
     assert_equal %w[eq null not_null], offered.call({ key: :indie, type: :boolean, nullable: true })
-    assert_equal [ text("cont"), "eq", text("start"), text("end"), text("not_cont"), "not_eq", "blank", "present" ],
+    assert_equal [ text("cont"), "eq", text("start"), text("end"), text("not_cont"), "not_eq", text("not_start"), text("not_end"), "blank", "present" ],
                  offered.call({ key: :synopsis, type: :text, nullable: true })
   end
 

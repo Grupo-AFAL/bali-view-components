@@ -109,7 +109,7 @@ module Bali
         end
 
         # Parse range values from condition
-        # Range values are stored as { start: date1, end: date2 }
+        # Range values are stored as { start: first end, end: last end }, dates or numbers
         def range_values
           return {} unless value.is_a?(Hash)
 
@@ -145,7 +145,8 @@ module Bali
               remove: t("bali_view.form_builder.slim_select.remove"),
               results_count: t("bali_view.form_builder.slim_select.results_count")
             },
-            value_aria_label: value_aria_label
+            value_aria_label: value_aria_label,
+            range_aria_labels: { from: t("bali_view.filters.aria_labels.value_from"), to: t("bali_view.filters.aria_labels.value_to") }
           }.to_json
         end
 

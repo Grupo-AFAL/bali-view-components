@@ -5088,6 +5088,15 @@ paint it. That makes `operators:` the way to keep the panel off an operator a `r
 cannot take. "Between" travels as a `gteq` and an `lteq`, and each of them also filters
 alone — in an OR group, or in a view saved with one end. The panel paints that condition with
 its own operator ("on or after"), which the row's select then offers beside the declared ones.
+A number's "between" is the same pair, drawn as two number fields (v3.29.0).
+
+**What each type offers, in the order the select shows them** (`Bali::Filters::Operators.for_type`):
+text — contains, is exactly, starts with, ends with, does not contain, is not, does not start
+with, does not end with; number — `=`, `≠`, `>`, `<`, `≥`, `≤`, between; date and datetime — is,
+between, after, before, on or after, on or before, is not; select — is, is not, is any of, is not any
+of; boolean — is. "Is not" over a datetime column leaves out the whole day, not only its midnight:
+`created_at_not_eq=2026-08-27` becomes `created_at_lt` the start of the day OR `created_at_gt` its
+end.
 
 **Count the saved views first** when the attribute was already in the panel: from the deploy
 that narrows it, a view that used another operator on it stops filtering, with nothing on screen

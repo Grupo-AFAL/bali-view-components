@@ -41,8 +41,8 @@ class BaliFilterFormTextPredicatesTest < ComponentTestCase
     def find(_id) = view
   end
 
-  PLAIN = %w[cont eq start end not_cont not_eq].freeze
-  CASE_INSENSITIVE = %w[i_cont eq i_start i_end not_i_cont not_eq].freeze
+  PLAIN = %w[cont eq start end not_cont not_eq not_start not_end].freeze
+  CASE_INSENSITIVE = %w[i_cont eq i_start i_end not_i_cont not_eq not_i_start not_i_end].freeze
 
   def setup
     studio = Tenant.create!(name: "Acme")

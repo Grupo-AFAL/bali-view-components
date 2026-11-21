@@ -38,13 +38,14 @@ class BaliFilterFormBetweenTest < ComponentTestCase
     assert_equal [ @high ], applied.result.to_a
   end
 
-  # A number offers no "between": folded, the row had no operator to show and named its input
-  # `rating_between`, which the next submit could not apply.
-  test "a number's bounds stay the conditions that arrived" do
-    assert_equal [ [ "rating", "gteq", "2" ], [ "rating", "lteq", "8" ] ],
+  # A number's two bounds under AND are one "between", as a date's are; under OR they stay two.
+  test "a number's two bounds under AND are its between" do
+    assert_equal [ [ "rating", "between", { start: "2", end: "8" } ] ],
                  conditions(form("rating_gteq" => "2", "rating_lteq" => "8"))
     assert_equal [ [ "rating", "gteq", "1" ], [ "rating", "lteq", "9" ], [ "rating", "not_eq", "5" ] ],
                  conditions(form("rating_gteq" => "1", "rating_lteq" => "9", "rating_not_eq" => "5"))
+    assert_equal [ [ "rating", "gteq", "8" ], [ "rating", "lteq", "2" ] ],
+                 conditions(form("m" => "or", "rating_gteq" => "8", "rating_lteq" => "2"))
   end
 
   test "a date's two bounds under AND are still its between" do

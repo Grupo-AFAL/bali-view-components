@@ -129,7 +129,9 @@ module Bali
           { value: text("start"), label: t_op("starts_with") },
           { value: text("end"), label: t_op("ends_with") },
           { value: text("not_cont"), label: t_op("not_contains") },
-          { value: "not_eq", label: t_op("not_equals") }
+          { value: "not_eq", label: t_op("not_equals") },
+          { value: text("not_start"), label: t_op("not_starts_with") },
+          { value: text("not_end"), label: t_op("not_ends_with") }
         ]
       end
 
@@ -164,7 +166,8 @@ module Bali
           { value: "gt", label: ">" },
           { value: "lt", label: "<" },
           { value: "gteq", label: "≥" },
-          { value: "lteq", label: "≤" }
+          { value: "lteq", label: "≤" },
+          { value: "between", label: t_op("between"), range: true }
         ]
       end
 
@@ -175,7 +178,8 @@ module Bali
           { value: "gt", label: t_op("after") },
           { value: "lt", label: t_op("before") },
           { value: "gteq", label: t_op("on_or_after") },
-          { value: "lteq", label: t_op("on_or_before") }
+          { value: "lteq", label: t_op("on_or_before") },
+          { value: "not_eq", label: t_op("is_not") }
         ]
       end
 
