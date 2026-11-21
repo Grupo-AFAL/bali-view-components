@@ -145,7 +145,8 @@ module Bali
               remove: t("bali_view.form_builder.slim_select.remove"),
               results_count: t("bali_view.form_builder.slim_select.results_count")
             },
-            value_aria_label: value_aria_label
+            value_aria_label: value_aria_label,
+            range_aria_labels: { from: t("bali_view.filters.aria_labels.value_from"), to: t("bali_view.filters.aria_labels.value_to") }
           }.to_json
         end
 

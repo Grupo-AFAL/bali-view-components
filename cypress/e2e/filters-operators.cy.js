@@ -29,7 +29,7 @@ describe('An attribute that declares its operators', () => {
     operator().should(($select) => {
       expect($select[0].value).to.equal('eq')
       // The text operators are ransack's version's variant (`cont` or `i_cont`, #1530).
-      expect(offered($select)).to.have.length(6).and.include.members(['eq', 'not_eq'])
+      expect(offered($select)).to.have.length(8).and.include.members(['eq', 'not_eq'])
       expect($select[0].disabled).to.equal(false)
     })
   })
@@ -64,7 +64,7 @@ describe('An attribute that declares its operators', () => {
 
     operator().should(($select) => {
       expect($select[0].disabled).to.equal(false)
-      expect(offered($select)).to.have.length(6)
+      expect(offered($select)).to.have.length(8)
     })
   })
 })

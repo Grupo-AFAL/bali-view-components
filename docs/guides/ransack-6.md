@@ -20,8 +20,9 @@ does *before* it lets Dependabot or `bundle update` move it to ransack 6 — an 
 One switch, `Bali::RansackParamName.case_insensitive_text?`, decided from the installed gem:
 
 - The quick search submits `q[<fields>_i_cont]` instead of `q[<fields>_cont]`.
-- The panel's "contains", "does not contain", "starts with" and "ends with" write `i_cont`,
-  `not_i_cont`, `i_start` and `i_end`, including a new condition and a reset row.
+- The panel's "contains", "does not contain", "starts with", "ends with", "does not start with"
+  and "does not end with" write `i_cont`, `not_i_cont`, `i_start`, `i_end`, `not_i_start` and
+  `not_i_end`, including a new condition and a reset row.
 - What was written before keeps reading: a URL, a saved view, the filter cache or a link that
   carries `name_cont` applies as `name_i_cont`, and the panel paints it as "contains". The
   quick search is read under every name of `Bali::RansackParamName.predicates(fields)`, which

@@ -223,14 +223,38 @@
         <% end %>
 
       <% when :number %>
-        <input type="number"
-               class="input input-sm w-full"
-               name="<%= field_name %>"
-               value="<%= value %>"
-               step="any"
-               placeholder="<%= t('bali_view.filters.placeholders.number') %>"
-               aria-label="<%= value_aria_label %>"
-               data-condition-target="value">
+        <% if range_operator? %>
+          <%# "between": two numbers that travel as `_gteq` and `_lteq`, like the date range's hidden
+              fields. condition_controller.js#buildNumberRangeInput builds the same inputs: change both. %>
+          <div class="flex w-full items-center gap-2" data-condition-target="value">
+            <input type="number"
+                   class="input input-sm w-full min-w-0"
+                   name="<%= range_field_names[:start] %>"
+                   value="<%= range_values[:start] %>"
+                   step="any"
+                   placeholder="<%= t('bali_view.filters.placeholders.number') %>"
+                   aria-label="<%= t('bali_view.filters.aria_labels.value_from') %>"
+                   data-condition-target="rangeStart">
+            <span aria-hidden="true">&ndash;</span>
+            <input type="number"
+                   class="input input-sm w-full min-w-0"
+                   name="<%= range_field_names[:end] %>"
+                   value="<%= range_values[:end] %>"
+                   step="any"
+                   placeholder="<%= t('bali_view.filters.placeholders.number') %>"
+                   aria-label="<%= t('bali_view.filters.aria_labels.value_to') %>"
+                   data-condition-target="rangeEnd">
+          </div>
+        <% else %>
+          <input type="number"
+                 class="input input-sm w-full"
+                 name="<%= field_name %>"
+                 value="<%= value %>"
+                 step="any"
+                 placeholder="<%= t('bali_view.filters.placeholders.number') %>"
+                 aria-label="<%= value_aria_label %>"
+                 data-condition-target="value">
+        <% end %>
 
       <% else %>
         <input type="text"

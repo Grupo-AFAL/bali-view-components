@@ -20,7 +20,8 @@ module Bali
   module RansackParamName
     # Each text predicate Bali writes, and its case-insensitive twin.
     CASE_INSENSITIVE = {
-      "cont" => "i_cont", "not_cont" => "not_i_cont", "start" => "i_start", "end" => "i_end"
+      "cont" => "i_cont", "not_cont" => "not_i_cont", "start" => "i_start", "end" => "i_end",
+      "not_start" => "not_i_start", "not_end" => "not_i_end"
     }.freeze
 
     # The predicates that take no value: Ransack reads `1` as `true` and answers "is empty"

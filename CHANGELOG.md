@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.29.0] - 2026-11-20
+
+### Added
+
+- **Cuatro operadores más en el panel avanzado: «entre» en números, «no comienza con» y «no termina
+  con» en texto, «no es» en fechas.** Los ofrece todo panel sin declarar nada; `operators:` deja
+  fuera el que una app no quiera. «Entre» pinta dos campos numéricos y viaja como `x_gteq` y
+  `x_lteq`, igual que el de las fechas. Los dos de texto escriben `not_i_start` y `not_i_end` con
+  ransack 6 y `not_start` y `not_end` con 5 (`Bali::RansackParamName`), y una liga o vista
+  guardada con el nombre de la otra versión se lee igual. «No es» sobre una columna de fecha y hora
+  deja fuera el día entero (`x_lt` el inicio del día o `x_gt` su fin) y no sólo la medianoche, que
+  habría dejado pasar casi todas las filas.
+
+### Changed
+
+- **Una liga o vista guardada con los dos límites de un número bajo AND se pinta ahora como una
+  sola condición «entre».** La consulta es la misma; cambia que el conteo de «Filtros» baja de 2 a 1
+  y que la píldora lee «Rating entre 2 – 5». Bajo OR siguen siendo dos condiciones. Qué hacer: sólo
+  quien tenga una prueba que cuente las condiciones de un par `x_gteq`/`x_lteq` numérico, o un
+  filtro en memoria o un `case` que evalúe los operadores del panel por nombre: debe conocer
+  `not_start`/`not_end` (y `not_i_start`/`not_i_end`), `between` en números y `not_eq` en fechas, o
+  acotar lo que ofrece con `operators:`.
+
 ## [v3.28.0] - 2026-11-20
 
 ### Added

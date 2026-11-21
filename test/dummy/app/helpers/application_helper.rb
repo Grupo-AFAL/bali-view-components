@@ -32,7 +32,9 @@ module ApplicationHelper
       # A second date, so a `between` can be carried from one date field to another
       # (filters-between.cy.js).
       { key: :production_starts_on, label: "Production Start", type: :date },
-      { key: :indie, label: "Indie Film", type: :boolean }
+      { key: :indie, label: "Indie Film", type: :boolean },
+      # The one number of the panel: "between" (filters-more-operators.cy.js).
+      { key: :budget, label: "Budget", type: :number }
     ]
   end
 end

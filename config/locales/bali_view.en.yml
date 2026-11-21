@@ -44,6 +44,8 @@ en:
         field: "Field"
         operator: "Operator"
         value: "Value"
+        value_from: "From"
+        value_to: "To"
 
       # Selected count for multi-select
       selected_count: "%{count} selected"
@@ -73,6 +75,8 @@ en:
         ends_with: "ends with"
         not_contains: "does not contain"
         not_equals: "is not"
+        not_starts_with: "does not start with"
+        not_ends_with: "does not end with"
         # Date/time operators
         "on": "is"
         is: "is"
@@ -82,6 +86,7 @@ en:
         before: "before"
         on_or_after: "on or after"
         on_or_before: "on or before"
+        not_on: "not on"
         # Select operators
         is_any_of: "is any of"
         is_not_any_of: "is not any of"

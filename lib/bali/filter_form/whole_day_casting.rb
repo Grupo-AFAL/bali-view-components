@@ -69,13 +69,19 @@ module Bali
 
       # "On the 27th" as a group of its own rather than as `_gteq`/`_lteq` pairs beside the
       # others: the group it sits in may be an OR, and its siblings may already use those keys.
+      # "Not on the 27th" is its mirror, before the day or after it: `!=` midnight would leave
+      # in every row of the 27th that is not exactly midnight.
       def whole_day_grouping(key, value)
         return unless (span = picked_span(value))
-        return unless Ransack::Predicate.detect_from_string(key) == "eq"
+        return unless (predicate = Ransack::Predicate.detect_from_string(key)) && %w[eq not_eq].include?(predicate)
         return unless timestamp_condition?(key, value)
 
-        attribute = key.delete_suffix("_eq")
-        { "m" => "and", "#{attribute}_gteq" => span.begin, "#{attribute}_lteq" => span.end }
+        attribute = key.delete_suffix("_#{predicate}")
+        if predicate == "eq"
+          { "m" => "and", "#{attribute}_gteq" => span.begin, "#{attribute}_lteq" => span.end }
+        else
+          { "m" => "or", "#{attribute}_lt" => span.begin, "#{attribute}_gt" => span.end }
+        end
       end
 
       def picked_span(value)
