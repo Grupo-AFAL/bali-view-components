@@ -99,7 +99,7 @@ class BaliCommentThreadCommentComponentTest < ComponentTestCase
   def test_the_avatar_derives_initials_from_the_author_and_stays_out_of_the_accessibility_tree
     render_comment { "Looks good" }
 
-    assert_selector(".avatar[aria-hidden='true']", text: "AL")
+    assert_selector(".avatar[aria-hidden='true']", text: "AG")
     assert_no_selector(".avatar[role], .avatar[aria-label], .avatar[title]")
     assert_selector("li", text: "Ana García López")
   end

@@ -390,7 +390,7 @@ two lines wrap inside the panel, the email at any character.
 
 **Options:**
 - `name` (required) - the user's full name; feeds avatar, header and the trigger's `aria-label`
-- `initials` - the avatar's letters, passed to Avatar as given. Without it Avatar takes the first and the last word of `name:`, which reads two surnames as the wrong pair: `initials: "FG"` for "Federico González Pérez", not the derived "FP"
+- `initials` - the avatar's letters, passed to Avatar as given. Without it Avatar derives them from `name:` (first given name and first surname, see Avatar's *Initials rule*); pass them for a name that rule misreads, like one surname after two given names: `initials: "JP"` for "Juan Carlos Pérez", not the derived "JC"
 - `email` - second line of the header; omitted when absent
 - `avatar_url` - photo for the avatar; wins over the initials
 - `sign_out` - `{ href:, method: :delete }`. **No default route**: without this hash the item is not rendered, so the gem stays uncoupled from bali-auth and from the host's route names. With bali-auth: `sign_out: { href: bali_auth.sign_out_path }`. The default `:delete` submits a real form (`button_to`) that cannot degrade to a GET; extra keys (`name:`, `confirm:`, `data:`, ...) reach the item
@@ -2400,10 +2400,19 @@ User avatar display: an image when there is one, derived initials when there is 
 - `status` - `:online`, `:offline` presence indicator (default: nil)
 - `ring` - Ring color: `:primary`, `:secondary`, `:accent`, `:neutral`, `:success`, `:warning`, `:error`, `:info` (default: nil)
 
-**Initials rule:** first letter of the *first* and the *last* word that starts with a letter —
-"Ana García López" → AL, "María de la Luz" → ML, "Alberto Aprobador (demo)" → AA; a single such
-word yields one letter, and a name with none renders no initials. The letter is the first
-grapheme, so a decomposed "Á" ("A" plus U+0301) keeps its accent; Unicode-aware upcase.
+**Initials rule:** Spanish names run given names, then two surnames, so the letters are the first
+letter of the *first* word and of the *penultimate* one — the first surname — from three words up,
+and of the first and the last with two. Words that do not start with a letter, and the particles
+`de`, `del`, `la`, `las`, `los` and `y` (any case), do not count: "Federico Gonzalez Lutteroth" →
+FG, "Luis Roberto Mendoza Huerta" → LM, "María Fernanda Rodríguez de la Garza" → MR, "María de la
+Luz" → ML, "Alberto Aprobador (demo)" → AA. A single such word yields one letter, and a name with
+none renders no initials. The letter is the first grapheme, so a decomposed "Á" ("A" plus U+0301)
+keeps its accent; Unicode-aware upcase.
+
+No position tells a surname from a second given name, so a name with **one** surname after two
+given names reads the second given name — "Juan Carlos Pérez" → JC, "María del Carmen López" → MC,
+"María de la Luz Hernández" → ML (before v3.29.1 these were JP, ML, MH). Pass `initials:` for those
+people, which always wins over the derivation.
 
 **Deterministic color:** the name is hashed (`Bali::Utils::ColorCalculator#deterministic_color`)
 into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style — the same

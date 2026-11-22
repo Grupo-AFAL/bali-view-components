@@ -41,8 +41,9 @@ module Bali
         # @param name [String] the user's full name. Feeds the trigger's avatar
         #   (initials + deterministic colour, see Bali::Avatar) and the header.
         # @param initials [String, nil] the avatar's letters, passed to Bali::Avatar as
-        #   given. Left out, Avatar takes the first and the last word of `name:`, which
-        #   reads "Federico González Pérez" as "FP".
+        #   given. Left out, Avatar derives them from `name:` — "Federico González
+        #   Pérez" → "FG"; pass `initials:` for a name the rule misreads, like one
+        #   surname after two given names ("Juan Carlos Pérez" → "JC").
         # @param email [String, nil] second line of the header.
         # @param avatar_url [String, nil] photo for the avatar; wins over initials.
         # @param sign_out [Hash, nil] `{ href:, method: :delete }`. Extra keys

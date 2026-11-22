@@ -42,6 +42,10 @@ module Bali
         star: "mask mask-star"
       }.freeze
 
+      # Connectors inside a Spanish name ("Rodríguez de la Garza", "María del Carmen"):
+      # `initials` does not count them as words.
+      NAME_PARTICLES = %w[de del la las los y].freeze
+
       STATUSES = {
         online: "avatar-online",
         offline: "avatar-offline"
@@ -123,10 +127,14 @@ module Bali
         )
       end
 
-      # Two initials: first letter of the first and the last word that starts with a
-      # letter ("Ana García López (demo)" → "AL"), unicode-aware upcase; a single such
-      # word yields one letter, none yields no initials. An explicit `initials:` always
-      # wins over the derivation.
+      # Spanish names run given names, then two surnames, so from three words up the
+      # letters are the first word and the penultimate one — the first surname — where the
+      # last word read "Federico Gonzalez Lutteroth" as "FL". The NAME_PARTICLES are not
+      # words, or "Rodríguez de la Garza" would end on the surname "la". No position can
+      # tell a surname from a second given name, so one surname after two given names
+      # ("Juan Carlos Pérez", "María del Carmen López") reads "JC" and "MC": pass
+      # `initials:`, which always wins over the derivation. Words that do not start with a
+      # letter are skipped; none left means no initials.
       def initials
         @derived_initials ||= @initials || derive_initials
       end
@@ -164,7 +172,8 @@ module Bali
 
       def derive_initials
         words = @name.to_s.split.grep(/\A\p{L}/)
-        words = [ words.first, words.last ] if words.size > 2
+                     .reject { |word| NAME_PARTICLES.include?(word.downcase) }
+        words = [ words.first, words[-2] ] if words.size > 2
         # `\X`, not `[0]`: a decomposed "Á" is "A" plus U+0301.
         words.map { |word| word[/\X/] }.join.upcase.presence
       end

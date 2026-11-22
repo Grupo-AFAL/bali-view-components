@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.29.1] - 2026-11-22
+
+### Fixed
+
+- **`Avatar`: las iniciales de un nombre en español son nombre y primer apellido** (#1689). De
+  tres palabras en adelante toma la primera y la penúltima, no la última: «Federico Gonzalez
+  Lutteroth» pasa de «FL» a «FG» y «Luis Roberto Mendoza Huerta», de «LH» a «LM». «de», «del»,
+  «la», «las», «los» y «y» no cuentan como palabra («María Fernanda Rodríguez de la Garza» →
+  «MR»). Lo leen también `Topbar::UserMenu` sin `initials:`, el autor de `CommentThread` y toda
+  marca de título con `name:`, sea de una persona o no; el color no cambia.
+  **Una clase de nombres empeora:** nada distingue un primer apellido de un segundo nombre de pila,
+  así que quien tiene dos nombres y un solo apellido pasa de bien a mal: «Juan Carlos Pérez» de
+  «JP» a «JC», «María del Carmen López» de «ML» a «MC», «María de la Luz Hernández» de «MH» a
+  «ML». Qué hacer: pasar `initials:` a esas personas, que gana siempre; con dos apellidos, nada.
+
 ## [v3.29.0] - 2026-11-20
 
 ### Added

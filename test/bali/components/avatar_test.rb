@@ -119,17 +119,43 @@ class BaliAvatarComponentTest < ComponentTestCase
     assert_selector('img[src*="avatar.png"]')
   end
 
-  def test_initials_derives_first_and_last_word_initials_from_name
+  def test_initials_derives_first_and_last_word_initials_from_a_two_word_name
     render_inline(Bali::Avatar::Component.new(name: "Ana García"))
     assert_selector(".avatar.avatar-placeholder")
     assert_text("AG")
   end
 
-  def test_initials_derives_from_first_and_last_word_on_compound_names
+  # Given name(s), paternal surname, maternal surname: the letters are the first given
+  # name and the first surname, which is the penultimate word from three words up (#1689).
+  def test_initials_take_the_first_and_the_penultimate_word_from_three_words_up
+    {
+      "Ana García López" => "AG",
+      "Federico Gonzalez Lutteroth" => "FG",
+      "Luis Roberto Mendoza Huerta" => "LM"
+    }.each do |name, initials|
+      assert_equal(initials, Bali::Avatar::Component.new(name: name).initials, name)
+    end
+
     render_inline(Bali::Avatar::Component.new(name: "Ana García López"))
-    assert_text("AL")
-    render_inline(Bali::Avatar::Component.new(name: "María de la Luz"))
-    assert_text("ML")
+    assert_text("AG")
+  end
+
+  # Without them "de la Cruz" is read as the surname "la" and gives "LL".
+  def test_initials_do_not_count_the_particles_of_a_surname
+    {
+      "María Fernanda Rodríguez de la Garza" => "MR",
+      "Luis Hernández de la Cruz" => "LH",
+      "Juan Pérez del Valle" => "JP",
+      "LUIS HERNÁNDEZ DE LA CRUZ" => "LH"
+    }.each do |name, initials|
+      assert_equal(initials, Bali::Avatar::Component.new(name: name).initials, name)
+    end
+  end
+
+  def test_explicit_initials_win_over_a_three_word_name
+    avatar = Bali::Avatar::Component.new(name: "Juan Carlos Pérez", initials: "JP")
+
+    assert_equal("JP", avatar.initials)
   end
 
   def test_initials_derives_a_single_letter_from_a_single_word_name

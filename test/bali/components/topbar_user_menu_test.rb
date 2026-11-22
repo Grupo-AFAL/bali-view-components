@@ -32,10 +32,11 @@ class BaliTopbarUserMenuComponentTest < ComponentTestCase
 
   def test_initials_reach_the_avatar_as_given
     render_inline(Bali::Topbar::UserMenu::Component.new(
-                    name: "Federico González Pérez", initials: "FG", sign_out: sign_out
+                    name: "Juan Carlos Pérez", initials: "JP", sign_out: sign_out
                   ))
 
-    assert_selector('[data-dropdown-target="trigger"] .avatar-placeholder', text: "FG")
+    assert_selector('[data-dropdown-target="trigger"] .avatar-placeholder', text: "JP")
+    assert_no_text("JC")
   end
 
   def test_trigger_uses_the_photo_when_avatar_url_is_given
