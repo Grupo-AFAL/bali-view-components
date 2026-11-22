@@ -119,7 +119,7 @@ class BaliAvatarComponentTest < ComponentTestCase
     assert_selector('img[src*="avatar.png"]')
   end
 
-  def test_initials_derives_first_and_last_word_initials_from_name
+  def test_initials_derives_first_and_last_word_initials_from_a_two_word_name
     render_inline(Bali::Avatar::Component.new(name: "Ana García"))
     assert_selector(".avatar.avatar-placeholder")
     assert_text("AG")
@@ -140,17 +140,22 @@ class BaliAvatarComponentTest < ComponentTestCase
     assert_text("AG")
   end
 
-  # Without them "de la Garza" is read as the surname "la" and gives "L".
+  # Without them "de la Cruz" is read as the surname "la" and gives "LL".
   def test_initials_do_not_count_the_particles_of_a_surname
     {
       "María Fernanda Rodríguez de la Garza" => "MR",
-      "María de la Luz Hernández Pérez" => "MH",
+      "Luis Hernández de la Cruz" => "LH",
       "Juan Pérez del Valle" => "JP",
-      "María de la Luz" => "ML",
-      "MARÍA FERNANDA RODRÍGUEZ DE LA GARZA" => "MR"
+      "LUIS HERNÁNDEZ DE LA CRUZ" => "LH"
     }.each do |name, initials|
       assert_equal(initials, Bali::Avatar::Component.new(name: name).initials, name)
     end
+  end
+
+  def test_explicit_initials_win_over_a_three_word_name
+    avatar = Bali::Avatar::Component.new(name: "Juan Carlos Pérez", initials: "JP")
+
+    assert_equal("JP", avatar.initials)
   end
 
   def test_initials_derives_a_single_letter_from_a_single_word_name

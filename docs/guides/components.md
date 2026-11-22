@@ -2407,9 +2407,12 @@ and of the first and the last with two. Words that do not start with a letter, a
 FG, "Luis Roberto Mendoza Huerta" → LM, "María Fernanda Rodríguez de la Garza" → MR, "María de la
 Luz" → ML, "Alberto Aprobador (demo)" → AA. A single such word yields one letter, and a name with
 none renders no initials. The letter is the first grapheme, so a decomposed "Á" ("A" plus U+0301)
-keeps its accent; Unicode-aware upcase. A name with one surname after two given names reads the
-second given name — "Juan Carlos Pérez" → JC: pass `initials:` for those, which always wins over
-the derivation.
+keeps its accent; Unicode-aware upcase.
+
+No position tells a surname from a second given name, so a name with **one** surname after two
+given names reads the second given name — "Juan Carlos Pérez" → JC, "María del Carmen López" → MC,
+"María de la Luz Hernández" → ML (before v3.29.1 these were JP, ML, MH). Pass `initials:` for those
+people, which always wins over the derivation.
 
 **Deterministic color:** the name is hashed (`Bali::Utils::ColorCalculator#deterministic_color`)
 into the fixed `Bali::Status` palette minus `slate`/`gray`, rendered as an inline style — the same
