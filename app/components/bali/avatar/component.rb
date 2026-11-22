@@ -42,6 +42,10 @@ module Bali
         star: "mask mask-star"
       }.freeze
 
+      # Lowercase connectors inside a Spanish surname ("Rodríguez de la Garza"), compared
+      # case-insensitively so an all-caps "DE LA" is skipped too.
+      SURNAME_PARTICLES = %w[de del la las los y].freeze
+
       STATUSES = {
         online: "avatar-online",
         offline: "avatar-offline"
@@ -123,10 +127,15 @@ module Bali
         )
       end
 
-      # Two initials: first letter of the first and the last word that starts with a
-      # letter ("Ana García López (demo)" → "AL"), unicode-aware upcase; a single such
-      # word yields one letter, none yields no initials. An explicit `initials:` always
-      # wins over the derivation.
+      # Two initials, unicode-aware upcase. Spanish names run given names, then two
+      # surnames, so from three words up the letters are the first word and the
+      # penultimate one — the first surname: "Federico Gonzalez Lutteroth" → "FG", where
+      # the last word would give "FL". With two words, the first and the last. Only words
+      # that start with a letter count ("Ana García López (demo)" → "AG") and none of
+      # SURNAME_PARTICLES, which would otherwise read "Rodríguez de la Garza" as the
+      # surname "la". A single word yields one letter, none yields no initials. One
+      # surname after two given names ("Juan Carlos Pérez") reads "JC": that is what an
+      # explicit `initials:` is for, and it always wins over the derivation.
       def initials
         @derived_initials ||= @initials || derive_initials
       end
@@ -164,7 +173,8 @@ module Bali
 
       def derive_initials
         words = @name.to_s.split.grep(/\A\p{L}/)
-        words = [ words.first, words.last ] if words.size > 2
+                     .reject { |word| SURNAME_PARTICLES.include?(word.downcase) }
+        words = [ words.first, words[-2] ] if words.size > 2
         # `\X`, not `[0]`: a decomposed "Á" is "A" plus U+0301.
         words.map { |word| word[/\X/] }.join.upcase.presence
       end

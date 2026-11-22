@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.29.1] - 2026-11-22
+
+### Fixed
+
+- **`Avatar`: las iniciales de un nombre en español son nombre y primer apellido** (#1689). De
+  tres palabras en adelante toma la primera y la penúltima, no la última: «Federico Gonzalez
+  Lutteroth» pasa de «FL» a «FG» y «Luis Roberto Mendoza Huerta», de «LH» a «LM». «de», «del»,
+  «la», «las», «los» y «y» no cuentan como palabra («María Fernanda Rodríguez de la Garza» →
+  «MR»); con dos palabras nada cambia, y el color no cambia con ninguna. Lo leen también
+  `Topbar::UserMenu` sin `initials:`, el autor de `CommentThread` y toda marca de título con
+  `name:`, sea de una persona o no. Un nombre con dos nombres de pila y un solo apellido («Juan
+  Carlos Pérez») da «JC»: para ese caso sigue haciendo falta `initials:`, que gana siempre. Qué
+  hacer: nada, salvo quitar el `initials:` calculado a mano con esta misma regla (el rodeo del
+  #1689) y revisar una prueba que afirme las letras de un `name:` de tres palabras o más. De las
+  apps, ninguna tiene una: `git grep -n -E 'avatar(-placeholder)?", text:' origin/main -- test`
+  solo encuentra «HP» en gobierno-corporativo (dos palabras) y «MG» en identity (le pasa
+  `initials:`).
+
 ## [v3.29.0] - 2026-11-20
 
 ### Added
