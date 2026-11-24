@@ -159,6 +159,16 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
     assert_includes error.message, "node n1: label_position must be one of"
   end
 
+  def test_a_label_orientation_is_horizontal_vertical_or_left_to_the_island
+    assert_nothing_raised { Data.new(sized("end_event", label_orientation: nil)) }
+    assert_nothing_raised { Data.new(sized("end_event", label_orientation: "horizontal")) }
+    assert_equal "vertical", Data.new(sized("end_event", label_orientation: "vertical", label_position: "top")).nodes.first[:label_orientation]
+
+    error = assert_raises(Data::InvalidError) { Data.new(sized("end_event", label_orientation: "diagonal")) }
+
+    assert_includes error.message, "node n1: label_orientation must be one of"
+  end
+
   def test_a_negative_size_raises
     [ { width: -1 }, { height: "-5" } ].each do |size|
       error = assert_raises(Data::InvalidError, size.inspect) { Data.new(sized("exclusive_gateway", **size)) }

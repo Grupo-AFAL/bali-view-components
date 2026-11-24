@@ -142,7 +142,7 @@ test('an element dropped on top of another still goes to the next free spot, at 
 
 // #1694: names placed by hand (`label_position`) are part of the footprint
 // the layout, the arrangement and the router already work with.
-const withLabels = (doc, position) => ({ ...doc, nodes: doc.nodes.map((n) => (hasExternalLabel(n) ? { ...n, label_position: position(n) } : n)) })
+const withLabels = (doc, position, turned = () => false) => ({ ...doc, nodes: doc.nodes.map((n) => (hasExternalLabel(n) ? { ...n, label_position: position(n), ...(turned(n) ? { label_orientation: 'vertical' } : {}) } : n)) })
 for (const [name, make] of Object.entries(FIXTURES)) {
   for (const orientation of ['horizontal', 'vertical']) {
     test(`${name} (${orientation}) with every outside name placed above, below or mixed: no hard violation`, () => {
@@ -156,6 +156,26 @@ for (const [name, make] of Object.entries(FIXTURES)) {
         const edited = arrange(withLabels(autoLayout(turned), position))
         assert.equal(measure(edited).hard, 0, `edit: ${JSON.stringify(measure(edited).details)}`)
         assert.equal(arrange(edited), edited, 'settled')
+      }
+    })
+  }
+}
+
+// …and so are names turned to read upwards (`label_orientation`), whose box is tall.
+for (const [name, make] of Object.entries(FIXTURES)) {
+  for (const orientation of ['horizontal', 'vertical']) {
+    test(`${name} (${orientation}) with outside names turned, where the editor puts them, above and below: no hard violation`, () => {
+      const base = normalize(make())
+      const turned = orientation === 'vertical' ? setOrientation(base, 'vertical').doc : base
+      let flip = 0
+      for (const position of [() => null, () => 'top', () => 'bottom']) {
+        for (const which of [() => true, () => flip++ % 2 === 0]) {
+          const laid = autoLayout(withLabels(turned, position, which))
+          assert.equal(measure(laid).hard, 0, `Tidy up: ${JSON.stringify(measure(laid).details)}`)
+          const edited = arrange(withLabels(autoLayout(turned), position, which))
+          assert.equal(measure(edited).hard, 0, `edit: ${JSON.stringify(measure(edited).details)}`)
+          assert.equal(arrange(edited), edited, 'settled')
+        }
       }
     })
   }

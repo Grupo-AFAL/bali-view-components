@@ -42,6 +42,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   esta llave, o el siguiente `200` devuelve el nombre a su lugar de siempre. Llaves nuevas de
   la tabla de textos: `props_label_position`, `label_position_auto`, `label_position_top` y
   `label_position_bottom`. Preview: `bali/bpmn_editor/placed_names`.
+- **`BpmnEditor`: el nombre de un evento, un gateway o un dato se puede girar a vertical**
+  (#1694). «Orientación del nombre», en el panel de propiedades, ofrece «Horizontal» y
+  «Vertical»: girado, el nombre se lee hacia arriba, como el de un carril horizontal, en una
+  caja tan alta como largo es el nombre (100 px a lo más, tres líneas), y se queda en su
+  posición — arriba empieza junto al elemento, abajo termina ahí. Rutas, acomodo local,
+  «Autoajustar», PNG, SVG e impresión usan esa caja; el `.bpmn` la exporta como los límites
+  de su `<bpmndi:BPMNLabel>` (BPMN DI no tiene rotación: otra herramienta lee el nombre
+  horizontal dentro de esa caja).
+  **Formato:** es la llave opcional `label_orientation` (`"vertical"`, `"horizontal"` o
+  `null`) en el nodo, con las mismas reglas que `label_position`: un documento sin ella no
+  cambia, `Data` lanza `InvalidError` con otro valor, y una app que mapea el documento a
+  columnas necesita una. Solo gira los nombres que se pintan fuera de la figura; el de una
+  actividad, el de una conexión y el de un carril no cambian. Llaves nuevas de la tabla de
+  textos: `props_label_orientation`, `label_orientation_horizontal` y
+  `label_orientation_vertical`.
 
 ### Changed
 

@@ -173,3 +173,36 @@ test('label_position means nothing on an element that holds its own name', () =>
   assert.equal(nodeLabelBox(named('task', { label_position: 'top' })), null)
   assert.equal(labelSide(named('task', { label_position: 'top' })), null)
 })
+
+// #1694: `label_orientation: 'vertical'`, optional — the name reads upwards.
+test('a turned name takes the box of its lines stood up, at the same place', () => {
+  for (const [type, extra] of [['start_event', {}], ['start_event', { label_position: 'top' }], ['exclusive_gateway', {}], ['exclusive_gateway', { label_position: 'bottom' }], ['data_object', {}]]) {
+    const across = nodeLabelBox(named(type, extra))
+    const turned = nodeLabelBox(named(type, { ...extra, label_orientation: 'vertical' }))
+    assert.deepEqual([turned.w, turned.h, turned.lines, turned.vertical], [across.h, across.w, across.lines, true], `${type} ${JSON.stringify(extra)}`)
+    assert.equal(across.vertical, undefined)
+    assert.equal(labelSide(named(type, { ...extra, label_orientation: 'vertical' })), labelSide(named(type, extra)), 'the port it takes is the same')
+    const n = named(type, extra)
+    assert.equal(above(turned, n), above(across, n))
+    assert.equal(below(turned, n), below(across, n))
+  }
+})
+
+test('a turned name starts next to its shape when it is above it, and ends there when it is below', () => {
+  const turned = (type, extra = {}) => nodeLabelBox(named(type, { ...extra, label_orientation: 'vertical' }))
+  assert.equal(turned('exclusive_gateway').align, 'start')
+  assert.equal(turned('start_event', { label_position: 'top' }).align, 'start')
+  assert.equal(turned('start_event').align, 'end')
+  assert.equal(turned('exclusive_gateway', { label_position: 'bottom' }).align, 'end')
+  assert.equal(nodeLabelBox(named('start_event', { label_orientation: 'vertical' }), 'vertical').align, 'middle')
+  // Beside the top port still, and clear of the pending badge.
+  const event = named('start_event', { label_position: 'top', label_orientation: 'vertical' })
+  assert.ok(nodeLabelBox(event).x + nodeLabelBox(event).w < event.x + 18)
+  assert.equal(boxesOverlap(nodeLabelBox(event), badgeBox(event)), false)
+})
+
+test('label_orientation horizontal, null or unknown is across, and it means nothing inside an activity', () => {
+  const across = nodeLabelBox(named('end_event'))
+  for (const value of ['horizontal', null, 'diagonal']) assert.deepEqual(nodeLabelBox(named('end_event', { label_orientation: value })), across)
+  assert.equal(nodeLabelBox(named('task', { label_orientation: 'vertical' })), null)
+})

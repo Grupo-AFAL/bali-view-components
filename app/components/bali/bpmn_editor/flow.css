@@ -158,6 +158,13 @@
   position: absolute; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;
   line-height: 14px; font-size: 11.5px;
 }
+/* A name turned to read upwards (`label_orientation`, FlowNode.jsx): the box is
+ * model/labels.js nodeLabelBox's, the span inside it lies along its height. */
+.bpmn-label-outside.is-vertical { display: block; overflow: visible; }
+.bpmn-label-outside.is-vertical > span {
+  position: absolute; left: 0; top: 100%; transform-origin: 0 0; transform: rotate(-90deg);
+  display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; line-height: 14px;
+}
 .bpmn-label-annotation { position: absolute; inset: 4px 6px 4px 18px; overflow: hidden; font-weight: 400; }
 .bpmn-label-group { position: absolute; top: 6px; left: 10px; font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
 .bpmn-node.has-badge .bpmn-label-annotation { top: 10px; }

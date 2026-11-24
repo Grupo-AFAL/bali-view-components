@@ -176,6 +176,7 @@ is another table with its own key.
       "event_definition": { "kind": "timer", "expression": "PT1H" },              // events
       "appearance": { "color": "#E9A23B", "dimmed": true, "badge": "In progress" }, // the app's look
       "label_position": "top",                    // events, gateways, data: see Name position
+      "label_orientation": "vertical",            // the same elements: the name reads upwards
       "fields": {} }
   ],
   "edges": [ { "id": "e1", "source": "n1", "target": "n2", "type": "sequence_flow",
@@ -294,14 +295,22 @@ is where a person put it instead — «Name position» in the properties panel:
 - **absent or `null`** («Auto»): the editor's own placement above. Every document saved
   before the key existed has none, and opens and saves exactly as it did.
 
-It is optional and only means something on those elements; an activity, an annotation and a
-group hold their own name. «Auto» sends `"label_position": null` rather than dropping the
+`label_orientation` turns the same name — «Name direction» in the panel:
+
+- **`"vertical"`**: the name reads upwards, as a horizontal lane's does, its lines side by
+  side in a box as tall as the name is long (100 px at most, three lines). It stays at its
+  position: above, it starts next to the shape; below, it ends there.
+- **`"horizontal"`, absent or `null`**: across, as always.
+
+Both are optional and only mean something on those elements; an activity, an annotation and
+a group hold their own name. «Auto» and «Horizontal» send `null` rather than dropping the
 key, as an Auto size does. `Data` raises on any other value. The name's box is the same one
 everywhere: the canvas, the routes (which never cross a name, and avoid the port under one),
 the local arrangement and Tidy up, the image, SVG and print outputs. In the `.bpmn` export a
-placed name travels as the shape's `<bpmndi:BPMNLabel>` bounds; a name left to the editor
-has none, as before. An app that maps the document onto its own columns needs one for this
-key, or the next `200` puts the name back where the editor would.
+name placed or turned by hand travels as the shape's `<bpmndi:BPMNLabel>` bounds — BPMN DI
+has bounds and no rotation, so a turned name's are the tall box it is drawn in; a name left
+to the editor has none, as before. An app that maps the document onto its own columns needs
+one for each key, or the next `200` draws the name the editor's way again.
 
 ---
 
@@ -986,7 +995,8 @@ are laid on.
 - **Wheel**: zooms an editable canvas. Over a read-only diagram it scrolls the page, as
   anywhere else on it; the zoom bar and a pinch still zoom.
 - **Place a name**: «Name position» in the properties panel of an event, a gateway or a data
-  element — «Above», «Below» or «Auto» — see [Name position](#name-position).
+  element — «Above», «Below» or «Auto» — and «Name direction» — «Horizontal» or «Vertical»:
+  see [Name position](#name-position).
 - **Change the type** of a gateway or an event: «Type» in its properties panel lists the
   other elements of its palette group the app left enabled — a gateway any gateway, a start
   event the start events, and so for intermediate and end events. The element stays where it
@@ -1299,7 +1309,7 @@ is the maintainers' call, not a default here.
 | `bali/bpmn_editor/review` | Review notes, comparison and the watermarked outputs; `editable` lets notes be added |
 | `bali/bpmn_editor/catalog` | Every palette element as its icon draws it and as the canvas does, with its name |
 | `bali/bpmn_editor/pair` | Two editors on one page: an event the app sends to one reaches that one only |
-| `bali/bpmn_editor/placed_names` | The names of a start event and of a decision placed by hand (`label_position`), the rest left to the editor; `editable` (on its own record) offers «Name position» in the properties panel, and `orientation` draws it in vertical lanes |
+| `bali/bpmn_editor/placed_names` | The names of a start event and of a decision placed by hand (`label_position`) and an end event's turned to read upwards (`label_orientation`), the rest left to the editor; `editable` (on its own record) offers «Name position» and «Name direction» in the properties panel, and `orientation` draws it in vertical lanes |
 | `bali/bpmn_editor/resized_activities` | Two activities with a size of their own and the rest «Auto»; `editable` (on its own record) offers the corner handle, «Size» and «Auto» in the properties panel; off, the read-only viewer draws the stored sizes |
 
 The samples are `test/fixtures/bpmn_editor/samples.json`, in English and Spanish, read by

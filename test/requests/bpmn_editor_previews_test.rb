@@ -212,11 +212,12 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
     assert_equal "true", island["data-bpmn-editor-editable-value"]
   end
 
-  # Two names placed by hand, the rest left to the editor (no key at all).
-  def test_the_placed_names_preview_sends_two_label_positions_read_only_or_editable
+  # Two names placed by hand and one turned, the rest left to the editor (no key at all).
+  def test_the_placed_names_preview_sends_its_label_keys_read_only_or_editable
     get "#{PREVIEW}/placed_names", params: { editable: false, orientation: "vertical" }
     placed = island_value("data")["nodes"].select { |n| n.key?("label_position") }
     assert_equal [ %w[start_event top], %w[exclusive_gateway bottom] ], placed.map { |n| [ n["type"], n["label_position"] ] }
+    assert_equal [ %w[end_event vertical] ], island_value("data")["nodes"].select { |n| n.key?("label_orientation") }.map { |n| [ n["type"], n["label_orientation"] ] }
     assert_equal "false", island["data-bpmn-editor-editable-value"]
     assert_equal "vertical", island["data-bpmn-editor-orientation-value"]
 

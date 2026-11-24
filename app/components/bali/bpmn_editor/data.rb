@@ -25,6 +25,7 @@ module Bali
     #         event_definition: { kind: "timer", expression: "PT1H" },        # events
     #         appearance: { color: "#E9A23B", dimmed: true, badge: "In progress" },  # the app's look
     #         label_position: "top",          # events, gateways, data: top | bottom; nil or absent = the island's
+    #         label_orientation: "vertical",  # the same elements: the name reads upwards; nil or absent = across
     #         fields: {} }
     #     ],
     #     edges: [ { id: "e1", source: "n1", target: "n2", type: "sequence_flow", label: "Yes",
@@ -68,6 +69,8 @@ module Bali
       PORTS = %w[auto top right bottom left].freeze
       # Mirrors LABEL_POSITIONS in model/labels.js (contract_test.rb).
       LABEL_POSITIONS = %w[top bottom].freeze
+      # Mirrors LABEL_ORIENTATIONS in model/labels.js (contract_test.rb).
+      LABEL_ORIENTATIONS = %w[horizontal vertical].freeze
       SEVERITIES = %w[error warning].freeze
       # Mirror APPEARANCE_COLLECTIONS, APPEARANCE_KEYS and BADGE_MAX in
       # model/appearance.js (contract_test.rb).
@@ -178,13 +181,16 @@ module Bali
       end
 
       # Where the person put the name of an event, a gateway or a data
-      # element. Optional: absent or nil is the island's own placement, which
-      # is every document saved before the key existed.
+      # element, and which way it reads. Both optional: absent or nil is the
+      # island's own placement, across, which is every document saved before
+      # the keys existed.
       def validate_label!(node)
-        position = node[:label_position]
-        return if position.nil? || LABEL_POSITIONS.include?(position.to_s)
+        { label_position: LABEL_POSITIONS, label_orientation: LABEL_ORIENTATIONS }.each do |key, allowed|
+          value = node[key]
+          next if value.nil? || allowed.include?(value.to_s)
 
-        raise InvalidError, "node #{node[:id]}: label_position must be one of #{LABEL_POSITIONS.inspect} or nil, got #{position.inspect}"
+          raise InvalidError, "node #{node[:id]}: #{key} must be one of #{allowed.inspect} or nil, got #{value.inspect}"
+        end
       end
 
       def validate_appearance!(element, kind)

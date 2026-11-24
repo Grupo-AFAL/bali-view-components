@@ -11,7 +11,7 @@ import { layoutLanes, laneRect, nodeBox, poolOrigin } from './geometry.js'
 import { routeAll } from './routing.js'
 import { edgeType, isFlowNode, isBinaryDecision } from './catalog.js'
 import { appearanceOf } from './appearance.js'
-import { nodeLabelBox, labelPosition } from './labels.js'
+import { nodeLabelBox, labelPosition, labelVertical } from './labels.js'
 import { parseHex } from './contrast.js'
 
 const TAGS = {
@@ -221,11 +221,13 @@ export function toBpmnXml (doc, { name = '' } = {}) {
     }, null)
     : null
   const shape = (element, attributes, box, label = null) => `      <bpmndi:BPMNShape id="${shapeOf.get(element)}" bpmnElement="${element}"${attributes}>${bounds(box)}${label ? `<bpmndi:BPMNLabel>${bounds(label)}</bpmndi:BPMNLabel>` : ''}</bpmndi:BPMNShape>`
-  // A name the person placed (`label_position`) travels as the shape's
-  // BPMNLabel bounds, which is where BPMN DI keeps it; a name left where the
-  // editor puts it has none, so a document without the key exports as before
-  // and the tool that opens it places the name its own way.
-  const placedLabel = (n) => (labelPosition(n) ? nodeLabelBox(n, layout.orientation) : null)
+  // A name the person placed or turned (`label_position`,
+  // `label_orientation`) travels as the shape's BPMNLabel bounds, which is
+  // where BPMN DI keeps it; a name left as the editor draws it has none, so a
+  // document without the keys exports as before and the tool that opens it
+  // places the name its own way. DI has bounds and no rotation: a turned
+  // name's are the tall box it is drawn in.
+  const placedLabel = (n) => (labelPosition(n) || labelVertical(n) ? nodeLabelBox(n, layout.orientation) : null)
   const shapes = [
     internalBox && shape(main.participant, ` isHorizontal="${horizontal}"`, internalBox),
     ...externalLanes.map((e) => shape(pool.get(String(e.id)).participant, ` isHorizontal="${horizontal}"`, laneRect(layout, e))),

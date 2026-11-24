@@ -200,13 +200,15 @@ module Bali
 
       # @label Names placed by hand
       # The name of an event, a gateway or a data element where the person put
-      # it (`label_position` on the node): «Invoice received» above its start
-      # event, the decision's question below it, the rest where the editor
-      # puts them (no key). Above, a name sits left of the top port, so every
-      # port stays free for a connection. Editable: select an event or a
-      # gateway and pick «Arriba», «Abajo» or «Auto» under «Posición del
-      # nombre»; the connections are routed again and it is one undo step.
-      # docs/api/bpmn-editor.md#name-position
+      # it (`label_position` on the node) and turned as they wanted it
+      # (`label_orientation`): «Invoice received» above its start event, the
+      # decision's question below it, «Payment made» reading upwards under its
+      # end event, the rest as the editor draws them (no key). Above, a name
+      # sits left of the top port, so every port stays free for a connection.
+      # Editable: select an event or a gateway and pick «Arriba», «Abajo» or
+      # «Auto» under «Posición del nombre», «Horizontal» or «Vertical» under
+      # «Orientación del nombre»; the connections are routed again and each is
+      # one undo step. docs/api/bpmn-editor.md#name-position
       # @param editable toggle "Editable (off: the read-only viewer draws the stored positions)"
       # @param orientation select { choices: [horizontal, vertical] }
       # @param locale select { choices: [es, en] }
@@ -582,9 +584,9 @@ module Bali
       end
 
       def placed_names_sample(locale)
-        positions = { "start_event" => "top", "exclusive_gateway" => "bottom" }
+        placed = { "s1" => { label_position: "top" }, "g1" => { label_position: "bottom" }, "e1" => { label_orientation: "vertical" } }
         data = BpmnSampleFlows.invoice(locale: locale)
-        data.merge(nodes: data[:nodes].map { |node| positions[node[:type]] ? node.merge(label_position: positions[node[:type]]) : node })
+        data.merge(nodes: data[:nodes].map { |node| node.merge(placed.fetch(node[:id], {})) })
       end
 
       def without_geometry(doc)

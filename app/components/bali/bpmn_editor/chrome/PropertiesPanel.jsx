@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { paletteKeyFor, typeChoices, isActivity, isEvent, isGateway, isResizable, hasOwnSize, nodeSize, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
 import { namedByReference } from '../model/document.js'
-import { hasExternalLabel, labelPosition, LABEL_POSITIONS } from '../model/labels.js'
+import { hasExternalLabel, labelPosition, labelVertical, LABEL_POSITIONS } from '../model/labels.js'
 import Icon from './icons.jsx'
 import FieldInput from './FieldInput.jsx'
 import ReferencePicker from './ReferencePicker.jsx'
@@ -84,13 +84,13 @@ function ElementIssues ({ issues, t }) {
   )
 }
 
-// One of a few, all in sight. `value` null is the first choice («Auto»).
+// One of a few, all in sight. A null choice is the editor's own way («Auto»).
 function ChoicePicker ({ label, choices, value, name, onChange, editable, testId }) {
   return (
     <FieldGroup label={label}>
       <div className='join' data-testid={testId}>
         {choices.map((choice) => (
-          <button key={choice || 'auto'} type='button' disabled={!editable} aria-pressed={choice === value} data-choice={choice || 'auto'}
+          <button key={choice || 'default'} type='button' disabled={!editable} aria-pressed={choice === value} data-choice={choice || 'default'}
             className={`btn btn-xs join-item ${choice === value ? 'btn-primary' : 'btn-outline'}`}
             onClick={() => onChange(choice)}>
             {name(choice)}
@@ -162,6 +162,11 @@ function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentatio
         <ChoicePicker label={t('props_label_position')} choices={[null, ...LABEL_POSITIONS]} value={labelPosition(node)} editable={editable}
           name={(choice) => t(`label_position_${choice || 'auto'}`)} testId='bpmn-label-position'
           onChange={(choice) => api.updateNode(node.id, { label_position: choice })} />
+      )}
+      {hasExternalLabel(node) && (
+        <ChoicePicker label={t('props_label_orientation')} choices={[null, 'vertical']} value={labelVertical(node) ? 'vertical' : null} editable={editable}
+          name={(choice) => t(`label_orientation_${choice || 'horizontal'}`)} testId='bpmn-label-orientation'
+          onChange={(choice) => api.updateNode(node.id, { label_orientation: choice })} />
       )}
       {editable && types.length > 1 && (
         <Field label={t('props_type')}>

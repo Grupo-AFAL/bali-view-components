@@ -44,6 +44,15 @@ function Label ({ node, name, orientation, activityShape, category, badge, link 
   const label = nodeLabelBox(node, orientation)
   if (!label) return null
   const box = nodeBox(node)
+  if (label.vertical) {
+    // The line runs up the box: a span as long as the box is tall, turned a
+    // quarter back around the box's bottom-left corner (flow.css).
+    return (
+      <div className='bpmn-label bpmn-label-outside is-vertical' data-testid='bpmn-node-name' style={{ left: label.x - box.x, top: label.y - box.y, width: label.w, height: label.h }}>
+        <span className={LABEL_ALIGN[label.align]} style={{ width: label.h, height: label.w, WebkitLineClamp: label.lines }}>{name}</span>
+      </div>
+    )
+  }
   return (
     <div
       className={`bpmn-label bpmn-label-outside ${LABEL_ALIGN[label.align]}`}

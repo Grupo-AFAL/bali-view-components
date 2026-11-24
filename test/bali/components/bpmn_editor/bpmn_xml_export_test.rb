@@ -37,6 +37,16 @@ class BaliBpmnXmlExportTest < ActiveSupport::TestCase
     assert_equal plain.xpath("//bpmndi:BPMNShape", NS).size, placed.xpath("//bpmndi:BPMNShape", NS).size
   end
 
+  # BPMN DI has bounds and no rotation: a turned name exports the tall box it is drawn in.
+  def test_a_turned_name_exports_the_bounds_of_the_box_it_stands_in
+    flow = BpmnSampleFlows.invoice
+    flow[:nodes].find { |node| node[:type] == "end_event" }[:label_orientation] = "vertical"
+    bounds = export(flow).xpath("//bpmndi:BPMNLabel/*[local-name()='Bounds']", NS)
+
+    assert_equal 1, bounds.size
+    assert_operator bounds.first["height"].to_i, :>, bounds.first["width"].to_i
+  end
+
   def test_the_sample_flow_exports_as_valid_bpmn
     flow = BpmnSampleFlows.invoice
     flow[:nodes] << { id: "sp", type: "sub_process", lane_id: "l3", name: "Supplier onboarding",
