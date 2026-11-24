@@ -9,87 +9,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`BpmnEditor`: guías de alineación al arrastrar** (#1694). Mientras se mueve un elemento,
-  una línea punteada une su centro con el de cada elemento con el que quedaría en la misma
-  columna o en la misma fila. La guía aparece justo cuando soltar los deja alineados: el
-  acomodo local lleva el centro de lo que se suelta a la retícula de 10 px, así que es a 5 px
-  o menos del otro centro. Compara centros y no bordes, para que un evento, un gateway y una
-  actividad queden en línea. No hay nada que configurar.
-- **`BpmnEditor`: cambiar el tipo de un gateway o de un evento sin desconectarlo** (#1694).
-  Reemplazar un gateway mal puesto era borrarlo, y con él sus flechas. El panel de propiedades
-  de un gateway o de un evento trae ahora «Tipo», con los demás elementos de su grupo de la
-  paleta que la app dejó habilitados: un gateway puede ser cualquier otro gateway; un evento
-  de inicio, otro de inicio, y lo mismo los intermedios y los de fin. El elemento conserva su
-  id y su lugar, así que sus conexiones, sus notas, su nombre, su descripción y sus `fields`
-  quedan como estaban; es un solo paso de deshacer. Un nombre que nunca se cambió («Decisión»)
-  pasa al del tipo nuevo («AND»); un temporizador que sigue siendo temporizador conserva su
-  expresión; y un gateway que pasa a paralelo pierde las etiquetas de sus salidas, que un
-  paralelo no lleva y su panel ya no deja borrar. Llave nueva de la tabla de textos:
-  `props_type_hint`. En el documento no hay nada nuevo: cambia `type` y los atributos que ya
-  dependían de él (`marker_visible`, `instantiate`, `event_gateway_type`, `event_definition`).
-- **`BpmnEditor`: el nombre de un evento, un gateway o un dato se puede poner arriba o abajo**
-  (#1694). El nombre de un evento iba siempre abajo y ocupaba ese puerto: ninguna conexión
-  podía salir o entrar por ahí. «Posición del nombre», en el panel de propiedades, ofrece
-  «Auto», «Arriba» y «Abajo». Arriba, el nombre va a la izquierda del puerto superior, como
-  ya iba el de un gateway, y deja libres los cuatro puertos; abajo, centrado bajo un evento o
-  un dato y a la izquierda del puerto inferior de un gateway. Las rutas, el acomodo local,
-  «Autoajustar», el PNG, el SVG y la impresión usan la misma caja; el `.bpmn` la exporta como
-  `<bpmndi:BPMNLabel>` solo cuando el nombre se colocó a mano.
-  **Formato:** es la llave opcional `label_position` (`"top"`, `"bottom"` o `null`) en el
-  nodo. Un documento guardado antes no la trae y se abre, se dibuja y se exporta igual;
-  `Data` lanza `InvalidError` con cualquier otro valor. Qué hacer: una app que guarda el
-  documento entero (JSON), nada; una que lo mapea a sus propias columnas necesita una para
-  esta llave, o el siguiente `200` devuelve el nombre a su lugar de siempre. Llaves nuevas de
-  la tabla de textos: `props_label_position`, `label_position_auto`, `label_position_top` y
-  `label_position_bottom`. Preview: `bali/bpmn_editor/placed_names`.
-- **`BpmnEditor`: el nombre de un evento, un gateway o un dato se puede girar a vertical**
-  (#1694). «Orientación del nombre», en el panel de propiedades, ofrece «Horizontal» y
-  «Vertical»: girado, el nombre se lee hacia arriba, como el de un carril horizontal, en una
-  caja tan alta como largo es el nombre (100 px a lo más, tres líneas), y se queda en su
-  posición — arriba empieza junto al elemento, abajo termina ahí. Rutas, acomodo local,
-  «Autoajustar», PNG, SVG e impresión usan esa caja; el `.bpmn` la exporta como los límites
-  de su `<bpmndi:BPMNLabel>` (BPMN DI no tiene rotación: otra herramienta lee el nombre
-  horizontal dentro de esa caja).
-  **Formato:** es la llave opcional `label_orientation` (`"vertical"`, `"horizontal"` o
-  `null`) en el nodo, con las mismas reglas que `label_position`: un documento sin ella no
-  cambia, `Data` lanza `InvalidError` con otro valor, y una app que mapea el documento a
-  columnas necesita una. Solo gira los nombres que se pintan fuera de la figura; el de una
-  actividad, el de una conexión y el de un carril no cambian. Llaves nuevas de la tabla de
-  textos: `props_label_orientation`, `label_orientation_horizontal` y
-  `label_orientation_vertical`.
+- **`BpmnEditor`: guías de alineación al arrastrar** (#1694). Una línea punteada une el centro
+  de lo que se arrastra con el de cada elemento con el que quedaría en la misma columna o fila,
+  y aparece justo cuando soltarlo los deja alineados (a 5 px o menos: el acomodo local lleva el
+  centro a la retícula de 10 px). Nada que configurar.
+- **`BpmnEditor`: «Tipo» cambia un gateway o un evento sin desconectarlo** (#1694). El panel de
+  propiedades ofrece los demás elementos de su grupo de la paleta que la app dejó habilitados
+  (un gateway, cualquier gateway; un evento de inicio, otro de inicio). Conserva su id, y con él
+  conexiones, notas, nombre y `fields`; un nombre que nunca se cambió («Decisión») pasa al del
+  tipo nuevo, y un gateway que pasa a paralelo pierde las etiquetas de sus salidas, que un
+  paralelo no lleva. El documento no cambia de formato. Llave nueva de textos: `props_type_hint`.
+- **`BpmnEditor`: el nombre de un evento, un gateway o un dato se coloca arriba o abajo y se gira
+  a vertical** (#1694). «Posición del nombre» (Auto, Arriba, Abajo) y «Orientación del nombre»
+  (Horizontal, Vertical) en el panel de propiedades. Arriba, el nombre va a la izquierda del
+  puerto superior y deja libres los cuatro puertos: el de un evento iba siempre abajo y ocupaba
+  ese. Girado, se lee hacia arriba, como el de un carril. Rutas, acomodo, «Autoajustar», PNG,
+  SVG e impresión usan la misma caja; el `.bpmn` la exporta en `<bpmndi:BPMNLabel>` (sin
+  rotación, que BPMN DI no tiene) solo cuando se colocó o giró a mano.
+  **Formato:** dos llaves opcionales en el nodo, `label_position` (`"top"`, `"bottom"`) y
+  `label_orientation` (`"vertical"`, `"horizontal"`); `null` o ausentes, como siempre, así que
+  un documento guardado antes se abre y se exporta igual. `Data` lanza `InvalidError` con otro
+  valor. **Qué hacer:** una app que guarda el documento entero, nada; una que lo mapea a sus
+  propias columnas necesita una por llave, o el siguiente `200` devuelve el nombre a su lugar.
+  Llaves nuevas de textos: `props_label_position`, `label_position_{auto,top,bottom}`,
+  `props_label_orientation`, `label_orientation_{horizontal,vertical}`. Preview:
+  `bali/bpmn_editor/placed_names`.
 
 ### Changed
 
 - **`BpmnEditor`: un gateway nuevo nace con el nombre de su tipo, salvo el exclusivo** (#1694).
-  El paralelo nace «AND», el inclusivo «OR», el complejo «Complejo» y el basado en eventos
-  «Eventos»; el exclusivo y la decisión Sí/No siguen naciendo «Decisión», que R23 marca como
-  nombre genérico hasta que la persona escribe su pregunta. Vale para la paleta, el menú rápido
-  y «Bifurcar con». Son cuatro llaves nuevas de la tabla de textos (`new_parallel_gateway`,
-  `new_inclusive_gateway`, `new_complex_gateway`, `new_event_based_gateway`), que una app
-  reescribe con `i18n:` como las demás. Un «OR» que bifurca sigue recibiendo B11 («no está
-  redactado como pregunta») mientras conserve ese nombre: la regla no cambió. De paso, un
-  nombre todo en mayúsculas («AND», «WMS») ya no se corta a «A…»: su caja se medía con el
-  ancho de las minúsculas.
-- **`BpmnEditor`: la etiqueta de una conexión ya no lleva contorno** (#1694). «Sí», «No» y
-  cualquier otra etiqueta se pintaban en una caja con borde gris; queda solo el fondo del
-  lienzo bajo el texto, que es lo que evita que la línea lo atraviese. En el lienzo, en el
-  PNG, en el SVG y en la impresión.
-- **`BpmnEditor`: el panel de propiedades dice qué pendientes tiene el elemento seleccionado**
-  (#1694). El triángulo de alerta sobre un elemento solo avisaba que había algo; para saber
-  qué, había que abrir «N pendientes» y buscarlo en la lista del diagrama entero. Ahora el
-  panel de un nodo, una conexión o un carril abre con sus pendientes — el mensaje de cada
-  regla y su clave —, los que manda el servidor en `issues` incluidos. El título de la
-  sección es la llave nueva `props_issues`. Solo al editar y con reglas: un visor no evalúa
-  ninguna.
-- **`BpmnEditor`: los elementos se pueden dejar más juntos** (#1694). El acomodo local trataba
-  como choque dos elementos a menos de 40 px a lo largo del flujo (15 px entre filas) y mandaba
-  al segundo a 80 px: soltar una actividad «cerca» de otra la alejaba. El mínimo baja a 10 px
-  entre huellas — dos actividades en fila quedan a 20 px, con la marca de pendiente entre
-  ellas — y a 6 px entre filas; lo que se suelta más cerca se queda a esa distancia mínima en
-  vez de saltar una columna. Soltar un elemento encima de otro sigue llevándolo al siguiente
-  lugar libre, a 80 px, y «Autoajustar», el menú rápido y la inserción en una conexión
-  conservan su separación. Una conexión que no encuentra paso entre dos elementos sigue
-  recorriendo lo que sigue. Qué hacer: nada; un diagrama guardado no se mueve.
+  Paralelo «AND», inclusivo «OR», complejo «Complejo», basado en eventos «Eventos»; el
+  exclusivo y la decisión Sí/No siguen naciendo «Decisión». Son cuatro llaves nuevas de textos
+  (`new_parallel_gateway`, `new_inclusive_gateway`, `new_complex_gateway`,
+  `new_event_based_gateway`). Un «OR» que bifurca recibe B11 («no está redactado como
+  pregunta») mientras conserve ese nombre: la regla no cambió. Un nombre todo en mayúsculas ya
+  no se corta («AND» se pintaba «A…»: medía 25 px en una caja de 24).
+- **`BpmnEditor`: la etiqueta de una conexión ya no lleva contorno** (#1694), en el lienzo y en
+  las salidas. Conserva el fondo, que evita que la línea atraviese el texto.
+- **`BpmnEditor`: el panel de propiedades lista los pendientes del elemento seleccionado**
+  (#1694) — nodo, conexión o carril —, con el mensaje y la clave de cada regla y los `issues`
+  del servidor. Antes el triángulo solo avisaba, y había que buscarlo en «N pendientes». Llave
+  nueva de textos: `props_issues`.
+- **`BpmnEditor`: los elementos se pueden dejar más juntos** (#1694). El acomodo local mandaba
+  a 80 px a todo lo que quedara a menos de 40 px de otro a lo largo del flujo. El mínimo baja a
+  10 px entre huellas (20 px entre dos actividades en fila, 16 px una sobre otra, antes 50 y
+  26), y lo que se suelta más cerca avanza a ese mínimo en vez de saltar una columna. Soltar un
+  elemento encima de otro, «Autoajustar», el menú rápido y la inserción en una conexión
+  conservan su separación. Un diagrama guardado no se mueve.
 
 ## [v3.29.1] - 2026-11-22
 

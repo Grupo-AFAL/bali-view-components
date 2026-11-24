@@ -140,6 +140,12 @@ test('an element dropped on top of another still goes to the next free spot, at 
   assert.equal(gapBetween(arrange(row(-100)), 't1', 't2'), 90)
 })
 
+test('two activities one over the other may stand 16 px apart in a lane', () => {
+  const stacked = docOf({ lanes: [{ ...lanesOf('A')[0], size: 400 }], nodes: [nodeOf('t1', 'task', 'l1', 300, 90), nodeOf('t2', 'task', 'l1', 300, 90 + 64 + 16)] })
+  const [t1, t2] = arrange(stacked).nodes
+  assert.deepEqual([t2.x - t1.x, t2.y - (t1.y + 64)], [0, 16])
+})
+
 // #1694: names placed by hand (`label_position`) are part of the footprint
 // the layout, the arrangement and the router already work with.
 const withLabels = (doc, position, turned = () => false) => ({ ...doc, nodes: doc.nodes.map((n) => (hasExternalLabel(n) ? { ...n, label_position: position(n), ...(turned(n) ? { label_orientation: 'vertical' } : {}) } : n)) })
