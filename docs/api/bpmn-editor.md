@@ -496,6 +496,11 @@ Every rule has an id, a severity (`error` / `warning`), the element it points at
 and a message. **The draft always saves;** "Finalize flow" refuses while there is
 an error. Messages come from the i18n table (`rule_<ID>`), interpolating `%{name}`.
 
+An element with an issue carries a warning triangle on the canvas. The top bar's «N pending»
+lists every issue of the diagram, and the properties panel of the selected node, connection
+or lane opens with the ones that point at it — message and rule id — under «Pending on this
+element» (`props_issues`), the server's `issues` among them.
+
 Each key below changes a default: R16 is on and R17/R19 off out of the box, R11 is an
 error, and the options default to 2 lanes and 25 activities.
 

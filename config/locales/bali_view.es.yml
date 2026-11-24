@@ -1023,6 +1023,7 @@ es:
         props_assignee: "Responsable"
         props_assignee_search: "Buscar responsable…"
         props_new_assignee: "Crear nuevo"
+        props_issues: "Pendientes de este elemento"
         props_multi: "%{count} elementos seleccionados"
         props_align: "Alineación"
         props_align_note: "Vertical alinea en columna aunque estén en carriles distintos; horizontal solo dentro del mismo carril."

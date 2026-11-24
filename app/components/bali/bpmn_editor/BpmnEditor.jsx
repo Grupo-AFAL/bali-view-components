@@ -1299,6 +1299,7 @@ function Editor ({
                   onClose={() => { setPanel(null); clearByPerson() }}
                   onPickLane={(id) => focusElement(id)}
                   annotationTags={tags}
+                  issues={issueList}
                 />
                 )
               : null}

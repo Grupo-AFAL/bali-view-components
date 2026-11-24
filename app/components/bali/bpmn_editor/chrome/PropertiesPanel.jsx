@@ -62,6 +62,27 @@ function PortPicker ({ label, value, onChange, editable, t }) {
   )
 }
 
+// What the rules hold against the selected element, where the person is
+// looking: the canvas marker says there is something, the top bar's list says
+// what for the whole diagram.
+function ElementIssues ({ issues, t }) {
+  if (!issues.length) return null
+  return (
+    <section className='flex flex-col gap-1' aria-label={t('props_issues')} data-testid='bpmn-element-issues'>
+      <span className={CAPTION}>{t('props_issues')}</span>
+      <ul className='flex flex-col gap-1'>
+        {issues.map((issue, i) => (
+          <li key={`${issue.rule}-${i}`} className='flex items-start gap-2 rounded border border-base-300 px-2 py-1.5 text-xs' data-rule={issue.rule} data-severity={issue.severity}>
+            <Icon name={issue.severity === 'error' ? 'alertCircle' : 'alert'} size={14} className={`mt-0.5 flex-none ${issue.severity === 'error' ? 'text-error' : 'text-warning'}`} />
+            <span className='grow'>{issue.message}</span>
+            <span className='badge badge-ghost badge-sm font-mono'>{issue.rule}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 // Committed on Enter or on leaving the field, not per keystroke: «1» on the
 // way to «180» would clamp to the minimum and move the next elements along.
 function SizeInput ({ label, value, min, max, editable, onCommit }) {
@@ -224,7 +245,7 @@ function Participants ({ doc, t, onPick }) {
 // The side panel: properties of what is selected (a node, a connection, a
 // lane, several nodes) or the list of participants. Replaces the modal
 // dialogs of the old editor.
-export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, documentationField, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true }) {
+export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, documentationField, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true, issues = [] }) {
   const nodes = selection.nodes.map((id) => doc.nodes.find((n) => String(n.id) === id)).filter(Boolean)
   const edge = selection.edges.length === 1 ? doc.edges.find((e) => String(e.id) === selection.edges[0]) : null
   const lane = selection.lanes.length === 1 ? doc.lanes.find((l) => String(l.id) === selection.lanes[0]) : null
@@ -262,6 +283,9 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, not
     const index = order.indexOf(String(lane.id))
     body = <LaneProperties lane={lane} api={api} t={t} editable={editable} laneFields={laneFields} urls={urls} canMove={{ up: index > 0, down: index < order.length - 1 }} externalLanes={externalLanes} />
   }
+  const single = nodes.length === 1 ? nodes[0] : nodes.length ? null : edge || lane
+  const pending = single && view !== 'participants' ? issues.filter((issue) => String(issue.element_id) === String(single.id)) : []
+  if (pending.length) body = <><ElementIssues issues={pending} t={t} />{body}</>
   const target = nodes.length === 1 ? nodes[0] : edge
   const notes = target ? (doc.annotations || []).filter((a) => String(a.target_id) === String(target.id)) : []
   // `notesEditable`: a read-only diagram whose notes may be written (Component `annotatable:`).

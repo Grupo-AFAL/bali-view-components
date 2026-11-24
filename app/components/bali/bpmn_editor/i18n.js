@@ -577,6 +577,7 @@ export const DEFAULT_I18N = {
   props_assignee: 'Responsible',
   props_assignee_search: 'Search responsible…',
   props_new_assignee: 'Create new',
+  props_issues: 'Pending on this element',
   props_multi: '%{count} elements selected',
   props_align: 'Alignment',
   props_align_note: 'Vertical aligns in a column across lanes; horizontal only inside one lane.',

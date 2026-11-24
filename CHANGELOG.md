@@ -23,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cualquier otra etiqueta se pintaban en una caja con borde gris; queda solo el fondo del
   lienzo bajo el texto, que es lo que evita que la línea lo atraviese. En el lienzo, en el
   PNG, en el SVG y en la impresión.
+- **`BpmnEditor`: el panel de propiedades dice qué pendientes tiene el elemento seleccionado**
+  (#1694). El triángulo de alerta sobre un elemento solo avisaba que había algo; para saber
+  qué, había que abrir «N pendientes» y buscarlo en la lista del diagrama entero. Ahora el
+  panel de un nodo, una conexión o un carril abre con sus pendientes — el mensaje de cada
+  regla y su clave —, los que manda el servidor en `issues` incluidos. El título de la
+  sección es la llave nueva `props_issues`. Solo al editar y con reglas: un visor no evalúa
+  ninguna.
 
 ## [v3.29.1] - 2026-11-22
 
