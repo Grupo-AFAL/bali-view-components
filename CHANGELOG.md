@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   redactado como pregunta») mientras conserve ese nombre: la regla no cambió. De paso, un
   nombre todo en mayúsculas («AND», «WMS») ya no se corta a «A…»: su caja se medía con el
   ancho de las minúsculas.
+- **`BpmnEditor`: la etiqueta de una conexión ya no lleva contorno** (#1694). «Sí», «No» y
+  cualquier otra etiqueta se pintaban en una caja con borde gris; queda solo el fondo del
+  lienzo bajo el texto, que es lo que evita que la línea lo atraviese. En el lienzo, en el
+  PNG, en el SVG y en la impresión.
 
 ## [v3.29.1] - 2026-11-22
 

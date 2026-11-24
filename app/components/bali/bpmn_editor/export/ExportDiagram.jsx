@@ -185,7 +185,7 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
             />
             {box && (
               <g transform={`translate(${box.x + box.w / 2} ${box.y + box.h / 2})`}>
-                <rect x={-box.w / 2} y={-9} width={box.w} height={18} rx={4} fill={colors.background} stroke={colors.border} />
+                <rect x={-box.w / 2} y={-9} width={box.w} height={18} rx={4} fill={colors.background} />
                 <text x={0} y={baseline(0, 11, CENTRAL)} textAnchor='middle' fontSize={11} fontWeight={600} fill={colors.text}>{label}</text>
               </g>
             )}

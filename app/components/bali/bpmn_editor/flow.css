@@ -220,7 +220,8 @@
 .bpmn-marker.is-selected .bpmn-marker-fill { fill: var(--bpmn-select); }
 .bpmn-marker.is-selected .bpmn-marker-open { stroke: var(--bpmn-select); }
 .bpmn-markers { position: absolute; width: 0; height: 0; }
-.bpmn-edge-label rect { fill: var(--color-base-100); stroke: var(--bpmn-border); }
+/* A patch of canvas under the text, so the line it rides on does not run through it; no outline. */
+.bpmn-edge-label rect { fill: var(--color-base-100); }
 .bpmn-edge-label text { fill: var(--color-base-content); font-size: 11px; font-weight: 600; }
 .react-flow__edge.selected .bpmn-edge-label text { fill: var(--bpmn-select); }
 .bpmn-canvas .react-flow__edge-textwrapper, .bpmn-edge-label { pointer-events: all; cursor: text; }
