@@ -5,7 +5,7 @@
 // saved to the host (hooks/useSaver.js). Contracts: docs/api/bpmn-editor.md.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal, flushSync } from 'react-dom'
-import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, EdgeLabelRenderer, useReactFlow, useKeyPress, getViewportForBounds } from '@xyflow/react'
+import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, EdgeLabelRenderer, ViewportPortal, useReactFlow, useKeyPress, getViewportForBounds } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import './flow.css'
 import { translator } from './i18n.js'
@@ -22,6 +22,7 @@ import { autoLayout } from './model/layout.js'
 import { LETTER } from './model/page.js'
 import { arrange } from './model/arrange.js'
 import { placeEdgeLabels } from './model/edgeLabels.js'
+import { alignmentGuides } from './model/guides.js'
 import { fitOptions, fitDiagram, anchorStart, MIN_FIT_ZOOM, PANEL_RESERVE } from './canvas/fit.js'
 import { hasBadges } from './model/appearance.js'
 import useRefitOnResize from './hooks/useRefitOnResize.js'
@@ -324,6 +325,11 @@ function Editor ({
     const touched = new Set(liveDoc.edges.filter((e) => moving.has(String(e.source)) || moving.has(String(e.target))).map((e) => String(e.id)))
     return routeAll(liveDoc, { previous: baseRoutes, onlyIds: touched, boxes: boxesById(liveDoc) })
   }, [liveDoc, baseRoutes, dragPositions, liveSize])
+  // Not while a lane is dragged: its elements travel with it.
+  const guides = useMemo(() => {
+    if (!dragPositions || [...dragPositions.keys()].some(isLaneNodeId)) return []
+    return alignmentGuides(liveDoc, dragPositions.keys())
+  }, [liveDoc, dragPositions])
   const routesRef = useRef(routes)
   routesRef.current = routes
 
@@ -1245,6 +1251,13 @@ function Editor ({
               zoomOnPinch={wheelMode !== 'off'}
             >
               <Background gap={20} size={1} />
+              {guides.length > 0 && (
+                <ViewportPortal>
+                  <svg className='bpmn-align-guides' data-testid='bpmn-align-guides' aria-hidden='true'>
+                    {guides.map((g) => <line key={`${g.axis}:${g.x1}:${g.y1}`} data-axis={g.axis} x1={origin.x + g.x1} y1={origin.y + g.y1} x2={origin.x + g.x2} y2={origin.y + g.y2} />)}
+                  </svg>
+                </ViewportPortal>
+              )}
               {!minimal && shown.minimap && <MiniMap className='bpmn-chrome' nodeColor={minimapColor} pannable zoomable ariaLabel={t('minimap')} />}
               {!minimal && (
                 <CanvasToolbar

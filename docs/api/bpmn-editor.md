@@ -945,6 +945,12 @@ are laid on.
   where it leaves its source.
 - **Selection**: Shift+click, Ctrl+A, "Select all", or "Box select" (for touch
   screens). Align vertically across lanes; horizontally only inside one lane.
+- **Alignment guides**: while an element is dragged, a dashed line joins its centre to the
+  centre of every element it would share a column or a row with. The line shows exactly
+  while the drop will align them — a dropped element's centre goes to the 10 px grid, so
+  that is within 5 px of the other centre — and it compares centres, not edges, so an event,
+  a gateway and an activity line up. Several elements dragged together each get theirs; a
+  dragged lane gets none.
 - **Keyboard**: Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z), Ctrl+A, Delete/Backspace, Esc,
   arrows move the selection (10 px a press, Shift for 1 px; a run of presses is one undo
   step, and the local arrangement runs when the key goes up — a Shift nudge keeps its pixel).

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`BpmnEditor`: guías de alineación al arrastrar** (#1694). Mientras se mueve un elemento,
+  una línea punteada une su centro con el de cada elemento con el que quedaría en la misma
+  columna o en la misma fila. La guía aparece justo cuando soltar los deja alineados: el
+  acomodo local lleva el centro de lo que se suelta a la retícula de 10 px, así que es a 5 px
+  o menos del otro centro. Compara centros y no bordes, para que un evento, un gateway y una
+  actividad queden en línea. No hay nada que configurar.
+
 ### Changed
 
 - **`BpmnEditor`: un gateway nuevo nace con el nombre de su tipo, salvo el exclusivo** (#1694).
