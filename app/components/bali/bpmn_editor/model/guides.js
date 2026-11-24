@@ -17,8 +17,8 @@ const AXES = [
 ]
 
 // `doc` holds the dragged nodes where the pointer has them; `movingIds` says
-// which. Returns [{ axis: 'x' | 'y', x1, y1, x2, y2 }] in pool coordinates:
-// 'x' is a vertical line (shared centre x), 'y' a horizontal one.
+// which. Returns the lines in pool coordinates, each with its ends and its
+// `axis`: 'x' for a vertical line (a shared centre x), 'y' for a horizontal one.
 export function alignmentGuides (doc, movingIds) {
   const moving = new Set([...movingIds].map(String))
   const boxes = (doc.nodes || []).filter((n) => n.type !== 'group').map((n) => ({ box: nodeBox(n), moving: moving.has(String(n.id)) }))
