@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import { paletteKeyFor, typeChoices, isActivity, isEvent, isGateway, isResizable, hasOwnSize, nodeSize, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
 import { namedByReference } from '../model/document.js'
+import { hasExternalLabel, labelPosition, LABEL_POSITIONS } from '../model/labels.js'
 import Icon from './icons.jsx'
 import FieldInput from './FieldInput.jsx'
 import ReferencePicker from './ReferencePicker.jsx'
@@ -83,6 +84,23 @@ function ElementIssues ({ issues, t }) {
   )
 }
 
+// One of a few, all in sight. `value` null is the first choice («Auto»).
+function ChoicePicker ({ label, choices, value, name, onChange, editable, testId }) {
+  return (
+    <FieldGroup label={label}>
+      <div className='join' data-testid={testId}>
+        {choices.map((choice) => (
+          <button key={choice || 'auto'} type='button' disabled={!editable} aria-pressed={choice === value} data-choice={choice || 'auto'}
+            className={`btn btn-xs join-item ${choice === value ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => onChange(choice)}>
+            {name(choice)}
+          </button>
+        ))}
+      </div>
+    </FieldGroup>
+  )
+}
+
 // Committed on Enter or on leaving the field, not per keystroke: «1» on the
 // way to «180» would clamp to the minimum and move the next elements along.
 function SizeInput ({ label, value, min, max, editable, onCommit }) {
@@ -138,6 +156,13 @@ function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentatio
           onChange={(e) => api.updateNode(node.id, { name: e.target.value }, `name:${node.id}`)} />
         {namedByReference(node) && <span className='text-xs text-base-content/60'>{t('props_name_from_reference')}</span>}
       </Field>
+      {hasExternalLabel(node) && (
+        // null, not a missing key: a host that maps the document onto its own
+        // columns keeps any key a save leaves out (as resizeNode's «Auto»).
+        <ChoicePicker label={t('props_label_position')} choices={[null, ...LABEL_POSITIONS]} value={labelPosition(node)} editable={editable}
+          name={(choice) => t(`label_position_${choice || 'auto'}`)} testId='bpmn-label-position'
+          onChange={(choice) => api.updateNode(node.id, { label_position: choice })} />
+      )}
       {editable && types.length > 1 && (
         <Field label={t('props_type')}>
           <select className='select select-sm w-full' value={key} data-testid='bpmn-node-type' title={t('props_type_hint')}

@@ -175,6 +175,7 @@ is another table with its own key.
       "reference": { "id": "77", "label": "Supplier onboarding", "url": "/…" },   // sub_process
       "event_definition": { "kind": "timer", "expression": "PT1H" },              // events
       "appearance": { "color": "#E9A23B", "dimmed": true, "badge": "In progress" }, // the app's look
+      "label_position": "top",                    // events, gateways, data: see Name position
       "fields": {} }
   ],
   "edges": [ { "id": "e1", "source": "n1", "target": "n2", "type": "sequence_flow",
@@ -278,6 +279,29 @@ default of its type (an activity 150 × 64, a gateway 50 × 50, an event 36 × 3
   room for it. Only Auto activities are narrowed when `layout: :compact` tightens a flow
   that does not fit the page — which gives them a width of their own (110), «Auto» in the
   panel puts the default back.
+
+### Name position
+
+The name of an event, a gateway or a data element is drawn outside its shape. Where: under
+an event or a data element (to the right of an event in vertical lanes, where the flow leaves
+by its bottom) and above a gateway, to the left of its top port. `label_position` on the node
+is where a person put it instead — «Name position» in the properties panel:
+
+- **`"top"`**: above the shape, to the left of its top port, as a gateway's name already is,
+  so none of the four ports is taken by the name and a connection may use any.
+- **`"bottom"`**: under the shape — centred under an event or a data element, to the left of
+  a gateway's bottom port, which is a branch's way out.
+- **absent or `null`** («Auto»): the editor's own placement above. Every document saved
+  before the key existed has none, and opens and saves exactly as it did.
+
+It is optional and only means something on those elements; an activity, an annotation and a
+group hold their own name. «Auto» sends `"label_position": null` rather than dropping the
+key, as an Auto size does. `Data` raises on any other value. The name's box is the same one
+everywhere: the canvas, the routes (which never cross a name, and avoid the port under one),
+the local arrangement and Tidy up, the image, SVG and print outputs. In the `.bpmn` export a
+placed name travels as the shape's `<bpmndi:BPMNLabel>` bounds; a name left to the editor
+has none, as before. An app that maps the document onto its own columns needs one for this
+key, or the next `200` puts the name back where the editor would.
 
 ---
 
@@ -961,6 +985,8 @@ are laid on.
   nothing to let go of.
 - **Wheel**: zooms an editable canvas. Over a read-only diagram it scrolls the page, as
   anywhere else on it; the zoom bar and a pinch still zoom.
+- **Place a name**: «Name position» in the properties panel of an event, a gateway or a data
+  element — «Above», «Below» or «Auto» — see [Name position](#name-position).
 - **Change the type** of a gateway or an event: «Type» in its properties panel lists the
   other elements of its palette group the app left enabled — a gateway any gateway, a start
   event the start events, and so for intermediate and end events. The element stays where it
@@ -1273,6 +1299,7 @@ is the maintainers' call, not a default here.
 | `bali/bpmn_editor/review` | Review notes, comparison and the watermarked outputs; `editable` lets notes be added |
 | `bali/bpmn_editor/catalog` | Every palette element as its icon draws it and as the canvas does, with its name |
 | `bali/bpmn_editor/pair` | Two editors on one page: an event the app sends to one reaches that one only |
+| `bali/bpmn_editor/placed_names` | The names of a start event and of a decision placed by hand (`label_position`), the rest left to the editor; `editable` (on its own record) offers «Name position» in the properties panel, and `orientation` draws it in vertical lanes |
 | `bali/bpmn_editor/resized_activities` | Two activities with a size of their own and the rest «Auto»; `editable` (on its own record) offers the corner handle, «Size» and «Auto» in the properties panel; off, the read-only viewer draws the stored sizes |
 
 The samples are `test/fixtures/bpmn_editor/samples.json`, in English and Spanish, read by

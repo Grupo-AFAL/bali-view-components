@@ -51,25 +51,40 @@ export const hasExternalLabel = (node) => {
   return category === CATEGORY.event || category === CATEGORY.gateway || category === CATEGORY.data
 }
 
+// Where a person put the name of an event, a gateway or a data element
+// (`node.label_position`); absent or null, the conventions above. Mirrors
+// Bali::BpmnEditor::Data::LABEL_POSITIONS (contract_test.rb).
+export const LABEL_POSITIONS = ['top', 'bottom']
+export const labelPosition = (node) => (hasExternalLabel(node) && LABEL_POSITIONS.includes(node.label_position) ? node.label_position : null)
+
 // The name's box (pool-relative), or null when the name is drawn inside the
-// shape or there is none.
+// shape or there is none. `align` is the side of the box its lines keep to:
+// 'end' beside a port, 'start' to the right of the shape, 'middle' under it.
 export function nodeLabelBox (node, orientation = 'horizontal') {
   if (!hasExternalLabel(node)) return null
   const block = textBlock(node.name)
   if (!block) return null
   const box = nodeBox(node)
-  if (categoryOf(node) === CATEGORY.gateway) {
-    // Above the app's badge tab, which reaches 8 px over the top-left corner.
+  const size = { w: block.w, h: block.h, lines: block.lines }
+  const gateway = categoryOf(node) === CATEGORY.gateway
+  const position = labelPosition(node)
+  if (position === 'top' || (gateway && !position)) {
+    // To the left of the top port, above the app's badge tab, which reaches
+    // 8 px over the top-left corner. An event's name asked above goes where a
+    // gateway's is: clear of the port, and of the pending badge on the right.
     const look = appearanceOf(node)
     const top = box.y - (look && look.badge ? BADGE_TAB.height / 2 : 0)
-    return { x: box.cx - GAP - block.w, y: top - GAP - block.h, w: block.w, h: block.h, lines: block.lines }
+    return { x: box.cx - GAP - block.w, y: top - GAP - block.h, ...size, align: 'end' }
   }
-  if (orientation === 'vertical' && categoryOf(node) === CATEGORY.event) {
+  // A gateway's bottom port is a branch's way out: its name asked below keeps
+  // to the left of it, as above.
+  if (gateway) return { x: box.cx - GAP - block.w, y: box.y + box.h + GAP, ...size, align: 'end' }
+  if (!position && orientation === 'vertical' && categoryOf(node) === CATEGORY.event) {
     // Past the pending badge, which overhangs the top-right corner by 9 px: a
     // name of two or three lines reaches up beside it.
-    return { x: box.x + box.w + 12, y: box.cy - block.h / 2, w: block.w, h: block.h, lines: block.lines }
+    return { x: box.x + box.w + 12, y: box.cy - block.h / 2, ...size, align: 'start' }
   }
-  return { x: box.cx - block.w / 2, y: box.y + box.h + GAP, w: block.w, h: block.h, lines: block.lines }
+  return { x: box.cx - block.w / 2, y: box.y + box.h + GAP, ...size, align: 'middle' }
 }
 
 // The pending-issue triangle, on the top-right corner of the shape — of a
@@ -197,8 +212,9 @@ export function wrap (text, maxChars, maxLines, firstChars = maxChars) {
 // The side of a node its own label occupies: no connection may use that port.
 export function labelSide (node, orientation = 'horizontal') {
   if (!hasExternalLabel(node) || !String(node.name || '').trim()) return null
-  if (categoryOf(node) === CATEGORY.gateway) return null // above-left: clear of every port
-  return orientation === 'vertical' && categoryOf(node) === CATEGORY.event ? 'right' : 'bottom'
+  // Beside a port (a gateway's name, any name asked above): clear of every one.
+  if (categoryOf(node) === CATEGORY.gateway || labelPosition(node) === 'top') return null
+  return !labelPosition(node) && orientation === 'vertical' && categoryOf(node) === CATEGORY.event ? 'right' : 'bottom'
 }
 
 export const EDGE_LABEL = { char: 6.6, height: 18, pad: 12 }

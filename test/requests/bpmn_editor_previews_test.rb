@@ -27,7 +27,7 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
   end
 
   %w[default playground host_integration configured review catalog pair split_view compare_flows resized_activities
-     macroprocess_map].each do |preview|
+     macroprocess_map placed_names].each do |preview|
     define_method("test_the_#{preview}_preview_renders_the_island_and_its_loader_metas") do
       get "#{PREVIEW}/#{preview}"
 
@@ -209,6 +209,19 @@ class BpmnEditorPreviewsTest < ActionDispatch::IntegrationTest
 
     get "#{PREVIEW}/resized_activities"
     assert_equal 2, island_value("data")["nodes"].count { |n| n["width"] }
+    assert_equal "true", island["data-bpmn-editor-editable-value"]
+  end
+
+  # Two names placed by hand, the rest left to the editor (no key at all).
+  def test_the_placed_names_preview_sends_two_label_positions_read_only_or_editable
+    get "#{PREVIEW}/placed_names", params: { editable: false, orientation: "vertical" }
+    placed = island_value("data")["nodes"].select { |n| n.key?("label_position") }
+    assert_equal [ %w[start_event top], %w[exclusive_gateway bottom] ], placed.map { |n| [ n["type"], n["label_position"] ] }
+    assert_equal "false", island["data-bpmn-editor-editable-value"]
+    assert_equal "vertical", island["data-bpmn-editor-orientation-value"]
+
+    get "#{PREVIEW}/placed_names"
+    assert_equal 2, island_value("data")["nodes"].count { |n| n["label_position"] }
     assert_equal "true", island["data-bpmn-editor-editable-value"]
   end
 

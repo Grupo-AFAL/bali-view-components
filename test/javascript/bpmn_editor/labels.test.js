@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { boxesOverlap } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
-import { insideLabelBox, badgeTabBox, markerZone, taskMarkerAt, nodeLabelBox, badgeBox, wrap, fitBadge } from '../../../app/components/bali/bpmn_editor/model/labels.js'
+import { insideLabelBox, badgeTabBox, markerZone, taskMarkerAt, nodeLabelBox, labelSide, badgeBox, wrap, fitBadge } from '../../../app/components/bali/bpmn_editor/model/labels.js'
 import { node } from './helpers.js'
 
 const NAME = 'Manage insurance and claims for company fixed assets'
@@ -122,4 +122,54 @@ test('a name all in capitals gets the width its glyphs take, so «AND» is not c
   assert.ok(widthOf('AND') >= 26, `AND got ${widthOf('AND')} px`)
   assert.ok(widthOf('WMS') >= 29, `WMS got ${widthOf('WMS')} px`)
   assert.equal(widthOf('Fin'), 24)
+})
+
+// #1694: `label_position`, optional. Where the editor put a name before is
+// what a document without the key still gets.
+const named = (type, extra = {}) => node('n', type, 'l1', 200, 100, { name: 'Invoice received', ...extra })
+const below = (box, n) => box.y >= n.y + (n.height || (n.type.includes('gateway') ? 50 : 36))
+const above = (box, n) => box.y + box.h <= n.y
+
+test('without label_position every name sits where it always did', () => {
+  for (const type of ['start_event', 'end_event', 'exclusive_gateway', 'data_object']) {
+    const legacy = nodeLabelBox(named(type))
+    assert.deepEqual(nodeLabelBox(named(type, { label_position: null })), legacy, type)
+    assert.deepEqual(nodeLabelBox(named(type, { label_position: 'sideways' })), legacy, `${type}: a value it does not know is none`)
+  }
+  assert.equal(nodeLabelBox(named('start_event')).align, 'middle')
+  assert.equal(nodeLabelBox(named('start_event'), 'vertical').align, 'start')
+  assert.equal(nodeLabelBox(named('exclusive_gateway')).align, 'end')
+  assert.equal(labelSide(named('start_event')), 'bottom')
+  assert.equal(labelSide(named('start_event'), 'vertical'), 'right')
+})
+
+test('a name asked above an event goes left of its top port, clear of every port and of the pending badge', () => {
+  const event = named('start_event', { label_position: 'top' })
+  const box = nodeLabelBox(event)
+  assert.ok(above(box, event))
+  assert.ok(box.x + box.w < event.x + 18, 'left of the top port')
+  assert.equal(boxesOverlap(box, badgeBox(event)), false)
+  assert.equal(labelSide(event), null)
+  assert.equal(labelSide(event, 'vertical'), null)
+  assert.deepEqual(nodeLabelBox(event, 'vertical'), box, 'the same in vertical lanes')
+  // Over the app's badge tab, as a gateway's.
+  const badged = { ...event, appearance: { badge: 'Done' } }
+  assert.equal(boxesOverlap(nodeLabelBox(badged), badgeTabBox(badged, 'Done')), false)
+})
+
+test('a name asked below: under an event, and left of a gateway’s bottom port', () => {
+  const event = named('start_event', { label_position: 'bottom' })
+  assert.deepEqual(nodeLabelBox(event, 'vertical'), nodeLabelBox(named('start_event')), 'an event: where horizontal lanes put it')
+  assert.equal(labelSide(event, 'vertical'), 'bottom')
+  const gateway = named('exclusive_gateway', { label_position: 'bottom' })
+  const box = nodeLabelBox(gateway)
+  assert.ok(below(box, gateway))
+  assert.ok(box.x + box.w < gateway.x + 25, 'left of the bottom port')
+  assert.equal(labelSide(gateway), null)
+  assert.deepEqual(nodeLabelBox(named('exclusive_gateway', { label_position: 'top' })), nodeLabelBox(named('exclusive_gateway')), 'above is where a gateway’s already is')
+})
+
+test('label_position means nothing on an element that holds its own name', () => {
+  assert.equal(nodeLabelBox(named('task', { label_position: 'top' })), null)
+  assert.equal(labelSide(named('task', { label_position: 'top' })), null)
 })

@@ -27,6 +27,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   paralelo no lleva y su panel ya no deja borrar. Llave nueva de la tabla de textos:
   `props_type_hint`. En el documento no hay nada nuevo: cambia `type` y los atributos que ya
   dependían de él (`marker_visible`, `instantiate`, `event_gateway_type`, `event_definition`).
+- **`BpmnEditor`: el nombre de un evento, un gateway o un dato se puede poner arriba o abajo**
+  (#1694). El nombre de un evento iba siempre abajo y ocupaba ese puerto: ninguna conexión
+  podía salir o entrar por ahí. «Posición del nombre», en el panel de propiedades, ofrece
+  «Auto», «Arriba» y «Abajo». Arriba, el nombre va a la izquierda del puerto superior, como
+  ya iba el de un gateway, y deja libres los cuatro puertos; abajo, centrado bajo un evento o
+  un dato y a la izquierda del puerto inferior de un gateway. Las rutas, el acomodo local,
+  «Autoajustar», el PNG, el SVG y la impresión usan la misma caja; el `.bpmn` la exporta como
+  `<bpmndi:BPMNLabel>` solo cuando el nombre se colocó a mano.
+  **Formato:** es la llave opcional `label_position` (`"top"`, `"bottom"` o `null`) en el
+  nodo. Un documento guardado antes no la trae y se abre, se dibuja y se exporta igual;
+  `Data` lanza `InvalidError` con cualquier otro valor. Qué hacer: una app que guarda el
+  documento entero (JSON), nada; una que lo mapea a sus propias columnas necesita una para
+  esta llave, o el siguiente `200` devuelve el nombre a su lugar de siempre. Llaves nuevas de
+  la tabla de textos: `props_label_position`, `label_position_auto`, `label_position_top` y
+  `label_position_bottom`. Preview: `bali/bpmn_editor/placed_names`.
 
 ### Changed
 

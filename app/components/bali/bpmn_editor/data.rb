@@ -24,6 +24,7 @@ module Bali
     #         reference: { id: "77", label: "...", url: "/..." },             # sub_process
     #         event_definition: { kind: "timer", expression: "PT1H" },        # events
     #         appearance: { color: "#E9A23B", dimmed: true, badge: "In progress" },  # the app's look
+    #         label_position: "top",          # events, gateways, data: top | bottom; nil or absent = the island's
     #         fields: {} }
     #     ],
     #     edges: [ { id: "e1", source: "n1", target: "n2", type: "sequence_flow", label: "Yes",
@@ -65,6 +66,8 @@ module Bali
       # Mirrors EDGE_TYPES in model/catalog.js (contract_test.rb).
       EDGE_TYPES = %w[sequence_flow message_flow association].freeze
       PORTS = %w[auto top right bottom left].freeze
+      # Mirrors LABEL_POSITIONS in model/labels.js (contract_test.rb).
+      LABEL_POSITIONS = %w[top bottom].freeze
       SEVERITIES = %w[error warning].freeze
       # Mirror APPEARANCE_COLLECTIONS, APPEARANCE_KEYS and BADGE_MAX in
       # model/appearance.js (contract_test.rb).
@@ -154,6 +157,7 @@ module Bali
 
           numeric_keys!(node, %i[x y width height], "node #{node[:id]}")
           validate_size!(node)
+          validate_label!(node)
           navigable_url!(node[:reference], "node #{node[:id]}: reference")
         end
         unique_ids!(nodes, "node")
@@ -171,6 +175,16 @@ module Bali
 
           raise InvalidError, "node #{node[:id]}: #{key} must not be negative, got #{node[key].inspect}"
         end
+      end
+
+      # Where the person put the name of an event, a gateway or a data
+      # element. Optional: absent or nil is the island's own placement, which
+      # is every document saved before the key existed.
+      def validate_label!(node)
+        position = node[:label_position]
+        return if position.nil? || LABEL_POSITIONS.include?(position.to_s)
+
+        raise InvalidError, "node #{node[:id]}: label_position must be one of #{LABEL_POSITIONS.inspect} or nil, got #{position.inspect}"
       end
 
       def validate_appearance!(element, kind)

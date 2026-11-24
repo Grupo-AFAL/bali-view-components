@@ -8,6 +8,7 @@ import { measure, sharedLength, segmentsCross } from './support/layoutQuality.js
 import { setOrientation, deleteElements } from '../../../app/components/bali/bpmn_editor/model/operations.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 import { doc as docOf, lanes as lanesOf, node as nodeOf, flow as flowOf } from './helpers.js'
+import { hasExternalLabel } from '../../../app/components/bali/bpmn_editor/model/labels.js'
 
 // Ceilings for the soft measures after Tidy up, per fixture: what the
 // layout reaches today, so a regression shows. Crossings stay at most one
@@ -138,3 +139,24 @@ test('two activities a person leaves close together stay close: 20 px is the lea
 test('an element dropped on top of another still goes to the next free spot, at the usual spacing', () => {
   assert.equal(gapBetween(arrange(row(-100)), 't1', 't2'), 90)
 })
+
+// #1694: names placed by hand (`label_position`) are part of the footprint
+// the layout, the arrangement and the router already work with.
+const withLabels = (doc, position) => ({ ...doc, nodes: doc.nodes.map((n) => (hasExternalLabel(n) ? { ...n, label_position: position(n) } : n)) })
+for (const [name, make] of Object.entries(FIXTURES)) {
+  for (const orientation of ['horizontal', 'vertical']) {
+    test(`${name} (${orientation}) with every outside name placed above, below or mixed: no hard violation`, () => {
+      const base = normalize(make())
+      const turned = orientation === 'vertical' ? setOrientation(base, 'vertical').doc : base
+      let flip = 0
+      for (const position of [() => 'top', () => 'bottom', () => (flip++ % 2 ? 'top' : 'bottom')]) {
+        const laid = autoLayout(withLabels(turned, position))
+        assert.equal(measure(laid).hard, 0, `Tidy up: ${JSON.stringify(measure(laid).details)}`)
+        // Placed on a diagram already laid out, as the properties panel does it.
+        const edited = arrange(withLabels(autoLayout(turned), position))
+        assert.equal(measure(edited).hard, 0, `edit: ${JSON.stringify(measure(edited).details)}`)
+        assert.equal(arrange(edited), edited, 'settled')
+      }
+    })
+  }
+}

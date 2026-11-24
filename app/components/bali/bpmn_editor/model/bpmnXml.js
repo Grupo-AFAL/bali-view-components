@@ -11,6 +11,7 @@ import { layoutLanes, laneRect, nodeBox, poolOrigin } from './geometry.js'
 import { routeAll } from './routing.js'
 import { edgeType, isFlowNode, isBinaryDecision } from './catalog.js'
 import { appearanceOf } from './appearance.js'
+import { nodeLabelBox, labelPosition } from './labels.js'
 import { parseHex } from './contrast.js'
 
 const TAGS = {
@@ -219,14 +220,19 @@ export function toBpmnXml (doc, { name = '' } = {}) {
       return box ? { x: Math.min(box.x, r.x), y: Math.min(box.y, r.y), w: Math.max(box.x + box.w, r.x + r.w) - Math.min(box.x, r.x), h: Math.max(box.y + box.h, r.y + r.h) - Math.min(box.y, r.y) } : r
     }, null)
     : null
-  const shape = (element, attributes, box) => `      <bpmndi:BPMNShape id="${shapeOf.get(element)}" bpmnElement="${element}"${attributes}>${bounds(box)}</bpmndi:BPMNShape>`
+  const shape = (element, attributes, box, label = null) => `      <bpmndi:BPMNShape id="${shapeOf.get(element)}" bpmnElement="${element}"${attributes}>${bounds(box)}${label ? `<bpmndi:BPMNLabel>${bounds(label)}</bpmndi:BPMNLabel>` : ''}</bpmndi:BPMNShape>`
+  // A name the person placed (`label_position`) travels as the shape's
+  // BPMNLabel bounds, which is where BPMN DI keeps it; a name left where the
+  // editor puts it has none, so a document without the key exports as before
+  // and the tool that opens it places the name its own way.
+  const placedLabel = (n) => (labelPosition(n) ? nodeLabelBox(n, layout.orientation) : null)
   const shapes = [
     internalBox && shape(main.participant, ` isHorizontal="${horizontal}"`, internalBox),
     ...externalLanes.map((e) => shape(pool.get(String(e.id)).participant, ` isHorizontal="${horizontal}"`, laneRect(layout, e))),
     ...internalLanes.map((e) => shape(laneIds.get(String(e.id)), ` isHorizontal="${horizontal}"`, laneRect(layout, e))),
     // The Yes/No decision is an exclusive gateway whose X is hidden: BPMN DI
     // says so with isMarkerVisible, the one place the standard keeps it.
-    ...(doc.nodes || []).map((n) => shape(nodeId(n.id), `${n.type === 'exclusive_gateway' ? ` isMarkerVisible="${!isBinaryDecision(n)}"` : ''}${colorAttributes(colorsOf(n))}`, nodeBox(n)))
+    ...(doc.nodes || []).map((n) => shape(nodeId(n.id), `${n.type === 'exclusive_gateway' ? ` isMarkerVisible="${!isBinaryDecision(n)}"` : ''}${colorAttributes(colorsOf(n))}`, nodeBox(n), placedLabel(n)))
   ].filter(Boolean)
   const edges = flows.map((e) => {
     const route = routes.get(String(e.id))

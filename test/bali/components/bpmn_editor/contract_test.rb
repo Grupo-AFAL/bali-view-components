@@ -61,6 +61,10 @@ class BaliBpmnEditorContractTest < ActiveSupport::TestCase
     assert_equal Bali::BpmnEditor::Data::EDGE_TYPES, js_list("model/catalog.js", "EDGE_TYPES")
   end
 
+  def test_label_positions
+    assert_equal Bali::BpmnEditor::Data::LABEL_POSITIONS, js_list("model/labels.js", "LABEL_POSITIONS")
+  end
+
   def test_navigable_schemes
     assert_equal Bali::BpmnEditor::Data::NAVIGABLE_SCHEMES, js_list("model/urls.js", "NAVIGABLE_SCHEMES")
   end

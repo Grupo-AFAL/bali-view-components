@@ -217,7 +217,7 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
             {(() => {
               const lb = nodeLabelBox(node, layout.orientation)
               if (!lb) return null
-              const anchor = category === CATEGORY.gateway ? 'end' : layout.orientation === 'vertical' && category === CATEGORY.event ? 'start' : 'middle'
+              const anchor = lb.align
               const x = anchor === 'end' ? lb.x + lb.w : anchor === 'start' ? lb.x : lb.x + lb.w / 2
               return <Text x={x} y={lb.y + lb.h / 2} anchor={anchor} text={node.name} maxChars={Math.max(4, Math.floor(lb.w / 6.4))} maxLines={lb.lines} size={11} fill={colors.text} />
             })()}

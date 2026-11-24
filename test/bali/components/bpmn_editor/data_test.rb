@@ -147,6 +147,18 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
     assert_nothing_raised { Data.new(sized("group", width: 1200, height: 600)) }
   end
 
+  # Optional, so every document saved before the key existed still opens.
+  def test_a_label_position_is_top_bottom_or_left_to_the_island
+    assert_nothing_raised { Data.new(sized("start_event")) }
+    assert_nothing_raised { Data.new(sized("start_event", label_position: nil)) }
+    assert_equal "top", Data.new(sized("start_event", label_position: "top")).nodes.first[:label_position]
+    assert_nothing_raised { Data.new(sized("exclusive_gateway", label_position: :bottom)) }
+
+    error = assert_raises(Data::InvalidError) { Data.new(sized("start_event", label_position: "left")) }
+
+    assert_includes error.message, "node n1: label_position must be one of"
+  end
+
   def test_a_negative_size_raises
     [ { width: -1 }, { height: "-5" } ].each do |size|
       error = assert_raises(Data::InvalidError, size.inspect) { Data.new(sized("exclusive_gateway", **size)) }

@@ -618,7 +618,7 @@ export function routeDiagram (doc, { order = null } = {}) {
 // name; a name counts only through its label's box and the side it takes
 // (labels.js). Two documents that agree on all of it, and on the lanes'
 // measures, are routed alike.
-const NODE_KEYS = ['id', 'type', 'x', 'y', 'width', 'height', 'lane_id']
+const NODE_KEYS = ['id', 'type', 'x', 'y', 'width', 'height', 'lane_id', 'label_position']
 const EDGE_KEYS = ['id', 'source', 'target', 'type', 'ports', 'waypoints']
 
 export function sameRouting (a, b) {

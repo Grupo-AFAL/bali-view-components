@@ -46,13 +46,16 @@ function Label ({ node, name, orientation, activityShape, category, badge, link 
   const box = nodeBox(node)
   return (
     <div
-      className={`bpmn-label bpmn-label-outside${category === CATEGORY.gateway ? ' text-right' : orientation === 'vertical' && category === CATEGORY.event ? ' text-left' : ' text-center'}`}
+      className={`bpmn-label bpmn-label-outside ${LABEL_ALIGN[label.align]}`}
+      data-testid='bpmn-node-name'
       style={{ left: label.x - box.x, top: label.y - box.y, width: label.w, WebkitLineClamp: label.lines }}
     >
       {name}
     </div>
   )
 }
+
+const LABEL_ALIGN = { end: 'text-right', start: 'text-left', middle: 'text-center' }
 
 // Width the quick menu needs, and the properties panel that covers the right
 // edge of the canvas while it is open (w-72 + its gap).

@@ -198,6 +198,30 @@ module Bali
         )
       end
 
+      # @label Names placed by hand
+      # The name of an event, a gateway or a data element where the person put
+      # it (`label_position` on the node): «Invoice received» above its start
+      # event, the decision's question below it, the rest where the editor
+      # puts them (no key). Above, a name sits left of the top port, so every
+      # port stays free for a connection. Editable: select an event or a
+      # gateway and pick «Arriba», «Abajo» or «Auto» under «Posición del
+      # nombre»; the connections are routed again and it is one undo step.
+      # docs/api/bpmn-editor.md#name-position
+      # @param editable toggle "Editable (off: the read-only viewer draws the stored positions)"
+      # @param orientation select { choices: [horizontal, vertical] }
+      # @param locale select { choices: [es, en] }
+      def placed_names(editable: true, orientation: "horizontal", locale: :es)
+        data = placed_names_sample(locale)
+        return island(locale, data: data, lock_orientation: orientation.to_sym) unless editable
+
+        flow = ProcessFlow.reset!("Placed names (#{locale})", data)
+        render_with_template(
+          template: "bali/bpmn_editor/previews/playground",
+          locals: { flow: flow, locale: locale, theme: "light", optional_rules: false, server: "normal",
+                    options: { layout: :straight, lock_orientation: orientation.to_sym } }
+        )
+      end
+
       # @label Host integration
       # What the app around the editor does: a console of the `bali-bpmn:*`
       # events the editors send (dirty-change, saved, finalized, open-reference,
@@ -555,6 +579,12 @@ module Bali
         }
         data = BpmnSampleFlows.invoice(locale: locale)
         data.merge(nodes: data[:nodes].map { |node| sizes[node[:id]] ? node.merge(sizes[node[:id]]) : node })
+      end
+
+      def placed_names_sample(locale)
+        positions = { "start_event" => "top", "exclusive_gateway" => "bottom" }
+        data = BpmnSampleFlows.invoice(locale: locale)
+        data.merge(nodes: data[:nodes].map { |node| positions[node[:type]] ? node.merge(label_position: positions[node[:type]]) : node })
       end
 
       def without_geometry(doc)
