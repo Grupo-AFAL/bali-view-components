@@ -15,6 +15,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   acomodo local lleva el centro de lo que se suelta a la retícula de 10 px, así que es a 5 px
   o menos del otro centro. Compara centros y no bordes, para que un evento, un gateway y una
   actividad queden en línea. No hay nada que configurar.
+- **`BpmnEditor`: cambiar el tipo de un gateway o de un evento sin desconectarlo** (#1694).
+  Reemplazar un gateway mal puesto era borrarlo, y con él sus flechas. El panel de propiedades
+  de un gateway o de un evento trae ahora «Tipo», con los demás elementos de su grupo de la
+  paleta que la app dejó habilitados: un gateway puede ser cualquier otro gateway; un evento
+  de inicio, otro de inicio, y lo mismo los intermedios y los de fin. El elemento conserva su
+  id y su lugar, así que sus conexiones, sus notas, su nombre, su descripción y sus `fields`
+  quedan como estaban; es un solo paso de deshacer. Un nombre que nunca se cambió («Decisión»)
+  pasa al del tipo nuevo («AND»); un temporizador que sigue siendo temporizador conserva su
+  expresión; y un gateway que pasa a paralelo pierde las etiquetas de sus salidas, que un
+  paralelo no lleva y su panel ya no deja borrar. Llave nueva de la tabla de textos:
+  `props_type_hint`. En el documento no hay nada nuevo: cambia `type` y los atributos que ya
+  dependían de él (`marker_visible`, `instantiate`, `event_gateway_type`, `event_definition`).
 
 ### Changed
 

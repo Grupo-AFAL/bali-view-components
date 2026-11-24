@@ -997,6 +997,7 @@ es:
         props_documentation: "Descripción"
         props_documentation_placeholder: "Describe el elemento."
         props_type: "Tipo"
+        props_type_hint: "Cambia qué es el elemento; sus conexiones, su nombre y sus notas se conservan."
         props_lane: "Carril"
         props_event_kind: "Tipo de evento"
         props_expression: "Expresión"

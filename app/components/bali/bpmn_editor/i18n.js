@@ -551,6 +551,7 @@ export const DEFAULT_I18N = {
   props_documentation: 'Description',
   props_documentation_placeholder: 'Describe the element.',
   props_type: 'Type',
+  props_type_hint: 'Changes what the element is; its connections, name and notes stay.',
   props_lane: 'Lane',
   props_event_kind: 'Event type',
   props_expression: 'Expression',

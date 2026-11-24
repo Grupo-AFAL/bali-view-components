@@ -537,6 +537,7 @@ function Editor ({
   const api = useMemo(() => ({
     updateNode: (id, patch, coalesce) => apply((d) => ops.updateNode(d, id, patch), { coalesce, arrange: !coalesce }),
     resizeNode: (id, size) => apply((d) => ops.resizeNode(d, id, size)),
+    changeNodeType: (id, key) => apply((d) => ops.changeNodeType(d, id, PALETTE_ITEMS[key] && PALETTE_ITEMS[key].node, { names })),
     updateEdge: (id, patch, coalesce) => apply((d) => ops.updateEdge(d, id, patch), { coalesce, arrange: !coalesce }),
     updateLane: (id, patch, coalesce) => apply((d) => ops.updateLane(d, id, patch), { coalesce, arrange: !coalesce }),
     moveLane: (id, step) => apply((d) => ops.moveLane(d, id, step)),
@@ -551,7 +552,7 @@ function Editor ({
     announceOpenReference: (node) => announceOpenReference(node, hostElement),
     newReference: (nodeId) => urls.new_reference && openDrawerUrl(withParams(urls.new_reference, { client_node_id: nodeId, editor_id: hostElement && hostElement.id })),
     newLaneAssignee: (laneId) => urls.new_lane_assignee && openDrawerUrl(withParams(urls.new_lane_assignee, { client_lane_id: laneId, editor_id: hostElement && hostElement.id }))
-  }), [apply, deleteSelection, hostElement, urls, selection, policy])
+  }), [apply, deleteSelection, hostElement, urls, selection, policy, names])
 
   // ── React Flow callbacks ───────────────────────────────────────────────
   const onNodesChange = useCallback((changes) => {
@@ -1313,6 +1314,7 @@ function Editor ({
                   onPickLane={(id) => focusElement(id)}
                   annotationTags={tags}
                   issues={issueList}
+                  paletteKeys={enabledKeys}
                 />
                 )
               : null}

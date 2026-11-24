@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { paletteKeyFor, isActivity, isEvent, isGateway, isResizable, hasOwnSize, nodeSize, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
+import { paletteKeyFor, typeChoices, isActivity, isEvent, isGateway, isResizable, hasOwnSize, nodeSize, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
 import { namedByReference } from '../model/document.js'
 import Icon from './icons.jsx'
 import FieldInput from './FieldInput.jsx'
@@ -122,11 +122,13 @@ function SizeFields ({ node, api, t, editable }) {
   )
 }
 
-function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentationField, urls }) {
+function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentationField, urls, paletteKeys }) {
   const key = paletteKeyFor(node)
   const lane = doc.lanes.find((l) => String(l.id) === String(node.lane_id))
   const fields = [...(nodeFields['*'] || []), ...(nodeFields[node.type] || [])]
   const describe = isEvent(node) || isGateway(node) || isActivity(node)
+  // What the host's palette offers of its family, and what it is now.
+  const types = typeChoices(node).filter((choice) => choice === key || (paletteKeys && paletteKeys.has(choice)))
   return (
     <>
       <p className='text-xs text-base-content/60'>{key ? t(`palette_${key}`) : node.type}{lane ? ` · ${lane.name || t('lane_unnamed')}` : ''}</p>
@@ -136,6 +138,14 @@ function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentatio
           onChange={(e) => api.updateNode(node.id, { name: e.target.value }, `name:${node.id}`)} />
         {namedByReference(node) && <span className='text-xs text-base-content/60'>{t('props_name_from_reference')}</span>}
       </Field>
+      {editable && types.length > 1 && (
+        <Field label={t('props_type')}>
+          <select className='select select-sm w-full' value={key} data-testid='bpmn-node-type' title={t('props_type_hint')}
+            onChange={(e) => api.changeNodeType(node.id, e.target.value)}>
+            {types.map((choice) => <option key={choice} value={choice}>{t(`palette_${choice}`)}</option>)}
+          </select>
+        </Field>
+      )}
       {describe && (
         <Field label={t('props_documentation')}>
           <textarea className='textarea textarea-sm w-full' rows={3} value={node.documentation || ''} disabled={!editable}
@@ -245,7 +255,7 @@ function Participants ({ doc, t, onPick }) {
 // The side panel: properties of what is selected (a node, a connection, a
 // lane, several nodes) or the list of participants. Replaces the modal
 // dialogs of the old editor.
-export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, documentationField, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true, issues = [] }) {
+export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, documentationField, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true, issues = [], paletteKeys = null }) {
   const nodes = selection.nodes.map((id) => doc.nodes.find((n) => String(n.id) === id)).filter(Boolean)
   const edge = selection.edges.length === 1 ? doc.edges.find((e) => String(e.id) === selection.edges[0]) : null
   const lane = selection.lanes.length === 1 ? doc.lanes.find((l) => String(l.id) === selection.lanes[0]) : null
@@ -274,7 +284,7 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, not
     )
   } else if (nodes.length === 1) {
     title = nodes[0].name || t('props_title')
-    body = <NodeProperties node={nodes[0]} doc={doc} api={api} t={t} editable={editable} nodeFields={nodeFields} documentationField={documentationField} urls={urls} />
+    body = <NodeProperties node={nodes[0]} doc={doc} api={api} t={t} editable={editable} nodeFields={nodeFields} documentationField={documentationField} urls={urls} paletteKeys={paletteKeys} />
   } else if (edge) {
     title = t('props_edge')
     body = <EdgeProperties edge={edge} doc={doc} api={api} t={t} editable={editable} />

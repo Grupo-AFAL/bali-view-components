@@ -961,6 +961,13 @@ are laid on.
   nothing to let go of.
 - **Wheel**: zooms an editable canvas. Over a read-only diagram it scrolls the page, as
   anywhere else on it; the zoom bar and a pinch still zoom.
+- **Change the type** of a gateway or an event: «Type» in its properties panel lists the
+  other elements of its palette group the app left enabled — a gateway any gateway, a start
+  event the start events, and so for intermediate and end events. The element stays where it
+  is, with its id: its connections, notes, name, description and `fields` are kept, and it is
+  one undo step. A name it never got (the old type's default) becomes the new type's; a timer
+  that stays a timer keeps its expression; a gateway turned parallel drops the labels of its
+  ways out, which a parallel split does not carry. Activities are not offered.
 - **Resize an activity**: the corner handle of the selected one, or «Size» in the
   properties panel; «Auto» returns to the type's size — see [Node size](#node-size).
 - **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
