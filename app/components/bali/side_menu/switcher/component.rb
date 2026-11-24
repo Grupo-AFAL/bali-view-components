@@ -59,6 +59,12 @@ module Bali
           class_names("menu-switcher mb-3", "menu-switcher--accent": @accent)
         end
 
+        # The current option's check: it is marked by more than its fill, which a colour-blind reader or a greyscale
+        # screen can't tell from the hover.
+        def current_mark
+          render Bali::Icon::Component.new("check", class: "menu-switcher-check")
+        end
+
         def link?(entry)
           entry.http_method == :get
         end

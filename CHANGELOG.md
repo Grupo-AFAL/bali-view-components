@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`SideMenu`: el selector de módulos nombra el módulo actual por su título y lo marca con algo más que su
+  color.**
+  - **El disparador muestra solo el ícono y el título.** El subtítulo, que ayuda a elegir, queda en el panel
+    abierto: en el disparador repetía lo que dicen las listas debajo, en una segunda línea.
+  - **El ícono va en un mosaico neutro** (`.menu-switch-icon`, `base-200`), en el disparador y en el panel, y deja
+    el color de acento al elemento actual de la página.
+  - **La opción actual lleva una palomita y `aria-current="true"`.** Su fondo pasa de `primary` al 12% a la tinta al
+    12%, un paso más que el hover (8%), así que se distingue sin color, en escala de grises o con daltonismo.
+  - Desde daisyUI 5.7.42 `[aria-current]` en un `.menu` recibe el fondo casi negro de `.menu-active`; por eso
+    `daisyui-overrides.css` restablece fondo y tinta juntos, como ya lo hace con `.menu .menu-item[aria-current]`.
+  - **Medido en `side_menu/with_menu_switcher`**, contraste WCAG sobre la opción actual:
+
+    | | claro | oscuro |
+    |---|---|---|
+    | subtítulo | 5.80 | 6.02 |
+    | título y palomita | 13.80 | 10.24 |
+
+  **Anfitrión:** nada que hacer. Una app que estilaba `.side-menu-component--menu-switch-component svg` o leía el
+  subtítulo en el disparador lo verá cambiar; un `.is-current` propio sigue ganando con su especificidad.
+
 ## [v3.29.1] - 2026-11-22
 
 ### Fixed

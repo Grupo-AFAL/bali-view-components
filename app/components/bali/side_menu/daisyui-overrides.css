@@ -115,6 +115,15 @@
   @apply bg-primary/10 text-soft-primary;
 }
 
+/* The module switcher's current option carries `aria-current` (and a check, ./switcher), which since daisyUI 5.7.42
+   gives it the `.menu-active` look: daisyUI's near-black ground under the option's subtitle, which is what the
+   switcher's own neutral fill in ./index.css (@layer components) is there to avoid. Restated here, unlayered, ground
+   and ink together, as for `.menu .menu-item[aria-current]` above. */
+.menu-switcher .dropdown-content [aria-current]:not([aria-current="false"], [aria-current=""]) {
+  background-color: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+  color: var(--color-base-content);
+}
+
 /* ── The keyboard ring inside a `.menu` panel ────────────────────────────
    daisyUI takes the ring off a `.menu` item under `:focus-visible`
    (`outline: 2px solid #0000`) and leaves only a 10% base-content tint, which

@@ -207,6 +207,24 @@ class BaliSideMenuComponentTest < ComponentTestCase
     assert_no_selector("details[name]", visible: :all)
   end
 
+  # The current module is marked by more than its fill: a check and `aria-current`, on it alone. The subtitle is
+  # drawn in the trigger and the panel alike, and index.css hides it in the trigger.
+  def test_the_current_module_carries_a_check_and_aria_current
+    @options[:fixed] = false
+    render_inline(component) do |c|
+      c.with_menu_switch(title: "Inventory", subtitle: "Stock and counts", href: "/inv", icon: "warehouse",
+                         active: true)
+      c.with_menu_switch(title: "Pack Track", subtitle: "Shipments", href: "/pack", icon: "package")
+      c.with_list { |list| list.with_item(name: "Item 1", href: "/movies") }
+    end
+
+    assert_selector(".dropdown-content a[aria-current='true']", count: 1, text: /Inventory/, visible: :all)
+    assert_selector(".dropdown-content a[aria-current='true'] .menu-switcher-check", visible: :all)
+    assert_selector(".dropdown-content .menu-switcher-check", count: 1, visible: :all)
+    assert_selector(".menu-switcher-trigger .menu-switch-icon", visible: :all)
+    assert_selector(".menu-switcher-trigger .menu-switch-subtitle", text: "Stock and counts", visible: :all)
+  end
+
   # Nothing selected on the server: the trigger must not name the first option as
   # where you are.
   def test_a_context_selector_with_no_active_option_shows_its_placeholder

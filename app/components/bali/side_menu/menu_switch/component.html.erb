@@ -1,9 +1,12 @@
 <%= tag.div(class: 'side-menu-component--menu-switch-component flex items-center gap-3') do %>
   <% if @icon %>
-    <%= render Bali::Icon::Component.new(@icon, class: 'w-6 h-6') %>
+    <%# The module's icon in a neutral tile: it names the module beside its title without competing with the page's
+        current item for the accent colour. %>
+    <span class="menu-switch-icon"><%= render Bali::Icon::Component.new(@icon, class: 'size-5') %></span>
   <% end %>
   <div class="<%= class_names('flex-1', 'ml-3': @icon.blank?) %>">
     <p class="font-bold"><%= @title %></p>
-    <%= tag.p(@subtitle, class: 'text-xs text-base-content/70') if @subtitle.present? %>
+    <%# The subtitle helps choose a module in the open panel; the trigger shows the title alone (index.css). %>
+    <%= tag.p(@subtitle, class: 'menu-switch-subtitle text-xs text-base-content/70') if @subtitle.present? %>
   </div>
 <% end %>

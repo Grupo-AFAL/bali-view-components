@@ -192,10 +192,21 @@
   background-color: color-mix(in oklab, var(--color-base-content) 10%, transparent);
 }
 
-/* The current option, link or form alike. Not daisyUI's `menu-active`: its
+/* The current option, link or form alike: a neutral fill a step past the hover's, and a check (`current_mark`), so
+   it reads without colour and leaves the accent to the page's current item. Not daisyUI's `menu-active`: its dark
    neutral fill leaves the option's subtitle (its own text colour) unreadable. */
 .menu-switcher .dropdown-content .is-current {
-  background-color: color-mix(in oklab, var(--color-primary) 12%, transparent);
+  background-color: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+}
+
+.menu-switcher-check {
+  @apply ms-auto size-4 shrink-0;
+}
+
+/* The trigger names the current module by its title alone: the subtitle, which helps choose one in the open panel,
+   would only repeat what its lists say, on a second line. */
+.menu-switcher-trigger .menu-switch-subtitle {
+  @apply hidden;
 }
 
 .menu-switcher--accent .menu-switcher-trigger .side-menu-component--menu-switch-component svg {
@@ -431,6 +442,10 @@
 
 .side-menu-component--menu-switch-component {
   @apply flex items-center gap-3;
+
+  .menu-switch-icon {
+    @apply grid size-8 shrink-0 place-items-center rounded-field bg-base-200;
+  }
 
   .iconify,
   .icon-component {

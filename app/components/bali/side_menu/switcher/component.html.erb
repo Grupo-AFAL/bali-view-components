@@ -23,17 +23,21 @@
       <% entries.each do |entry| %>
         <li>
           <% if link?(entry) %>
-            <a href="<%= entry.href %>" class="<%= 'is-current' if entry == active_entry %>">
+            <%= tag.a(href: entry.href, class: ('is-current' if entry == active_entry),
+                      'aria-current': ('true' if entry == active_entry)) do %>
               <%= entry %>
               <%= tag.span(entry.badge, class: 'menu-switcher-badge ml-auto text-xs opacity-70') if entry.badge.present? %>
-            </a>
+              <%= current_mark if entry == active_entry %>
+            <% end %>
           <% else %>
             <%# The form sits between the <li> and the button, so daisyUI's menu-item
                 rules miss it: index.css gives the button the same look. %>
             <%= button_to entry.href, method: entry.http_method, params: entry.params, form_class: 'contents',
-                          class: class_names('menu-switcher-option', 'is-current': entry == active_entry) do %>
+                          class: class_names('menu-switcher-option', 'is-current': entry == active_entry),
+                          'aria-current': ('true' if entry == active_entry) do %>
               <%= entry %>
               <%= tag.span(entry.badge, class: 'menu-switcher-badge ml-auto text-xs opacity-70') if entry.badge.present? %>
+              <%= current_mark if entry == active_entry %>
             <% end %>
           <% end %>
         </li>
