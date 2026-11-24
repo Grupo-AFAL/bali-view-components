@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`BpmnEditor`: un gateway nuevo nace con el nombre de su tipo, salvo el exclusivo** (#1694).
+  El paralelo nace «AND», el inclusivo «OR», el complejo «Complejo» y el basado en eventos
+  «Eventos»; el exclusivo y la decisión Sí/No siguen naciendo «Decisión», que R23 marca como
+  nombre genérico hasta que la persona escribe su pregunta. Vale para la paleta, el menú rápido
+  y «Bifurcar con». Son cuatro llaves nuevas de la tabla de textos (`new_parallel_gateway`,
+  `new_inclusive_gateway`, `new_complex_gateway`, `new_event_based_gateway`), que una app
+  reescribe con `i18n:` como las demás. Un «OR» que bifurca sigue recibiendo B11 («no está
+  redactado como pregunta») mientras conserve ese nombre: la regla no cambió. De paso, un
+  nombre todo en mayúsculas («AND», «WMS») ya no se corta a «A…»: su caja se medía con el
+  ancho de las minúsculas.
+
 ## [v3.29.1] - 2026-11-22
 
 ### Fixed

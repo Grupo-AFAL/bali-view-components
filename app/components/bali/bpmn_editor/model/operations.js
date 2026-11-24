@@ -198,7 +198,8 @@ export function defaultName (attrs, names) {
   const category = categoryOf(attrs)
   if (attrs.type === 'sub_process') return names.sub_process || ''
   if (category === CATEGORY.activity) return names.task || ''
-  if (category === CATEGORY.gateway) return names.gateway || ''
+  // A decision is named by the person; any other gateway by what it is («AND», «OR»).
+  if (category === CATEGORY.gateway) return names[attrs.type] ?? names.gateway ?? ''
   if (attrs.type === 'start_event') return names.start || ''
   if (attrs.type === 'end_event') return names.end || ''
   if (category === CATEGORY.event) return names.event || ''

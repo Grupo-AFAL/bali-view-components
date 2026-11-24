@@ -115,3 +115,11 @@ test('an emoji is never cut in half: whole characters, so the image export can e
   for (const line of lines) assert.doesNotThrow(() => encodeURIComponent(line), line)
   assert.doesNotThrow(() => encodeURIComponent(fitBadge('Pendiente 🔴🔴🔴🔴🔴🔴🔴🔴🔴', 40).text))
 })
+
+// Capitals measured in Chromium at the label's 11.5 px: «AND» 25.2 px, «WMS» 29.
+test('a name all in capitals gets the width its glyphs take, so «AND» is not cut', () => {
+  const widthOf = (name) => nodeLabelBox(node('g', 'parallel_gateway', 'l1', 100, 100, { name })).w
+  assert.ok(widthOf('AND') >= 26, `AND got ${widthOf('AND')} px`)
+  assert.ok(widthOf('WMS') >= 29, `WMS got ${widthOf('WMS')} px`)
+  assert.equal(widthOf('Fin'), 24)
+})

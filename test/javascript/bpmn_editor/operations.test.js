@@ -22,6 +22,19 @@ test('createNode places the node in the lane under the point, named by family', 
   assert.ok(insideLane(layoutLanes(d), created))
 })
 
+test('a new gateway is named by its type, except the exclusive one, which keeps the decision name', () => {
+  const names = { gateway: 'Decision', parallel_gateway: 'AND', inclusive_gateway: 'OR' }
+  const nameOf = (attrs) => { const { doc: d, id } = ops.createNode(twoLanes(), attrs, { x: 460, y: 90 }, { names }); return byId(d, id).name }
+  assert.equal(nameOf({ type: 'parallel_gateway' }), 'AND')
+  assert.equal(nameOf({ type: 'inclusive_gateway' }), 'OR')
+  assert.equal(nameOf({ type: 'exclusive_gateway' }), 'Decision')
+  assert.equal(nameOf({ type: 'exclusive_gateway', marker_visible: false }), 'Decision')
+  // A type the host's table has no name for falls back to the family's.
+  assert.equal(nameOf({ type: 'complex_gateway' }), 'Decision')
+  const split = ops.branchNode(twoLanes(), 't1', { type: 'task' }, 'down', { gateway: 'parallel_gateway', names })
+  assert.equal(byId(split.doc, split.gatewayId).name, 'AND')
+})
+
 // An overlap is the local arrangement's to resolve (arrange.js), never refused.
 test('createNode is blocked outside every lane, not on top of another element', () => {
   assert.equal(ops.createNode(twoLanes(), { type: 'task' }, { x: 400, y: 900 }).error, 'block_lane')

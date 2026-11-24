@@ -126,6 +126,8 @@ function Editor ({
   const [legendOpen, setLegendOpen] = useState(!minimal)
   const names = useMemo(() => ({
     task: t('new_task'), sub_process: t('new_sub_process'), gateway: t('new_gateway'), start: t('new_start'),
+    parallel_gateway: t('new_parallel_gateway'), inclusive_gateway: t('new_inclusive_gateway'),
+    complex_gateway: t('new_complex_gateway'), event_based_gateway: t('new_event_based_gateway'),
     end: t('new_end'), event: t('new_event'), annotation: t('new_annotation'), data: t('new_data')
   }), [t])
   const labels = useMemo(() => ({ yes: t('label_yes'), no: t('label_no') }), [t])

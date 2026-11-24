@@ -16,6 +16,12 @@ import { textLength, cutText } from './text.js'
 // «Tiempo (captura)» measured 6.9 px a glyph in Chromium and wrapped into a
 // line its box did not have.
 const CHAR = 7
+// A word all in capitals (an acronym, a gateway named «AND») is wider:
+// capitals measured 8 px on average and 10 at most (M, W), and «AND» was cut
+// to «A…» in the 24 px its three glyphs were given.
+const CAPITAL = 10
+const isAcronym = (word) => word.length > 1 && word === word.toUpperCase() && word !== word.toLowerCase()
+const wordWidth = (word) => word.length * (isAcronym(word) ? CAPITAL : CHAR)
 const LINE = 14
 const MAX_WIDTH = 100
 const GAP = 4
@@ -29,7 +35,7 @@ export function textBlock (text, maxWidth = MAX_WIDTH) {
   let line = 0
   let widest = 0
   for (const word of words) {
-    const width = word.length * CHAR
+    const width = wordWidth(word)
     if (line && line + CHAR + width <= maxWidth) { line += CHAR + width; continue }
     if (line) { widest = Math.max(widest, line); lines++ }
     lines += Math.max(0, Math.ceil(width / maxWidth) - 1)
