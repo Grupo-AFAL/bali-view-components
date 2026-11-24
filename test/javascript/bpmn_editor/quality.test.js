@@ -7,6 +7,7 @@ import { arrange, emptyStretches, STEP } from '../../../app/components/bali/bpmn
 import { measure, sharedLength, segmentsCross } from './support/layoutQuality.js'
 import { setOrientation, deleteElements } from '../../../app/components/bali/bpmn_editor/model/operations.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
+import { doc as docOf, lanes as lanesOf, node as nodeOf, flow as flowOf } from './helpers.js'
 
 // Ceilings for the soft measures after Tidy up, per fixture: what the
 // layout reaches today, so a regression shows. Crossings stay at most one
@@ -114,4 +115,26 @@ test('an element nudged by the pixel keeps its pixel; the arrangement only moves
   const x = (d) => d.nodes.find((n) => n.id === 't3').x
   assert.equal(x(arrange(nudged)), x(laid), 'snapped back to the grid by default')
   assert.equal(x(arrange(nudged, { keep: new Set(['t3']) })), x(laid) + 1)
+})
+
+// #1694: elements may be left close together. Before, a gap under 40 px along
+// the flow sent the second one 90 px away.
+const row = (gap, edges = []) => docOf({
+  lanes: lanesOf('A', 'B'),
+  nodes: [nodeOf('t1', 'task', 'l1', 300, 90), nodeOf('t2', 'task', 'l1', 300 + 150 + gap, 90), nodeOf('t3', 'task', 'l2', 300, 270)],
+  edges
+})
+const gapBetween = (d, a, b) => { const [A, B] = [a, b].map((id) => d.nodes.find((n) => n.id === id)); return B.x - (A.x + 150) }
+
+test('two activities a person leaves close together stay close: 20 px is the least, not a column', () => {
+  for (const [left, settled] of [[60, 60], [30, 30], [20, 20], [12, 20]]) {
+    const arranged = arrange(row(left, [flowOf('f1', 't1', 't2')]))
+    assert.equal(gapBetween(arranged, 't1', 't2'), settled, `left ${left} px apart`)
+    assert.equal(measure(arranged).hard, 0, JSON.stringify(measure(arranged).details))
+    assert.equal(arrange(arranged), arranged, 'settled')
+  }
+})
+
+test('an element dropped on top of another still goes to the next free spot, at the usual spacing', () => {
+  assert.equal(gapBetween(arrange(row(-100)), 't1', 't2'), 90)
 })

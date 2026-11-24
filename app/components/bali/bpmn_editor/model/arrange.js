@@ -25,6 +25,13 @@ import { routeDiagram } from './router.js'
 export const GRID = 10
 export const GAP_ALONG = 80 // between neighbours on the flow axis: two port stubs and two channels
 export const GAP_ACROSS = 30 // between rows
+// How close two footprints may be left by hand before one of them moves:
+// with the 9 px a pending badge overhangs, two activities in a row end 20 px
+// apart, room for the arrowhead of the connection between them. The gaps above
+// are where the editor puts things by itself; these, the least a person may
+// leave. A connection that finds no way through is still given room (makeRoom).
+export const MIN_ALONG = 10
+export const MIN_ACROSS = 6
 export const LANE_PAD = 20
 export const HEADER_GAP = 40
 // Column to column along the flow in "Tidy up" (layout.js) — and the widest
@@ -176,10 +183,14 @@ export function place (doc, keep = null) {
       it.main = snapCenter(it.main, it.size.main)
     }
     for (let guard = 0; guard < 500; guard++) {
-      const hit = placed.find((p) => rangeOverlap(start(it, 'main'), end(it, 'main'), start(p, 'main'), end(p, 'main'), GAP_ACROSS / 2) &&
-        rangeOverlap(start(it, 'cross'), end(it, 'cross'), start(p, 'cross'), end(p, 'cross'), GAP_ALONG / 2))
+      const near = (p, margin) => rangeOverlap(start(it, 'main'), end(it, 'main'), start(p, 'main'), end(p, 'main'), margin && MIN_ACROSS) &&
+        rangeOverlap(start(it, 'cross'), end(it, 'cross'), start(p, 'cross'), end(p, 'cross'), margin && MIN_ALONG)
+      const hit = placed.find((p) => near(p, true))
       if (!hit) break
-      it.cross = snapCenter(end(hit, 'cross') + GAP_ALONG - it.fp[crossD] + GRID / 2, it.size.cross)
+      // On top of another, it goes to the next free spot, at the editor's own
+      // spacing; only too close, to the nearest place it may stay.
+      const gap = near(hit, false) ? GAP_ALONG : MIN_ALONG
+      it.cross = snapCenter(end(hit, 'cross') + gap - it.fp[crossD] + GRID / 2, it.size.cross)
     }
     placed.push(it)
   }

@@ -30,6 +30,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   regla y su clave —, los que manda el servidor en `issues` incluidos. El título de la
   sección es la llave nueva `props_issues`. Solo al editar y con reglas: un visor no evalúa
   ninguna.
+- **`BpmnEditor`: los elementos se pueden dejar más juntos** (#1694). El acomodo local trataba
+  como choque dos elementos a menos de 40 px a lo largo del flujo (15 px entre filas) y mandaba
+  al segundo a 80 px: soltar una actividad «cerca» de otra la alejaba. El mínimo baja a 10 px
+  entre huellas — dos actividades en fila quedan a 20 px, con la marca de pendiente entre
+  ellas — y a 6 px entre filas; lo que se suelta más cerca se queda a esa distancia mínima en
+  vez de saltar una columna. Soltar un elemento encima de otro sigue llevándolo al siguiente
+  lugar libre, a 80 px, y «Autoajustar», el menú rápido y la inserción en una conexión
+  conservan su separación. Una conexión que no encuentra paso entre dos elementos sigue
+  recorriendo lo que sigue. Qué hacer: nada; un diagrama guardado no se mueve.
 
 ## [v3.29.1] - 2026-11-22
 

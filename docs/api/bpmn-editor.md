@@ -966,7 +966,11 @@ The **local arrangement** runs after every edit that changes the structure (add,
 connect, move, delete, rename); neither the user nor the host can turn it off. It keeps what
 the user placed where they placed it and only fixes what collides: an element whose footprint
 — shape, name and pending badge — runs into another moves *forward along the flow*, and so do
-the ones after it. A deletion that leaves a stretch of the flow wider than a column empty in
+the ones after it. Elements may be left close: two footprints 10 px apart along the flow (two
+activities in a row end 20 px apart, the pending badge between them) or 6 px apart across it
+stay where they were put, and one left closer moves to that distance, not a column away; only
+an element dropped on top of another goes to the next free spot, 80 px on. A connection that
+finds no way through such a gap still pushes what follows along. A deletion that leaves a stretch of the flow wider than a column empty in
 every lane closes it: what lies beyond moves back, all lanes together, and nothing before the
 gap moves. Lanes grow and shrink to their content; connections are routed again. The edit and
 its arrangement are one undo step, and the nodes slide into place (0.22 s) instead of jumping.
