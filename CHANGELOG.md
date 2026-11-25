@@ -63,20 +63,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`BpmnEditor`: el menú rápido se abre donde no tapa a otro elemento** (#1694): a la derecha,
   a la izquierda, abajo o arriba del seleccionado. Junto a un vecino sus íconos quedaban
   encima de él y se llevaban el clic; con todos los lados ocupados sigue yendo a la derecha.
-- **`BpmnEditor`: los elementos se pueden dejar más juntos** (#1694). El acomodo local mandaba
-  a 80 px a todo lo que quedara a menos de 40 px de otro, y medía la caja que envuelve figura,
-  nombre e insignia: un gateway no bajaba de 170 px de la actividad anterior, porque su nombre
-  «chocaba» antes que el rombo. Ahora el mínimo se mide entre figuras — 20 px a lo largo del
-  flujo (antes 50) y 16 entre dos actividades una sobre otra (antes 26) — y el nombre cuenta
-  donde se pinta: nunca sobre otra figura, otro nombre, una insignia de pendiente o el tramo
-  por el que sale una conexión del vecino. Un gateway llega a 20 px de una actividad mientras
-  su nombre no alcance el puerto superior de ella (con una actividad del ancho normal, un
-  nombre de hasta 98 px; el máximo es 100); un evento con el nombre abajo conserva lo que mide
-  su nombre (27 px con «Fin»). Lo que se suelta más cerca, o un poco encimado, avanza al
-  mínimo; solo lo que se suelta encima de otro (más de la mitad) sigue yendo al siguiente
-  lugar libre. Dos vecinos a menos de 36 px con los puertos de frente se unen con una recta
-  (o un escalón a la mitad): el ruteo dibujaba un lazo. «Autoajustar», el menú rápido y la
-  inserción en una conexión conservan su separación.
+- **`BpmnEditor`: los elementos de una misma fila se pueden dejar más juntos** (#1694). El
+  acomodo local mandaba a 80 px a todo lo que quedara a menos de 40 px de otro, y medía la
+  caja que envuelve figura, nombre e insignia: un gateway no bajaba de 170 px de la actividad
+  anterior, porque su nombre «chocaba» antes que el rombo. Entre dos elementos de la misma
+  fila el mínimo se mide ahora entre figuras — 20 px (antes 50) — y el nombre cuenta donde se
+  pinta: nunca sobre otra figura, otro nombre, una insignia de pendiente o el tramo por el que
+  sale una conexión del vecino. Un gateway llega a 20 px de una actividad mientras su nombre
+  no alcance el puerto superior de ella (con una actividad del ancho normal, un nombre de
+  hasta 98 px; el máximo es 100); un evento con el nombre abajo conserva lo que mide su nombre
+  (27 px con «Fin»). Lo que se suelta más cerca, o un poco encimado, avanza al mínimo; solo lo
+  que se suelta encima de otro (más de la mitad) sigue yendo al siguiente lugar libre. Dos
+  vecinos a menos de 36 px con los puertos de frente se unen con una recta (o un escalón a la
+  mitad). Entre filas la separación es la de siempre (26 px entre dos actividades una sobre
+  otra): ahí el ruteo necesita sus canales. «Autoajustar», el menú rápido y la inserción en
+  una conexión conservan su separación.
   **Cambia a la vista:** el nombre de todo gateway se pinta 12 px más arriba y 2 px más a la
   izquierda, para quedar sobre la fila y sobre la insignia de la actividad vecina. Ningún
   elemento de un diagrama guardado cambia de lugar, ni al abrirlo ni en su primera edición:

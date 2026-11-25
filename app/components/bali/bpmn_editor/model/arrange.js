@@ -30,7 +30,6 @@ export const GAP_ALONG = 80 // between neighbours on the flow axis: two port stu
 // editor puts things by itself; these, the least a person may leave. A
 // connection that finds no way through is still given room (makeRoom).
 const MIN_ALONG = 20
-const MIN_ACROSS = 15
 // Between two names, which touching would read as one.
 const LABEL_GAP = 4
 export const LANE_PAD = 20
@@ -91,7 +90,7 @@ function roomBetween (a, b) {
   // gateway whose name hung 15 px under the activity of the row above moved a
   // column on the first edit of a saved diagram.
   if (kinds.includes('stub') || kinds.includes('room')) return kinds.includes('stub') && kinds.includes('room') ? { along: 0, across: 0 } : null
-  if (a.kind === 'shape' && b.kind === 'shape') return { along: MIN_ALONG, across: MIN_ACROSS }
+  if (a.kind === 'shape' && b.kind === 'shape') return { along: MIN_ALONG, across: 0 }
   if (a.kind === 'label' && b.kind === 'label') return { along: LABEL_GAP, across: LABEL_GAP }
   return { along: 0, across: 0 }
 }
@@ -117,13 +116,28 @@ const rangeOverlap = (a1, a2, b1, b2, margin) => a1 < b2 + margin && b1 < a2 + m
 // `keep`: ids the user just placed by hand to the pixel (arrow keys with
 // Shift) — they are not snapped to the grid, only moved if they collide.
 export function arrange (doc, { before = null, keep = null } = {}) {
-  let current = place(before ? closeGaps(before, doc) : doc, keep)
+  const start = before ? closeGaps(before, doc) : doc
+  return settle(start, keep, false) || settle(start, keep, true) || place(start, keep)
+}
+
+// Places, routes and makes room until every connection finds its way; null
+// when eight rounds did not do. `roomy`: with the spacing of before elements
+// could be left close (place) — what is tried when the router cannot cope
+// with what closeness left it: a connection still drawn through a shape is
+// worse than elements standing apart.
+function settle (doc, keep, roomy) {
+  let current = place(doc, keep, { roomy })
+  let stuck = null
   for (let round = 0; round < 8; round++) {
     const failed = [...routeDiagram(current).entries()].filter(([, r]) => r.failed).map(([id]) => id)
     if (!failed.length) return current
-    current = place(makeRoom(current, failed), keep)
+    // The same connections after room was made at their far end: the tight
+    // spot is at the near one — an element left 20 px after their source,
+    // inside whose clearance the source's stub ends.
+    current = place(makeRoom(current, failed, { near: !roomy && failed.join() === stuck }), keep, { roomy })
+    stuck = failed.join()
   }
-  return current
+  return roomy ? current : null
 }
 
 // Stretches of the flow axis no element covers, between the first element
@@ -174,7 +188,7 @@ function closeGaps (before, doc) {
   return { ...doc, nodes, edges: doc.edges.map((e) => (moved.has(String(e.source)) || moved.has(String(e.target))) && e.waypoints && e.waypoints.length ? { ...e, waypoints: [] } : e) }
 }
 
-function makeRoom (doc, edgeIds) {
+function makeRoom (doc, edgeIds, { near = false } = {}) {
   const layout = layoutLanes(doc)
   const { cross } = layout.axis
   const along = (n) => { const b = nodeBox(n); return cross === 'x' ? b.cx : b.cy }
@@ -182,7 +196,11 @@ function makeRoom (doc, edgeIds) {
   for (const id of edgeIds) {
     const edge = doc.edges.find((e) => String(e.id) === id)
     const ends = [edge.source, edge.target].map((nid) => doc.nodes.find((n) => String(n.id) === String(nid))).filter(Boolean)
-    if (ends.length === 2) from = Math.min(from, Math.max(...ends.map(along)))
+    if (ends.length !== 2) continue
+    const [first, last] = ends.map(along).sort((a, b) => a - b)
+    // `near`: from the first element past the near end, the far end included.
+    const next = near ? Math.min(...doc.nodes.map(along).filter((at) => at > first)) : last
+    from = Math.min(from, next)
   }
   if (from === Infinity) return doc
   return { ...doc, nodes: doc.nodes.map((n) => (along(n) >= from ? { ...n, [cross]: (Number(n[cross]) || 0) + GAP_ALONG / 2 } : n)) }
@@ -192,7 +210,7 @@ function makeRoom (doc, edgeIds) {
 // only moves elements forward along the flow (makeRoom, collisions) and
 // leaves every lane as thick as this fits it, so the arranged document is
 // never smaller than this one — layout.js bounds a candidate's page fit by it.
-export function place (doc, keep = null) {
+export function place (doc, keep = null, { roomy = false } = {}) {
   if (!doc.nodes || !doc.nodes.length) return fitLanesToContent(doc)
   const orientation = orientationOf(doc)
   const layout = layoutLanes(doc)
@@ -224,6 +242,9 @@ export function place (doc, keep = null) {
   }
   // Where `it` clears `p` going forward along the flow, or null when it
   // already does: the furthest any of its parts has to go past one of p's.
+  // Where `it` clears `p` going forward along the flow, by their parts, or
+  // null when it already does: the furthest any of its parts has to go past
+  // one of p's.
   const clearOf = (it, p) => {
     let needed = null
     for (const a of it.parts) {
@@ -238,17 +259,40 @@ export function place (doc, keep = null) {
     }
     return needed
   }
+  const shapesAcross = (it, p) => rangeOverlap(...span(it, it.parts[0], 'main'), ...span(p, p.parts[0], 'main'), 0)
   // Dropped ON another: its shape over more than half of the other's along
   // the flow (or of its own, the smaller). Less is a shape left too close.
   const onTop = (it, p) => {
     const [a1, a2] = span(it, it.parts[0], 'cross')
     const [b1, b2] = span(p, p.parts[0], 'cross')
-    return rangeOverlap(...span(it, it.parts[0], 'main'), ...span(p, p.parts[0], 'main'), 0) &&
-      Math.min(a2, b2) - Math.max(a1, b1) > Math.min(a2 - a1, b2 - b1) / 2
+    return shapesAcross(it, p) && Math.min(a2, b2) - Math.max(a1, b1) > Math.min(a2 - a1, b2 - b1) / 2
+  }
+  // As before elements could be left close: one box around each element,
+  // 40 px from the next along the flow and 15 across, and what is nearer goes
+  // a whole GAP_ALONG on.
+  const apart = (it, p) => (rangeOverlap(start(it, 'main'), end(it, 'main'), start(p, 'main'), end(p, 'main'), 15) &&
+    rangeOverlap(start(it, 'cross'), end(it, 'cross'), start(p, 'cross'), end(p, 'cross'), GAP_ALONG / 2)
+    ? snapCenter(end(p, 'cross') + GAP_ALONG - it.fp[crossD] + GRID / 2, it.size.cross)
+    : null)
+  // Where `it` has to go to stand clear of `p`, or null. Close is for two
+  // elements of one row — their shapes side by side along the flow — which
+  // is where a person wants them close and where the connection between them
+  // is a straight line. Across rows the room is the one of before: there the
+  // router needs its channels, and 600 random sessions with rows 16 px apart
+  // ended with connections drawn through a gateway. `roomy`: that room
+  // everywhere, when not even so every connection found its way (arrange).
+  const clearance = (it, p) => {
+    if (roomy || !shapesAcross(it, p)) return apart(it, p)
+    const to = clearOf(it, p)
+    if (to == null) return null
+    // On top of another, it goes to the next free spot, at the editor's own
+    // spacing; too close or just over its edge, to the nearest place it may stay.
+    return snapCenterForward(onTop(it, p) ? end(p, 'cross') + GAP_ALONG - it.fp[crossD] : to, it.size.cross)
   }
   // By where the shape starts: by the footprint's, a gateway close after an
   // activity came first (its name reaches back over it) and pushed the activity past itself.
-  items.sort((a, b) => (a.cross - b.cross) || (a.main - b.main))
+  if (roomy) items.sort((a, b) => (start(a, 'cross') - start(b, 'cross')) || (start(a, 'main') - start(b, 'main')))
+  else items.sort((a, b) => (a.cross - b.cross) || (a.main - b.main))
 
   const placed = []
   for (const it of items) {
@@ -267,12 +311,9 @@ export function place (doc, keep = null) {
       it.main = snapCenter(it.main, it.size.main)
     }
     for (let guard = 0; guard < 500; guard++) {
-      const hit = placed.find((p) => clearOf(it, p) != null)
+      const hit = placed.find((p) => clearance(it, p) != null)
       if (!hit) break
-      // On top of another, it goes to the next free spot, at the editor's own
-      // spacing; too close or just over its edge, to the nearest place it may stay.
-      const to = onTop(it, hit) ? end(hit, 'cross') + GAP_ALONG - it.fp[crossD] : clearOf(it, hit)
-      it.cross = snapCenterForward(to, it.size.cross)
+      it.cross = clearance(it, hit)
     }
     placed.push(it)
   }

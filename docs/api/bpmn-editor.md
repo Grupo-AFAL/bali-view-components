@@ -1035,24 +1035,28 @@ The **local arrangement** runs after every edit that changes the structure (add,
 connect, move, delete, rename); neither the user nor the host can turn it off. It keeps what
 the user placed where they placed it and only fixes what collides: an element whose footprint
 — shape, name and pending badge — runs into another moves *forward along the flow*, and so do
-the ones after it. Elements may be left close, and the least is measured between **shapes**:
-20 px along the flow, 15 px across it (16 between two activities, whose centres stand on
-the grid). A name counts where it is drawn, not as part of one box around its element: a
-gateway's stands above its row, so the diamond comes as close to the activity before it as
-another activity would — as long as the name does not reach over that activity's top port
-(with an activity of the default width, a name up to 98 px wide; the widest, 100 px, keeps
-it one grid step further). An event's name under it is drawn in that row, so the event
-keeps the room the name takes (27 px for «Fin»). No name is left over another shape,
-another name, a pending badge or the stub of a neighbour's port. A shape left closer than
-the least, or a little over another's edge, moves forward to the least; only one dropped on
-another — over more than half of it — goes to the next free spot, 80 px past the other's
-footprint (90 px between two activities, the pending badge counted). Two neighbours closer
-than 36 px have their port stubs running past each other: when the two ports face each
-other the connection is a straight line, or takes one step halfway when they are not on
-one line and nothing stands or runs there; otherwise it is routed like any other. A
-connection that finds no way through a gap still pushes what follows along. A lane is
-fitted to where a name stood before this release (a gateway's is drawn 12 px higher), so a
-diagram saved before is not moved by its first edit. A deletion that leaves a stretch of the flow wider than a column empty in
+the ones after it. Two elements of one row — their shapes side by side along the flow — may
+be left close, and the least is measured between the **shapes**: 20 px. There a name counts
+where it is drawn, not as part of one box around its element: a gateway's stands above its
+row, so the diamond comes as close to the activity before it as another activity would — as
+long as the name does not reach over that activity's top port (with an activity of the
+default width, a name up to 98 px wide; the widest, 100 px, keeps it one grid step further).
+An event's name under it is drawn in that row, so the event keeps the room the name takes
+(27 px for «Fin»). No name is left over another shape, another name, a pending badge or the
+stub of a neighbour's port. A shape left closer than the least, or a little over another's
+edge, moves forward to the least; only one dropped on another — over more than half of it —
+goes to the next free spot, 80 px past the other's footprint (90 px between two activities,
+the pending badge counted). Two neighbours closer than 36 px have their port stubs running
+past each other: when the two ports face each other the connection is a straight line, or
+takes one step halfway when they are not on one line and nothing stands or runs there;
+otherwise it is routed like any other. Across rows the room is the one it always was — a
+box around each element with its name, 15 px from the next row's (26 px between two
+activities one over the other) and 40 px along the flow — because the router needs its
+channels there. A connection that finds no way through a gap still pushes what follows
+along, from its far end first and then from the element right after its near one; if not
+even so, the diagram is spaced as before elements could be left close. A lane is fitted to
+where a name stood before this release (a gateway's is drawn 12 px higher), so a diagram
+saved before is not moved by its first edit. A deletion that leaves a stretch of the flow wider than a column empty in
 every lane closes it: what lies beyond moves back, all lanes together, and nothing before the
 gap moves. Lanes grow and shrink to their content; connections are routed again. The edit and
 its arrangement are one undo step, and the nodes slide into place (0.22 s) instead of jumping.

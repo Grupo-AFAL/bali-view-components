@@ -192,10 +192,15 @@ test('a name is never left on the stub of a neighbour’s port', () => {
   assert.ok(settledGap(narrow) > 20)
 })
 
-test('two activities one over the other may stand 16 px apart in a lane', () => {
-  const stacked = docOf({ lanes: [{ ...lanesOf('A')[0], size: 400 }], nodes: [nodeOf('t1', 'task', 'l1', 300, 90), nodeOf('t2', 'task', 'l1', 300, 90 + 64 + 16)] })
-  const [t1, t2] = arrange(stacked).nodes
-  assert.deepEqual([t2.x - t1.x, t2.y - (t1.y + 64)], [0, 16])
+// Close is for one row. Across rows the router needs its channels: with rows
+// 16 px apart, 600 random sessions ended with connections through a gateway.
+test('two activities one over the other keep the room they always did: 26 px', () => {
+  const stacked = (gap) => {
+    const [t1, t2] = arrange(docOf({ lanes: [{ ...lanesOf('A')[0], size: 400 }], nodes: [nodeOf('t1', 'task', 'l1', 300, 90), nodeOf('t2', 'task', 'l1', 300, 90 + 64 + gap)] })).nodes
+    return [t2.x - t1.x, t2.y - (t1.y + 64)]
+  }
+  assert.deepEqual(stacked(30), [0, 26])
+  assert.notEqual(stacked(16)[0], 0, 'closer, the lower one moves along the flow')
 })
 
 // #1694: names placed by hand (`label_position`) are part of the footprint
