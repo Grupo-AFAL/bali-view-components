@@ -950,7 +950,9 @@ are laid on.
 - **Quick menu** next to the selected element: activity, intermediate event,
   gateway, end, or "More", towards any of four directions, already connected. It opens where
   it covers no other element — to the right, to the left, below or above — so a click on a
-  neighbour reaches the neighbour; with every place taken, to the right as before. When the
+  neighbour reaches the neighbour; with every place taken, to the right as before. A group
+  frames elements and does not count; once open, the menu stays where it is while that
+  place is free, so a pan or a zoom does not make it jump. When the
   spot ahead is taken the following elements move along; past the first or last lane,
   across the flow, that lane grows. Towards a lane the flow may not reach (an external
   participant, which takes message flows only), the element stays in its own lane, which

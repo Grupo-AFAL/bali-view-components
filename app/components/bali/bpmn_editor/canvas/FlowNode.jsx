@@ -9,6 +9,7 @@ import { nodeLabelBox, badgeBox, insideLabelBox, badgeTabBox, chevronDepth } fro
 import { textOn } from '../model/contrast.js'
 import { safeUrl } from '../model/urls.js'
 import { useCanvas } from './CanvasContext.js'
+import { menuPlace, MENU_PLACES, MENU_OFFSET } from './menuPlace.js'
 
 // The card's selection sits 5–6 px out (flow.css `.is-selected::after`), its
 // read-only halo 4 px beyond its 2.5 px ring: drawn outside it, not over the shape.
@@ -72,25 +73,10 @@ const MENU_WIDTH = 250
 const PANEL_WIDTH = 300
 const EDGE_GAP = 8
 
-// The menu as it opens with every pick (269 × 58 px measured), before «More».
-const MENU_SIZE = { w: 272, h: 60 }
-const MENU_OFFSET = 14
-// Where the menu may go, in order: [side, align, its top-left corner from the
-// node's box `n` in screen px].
-const MENU_PLACES = [
-  ['right', 'start', (n) => ({ x: n.x + n.w + MENU_OFFSET, y: n.y })],
-  ['left', 'start', (n) => ({ x: n.x - MENU_OFFSET - MENU_SIZE.w, y: n.y })],
-  ['bottom', 'start', (n) => ({ x: n.x, y: n.y + n.h + MENU_OFFSET })],
-  ['bottom', 'end', (n) => ({ x: n.x + n.w - MENU_SIZE.w, y: n.y + n.h + MENU_OFFSET })],
-  ['top', 'start', (n) => ({ x: n.x, y: n.y - MENU_OFFSET - MENU_SIZE.h })],
-  ['top', 'end', (n) => ({ x: n.x + n.w - MENU_SIZE.w, y: n.y - MENU_OFFSET - MENU_SIZE.h })]
-]
-
-// The first place where the menu covers no other element and stays inside the
-// canvas (clear of the properties panel), as an index of MENU_PLACES, or -1.
-// Next to a neighbour the menu took the clicks meant for it: with «Validate
-// invoice» selected, its icons lay over the gateway 130 px on.
-function freePlace (store, id, panelOpen) {
+// The quick menu's place (menuPlace.js) from React Flow's store: the other
+// elements' boxes on screen. A group frames elements and is no obstacle:
+// inside one, every place would be taken.
+function placeFromStore (store, id, panelOpen, current) {
   const [tx, ty, zoom] = store.transform
   const screen = (node) => {
     const at = node.internals.positionAbsolute
@@ -98,14 +84,8 @@ function freePlace (store, id, panelOpen) {
   }
   const own = store.nodeLookup.get(id)
   if (!own) return -1
-  const me = screen(own)
-  const others = [...store.nodeLookup.values()].filter((n) => n.type === 'bpmn' && n.id !== id).map(screen)
-  const pane = { w: store.width - (panelOpen ? PANEL_WIDTH : 0), h: store.height }
-  return MENU_PLACES.findIndex(([, , corner]) => {
-    const { x, y } = corner(me)
-    if (x < EDGE_GAP || y < EDGE_GAP || x + MENU_SIZE.w > pane.w - EDGE_GAP || y + MENU_SIZE.h > pane.h - EDGE_GAP) return false
-    return !others.some((o) => x < o.x + o.w && o.x < x + MENU_SIZE.w && y < o.y + o.h && o.y < y + MENU_SIZE.h)
-  })
+  const others = [...store.nodeLookup.values()].filter((n) => n.type === 'bpmn' && n.id !== id && n.data.node.type !== 'group').map(screen)
+  return menuPlace(screen(own), others, { w: store.width - (panelOpen ? PANEL_WIDTH : 0), h: store.height }, current)
 }
 
 // The quick menu goes beside the node where it covers no other element:
@@ -126,9 +106,9 @@ function QuickMenuToolbar ({ id, x, width, children, panelOpen }) {
     const drawn = menu.current && menu.current.offsetWidth
     if (drawn && drawn !== span) setSpan(drawn)
   })
-  // By the size it opens at, not the one it grows to: «More» would move the
-  // menu from under the pointer that opened it.
-  const place = useStore((s) => freePlace(s, id, panelOpen))
+  const shown = useRef(-1)
+  const place = useStore((s) => placeFromStore(s, id, panelOpen, shown.current))
+  shown.current = place
   if (place >= 0) {
     const [side, align] = MENU_PLACES[place]
     return (

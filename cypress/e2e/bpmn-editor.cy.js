@@ -437,6 +437,29 @@ describe('BPMN editor island', () => {
 
 // The rules gallery preview: one rule at a time, its failing example listed in
 // the pending-issues panel the preview opens on load, its passing one not.
+// Where it goes for each arrangement of neighbours is canvas/menuPlace.js's,
+// tested in test/javascript/bpmn_editor/menuPlace.test.js.
+describe('BPMN editor quick menu beside its neighbours', () => {
+  beforeEach(() => cy.viewport(1000, 660))
+
+  // #1694: beside «Validar factura» the menu lay over the gateway 130 px on,
+  // and took the click meant for it.
+  it('opens the quick menu where it covers no other element, so a click on a neighbour reaches it', () => {
+    cy.visit(`${EDITABLE}?palette=full`)
+    nodeNamed('Validar factura').click()
+    cy.get('[data-testid="bpmn-quick-menu"]').should('be.visible').then(($menu) => {
+      const menu = $menu[0].getBoundingClientRect()
+      Cypress.$('.react-flow__node-bpmn').each((_i, node) => {
+        const box = node.getBoundingClientRect()
+        const apart = menu.right <= box.left || box.right <= menu.left || menu.bottom <= box.top || box.bottom <= menu.top
+        expect(apart, `clear of ${node.dataset.id}`).to.eq(true)
+      })
+    })
+    nodeNamed('¿La factura es válida?').click()
+    cy.get('.react-flow__node-bpmn.selected [data-testid="bpmn-node"]').should('have.attr', 'title', '¿La factura es válida?')
+  })
+})
+
 describe('BPMN editor rules gallery', () => {
   it('rules gallery with example=failing shows the rule in the pending panel', () => {
     cy.visit('/bali/bpmn_editor/rules_gallery?rule=R06&example=failing')
@@ -505,22 +528,5 @@ describe('BPMN editor on a narrow screen', () => {
     })
     cy.get('[data-testid="bpmn-properties-toggle"]').click()
     cy.get('[data-testid="bpmn-properties"]').should('be.visible')
-  })
-
-  // #1694: beside «Validar factura» the menu lay over the gateway 130 px on,
-  // and took the click meant for it.
-  it('opens the quick menu where it covers no other element, so a click on a neighbour reaches it', () => {
-    cy.visit(`${EDITABLE}?palette=full`)
-    nodeNamed('Validar factura').click()
-    cy.get('[data-testid="bpmn-quick-menu"]').should('be.visible').then(($menu) => {
-      const menu = $menu[0].getBoundingClientRect()
-      Cypress.$('.react-flow__node-bpmn').each((_i, node) => {
-        const box = node.getBoundingClientRect()
-        const apart = menu.right <= box.left || box.right <= menu.left || menu.bottom <= box.top || box.bottom <= menu.top
-        expect(apart, `clear of ${node.dataset.id}`).to.eq(true)
-      })
-    })
-    nodeNamed('¿La factura es válida?').click()
-    cy.get('.react-flow__node-bpmn.selected [data-testid="bpmn-node"]').should('have.attr', 'title', '¿La factura es válida?')
   })
 })
