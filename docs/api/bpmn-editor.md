@@ -307,7 +307,9 @@ is where a person put it instead — «Name position» in the properties panel:
 
 Both are optional and only mean something on those elements; an activity, an annotation and
 a group hold their own name. «Auto» and «Horizontal» send `null` rather than dropping the
-key, as an Auto size does. `Data` raises on any other value. The name's box is the same one
+key, as an Auto size does. A blank string is none too, for the editor and for `Data` (which
+hands it on as `nil`): an app that keeps the keys in text columns sends `""` for every node
+that never had them. `Data` raises on any other value. The name's box is the same one
 everywhere: the canvas, the routes (which never cross a name, and avoid the port under one),
 the local arrangement and Tidy up, the image, SVG and print outputs. In the `.bpmn` export a
 name placed or turned by hand travels as the shape's `<bpmndi:BPMNLabel>` bounds — BPMN DI

@@ -169,6 +169,15 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
     assert_includes error.message, "node n1: label_orientation must be one of"
   end
 
+  # An app that maps the two keys onto varchar columns hands back "" for a node that never
+  # had them: the island reads that as none (labels.js), and so does this.
+  def test_a_blank_label_key_is_none
+    node = Data.new(sized("end_event", label_position: "", label_orientation: " ")).nodes.first
+
+    assert_nil node[:label_position]
+    assert_nil node[:label_orientation]
+  end
+
   def test_a_negative_size_raises
     [ { width: -1 }, { height: "-5" } ].each do |size|
       error = assert_raises(Data::InvalidError, size.inspect) { Data.new(sized("exclusive_gateway", **size)) }

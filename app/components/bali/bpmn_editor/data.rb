@@ -183,10 +183,13 @@ module Bali
       # Where the person put the name of an event, a gateway or a data
       # element, and which way it reads. Both optional: absent or nil is the
       # island's own placement, across, which is every document saved before
-      # the keys existed.
+      # the keys existed. Blank is nil too, as the island reads it: an app
+      # that maps the keys onto varchar columns hands "" back for every node.
       def validate_label!(node)
         { label_position: LABEL_POSITIONS, label_orientation: LABEL_ORIENTATIONS }.each do |key, allowed|
-          value = node[key]
+          next unless node.key?(key)
+
+          value = node[key] = node[key].presence
           next if value.nil? || allowed.include?(value.to_s)
 
           raise InvalidError, "node #{node[:id]}: #{key} must be one of #{allowed.inspect} or nil, got #{value.inspect}"
