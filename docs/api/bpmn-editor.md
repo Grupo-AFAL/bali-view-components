@@ -289,7 +289,10 @@ by its bottom) and above a gateway, to the left of its top port. `label_position
 is where a person put it instead — «Name position» in the properties panel:
 
 - **`"top"`**: above the shape, to the left of its top port, as a gateway's name already is,
-  so none of the four ports is taken by the name and a connection may use any.
+  so none of the four ports is taken by the name and a connection may use any. A name above
+  stands over the row an activity beside it would take (64 px) and over that activity's
+  pending badge, and 6 px left of the port, clear of the arrowhead of a connection ending
+  there.
 - **`"bottom"`**: under the shape — centred under an event or a data element, to the left of
   a gateway's bottom port, which is a branch's way out.
 - **absent or `null`** («Auto»): the editor's own placement above. Every document saved
@@ -1015,12 +1018,17 @@ The **local arrangement** runs after every edit that changes the structure (add,
 connect, move, delete, rename); neither the user nor the host can turn it off. It keeps what
 the user placed where they placed it and only fixes what collides: an element whose footprint
 — shape, name and pending badge — runs into another moves *forward along the flow*, and so do
-the ones after it. Elements may be left close: two footprints 10 px apart along the flow (two
-activities in a row end 20 px apart, the pending badge between them) or 6 px apart across it
-(16 px between two activities, one over the other) stay where they were put. One left closer
-moves forward to the nearest place it may stay, not a column away; only an element dropped
-on top of another goes to the next free spot, 80 px on. A connection that finds no way
-through such a gap still pushes what follows along. A deletion that leaves a stretch of the flow wider than a column empty in
+the ones after it. Elements may be left close, and the least is measured between **shapes**:
+20 px along the flow, 16 px across it. A name counts where it is drawn, not as part of one box
+around its element: a gateway's stands above its row, so the diamond comes as close to the
+activity before it as another activity would; an event's name under it is drawn in that
+row, so the event keeps the room the name takes (27 px for «Fin»). No name is left over
+another shape, another name, a pending badge or the stub of a neighbour's port. A shape left
+closer than the least, or a little over another's edge, moves forward to the least; only one
+dropped on another — over more than half of it — goes to the next free spot, 80 px on. Under
+36 px two neighbours' port stubs run past each other, and their connection is a straight
+line (one step halfway when they are not on one line). A connection that finds no way
+through a gap still pushes what follows along. A deletion that leaves a stretch of the flow wider than a column empty in
 every lane closes it: what lies beyond moves back, all lanes together, and nothing before the
 gap moves. Lanes grow and shrink to their content; connections are routed again. The edit and
 its arrangement are one undo step, and the nodes slide into place (0.22 s) instead of jumping.

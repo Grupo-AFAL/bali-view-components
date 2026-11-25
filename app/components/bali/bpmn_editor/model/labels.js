@@ -85,6 +85,16 @@ const ALIGN = {
   upwards: { above: 'start', 'below-left': 'end', below: 'end', right: 'middle' }
 }
 
+// A name beside a port keeps off the arrowhead of a connection that ends
+// there: 10.5 px wide at the 1.5 px line, 12 the open one of a message flow.
+const PORT_GAP = 6
+// …and off the row its shape stands in, as tall as an activity (64 px): an
+// activity may then come as close to a gateway as to another activity, the
+// gateway's name passing over it. Under the 4 px it used to keep, the name
+// reached 3 px into the activity's height and kept it its own width away.
+const ROW = 64
+const BADGE_OVER = 9
+
 // The name's box (pool-relative), or null when the name is drawn inside the
 // shape or there is none. `vertical`: its lines run up the box, side by side,
 // instead of across it one under another.
@@ -103,9 +113,9 @@ export function nodeLabelBox (node, orientation = 'horizontal') {
     // gateway's is: clear of the port, and of the pending badge on the right.
     const look = appearanceOf(node)
     const top = box.y - (look && look.badge ? BADGE_TAB.height / 2 : 0)
-    return { x: box.cx - GAP - w, y: top - GAP - h, ...size }
+    return { x: box.cx - PORT_GAP - w, y: Math.min(top - GAP, box.cy - ROW / 2 - BADGE_OVER) - h, ...size }
   }
-  if (place === 'below-left') return { x: box.cx - GAP - w, y: box.y + box.h + GAP, ...size }
+  if (place === 'below-left') return { x: box.cx - PORT_GAP - w, y: Math.max(box.y + box.h + GAP, box.cy + ROW / 2), ...size }
   // Past the pending badge, which overhangs the top-right corner by 9 px: a
   // name of two or three lines reaches up beside it.
   if (place === 'right') return { x: box.x + box.w + 12, y: box.cy - h / 2, ...size }

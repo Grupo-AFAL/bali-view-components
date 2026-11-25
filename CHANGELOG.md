@@ -51,11 +51,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   del servidor. Antes el triángulo solo avisaba, y había que buscarlo en «N pendientes». Llave
   nueva de textos: `props_issues`.
 - **`BpmnEditor`: los elementos se pueden dejar más juntos** (#1694). El acomodo local mandaba
-  a 80 px a todo lo que quedara a menos de 40 px de otro a lo largo del flujo. El mínimo baja a
-  10 px entre huellas (20 px entre dos actividades en fila, 16 px una sobre otra, antes 50 y
-  26), y lo que se suelta más cerca avanza a ese mínimo en vez de saltar una columna. Soltar un
-  elemento encima de otro, «Autoajustar», el menú rápido y la inserción en una conexión
-  conservan su separación. Un diagrama guardado no se mueve.
+  a 80 px a todo lo que quedara a menos de 40 px de otro, y medía la caja que envuelve figura,
+  nombre e insignia: un gateway no bajaba de 170 px de la actividad anterior, porque su nombre
+  «chocaba» antes que el rombo. Ahora el mínimo se mide entre figuras — 20 px a lo largo del
+  flujo (antes 50) y 16 entre filas (antes 26) — y el nombre cuenta donde se pinta: nunca
+  sobre otra figura, otro nombre, una insignia de pendiente o el tramo por el que sale una
+  conexión del vecino. Un gateway llega a 20 px de una actividad; un evento con el nombre
+  abajo conserva lo que mide su nombre (27 px con «Fin»). Lo que se suelta más cerca, o un
+  poco encimado, avanza al mínimo; solo lo que se suelta encima de otro (más de la mitad)
+  sigue yendo al siguiente lugar libre. Entre dos vecinos a menos de 36 px la conexión es una
+  línea recta: el ruteo dibujaba un lazo. «Autoajustar», el menú rápido y la inserción en una
+  conexión conservan su separación.
+  **Cambia a la vista, sin mover nada:** el nombre de todo gateway se pinta 12 px más arriba
+  y 2 px más a la izquierda, para quedar sobre la fila y sobre la insignia de la actividad
+  vecina. Ningún elemento de un diagrama guardado cambia de lugar al abrirlo.
 
 ### Fixed
 

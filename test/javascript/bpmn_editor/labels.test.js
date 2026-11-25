@@ -206,3 +206,18 @@ test('label_orientation horizontal, null or unknown is across, and it means noth
   for (const value of ['horizontal', null, 'diagonal']) assert.deepEqual(nodeLabelBox(named('end_event', { label_orientation: value })), across)
   assert.equal(nodeLabelBox(named('task', { label_orientation: 'vertical' })), null)
 })
+
+// A name above keeps over the row an activity would stand in beside it (64 px
+// tall) and over that activity's pending badge (9 px more), and 6 px left of
+// the port: the 12 px arrowhead of a message flow arriving there ended on its last word.
+test('a name above stands clear of the row, of a neighbour’s badge and of the arrowhead at its port', () => {
+  for (const type of ['exclusive_gateway', 'start_event', 'data_object']) {
+    const n = named(type, { label_position: 'top' })
+    const box = nodeLabelBox(n)
+    const centre = { x: n.x + (type === 'exclusive_gateway' ? 25 : 18), y: n.y + (type === 'exclusive_gateway' ? 25 : type === 'data_object' ? 24 : 18) }
+    assert.ok(box.y + box.h <= centre.y - 32 - 9, `${type}: ends ${centre.y - (box.y + box.h)} px over the centre line`)
+    assert.equal(centre.x - (box.x + box.w), 6, type)
+  }
+  const gateway = named('exclusive_gateway', { label_position: 'bottom' })
+  assert.equal(nodeLabelBox(gateway).y, gateway.y + 25 + 32, 'below: under the row')
+})

@@ -20,18 +20,20 @@
 import { isFlowNode, isArtifactLike } from './catalog.js'
 import { layoutLanes, nodeBox, MIN_LANE_SIZE, orientationOf } from './geometry.js'
 import { nodeLabelBox, badgeBox } from './labels.js'
-import { routeDiagram } from './router.js'
+import { routeDiagram, STUB, CHANNEL } from './router.js'
 
 export const GRID = 10
 export const GAP_ALONG = 80 // between neighbours on the flow axis: two port stubs and two channels
 export const GAP_ACROSS = 30 // between rows
-// How close two footprints may be left by hand before one of them moves:
-// with the 9 px a pending badge overhangs, two activities in a row end 20 px
-// apart, room for the arrowhead of the connection between them. The gaps above
-// are where the editor puts things by itself; these, the least a person may
-// leave. A connection that finds no way through is still given room (makeRoom).
-export const MIN_ALONG = 10
-export const MIN_ACROSS = 6
+// How close two shapes may be left by hand before one of them moves: room for
+// the arrowhead of the connection between them along the flow, and for the
+// pending badge (9 px over the corner) across it. The gaps above are where the
+// editor puts things by itself; these, the least a person may leave. A
+// connection that finds no way through is still given room (makeRoom).
+export const MIN_ALONG = 20
+export const MIN_ACROSS = 16
+// Between two names, which touching would read as one.
+export const LABEL_GAP = 4
 export const LANE_PAD = 20
 export const HEADER_GAP = 40
 // Column to column along the flow in "Tidy up" (layout.js) — and the widest
@@ -40,6 +42,8 @@ export const STEP = { horizontal: 230, vertical: 150 }
 
 const snap = (v) => Math.round(v / GRID) * GRID
 const snapCenter = (start, size) => snap(start + size / 2) - size / 2
+// The first centre on the grid at or past `start`: forward, never back into what it clears.
+const snapCenterForward = (start, size) => Math.ceil((start + size / 2) / GRID) * GRID - size / 2
 
 // Shape ∪ name ∪ badge, as an offset box relative to the node's x/y.
 export function footprint (node, orientation) {
@@ -53,6 +57,50 @@ export function footprint (node, orientation) {
   const x2 = Math.max(...parts.map((p) => p.x + p.w))
   const y2 = Math.max(...parts.map((p) => p.y + p.h))
   return { dx: x1 - box.x, dy: y1 - box.y, w: x2 - x1, h: y2 - y1 }
+}
+
+// What an element draws, each as an offset box relative to the node's x/y.
+// The footprint is their bounding box, which is what a lane has to hold; two
+// elements collide by their parts, since a gateway's name stands above its
+// row and takes none of the room between its diamond and the activity before.
+export function parts (node, orientation) {
+  const box = nodeBox(node)
+  const offset = (kind, p) => ({ kind, dx: p.x - box.x, dy: p.y - box.y, w: p.w, h: p.h })
+  const list = [offset('shape', box)]
+  const label = nodeLabelBox(node, orientation)
+  if (label) list.push(offset('label', label))
+  if (isFlowNode(node)) {
+    list.push(offset('badge', badgeBox(node)))
+    list.push(...portStubs(box).map((stub) => offset('stub', stub)))
+  }
+  return list
+}
+
+// Where a connection leaves each side: its stub, which the router draws
+// without looking (router.js searches from the stub's end on), for up to
+// three ports spread CHANNEL apart, plus the 3 px it keeps off a name. A
+// neighbour's name there would be crossed by the first connection drawn.
+const STUB_REACH = STUB + 3
+const STUB_SPREAD = CHANNEL + 4
+function portStubs (box) {
+  return [
+    { x: box.cx - STUB_SPREAD, y: box.y - STUB_REACH, w: STUB_SPREAD * 2, h: STUB_REACH },
+    { x: box.cx - STUB_SPREAD, y: box.y + box.h, w: STUB_SPREAD * 2, h: STUB_REACH },
+    { x: box.x - STUB_REACH, y: box.cy - STUB_SPREAD, w: STUB_REACH, h: STUB_SPREAD * 2 },
+    { x: box.x + box.w, y: box.cy - STUB_SPREAD, w: STUB_REACH, h: STUB_SPREAD * 2 }
+  ]
+}
+
+// The room two parts of different elements keep, or null when they may lie
+// over each other: shapes, the least a person may leave; names, a gap to read
+// as two; a name, a shape and a badge only must not be drawn over one
+// another; a stub is kept free of names alone (shapes already stand apart).
+function roomBetween (a, b) {
+  const kinds = [a.kind, b.kind]
+  if (kinds.includes('stub')) return kinds.includes('label') ? { along: 0, across: 0 } : null
+  if (a.kind === 'shape' && b.kind === 'shape') return { along: MIN_ALONG, across: MIN_ACROSS }
+  if (a.kind === 'label' && b.kind === 'label') return { along: LABEL_GAP, across: LABEL_GAP }
+  return { along: 0, across: 0 }
 }
 
 const rangeOverlap = (a1, a2, b1, b2, margin) => a1 < b2 + margin && b1 < a2 + margin
@@ -159,12 +207,44 @@ export function place (doc, keep = null) {
       size: { cross: cross === 'x' ? box.w : box.h, main: main === 'y' ? box.h : box.w },
       cross: Number(n[cross]) || 0,
       main: Number(n[main]) || 0,
-      fp
+      fp,
+      parts: parts(n, orientation)
     }
   })
   const start = (it, axis) => (axis === 'cross' ? it.cross + it.fp[crossD] : it.main + it.fp[mainD])
   const end = (it, axis) => start(it, axis) + (axis === 'cross' ? it.fp[crossSize] : it.fp[mainSize])
-  items.sort((a, b) => (start(a, 'cross') - start(b, 'cross')) || (start(a, 'main') - start(b, 'main')))
+  // A part's span on an axis, where its element stands now.
+  const span = (it, part, axis) => {
+    const from = axis === 'cross' ? it.cross + part[crossD] : it.main + part[mainD]
+    return [from, from + (axis === 'cross' ? part[crossSize] : part[mainSize])]
+  }
+  // Where `it` clears `p` going forward along the flow, or null when it
+  // already does: the furthest any of its parts has to go past one of p's.
+  const clearOf = (it, p) => {
+    let needed = null
+    for (const a of it.parts) {
+      for (const b of p.parts) {
+        const room = roomBetween(a, b)
+        if (!room) continue
+        const [a1, a2] = span(it, a, 'cross')
+        const [b1, b2] = span(p, b, 'cross')
+        if (!rangeOverlap(a1, a2, b1, b2, room.along) || !rangeOverlap(...span(it, a, 'main'), ...span(p, b, 'main'), room.across)) continue
+        needed = Math.max(needed ?? -Infinity, it.cross + b2 + room.along - a1)
+      }
+    }
+    return needed
+  }
+  // Dropped ON another: its shape over more than half of the other's along
+  // the flow (or of its own, the smaller). Less is a shape left too close.
+  const onTop = (it, p) => {
+    const [a1, a2] = span(it, it.parts[0], 'cross')
+    const [b1, b2] = span(p, p.parts[0], 'cross')
+    return rangeOverlap(...span(it, it.parts[0], 'main'), ...span(p, p.parts[0], 'main'), 0) &&
+      Math.min(a2, b2) - Math.max(a1, b1) > Math.min(a2 - a1, b2 - b1) / 2
+  }
+  // By where the shape starts: by the footprint's, a gateway close after an
+  // activity came first (its name reaches back over it) and pushed the activity past itself.
+  items.sort((a, b) => (a.cross - b.cross) || (a.main - b.main))
 
   const placed = []
   for (const it of items) {
@@ -183,14 +263,12 @@ export function place (doc, keep = null) {
       it.main = snapCenter(it.main, it.size.main)
     }
     for (let guard = 0; guard < 500; guard++) {
-      const near = (p, margin) => rangeOverlap(start(it, 'main'), end(it, 'main'), start(p, 'main'), end(p, 'main'), margin && MIN_ACROSS) &&
-        rangeOverlap(start(it, 'cross'), end(it, 'cross'), start(p, 'cross'), end(p, 'cross'), margin && MIN_ALONG)
-      const hit = placed.find((p) => near(p, true))
+      const hit = placed.find((p) => clearOf(it, p) != null)
       if (!hit) break
       // On top of another, it goes to the next free spot, at the editor's own
-      // spacing; only too close, to the nearest place it may stay.
-      const gap = near(hit, false) ? GAP_ALONG : MIN_ALONG
-      it.cross = snapCenter(end(hit, 'cross') + gap - it.fp[crossD] + GRID / 2, it.size.cross)
+      // spacing; too close or just over its edge, to the nearest place it may stay.
+      const to = onTop(it, hit) ? end(hit, 'cross') + GAP_ALONG - it.fp[crossD] : clearOf(it, hit)
+      it.cross = snapCenterForward(to, it.size.cross)
     }
     placed.push(it)
   }

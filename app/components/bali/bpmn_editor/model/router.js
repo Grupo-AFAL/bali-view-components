@@ -746,7 +746,22 @@ export function routeAfresh (doc, order = null) {
         y1: Math.max(bounds.y1, Math.min(s.stub.y, t.stub.y) - margin),
         y2: Math.min(bounds.y2, Math.max(s.stub.y, t.stub.y) + margin)
       })
-      let path = search(s.stub, startDir, t.stub, goalDir, blockers, occupied, regionOf(MARGIN))
+      // Neighbours closer than their two stubs (36 px): the stubs run past
+      // each other, and the search, which starts where they end, drew a loop
+      // between them. Facing ports are joined straight, or with one step
+      // halfway when they are not on one line and nothing stands there.
+      const past = (t.stub.x - s.stub.x) * startDir.dx + (t.stub.y - s.stub.y) * startDir.dy < 0
+      const ahead = (t.point.x - s.point.x) * startDir.dx + (t.point.y - s.point.y) * startDir.dy > 0
+      let path = null
+      if (OPPOSITE[s.side] === t.side && past && ahead) {
+        const half = startDir.dx
+          ? [{ x: (s.point.x + t.point.x) / 2, y: s.point.y }, { x: (s.point.x + t.point.x) / 2, y: t.point.y }]
+          : [{ x: s.point.x, y: (s.point.y + t.point.y) / 2 }, { x: t.point.x, y: (s.point.y + t.point.y) / 2 }]
+        const [lo, hi] = [{ x: Math.min(half[0].x, half[1].x), y: Math.min(half[0].y, half[1].y) }, { x: Math.max(half[0].x, half[1].x), y: Math.max(half[0].y, half[1].y) }]
+        const blocked = stubFree.some((r) => lo.x < r.x + r.w && hi.x > r.x && lo.y < r.y + r.h && hi.y > r.y)
+        if (!blocked) path = half
+      }
+      if (!path) path = search(s.stub, startDir, t.stub, goalDir, blockers, occupied, regionOf(MARGIN))
       if (!path) path = search(s.stub, startDir, t.stub, goalDir, blockers, occupied, bounds)
       if (!path) {
         // The preferred sides are walled in (a node right above the target,

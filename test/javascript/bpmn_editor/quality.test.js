@@ -7,6 +7,8 @@ import { arrange, emptyStretches, STEP } from '../../../app/components/bali/bpmn
 import { measure, sharedLength, segmentsCross } from './support/layoutQuality.js'
 import { setOrientation, deleteElements } from '../../../app/components/bali/bpmn_editor/model/operations.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
+import { nodeBox } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
+import { routeDiagram } from '../../../app/components/bali/bpmn_editor/model/router.js'
 import { doc as docOf, lanes as lanesOf, node as nodeOf, flow as flowOf } from './helpers.js'
 import { hasExternalLabel } from '../../../app/components/bali/bpmn_editor/model/labels.js'
 
@@ -57,10 +59,15 @@ test('the metric sees what it measures', () => {
   assert.ok(measure(crowded).overlaps > 0)
 })
 
-test('the hand-placed invoice flow has violations Tidy up removes', () => {
+// The sample's decision stands 130 px after «Validate invoice»: its name, 4 px
+// over the diamond, reached 3 px into the activity's height and lay on its
+// pending badge. A name above keeps over the row and its badges (labels.js).
+test('the hand-placed invoice flow has no violation as it comes; one made by hand, Tidy up removes', () => {
   const loaded = normalize(FIXTURES.invoice())
-  assert.ok(measure(loaded).hard > 0)
-  assert.equal(measure(autoLayout(loaded)).hard, 0)
+  assert.equal(measure(loaded).hard, 0, JSON.stringify(measure(loaded).details))
+  const crowded = { ...loaded, nodes: loaded.nodes.map((n, i) => (i === 2 ? { ...n, x: loaded.nodes[1].x } : n)) }
+  assert.ok(measure(crowded).hard > 0)
+  assert.equal(measure(autoLayout(crowded)).hard, 0)
 })
 
 test('the metric counts two branches of a gateway leaving by the same side', () => {
@@ -118,26 +125,71 @@ test('an element nudged by the pixel keeps its pixel; the arrangement only moves
   assert.equal(x(arrange(nudged, { keep: new Set(['t3']) })), x(laid) + 1)
 })
 
-// #1694: elements may be left close together. Before, a gap under 40 px along
-// the flow sent the second one 90 px away.
-const row = (gap, edges = []) => docOf({
-  lanes: lanesOf('A', 'B'),
-  nodes: [nodeOf('t1', 'task', 'l1', 300, 90), nodeOf('t2', 'task', 'l1', 300 + 150 + gap, 90), nodeOf('t3', 'task', 'l2', 300, 270)],
-  edges
-})
-const gapBetween = (d, a, b) => { const [A, B] = [a, b].map((id) => d.nodes.find((n) => n.id === id)); return B.x - (A.x + 150) }
+// #1694: elements may be left close together. The least is measured between
+// shapes; a name counts where it is drawn, not as part of one box around the
+// element, and a shape left a little over another's edge goes to that least.
+const after = (type, gap, extra = {}) => {
+  const width = { task: 150, exclusive_gateway: 50, end_event: 36 }[type]
+  return docOf({
+    lanes: [{ ...lanesOf('A')[0], size: 260 }, { ...lanesOf('A', 'B')[1], size: 200 }],
+    nodes: [nodeOf('s', 'start_event', 'l1', 110, 130, { name: 'Go' }), nodeOf('a', 'task', 'l1', 300, 130), nodeOf('b', type, 'l1', 375 + gap + width / 2, 130, extra), nodeOf('c', 'task', 'l2', 800, 330)],
+    edges: [flowOf('f0', 's', 'a'), flowOf('f1', 'a', 'b'), flowOf('f2', 'b', 'c')]
+  })
+}
+const settledGap = (d) => {
+  const arranged = arrange(d)
+  assert.equal(measure(arranged).hard, 0, JSON.stringify(measure(arranged).details))
+  assert.equal(arrange(arranged), arranged, 'settled')
+  const [a, b] = ['a', 'b'].map((id) => nodeBox(arranged.nodes.find((n) => n.id === id)))
+  return b.x - (a.x + a.w)
+}
+const gaps = (type, asked, extra) => asked.map((gap) => settledGap(after(type, gap, extra)))
 
-test('two activities a person leaves close together stay close: 20 px is the least, not a column', () => {
-  for (const [left, settled] of [[60, 60], [30, 30], [20, 20], [12, 20]]) {
-    const arranged = arrange(row(left, [flowOf('f1', 't1', 't2')]))
-    assert.equal(gapBetween(arranged, 't1', 't2'), settled, `left ${left} px apart`)
-    assert.equal(measure(arranged).hard, 0, JSON.stringify(measure(arranged).details))
-    assert.equal(arrange(arranged), arranged, 'settled')
+test('two activities: what a person leaves stays, 20 px is the least, and a little over the edge goes there too', () => {
+  assert.deepEqual(gaps('task', [80, 60, 40, 20]), [80, 60, 40, 20])
+  assert.deepEqual(gaps('task', [12, 5, 0, -4, -20, -60]), [20, 20, 20, 20, 20, 20])
+})
+
+test('an activity dropped on another — over more than half of it — still goes to the next free spot', () => {
+  assert.deepEqual(gaps('task', [-100, -140]), [90, 90])
+})
+
+test('a gateway comes as close to the activity before it as another activity: its name stands above the row', () => {
+  const name = { name: '¿La factura es válida?' }
+  assert.deepEqual(gaps('exclusive_gateway', [60, 40, 20, 5, -4], name), [60, 40, 20, 20, 20])
+  assert.deepEqual(gaps('exclusive_gateway', [40, 20, 5], { ...name, label_position: 'bottom' }), [40, 20, 20])
+  assert.deepEqual(gaps('exclusive_gateway', [40, 20, 5], { ...name, label_orientation: 'vertical' }), [40, 20, 20])
+})
+
+// An event's name under it is drawn in the activity's row: it keeps the event its own width away.
+test('an event keeps only the room its name takes: 27 px for «Fin», none for a name above', () => {
+  assert.deepEqual(gaps('end_event', [57, 37, 20, 0], { name: 'Fin' }), [57, 37, 27, 27])
+  assert.deepEqual(gaps('end_event', [57, 37, 20, 0], { name: 'Pago realizado' }), [57, 37, 37, 37])
+  assert.deepEqual(gaps('end_event', [37, 20, 0], { name: 'Pago realizado', label_position: 'top' }), [37, 27, 27])
+})
+
+// Under 36 px the two port stubs (18 px each) run past each other: the search
+// between their ends drew [375,72] → 393 → back to 374 → 395, a loop.
+test('the connection between two neighbours closer than their stubs is a straight line, or one step halfway', () => {
+  const pointsOf = (d, id) => routeDiagram(d).get(id).points.map((p) => [p.x, p.y])
+  for (const [type, extra] of [['task', {}], ['exclusive_gateway', { name: 'Ok?' }], ['end_event', { name: 'Fin', label_position: 'top' }]]) {
+    for (const gap of [20, 30]) {
+      const route = pointsOf(arrange(after(type, gap, extra)), 'f1')
+      assert.equal(route.length, 2, `${type} at ${gap}: ${JSON.stringify(route)}`)
+      assert.equal(route[0][1], route[1][1])
+    }
   }
+  const lower = after('task', 20)
+  lower.nodes[2] = { ...lower.nodes[2], y: lower.nodes[2].y + 30 }
+  const stepped = pointsOf(arrange(lower), 'f1')
+  assert.deepEqual(stepped.map(([x]) => x - stepped[0][0]), [0, 10, 10, 20])
 })
 
-test('an element dropped on top of another still goes to the next free spot, at the usual spacing', () => {
-  assert.equal(gapBetween(arrange(row(-100)), 't1', 't2'), 90)
+test('a name is never left on the stub of a neighbour’s port', () => {
+  // A narrow activity: the gateway's name would reach over its top port.
+  const narrow = after('exclusive_gateway', 20, { name: '¿La factura es válida?' })
+  narrow.nodes[1] = { ...narrow.nodes[1], width: 80, x: 375 - 80 }
+  assert.ok(settledGap(narrow) > 20)
 })
 
 test('two activities one over the other may stand 16 px apart in a lane', () => {
