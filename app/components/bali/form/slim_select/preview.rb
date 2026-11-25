@@ -270,6 +270,17 @@ module Bali
           )
         end
 
+        # @label Options of several lines
+        # Eight options whose markup wraps to three lines each (a name, tags and a line of
+        # metadata), more than the list's 240 px holds: each keeps the height of its text and
+        # the list scrolls.
+        def multiline_options
+          render_with_template(
+            template: 'bali/form/slim_select/previews/multiline_options',
+            locals: { model: form_record, options: build_multiline_options }
+          )
+        end
+
         # @label Team Member Selector
         # Rich dropdown with avatars, names, and roles - demonstrates custom HTML capabilities
         def team_member_selector
@@ -311,6 +322,21 @@ module Bali
         end
 
         private
+
+        def build_multiline_options
+          (1..8).map do |number|
+            name = "Supplier onboarding and tax validation for region #{number}"
+            inner_html = <<~HTML.squish
+              <div class="flex flex-col gap-1">
+                <span class="font-medium text-sm">#{name}</span>
+                <span class="flex gap-1"><span class="badge badge-ghost badge-sm">Procedure</span><span class="badge badge-ghost badge-sm">Draft</span></span>
+                <span class="text-xs text-base-content/60">Accounts payable · revision #{number}</span>
+              </div>
+            HTML
+
+            [name, "flow-#{number}", { 'data-inner-html' => inner_html }]
+          end
+        end
 
         def build_team_options
           TEAM_MEMBERS.map do |member|

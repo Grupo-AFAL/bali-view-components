@@ -1,0 +1,5 @@
+<%= form_with(model: model, url: '/', builder: Bali::FormBuilder) do |form| %>
+  <div class="max-w-xs">
+    <%= form.slim_select_group :name, options, label: 'Link a flow' %>
+  </div>
+<% end %>

@@ -57,6 +57,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   elemento encima de otro, «Autoajustar», el menú rápido y la inserción en una conexión
   conservan su separación. Un diagrama guardado no se mueve.
 
+### Fixed
+
+- **`slim_select_group`: una opción de varios renglones ya no se aplasta ni se encima con la
+  siguiente** (#1695). La lista es una columna flex de 240 px y la opción podía encogerse hasta
+  su `min-height` de 40 px en cuanto las opciones juntas pasaban de ese alto; ahora cada una
+  conserva el alto de su texto y la lista hace scroll. Qué hacer: una app que ya traía
+  `.ss-content .ss-list .ss-option { flex-shrink: 0 }` puede quitar su regla. Preview:
+  `bali/form/slim_select/multiline_options`.
+
 ## [v3.29.1] - 2026-11-22
 
 ### Fixed
