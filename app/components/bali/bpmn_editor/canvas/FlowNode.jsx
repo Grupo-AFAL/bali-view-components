@@ -72,12 +72,49 @@ const MENU_WIDTH = 250
 const PANEL_WIDTH = 300
 const EDGE_GAP = 8
 
-// The quick menu goes to the right of the node, or to its left when there is
-// no room before the canvas edge (or the properties panel). With room on
-// neither side (a phone's canvas) it goes below the node, slid sideways to
-// stay inside the canvas. Only the selected node mounts this, so only it
-// follows the viewport.
-function QuickMenuToolbar ({ x, width, children, panelOpen }) {
+// The menu as it opens with every pick (269 × 58 px measured), before «More».
+const MENU_SIZE = { w: 272, h: 60 }
+const MENU_OFFSET = 14
+// Where the menu may go, in order: [side, align, its top-left corner from the
+// node's box `n` in screen px].
+const MENU_PLACES = [
+  ['right', 'start', (n) => ({ x: n.x + n.w + MENU_OFFSET, y: n.y })],
+  ['left', 'start', (n) => ({ x: n.x - MENU_OFFSET - MENU_SIZE.w, y: n.y })],
+  ['bottom', 'start', (n) => ({ x: n.x, y: n.y + n.h + MENU_OFFSET })],
+  ['bottom', 'end', (n) => ({ x: n.x + n.w - MENU_SIZE.w, y: n.y + n.h + MENU_OFFSET })],
+  ['top', 'start', (n) => ({ x: n.x, y: n.y - MENU_OFFSET - MENU_SIZE.h })],
+  ['top', 'end', (n) => ({ x: n.x + n.w - MENU_SIZE.w, y: n.y - MENU_OFFSET - MENU_SIZE.h })]
+]
+
+// The first place where the menu covers no other element and stays inside the
+// canvas (clear of the properties panel), as an index of MENU_PLACES, or -1.
+// Next to a neighbour the menu took the clicks meant for it: with «Validate
+// invoice» selected, its icons lay over the gateway 130 px on.
+function freePlace (store, id, panelOpen) {
+  const [tx, ty, zoom] = store.transform
+  const screen = (node) => {
+    const at = node.internals.positionAbsolute
+    return { x: at.x * zoom + tx, y: at.y * zoom + ty, w: (node.measured.width || 0) * zoom, h: (node.measured.height || 0) * zoom }
+  }
+  const own = store.nodeLookup.get(id)
+  if (!own) return -1
+  const me = screen(own)
+  const others = [...store.nodeLookup.values()].filter((n) => n.type === 'bpmn' && n.id !== id).map(screen)
+  const pane = { w: store.width - (panelOpen ? PANEL_WIDTH : 0), h: store.height }
+  return MENU_PLACES.findIndex(([, , corner]) => {
+    const { x, y } = corner(me)
+    if (x < EDGE_GAP || y < EDGE_GAP || x + MENU_SIZE.w > pane.w - EDGE_GAP || y + MENU_SIZE.h > pane.h - EDGE_GAP) return false
+    return !others.some((o) => x < o.x + o.w && o.x < x + MENU_SIZE.w && y < o.y + o.h && o.y < y + MENU_SIZE.h)
+  })
+}
+
+// The quick menu goes beside the node where it covers no other element:
+// right, left, below or above it. When every place is taken or out of the
+// canvas: to the right, or to the left when there is no room before the
+// canvas edge (or the properties panel); with room on neither side (a phone's
+// canvas) below the node, slid sideways to stay inside the canvas. Only the
+// selected node mounts this, so only it follows the viewport.
+function QuickMenuToolbar ({ id, x, width, children, panelOpen }) {
   const left = useStore((s) => x * s.transform[2] + s.transform[0])
   const right = useStore((s) => (x + width) * s.transform[2] + s.transform[0])
   const paneWidth = useStore((s) => s.width)
@@ -89,16 +126,27 @@ function QuickMenuToolbar ({ x, width, children, panelOpen }) {
     const drawn = menu.current && menu.current.offsetWidth
     if (drawn && drawn !== span) setSpan(drawn)
   })
+  // By the size it opens at, not the one it grows to: «More» would move the
+  // menu from under the pointer that opened it.
+  const place = useStore((s) => freePlace(s, id, panelOpen))
+  if (place >= 0) {
+    const [side, align] = MENU_PLACES[place]
+    return (
+      <NodeToolbar isVisible position={side} align={align} offset={MENU_OFFSET}>
+        <div className='w-max' data-menu-side={side}>{children}</div>
+      </NodeToolbar>
+    )
+  }
   if (room < MENU_WIDTH && left < MENU_WIDTH) {
     const shift = Math.max(EDGE_GAP, Math.min(left, paneWidth - span - EDGE_GAP)) - left
     return (
-      <NodeToolbar isVisible position={Position.Bottom} align='start' offset={14}>
+      <NodeToolbar isVisible position={Position.Bottom} align='start' offset={MENU_OFFSET}>
         <div ref={menu} className='w-max' style={{ transform: `translateX(${Math.round(shift)}px)` }}>{children}</div>
       </NodeToolbar>
     )
   }
   return (
-    <NodeToolbar isVisible position={room < MENU_WIDTH ? Position.Left : Position.Right} align='start' offset={14}>
+    <NodeToolbar isVisible position={room < MENU_WIDTH ? Position.Left : Position.Right} align='start' offset={MENU_OFFSET}>
       {children}
     </NodeToolbar>
   )
@@ -175,7 +223,7 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
         : noteNumber}
       {showLink && <span className='bpmn-node-link' data-testid='bpmn-node-link' aria-hidden='true'>↗</span>}
       {canvas.quickMenuId === id && (
-        <QuickMenuToolbar x={positionAbsoluteX} width={box.w} panelOpen={canvas.panelOpen}>
+        <QuickMenuToolbar id={id} x={positionAbsoluteX} width={box.w} panelOpen={canvas.panelOpen}>
           {canvas.renderQuickMenu(node)}
         </QuickMenuToolbar>
       )}

@@ -53,6 +53,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#1694) — nodo, conexión o carril —, con el mensaje y la clave de cada regla y los `issues`
   del servidor. Antes el triángulo solo avisaba, y había que buscarlo en «N pendientes». Llave
   nueva de textos: `props_issues`.
+- **`BpmnEditor`: el menú rápido se abre donde no tapa a otro elemento** (#1694): a la derecha,
+  a la izquierda, abajo o arriba del seleccionado. Junto a un vecino sus íconos quedaban
+  encima de él y se llevaban el clic; con todos los lados ocupados sigue yendo a la derecha.
 - **`BpmnEditor`: los elementos se pueden dejar más juntos** (#1694). El acomodo local mandaba
   a 80 px a todo lo que quedara a menos de 40 px de otro, y medía la caja que envuelve figura,
   nombre e insignia: un gateway no bajaba de 170 px de la actividad anterior, porque su nombre
