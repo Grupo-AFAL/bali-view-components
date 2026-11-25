@@ -54,3 +54,20 @@ test('the guide shows exactly when the arrangement will put the dropped centre o
     assert.equal(shown, settled === 560, `dragged to ${cx}: guide ${shown}, dropped at ${settled}`)
   }
 })
+
+// A shape the line would cross past its last aligned element is not its
+// business: it used to end the guide with a line of no length there (a dot,
+// with its square caps), and a second such shape with one drawn backwards.
+test('a shape on the centre line beyond the last aligned element adds nothing', () => {
+  const row = diagram(at(800, 92))
+  row.nodes.push(node('far1', 'task', 'l1', 1000, 100), node('far2', 'task', 'l1', 1300, 100))
+  assert.deepEqual(alignmentGuides(row, ['d']).map((g) => [g.axis, g.x1, g.x2]), [['y', 375, 485], ['y', 635, 725]])
+})
+
+test('a guide stops at the names drawn outside their shapes too', () => {
+  const column = diagram(at(703, 268))
+  column.nodes.push(node('end', 'end_event', 'l1', 700, 90, { name: 'Payment made' }))
+  const guides = alignmentGuides(column, ['d']).filter((g) => g.axis === 'x')
+  // From under the name (the event ends at 108, its name at 126) to the dragged activity.
+  assert.deepEqual(guides, [{ axis: 'x', x1: 700, x2: 700, y1: 90 + 18 + 4 + 14, y2: 268 - 32 }])
+})

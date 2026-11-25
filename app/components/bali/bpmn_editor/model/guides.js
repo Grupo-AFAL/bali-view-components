@@ -7,9 +7,12 @@
 // element already stands on. Centres, not edges, for the same reason the
 // arrangement snaps them: an event, a gateway and a task in one row differ in
 // size and share a centre line.
-import { nodeBox } from './geometry.js'
+import { nodeBox, orientationOf } from './geometry.js'
+import { nodeLabelBox } from './labels.js'
 import { GRID } from './arrange.js'
 
+// The 4 px between an event and its name are no stretch to draw a line in.
+const SPECK = 4
 const snap = (value) => Math.round(value / GRID) * GRID
 const AXES = [
   { center: 'cx', start: 'y', size: 'h', line: (at, from, to) => ({ x1: at, y1: from, x2: at, y2: to }) },
@@ -19,11 +22,14 @@ const AXES = [
 // `doc` holds the dragged nodes where the pointer has them; `movingIds` says
 // which. Returns the lines in pool coordinates, each with its ends and its
 // `axis`: 'x' for a vertical line (a shared centre x), 'y' for a horizontal one.
-// A line is drawn in the stretches between shapes only: through them it
-// crossed out the names of the activities it joined.
+// A line is drawn in the stretches between shapes and the names outside
+// them only: through an activity it crossed out its name.
 export function alignmentGuides (doc, movingIds) {
   const moving = new Set([...movingIds].map(String))
   const boxes = (doc.nodes || []).filter((n) => n.type !== 'group').map((n) => ({ box: nodeBox(n), moving: moving.has(String(n.id)) }))
+  // What the line may not cross: every shape, and every name drawn outside one.
+  const orientation = orientationOf(doc)
+  const drawn = (doc.nodes || []).filter((n) => n.type !== 'group').flatMap((n) => [nodeBox(n), nodeLabelBox(n, orientation)]).filter(Boolean)
   const dragged = boxes.filter((b) => b.moving)
   const still = boxes.filter((b) => !b.moving)
   const guides = []
@@ -40,14 +46,15 @@ export function alignmentGuides (doc, movingIds) {
       lines.set(at, { from, to })
     }
     for (const [at, { from, to }] of lines) {
-      const covered = boxes.map(({ box }) => box).filter((b) => b[across[0]] < at && at < b[across[0]] + b[across[1]])
+      const covered = drawn.filter((b) => b[across[0]] < at && at < b[across[0]] + b[across[1]])
         .map((b) => [b[axis.start], b[axis.start] + b[axis.size]]).sort((a, b) => a[0] - b[0])
       let cursor = from
       for (const [start, end] of covered) {
-        if (start > cursor) guides.push({ axis: index === 0 ? 'x' : 'y', ...axis.line(at, cursor, Math.min(start, to)) })
+        if (start >= to) break
+        if (start - cursor > SPECK) guides.push({ axis: index === 0 ? 'x' : 'y', ...axis.line(at, cursor, start) })
         cursor = Math.max(cursor, end)
       }
-      if (cursor < to) guides.push({ axis: index === 0 ? 'x' : 'y', ...axis.line(at, cursor, to) })
+      if (to - cursor > SPECK) guides.push({ axis: index === 0 ? 'x' : 'y', ...axis.line(at, cursor, to) })
     }
   }
   return guides
