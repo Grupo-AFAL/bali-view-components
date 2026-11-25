@@ -1,4 +1,4 @@
-// Bali::BpmnEditor (#1694): a gateway or an event changes type from its
+// Bali::BpmnEditor (#1694): a task, a gateway or an event changes type from its
 // properties panel, where it stands — replacing it used to mean deleting it,
 // and its connections with it.
 
@@ -33,7 +33,7 @@ describe('BPMN editor: changing an element’s type', () => {
     cy.get('[data-node-type="exclusive_gateway"]').should('have.attr', 'title', '¿La factura es válida?')
   })
 
-  it('offers an event the events of its own group, and nothing to an activity', () => {
+  it('offers an event the events of its own group', () => {
     nodeNamed('Factura recibida').click()
     cy.get('[data-testid="bpmn-node-type"] option').then(($options) => {
       const keys = [...$options].map((o) => o.value)
@@ -46,10 +46,33 @@ describe('BPMN editor: changing an element’s type', () => {
       expect(start.event_definition).to.deep.eq({ kind: 'timer' })
       expect(diagram.edges.some((e) => e.source === start.id)).to.eq(true)
     })
-    // The start event's quick menu lies over the activity next to it.
+  })
+
+  it('turns a task into another kind of task, and offers a sub-process nothing', () => {
+    nodeNamed('Registrar pago').click()
+    cy.get('[data-testid="bpmn-node-type"]').should('have.value', 'task').find('option').then(($options) => {
+      const keys = [...$options].map((o) => o.value)
+      expect(keys).to.include.members(['task', 'user_task', 'service_task', 'manual_task'])
+      expect(keys).not.to.include('sub_process')
+    })
+    cy.get('[data-testid="bpmn-node-type"]').select('manual_task')
+    cy.get('[data-node-type="manual_task"]').should('have.attr', 'title', 'Registrar pago')
+    lastSaved((diagram) => {
+      const task = diagram.nodes.find((n) => n.name === 'Registrar pago')
+      expect(task.type).to.eq('manual_task')
+      expect(diagram.edges.filter((e) => e.source === task.id || e.target === task.id)).to.have.length(2)
+    })
+    // A sub-process is tied to an entity of the app: it is no kind of task.
     cy.get('[data-testid="bpmn-properties"] button[aria-label="Cerrar"]').click()
-    nodeNamed('Validar factura').click()
+    cy.get('[data-palette-key="sub_process"]').click()
+    cy.get('[data-testid="bpmn-lane"]').last().then(($lane) => {
+      const lane = $lane[0].getBoundingClientRect()
+      const pane = $lane[0].closest('.react-flow').querySelector('.react-flow__pane')
+      const box = pane.getBoundingClientRect()
+      cy.wrap(pane).click(lane.left - box.left + lane.width * 0.2, lane.top - box.top + lane.height / 2)
+    })
     cy.get('[data-testid="bpmn-properties"]').should('contain', 'Nombre')
+    cy.get('.react-flow__node-bpmn.selected [data-node-type="sub_process"]').should('exist')
     cy.get('[data-testid="bpmn-node-type"]').should('not.exist')
   })
 })

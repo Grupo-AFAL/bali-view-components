@@ -500,16 +500,28 @@ test('changeNodeType changes an event’s definition; a timer that stays a timer
 test('changeNodeType refuses nothing and changes nothing outside its family, or to the type it already is', () => {
   const before = decision()
   assert.equal(ops.changeNodeType(before, 'g', { type: 'task' }).doc, before, 'a gateway does not become an activity')
-  assert.equal(ops.changeNodeType(before, 't1', { type: 'user_task' }).doc, before, 'activities are not offered')
+  assert.equal(ops.changeNodeType(before, 't1', { type: 'sub_process' }).doc, before, 'a task does not become a sub-process')
+  const linked = ops.updateNode(before, 't1', { type: 'sub_process', reference: { id: '7', label: 'Linked' } }).doc
+  assert.equal(ops.changeNodeType(linked, 't1', { type: 'task' }).doc, linked, 'nor a sub-process a task: it is tied to an entity of the app')
   assert.equal(ops.changeNodeType(before, 'g', { type: 'exclusive_gateway' }).doc, before, 'the same type is no edit, so no undo step')
   assert.equal(ops.changeNodeType(before, 'missing', { type: 'parallel_gateway' }).doc, before)
 })
 
-test('typeChoices offers a gateway every gateway, an event the events of its own group, anything else nothing', () => {
+test('typeChoices offers a task every task, a gateway every gateway, an event the events of its own group, anything else nothing', () => {
   assert.deepEqual(typeChoices({ type: 'parallel_gateway' }), Object.keys(PALETTE_ITEMS).filter((k) => PALETTE_ITEMS[k].group === 'gateways'))
   assert.ok(typeChoices({ type: 'start_event' }).every((k) => PALETTE_ITEMS[k].node.type === 'start_event'))
   assert.ok(typeChoices({ type: 'end_event', event_definition: { kind: 'terminate' } }).includes('end_event'))
   assert.ok(typeChoices({ type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }).includes('message_throw_event'))
-  assert.deepEqual(typeChoices({ type: 'task' }), [])
+  assert.deepEqual(typeChoices({ type: 'task' }), ['task', 'user_task', 'service_task', 'send_task', 'receive_task', 'script_task', 'business_rule_task', 'manual_task'])
+  assert.deepEqual(typeChoices({ type: 'sub_process' }), [])
+  assert.deepEqual(typeChoices({ type: 'text_annotation' }), [])
   assert.deepEqual(typeChoices({ type: 'something_else' }), [])
+})
+
+test('changeNodeType turns a task into another kind of task: its size, its fields, its name and its connections stay', () => {
+  const before = ops.updateNode(decision(), 't1', { name: 'Validate invoice', width: 200, height: 80, fields: { duration: 15 } }).doc
+  const { doc: d } = ops.changeNodeType(before, 't1', { type: 'user_task' }, { names: { task: 'New activity' } })
+  const { id, lane_id: lane, ...task } = byId(d, 't1')
+  assert.deepEqual([id, lane, task.type, task.name, task.width, task.height, task.fields], ['t1', 'l1', 'user_task', 'Validate invoice', 200, 80, { duration: 15 }])
+  assert.deepEqual(d.edges, before.edges)
 })

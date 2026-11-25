@@ -10,7 +10,7 @@
 // changes a lane's size or position on the main axis has to carry the nodes of
 // the lanes after it along: `resizeLane` and `reorderLanes` do.
 import {
-  nodeSize, isActivity, isArtifactLike, isFlowNode, isStart, isEnd, isGateway, isEvent, edgeType, categoryOf, CATEGORY, isBinaryDecision,
+  nodeSize, isActivity, isArtifactLike, isFlowNode, isStart, isEnd, hasTypeChoices, edgeType, categoryOf, CATEGORY, isBinaryDecision,
   isResizable, hasOwnSize, MIN_NODE_SIZE, MAX_NODE_SIZE
 } from './catalog.js'
 import {
@@ -245,7 +245,7 @@ export function updateNode (doc, id, patch) {
 // is replaced when the type changes.
 const TYPE_ATTRIBUTES = ['type', 'marker_visible', 'instantiate', 'event_gateway_type', 'event_definition']
 
-// Turns a gateway or an event into another of its family — `attrs` are a
+// Turns a task, a gateway or an event into another of its family — `attrs` are a
 // palette item's (catalog.js PALETTE_ITEMS) — where it stands: its id, and
 // with it every connection, note and reference to it, its name, its place and
 // the app's fields stay. A name it never got (the old type's default) becomes
@@ -254,7 +254,7 @@ const TYPE_ATTRIBUTES = ['type', 'marker_visible', 'instantiate', 'event_gateway
 // parallel split may not carry and its panel no longer lets one clear.
 export function changeNodeType (doc, id, attrs, { names = {} } = {}) {
   const node = findNode(doc, id)
-  if (!node || !attrs || categoryOf(attrs) !== categoryOf(node) || !(isGateway(node) || isEvent(node))) return { doc }
+  if (!node || !attrs || categoryOf(attrs) !== categoryOf(node) || !hasTypeChoices(node) || !hasTypeChoices(attrs)) return { doc }
   const next = { ...node }
   for (const key of TYPE_ATTRIBUTES) delete next[key]
   Object.assign(next, JSON.parse(JSON.stringify(attrs)))

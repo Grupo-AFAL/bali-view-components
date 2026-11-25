@@ -1003,13 +1003,15 @@ are laid on.
 - **Place a name**: «Name position» in the properties panel of an event, a gateway or a data
   element — «Above», «Below» or «Auto» — and «Name direction» — «Horizontal» or «Vertical»:
   see [Name position](#name-position).
-- **Change the type** of a gateway or an event: «Type» in its properties panel lists the
-  other elements of its palette group the app left enabled — a gateway any gateway, a start
-  event the start events, and so for intermediate and end events. The element stays where it
-  is, with its id: its connections, notes, name, description and `fields` are kept, and it is
-  one undo step. A name it never got (the old type's default) becomes the new type's; a timer
-  that stays a timer keeps its expression; a gateway turned parallel drops the labels of its
-  ways out, which a parallel split does not carry. Activities are not offered.
+- **Change the type** of a task, a gateway or an event: «Type» in its properties panel lists
+  the other elements of its palette group the app left enabled — a task any task, a gateway
+  any gateway, a start event the start events, and so for intermediate and end events. The
+  element stays where it is, with its id: its connections, notes, name, description, size and
+  `fields` are kept, and it is one undo step. A name it never got (the old type's default)
+  becomes the new type's; a timer that stays a timer keeps its expression; a gateway turned
+  parallel drops the labels of its ways out, which a parallel split does not carry. A
+  sub-process is tied to an entity of the app: it is offered no other type, and no task is
+  offered to become one.
 - **Resize an activity**: the corner handle of the selected one, or «Size» in the
   properties panel; «Auto» returns to the type's size — see [Node size](#node-size).
 - **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
