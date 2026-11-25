@@ -7,36 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.30.0] - 2026-11-25
+
 ### Added
 
 - **`BpmnEditor`: guías de alineación al arrastrar** (#1694). Una línea punteada marca la línea
   de centros que lo que se arrastra compartiría con cada elemento de su columna o de su fila —
-  en los tramos entre figuras, sin pasar sobre ellas ni sobre sus nombres —, y aparece justo
-  cuando soltarlo los deja alineados (a 5 px o menos: el acomodo local lleva el centro a la
-  retícula de 10 px). Nada que configurar.
+  en los tramos entre figuras y entre los nombres que se pintan fuera de ellas, sin pasar
+  sobre unas ni otros —, y aparece justo cuando soltarlo los deja alineados (a 5 px o menos:
+  el acomodo local lleva el centro a la retícula de 10 px). Nada que configurar.
 - **`BpmnEditor`: «Tipo» cambia una tarea, un gateway o un evento sin desconectarlo** (#1694).
   El panel de propiedades ofrece los demás elementos de su grupo de la paleta que la app dejó
   habilitados (una tarea, cualquier tarea; un gateway, cualquier gateway; un evento de inicio,
-  otro de inicio). Conserva su id, y con él conexiones, notas, nombre, tamaño y `fields`; un
+  otro de inicio). Conserva su id, y con él conexiones, notas, nombre, tamaño y `fields` — los
+  del tipo anterior que el nuevo no muestra también: siguen en el nodo y se guardan igual. Un
   nombre que nunca se cambió («Decisión») pasa al del tipo nuevo, y un gateway que pasa a
-  paralelo pierde las etiquetas de sus salidas, que un paralelo no lleva. El subproceso queda
-  fuera en los dos sentidos: está ligado a una entidad de la app. El documento no cambia de
-  formato. Llave nueva de textos: `props_type_hint`.
+  paralelo pierde las etiquetas de sus salidas. «Tipo» no rechaza nada: si lo conectado ya no
+  le va al tipo nuevo (un gateway basado en eventos que lleva a tareas, B01), lo listan las
+  reglas como pendiente. El subproceso queda fuera en los dos sentidos: está ligado a una
+  entidad de la app. El documento no cambia de formato. Llave nueva de textos:
+  `props_type_hint`.
 - **`BpmnEditor`: el nombre de un evento, un gateway o un dato se coloca arriba o abajo y se gira
   a vertical** (#1694). «Posición del nombre» (Auto, Arriba, Abajo) y «Orientación del nombre»
   (Horizontal, Vertical) en el panel de propiedades. Arriba, el nombre va a la izquierda del
   puerto superior y deja libres los cuatro puertos: el de un evento iba siempre abajo y ocupaba
   ese. Girado, se lee hacia arriba, como el de un carril. Rutas, acomodo, «Autoajustar», PNG,
-  SVG e impresión usan la misma caja; el `.bpmn` la exporta en `<bpmndi:BPMNLabel>` (sin
-  rotación, que BPMN DI no tiene) solo cuando se colocó o giró a mano.
+  SVG e impresión usan la misma caja, y las conexiones del lado donde está el nombre salen a
+  la derecha del puerto; el `.bpmn` la exporta en `<bpmndi:BPMNLabel>` (sin rotación, que BPMN
+  DI no tiene) solo cuando se colocó o giró a mano, y la importación no la lee.
   **Formato:** dos llaves opcionales en el nodo, `label_position` (`"top"`, `"bottom"`) y
-  `label_orientation` (`"vertical"`, `"horizontal"`); `null` o ausentes, como siempre, así que
-  un documento guardado antes se abre y se exporta igual. `Data` lanza `InvalidError` con otro
-  valor. **Qué hacer:** una app que guarda el documento entero, nada; una que lo mapea a sus
-  propias columnas necesita una por llave, o el siguiente `200` devuelve el nombre a su lugar.
-  Llaves nuevas de textos: `props_label_position`, `label_position_{auto,top,bottom}`,
-  `props_label_orientation`, `label_orientation_{horizontal,vertical}`. Preview:
-  `bali/bpmn_editor/placed_names`.
+  `label_orientation` (`"vertical"`, `"horizontal"`); `null`, `""` o ausentes, como siempre,
+  así que un documento guardado antes se abre y se exporta igual. `Data` lanza `InvalidError`
+  con otro valor. **Qué hacer:** una app que guarda el documento entero, nada; una que lo
+  mapea a sus propias columnas necesita una por llave, o el siguiente `200` devuelve el nombre
+  a su lugar. Llaves nuevas de textos: `props_label_position`,
+  `label_position_{auto,top,bottom}`, `props_label_orientation`,
+  `label_orientation_{horizontal,vertical}`. Preview: `bali/bpmn_editor/placed_names`.
 
 ### Changed
 
@@ -45,8 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   exclusivo y la decisión Sí/No siguen naciendo «Decisión». Son cuatro llaves nuevas de textos
   (`new_parallel_gateway`, `new_inclusive_gateway`, `new_complex_gateway`,
   `new_event_based_gateway`). Un «OR» que bifurca recibe B11 («no está redactado como
-  pregunta») mientras conserve ese nombre: la regla no cambió. Un nombre todo en mayúsculas ya
-  no se corta («AND» se pintaba «A…»: medía 25 px en una caja de 24).
+  pregunta») mientras conserve ese nombre: la regla no cambió. Un nombre de una sola palabra
+  en mayúsculas ya no se corta («AND» se pintaba «A…»: medía 25 px en una caja de 24); los
+  demás nombres miden lo mismo que antes.
 - **`BpmnEditor`: la etiqueta de una conexión ya no lleva contorno** (#1694), en el lienzo y en
   las salidas. Conserva el fondo, que evita que la línea atraviese el texto.
 - **`BpmnEditor`: el panel de propiedades lista los pendientes del elemento seleccionado**
@@ -60,17 +67,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a 80 px a todo lo que quedara a menos de 40 px de otro, y medía la caja que envuelve figura,
   nombre e insignia: un gateway no bajaba de 170 px de la actividad anterior, porque su nombre
   «chocaba» antes que el rombo. Ahora el mínimo se mide entre figuras — 20 px a lo largo del
-  flujo (antes 50) y 16 entre filas (antes 26) — y el nombre cuenta donde se pinta: nunca
-  sobre otra figura, otro nombre, una insignia de pendiente o el tramo por el que sale una
-  conexión del vecino. Un gateway llega a 20 px de una actividad; un evento con el nombre
-  abajo conserva lo que mide su nombre (27 px con «Fin»). Lo que se suelta más cerca, o un
-  poco encimado, avanza al mínimo; solo lo que se suelta encima de otro (más de la mitad)
-  sigue yendo al siguiente lugar libre. Entre dos vecinos a menos de 36 px la conexión es una
-  línea recta: el ruteo dibujaba un lazo. «Autoajustar», el menú rápido y la inserción en una
-  conexión conservan su separación.
-  **Cambia a la vista, sin mover nada:** el nombre de todo gateway se pinta 12 px más arriba
-  y 2 px más a la izquierda, para quedar sobre la fila y sobre la insignia de la actividad
-  vecina. Ningún elemento de un diagrama guardado cambia de lugar al abrirlo.
+  flujo (antes 50) y 16 entre dos actividades una sobre otra (antes 26) — y el nombre cuenta
+  donde se pinta: nunca sobre otra figura, otro nombre, una insignia de pendiente o el tramo
+  por el que sale una conexión del vecino. Un gateway llega a 20 px de una actividad mientras
+  su nombre no alcance el puerto superior de ella (con una actividad del ancho normal, un
+  nombre de hasta 98 px; el máximo es 100); un evento con el nombre abajo conserva lo que mide
+  su nombre (27 px con «Fin»). Lo que se suelta más cerca, o un poco encimado, avanza al
+  mínimo; solo lo que se suelta encima de otro (más de la mitad) sigue yendo al siguiente
+  lugar libre. Dos vecinos a menos de 36 px con los puertos de frente se unen con una recta
+  (o un escalón a la mitad): el ruteo dibujaba un lazo. «Autoajustar», el menú rápido y la
+  inserción en una conexión conservan su separación.
+  **Cambia a la vista:** el nombre de todo gateway se pinta 12 px más arriba y 2 px más a la
+  izquierda, para quedar sobre la fila y sobre la insignia de la actividad vecina. Ningún
+  elemento de un diagrama guardado cambia de lugar, ni al abrirlo ni en su primera edición:
+  el carril se sigue ajustando a donde estaba el nombre.
 
 ### Fixed
 
