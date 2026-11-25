@@ -98,7 +98,7 @@ const BADGE_OVER = 9
 // The name's box (pool-relative), or null when the name is drawn inside the
 // shape or there is none. `vertical`: its lines run up the box, side by side,
 // instead of across it one under another.
-export function nodeLabelBox (node, orientation = 'horizontal') {
+export function nodeLabelBox (node, orientation = 'horizontal', { room = false } = {}) {
   if (!hasExternalLabel(node)) return null
   const block = textBlock(node.name)
   if (!block) return null
@@ -107,15 +107,24 @@ export function nodeLabelBox (node, orientation = 'horizontal') {
   const place = labelPlace(node, orientation)
   const [w, h] = vertical ? [block.h, block.w] : [block.w, block.h]
   const size = { w, h, lines: block.lines, align: ALIGN[vertical ? 'upwards' : 'across'][place], ...(vertical ? { vertical } : {}) }
+  // `room`: where the name stood before it was lifted off the row — GAP from
+  // the shape and from the port. A lane is fitted to that box (arrange.js
+  // footprint), so the lift takes 12 px of the lane's padding and moves
+  // nothing: fitted to the drawn box, every lane with a gateway in its first
+  // row grew 10 px at the first edit of a saved diagram.
   if (place === 'above') {
     // To the left of the top port, above the app's badge tab, which reaches
     // 8 px over the top-left corner. An event's name asked above goes where a
     // gateway's is: clear of the port, and of the pending badge on the right.
     const look = appearanceOf(node)
     const top = box.y - (look && look.badge ? BADGE_TAB.height / 2 : 0)
+    if (room) return { x: box.cx - GAP - w, y: top - GAP - h, ...size }
     return { x: box.cx - PORT_GAP - w, y: Math.min(top - GAP, box.cy - ROW / 2 - BADGE_OVER) - h, ...size }
   }
-  if (place === 'below-left') return { x: box.cx - PORT_GAP - w, y: Math.max(box.y + box.h + GAP, box.cy + ROW / 2), ...size }
+  if (place === 'below-left') {
+    if (room) return { x: box.cx - GAP - w, y: box.y + box.h + GAP, ...size }
+    return { x: box.cx - PORT_GAP - w, y: Math.max(box.y + box.h + GAP, box.cy + ROW / 2), ...size }
+  }
   // Past the pending badge, which overhangs the top-right corner by 9 px: a
   // name of two or three lines reaches up beside it.
   if (place === 'right') return { x: box.x + box.w + 12, y: box.cy - h / 2, ...size }

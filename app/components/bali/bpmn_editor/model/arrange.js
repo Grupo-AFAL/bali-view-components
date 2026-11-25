@@ -31,7 +31,7 @@ export const GAP_ACROSS = 30 // between rows
 // editor puts things by itself; these, the least a person may leave. A
 // connection that finds no way through is still given room (makeRoom).
 export const MIN_ALONG = 20
-export const MIN_ACROSS = 16
+export const MIN_ACROSS = 15
 // Between two names, which touching would read as one.
 export const LABEL_GAP = 4
 export const LANE_PAD = 20
@@ -49,7 +49,7 @@ const snapCenterForward = (start, size) => Math.ceil((start + size / 2) / GRID) 
 export function footprint (node, orientation) {
   const box = nodeBox(node)
   const parts = [box]
-  const label = nodeLabelBox(node, orientation)
+  const label = nodeLabelBox(node, orientation, { room: true })
   if (label) parts.push(label)
   if (isFlowNode(node)) parts.push(badgeBox(node))
   const x1 = Math.min(...parts.map((p) => p.x))
@@ -68,10 +68,10 @@ export function parts (node, orientation) {
   const offset = (kind, p) => ({ kind, dx: p.x - box.x, dy: p.y - box.y, w: p.w, h: p.h })
   const list = [offset('shape', box)]
   const label = nodeLabelBox(node, orientation)
-  if (label) list.push(offset('label', label))
+  if (label) list.push(offset('label', label), offset('room', nodeLabelBox(node, orientation, { room: true })))
   if (isFlowNode(node)) {
     list.push(offset('badge', badgeBox(node)))
-    list.push(...portStubs(box).map((stub) => offset('stub', stub)))
+    list.push(...portStubs(box, orientation).map((stub) => offset('stub', stub)))
   }
   return list
 }
@@ -82,12 +82,16 @@ export function parts (node, orientation) {
 // neighbour's name there would be crossed by the first connection drawn.
 const STUB_REACH = STUB + 3
 const STUB_SPREAD = CHANNEL + 4
-function portStubs (box) {
+// Across the flow, only the 15 px two rows always kept between a name and a
+// shape: the whole stub there moved elements of diagrams saved before.
+const ROW_REACH = GAP_ACROSS / 2
+function portStubs (box, orientation) {
+  const [up, sideways] = orientation === 'vertical' ? [STUB_REACH, ROW_REACH] : [ROW_REACH, STUB_REACH]
   return [
-    { x: box.cx - STUB_SPREAD, y: box.y - STUB_REACH, w: STUB_SPREAD * 2, h: STUB_REACH },
-    { x: box.cx - STUB_SPREAD, y: box.y + box.h, w: STUB_SPREAD * 2, h: STUB_REACH },
-    { x: box.x - STUB_REACH, y: box.cy - STUB_SPREAD, w: STUB_REACH, h: STUB_SPREAD * 2 },
-    { x: box.x + box.w, y: box.cy - STUB_SPREAD, w: STUB_REACH, h: STUB_SPREAD * 2 }
+    { x: box.cx - STUB_SPREAD, y: box.y - up, w: STUB_SPREAD * 2, h: up },
+    { x: box.cx - STUB_SPREAD, y: box.y + box.h, w: STUB_SPREAD * 2, h: up },
+    { x: box.x - sideways, y: box.cy - STUB_SPREAD, w: sideways, h: STUB_SPREAD * 2 },
+    { x: box.x + box.w, y: box.cy - STUB_SPREAD, w: sideways, h: STUB_SPREAD * 2 }
   ]
 }
 
@@ -97,7 +101,11 @@ function portStubs (box) {
 // another; a stub is kept free of names alone (shapes already stand apart).
 function roomBetween (a, b) {
   const kinds = [a.kind, b.kind]
-  if (kinds.includes('stub')) return kinds.includes('label') ? { along: 0, across: 0 } : null
+  // A stub is checked against where the name stood before it was lifted off
+  // its row (labels.js `room`), and nothing else is: against the drawn box, a
+  // gateway whose name hung 15 px under the activity of the row above moved a
+  // column on the first edit of a saved diagram.
+  if (kinds.includes('stub') || kinds.includes('room')) return kinds.includes('stub') && kinds.includes('room') ? { along: 0, across: 0 } : null
   if (a.kind === 'shape' && b.kind === 'shape') return { along: MIN_ALONG, across: MIN_ACROSS }
   if (a.kind === 'label' && b.kind === 'label') return { along: LABEL_GAP, across: LABEL_GAP }
   return { along: 0, across: 0 }
