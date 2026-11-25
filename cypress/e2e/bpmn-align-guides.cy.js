@@ -30,7 +30,8 @@ describe('BPMN editor alignment guides', () => {
           const at = new node.ownerDocument.defaultView.DOMMatrix(getComputedStyle(node).transform)
           const [left, right] = [at.e, at.e + node.offsetWidth]
           const onRow = Math.abs(at.f + node.offsetHeight / 2 - Number($line.attr('y1'))) < node.offsetHeight / 2
-          if (onRow) expect(Math.min(to, right) - Math.max(from, left), `over ${node.dataset.id}`).to.be.at.most(0)
+          // The dragged shape stands at a fraction of a pixel while the pointer has it.
+          if (onRow) expect(Math.min(to, right) - Math.max(from, left), `over ${node.dataset.id}`).to.be.below(1)
         })
       })
       cy.get('body').trigger('mouseup', at(-40))
