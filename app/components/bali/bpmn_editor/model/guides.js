@@ -19,6 +19,8 @@ const AXES = [
 // `doc` holds the dragged nodes where the pointer has them; `movingIds` says
 // which. Returns the lines in pool coordinates, each with its ends and its
 // `axis`: 'x' for a vertical line (a shared centre x), 'y' for a horizontal one.
+// A line is drawn in the stretches between shapes only: through them it
+// crossed out the names of the activities it joined.
 export function alignmentGuides (doc, movingIds) {
   const moving = new Set([...movingIds].map(String))
   const boxes = (doc.nodes || []).filter((n) => n.type !== 'group').map((n) => ({ box: nodeBox(n), moving: moving.has(String(n.id)) }))
@@ -26,6 +28,7 @@ export function alignmentGuides (doc, movingIds) {
   const still = boxes.filter((b) => !b.moving)
   const guides = []
   for (const [index, axis] of AXES.entries()) {
+    const across = index === 0 ? ['x', 'w'] : ['y', 'h']
     const lines = new Map()
     for (const { box } of dragged) {
       const at = snap(box[axis.center])
@@ -36,7 +39,16 @@ export function alignmentGuides (doc, movingIds) {
       const to = Math.max(...spans.map((b) => b[axis.start] + b[axis.size]), lines.has(at) ? lines.get(at).to : -Infinity)
       lines.set(at, { from, to })
     }
-    for (const [at, { from, to }] of lines) guides.push({ axis: index === 0 ? 'x' : 'y', ...axis.line(at, from, to) })
+    for (const [at, { from, to }] of lines) {
+      const covered = boxes.map(({ box }) => box).filter((b) => b[across[0]] < at && at < b[across[0]] + b[across[1]])
+        .map((b) => [b[axis.start], b[axis.start] + b[axis.size]]).sort((a, b) => a[0] - b[0])
+      let cursor = from
+      for (const [start, end] of covered) {
+        if (start > cursor) guides.push({ axis: index === 0 ? 'x' : 'y', ...axis.line(at, cursor, Math.min(start, to)) })
+        cursor = Math.max(cursor, end)
+      }
+      if (cursor < to) guides.push({ axis: index === 0 ? 'x' : 'y', ...axis.line(at, cursor, to) })
+    }
   }
   return guides
 }

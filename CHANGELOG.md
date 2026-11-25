@@ -9,16 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`BpmnEditor`: guías de alineación al arrastrar** (#1694). Una línea punteada une el centro
-  de lo que se arrastra con el de cada elemento con el que quedaría en la misma columna o fila,
-  y aparece justo cuando soltarlo los deja alineados (a 5 px o menos: el acomodo local lleva el
-  centro a la retícula de 10 px). Nada que configurar.
-- **`BpmnEditor`: «Tipo» cambia un gateway o un evento sin desconectarlo** (#1694). El panel de
-  propiedades ofrece los demás elementos de su grupo de la paleta que la app dejó habilitados
-  (un gateway, cualquier gateway; un evento de inicio, otro de inicio). Conserva su id, y con él
-  conexiones, notas, nombre y `fields`; un nombre que nunca se cambió («Decisión») pasa al del
-  tipo nuevo, y un gateway que pasa a paralelo pierde las etiquetas de sus salidas, que un
-  paralelo no lleva. El documento no cambia de formato. Llave nueva de textos: `props_type_hint`.
+- **`BpmnEditor`: guías de alineación al arrastrar** (#1694). Una línea punteada marca la línea
+  de centros que lo que se arrastra compartiría con cada elemento de su columna o de su fila —
+  en los tramos entre figuras, sin pasar sobre ellas ni sobre sus nombres —, y aparece justo
+  cuando soltarlo los deja alineados (a 5 px o menos: el acomodo local lleva el centro a la
+  retícula de 10 px). Nada que configurar.
+- **`BpmnEditor`: «Tipo» cambia una tarea, un gateway o un evento sin desconectarlo** (#1694).
+  El panel de propiedades ofrece los demás elementos de su grupo de la paleta que la app dejó
+  habilitados (una tarea, cualquier tarea; un gateway, cualquier gateway; un evento de inicio,
+  otro de inicio). Conserva su id, y con él conexiones, notas, nombre, tamaño y `fields`; un
+  nombre que nunca se cambió («Decisión») pasa al del tipo nuevo, y un gateway que pasa a
+  paralelo pierde las etiquetas de sus salidas, que un paralelo no lleva. El subproceso queda
+  fuera en los dos sentidos: está ligado a una entidad de la app. El documento no cambia de
+  formato. Llave nueva de textos: `props_type_hint`.
 - **`BpmnEditor`: el nombre de un evento, un gateway o un dato se coloca arriba o abajo y se gira
   a vertical** (#1694). «Posición del nombre» (Auto, Arriba, Abajo) y «Orientación del nombre»
   (Horizontal, Vertical) en el panel de propiedades. Arriba, el nombre va a la izquierda del

@@ -981,8 +981,9 @@ are laid on.
   where it leaves its source.
 - **Selection**: Shift+click, Ctrl+A, "Select all", or "Box select" (for touch
   screens). Align vertically across lanes; horizontally only inside one lane.
-- **Alignment guides**: while an element is dragged, a dashed line joins its centre to the
-  centre of every element it would share a column or a row with. The line shows exactly
+- **Alignment guides**: while an element is dragged, a dashed line runs on the centre line it
+  would share with every element of its column or its row — in the stretches between the
+  shapes, never over them or their names. The line shows exactly
   while the drop will align them — a dropped element's centre goes to the 10 px grid, so
   that is within 5 px of the other centre — and it compares centres, not edges, so an event,
   a gateway and an activity line up. Several elements dragged together each get theirs; a

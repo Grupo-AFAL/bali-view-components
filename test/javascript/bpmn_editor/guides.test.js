@@ -18,15 +18,22 @@ test('no guide while the dragged element lines up with nothing', () => {
   assert.deepEqual(alignmentGuides(diagram(at(560, 270)), []), [], 'nothing dragged')
 })
 
-test('a vertical guide through the centres while the drop would share a column, from one element to the other', () => {
+// Between the shapes, not through them: over an activity the line read as its name struck out.
+test('a vertical guide on the centre line while the drop would share a column, in the stretch between the two', () => {
   const [guide, ...rest] = alignmentGuides(diagram(at(563, 233)), ['d'])
   assert.equal(rest.length, 0)
-  assert.deepEqual(guide, { axis: 'x', x1: 560, x2: 560, y1: 90 - 32, y2: 233 + 32 })
+  assert.deepEqual(guide, { axis: 'x', x1: 560, x2: 560, y1: 90 + 32, y2: 233 - 32 })
 })
 
 test('a horizontal guide while the drop would share a row, across elements of different sizes', () => {
   const guides = alignmentGuides(diagram(at(700, 268)), ['d'])
-  assert.deepEqual(guides, [{ axis: 'y', y1: 270, y2: 270, x1: 300 - 25, x2: 700 + 75 }])
+  assert.deepEqual(guides, [{ axis: 'y', y1: 270, y2: 270, x1: 300 + 25, x2: 700 - 75 }])
+})
+
+test('a guide skips every shape on its way, aligned or not, and is one line per stretch', () => {
+  const row = diagram(at(900, 92))
+  row.nodes.push(node('odd', 'task', 'l1', 720, 100))
+  assert.deepEqual(alignmentGuides(row, ['d']).map((g) => [g.axis, g.x1, g.x2]), [['y', 375, 485], ['y', 635, 645], ['y', 795, 825]])
 })
 
 test('both guides at once, and none against a group or against what is dragged along', () => {

@@ -21,8 +21,18 @@ describe('BPMN editor alignment guides', () => {
       cy.get('body').trigger('mousemove', at(-20))
       nextFrame()
       cy.get('body').trigger('mousemove', at(-40))
-      // «Programar transferencia» and «Pago realizado» stand on the same row.
-      cy.get('[data-testid="bpmn-align-guides"] line').should('have.length', 1).and('have.attr', 'data-axis', 'y')
+      // «Programar transferencia» and «Pago realizado» stand on the same row:
+      // one line in each stretch between the three shapes, none through them.
+      cy.get('[data-testid="bpmn-align-guides"] line').should('have.length', 2).each(($line) => {
+        expect($line.attr('data-axis')).to.eq('y')
+        const [from, to] = [$line.attr('x1'), $line.attr('x2')].map(Number)
+        Cypress.$('.react-flow__node-bpmn').each((_i, node) => {
+          const at = new DOMMatrix(getComputedStyle(node).transform)
+          const [left, right] = [at.e, at.e + node.offsetWidth]
+          const onRow = Math.abs(at.f + node.offsetHeight / 2 - Number($line.attr('y1'))) < node.offsetHeight / 2
+          if (onRow) expect(Math.min(to, right) - Math.max(from, left), `over ${node.dataset.id}`).to.be.at.most(0)
+        })
+      })
       cy.get('body').trigger('mouseup', at(-40))
       cy.get('[data-testid="bpmn-align-guides"]').should('not.exist')
     })
