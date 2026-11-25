@@ -1,10 +1,11 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { menuPlace, MENU_PLACES, MENU_SIZE, MENU_OFFSET } from '../../../app/components/bali/bpmn_editor/canvas/menuPlace.js'
+import { menuPlace, MENU_PLACES, MENU_SIZE } from '../../../app/components/bali/bpmn_editor/canvas/menuPlace.js'
 
 const PANE = { w: 1000, h: 660 }
 const me = { x: 300, y: 300, w: 90, h: 40 }
-const sideOf = (index) => (index < 0 ? null : MENU_PLACES[index].slice(0, 2).join(' '))
+const MENU_OFFSET = 14
+const sideOf = (index) => (index < 0 ? null : `${MENU_PLACES[index].side} ${MENU_PLACES[index].align}${MENU_PLACES[index].offset > MENU_OFFSET ? ` +${MENU_PLACES[index].offset - MENU_OFFSET}` : ''}`)
 const at = (x, y, w = 60, h = 40) => ({ x, y, w, h })
 
 test('the quick menu opens to the right of the element when nothing stands there', () => {
@@ -38,7 +39,13 @@ test('with every place taken it answers none, and the editor falls back to the s
 
 // A pan or a zoom runs this again: the menu stays where it is while it still fits there.
 test('it stays where it is while that place is free, though one further up the list opens', () => {
-  const below = MENU_PLACES.findIndex(([side, align]) => side === 'bottom' && align === 'start')
+  const below = MENU_PLACES.findIndex(({ side, align }) => side === 'bottom' && align === 'start')
   assert.equal(menuPlace(me, [], PANE, below), below)
   assert.equal(sideOf(menuPlace(me, [at(me.x + 20, me.y + me.h + 20)], PANE, below)), 'right start')
+})
+
+// Zoomed out, a lane 60 px under the element holds another one: the menu goes past it.
+test('with every place beside the element taken, it opens further out on the first side that clears', () => {
+  const around = [at(me.x + me.w + 40, me.y), at(me.x - 80, me.y), at(me.x + 60, me.y + me.h + 20, 200, 30), at(me.x - 200, me.y + me.h + 20, 200, 30), at(me.x - 200, me.y - 50, 500, 30)]
+  assert.equal(sideOf(menuPlace(me, around, PANE)), 'bottom start +60')
 })

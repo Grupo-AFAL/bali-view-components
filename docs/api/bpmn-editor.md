@@ -953,8 +953,10 @@ are laid on.
   flow it is inserted into it — nothing disconnects, and what follows moves along.
 - **Quick menu** next to the selected element: activity, intermediate event,
   gateway, end, or "More", towards any of four directions, already connected. It opens where
-  it covers no other element — to the right, to the left, below or above — so a click on a
-  neighbour reaches the neighbour; with every place taken, to the right as before. A group
+  it covers no other element — to the right, to the left, below or above, 14 px from the
+  element or further out (up to 104 px) when a neighbour or the lane below stands that near —
+  so a click on a neighbour reaches the neighbour; with every place taken, to the right as
+  before. A group
   frames elements and does not count; once open, the menu stays where it is while that
   place is free, so a pan or a zoom does not make it jump. When the
   spot ahead is taken the following elements move along; past the first or last lane,

@@ -9,7 +9,7 @@ import { nodeLabelBox, badgeBox, insideLabelBox, badgeTabBox, chevronDepth } fro
 import { textOn } from '../model/contrast.js'
 import { safeUrl } from '../model/urls.js'
 import { useCanvas } from './CanvasContext.js'
-import { menuPlace, MENU_PLACES, MENU_OFFSET } from './menuPlace.js'
+import { menuPlace, MENU_PLACES } from './menuPlace.js'
 
 // The card's selection sits 5–6 px out (flow.css `.is-selected::after`), its
 // read-only halo 4 px beyond its 2.5 px ring: drawn outside it, not over the shape.
@@ -110,9 +110,9 @@ function QuickMenuToolbar ({ id, x, width, children, panelOpen }) {
   const place = useStore((s) => placeFromStore(s, id, panelOpen, shown.current))
   shown.current = place
   if (place >= 0) {
-    const [side, align] = MENU_PLACES[place]
+    const { side, align, offset } = MENU_PLACES[place]
     return (
-      <NodeToolbar isVisible position={side} align={align} offset={MENU_OFFSET}>
+      <NodeToolbar isVisible position={side} align={align} offset={offset}>
         <div className='w-max' data-menu-side={side}>{children}</div>
       </NodeToolbar>
     )
@@ -120,13 +120,13 @@ function QuickMenuToolbar ({ id, x, width, children, panelOpen }) {
   if (room < MENU_WIDTH && left < MENU_WIDTH) {
     const shift = Math.max(EDGE_GAP, Math.min(left, paneWidth - span - EDGE_GAP)) - left
     return (
-      <NodeToolbar isVisible position={Position.Bottom} align='start' offset={MENU_OFFSET}>
+      <NodeToolbar isVisible position={Position.Bottom} align='start' offset={14}>
         <div ref={menu} className='w-max' style={{ transform: `translateX(${Math.round(shift)}px)` }}>{children}</div>
       </NodeToolbar>
     )
   }
   return (
-    <NodeToolbar isVisible position={room < MENU_WIDTH ? Position.Left : Position.Right} align='start' offset={MENU_OFFSET}>
+    <NodeToolbar isVisible position={room < MENU_WIDTH ? Position.Left : Position.Right} align='start' offset={14}>
       {children}
     </NodeToolbar>
   )
