@@ -4,6 +4,7 @@ import * as ops from '../../../app/components/bali/bpmn_editor/model/operations.
 import { layoutLanes, insideLane, nodeBox } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
 import { doc, lanes, node, flow } from './helpers.js'
 import { PALETTE_ITEMS, typeChoices } from '../../../app/components/bali/bpmn_editor/model/catalog.js'
+import { evaluate } from '../../../app/components/bali/bpmn_editor/model/rules/engine.js'
 import { invoice } from './fixtures.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 import { newId, mintIdsWith } from '../../../app/components/bali/bpmn_editor/model/document.js'
@@ -524,4 +525,14 @@ test('changeNodeType turns a task into another kind of task: its size, its field
   const { id, lane_id: lane, ...task } = byId(d, 't1')
   assert.deepEqual([id, lane, task.type, task.name, task.width, task.height, task.fields], ['t1', 'l1', 'user_task', 'Validate invoice', 200, 80, { duration: 15 }])
   assert.deepEqual(d.edges, before.edges)
+})
+
+// The select refuses nothing: what a new type may not be connected to is listed, not blocked.
+test('changeNodeType to a type its connections do not suit leaves it to the rules', () => {
+  const before = decision()
+  const { doc: d } = ops.changeNodeType(before, 'g', { type: 'event_based_gateway' }, { names: TYPE_NAMES })
+  assert.equal(byId(d, 'g').type, 'event_based_gateway')
+  const rules = (document) => evaluate(document, {}, null).filter((issue) => issue.element_id === 'g').map((issue) => issue.rule)
+  assert.equal(rules(before).includes('B01'), false)
+  assert.ok(rules(d).includes('B01'), `an event-based gateway that leads to tasks: ${rules(d)}`)
 })

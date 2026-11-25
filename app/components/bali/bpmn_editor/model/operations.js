@@ -245,10 +245,13 @@ export function updateNode (doc, id, patch) {
 // is replaced when the type changes.
 const TYPE_ATTRIBUTES = ['type', 'marker_visible', 'instantiate', 'event_gateway_type', 'event_definition']
 
-// Turns a task, a gateway or an event into another of its family — `attrs` are a
-// palette item's (catalog.js PALETTE_ITEMS) — where it stands: its id, and
-// with it every connection, note and reference to it, its name, its place and
-// the app's fields stay. A name it never got (the old type's default) becomes
+// Turns a task, a gateway or an event into another of its family — `attrs`
+// are a palette item's (catalog.js PALETTE_ITEMS) — where it stands: its id,
+// and with it every connection, note and reference to it, its name, its place
+// and the app's `fields` stay, those the new type has no input for included
+// (the app declared them and gets them back; turning the type back shows
+// them again). Nothing is refused: what the new type may not be connected to
+// is the rules' to list. A name it never got (the old type's default) becomes
 // the new type's; a timer keeps its expression while it stays a timer; and a
 // gateway that turns parallel drops the labels of its ways out, which a
 // parallel split may not carry and its panel no longer lets one clear.

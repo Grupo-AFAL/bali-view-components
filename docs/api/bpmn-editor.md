@@ -1011,7 +1011,11 @@ are laid on.
   becomes the new type's; a timer that stays a timer keeps its expression; a gateway turned
   parallel drops the labels of its ways out, which a parallel split does not carry. A
   sub-process is tied to an entity of the app: it is offered no other type, and no task is
-  offered to become one.
+  offered to become one. The select refuses nothing: whether what the element is connected
+  to still suits its new type is the rules' to say — an event-based gateway that leads to
+  tasks (B01), one that starts the process with a way in (B10) — as pending issues, like any
+  element drawn that way. `fields` of the old type the new one has no input for stay in the
+  node and are saved as before; turning the type back shows them again.
 - **Resize an activity**: the corner handle of the selected one, or «Size» in the
   properties panel; «Auto» returns to the type's size — see [Node size](#node-size).
 - **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
