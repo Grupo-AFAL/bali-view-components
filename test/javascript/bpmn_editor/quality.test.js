@@ -238,3 +238,22 @@ for (const [name, make] of Object.entries(FIXTURES)) {
     })
   }
 }
+
+// A name beside a port leaves the port's side free to its right only. Spread
+// around the middle, the first of two ways out pinned to the bottom of a
+// gateway named below ran into the name and was sent out by the left instead.
+test('connections on the side a name stands beside spread to the right of the port, below as above', () => {
+  const exits = (extra, side, y) => {
+    const targets = [[300, y], [500, y], [700, y]]
+    const d = docOf({
+      lanes: [{ ...lanesOf('A')[0], size: 900 }],
+      nodes: [nodeOf('a', 'task', 'l1', 200, 400), nodeOf('g', 'exclusive_gateway', 'l1', 500, 400, { name: 'Which way to go?', ...extra }), ...targets.map(([x, cy], i) => nodeOf(`t${i}`, 'task', 'l1', x, cy))],
+      edges: [flowOf('f0', 'a', 'g'), ...targets.map((_, i) => flowOf(`f${i + 1}`, 'g', `t${i}`, { ports: { source: side } }))]
+    })
+    const routes = routeDiagram(d)
+    assert.deepEqual(measure(d).details.filter(([kind]) => kind !== 'gatewaySharedSide'), [])
+    return ['f1', 'f2', 'f3'].map((id) => [routes.get(id).sourceSide, routes.get(id).points[0].x >= 500])
+  }
+  assert.deepEqual(exits({ label_position: 'bottom' }, 'bottom', 650), [['bottom', true], ['bottom', true], ['bottom', true]])
+  assert.deepEqual(exits({}, 'top', 150), [['top', true], ['top', true], ['top', true]])
+})

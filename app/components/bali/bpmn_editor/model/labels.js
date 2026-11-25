@@ -78,6 +78,14 @@ function labelPlace (node, orientation) {
   return 'below'
 }
 
+// The side whose port a name stands beside, to its left: connections there
+// spread to the right of the port only (router.js). A gateway has it whether
+// named or not, so naming one moves none of its connections.
+export function labelBeside (node, orientation = 'horizontal') {
+  if (!hasExternalLabel(node)) return null
+  return { above: 'top', 'below-left': 'bottom' }[labelPlace(node, orientation)] || null
+}
+
 // The side of its box a name's lines keep to — the end of the box nearest the
 // port it sits beside. Turned, a name reads upwards: it starts at the bottom.
 const ALIGN = {

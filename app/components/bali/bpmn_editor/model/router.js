@@ -23,7 +23,7 @@
 // see routing.test.js.
 import { categoryOf, CATEGORY, edgeType, isGateway } from './catalog.js'
 import { layoutLanes, nodeBox, orientationOf, activityShapeOf } from './geometry.js'
-import { nodeLabelBox, badgeBox, labelSide, textBlock, chevronDepth } from './labels.js'
+import { nodeLabelBox, badgeBox, labelSide, labelBeside, textBlock, chevronDepth } from './labels.js'
 
 export const STUB = 18
 const CLEARANCE = 10
@@ -185,11 +185,12 @@ function assignPorts (doc, edges, ctx) {
     const vertical = side === 'left' || side === 'right'
     list.sort((p, q) => (vertical ? p.other.cy - q.other.cy : p.other.cx - q.other.cx))
     const length = vertical ? box.h : box.w
-    // A gateway's name sits above it, left of the top port: endpoints on
-    // its top side spread to the right only — over half the side, which
-    // portPoint clamps to 4 px short of the corner, so the step shrinks to
-    // keep every endpoint distinct.
-    const rightOnly = side === 'top' && isGateway(node)
+    // A gateway's name sits above it, left of the top port (or below, left
+    // of the bottom one; an event's asked above, likewise): endpoints on that
+    // side spread to the right only — over half the side, which portPoint
+    // clamps to 4 px short of the corner, so the step shrinks to keep every
+    // endpoint distinct.
+    const rightOnly = side === labelBeside(node, ctx.orientation)
     const room = rightOnly ? length / 2 - 4 : length - 12
     const step = list.length > 1 ? Math.min(CHANNEL, room / (list.length - 1)) : 0
     list.forEach((slot, i) => {
@@ -816,7 +817,7 @@ function otherSides (edge, ctx, blockers, occupied, bounds, taken = new Set()) {
   const endFor = (node, box, side) => {
     if (labelSide(node, ctx.orientation) === side) return null
     for (const offset of [0, CHANNEL, -CHANNEL, 2 * CHANNEL, -2 * CHANNEL]) {
-      if (side === 'top' && isGateway(node) && offset < 0) continue
+      if (side === labelBeside(node, ctx.orientation) && offset < 0) continue
       const { point, stub } = endpoint(node, box, side, offset, ctx.activityShape)
       if (!occupied.overlaps(point, stub) && !inside(stub)) return { side, point, stub }
     }
