@@ -1,8 +1,9 @@
 import { useId } from 'react'
 import { paletteKeyFor, typeChoices, isActivity, isEvent, isGateway, isResizable, hasOwnSize, nodeSize, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
 import { namedByReference } from '../model/document.js'
-import { hasExternalLabel, labelPosition, labelVertical, LABEL_POSITIONS } from '../model/labels.js'
+import { hasExternalLabel, labelPosition, labelVertical, LABEL_POSITIONS, LABEL_ORIENTATIONS } from '../model/labels.js'
 import Icon from './icons.jsx'
+import IssueLine from './IssueLine.jsx'
 import FieldInput from './FieldInput.jsx'
 import ReferencePicker from './ReferencePicker.jsx'
 import NotesEditor from './NotesEditor.jsx'
@@ -74,9 +75,7 @@ function ElementIssues ({ issues, t }) {
       <ul className='flex flex-col gap-1'>
         {issues.map((issue, i) => (
           <li key={`${issue.rule}-${i}`} className='flex items-start gap-2 rounded border border-base-300 px-2 py-1.5 text-xs' data-rule={issue.rule} data-severity={issue.severity}>
-            <Icon name={issue.severity === 'error' ? 'alertCircle' : 'alert'} size={14} className={`mt-0.5 flex-none ${issue.severity === 'error' ? 'text-error' : 'text-warning'}`} />
-            <span className='grow'>{issue.message}</span>
-            <span className='badge badge-ghost badge-sm font-mono'>{issue.rule}</span>
+            <IssueLine issue={issue} t={t} size={14} />
           </li>
         ))}
       </ul>
@@ -164,9 +163,9 @@ function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentatio
           onChange={(choice) => api.updateNode(node.id, { label_position: choice })} />
       )}
       {hasExternalLabel(node) && (
-        <ChoicePicker label={t('props_label_orientation')} choices={[null, 'vertical']} value={labelVertical(node) ? 'vertical' : null} editable={editable}
-          name={(choice) => t(`label_orientation_${choice || 'horizontal'}`)} testId='bpmn-label-orientation'
-          onChange={(choice) => api.updateNode(node.id, { label_orientation: choice })} />
+        <ChoicePicker label={t('props_label_orientation')} choices={LABEL_ORIENTATIONS} value={LABEL_ORIENTATIONS[labelVertical(node) ? 1 : 0]} editable={editable}
+          name={(choice) => t(`label_orientation_${choice}`)} testId='bpmn-label-orientation'
+          onChange={(choice) => api.updateNode(node.id, { label_orientation: choice === LABEL_ORIENTATIONS[0] ? null : choice })} />
       )}
       {editable && types.length > 1 && (
         <Field label={t('props_type')}>

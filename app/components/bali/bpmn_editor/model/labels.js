@@ -16,12 +16,13 @@ import { textLength, cutText } from './text.js'
 // «Tiempo (captura)» measured 6.9 px a glyph in Chromium and wrapped into a
 // line its box did not have.
 const CHAR = 7
-// A word all in capitals (an acronym, a gateway named «AND») is wider:
+// A name that is one word in capitals (a gateway named «AND») is wider:
 // capitals measured 8 px on average and 10 at most (M, W), and «AND» was cut
-// to «A…» in the 24 px its three glyphs were given.
+// to «A…» in the 24 px its three glyphs were given. Only such a name: capitals
+// inside a longer one keep the estimate, which lowercase leaves slack in, so
+// no name of a saved diagram changes width or lines.
 const CAPITAL = 10
 const isAcronym = (word) => word.length > 1 && word === word.toUpperCase() && word !== word.toLowerCase()
-const wordWidth = (word) => word.length * (isAcronym(word) ? CAPITAL : CHAR)
 const LINE = 14
 const MAX_WIDTH = 100
 const GAP = 4
@@ -35,7 +36,7 @@ export function textBlock (text, maxWidth = MAX_WIDTH) {
   let line = 0
   let widest = 0
   for (const word of words) {
-    const width = wordWidth(word)
+    const width = word.length * (words.length === 1 && isAcronym(word) ? CAPITAL : CHAR)
     if (line && line + CHAR + width <= maxWidth) { line += CHAR + width; continue }
     if (line) { widest = Math.max(widest, line); lines++ }
     lines += Math.max(0, Math.ceil(width / maxWidth) - 1)
@@ -61,7 +62,7 @@ export const labelPosition = (node) => (hasExternalLabel(node) && LABEL_POSITION
 // horizontal lane's does; absent, null or 'horizontal', across. Mirrors
 // Bali::BpmnEditor::Data::LABEL_ORIENTATIONS (contract_test.rb).
 export const LABEL_ORIENTATIONS = ['horizontal', 'vertical']
-export const labelVertical = (node) => hasExternalLabel(node) && node.label_orientation === 'vertical'
+export const labelVertical = (node) => hasExternalLabel(node) && node.label_orientation === LABEL_ORIENTATIONS[1]
 
 // Where the name goes around its shape: 'above' and 'below-left' beside a
 // port, which stays free; 'below' under the shape and 'right' beside it,

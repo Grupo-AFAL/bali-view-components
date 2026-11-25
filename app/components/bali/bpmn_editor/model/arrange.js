@@ -24,16 +24,15 @@ import { routeDiagram, STUB, CHANNEL } from './router.js'
 
 export const GRID = 10
 export const GAP_ALONG = 80 // between neighbours on the flow axis: two port stubs and two channels
-export const GAP_ACROSS = 30 // between rows
 // How close two shapes may be left by hand before one of them moves: room for
 // the arrowhead of the connection between them along the flow, and for the
 // pending badge (9 px over the corner) across it. The gaps above are where the
 // editor puts things by itself; these, the least a person may leave. A
 // connection that finds no way through is still given room (makeRoom).
-export const MIN_ALONG = 20
-export const MIN_ACROSS = 15
+const MIN_ALONG = 20
+const MIN_ACROSS = 15
 // Between two names, which touching would read as one.
-export const LABEL_GAP = 4
+const LABEL_GAP = 4
 export const LANE_PAD = 20
 export const HEADER_GAP = 40
 // Column to column along the flow in "Tidy up" (layout.js) — and the widest
@@ -45,25 +44,11 @@ const snapCenter = (start, size) => snap(start + size / 2) - size / 2
 // The first centre on the grid at or past `start`: forward, never back into what it clears.
 const snapCenterForward = (start, size) => Math.ceil((start + size / 2) / GRID) * GRID - size / 2
 
-// Shape ∪ name ∪ badge, as an offset box relative to the node's x/y.
-export function footprint (node, orientation) {
-  const box = nodeBox(node)
-  const parts = [box]
-  const label = nodeLabelBox(node, orientation, { room: true })
-  if (label) parts.push(label)
-  if (isFlowNode(node)) parts.push(badgeBox(node))
-  const x1 = Math.min(...parts.map((p) => p.x))
-  const y1 = Math.min(...parts.map((p) => p.y))
-  const x2 = Math.max(...parts.map((p) => p.x + p.w))
-  const y2 = Math.max(...parts.map((p) => p.y + p.h))
-  return { dx: x1 - box.x, dy: y1 - box.y, w: x2 - x1, h: y2 - y1 }
-}
-
 // What an element draws, each as an offset box relative to the node's x/y.
 // The footprint is their bounding box, which is what a lane has to hold; two
 // elements collide by their parts, since a gateway's name stands above its
 // row and takes none of the room between its diamond and the activity before.
-export function parts (node, orientation) {
+function parts (node, orientation) {
   const box = nodeBox(node)
   const offset = (kind, p) => ({ kind, dx: p.x - box.x, dy: p.y - box.y, w: p.w, h: p.h })
   const list = [offset('shape', box)]
@@ -84,7 +69,7 @@ const STUB_REACH = STUB + 3
 const STUB_SPREAD = CHANNEL + 4
 // Across the flow, only the 15 px two rows always kept between a name and a
 // shape: the whole stub there moved elements of diagrams saved before.
-const ROW_REACH = GAP_ACROSS / 2
+const ROW_REACH = 15
 function portStubs (box, orientation) {
   const [up, sideways] = orientation === 'vertical' ? [STUB_REACH, ROW_REACH] : [ROW_REACH, STUB_REACH]
   return [
@@ -110,6 +95,17 @@ function roomBetween (a, b) {
   if (a.kind === 'label' && b.kind === 'label') return { along: LABEL_GAP, across: LABEL_GAP }
   return { along: 0, across: 0 }
 }
+
+// The room an element is given — what a lane has to hold, what «Tidy up»
+// spaces columns by — as an offset box relative to the node's x/y: shape,
+// name where it stood (`room`) and badge.
+const ROOM = ['shape', 'room', 'badge']
+function bounds (list) {
+  const held = list.filter((p) => ROOM.includes(p.kind))
+  const [dx, dy] = [Math.min(...held.map((p) => p.dx)), Math.min(...held.map((p) => p.dy))]
+  return { dx, dy, w: Math.max(...held.map((p) => p.dx + p.w)) - dx, h: Math.max(...held.map((p) => p.dy + p.h)) - dy }
+}
+export const footprint = (node, orientation) => bounds(parts(node, orientation))
 
 const rangeOverlap = (a1, a2, b1, b2, margin) => a1 < b2 + margin && b1 < a2 + margin
 
@@ -208,15 +204,15 @@ export function place (doc, keep = null) {
   const mainD = main === 'y' ? 'dy' : 'dx'
 
   const items = doc.nodes.filter((n) => n.type !== 'group').map((n) => {
-    const fp = footprint(n, orientation)
+    const drawn = parts(n, orientation)
     const box = nodeBox(n)
     return {
       node: n,
       size: { cross: cross === 'x' ? box.w : box.h, main: main === 'y' ? box.h : box.w },
       cross: Number(n[cross]) || 0,
       main: Number(n[main]) || 0,
-      fp,
-      parts: parts(n, orientation)
+      fp: bounds(drawn),
+      parts: drawn
     }
   })
   const start = (it, axis) => (axis === 'cross' ? it.cross + it.fp[crossD] : it.main + it.fp[mainD])

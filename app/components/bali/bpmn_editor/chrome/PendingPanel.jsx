@@ -1,5 +1,6 @@
 import Dialog from './Dialog.jsx'
 import Icon from './icons.jsx'
+import IssueLine from './IssueLine.jsx'
 
 // "N pending": the issues grouped by severity. Picking one centres the canvas
 // on its element and highlights it.
@@ -32,10 +33,7 @@ export default function PendingPanel ({ t, issues, onPick, onClose }) {
                         onClick={() => onPick(issue)}
                         data-rule={issue.rule}
                       >
-                        <Icon name={severity === 'error' ? 'alertCircle' : 'alert'} size={15} className={`mt-0.5 ${tone}`} />
-                        <span className='grow'>{issue.message}</span>
-                        <span className='badge badge-ghost badge-sm font-mono'>{issue.rule}</span>
-                        {issue.source === 'server' && <span className='badge badge-outline badge-sm'>{t('pending_server')}</span>}
+                        <IssueLine issue={issue} t={t} />
                         {issue.element_id && <Icon name='chevronRight' size={13} className='mt-0.5 opacity-50' />}
                       </button>
                     </li>

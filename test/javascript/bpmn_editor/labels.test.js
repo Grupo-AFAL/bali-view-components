@@ -130,12 +130,25 @@ const named = (type, extra = {}) => node('n', type, 'l1', 200, 100, { name: 'Inv
 const below = (box, n) => box.y >= n.y + (n.height || (n.type.includes('gateway') ? 50 : 36))
 const above = (box, n) => box.y + box.h <= n.y
 
-test('without label_position every name sits where it always did', () => {
+// Pinned to what v3.29.1 drew for «Invoice received» (56 × 28 px, two lines)
+// at an element centred on (200, 100): the code compared with itself said
+// nothing, and a gateway's name did move.
+test('without label_position a name is where v3.29.1 drew it — a gateway’s 12 px higher and 2 px further left', () => {
+  const at = (type, orientation) => { const { x, y, w, h } = nodeLabelBox(named(type), orientation); return [x, y, w, h] }
+  assert.deepEqual(at('start_event'), [172, 122, 56, 28])
+  assert.deepEqual(at('end_event'), [172, 122, 56, 28])
+  assert.deepEqual(at('start_event', 'vertical'), [230, 86, 56, 28])
+  assert.deepEqual(at('data_object'), [172, 128, 56, 28])
+  const before = [140, 43, 56, 28]
+  assert.deepEqual(at('exclusive_gateway'), [before[0] - 2, before[1] - 12, 56, 28])
   for (const type of ['start_event', 'end_event', 'exclusive_gateway', 'data_object']) {
-    const legacy = nodeLabelBox(named(type))
-    assert.deepEqual(nodeLabelBox(named(type, { label_position: null })), legacy, type)
-    assert.deepEqual(nodeLabelBox(named(type, { label_position: 'sideways' })), legacy, `${type}: a value it does not know is none`)
+    const untouched = nodeLabelBox(named(type))
+    assert.deepEqual(nodeLabelBox(named(type, { label_position: null })), untouched, type)
+    assert.deepEqual(nodeLabelBox(named(type, { label_position: 'sideways' })), untouched, `${type}: a value it does not know is none`)
   }
+  // Where a lane is fitted to: the gateway's name where it stood.
+  const { x, y } = nodeLabelBox(named('exclusive_gateway'), 'horizontal', { room: true })
+  assert.deepEqual([x, y], [before[0], before[1]])
   assert.equal(nodeLabelBox(named('start_event')).align, 'middle')
   assert.equal(nodeLabelBox(named('start_event'), 'vertical').align, 'start')
   assert.equal(nodeLabelBox(named('exclusive_gateway')).align, 'end')
@@ -220,4 +233,21 @@ test('a name above stands clear of the row, of a neighbour’s badge and of the 
   }
   const gateway = named('exclusive_gateway', { label_position: 'bottom' })
   assert.equal(nodeLabelBox(gateway).y, gateway.y + 25 + 32, 'below: under the row')
+})
+
+// Only a name that is one word in capitals: inside a longer name the estimate
+// stays 7 px a glyph, so no name of a saved diagram changes width or lines.
+test('capitals inside a longer name leave its box as it was', () => {
+  const widthOf = (name) => nodeLabelBox(node('g', 'parallel_gateway', 'l1', 100, 100, { name })).w
+  assert.equal(widthOf('Pago SPEI'), 9 * 7)
+  assert.equal(widthOf('SAT CFDI'), 8 * 7)
+  assert.equal(widthOf('SPEI'), 40)
+})
+
+// What an app that keeps the two keys in varchar columns sends for a node that never had them.
+test('a blank label_position or label_orientation is none', () => {
+  for (const type of ['end_event', 'exclusive_gateway']) {
+    assert.deepEqual(nodeLabelBox(named(type, { label_position: '', label_orientation: '' })), nodeLabelBox(named(type)))
+    assert.equal(labelSide(named(type, { label_position: '' })), labelSide(named(type)))
+  }
 })

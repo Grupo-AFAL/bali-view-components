@@ -760,7 +760,9 @@ export function routeAfresh (doc, order = null) {
           : [{ x: s.point.x, y: (s.point.y + t.point.y) / 2 }, { x: t.point.x, y: (s.point.y + t.point.y) / 2 }]
         const [lo, hi] = [{ x: Math.min(half[0].x, half[1].x), y: Math.min(half[0].y, half[1].y) }, { x: Math.max(half[0].x, half[1].x), y: Math.max(half[0].y, half[1].y) }]
         const blocked = stubFree.some((r) => lo.x < r.x + r.w && hi.x > r.x && lo.y < r.y + r.h && hi.y > r.y)
-        if (!blocked) path = half
+        // The step, when there is one, on no stretch a connection already runs along.
+        const shared = (lo.x !== hi.x || lo.y !== hi.y) && occupied.overlaps(half[0], half[1])
+        if (!blocked && !shared) path = half
       }
       if (!path) path = search(s.stub, startDir, t.stub, goalDir, blockers, occupied, regionOf(MARGIN))
       if (!path) path = search(s.stub, startDir, t.stub, goalDir, blockers, occupied, bounds)
