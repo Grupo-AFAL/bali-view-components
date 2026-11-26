@@ -10,6 +10,7 @@ import { textOn } from '../model/contrast.js'
 import { safeUrl } from '../model/urls.js'
 import { useCanvas } from './CanvasContext.js'
 import { menuPlace, MENU_PLACES } from './menuPlace.js'
+import { panelWidth } from './fit.js'
 
 // The card's selection sits 5–6 px out (flow.css `.is-selected::after`), its
 // read-only halo 4 px beyond its 2.5 px ring: drawn outside it, not over the shape.
@@ -67,10 +68,9 @@ function Label ({ node, name, orientation, activityShape, category, badge, link 
 
 const LABEL_ALIGN = { end: 'text-right', start: 'text-left', middle: 'text-center' }
 
-// Width the quick menu needs, and the properties panel that covers the right
-// edge of the canvas while it is open (w-72 + its gap).
+// Width the quick menu needs; the properties panel covers the right edge of
+// the canvas while it is open (`panelWidth`).
 const MENU_WIDTH = 250
-const PANEL_WIDTH = 300
 const EDGE_GAP = 8
 
 // The quick menu's place (menuPlace.js) from React Flow's store: the other
@@ -85,7 +85,7 @@ function placeFromStore (store, id, panelOpen, current) {
   const own = store.nodeLookup.get(id)
   if (!own) return -1
   const others = [...store.nodeLookup.values()].filter((n) => n.type === 'bpmn' && n.id !== id && n.data.node.type !== 'group').map(screen)
-  return menuPlace(screen(own), others, { w: store.width - (panelOpen ? PANEL_WIDTH : 0), h: store.height }, current)
+  return menuPlace(screen(own), others, { w: store.width - (panelOpen ? panelWidth(store.width) : 0), h: store.height }, current)
 }
 
 // The quick menu goes beside the node where it covers no other element:
@@ -98,7 +98,7 @@ function QuickMenuToolbar ({ id, x, width, children, panelOpen }) {
   const left = useStore((s) => x * s.transform[2] + s.transform[0])
   const right = useStore((s) => (x + width) * s.transform[2] + s.transform[0])
   const paneWidth = useStore((s) => s.width)
-  const room = paneWidth - (panelOpen ? PANEL_WIDTH : 0) - right
+  const room = paneWidth - (panelOpen ? panelWidth(paneWidth) : 0) - right
   // Its drawn width, which grows with «Split with» and «More».
   const menu = useRef(null)
   const [span, setSpan] = useState(MENU_WIDTH)

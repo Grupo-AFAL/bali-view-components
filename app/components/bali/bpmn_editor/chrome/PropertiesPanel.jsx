@@ -283,7 +283,9 @@ function Participants ({ doc, t, onPick }) {
 
 // The side panel: properties of what is selected (a node, a connection, a
 // lane, several nodes) or the list of participants. Replaces the modal
-// dialogs of the old editor.
+// dialogs of the old editor. Its width is mirrored by `panelWidth`
+// (canvas/fit.js), which keeps the quick menu and the selected element clear
+// of it: change both together.
 export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, documentationField, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true, issues = [], paletteKeys = null }) {
   const nodes = selection.nodes.map((id) => doc.nodes.find((n) => String(n.id) === id)).filter(Boolean)
   const edge = selection.edges.length === 1 ? doc.edges.find((e) => String(e.id) === selection.edges[0]) : null
@@ -341,16 +343,16 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, not
   }
   const hasSelection = nodes.length || edge || lane
   return (
-    <aside className='bpmn-chrome absolute bottom-3 right-3 top-14 z-10 flex w-72 flex-col rounded-lg border border-base-300 bg-base-100 shadow-lg' aria-label={title} data-testid='bpmn-properties'>
-      <div className='flex items-center gap-2 border-b border-base-300 px-3 py-2'>
+    <aside className='bpmn-chrome bpmn-properties absolute bottom-3 right-3 top-14 z-10 flex w-96 max-w-[max(18rem,36%)] flex-col rounded-lg border border-base-content/15 bg-base-100' aria-label={title} data-testid='bpmn-properties'>
+      <div className='flex items-center gap-2 rounded-t-lg border-b border-base-300 bg-base-200 px-4 py-2.5'>
         <h3 className='grow truncate text-sm font-semibold' title={title}>{title}</h3>
         <button type='button' className='btn btn-ghost btn-xs btn-square' onClick={onClose} aria-label={t('close')}>
           <Icon name='x' size={14} />
         </button>
       </div>
-      <div className='flex flex-1 flex-col gap-3 overflow-y-auto p-3'>{body}</div>
+      <div className='flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-3'>{body}</div>
       {editable && view !== 'participants' && hasSelection && (
-        <div className='border-t border-base-300 p-3'>
+        <div className='border-t border-base-300 px-4 py-3'>
           <button type='button' className='btn btn-error btn-outline btn-sm w-full gap-1' onClick={api.deleteSelection} title='Supr / Delete'>
             <Icon name='trash' size={14} />{t('delete_selection')}
           </button>

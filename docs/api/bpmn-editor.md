@@ -634,7 +634,8 @@ configured id no rule has:
 | LAN-08 | No two lanes with nearly the same name («Gerente Jurídico» / «Gte. Jurídico») | LAN-08 | warning |
 | VIS-02 | The diagram is legible on its `page:` (11 px text printed at 6 pt or more) | VIS-02, VIS-08 | warning |
 
-The «Rules» dialog groups every rule by the matrix's chapters and shows its criteria.
+The «Rules» dialog is one table grouped by the matrix's chapters: id, rule, criteria,
+source and severity (or «Off»).
 VIS-10 needs to know the palette: the editor passes the palette keys the host leaves
 enabled (`palette:`); with no palette configured it checks nothing.
 
@@ -1319,8 +1320,10 @@ to stay inside the canvas.
 
 The canvas is mouse-first, like the Gantt's: keep a non-canvas path to what matters
 (a list of activities, a form). What the island does carry: real buttons with
-`aria-label`s and `aria-pressed` states, labelled groups, dialogs with
-`aria-modal`, the pending panel and rules as lists, notices in live regions, visible
+`aria-label`s and `aria-pressed` states, labelled groups, native modal `<dialog>`s
+(`dialog.bpmn-dialog`, opened with `showModal()`: over the whole page, the rest inert,
+focus given back on close), the pending panel as a list and the rules as a table,
+notices in live regions, visible
 focus, documented shortcuts, and a `<noscript>` notice in the mount.
 
 The canvas keeps React Flow's small attribution link, in the page's theme. Its MIT licence

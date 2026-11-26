@@ -218,6 +218,12 @@
 .bpmn-canvas.is-connecting .bpmn-handle { opacity: 1; }
 .bpmn-canvas:not(.is-editable) .bpmn-handle { pointer-events: none; }
 
+/* The properties panel floats over the diagram it edits: a deep shadow lifts
+   it off the canvas, where a veil would say the canvas is out of reach. */
+.bpmn-properties {
+  box-shadow: -14px 0 48px -12px rgb(0 0 0 / 0.3), 0 20px 48px -10px rgb(0 0 0 / 0.4), 0 4px 12px -4px rgb(0 0 0 / 0.2);
+}
+
 /* Connections. */
 .bpmn-edge.react-flow__edge-path { stroke: var(--bpmn-line); stroke-width: 1.5; stroke-linejoin: round; fill: none; }
 .bpmn-edge.react-flow__edge-path.is-selected { stroke: var(--bpmn-select); stroke-width: 2.2; }

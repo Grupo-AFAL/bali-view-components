@@ -23,7 +23,7 @@ import { LETTER } from './model/page.js'
 import { arrange } from './model/arrange.js'
 import { placeEdgeLabels } from './model/edgeLabels.js'
 import { alignmentGuides } from './model/guides.js'
-import { fitOptions, fitDiagram, anchorStart, MIN_FIT_ZOOM, PANEL_RESERVE } from './canvas/fit.js'
+import { fitOptions, fitDiagram, anchorStart, MIN_FIT_ZOOM, PANEL_GAP, panelWidth } from './canvas/fit.js'
 import { hasBadges } from './model/appearance.js'
 import useRefitOnResize from './hooks/useRefitOnResize.js'
 import { blockPolicy, evaluate, mergeIssues, issuesByElement, hasErrors, ruleList } from './model/rules/engine.js'
@@ -776,7 +776,7 @@ function Editor ({
     }
     // A dialog over the canvas (pending issues, rules, a confirmation) keeps its
     // keys, and so does the comparison: its canvas is hidden, its selection not.
-    if (!interactive || event.target.closest('[role="dialog"]') || comparingRef.current) return
+    if (!interactive || event.target.closest('.bpmn-dialog') || comparingRef.current) return
     if (mod && key === 'z' && !event.shiftKey) {
       event.preventDefault(); undo()
     } else if (mod && (key === 'y' || (key === 'z' && event.shiftKey))) {
@@ -983,7 +983,7 @@ function Editor ({
     const { x, y, zoom } = flow.getViewport()
     const left = node.internals.positionAbsolute.x * zoom + x
     const right = left + (node.measured.width || 0) * zoom
-    const over = right - (canvasEl.clientWidth - PANEL_RESERVE)
+    const over = right - (canvasEl.clientWidth - panelWidth(canvasEl.clientWidth) - PANEL_GAP)
     if (over > 0) flow.setViewport({ x: x - Math.min(over, Math.max(0, left - 40)), y, zoom }, { duration: 200 })
   }, [panelOpen, selection.nodes, selection.edges, flow])
   const notesByElement = useMemo(() => {
@@ -1332,7 +1332,7 @@ function Editor ({
         {dialog === 'rules' && <RulesDialog t={t} rules={ruleList(rules || {})} onClose={() => setDialog(null)} />}
         {pageExit.failed && (
           <Dialog
-            t={t} title={t('exit_failed_title')} icon='alertCircle' onClose={pageExit.stay} testId='bpmn-exit-failed'
+            t={t} title={t('exit_failed_title')} icon='alertCircle' onClose={pageExit.stay} testId='bpmn-exit-failed' size='narrow'
             footer={
               <>
                 <button type='button' className='btn btn-ghost btn-sm' onClick={pageExit.discard} disabled={pageExit.exiting} data-testid='bpmn-exit-discard'>{t('exit_discard')}</button>
@@ -1350,7 +1350,7 @@ function Editor ({
         {statusSlot && !fullscreen && doc.status_label && createPortal(<span className='badge tag-component badge-sm' data-testid='bpmn-page-status'>{doc.status_label}</span>, statusSlot)}
         {pendingDelete && (
           <Dialog
-            t={t} title={t('confirm_linked_delete_title')} icon='trash' testId='bpmn-confirm-delete' onClose={() => setPendingDelete(null)}
+            t={t} title={t('confirm_linked_delete_title')} icon='trash' testId='bpmn-confirm-delete' size='narrow' onClose={() => setPendingDelete(null)}
             footer={(
               <>
                 <button type='button' className='btn btn-ghost btn-sm' onClick={() => setPendingDelete(null)}>{t('cancel')}</button>

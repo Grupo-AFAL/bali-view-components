@@ -63,7 +63,7 @@ export default function TopBar ({
         </button>
       )}
       {editable && onRules && (
-        <button type='button' className='btn btn-ghost btn-xs gap-1' onClick={onRules}>
+        <button type='button' className='btn btn-ghost btn-xs gap-1' onClick={onRules} data-testid='bpmn-rules-button'>
           <Icon name='listChecks' size={13} />{t('rules_button')}
         </button>
       )}

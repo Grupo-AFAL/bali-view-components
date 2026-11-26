@@ -46,6 +46,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`BpmnEditor`: los diálogos del editor cubren toda la página y se ensanchan con su
+  contenido** (#1694). «Pendientes», «Reglas», el aviso de salida sin guardar y la confirmación
+  de borrado eran un recuadro de 672 px fijos sobre un velo al 30 % que solo tapaba el editor.
+  Ahora son un `<dialog>` nativo abierto con `showModal()`: el velo (negro al 50 %) cubre la
+  página entera, también en pantalla completa, y lo de atrás queda inerte. Tres anchos:
+  448 px para una confirmación, 896 px para «Pendientes» y 1024 px para «Reglas», nunca más
+  que la ventana; el alto se mide contra la ventana y solo el cuerpo se desplaza. «Reglas» es
+  una sola tabla con columnas Clave, Regla, Criterios, Fuente y Severidad y encabezado fijo
+  (bajo 768 px, criterios y fuente van debajo del título), y una regla apagada dice «Apagada»
+  en vez de «—». Cuatro llaves nuevas de textos: `rules_id`, `rules_rule`, `rules_severity` y
+  `rules_off`. El botón «Reglas» lleva `data-testid="bpmn-rules-button"`. Un host que buscaba
+  el diálogo con `[role="dialog"]` debe buscar `dialog.bpmn-dialog` o el `data-testid` de su
+  panel, que no cambió.
+- **`BpmnEditor`: el panel de propiedades es más ancho y resalta con su sombra** (#1694).
+  Medía 288 px fijos; ahora mide 384 px, o el 36 % del lienzo cuando este es angosto, nunca
+  menos de los 288 de antes, y una sombra profunda lo despega del diagrama. No oscurece lo
+  que tiene detrás: no es un diálogo, y el lienzo, la paleta y el menú rápido se siguen
+  usando con él abierto. El encuadre, el menú rápido y el deslizamiento del elemento
+  seleccionado dejan libre el nuevo ancho.
 - **`BpmnEditor`: un gateway nuevo nace con el nombre de su tipo, salvo el exclusivo** (#1694).
   Paralelo «AND», inclusivo «OR», complejo «Complejo», basado en eventos «Eventos»; el
   exclusivo y la decisión Sí/No siguen naciendo «Decisión». Son cuatro llaves nuevas de textos

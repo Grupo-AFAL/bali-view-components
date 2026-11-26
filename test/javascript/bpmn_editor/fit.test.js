@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { anchorStart, fitOptions, MIN_FIT_ZOOM } from '../../../app/components/bali/bpmn_editor/canvas/fit.js'
+import { anchorStart, fitOptions, MIN_FIT_ZOOM, panelWidth } from '../../../app/components/bali/bpmn_editor/canvas/fit.js'
 
 // A stand-in for React Flow's instance: a viewport and the bounds of its nodes.
 function flowAt (viewport, bounds) {
@@ -36,8 +36,8 @@ test('at the floor, an axis whose start is already in view is left alone', () =>
 test('the fit keeps the diagram clear of the properties panel and of the open legend', () => {
   assert.equal(fitOptions().padding.right, '40px')
   assert.equal(fitOptions({ legendOpen: true }).padding.right, '290px')
-  assert.equal(fitOptions({ panelOpen: true }).padding.right, '320px')
-  assert.equal(fitOptions({ legendOpen: true, panelOpen: true }).padding.right, '320px')
+  assert.equal(fitOptions({ panelOpen: true }).padding.right, '416px')
+  assert.equal(fitOptions({ legendOpen: true, panelOpen: true }).padding.right, '416px')
 })
 
 // Component `min_zoom:`: an embedded diagram may go below 40 % to be seen whole.
@@ -57,4 +57,10 @@ test('min_zoom moves the floor of the fit and of the anchoring', () => {
 test('the minimal chrome keeps only the zoom bar clear', () => {
   assert.deepEqual(fitOptions({ minimal: true }).padding, { top: '16px', right: '16px', bottom: '52px', left: '16px' })
   assert.equal(fitOptions({ minimal: true, legendOpen: true }).padding.right, '290px')
+})
+
+test('the properties panel is 384 px wide, a third of a narrow canvas and never under 288', () => {
+  assert.equal(panelWidth(1400), 396)
+  assert.equal(panelWidth(1000), 372)
+  assert.equal(panelWidth(600), 300)
 })
