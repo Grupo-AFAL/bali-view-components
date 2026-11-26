@@ -10,7 +10,7 @@
 // changes a lane's size or position on the main axis has to carry the nodes of
 // the lanes after it along: `resizeLane` and `reorderLanes` do.
 import {
-  nodeSize, isActivity, isArtifactLike, isFlowNode, isStart, isEnd, edgeType, categoryOf, CATEGORY, isBinaryDecision,
+  nodeSize, isActivity, isArtifactLike, isFlowNode, isStart, isEnd, hasTypeChoices, edgeType, categoryOf, CATEGORY, isBinaryDecision,
   isResizable, hasOwnSize, MIN_NODE_SIZE, MAX_NODE_SIZE
 } from './catalog.js'
 import {
@@ -198,7 +198,8 @@ export function defaultName (attrs, names) {
   const category = categoryOf(attrs)
   if (attrs.type === 'sub_process') return names.sub_process || ''
   if (category === CATEGORY.activity) return names.task || ''
-  if (category === CATEGORY.gateway) return names.gateway || ''
+  // A decision is named by the person; any other gateway by what it is («AND», «OR»).
+  if (category === CATEGORY.gateway) return names[attrs.type] ?? names.gateway ?? ''
   if (attrs.type === 'start_event') return names.start || ''
   if (attrs.type === 'end_event') return names.end || ''
   if (category === CATEGORY.event) return names.event || ''
@@ -238,6 +239,40 @@ export function moveNodes (doc, ids, delta, { policy = DEFAULT_POLICY } = {}) {
 
 export function updateNode (doc, id, patch) {
   return { doc: { ...doc, nodes: doc.nodes.map((n) => (sameId(n.id, id) ? { ...n, ...patch } : n)) } }
+}
+
+// What a palette item sets on the node it creates, beyond its type: all of it
+// is replaced when the type changes.
+const TYPE_ATTRIBUTES = ['type', 'marker_visible', 'instantiate', 'event_gateway_type', 'event_definition']
+
+// Turns a task, a gateway or an event into another of its family — `attrs`
+// are a palette item's (catalog.js PALETTE_ITEMS) — where it stands: its id,
+// and with it every connection, note and reference to it, its name, its place
+// and the app's `fields` stay, those the new type has no input for included
+// (the app declared them and gets them back; turning the type back shows
+// them again). Nothing is refused: what the new type may not be connected to
+// is the rules' to list. A name it never got (the old type's default) becomes
+// the new type's; a timer keeps its expression while it stays a timer; and a
+// gateway that turns parallel drops the labels of its ways out, which a
+// parallel split may not carry and its panel no longer lets one clear.
+export function changeNodeType (doc, id, attrs, { names = {} } = {}) {
+  const node = findNode(doc, id)
+  if (!node || !attrs || categoryOf(attrs) !== categoryOf(node) || !hasTypeChoices(node) || !hasTypeChoices(attrs)) return { doc }
+  const next = { ...node }
+  for (const key of TYPE_ATTRIBUTES) delete next[key]
+  Object.assign(next, JSON.parse(JSON.stringify(attrs)))
+  const timer = (n) => n.event_definition && n.event_definition.kind === 'timer'
+  if (timer(node) && timer(next) && node.event_definition.expression) next.event_definition.expression = node.event_definition.expression
+  if ((node.name || '') === defaultName(node, names)) next.name = defaultName(next, names)
+  if (TYPE_ATTRIBUTES.every((key) => JSON.stringify(next[key]) === JSON.stringify(node[key]))) return { doc }
+  const unlabelled = next.type === 'parallel_gateway'
+  return {
+    doc: {
+      ...doc,
+      nodes: doc.nodes.map((n) => (n === node ? next : n)),
+      edges: doc.edges.map((e) => (unlabelled && sameId(e.source, node.id) && edgeType(e) === 'sequence_flow' && e.label ? { ...e, label: '' } : e))
+    }
+  }
 }
 
 // Gives a resizable node its own `size` ({ width, height }, either may be

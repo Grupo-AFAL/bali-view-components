@@ -20,11 +20,18 @@
 import { isFlowNode, isArtifactLike } from './catalog.js'
 import { layoutLanes, nodeBox, MIN_LANE_SIZE, orientationOf } from './geometry.js'
 import { nodeLabelBox, badgeBox } from './labels.js'
-import { routeDiagram } from './router.js'
+import { routeDiagram, STUB, CHANNEL } from './router.js'
 
 export const GRID = 10
 export const GAP_ALONG = 80 // between neighbours on the flow axis: two port stubs and two channels
-export const GAP_ACROSS = 30 // between rows
+// How close two shapes may be left by hand before one of them moves: room for
+// the arrowhead of the connection between them along the flow, and for the
+// pending badge (9 px over the corner) across it. The gaps above are where the
+// editor puts things by itself; these, the least a person may leave. A
+// connection that finds no way through is still given room (makeRoom).
+const MIN_ALONG = 20
+// Between two names, which touching would read as one.
+const LABEL_GAP = 4
 export const LANE_PAD = 20
 export const HEADER_GAP = 40
 // Column to column along the flow in "Tidy up" (layout.js) — and the widest
@@ -33,20 +40,71 @@ export const STEP = { horizontal: 230, vertical: 150 }
 
 const snap = (v) => Math.round(v / GRID) * GRID
 const snapCenter = (start, size) => snap(start + size / 2) - size / 2
+// The first centre on the grid at or past `start`: forward, never back into what it clears.
+const snapCenterForward = (start, size) => Math.ceil((start + size / 2) / GRID) * GRID - size / 2
 
-// Shape ∪ name ∪ badge, as an offset box relative to the node's x/y.
-export function footprint (node, orientation) {
+// What an element draws, each as an offset box relative to the node's x/y.
+// The footprint is their bounding box, which is what a lane has to hold; two
+// elements collide by their parts, since a gateway's name stands above its
+// row and takes none of the room between its diamond and the activity before.
+function parts (node, orientation) {
   const box = nodeBox(node)
-  const parts = [box]
+  const offset = (kind, p) => ({ kind, dx: p.x - box.x, dy: p.y - box.y, w: p.w, h: p.h })
+  const list = [offset('shape', box)]
   const label = nodeLabelBox(node, orientation)
-  if (label) parts.push(label)
-  if (isFlowNode(node)) parts.push(badgeBox(node))
-  const x1 = Math.min(...parts.map((p) => p.x))
-  const y1 = Math.min(...parts.map((p) => p.y))
-  const x2 = Math.max(...parts.map((p) => p.x + p.w))
-  const y2 = Math.max(...parts.map((p) => p.y + p.h))
-  return { dx: x1 - box.x, dy: y1 - box.y, w: x2 - x1, h: y2 - y1 }
+  if (label) list.push(offset('label', label), offset('room', nodeLabelBox(node, orientation, { room: true })))
+  if (isFlowNode(node)) {
+    list.push(offset('badge', badgeBox(node)))
+    list.push(...portStubs(box, orientation).map((stub) => offset('stub', stub)))
+  }
+  return list
 }
+
+// Where a connection leaves each side: its stub, which the router draws
+// without looking (router.js searches from the stub's end on), for up to
+// three ports spread CHANNEL apart, plus the 3 px it keeps off a name. A
+// neighbour's name there would be crossed by the first connection drawn.
+const STUB_REACH = STUB + 3
+const STUB_SPREAD = CHANNEL + 4
+// Across the flow, only the 15 px two rows always kept between a name and a
+// shape: the whole stub there moved elements of diagrams saved before.
+const ROW_REACH = 15
+function portStubs (box, orientation) {
+  const [up, sideways] = orientation === 'vertical' ? [STUB_REACH, ROW_REACH] : [ROW_REACH, STUB_REACH]
+  return [
+    { x: box.cx - STUB_SPREAD, y: box.y - up, w: STUB_SPREAD * 2, h: up },
+    { x: box.cx - STUB_SPREAD, y: box.y + box.h, w: STUB_SPREAD * 2, h: up },
+    { x: box.x - sideways, y: box.cy - STUB_SPREAD, w: sideways, h: STUB_SPREAD * 2 },
+    { x: box.x + box.w, y: box.cy - STUB_SPREAD, w: sideways, h: STUB_SPREAD * 2 }
+  ]
+}
+
+// The room two parts of different elements keep, or null when they may lie
+// over each other: shapes, the least a person may leave; names, a gap to read
+// as two; a name, a shape and a badge only must not be drawn over one
+// another; a stub is kept free of names alone (shapes already stand apart).
+function roomBetween (a, b) {
+  const kinds = [a.kind, b.kind]
+  // A stub is checked against where the name stood before it was lifted off
+  // its row (labels.js `room`), and nothing else is: against the drawn box, a
+  // gateway whose name hung 15 px under the activity of the row above moved a
+  // column on the first edit of a saved diagram.
+  if (kinds.includes('stub') || kinds.includes('room')) return kinds.includes('stub') && kinds.includes('room') ? { along: 0, across: 0 } : null
+  if (a.kind === 'shape' && b.kind === 'shape') return { along: MIN_ALONG, across: 0 }
+  if (a.kind === 'label' && b.kind === 'label') return { along: LABEL_GAP, across: LABEL_GAP }
+  return { along: 0, across: 0 }
+}
+
+// The room an element is given — what a lane has to hold, what «Tidy up»
+// spaces columns by — as an offset box relative to the node's x/y: shape,
+// name where it stood (`room`) and badge.
+const ROOM = ['shape', 'room', 'badge']
+function bounds (list) {
+  const held = list.filter((p) => ROOM.includes(p.kind))
+  const [dx, dy] = [Math.min(...held.map((p) => p.dx)), Math.min(...held.map((p) => p.dy))]
+  return { dx, dy, w: Math.max(...held.map((p) => p.dx + p.w)) - dx, h: Math.max(...held.map((p) => p.dy + p.h)) - dy }
+}
+export const footprint = (node, orientation) => bounds(parts(node, orientation))
 
 const rangeOverlap = (a1, a2, b1, b2, margin) => a1 < b2 + margin && b1 < a2 + margin
 
@@ -58,13 +116,28 @@ const rangeOverlap = (a1, a2, b1, b2, margin) => a1 < b2 + margin && b1 < a2 + m
 // `keep`: ids the user just placed by hand to the pixel (arrow keys with
 // Shift) — they are not snapped to the grid, only moved if they collide.
 export function arrange (doc, { before = null, keep = null } = {}) {
-  let current = place(before ? closeGaps(before, doc) : doc, keep)
+  const start = before ? closeGaps(before, doc) : doc
+  return settle(start, keep, false) || settle(start, keep, true) || place(start, keep)
+}
+
+// Places, routes and makes room until every connection finds its way; null
+// when eight rounds did not do. `roomy`: with the spacing of before elements
+// could be left close (place) — what is tried when the router cannot cope
+// with what closeness left it: a connection still drawn through a shape is
+// worse than elements standing apart.
+function settle (doc, keep, roomy) {
+  let current = place(doc, keep, { roomy })
+  let stuck = null
   for (let round = 0; round < 8; round++) {
     const failed = [...routeDiagram(current).entries()].filter(([, r]) => r.failed).map(([id]) => id)
     if (!failed.length) return current
-    current = place(makeRoom(current, failed), keep)
+    // The same connections after room was made at their far end: the tight
+    // spot is at the near one — an element left 20 px after their source,
+    // inside whose clearance the source's stub ends.
+    current = place(makeRoom(current, failed, { near: !roomy && failed.join() === stuck }), keep, { roomy })
+    stuck = failed.join()
   }
-  return current
+  return roomy ? current : null
 }
 
 // Stretches of the flow axis no element covers, between the first element
@@ -115,7 +188,7 @@ function closeGaps (before, doc) {
   return { ...doc, nodes, edges: doc.edges.map((e) => (moved.has(String(e.source)) || moved.has(String(e.target))) && e.waypoints && e.waypoints.length ? { ...e, waypoints: [] } : e) }
 }
 
-function makeRoom (doc, edgeIds) {
+function makeRoom (doc, edgeIds, { near = false } = {}) {
   const layout = layoutLanes(doc)
   const { cross } = layout.axis
   const along = (n) => { const b = nodeBox(n); return cross === 'x' ? b.cx : b.cy }
@@ -123,7 +196,11 @@ function makeRoom (doc, edgeIds) {
   for (const id of edgeIds) {
     const edge = doc.edges.find((e) => String(e.id) === id)
     const ends = [edge.source, edge.target].map((nid) => doc.nodes.find((n) => String(n.id) === String(nid))).filter(Boolean)
-    if (ends.length === 2) from = Math.min(from, Math.max(...ends.map(along)))
+    if (ends.length !== 2) continue
+    const [first, last] = ends.map(along).sort((a, b) => a - b)
+    // `near`: from the first element past the near end, the far end included.
+    const next = near ? Math.min(...doc.nodes.map(along).filter((at) => at > first)) : last
+    from = Math.min(from, next)
   }
   if (from === Infinity) return doc
   return { ...doc, nodes: doc.nodes.map((n) => (along(n) >= from ? { ...n, [cross]: (Number(n[cross]) || 0) + GAP_ALONG / 2 } : n)) }
@@ -133,7 +210,7 @@ function makeRoom (doc, edgeIds) {
 // only moves elements forward along the flow (makeRoom, collisions) and
 // leaves every lane as thick as this fits it, so the arranged document is
 // never smaller than this one — layout.js bounds a candidate's page fit by it.
-export function place (doc, keep = null) {
+export function place (doc, keep = null, { roomy = false } = {}) {
   if (!doc.nodes || !doc.nodes.length) return fitLanesToContent(doc)
   const orientation = orientationOf(doc)
   const layout = layoutLanes(doc)
@@ -145,19 +222,77 @@ export function place (doc, keep = null) {
   const mainD = main === 'y' ? 'dy' : 'dx'
 
   const items = doc.nodes.filter((n) => n.type !== 'group').map((n) => {
-    const fp = footprint(n, orientation)
+    const drawn = parts(n, orientation)
     const box = nodeBox(n)
     return {
       node: n,
       size: { cross: cross === 'x' ? box.w : box.h, main: main === 'y' ? box.h : box.w },
       cross: Number(n[cross]) || 0,
       main: Number(n[main]) || 0,
-      fp
+      fp: bounds(drawn),
+      parts: drawn
     }
   })
   const start = (it, axis) => (axis === 'cross' ? it.cross + it.fp[crossD] : it.main + it.fp[mainD])
   const end = (it, axis) => start(it, axis) + (axis === 'cross' ? it.fp[crossSize] : it.fp[mainSize])
-  items.sort((a, b) => (start(a, 'cross') - start(b, 'cross')) || (start(a, 'main') - start(b, 'main')))
+  // A part's span on an axis, where its element stands now.
+  const span = (it, part, axis) => {
+    const from = axis === 'cross' ? it.cross + part[crossD] : it.main + part[mainD]
+    return [from, from + (axis === 'cross' ? part[crossSize] : part[mainSize])]
+  }
+  // Where `it` clears `p` going forward along the flow, or null when it
+  // already does: the furthest any of its parts has to go past one of p's.
+  // Where `it` clears `p` going forward along the flow, by their parts, or
+  // null when it already does: the furthest any of its parts has to go past
+  // one of p's.
+  const clearOf = (it, p) => {
+    let needed = null
+    for (const a of it.parts) {
+      for (const b of p.parts) {
+        const room = roomBetween(a, b)
+        if (!room) continue
+        const [a1, a2] = span(it, a, 'cross')
+        const [b1, b2] = span(p, b, 'cross')
+        if (!rangeOverlap(a1, a2, b1, b2, room.along) || !rangeOverlap(...span(it, a, 'main'), ...span(p, b, 'main'), room.across)) continue
+        needed = Math.max(needed ?? -Infinity, it.cross + b2 + room.along - a1)
+      }
+    }
+    return needed
+  }
+  const shapesAcross = (it, p) => rangeOverlap(...span(it, it.parts[0], 'main'), ...span(p, p.parts[0], 'main'), 0)
+  // Dropped ON another: its shape over more than half of the other's along
+  // the flow (or of its own, the smaller). Less is a shape left too close.
+  const onTop = (it, p) => {
+    const [a1, a2] = span(it, it.parts[0], 'cross')
+    const [b1, b2] = span(p, p.parts[0], 'cross')
+    return shapesAcross(it, p) && Math.min(a2, b2) - Math.max(a1, b1) > Math.min(a2 - a1, b2 - b1) / 2
+  }
+  // As before elements could be left close: one box around each element,
+  // 40 px from the next along the flow and 15 across, and what is nearer goes
+  // a whole GAP_ALONG on.
+  const apart = (it, p) => (rangeOverlap(start(it, 'main'), end(it, 'main'), start(p, 'main'), end(p, 'main'), 15) &&
+    rangeOverlap(start(it, 'cross'), end(it, 'cross'), start(p, 'cross'), end(p, 'cross'), GAP_ALONG / 2)
+    ? snapCenter(end(p, 'cross') + GAP_ALONG - it.fp[crossD] + GRID / 2, it.size.cross)
+    : null)
+  // Where `it` has to go to stand clear of `p`, or null. Close is for two
+  // elements of one row — their shapes side by side along the flow — which
+  // is where a person wants them close and where the connection between them
+  // is a straight line. Across rows the room is the one of before: there the
+  // router needs its channels, and 600 random sessions with rows 16 px apart
+  // ended with connections drawn through a gateway. `roomy`: that room
+  // everywhere, when not even so every connection found its way (arrange).
+  const clearance = (it, p) => {
+    if (roomy || !shapesAcross(it, p)) return apart(it, p)
+    const to = clearOf(it, p)
+    if (to == null) return null
+    // On top of another, it goes to the next free spot, at the editor's own
+    // spacing; too close or just over its edge, to the nearest place it may stay.
+    return snapCenterForward(onTop(it, p) ? end(p, 'cross') + GAP_ALONG - it.fp[crossD] : to, it.size.cross)
+  }
+  // By where the shape starts: by the footprint's, a gateway close after an
+  // activity came first (its name reaches back over it) and pushed the activity past itself.
+  if (roomy) items.sort((a, b) => (start(a, 'cross') - start(b, 'cross')) || (start(a, 'main') - start(b, 'main')))
+  else items.sort((a, b) => (a.cross - b.cross) || (a.main - b.main))
 
   const placed = []
   for (const it of items) {
@@ -176,10 +311,9 @@ export function place (doc, keep = null) {
       it.main = snapCenter(it.main, it.size.main)
     }
     for (let guard = 0; guard < 500; guard++) {
-      const hit = placed.find((p) => rangeOverlap(start(it, 'main'), end(it, 'main'), start(p, 'main'), end(p, 'main'), GAP_ACROSS / 2) &&
-        rangeOverlap(start(it, 'cross'), end(it, 'cross'), start(p, 'cross'), end(p, 'cross'), GAP_ALONG / 2))
+      const hit = placed.find((p) => clearance(it, p) != null)
       if (!hit) break
-      it.cross = snapCenter(end(hit, 'cross') + GAP_ALONG - it.fp[crossD] + GRID / 2, it.size.cross)
+      it.cross = clearance(it, hit)
     }
     placed.push(it)
   }

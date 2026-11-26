@@ -9,6 +9,8 @@ import { nodeLabelBox, badgeBox, insideLabelBox, badgeTabBox, chevronDepth } fro
 import { textOn } from '../model/contrast.js'
 import { safeUrl } from '../model/urls.js'
 import { useCanvas } from './CanvasContext.js'
+import { menuPlace, MENU_PLACES } from './menuPlace.js'
+import { panelWidth } from './fit.js'
 
 // The card's selection sits 5–6 px out (flow.css `.is-selected::after`), its
 // read-only halo 4 px beyond its 2.5 px ring: drawn outside it, not over the shape.
@@ -44,9 +46,19 @@ function Label ({ node, name, orientation, activityShape, category, badge, link 
   const label = nodeLabelBox(node, orientation)
   if (!label) return null
   const box = nodeBox(node)
+  if (label.vertical) {
+    // The line runs up the box: a span as long as the box is tall, turned a
+    // quarter back around the box's bottom-left corner (flow.css).
+    return (
+      <div className='bpmn-label bpmn-label-outside is-vertical' data-testid='bpmn-node-name' style={{ left: label.x - box.x, top: label.y - box.y, width: label.w, height: label.h }}>
+        <span className={LABEL_ALIGN[label.align]} style={{ width: label.h, height: label.w, WebkitLineClamp: label.lines }}>{name}</span>
+      </div>
+    )
+  }
   return (
     <div
-      className={`bpmn-label bpmn-label-outside${category === CATEGORY.gateway ? ' text-right' : orientation === 'vertical' && category === CATEGORY.event ? ' text-left' : ' text-center'}`}
+      className={`bpmn-label bpmn-label-outside ${LABEL_ALIGN[label.align]}`}
+      data-testid='bpmn-node-name'
       style={{ left: label.x - box.x, top: label.y - box.y, width: label.w, WebkitLineClamp: label.lines }}
     >
       {name}
@@ -54,22 +66,39 @@ function Label ({ node, name, orientation, activityShape, category, badge, link 
   )
 }
 
-// Width the quick menu needs, and the properties panel that covers the right
-// edge of the canvas while it is open (w-72 + its gap).
+const LABEL_ALIGN = { end: 'text-right', start: 'text-left', middle: 'text-center' }
+
+// Width the quick menu needs; the properties panel covers the right edge of
+// the canvas while it is open (`panelWidth`).
 const MENU_WIDTH = 250
-const PANEL_WIDTH = 300
 const EDGE_GAP = 8
 
-// The quick menu goes to the right of the node, or to its left when there is
-// no room before the canvas edge (or the properties panel). With room on
-// neither side (a phone's canvas) it goes below the node, slid sideways to
-// stay inside the canvas. Only the selected node mounts this, so only it
-// follows the viewport.
-function QuickMenuToolbar ({ x, width, children, panelOpen }) {
+// The quick menu's place (menuPlace.js) from React Flow's store: the other
+// elements' boxes on screen. A group frames elements and is no obstacle:
+// inside one, every place would be taken.
+function placeFromStore (store, id, panelOpen, current) {
+  const [tx, ty, zoom] = store.transform
+  const screen = (node) => {
+    const at = node.internals.positionAbsolute
+    return { x: at.x * zoom + tx, y: at.y * zoom + ty, w: (node.measured.width || 0) * zoom, h: (node.measured.height || 0) * zoom }
+  }
+  const own = store.nodeLookup.get(id)
+  if (!own) return -1
+  const others = [...store.nodeLookup.values()].filter((n) => n.type === 'bpmn' && n.id !== id && n.data.node.type !== 'group').map(screen)
+  return menuPlace(screen(own), others, { w: store.width - (panelOpen ? panelWidth(store.width) : 0), h: store.height }, current)
+}
+
+// The quick menu goes beside the node where it covers no other element:
+// right, left, below or above it. When every place is taken or out of the
+// canvas: to the right, or to the left when there is no room before the
+// canvas edge (or the properties panel); with room on neither side (a phone's
+// canvas) below the node, slid sideways to stay inside the canvas. Only the
+// selected node mounts this, so only it follows the viewport.
+function QuickMenuToolbar ({ id, x, width, children, panelOpen }) {
   const left = useStore((s) => x * s.transform[2] + s.transform[0])
   const right = useStore((s) => (x + width) * s.transform[2] + s.transform[0])
   const paneWidth = useStore((s) => s.width)
-  const room = paneWidth - (panelOpen ? PANEL_WIDTH : 0) - right
+  const room = paneWidth - (panelOpen ? panelWidth(paneWidth) : 0) - right
   // Its drawn width, which grows with «Split with» and «More».
   const menu = useRef(null)
   const [span, setSpan] = useState(MENU_WIDTH)
@@ -77,6 +106,17 @@ function QuickMenuToolbar ({ x, width, children, panelOpen }) {
     const drawn = menu.current && menu.current.offsetWidth
     if (drawn && drawn !== span) setSpan(drawn)
   })
+  const shown = useRef(-1)
+  const place = useStore((s) => placeFromStore(s, id, panelOpen, shown.current))
+  shown.current = place
+  if (place >= 0) {
+    const { side, align, offset } = MENU_PLACES[place]
+    return (
+      <NodeToolbar isVisible position={side} align={align} offset={offset}>
+        <div className='w-max' data-menu-side={side}>{children}</div>
+      </NodeToolbar>
+    )
+  }
   if (room < MENU_WIDTH && left < MENU_WIDTH) {
     const shift = Math.max(EDGE_GAP, Math.min(left, paneWidth - span - EDGE_GAP)) - left
     return (
@@ -163,7 +203,7 @@ function FlowNode ({ id, data, selected, positionAbsoluteX }) {
         : noteNumber}
       {showLink && <span className='bpmn-node-link' data-testid='bpmn-node-link' aria-hidden='true'>↗</span>}
       {canvas.quickMenuId === id && (
-        <QuickMenuToolbar x={positionAbsoluteX} width={box.w} panelOpen={canvas.panelOpen}>
+        <QuickMenuToolbar id={id} x={positionAbsoluteX} width={box.w} panelOpen={canvas.panelOpen}>
           {canvas.renderQuickMenu(node)}
         </QuickMenuToolbar>
       )}

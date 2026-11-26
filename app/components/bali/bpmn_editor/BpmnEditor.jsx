@@ -5,7 +5,7 @@
 // saved to the host (hooks/useSaver.js). Contracts: docs/api/bpmn-editor.md.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal, flushSync } from 'react-dom'
-import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, EdgeLabelRenderer, useReactFlow, useKeyPress, getViewportForBounds } from '@xyflow/react'
+import { ReactFlow, ReactFlowProvider, Background, MiniMap, ConnectionMode, EdgeLabelRenderer, ViewportPortal, useReactFlow, useKeyPress, getViewportForBounds } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import './flow.css'
 import { translator } from './i18n.js'
@@ -22,7 +22,8 @@ import { autoLayout } from './model/layout.js'
 import { LETTER } from './model/page.js'
 import { arrange } from './model/arrange.js'
 import { placeEdgeLabels } from './model/edgeLabels.js'
-import { fitOptions, fitDiagram, anchorStart, MIN_FIT_ZOOM, PANEL_RESERVE } from './canvas/fit.js'
+import { alignmentGuides } from './model/guides.js'
+import { fitOptions, fitDiagram, anchorStart, MIN_FIT_ZOOM, PANEL_GAP, panelWidth } from './canvas/fit.js'
 import { hasBadges } from './model/appearance.js'
 import useRefitOnResize from './hooks/useRefitOnResize.js'
 import { blockPolicy, evaluate, mergeIssues, issuesByElement, hasErrors, ruleList } from './model/rules/engine.js'
@@ -126,6 +127,8 @@ function Editor ({
   const [legendOpen, setLegendOpen] = useState(!minimal)
   const names = useMemo(() => ({
     task: t('new_task'), sub_process: t('new_sub_process'), gateway: t('new_gateway'), start: t('new_start'),
+    parallel_gateway: t('new_parallel_gateway'), inclusive_gateway: t('new_inclusive_gateway'),
+    complex_gateway: t('new_complex_gateway'), event_based_gateway: t('new_event_based_gateway'),
     end: t('new_end'), event: t('new_event'), annotation: t('new_annotation'), data: t('new_data')
   }), [t])
   const labels = useMemo(() => ({ yes: t('label_yes'), no: t('label_no') }), [t])
@@ -322,6 +325,11 @@ function Editor ({
     const touched = new Set(liveDoc.edges.filter((e) => moving.has(String(e.source)) || moving.has(String(e.target))).map((e) => String(e.id)))
     return routeAll(liveDoc, { previous: baseRoutes, onlyIds: touched, boxes: boxesById(liveDoc) })
   }, [liveDoc, baseRoutes, dragPositions, liveSize])
+  // Not while a lane is dragged: its elements travel with it.
+  const guides = useMemo(() => {
+    if (!dragPositions || [...dragPositions.keys()].some(isLaneNodeId)) return []
+    return alignmentGuides(liveDoc, dragPositions.keys())
+  }, [liveDoc, dragPositions])
   const routesRef = useRef(routes)
   routesRef.current = routes
 
@@ -529,6 +537,7 @@ function Editor ({
   const api = useMemo(() => ({
     updateNode: (id, patch, coalesce) => apply((d) => ops.updateNode(d, id, patch), { coalesce, arrange: !coalesce }),
     resizeNode: (id, size) => apply((d) => ops.resizeNode(d, id, size)),
+    changeNodeType: (id, key) => apply((d) => ops.changeNodeType(d, id, PALETTE_ITEMS[key] && PALETTE_ITEMS[key].node, { names })),
     updateEdge: (id, patch, coalesce) => apply((d) => ops.updateEdge(d, id, patch), { coalesce, arrange: !coalesce }),
     updateLane: (id, patch, coalesce) => apply((d) => ops.updateLane(d, id, patch), { coalesce, arrange: !coalesce }),
     moveLane: (id, step) => apply((d) => ops.moveLane(d, id, step)),
@@ -543,7 +552,7 @@ function Editor ({
     announceOpenReference: (node) => announceOpenReference(node, hostElement),
     newReference: (nodeId) => urls.new_reference && openDrawerUrl(withParams(urls.new_reference, { client_node_id: nodeId, editor_id: hostElement && hostElement.id })),
     newLaneAssignee: (laneId) => urls.new_lane_assignee && openDrawerUrl(withParams(urls.new_lane_assignee, { client_lane_id: laneId, editor_id: hostElement && hostElement.id }))
-  }), [apply, deleteSelection, hostElement, urls, selection, policy])
+  }), [apply, deleteSelection, hostElement, urls, selection, policy, names])
 
   // ── React Flow callbacks ───────────────────────────────────────────────
   const onNodesChange = useCallback((changes) => {
@@ -767,7 +776,7 @@ function Editor ({
     }
     // A dialog over the canvas (pending issues, rules, a confirmation) keeps its
     // keys, and so does the comparison: its canvas is hidden, its selection not.
-    if (!interactive || event.target.closest('[role="dialog"]') || comparingRef.current) return
+    if (!interactive || event.target.closest('.bpmn-dialog') || comparingRef.current) return
     if (mod && key === 'z' && !event.shiftKey) {
       event.preventDefault(); undo()
     } else if (mod && (key === 'y' || (key === 'z' && event.shiftKey))) {
@@ -974,7 +983,7 @@ function Editor ({
     const { x, y, zoom } = flow.getViewport()
     const left = node.internals.positionAbsolute.x * zoom + x
     const right = left + (node.measured.width || 0) * zoom
-    const over = right - (canvasEl.clientWidth - PANEL_RESERVE)
+    const over = right - (canvasEl.clientWidth - panelWidth(canvasEl.clientWidth) - PANEL_GAP)
     if (over > 0) flow.setViewport({ x: x - Math.min(over, Math.max(0, left - 40)), y, zoom }, { duration: 200 })
   }, [panelOpen, selection.nodes, selection.edges, flow])
   const notesByElement = useMemo(() => {
@@ -1243,6 +1252,13 @@ function Editor ({
               zoomOnPinch={wheelMode !== 'off'}
             >
               <Background gap={20} size={1} />
+              {guides.length > 0 && (
+                <ViewportPortal>
+                  <svg className='bpmn-align-guides' data-testid='bpmn-align-guides' aria-hidden='true'>
+                    {guides.map((g) => <line key={`${g.axis}:${g.x1}:${g.y1}`} data-axis={g.axis} x1={origin.x + g.x1} y1={origin.y + g.y1} x2={origin.x + g.x2} y2={origin.y + g.y2} />)}
+                  </svg>
+                </ViewportPortal>
+              )}
               {!minimal && shown.minimap && <MiniMap className='bpmn-chrome' nodeColor={minimapColor} pannable zoomable ariaLabel={t('minimap')} />}
               {!minimal && (
                 <CanvasToolbar
@@ -1297,6 +1313,8 @@ function Editor ({
                   onClose={() => { setPanel(null); clearByPerson() }}
                   onPickLane={(id) => focusElement(id)}
                   annotationTags={tags}
+                  issues={issueList}
+                  paletteKeys={enabledKeys}
                 />
                 )
               : null}
@@ -1314,7 +1332,7 @@ function Editor ({
         {dialog === 'rules' && <RulesDialog t={t} rules={ruleList(rules || {})} onClose={() => setDialog(null)} />}
         {pageExit.failed && (
           <Dialog
-            t={t} title={t('exit_failed_title')} icon='alertCircle' onClose={pageExit.stay} testId='bpmn-exit-failed'
+            t={t} title={t('exit_failed_title')} icon='alertCircle' onClose={pageExit.stay} testId='bpmn-exit-failed' size='narrow'
             footer={
               <>
                 <button type='button' className='btn btn-ghost btn-sm' onClick={pageExit.discard} disabled={pageExit.exiting} data-testid='bpmn-exit-discard'>{t('exit_discard')}</button>
@@ -1332,7 +1350,7 @@ function Editor ({
         {statusSlot && !fullscreen && doc.status_label && createPortal(<span className='badge tag-component badge-sm' data-testid='bpmn-page-status'>{doc.status_label}</span>, statusSlot)}
         {pendingDelete && (
           <Dialog
-            t={t} title={t('confirm_linked_delete_title')} icon='trash' testId='bpmn-confirm-delete' onClose={() => setPendingDelete(null)}
+            t={t} title={t('confirm_linked_delete_title')} icon='trash' testId='bpmn-confirm-delete' size='narrow' onClose={() => setPendingDelete(null)}
             footer={(
               <>
                 <button type='button' className='btn btn-ghost btn-sm' onClick={() => setPendingDelete(null)}>{t('cancel')}</button>

@@ -18,6 +18,35 @@ class BaliBpmnXmlExportTest < ActiveSupport::TestCase
     Nokogiri::XML(output) { |config| config.strict }
   end
 
+  # A name the person placed travels as BPMNLabel bounds; one left to the
+  # editor has none, so a document without the key exports as it always did.
+  def test_a_placed_name_exports_its_label_bounds_and_only_then
+    flow = BpmnSampleFlows.invoice
+    start = flow[:nodes].find { |node| node[:type] == "start_event" }
+    plain = export(flow)
+
+    assert_empty plain.xpath("//bpmndi:BPMNLabel", NS)
+
+    start[:label_position] = "top"
+    placed = export(flow)
+    labels = placed.xpath("//bpmndi:BPMNLabel", NS)
+
+    assert_equal [ start[:id] ], labels.map { |label| label.parent["bpmnElement"] }
+    shape, label = labels.first.parent.xpath("./*[local-name()='Bounds']").first, labels.first.xpath("./*[local-name()='Bounds']").first
+    assert_operator label["y"].to_i + label["height"].to_i, :<=, shape["y"].to_i, "above the shape"
+    assert_equal plain.xpath("//bpmndi:BPMNShape", NS).size, placed.xpath("//bpmndi:BPMNShape", NS).size
+  end
+
+  # BPMN DI has bounds and no rotation: a turned name exports the tall box it is drawn in.
+  def test_a_turned_name_exports_the_bounds_of_the_box_it_stands_in
+    flow = BpmnSampleFlows.invoice
+    flow[:nodes].find { |node| node[:type] == "end_event" }[:label_orientation] = "vertical"
+    bounds = export(flow).xpath("//bpmndi:BPMNLabel/*[local-name()='Bounds']", NS)
+
+    assert_equal 1, bounds.size
+    assert_operator bounds.first["height"].to_i, :>, bounds.first["width"].to_i
+  end
+
   def test_the_sample_flow_exports_as_valid_bpmn
     flow = BpmnSampleFlows.invoice
     flow[:nodes] << { id: "sp", type: "sub_process", lane_id: "l3", name: "Supplier onboarding",

@@ -16,6 +16,13 @@ import { textLength, cutText } from './text.js'
 // «Tiempo (captura)» measured 6.9 px a glyph in Chromium and wrapped into a
 // line its box did not have.
 const CHAR = 7
+// A name that is one word in capitals (a gateway named «AND») is wider:
+// capitals measured 8 px on average and 10 at most (M, W), and «AND» was cut
+// to «A…» in the 24 px its three glyphs were given. Only such a name: capitals
+// inside a longer one keep the estimate, which lowercase leaves slack in, so
+// no name of a saved diagram changes width or lines.
+const CAPITAL = 10
+const isAcronym = (word) => word.length > 1 && word === word.toUpperCase() && word !== word.toLowerCase()
 const LINE = 14
 const MAX_WIDTH = 100
 const GAP = 4
@@ -29,7 +36,7 @@ export function textBlock (text, maxWidth = MAX_WIDTH) {
   let line = 0
   let widest = 0
   for (const word of words) {
-    const width = word.length * CHAR
+    const width = word.length * (words.length === 1 && isAcronym(word) ? CAPITAL : CHAR)
     if (line && line + CHAR + width <= maxWidth) { line += CHAR + width; continue }
     if (line) { widest = Math.max(widest, line); lines++ }
     lines += Math.max(0, Math.ceil(width / maxWidth) - 1)
@@ -45,25 +52,92 @@ export const hasExternalLabel = (node) => {
   return category === CATEGORY.event || category === CATEGORY.gateway || category === CATEGORY.data
 }
 
+// Where a person put the name of an event, a gateway or a data element
+// (`node.label_position`); absent or null, the conventions above. Mirrors
+// Bali::BpmnEditor::Data::LABEL_POSITIONS (contract_test.rb).
+export const LABEL_POSITIONS = ['top', 'bottom']
+export const labelPosition = (node) => (hasExternalLabel(node) && LABEL_POSITIONS.includes(node.label_position) ? node.label_position : null)
+
+// A name turned to read upwards (`node.label_orientation: 'vertical'`), as a
+// horizontal lane's does; absent, null or 'horizontal', across. Mirrors
+// Bali::BpmnEditor::Data::LABEL_ORIENTATIONS (contract_test.rb).
+export const LABEL_ORIENTATIONS = ['horizontal', 'vertical']
+export const labelVertical = (node) => hasExternalLabel(node) && node.label_orientation === LABEL_ORIENTATIONS[1]
+
+// Where the name goes around its shape: 'above' and 'below-left' beside a
+// port, which stays free; 'below' under the shape and 'right' beside it,
+// which take that port (labelSide).
+function labelPlace (node, orientation) {
+  const gateway = categoryOf(node) === CATEGORY.gateway
+  const position = labelPosition(node)
+  if (position === 'top' || (gateway && !position)) return 'above'
+  // A gateway's bottom port is a branch's way out: its name asked below keeps
+  // to the left of it, as above.
+  if (gateway) return 'below-left'
+  // In vertical lanes the flow leaves an event by its bottom.
+  if (!position && orientation === 'vertical' && categoryOf(node) === CATEGORY.event) return 'right'
+  return 'below'
+}
+
+// The side whose port a name stands beside, to its left: connections there
+// spread to the right of the port only (router.js). A gateway has it whether
+// named or not, so naming one moves none of its connections.
+export function labelBeside (node, orientation = 'horizontal') {
+  if (!hasExternalLabel(node)) return null
+  return { above: 'top', 'below-left': 'bottom' }[labelPlace(node, orientation)] || null
+}
+
+// The side of its box a name's lines keep to — the end of the box nearest the
+// port it sits beside. Turned, a name reads upwards: it starts at the bottom.
+const ALIGN = {
+  across: { above: 'end', 'below-left': 'end', below: 'middle', right: 'start' },
+  upwards: { above: 'start', 'below-left': 'end', below: 'end', right: 'middle' }
+}
+
+// A name beside a port keeps off the arrowhead of a connection that ends
+// there: 10.5 px wide at the 1.5 px line, 12 the open one of a message flow.
+const PORT_GAP = 6
+// …and off the row its shape stands in, as tall as an activity (64 px): an
+// activity may then come as close to a gateway as to another activity, the
+// gateway's name passing over it. Under the 4 px it used to keep, the name
+// reached 3 px into the activity's height and kept it its own width away.
+const ROW = 64
+const BADGE_OVER = 9
+
 // The name's box (pool-relative), or null when the name is drawn inside the
-// shape or there is none.
-export function nodeLabelBox (node, orientation = 'horizontal') {
+// shape or there is none. `vertical`: its lines run up the box, side by side,
+// instead of across it one under another.
+export function nodeLabelBox (node, orientation = 'horizontal', { room = false } = {}) {
   if (!hasExternalLabel(node)) return null
   const block = textBlock(node.name)
   if (!block) return null
   const box = nodeBox(node)
-  if (categoryOf(node) === CATEGORY.gateway) {
-    // Above the app's badge tab, which reaches 8 px over the top-left corner.
+  const vertical = labelVertical(node)
+  const place = labelPlace(node, orientation)
+  const [w, h] = vertical ? [block.h, block.w] : [block.w, block.h]
+  const size = { w, h, lines: block.lines, align: ALIGN[vertical ? 'upwards' : 'across'][place], ...(vertical ? { vertical } : {}) }
+  // `room`: where the name stood before it was lifted off the row — GAP from
+  // the shape and from the port. A lane is fitted to that box (arrange.js
+  // footprint), so the lift takes 12 px of the lane's padding and moves
+  // nothing: fitted to the drawn box, every lane with a gateway in its first
+  // row grew 10 px at the first edit of a saved diagram.
+  if (place === 'above') {
+    // To the left of the top port, above the app's badge tab, which reaches
+    // 8 px over the top-left corner. An event's name asked above goes where a
+    // gateway's is: clear of the port, and of the pending badge on the right.
     const look = appearanceOf(node)
     const top = box.y - (look && look.badge ? BADGE_TAB.height / 2 : 0)
-    return { x: box.cx - GAP - block.w, y: top - GAP - block.h, w: block.w, h: block.h, lines: block.lines }
+    if (room) return { x: box.cx - GAP - w, y: top - GAP - h, ...size }
+    return { x: box.cx - PORT_GAP - w, y: Math.min(top - GAP, box.cy - ROW / 2 - BADGE_OVER) - h, ...size }
   }
-  if (orientation === 'vertical' && categoryOf(node) === CATEGORY.event) {
-    // Past the pending badge, which overhangs the top-right corner by 9 px: a
-    // name of two or three lines reaches up beside it.
-    return { x: box.x + box.w + 12, y: box.cy - block.h / 2, w: block.w, h: block.h, lines: block.lines }
+  if (place === 'below-left') {
+    if (room) return { x: box.cx - GAP - w, y: box.y + box.h + GAP, ...size }
+    return { x: box.cx - PORT_GAP - w, y: Math.max(box.y + box.h + GAP, box.cy + ROW / 2), ...size }
   }
-  return { x: box.cx - block.w / 2, y: box.y + box.h + GAP, w: block.w, h: block.h, lines: block.lines }
+  // Past the pending badge, which overhangs the top-right corner by 9 px: a
+  // name of two or three lines reaches up beside it.
+  if (place === 'right') return { x: box.x + box.w + 12, y: box.cy - h / 2, ...size }
+  return { x: box.cx - w / 2, y: box.y + box.h + GAP, ...size }
 }
 
 // The pending-issue triangle, on the top-right corner of the shape — of a
@@ -191,8 +265,7 @@ export function wrap (text, maxChars, maxLines, firstChars = maxChars) {
 // The side of a node its own label occupies: no connection may use that port.
 export function labelSide (node, orientation = 'horizontal') {
   if (!hasExternalLabel(node) || !String(node.name || '').trim()) return null
-  if (categoryOf(node) === CATEGORY.gateway) return null // above-left: clear of every port
-  return orientation === 'vertical' && categoryOf(node) === CATEGORY.event ? 'right' : 'bottom'
+  return { above: null, 'below-left': null, right: 'right', below: 'bottom' }[labelPlace(node, orientation)]
 }
 
 export const EDGE_LABEL = { char: 6.6, height: 18, pad: 12 }

@@ -1,7 +1,9 @@
 import { useId } from 'react'
-import { paletteKeyFor, isActivity, isEvent, isGateway, isResizable, hasOwnSize, nodeSize, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
+import { paletteKeyFor, typeChoices, isActivity, isEvent, isGateway, isResizable, hasOwnSize, nodeSize, MIN_NODE_SIZE, MAX_NODE_SIZE } from '../model/catalog.js'
 import { namedByReference } from '../model/document.js'
+import { hasExternalLabel, labelPosition, labelVertical, LABEL_POSITIONS, LABEL_ORIENTATIONS } from '../model/labels.js'
 import Icon from './icons.jsx'
+import IssueLine from './IssueLine.jsx'
 import FieldInput from './FieldInput.jsx'
 import ReferencePicker from './ReferencePicker.jsx'
 import NotesEditor from './NotesEditor.jsx'
@@ -62,6 +64,42 @@ function PortPicker ({ label, value, onChange, editable, t }) {
   )
 }
 
+// What the rules hold against the selected element, where the person is
+// looking: the canvas marker says there is something, the top bar's list says
+// what for the whole diagram.
+function ElementIssues ({ issues, t }) {
+  if (!issues.length) return null
+  return (
+    <section className='flex flex-col gap-1' aria-label={t('props_issues')} data-testid='bpmn-element-issues'>
+      <span className={CAPTION}>{t('props_issues')}</span>
+      <ul className='flex flex-col gap-1'>
+        {issues.map((issue, i) => (
+          <li key={`${issue.rule}-${i}`} className='flex items-start gap-2 rounded border border-base-300 px-2 py-1.5 text-xs' data-rule={issue.rule} data-severity={issue.severity}>
+            <IssueLine issue={issue} t={t} size={14} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+// One of a few, all in sight. A null choice is the editor's own way («Auto»).
+function ChoicePicker ({ label, choices, value, name, onChange, editable, testId }) {
+  return (
+    <FieldGroup label={label}>
+      <div className='join' data-testid={testId}>
+        {choices.map((choice) => (
+          <button key={choice || 'default'} type='button' disabled={!editable} aria-pressed={choice === value} data-choice={choice || 'default'}
+            className={`btn btn-xs join-item ${choice === value ? 'btn-primary' : 'btn-outline'}`}
+            onClick={() => onChange(choice)}>
+            {name(choice)}
+          </button>
+        ))}
+      </div>
+    </FieldGroup>
+  )
+}
+
 // Committed on Enter or on leaving the field, not per keystroke: «1» on the
 // way to «180» would clamp to the minimum and move the next elements along.
 function SizeInput ({ label, value, min, max, editable, onCommit }) {
@@ -101,11 +139,13 @@ function SizeFields ({ node, api, t, editable }) {
   )
 }
 
-function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentationField, urls }) {
+function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentationField, urls, paletteKeys }) {
   const key = paletteKeyFor(node)
   const lane = doc.lanes.find((l) => String(l.id) === String(node.lane_id))
   const fields = [...(nodeFields['*'] || []), ...(nodeFields[node.type] || [])]
   const describe = isEvent(node) || isGateway(node) || isActivity(node)
+  // What the host's palette offers of its family, and what it is now.
+  const types = typeChoices(node).filter((choice) => choice === key || (paletteKeys && paletteKeys.has(choice)))
   return (
     <>
       <p className='text-xs text-base-content/60'>{key ? t(`palette_${key}`) : node.type}{lane ? ` · ${lane.name || t('lane_unnamed')}` : ''}</p>
@@ -115,6 +155,26 @@ function NodeProperties ({ node, doc, api, t, editable, nodeFields, documentatio
           onChange={(e) => api.updateNode(node.id, { name: e.target.value }, `name:${node.id}`)} />
         {namedByReference(node) && <span className='text-xs text-base-content/60'>{t('props_name_from_reference')}</span>}
       </Field>
+      {hasExternalLabel(node) && (
+        // null, not a missing key: a host that maps the document onto its own
+        // columns keeps any key a save leaves out (as resizeNode's «Auto»).
+        <ChoicePicker label={t('props_label_position')} choices={[null, ...LABEL_POSITIONS]} value={labelPosition(node)} editable={editable}
+          name={(choice) => t(`label_position_${choice || 'auto'}`)} testId='bpmn-label-position'
+          onChange={(choice) => api.updateNode(node.id, { label_position: choice })} />
+      )}
+      {hasExternalLabel(node) && (
+        <ChoicePicker label={t('props_label_orientation')} choices={LABEL_ORIENTATIONS} value={LABEL_ORIENTATIONS[labelVertical(node) ? 1 : 0]} editable={editable}
+          name={(choice) => t(`label_orientation_${choice}`)} testId='bpmn-label-orientation'
+          onChange={(choice) => api.updateNode(node.id, { label_orientation: choice === LABEL_ORIENTATIONS[0] ? null : choice })} />
+      )}
+      {editable && types.length > 1 && (
+        <Field label={t('props_type')}>
+          <select className='select select-sm w-full' value={key} data-testid='bpmn-node-type' title={t('props_type_hint')}
+            onChange={(e) => api.changeNodeType(node.id, e.target.value)}>
+            {types.map((choice) => <option key={choice} value={choice}>{t(`palette_${choice}`)}</option>)}
+          </select>
+        </Field>
+      )}
       {describe && (
         <Field label={t('props_documentation')}>
           <textarea className='textarea textarea-sm w-full' rows={3} value={node.documentation || ''} disabled={!editable}
@@ -223,8 +283,10 @@ function Participants ({ doc, t, onPick }) {
 
 // The side panel: properties of what is selected (a node, a connection, a
 // lane, several nodes) or the list of participants. Replaces the modal
-// dialogs of the old editor.
-export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, documentationField, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true }) {
+// dialogs of the old editor. Its width is mirrored by `panelWidth`
+// (canvas/fit.js), which keeps the quick menu and the selected element clear
+// of it: change both together.
+export default function PropertiesPanel ({ t, doc, selection, api, editable, notesEditable = false, nodeFields, laneFields, documentationField, urls, view, onClose, onPickLane, annotationTags = [], externalLanes = true, issues = [], paletteKeys = null }) {
   const nodes = selection.nodes.map((id) => doc.nodes.find((n) => String(n.id) === id)).filter(Boolean)
   const edge = selection.edges.length === 1 ? doc.edges.find((e) => String(e.id) === selection.edges[0]) : null
   const lane = selection.lanes.length === 1 ? doc.lanes.find((l) => String(l.id) === selection.lanes[0]) : null
@@ -253,7 +315,7 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, not
     )
   } else if (nodes.length === 1) {
     title = nodes[0].name || t('props_title')
-    body = <NodeProperties node={nodes[0]} doc={doc} api={api} t={t} editable={editable} nodeFields={nodeFields} documentationField={documentationField} urls={urls} />
+    body = <NodeProperties node={nodes[0]} doc={doc} api={api} t={t} editable={editable} nodeFields={nodeFields} documentationField={documentationField} urls={urls} paletteKeys={paletteKeys} />
   } else if (edge) {
     title = t('props_edge')
     body = <EdgeProperties edge={edge} doc={doc} api={api} t={t} editable={editable} />
@@ -262,6 +324,9 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, not
     const index = order.indexOf(String(lane.id))
     body = <LaneProperties lane={lane} api={api} t={t} editable={editable} laneFields={laneFields} urls={urls} canMove={{ up: index > 0, down: index < order.length - 1 }} externalLanes={externalLanes} />
   }
+  const single = nodes.length === 1 ? nodes[0] : nodes.length ? null : edge || lane
+  const pending = single && view !== 'participants' ? issues.filter((issue) => String(issue.element_id) === String(single.id)) : []
+  if (pending.length) body = <><ElementIssues issues={pending} t={t} />{body}</>
   const target = nodes.length === 1 ? nodes[0] : edge
   const notes = target ? (doc.annotations || []).filter((a) => String(a.target_id) === String(target.id)) : []
   // `notesEditable`: a read-only diagram whose notes may be written (Component `annotatable:`).
@@ -278,16 +343,16 @@ export default function PropertiesPanel ({ t, doc, selection, api, editable, not
   }
   const hasSelection = nodes.length || edge || lane
   return (
-    <aside className='bpmn-chrome absolute bottom-3 right-3 top-14 z-10 flex w-72 flex-col rounded-lg border border-base-300 bg-base-100 shadow-lg' aria-label={title} data-testid='bpmn-properties'>
-      <div className='flex items-center gap-2 border-b border-base-300 px-3 py-2'>
+    <aside className='bpmn-chrome bpmn-properties absolute bottom-3 right-3 top-14 z-10 flex w-96 max-w-[max(18rem,36%)] flex-col rounded-lg border border-base-content/15 bg-base-100' aria-label={title} data-testid='bpmn-properties'>
+      <div className='flex items-center gap-2 rounded-t-lg border-b border-base-300 bg-base-200 px-4 py-2.5'>
         <h3 className='grow truncate text-sm font-semibold' title={title}>{title}</h3>
         <button type='button' className='btn btn-ghost btn-xs btn-square' onClick={onClose} aria-label={t('close')}>
           <Icon name='x' size={14} />
         </button>
       </div>
-      <div className='flex flex-1 flex-col gap-3 overflow-y-auto p-3'>{body}</div>
+      <div className='flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-3'>{body}</div>
       {editable && view !== 'participants' && hasSelection && (
-        <div className='border-t border-base-300 p-3'>
+        <div className='border-t border-base-300 px-4 py-3'>
           <button type='button' className='btn btn-error btn-outline btn-sm w-full gap-1' onClick={api.deleteSelection} title='Supr / Delete'>
             <Icon name='trash' size={14} />{t('delete_selection')}
           </button>

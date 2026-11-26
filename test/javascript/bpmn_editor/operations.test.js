@@ -3,6 +3,8 @@ import assert from 'node:assert/strict'
 import * as ops from '../../../app/components/bali/bpmn_editor/model/operations.js'
 import { layoutLanes, insideLane, nodeBox } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
 import { doc, lanes, node, flow } from './helpers.js'
+import { PALETTE_ITEMS, typeChoices } from '../../../app/components/bali/bpmn_editor/model/catalog.js'
+import { evaluate } from '../../../app/components/bali/bpmn_editor/model/rules/engine.js'
 import { invoice } from './fixtures.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
 import { newId, mintIdsWith } from '../../../app/components/bali/bpmn_editor/model/document.js'
@@ -20,6 +22,19 @@ test('createNode places the node in the lane under the point, named by family', 
   assert.equal(created.lane_id, 'l1')
   assert.equal(created.name, 'New activity')
   assert.ok(insideLane(layoutLanes(d), created))
+})
+
+test('a new gateway is named by its type, except the exclusive one, which keeps the decision name', () => {
+  const names = { gateway: 'Decision', parallel_gateway: 'AND', inclusive_gateway: 'OR' }
+  const nameOf = (attrs) => { const { doc: d, id } = ops.createNode(twoLanes(), attrs, { x: 460, y: 90 }, { names }); return byId(d, id).name }
+  assert.equal(nameOf({ type: 'parallel_gateway' }), 'AND')
+  assert.equal(nameOf({ type: 'inclusive_gateway' }), 'OR')
+  assert.equal(nameOf({ type: 'exclusive_gateway' }), 'Decision')
+  assert.equal(nameOf({ type: 'exclusive_gateway', marker_visible: false }), 'Decision')
+  // A type the host's table has no name for falls back to the family's.
+  assert.equal(nameOf({ type: 'complex_gateway' }), 'Decision')
+  const split = ops.branchNode(twoLanes(), 't1', { type: 'task' }, 'down', { gateway: 'parallel_gateway', names })
+  assert.equal(byId(split.doc, split.gatewayId).name, 'AND')
 })
 
 // An overlap is the local arrangement's to resolve (arrange.js), never refused.
@@ -430,4 +445,94 @@ test("the quick menu adds after a node in an external participant's lane, as a h
   const result = ops.appendNode(d, 'p', { type: 'task' }, 'right')
   assert.equal(result.error, undefined)
   assert.equal(result.doc.nodes.find((n) => n.id === result.id).lane_id, 'l2')
+})
+
+// #1694: replacing a gateway or an event meant deleting it, and its connections with it.
+const decision = () => doc({
+  lanes: lanes('A', 'B'),
+  nodes: [
+    node('s', 'start_event', 'l1', 100, 90, { name: 'Begin' }), node('t1', 'task', 'l1', 260, 90),
+    node('g', 'exclusive_gateway', 'l1', 420, 90, { name: 'Decision', documentation: 'why', fields: { owner: 'x' } }),
+    node('t2', 'task', 'l1', 600, 90), node('t3', 'task', 'l2', 600, 270),
+    node('w', 'intermediate_catch_event', 'l2', 800, 270, { name: 'Wait', event_definition: { kind: 'timer', expression: 'PT1H' } })
+  ],
+  edges: [flow('f0', 's', 't1'), flow('f1', 't1', 'g'), flow('f2', 'g', 't2', { label: 'Yes' }), flow('f3', 'g', 't3', { label: 'No' }), flow('f4', 't3', 'w')],
+  annotations: [{ id: 'a1', target_id: 'g', number: 1, text: 'note' }]
+})
+const TYPE_NAMES = { gateway: 'Decision', parallel_gateway: 'AND', inclusive_gateway: 'OR', start: 'Begin', event: 'Wait' }
+
+test('changeNodeType turns a gateway into another where it stands: id, connections, notes, place and fields stay', () => {
+  const before = decision()
+  const { doc: d } = ops.changeNodeType(before, 'g', { type: 'inclusive_gateway' }, { names: TYPE_NAMES })
+  const g = byId(d, 'g')
+  assert.equal(g.type, 'inclusive_gateway')
+  assert.deepEqual([g.x, g.y, g.lane_id, g.documentation, g.fields], [395, 65, 'l1', 'why', { owner: 'x' }])
+  assert.deepEqual(d.edges, before.edges, 'every connection as it was, labels included')
+  assert.deepEqual(d.annotations, before.annotations)
+  assert.equal(g.name, 'OR', 'the default name it never changed follows the type')
+})
+
+test('changeNodeType keeps a name the person wrote, and replaces every attribute of the old type', () => {
+  const named = ops.updateNode(decision(), 'g', { name: 'Is it valid?', marker_visible: false }).doc
+  const g = byId(ops.changeNodeType(named, 'g', { type: 'event_based_gateway', instantiate: true, event_gateway_type: 'parallel' }, { names: TYPE_NAMES }).doc, 'g')
+  assert.equal(g.name, 'Is it valid?')
+  assert.equal('marker_visible' in g, false)
+  assert.deepEqual([g.type, g.instantiate, g.event_gateway_type], ['event_based_gateway', true, 'parallel'])
+  const back = byId(ops.changeNodeType({ ...named, nodes: named.nodes.map((n) => (n.id === 'g' ? g : n)) }, 'g', { type: 'exclusive_gateway' }, { names: TYPE_NAMES }).doc, 'g')
+  assert.deepEqual(['instantiate' in back, 'event_gateway_type' in back], [false, false])
+})
+
+test('a gateway that turns parallel drops the labels of its ways out, and only those', () => {
+  const { doc: d } = ops.changeNodeType(decision(), 'g', { type: 'parallel_gateway' }, { names: TYPE_NAMES })
+  assert.equal(byId(d, 'g').name, 'AND')
+  assert.deepEqual(d.edges.map((e) => e.label || ''), ['', '', '', '', ''])
+  assert.deepEqual(d.edges.map((e) => [e.id, e.source, e.target]), decision().edges.map((e) => [e.id, e.source, e.target]))
+})
+
+test('changeNodeType changes an event’s definition; a timer that stays a timer keeps its expression', () => {
+  const toMessage = byId(ops.changeNodeType(decision(), 'w', { type: 'intermediate_catch_event', event_definition: { kind: 'message' } }).doc, 'w')
+  assert.deepEqual(toMessage.event_definition, { kind: 'message' })
+  const plain = byId(ops.changeNodeType(decision(), 's', { type: 'start_event', event_definition: { kind: 'timer' } }).doc, 's')
+  assert.deepEqual(plain.event_definition, { kind: 'timer' })
+  const none = byId(ops.changeNodeType({ ...decision(), nodes: decision().nodes.map((n) => (n.id === 's' ? plain : n)) }, 's', { type: 'start_event', event_definition: undefined }).doc, 's')
+  assert.equal('event_definition' in none && none.event_definition !== undefined, false)
+})
+
+test('changeNodeType refuses nothing and changes nothing outside its family, or to the type it already is', () => {
+  const before = decision()
+  assert.equal(ops.changeNodeType(before, 'g', { type: 'task' }).doc, before, 'a gateway does not become an activity')
+  assert.equal(ops.changeNodeType(before, 't1', { type: 'sub_process' }).doc, before, 'a task does not become a sub-process')
+  const linked = ops.updateNode(before, 't1', { type: 'sub_process', reference: { id: '7', label: 'Linked' } }).doc
+  assert.equal(ops.changeNodeType(linked, 't1', { type: 'task' }).doc, linked, 'nor a sub-process a task: it is tied to an entity of the app')
+  assert.equal(ops.changeNodeType(before, 'g', { type: 'exclusive_gateway' }).doc, before, 'the same type is no edit, so no undo step')
+  assert.equal(ops.changeNodeType(before, 'missing', { type: 'parallel_gateway' }).doc, before)
+})
+
+test('typeChoices offers a task every task, a gateway every gateway, an event the events of its own group, anything else nothing', () => {
+  assert.deepEqual(typeChoices({ type: 'parallel_gateway' }), Object.keys(PALETTE_ITEMS).filter((k) => PALETTE_ITEMS[k].group === 'gateways'))
+  assert.ok(typeChoices({ type: 'start_event' }).every((k) => PALETTE_ITEMS[k].node.type === 'start_event'))
+  assert.ok(typeChoices({ type: 'end_event', event_definition: { kind: 'terminate' } }).includes('end_event'))
+  assert.ok(typeChoices({ type: 'intermediate_catch_event', event_definition: { kind: 'timer' } }).includes('message_throw_event'))
+  assert.deepEqual(typeChoices({ type: 'task' }), ['task', 'user_task', 'service_task', 'send_task', 'receive_task', 'script_task', 'business_rule_task', 'manual_task'])
+  assert.deepEqual(typeChoices({ type: 'sub_process' }), [])
+  assert.deepEqual(typeChoices({ type: 'text_annotation' }), [])
+  assert.deepEqual(typeChoices({ type: 'something_else' }), [])
+})
+
+test('changeNodeType turns a task into another kind of task: its size, its fields, its name and its connections stay', () => {
+  const before = ops.updateNode(decision(), 't1', { name: 'Validate invoice', width: 200, height: 80, fields: { duration: 15 } }).doc
+  const { doc: d } = ops.changeNodeType(before, 't1', { type: 'user_task' }, { names: { task: 'New activity' } })
+  const { id, lane_id: lane, ...task } = byId(d, 't1')
+  assert.deepEqual([id, lane, task.type, task.name, task.width, task.height, task.fields], ['t1', 'l1', 'user_task', 'Validate invoice', 200, 80, { duration: 15 }])
+  assert.deepEqual(d.edges, before.edges)
+})
+
+// The select refuses nothing: what a new type may not be connected to is listed, not blocked.
+test('changeNodeType to a type its connections do not suit leaves it to the rules', () => {
+  const before = decision()
+  const { doc: d } = ops.changeNodeType(before, 'g', { type: 'event_based_gateway' }, { names: TYPE_NAMES })
+  assert.equal(byId(d, 'g').type, 'event_based_gateway')
+  const rules = (document) => evaluate(document, {}, null).filter((issue) => issue.element_id === 'g').map((issue) => issue.rule)
+  assert.equal(rules(before).includes('B01'), false)
+  assert.ok(rules(d).includes('B01'), `an event-based gateway that leads to tasks: ${rules(d)}`)
 })

@@ -158,6 +158,13 @@
   position: absolute; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;
   line-height: 14px; font-size: 11.5px;
 }
+/* A name turned to read upwards (`label_orientation`, FlowNode.jsx): the box is
+ * model/labels.js nodeLabelBox's, the span inside it lies along its height. */
+.bpmn-label-outside.is-vertical { display: block; overflow: visible; }
+.bpmn-label-outside.is-vertical > span {
+  position: absolute; left: 0; top: 100%; transform-origin: 0 0; transform: rotate(-90deg);
+  display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; line-height: 14px;
+}
 .bpmn-label-annotation { position: absolute; inset: 4px 6px 4px 18px; overflow: hidden; font-weight: 400; }
 .bpmn-label-group { position: absolute; top: 6px; left: 10px; font-weight: 600; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
 .bpmn-node.has-badge .bpmn-label-annotation { top: 10px; }
@@ -211,6 +218,12 @@
 .bpmn-canvas.is-connecting .bpmn-handle { opacity: 1; }
 .bpmn-canvas:not(.is-editable) .bpmn-handle { pointer-events: none; }
 
+/* The properties panel floats over the diagram it edits: a deep shadow lifts
+   it off the canvas, where a veil would say the canvas is out of reach. */
+.bpmn-properties {
+  box-shadow: -14px 0 48px -12px rgb(0 0 0 / 0.3), 0 20px 48px -10px rgb(0 0 0 / 0.4), 0 4px 12px -4px rgb(0 0 0 / 0.2);
+}
+
 /* Connections. */
 .bpmn-edge.react-flow__edge-path { stroke: var(--bpmn-line); stroke-width: 1.5; stroke-linejoin: round; fill: none; }
 .bpmn-edge.react-flow__edge-path.is-selected { stroke: var(--bpmn-select); stroke-width: 2.2; }
@@ -220,7 +233,8 @@
 .bpmn-marker.is-selected .bpmn-marker-fill { fill: var(--bpmn-select); }
 .bpmn-marker.is-selected .bpmn-marker-open { stroke: var(--bpmn-select); }
 .bpmn-markers { position: absolute; width: 0; height: 0; }
-.bpmn-edge-label rect { fill: var(--color-base-100); stroke: var(--bpmn-border); }
+/* A patch of canvas under the text, so the line it rides on does not run through it; no outline. */
+.bpmn-edge-label rect { fill: var(--color-base-100); }
 .bpmn-edge-label text { fill: var(--color-base-content); font-size: 11px; font-weight: 600; }
 .react-flow__edge.selected .bpmn-edge-label text { fill: var(--bpmn-select); }
 .bpmn-canvas .react-flow__edge-textwrapper, .bpmn-edge-label { pointer-events: all; cursor: text; }
@@ -347,6 +361,10 @@
   padding: 8px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600;
   background: color-mix(in oklab, var(--color-base-content) 78%, transparent); color: var(--color-base-100);
 }
+/* Alignment guides while dragging (model/guides.js), in the viewport's own
+ * coordinates, as thin at any zoom. */
+.bpmn-align-guides { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; z-index: 5; }
+.bpmn-align-guides line { stroke: var(--bpmn-select); stroke-width: 1.5; stroke-dasharray: 4 3; stroke-linecap: square; vector-effect: non-scaling-stroke; }
 .bpmn-connect-guide { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; overflow: visible; }
 .bpmn-connect-guide line { stroke: var(--bpmn-select); stroke-width: 2; stroke-dasharray: 6 4; }
 .bpmn-canvas.is-connecting .react-flow__pane,

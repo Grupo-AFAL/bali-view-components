@@ -687,6 +687,10 @@
   justify-content: flex-start;
   width: 100%;
   min-height: 40px;
+  /* The list is a flex column of at most 240 px, and `min-height` replaces the automatic
+     minimum that would keep a flex item as tall as its content: an option of several lines
+     shrank to 40 px and its text ran over the next one, instead of the list scrolling. */
+  flex-shrink: 0;
   padding: 8px 12px;
   margin: 1px 0;
   font-size: 14px;

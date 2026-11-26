@@ -7,6 +7,10 @@ import { arrange, emptyStretches, STEP } from '../../../app/components/bali/bpmn
 import { measure, sharedLength, segmentsCross } from './support/layoutQuality.js'
 import { setOrientation, deleteElements } from '../../../app/components/bali/bpmn_editor/model/operations.js'
 import { routeAll } from '../../../app/components/bali/bpmn_editor/model/routing.js'
+import { nodeBox } from '../../../app/components/bali/bpmn_editor/model/geometry.js'
+import { routeDiagram } from '../../../app/components/bali/bpmn_editor/model/router.js'
+import { doc as docOf, lanes as lanesOf, node as nodeOf, flow as flowOf } from './helpers.js'
+import { hasExternalLabel } from '../../../app/components/bali/bpmn_editor/model/labels.js'
 
 // Ceilings for the soft measures after Tidy up, per fixture: what the
 // layout reaches today, so a regression shows. Crossings stay at most one
@@ -55,10 +59,15 @@ test('the metric sees what it measures', () => {
   assert.ok(measure(crowded).overlaps > 0)
 })
 
-test('the hand-placed invoice flow has violations Tidy up removes', () => {
+// The sample's decision stands 130 px after «Validate invoice»: its name, 4 px
+// over the diamond, reached 3 px into the activity's height and lay on its
+// pending badge. A name above keeps over the row and its badges (labels.js).
+test('the hand-placed invoice flow has no violation as it comes; one made by hand, Tidy up removes', () => {
   const loaded = normalize(FIXTURES.invoice())
-  assert.ok(measure(loaded).hard > 0)
-  assert.equal(measure(autoLayout(loaded)).hard, 0)
+  assert.equal(measure(loaded).hard, 0, JSON.stringify(measure(loaded).details))
+  const crowded = { ...loaded, nodes: loaded.nodes.map((n, i) => (i === 2 ? { ...n, x: loaded.nodes[1].x } : n)) }
+  assert.ok(measure(crowded).hard > 0)
+  assert.equal(measure(autoLayout(crowded)).hard, 0)
 })
 
 test('the metric counts two branches of a gateway leaving by the same side', () => {
@@ -114,4 +123,142 @@ test('an element nudged by the pixel keeps its pixel; the arrangement only moves
   const x = (d) => d.nodes.find((n) => n.id === 't3').x
   assert.equal(x(arrange(nudged)), x(laid), 'snapped back to the grid by default')
   assert.equal(x(arrange(nudged, { keep: new Set(['t3']) })), x(laid) + 1)
+})
+
+// #1694: elements may be left close together. The least is measured between
+// shapes; a name counts where it is drawn, not as part of one box around the
+// element, and a shape left a little over another's edge goes to that least.
+const after = (type, gap, extra = {}) => {
+  const width = { task: 150, exclusive_gateway: 50, end_event: 36 }[type]
+  return docOf({
+    lanes: [{ ...lanesOf('A')[0], size: 260 }, { ...lanesOf('A', 'B')[1], size: 200 }],
+    nodes: [nodeOf('s', 'start_event', 'l1', 110, 130, { name: 'Go' }), nodeOf('a', 'task', 'l1', 300, 130), nodeOf('b', type, 'l1', 375 + gap + width / 2, 130, extra), nodeOf('c', 'task', 'l2', 800, 330)],
+    edges: [flowOf('f0', 's', 'a'), flowOf('f1', 'a', 'b'), flowOf('f2', 'b', 'c')]
+  })
+}
+const settledGap = (d) => {
+  const arranged = arrange(d)
+  assert.equal(measure(arranged).hard, 0, JSON.stringify(measure(arranged).details))
+  assert.equal(arrange(arranged), arranged, 'settled')
+  const [a, b] = ['a', 'b'].map((id) => nodeBox(arranged.nodes.find((n) => n.id === id)))
+  return b.x - (a.x + a.w)
+}
+const gaps = (type, asked, extra) => asked.map((gap) => settledGap(after(type, gap, extra)))
+
+test('two activities: what a person leaves stays, 20 px is the least, and a little over the edge goes there too', () => {
+  assert.deepEqual(gaps('task', [80, 60, 40, 20]), [80, 60, 40, 20])
+  assert.deepEqual(gaps('task', [12, 5, 0, -4, -20, -60]), [20, 20, 20, 20, 20, 20])
+})
+
+test('an activity dropped on another — over more than half of it — still goes to the next free spot', () => {
+  assert.deepEqual(gaps('task', [-100, -140]), [90, 90])
+})
+
+test('a gateway comes as close to the activity before it as another activity: its name stands above the row', () => {
+  const name = { name: '¿La factura es válida?' }
+  assert.deepEqual(gaps('exclusive_gateway', [60, 40, 20, 5, -4], name), [60, 40, 20, 20, 20])
+  assert.deepEqual(gaps('exclusive_gateway', [40, 20, 5], { ...name, label_position: 'bottom' }), [40, 20, 20])
+  assert.deepEqual(gaps('exclusive_gateway', [40, 20, 5], { ...name, label_orientation: 'vertical' }), [40, 20, 20])
+})
+
+// An event's name under it is drawn in the activity's row: it keeps the event its own width away.
+test('an event keeps only the room its name takes: 27 px for «Fin», none for a name above', () => {
+  assert.deepEqual(gaps('end_event', [57, 37, 20, 0], { name: 'Fin' }), [57, 37, 27, 27])
+  assert.deepEqual(gaps('end_event', [57, 37, 20, 0], { name: 'Pago realizado' }), [57, 37, 37, 37])
+  assert.deepEqual(gaps('end_event', [37, 20, 0], { name: 'Pago realizado', label_position: 'top' }), [37, 27, 27])
+})
+
+// Under 36 px the two port stubs (18 px each) run past each other: the search
+// between their ends drew [375,72] → 393 → back to 374 → 395, a loop.
+test('the connection between two neighbours closer than their stubs is a straight line, or one step halfway', () => {
+  const pointsOf = (d, id) => routeDiagram(d).get(id).points.map((p) => [p.x, p.y])
+  for (const [type, extra] of [['task', {}], ['exclusive_gateway', { name: 'Ok?' }], ['end_event', { name: 'Fin', label_position: 'top' }]]) {
+    for (const gap of [20, 30]) {
+      const route = pointsOf(arrange(after(type, gap, extra)), 'f1')
+      assert.equal(route.length, 2, `${type} at ${gap}: ${JSON.stringify(route)}`)
+      assert.equal(route[0][1], route[1][1])
+    }
+  }
+  const lower = after('task', 20)
+  lower.nodes[2] = { ...lower.nodes[2], y: lower.nodes[2].y + 30 }
+  const stepped = pointsOf(arrange(lower), 'f1')
+  assert.deepEqual(stepped.map(([x]) => x - stepped[0][0]), [0, 10, 10, 20])
+})
+
+test('a name is never left on the stub of a neighbour’s port', () => {
+  // A narrow activity: the gateway's name would reach over its top port.
+  const narrow = after('exclusive_gateway', 20, { name: '¿La factura es válida?' })
+  narrow.nodes[1] = { ...narrow.nodes[1], width: 80, x: 375 - 80 }
+  assert.ok(settledGap(narrow) > 20)
+})
+
+// Close is for one row. Across rows the router needs its channels: with rows
+// 16 px apart, 600 random sessions ended with connections through a gateway.
+test('two activities one over the other keep the room they always did: 26 px', () => {
+  const stacked = (gap) => {
+    const [t1, t2] = arrange(docOf({ lanes: [{ ...lanesOf('A')[0], size: 400 }], nodes: [nodeOf('t1', 'task', 'l1', 300, 90), nodeOf('t2', 'task', 'l1', 300, 90 + 64 + gap)] })).nodes
+    return [t2.x - t1.x, t2.y - (t1.y + 64)]
+  }
+  assert.deepEqual(stacked(30), [0, 26])
+  assert.notEqual(stacked(16)[0], 0, 'closer, the lower one moves along the flow')
+})
+
+// #1694: names placed by hand (`label_position`) are part of the footprint
+// the layout, the arrangement and the router already work with.
+const withLabels = (doc, position, turned = () => false) => ({ ...doc, nodes: doc.nodes.map((n) => (hasExternalLabel(n) ? { ...n, label_position: position(n), ...(turned(n) ? { label_orientation: 'vertical' } : {}) } : n)) })
+for (const [name, make] of Object.entries(FIXTURES)) {
+  for (const orientation of ['horizontal', 'vertical']) {
+    test(`${name} (${orientation}) with every outside name placed above, below or mixed: no hard violation`, () => {
+      const base = normalize(make())
+      const turned = orientation === 'vertical' ? setOrientation(base, 'vertical').doc : base
+      let flip = 0
+      for (const position of [() => 'top', () => 'bottom', () => (flip++ % 2 ? 'top' : 'bottom')]) {
+        const laid = autoLayout(withLabels(turned, position))
+        assert.equal(measure(laid).hard, 0, `Tidy up: ${JSON.stringify(measure(laid).details)}`)
+        // Placed on a diagram already laid out, as the properties panel does it.
+        const edited = arrange(withLabels(autoLayout(turned), position))
+        assert.equal(measure(edited).hard, 0, `edit: ${JSON.stringify(measure(edited).details)}`)
+        assert.equal(arrange(edited), edited, 'settled')
+      }
+    })
+  }
+}
+
+// …and so are names turned to read upwards (`label_orientation`), whose box is tall.
+for (const [name, make] of Object.entries(FIXTURES)) {
+  for (const orientation of ['horizontal', 'vertical']) {
+    test(`${name} (${orientation}) with outside names turned, where the editor puts them, above and below: no hard violation`, () => {
+      const base = normalize(make())
+      const turned = orientation === 'vertical' ? setOrientation(base, 'vertical').doc : base
+      let flip = 0
+      for (const position of [() => null, () => 'top', () => 'bottom']) {
+        for (const which of [() => true, () => flip++ % 2 === 0]) {
+          const laid = autoLayout(withLabels(turned, position, which))
+          assert.equal(measure(laid).hard, 0, `Tidy up: ${JSON.stringify(measure(laid).details)}`)
+          const edited = arrange(withLabels(autoLayout(turned), position, which))
+          assert.equal(measure(edited).hard, 0, `edit: ${JSON.stringify(measure(edited).details)}`)
+          assert.equal(arrange(edited), edited, 'settled')
+        }
+      }
+    })
+  }
+}
+
+// A name beside a port leaves the port's side free to its right only. Spread
+// around the middle, the first of two ways out pinned to the bottom of a
+// gateway named below ran into the name and was sent out by the left instead.
+test('connections on the side a name stands beside spread to the right of the port, below as above', () => {
+  const exits = (extra, side, y) => {
+    const targets = [[300, y], [500, y], [700, y]]
+    const d = docOf({
+      lanes: [{ ...lanesOf('A')[0], size: 900 }],
+      nodes: [nodeOf('a', 'task', 'l1', 200, 400), nodeOf('g', 'exclusive_gateway', 'l1', 500, 400, { name: 'Which way to go?', ...extra }), ...targets.map(([x, cy], i) => nodeOf(`t${i}`, 'task', 'l1', x, cy))],
+      edges: [flowOf('f0', 'a', 'g'), ...targets.map((_, i) => flowOf(`f${i + 1}`, 'g', `t${i}`, { ports: { source: side } }))]
+    })
+    const routes = routeDiagram(d)
+    assert.deepEqual(measure(d).details.filter(([kind]) => kind !== 'gatewaySharedSide'), [])
+    return ['f1', 'f2', 'f3'].map((id) => [routes.get(id).sourceSide, routes.get(id).points[0].x >= 500])
+  }
+  assert.deepEqual(exits({ label_position: 'bottom' }, 'bottom', 650), [['bottom', true], ['bottom', true], ['bottom', true]])
+  assert.deepEqual(exits({}, 'top', 150), [['top', true], ['top', true], ['top', true]])
 })

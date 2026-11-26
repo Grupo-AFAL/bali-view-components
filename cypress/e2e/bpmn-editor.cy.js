@@ -437,6 +437,83 @@ describe('BPMN editor island', () => {
 
 // The rules gallery preview: one rule at a time, its failing example listed in
 // the pending-issues panel the preview opens on load, its passing one not.
+// Where it goes for each arrangement of neighbours is canvas/menuPlace.js's,
+// tested in test/javascript/bpmn_editor/menuPlace.test.js.
+describe('BPMN editor quick menu beside its neighbours', () => {
+  beforeEach(() => cy.viewport(1000, 660))
+
+  // #1694: beside «Validar factura» the menu lay over the gateway 130 px on,
+  // and took the click meant for it.
+  it('opens the quick menu where it covers no other element, so a click on a neighbour reaches it', () => {
+    cy.visit(`${EDITABLE}?palette=full`)
+    nodeNamed('Validar factura').click()
+    cy.get('[data-testid="bpmn-quick-menu"]').should('be.visible').then(($menu) => {
+      const menu = $menu[0].getBoundingClientRect()
+      Cypress.$('.react-flow__node-bpmn').each((_i, node) => {
+        const box = node.getBoundingClientRect()
+        const apart = menu.right <= box.left || box.right <= menu.left || menu.bottom <= box.top || box.bottom <= menu.top
+        expect(apart, `clear of ${node.dataset.id}`).to.eq(true)
+      })
+    })
+    nodeNamed('¿La factura es válida?').click()
+    cy.get('.react-flow__node-bpmn.selected [data-testid="bpmn-node"]').should('have.attr', 'title', '¿La factura es válida?')
+  })
+})
+
+describe('BPMN editor dialogs', () => {
+  // A native modal dialog: over the whole page (the top layer), not only over
+  // the editor, and as wide as its content asks, up to the viewport.
+  it('opens the rules over the whole page, in one table, and Esc gives the focus back', () => {
+    cy.viewport(1400, 900)
+    cy.visit(EDITABLE)
+    cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 1)
+    cy.get('[data-testid="bpmn-rules-button"]').click()
+    cy.get('dialog.bpmn-dialog').should(($dialog) => {
+      const dialog = $dialog[0]
+      const veil = dialog.getBoundingClientRect()
+      expect(dialog.matches(':modal'), 'modal').to.eq(true)
+      expect([veil.width, veil.height], 'veil over the viewport').to.deep.eq([1400, 900])
+    })
+    cy.get('[data-testid="bpmn-rules-dialog"]').should('be.visible').should(($panel) => {
+      const panel = $panel[0].getBoundingClientRect()
+      expect(panel.width, 'wide').to.eq(1024)
+      expect(panel.bottom, 'inside the viewport').to.be.at.most(900)
+    })
+    cy.get('[data-testid="bpmn-rules-dialog"] thead th').should('have.length', 5)
+    cy.get('[data-testid="bpmn-rules-dialog"] [data-rule="R07"] td').should('have.length', 5)
+    cy.get('[data-testid="bpmn-rules-dialog"]').type('{esc}')
+    cy.get('dialog.bpmn-dialog').should('not.exist')
+    cy.focused().should('have.attr', 'data-testid', 'bpmn-rules-button')
+  })
+
+  // The properties panel is no dialog: nothing behind it goes dark, the
+  // canvas stays in reach, and a shadow lifts it off the diagram.
+  it('opens the properties panel wide, lifted by its shadow, and darkens nothing', () => {
+    cy.viewport(1400, 900)
+    cy.visit(EDITABLE)
+    cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 2)
+    cy.get('.react-flow__node-bpmn').first().click()
+    cy.get('[data-testid="bpmn-properties"]').should('be.visible').should(($panel) => {
+      expect($panel[0].getBoundingClientRect().width).to.eq(384)
+      expect(getComputedStyle($panel[0]).boxShadow).to.contain('48px')
+    })
+    cy.get('.react-flow__node-bpmn:not(.selected)').first().should('have.css', 'filter', 'none').and('have.css', 'opacity', '1')
+    cy.get('dialog.bpmn-dialog').should('not.exist')
+  })
+
+  it('closes on a press on the veil, and a confirmation stays narrow', () => {
+    cy.viewport(1400, 900)
+    cy.visit(`${EDITABLE}?sample=partners&server=reject_finalize`)
+    cy.get('[data-testid="bpmn-node"]').should('have.length.at.least', 7)
+    cy.get('[data-testid="bpmn-finalize"]').click()
+    cy.get('[data-testid="bpmn-pending-panel"]').should('be.visible').should(($panel) => {
+      expect($panel[0].getBoundingClientRect().width).to.eq(896)
+    })
+    cy.get('dialog.bpmn-dialog').click(10, 10)
+    cy.get('dialog.bpmn-dialog').should('not.exist')
+  })
+})
+
 describe('BPMN editor rules gallery', () => {
   it('rules gallery with example=failing shows the rule in the pending panel', () => {
     cy.visit('/bali/bpmn_editor/rules_gallery?rule=R06&example=failing')

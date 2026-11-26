@@ -186,3 +186,20 @@ export function paletteKeyFor (node) {
   }
   return null
 }
+
+// A sub-process is tied to an entity of the app (its reference, its name):
+// it is not one more kind of task, and neither turns into the other.
+export const hasTypeChoices = (node) => isGateway(node) || isEvent(node) || (isActivity(node) && node.type !== 'sub_process')
+
+// The palette keys a task, a gateway or an event may turn into without
+// leaving its place in the flow: the other items of its palette group — a
+// task any task, a gateway any gateway, a start event any start event. The
+// group keeps the edit's blocks as they were (a start stays a start); it does
+// not keep every rule: an event-based gateway that leads to tasks (B01) or a
+// start gateway with a way in (B10) is listed as pending, like one drawn so.
+// Empty for anything else, and for a node no palette item makes.
+export function typeChoices (node) {
+  const key = paletteKeyFor(node)
+  if (!key || !hasTypeChoices(node)) return []
+  return Object.keys(PALETTE_ITEMS).filter((other) => PALETTE_ITEMS[other].group === PALETTE_ITEMS[key].group && hasTypeChoices(PALETTE_ITEMS[other].node))
+}

@@ -7,6 +7,110 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.30.0] - 2026-11-25
+
+### Added
+
+- **`BpmnEditor`: guías de alineación al arrastrar** (#1694). Una línea punteada marca la línea
+  de centros que lo que se arrastra compartiría con cada elemento de su columna o de su fila —
+  en los tramos entre figuras y entre los nombres que se pintan fuera de ellas, sin pasar
+  sobre unas ni otros —, y aparece justo cuando soltarlo los deja alineados (a 5 px o menos:
+  el acomodo local lleva el centro a la retícula de 10 px). Nada que configurar.
+- **`BpmnEditor`: «Tipo» cambia una tarea, un gateway o un evento sin desconectarlo** (#1694).
+  El panel de propiedades ofrece los demás elementos de su grupo de la paleta que la app dejó
+  habilitados (una tarea, cualquier tarea; un gateway, cualquier gateway; un evento de inicio,
+  otro de inicio). Conserva su id, y con él conexiones, notas, nombre, tamaño y `fields` — los
+  del tipo anterior que el nuevo no muestra también: siguen en el nodo y se guardan igual. Un
+  nombre que nunca se cambió («Decisión») pasa al del tipo nuevo, y un gateway que pasa a
+  paralelo pierde las etiquetas de sus salidas. «Tipo» no rechaza nada: si lo conectado ya no
+  le va al tipo nuevo (un gateway basado en eventos que lleva a tareas, B01), lo listan las
+  reglas como pendiente. El subproceso queda fuera en los dos sentidos: está ligado a una
+  entidad de la app. El documento no cambia de formato. Llave nueva de textos:
+  `props_type_hint`.
+- **`BpmnEditor`: el nombre de un evento, un gateway o un dato se coloca arriba o abajo y se gira
+  a vertical** (#1694). «Posición del nombre» (Auto, Arriba, Abajo) y «Orientación del nombre»
+  (Horizontal, Vertical) en el panel de propiedades. Arriba, el nombre va a la izquierda del
+  puerto superior y deja libres los cuatro puertos: el de un evento iba siempre abajo y ocupaba
+  ese. Girado, se lee hacia arriba, como el de un carril. Rutas, acomodo, «Autoajustar», PNG,
+  SVG e impresión usan la misma caja, y las conexiones del lado donde está el nombre salen a
+  la derecha del puerto; el `.bpmn` la exporta en `<bpmndi:BPMNLabel>` (sin rotación, que BPMN
+  DI no tiene) solo cuando se colocó o giró a mano, y la importación no la lee.
+  **Formato:** dos llaves opcionales en el nodo, `label_position` (`"top"`, `"bottom"`) y
+  `label_orientation` (`"vertical"`, `"horizontal"`); `null`, `""` o ausentes, como siempre,
+  así que un documento guardado antes se abre y se exporta igual. `Data` lanza `InvalidError`
+  con otro valor. **Qué hacer:** una app que guarda el documento entero, nada; una que lo
+  mapea a sus propias columnas necesita una por llave, o el siguiente `200` devuelve el nombre
+  a su lugar. Llaves nuevas de textos: `props_label_position`,
+  `label_position_{auto,top,bottom}`, `props_label_orientation`,
+  `label_orientation_{horizontal,vertical}`. Preview: `bali/bpmn_editor/placed_names`.
+
+### Changed
+
+- **`BpmnEditor`: los diálogos del editor cubren toda la página y se ensanchan con su
+  contenido** (#1694). «Pendientes», «Reglas», el aviso de salida sin guardar y la confirmación
+  de borrado eran un recuadro de 672 px fijos sobre un velo al 30 % que solo tapaba el editor.
+  Ahora son un `<dialog>` nativo abierto con `showModal()`: el velo (negro al 50 %) cubre la
+  página entera, también en pantalla completa, y lo de atrás queda inerte. Tres anchos:
+  448 px para una confirmación, 896 px para «Pendientes» y 1024 px para «Reglas», nunca más
+  que la ventana; el alto se mide contra la ventana y solo el cuerpo se desplaza. «Reglas» es
+  una sola tabla con columnas Clave, Regla, Criterios, Fuente y Severidad y encabezado fijo
+  (bajo 768 px, criterios y fuente van debajo del título), y una regla apagada dice «Apagada»
+  en vez de «—». Cuatro llaves nuevas de textos: `rules_id`, `rules_rule`, `rules_severity` y
+  `rules_off`. El botón «Reglas» lleva `data-testid="bpmn-rules-button"`. Un host que buscaba
+  el diálogo con `[role="dialog"]` debe buscar `dialog.bpmn-dialog` o el `data-testid` de su
+  panel, que no cambió.
+- **`BpmnEditor`: el panel de propiedades es más ancho y resalta con su sombra** (#1694).
+  Medía 288 px fijos; ahora mide 384 px, o el 36 % del lienzo cuando este es angosto, nunca
+  menos de los 288 de antes, y una sombra profunda lo despega del diagrama. No oscurece lo
+  que tiene detrás: no es un diálogo, y el lienzo, la paleta y el menú rápido se siguen
+  usando con él abierto. El encuadre, el menú rápido y el deslizamiento del elemento
+  seleccionado dejan libre el nuevo ancho.
+- **`BpmnEditor`: un gateway nuevo nace con el nombre de su tipo, salvo el exclusivo** (#1694).
+  Paralelo «AND», inclusivo «OR», complejo «Complejo», basado en eventos «Eventos»; el
+  exclusivo y la decisión Sí/No siguen naciendo «Decisión». Son cuatro llaves nuevas de textos
+  (`new_parallel_gateway`, `new_inclusive_gateway`, `new_complex_gateway`,
+  `new_event_based_gateway`). Un «OR» que bifurca recibe B11 («no está redactado como
+  pregunta») mientras conserve ese nombre: la regla no cambió. Un nombre de una sola palabra
+  en mayúsculas ya no se corta («AND» se pintaba «A…»: medía 25 px en una caja de 24); los
+  demás nombres miden lo mismo que antes.
+- **`BpmnEditor`: la etiqueta de una conexión ya no lleva contorno** (#1694), en el lienzo y en
+  las salidas. Conserva el fondo, que evita que la línea atraviese el texto.
+- **`BpmnEditor`: el panel de propiedades lista los pendientes del elemento seleccionado**
+  (#1694) — nodo, conexión o carril —, con el mensaje y la clave de cada regla y los `issues`
+  del servidor. Antes el triángulo solo avisaba, y había que buscarlo en «N pendientes». Llave
+  nueva de textos: `props_issues`.
+- **`BpmnEditor`: el menú rápido se abre donde no tapa a otro elemento** (#1694): a la derecha,
+  a la izquierda, abajo o arriba del seleccionado. Junto a un vecino sus íconos quedaban
+  encima de él y se llevaban el clic; con todos los lados ocupados sigue yendo a la derecha.
+- **`BpmnEditor`: los elementos de una misma fila se pueden dejar más juntos** (#1694). El
+  acomodo local mandaba a 80 px a todo lo que quedara a menos de 40 px de otro, y medía la
+  caja que envuelve figura, nombre e insignia: un gateway no bajaba de 170 px de la actividad
+  anterior, porque su nombre «chocaba» antes que el rombo. Entre dos elementos de la misma
+  fila el mínimo se mide ahora entre figuras — 20 px (antes 50) — y el nombre cuenta donde se
+  pinta: nunca sobre otra figura, otro nombre, una insignia de pendiente o el tramo por el que
+  sale una conexión del vecino. Un gateway llega a 20 px de una actividad mientras su nombre
+  no alcance el puerto superior de ella (con una actividad del ancho normal, un nombre de
+  hasta 98 px; el máximo es 100); un evento con el nombre abajo conserva lo que mide su nombre
+  (27 px con «Fin»). Lo que se suelta más cerca, o un poco encimado, avanza al mínimo; solo lo
+  que se suelta encima de otro (más de la mitad) sigue yendo al siguiente lugar libre. Dos
+  vecinos a menos de 36 px con los puertos de frente se unen con una recta (o un escalón a la
+  mitad). Entre filas la separación es la de siempre (26 px entre dos actividades una sobre
+  otra): ahí el ruteo necesita sus canales. «Autoajustar», el menú rápido y la inserción en
+  una conexión conservan su separación.
+  **Cambia a la vista:** el nombre de todo gateway se pinta 12 px más arriba y 2 px más a la
+  izquierda, para quedar sobre la fila y sobre la insignia de la actividad vecina. Ningún
+  elemento de un diagrama guardado cambia de lugar, ni al abrirlo ni en su primera edición:
+  el carril se sigue ajustando a donde estaba el nombre.
+
+### Fixed
+
+- **`slim_select_group`: una opción de varios renglones ya no se aplasta ni se encima con la
+  siguiente** (#1695). La lista es una columna flex de 240 px y la opción podía encogerse hasta
+  su `min-height` de 40 px en cuanto las opciones juntas pasaban de ese alto; ahora cada una
+  conserva el alto de su texto y la lista hace scroll. Qué hacer: una app que ya traía
+  `.ss-content .ss-list .ss-option { flex-shrink: 0 }` puede quitar su regla. Preview:
+  `bali/form/slim_select/multiline_options`.
+
 ## [v3.29.1] - 2026-11-22
 
 ### Fixed

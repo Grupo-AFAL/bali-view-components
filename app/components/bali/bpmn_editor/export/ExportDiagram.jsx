@@ -185,7 +185,7 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
             />
             {box && (
               <g transform={`translate(${box.x + box.w / 2} ${box.y + box.h / 2})`}>
-                <rect x={-box.w / 2} y={-9} width={box.w} height={18} rx={4} fill={colors.background} stroke={colors.border} />
+                <rect x={-box.w / 2} y={-9} width={box.w} height={18} rx={4} fill={colors.background} />
                 <text x={0} y={baseline(0, 11, CENTRAL)} textAnchor='middle' fontSize={11} fontWeight={600} fill={colors.text}>{label}</text>
               </g>
             )}
@@ -217,9 +217,14 @@ export default function ExportDiagram ({ doc, paint, colors, title, subtitle, wa
             {(() => {
               const lb = nodeLabelBox(node, layout.orientation)
               if (!lb) return null
-              const anchor = category === CATEGORY.gateway ? 'end' : layout.orientation === 'vertical' && category === CATEGORY.event ? 'start' : 'middle'
-              const x = anchor === 'end' ? lb.x + lb.w : anchor === 'start' ? lb.x : lb.x + lb.w / 2
-              return <Text x={x} y={lb.y + lb.h / 2} anchor={anchor} text={node.name} maxChars={Math.max(4, Math.floor(lb.w / 6.4))} maxLines={lb.lines} size={11} fill={colors.text} />
+              const anchor = lb.align
+              const [cx, cy] = [lb.x + lb.w / 2, lb.y + lb.h / 2]
+              // A turned name is drawn across, as long as its box is tall, and
+              // turned a quarter back around the box's centre.
+              const run = lb.vertical ? lb.h : lb.w
+              const x = anchor === 'end' ? cx + run / 2 : anchor === 'start' ? cx - run / 2 : cx
+              const text = <Text x={x} y={cy} anchor={anchor} text={node.name} maxChars={Math.max(4, Math.floor(run / 6.4))} maxLines={lb.lines} size={11} fill={colors.text} />
+              return lb.vertical ? <g transform={`rotate(-90 ${cx} ${cy})`}>{text}</g> : text
             })()}
             {tab && <BadgeTab tab={tab} color={look.color} colors={colors} />}
             {note && (

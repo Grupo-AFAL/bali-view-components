@@ -175,6 +175,8 @@ is another table with its own key.
       "reference": { "id": "77", "label": "Supplier onboarding", "url": "/…" },   // sub_process
       "event_definition": { "kind": "timer", "expression": "PT1H" },              // events
       "appearance": { "color": "#E9A23B", "dimmed": true, "badge": "In progress" }, // the app's look
+      "label_position": "top",                    // events, gateways, data: see Name position
+      "label_orientation": "vertical",            // the same elements: the name reads upwards
       "fields": {} }
   ],
   "edges": [ { "id": "e1", "source": "n1", "target": "n2", "type": "sequence_flow",
@@ -278,6 +280,44 @@ default of its type (an activity 150 × 64, a gateway 50 × 50, an event 36 × 3
   room for it. Only Auto activities are narrowed when `layout: :compact` tightens a flow
   that does not fit the page — which gives them a width of their own (110), «Auto» in the
   panel puts the default back.
+
+### Name position
+
+The name of an event, a gateway or a data element is drawn outside its shape. Where: under
+an event or a data element (to the right of an event in vertical lanes, where the flow leaves
+by its bottom) and above a gateway, to the left of its top port. `label_position` on the node
+is where a person put it instead — «Name position» in the properties panel:
+
+- **`"top"`**: above the shape, to the left of its top port, as a gateway's name already is,
+  so none of the four ports is taken by the name and a connection may use any. A name above
+  stands over the row an activity beside it would take (64 px) and over that activity's
+  pending badge, and 6 px left of the port, clear of the arrowhead of a connection ending
+  there.
+- **`"bottom"`**: under the shape — centred under an event or a data element, to the left of
+  a gateway's bottom port, which is a branch's way out.
+- **absent or `null`** («Auto»): the editor's own placement above. Every document saved
+  before the key existed has none, and opens and saves exactly as it did.
+
+`label_orientation` turns the same name — «Name direction» in the panel:
+
+- **`"vertical"`**: the name reads upwards, as a horizontal lane's does, its lines side by
+  side in a box as tall as the name is long (100 px at most, three lines). It stays at its
+  position: above, it starts next to the shape; below, it ends there.
+- **`"horizontal"`, absent or `null`**: across, as always.
+
+Both are optional and only mean something on those elements; an activity, an annotation and
+a group hold their own name. «Auto» and «Horizontal» send `null` rather than dropping the
+key, as an Auto size does. A blank string is none too, for the editor and for `Data` (which
+hands it on as `nil`): an app that keeps the keys in text columns sends `""` for every node
+that never had them. `Data` raises on any other value. The name's box is the same one
+everywhere: the canvas, the routes (which never cross a name, and avoid the port under one),
+the local arrangement and Tidy up, the image, SVG and print outputs. Connections on the
+side a name stands beside leave to the right of the port, so the name is not in their
+way. In the `.bpmn` export a
+name placed or turned by hand travels as the shape's `<bpmndi:BPMNLabel>` bounds — BPMN DI
+has bounds and no rotation, so a turned name's are the tall box it is drawn in; a name left
+to the editor has none, as before. An app that maps the document onto its own columns needs
+one for each key, or the next `200` draws the name the editor's way again.
 
 ---
 
@@ -496,6 +536,11 @@ Every rule has an id, a severity (`error` / `warning`), the element it points at
 and a message. **The draft always saves;** "Finalize flow" refuses while there is
 an error. Messages come from the i18n table (`rule_<ID>`), interpolating `%{name}`.
 
+An element with an issue carries a warning triangle on the canvas. The top bar's «N pending»
+lists every issue of the diagram, and the properties panel of the selected node, connection
+or lane opens with the ones that point at it — message and rule id — under «Pending on this
+element» (`props_issues`), the server's `issues` among them.
+
 Each key below changes a default: R16 is on and R17/R19 off out of the box, R11 is an
 error, and the options default to 2 lanes and 25 activities.
 
@@ -589,7 +634,8 @@ configured id no rule has:
 | LAN-08 | No two lanes with nearly the same name («Gerente Jurídico» / «Gte. Jurídico») | LAN-08 | warning |
 | VIS-02 | The diagram is legible on its `page:` (11 px text printed at 6 pt or more) | VIS-02, VIS-08 | warning |
 
-The «Rules» dialog groups every rule by the matrix's chapters and shows its criteria.
+The «Rules» dialog is one table grouped by the matrix's chapters: id, rule, criteria,
+source and severity (or «Off»).
 VIS-10 needs to know the palette: the editor passes the palette keys the host leaves
 enabled (`palette:`); with no palette configured it checks nothing.
 
@@ -907,7 +953,13 @@ are laid on.
 - **Palette**: click an element and click inside a lane, or drag it. Over a sequence
   flow it is inserted into it — nothing disconnects, and what follows moves along.
 - **Quick menu** next to the selected element: activity, intermediate event,
-  gateway, end, or "More", towards any of four directions, already connected. When the
+  gateway, end, or "More", towards any of four directions, already connected. It opens where
+  it covers no other element — to the right, to the left, below or above, 14 px from the
+  element or further out (up to 104 px) when a neighbour or the lane below stands that near —
+  so a click on a neighbour reaches the neighbour; with every place taken, to the right as
+  before. A group
+  frames elements and does not count; once open, the menu stays where it is while that
+  place is free, so a pan or a zoom does not make it jump. When the
   spot ahead is taken the following elements move along; past the first or last lane,
   across the flow, that lane grows. Towards a lane the flow may not reach (an external
   participant, which takes message flows only), the element stays in its own lane, which
@@ -940,6 +992,13 @@ are laid on.
   where it leaves its source.
 - **Selection**: Shift+click, Ctrl+A, "Select all", or "Box select" (for touch
   screens). Align vertically across lanes; horizontally only inside one lane.
+- **Alignment guides**: while an element is dragged, a dashed line runs on the centre line it
+  would share with every element of its column or its row — in the stretches between the
+  shapes and the names drawn outside them, never over either. The line shows exactly
+  while the drop will align them — a dropped element's centre goes to the 10 px grid, so
+  that is within 5 px of the other centre — and it compares centres, not edges, so an event,
+  a gateway and an activity line up. Several elements dragged together each get theirs; a
+  dragged lane gets none.
 - **Keyboard**: Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z), Ctrl+A, Delete/Backspace, Esc,
   arrows move the selection (10 px a press, Shift for 1 px; a run of presses is one undo
   step, and the local arrangement runs when the key goes up — a Shift nudge keeps its pixel).
@@ -950,6 +1009,22 @@ are laid on.
   nothing to let go of.
 - **Wheel**: zooms an editable canvas. Over a read-only diagram it scrolls the page, as
   anywhere else on it; the zoom bar and a pinch still zoom.
+- **Place a name**: «Name position» in the properties panel of an event, a gateway or a data
+  element — «Above», «Below» or «Auto» — and «Name direction» — «Horizontal» or «Vertical»:
+  see [Name position](#name-position).
+- **Change the type** of a task, a gateway or an event: «Type» in its properties panel lists
+  the other elements of its palette group the app left enabled — a task any task, a gateway
+  any gateway, a start event the start events, and so for intermediate and end events. The
+  element stays where it is, with its id: its connections, notes, name, description, size and
+  `fields` are kept, and it is one undo step. A name it never got (the old type's default)
+  becomes the new type's; a timer that stays a timer keeps its expression; a gateway turned
+  parallel drops the labels of its ways out, which a parallel split does not carry. A
+  sub-process is tied to an entity of the app: it is offered no other type, and no task is
+  offered to become one. The select refuses nothing: whether what the element is connected
+  to still suits its new type is the rules' to say — an event-based gateway that leads to
+  tasks (B01), one that starts the process with a way in (B10) — as pending issues, like any
+  element drawn that way. `fields` of the old type the new one has no input for stay in the
+  node and are saved as before; turning the type back shows them again.
 - **Resize an activity**: the corner handle of the selected one, or «Size» in the
   properties panel; «Auto» returns to the type's size — see [Node size](#node-size).
 - **Local arrangement** (always on) and **Tidy up**: see [Layout](#layout).
@@ -961,7 +1036,28 @@ The **local arrangement** runs after every edit that changes the structure (add,
 connect, move, delete, rename); neither the user nor the host can turn it off. It keeps what
 the user placed where they placed it and only fixes what collides: an element whose footprint
 — shape, name and pending badge — runs into another moves *forward along the flow*, and so do
-the ones after it. A deletion that leaves a stretch of the flow wider than a column empty in
+the ones after it. Two elements of one row — their shapes side by side along the flow — may
+be left close, and the least is measured between the **shapes**: 20 px. There a name counts
+where it is drawn, not as part of one box around its element: a gateway's stands above its
+row, so the diamond comes as close to the activity before it as another activity would — as
+long as the name does not reach over that activity's top port (with an activity of the
+default width, a name up to 98 px wide; the widest, 100 px, keeps it one grid step further).
+An event's name under it is drawn in that row, so the event keeps the room the name takes
+(27 px for «Fin»). No name is left over another shape, another name, a pending badge or the
+stub of a neighbour's port. A shape left closer than the least, or a little over another's
+edge, moves forward to the least; only one dropped on another — over more than half of it —
+goes to the next free spot, 80 px past the other's footprint (90 px between two activities,
+the pending badge counted). Two neighbours closer than 36 px have their port stubs running
+past each other: when the two ports face each other the connection is a straight line, or
+takes one step halfway when they are not on one line and nothing stands or runs there;
+otherwise it is routed like any other. Across rows the room is the one it always was — a
+box around each element with its name, 15 px from the next row's (26 px between two
+activities one over the other) and 40 px along the flow — because the router needs its
+channels there. A connection that finds no way through a gap still pushes what follows
+along, from its far end first and then from the element right after its near one; if not
+even so, the diagram is spaced as before elements could be left close. A lane is fitted to
+where a name stood before this release (a gateway's is drawn 12 px higher), so a diagram
+saved before is not moved by its first edit. A deletion that leaves a stretch of the flow wider than a column empty in
 every lane closes it: what lies beyond moves back, all lanes together, and nothing before the
 gap moves. Lanes grow and shrink to their content; connections are routed again. The edit and
 its arrangement are one undo step, and the nodes slide into place (0.22 s) instead of jumping.
@@ -1224,8 +1320,10 @@ to stay inside the canvas.
 
 The canvas is mouse-first, like the Gantt's: keep a non-canvas path to what matters
 (a list of activities, a form). What the island does carry: real buttons with
-`aria-label`s and `aria-pressed` states, labelled groups, dialogs with
-`aria-modal`, the pending panel and rules as lists, notices in live regions, visible
+`aria-label`s and `aria-pressed` states, labelled groups, native modal `<dialog>`s
+(`dialog.bpmn-dialog`, opened with `showModal()`: over the whole page, the rest inert,
+focus given back on close), the pending panel as a list and the rules as a table,
+notices in live regions, visible
 focus, documented shortcuts, and a `<noscript>` notice in the mount.
 
 The canvas keeps React Flow's small attribution link, in the page's theme. Its MIT licence
@@ -1251,6 +1349,7 @@ is the maintainers' call, not a default here.
 | `bali/bpmn_editor/review` | Review notes, comparison and the watermarked outputs; `editable` lets notes be added |
 | `bali/bpmn_editor/catalog` | Every palette element as its icon draws it and as the canvas does, with its name |
 | `bali/bpmn_editor/pair` | Two editors on one page: an event the app sends to one reaches that one only |
+| `bali/bpmn_editor/placed_names` | The names of a start event and of a decision placed by hand (`label_position`) and an end event's turned to read upwards (`label_orientation`), the rest left to the editor; `editable` (on its own record) offers «Name position» and «Name direction» in the properties panel, and `orientation` draws it in vertical lanes |
 | `bali/bpmn_editor/resized_activities` | Two activities with a size of their own and the rest «Auto»; `editable` (on its own record) offers the corner handle, «Size» and «Auto» in the properties panel; off, the read-only viewer draws the stored sizes |
 
 The samples are `test/fixtures/bpmn_editor/samples.json`, in English and Spanish, read by

@@ -23,7 +23,7 @@
 // see routing.test.js.
 import { categoryOf, CATEGORY, edgeType, isGateway } from './catalog.js'
 import { layoutLanes, nodeBox, orientationOf, activityShapeOf } from './geometry.js'
-import { nodeLabelBox, badgeBox, labelSide, textBlock, chevronDepth } from './labels.js'
+import { nodeLabelBox, badgeBox, labelSide, labelBeside, textBlock, chevronDepth } from './labels.js'
 
 export const STUB = 18
 const CLEARANCE = 10
@@ -185,11 +185,12 @@ function assignPorts (doc, edges, ctx) {
     const vertical = side === 'left' || side === 'right'
     list.sort((p, q) => (vertical ? p.other.cy - q.other.cy : p.other.cx - q.other.cx))
     const length = vertical ? box.h : box.w
-    // A gateway's name sits above it, left of the top port: endpoints on
-    // its top side spread to the right only — over half the side, which
-    // portPoint clamps to 4 px short of the corner, so the step shrinks to
-    // keep every endpoint distinct.
-    const rightOnly = side === 'top' && isGateway(node)
+    // A gateway's name sits above it, left of the top port (or below, left
+    // of the bottom one; an event's asked above, likewise): endpoints on that
+    // side spread to the right only — over half the side, which portPoint
+    // clamps to 4 px short of the corner, so the step shrinks to keep every
+    // endpoint distinct.
+    const rightOnly = side === labelBeside(node, ctx.orientation)
     const room = rightOnly ? length / 2 - 4 : length - 12
     const step = list.length > 1 ? Math.min(CHANNEL, room / (list.length - 1)) : 0
     list.forEach((slot, i) => {
@@ -275,6 +276,34 @@ function gatewayExits (edges, sides, ctx) {
 }
 
 // ── occupancy ──────────────────────────────────────────────────────────────
+
+// Does p→q pass strictly inside the box (1 px in from its border)?
+function insideBox (p, q, r) {
+  const [x1, x2, y1, y2] = [r.x + 1, r.x + r.w - 1, r.y + 1, r.y + r.h - 1]
+  if (x2 <= x1 || y2 <= y1) return false
+  if (Math.abs(p.x - q.x) < EPS) return p.x > x1 && p.x < x2 && Math.max(p.y, q.y) > y1 && Math.min(p.y, q.y) < y2
+  return p.y > y1 && p.y < y2 && Math.max(p.x, q.x) > x1 && Math.min(p.x, q.x) < x2
+}
+
+// Whether a route crosses a shape or a name: any stretch through another
+// element's, any but the first and last through its own ends'.
+function runsThrough (points, own, boxes, labelBoxes) {
+  const stretches = points.slice(1).map((q, i) => [points[i], q])
+  for (const [id, box] of boxes) {
+    const mine = own.includes(id)
+    if ((mine ? stretches.slice(1, -1) : stretches).some(([p, q]) => insideBox(p, q, box))) return true
+  }
+  return labelBoxes.some((box) => stretches.some(([p, q]) => insideBox(p, q, box)))
+}
+
+// Do the axis-aligned segments p→q and a→b share a stretch of one line?
+function runsAlong (p, q, a, b) {
+  for (const [on, by] of [['y', 'x'], ['x', 'y']]) {
+    if (Math.abs(p[on] - q[on]) >= EPS || Math.abs(a[on] - b[on]) >= EPS || Math.abs(p[on] - a[on]) >= EPS) continue
+    if (Math.min(Math.max(p[by], q[by]), Math.max(a[by], b[by])) - Math.max(Math.min(p[by], q[by]), Math.min(a[by], b[by])) > EPS) return true
+  }
+  return false
+}
 
 function occupancy () {
   const h = new Map() // y → [[x1, x2]]
@@ -618,7 +647,7 @@ export function routeDiagram (doc, { order = null } = {}) {
 // name; a name counts only through its label's box and the side it takes
 // (labels.js). Two documents that agree on all of it, and on the lanes'
 // measures, are routed alike.
-const NODE_KEYS = ['id', 'type', 'x', 'y', 'width', 'height', 'lane_id']
+const NODE_KEYS = ['id', 'type', 'x', 'y', 'width', 'height', 'lane_id', 'label_position', 'label_orientation']
 const EDGE_KEYS = ['id', 'source', 'target', 'type', 'ports', 'waypoints']
 
 export function sameRouting (a, b) {
@@ -690,6 +719,9 @@ export function routeAfresh (doc, order = null) {
 
   // What no line may cross: nodes (plus clearance), names, badges, headers.
   const obstacles = []
+  const labelBoxes = nodes.filter((n) => n.type !== 'group').map((n) => nodeLabelBox(n, orientation)).filter(Boolean)
+  // A group frames elements: lines cross it.
+  const solid = new Map(nodes.filter((n) => n.type !== 'group').map((n) => [String(n.id), boxes.get(String(n.id))]))
   for (const n of nodes) {
     if (n.type === 'group') continue
     const b = boxes.get(String(n.id))
@@ -746,7 +778,42 @@ export function routeAfresh (doc, order = null) {
         y1: Math.max(bounds.y1, Math.min(s.stub.y, t.stub.y) - margin),
         y2: Math.min(bounds.y2, Math.max(s.stub.y, t.stub.y) + margin)
       })
-      let path = search(s.stub, startDir, t.stub, goalDir, blockers, occupied, regionOf(MARGIN))
+      // Neighbours closer than their two stubs (36 px): the stubs run past
+      // each other, and the search, which starts where they end, drew a loop
+      // between them. Facing ports are joined straight, or with one step
+      // halfway when they are not on one line and nothing stands there.
+      const past = (t.stub.x - s.stub.x) * startDir.dx + (t.stub.y - s.stub.y) * startDir.dy < 0
+      const ahead = (t.point.x - s.point.x) * startDir.dx + (t.point.y - s.point.y) * startDir.dy > 0
+      let path = null
+      // Side by side, too: two ports 2 px apart along the flow and 130 across
+      // face each other as well, and the step between them ran up the side
+      // of both shapes.
+      const [a, b] = own.map((nid) => boxes.get(nid))
+      const beside = startDir.dx ? a.y < b.y + b.h && b.y < a.y + a.h : a.x < b.x + b.w && b.x < a.x + a.w
+      if (OPPOSITE[s.side] === t.side && past && ahead && beside) {
+        // On a whole pixel, as every searched line is: at 287.7 the step ran
+        // along a line drawn at 287.5 and neither side knew.
+        const middle = Math.round(startDir.dx ? (s.point.x + t.point.x) / 2 : (s.point.y + t.point.y) / 2)
+        const half = startDir.dx
+          ? [{ x: middle, y: s.point.y }, { x: middle, y: t.point.y }]
+          : [{ x: s.point.x, y: middle }, { x: t.point.x, y: middle }]
+        const [lo, hi] = [{ x: Math.min(half[0].x, half[1].x), y: Math.min(half[0].y, half[1].y) }, { x: Math.max(half[0].x, half[1].x), y: Math.max(half[0].y, half[1].y) }]
+        const blocked = [...stubFree, ...ownBlocks].some((r) => lo.x < r.x + r.w && hi.x > r.x && lo.y < r.y + r.h && hi.y > r.y)
+        // …and on no stretch another connection runs along or has reserved:
+        // its route when drawn, its two stubs otherwise. `occupied` cannot
+        // say: it holds this connection's own stubs, which the line follows.
+        const others = []
+        for (const [otherId, other] of ports) {
+          if (otherId === id) continue
+          const drawn = routes.get(otherId)
+          if (drawn) for (let i = 0; i < drawn.points.length - 1; i++) others.push([drawn.points[i], drawn.points[i + 1]])
+          else others.push([other.source.point, other.source.stub], [other.target.point, other.target.stub])
+        }
+        const line = [s.point, ...half, t.point]
+        const shared = line.slice(1).some((q, i) => others.some(([a, b]) => runsAlong(line[i], q, a, b)))
+        if (!blocked && !shared) path = half
+      }
+      if (!path) path = search(s.stub, startDir, t.stub, goalDir, blockers, occupied, regionOf(MARGIN))
       if (!path) path = search(s.stub, startDir, t.stub, goalDir, blockers, occupied, bounds)
       if (!path) {
         // The preferred sides are walled in (a node right above the target,
@@ -769,6 +836,10 @@ export function routeAfresh (doc, order = null) {
         failed = true
       }
       points = simplify([s.point, ...path, t.point])
+      // A line the search let through a shape or a name — along the edge of
+      // its own node, in a corridor too tight to turn in — is no way found:
+      // said so, the local arrangement makes room and routes again.
+      failed = failed || runsThrough(points, own, solid, labelBoxes)
     }
     for (let i = 0; i < points.length - 1; i++) occupied.add(points[i], points[i + 1])
     routes.set(id, { points, sourceSide: port.sourceSide, targetSide: port.targetSide, label: labelAnchor(points), failed })
@@ -801,7 +872,7 @@ function otherSides (edge, ctx, blockers, occupied, bounds, taken = new Set()) {
   const endFor = (node, box, side) => {
     if (labelSide(node, ctx.orientation) === side) return null
     for (const offset of [0, CHANNEL, -CHANNEL, 2 * CHANNEL, -2 * CHANNEL]) {
-      if (side === 'top' && isGateway(node) && offset < 0) continue
+      if (side === labelBeside(node, ctx.orientation) && offset < 0) continue
       const { point, stub } = endpoint(node, box, side, offset, ctx.activityShape)
       if (!occupied.overlaps(point, stub) && !inside(stub)) return { side, point, stub }
     }

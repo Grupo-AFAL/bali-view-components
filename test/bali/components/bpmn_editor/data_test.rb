@@ -147,6 +147,37 @@ class BaliBpmnEditorDataTest < ActiveSupport::TestCase
     assert_nothing_raised { Data.new(sized("group", width: 1200, height: 600)) }
   end
 
+  # Optional, so every document saved before the key existed still opens.
+  def test_a_label_position_is_top_bottom_or_left_to_the_island
+    assert_nothing_raised { Data.new(sized("start_event")) }
+    assert_nothing_raised { Data.new(sized("start_event", label_position: nil)) }
+    assert_equal "top", Data.new(sized("start_event", label_position: "top")).nodes.first[:label_position]
+    assert_nothing_raised { Data.new(sized("exclusive_gateway", label_position: :bottom)) }
+
+    error = assert_raises(Data::InvalidError) { Data.new(sized("start_event", label_position: "left")) }
+
+    assert_includes error.message, "node n1: label_position must be one of"
+  end
+
+  def test_a_label_orientation_is_horizontal_vertical_or_left_to_the_island
+    assert_nothing_raised { Data.new(sized("end_event", label_orientation: nil)) }
+    assert_nothing_raised { Data.new(sized("end_event", label_orientation: "horizontal")) }
+    assert_equal "vertical", Data.new(sized("end_event", label_orientation: "vertical", label_position: "top")).nodes.first[:label_orientation]
+
+    error = assert_raises(Data::InvalidError) { Data.new(sized("end_event", label_orientation: "diagonal")) }
+
+    assert_includes error.message, "node n1: label_orientation must be one of"
+  end
+
+  # An app that maps the two keys onto varchar columns hands back "" for a node that never
+  # had them: the island reads that as none (labels.js), and so does this.
+  def test_a_blank_label_key_is_none
+    node = Data.new(sized("end_event", label_position: "", label_orientation: " ")).nodes.first
+
+    assert_nil node[:label_position]
+    assert_nil node[:label_orientation]
+  end
+
   def test_a_negative_size_raises
     [ { width: -1 }, { height: "-5" } ].each do |size|
       error = assert_raises(Data::InvalidError, size.inspect) { Data.new(sized("exclusive_gateway", **size)) }
